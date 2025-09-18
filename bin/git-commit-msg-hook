@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# read commit message
+MESSAGE=$(cat "$1")
+
+# commit message schema regex
+SCHEMA_REGEX="^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💄|🎉|✅|🔒️|🔐|🔖|🚨|🚧|💚|⬇️|⬆️|📌|👷|📈|♻️|➕|➖|🔧|🔨|🌐|✏️|💩|⏪️|🔀|📦️|👽️|🚚|📄|💥|🍱|♿️|💡|🍻|💬|🗃️|🔊|🔇|👥|🚸|🏗️|📱|🤡|🥚|🙈|📸|⚗️|🔍️|🏷️|🌱|🚩|🥅|💫|🗑️|🛂|🩹|🧐|⚰️|🧪|👔|🩺|🧱|🧑‍💻|💸|🧵|🦺|✈️)\\([a-z0-9:-]+\\) [a-z].{1,50}"
+
+# validate commit message schema
+if ! echo "$MESSAGE" | grep -qE "$SCHEMA_REGEX"; then
+    echo "❌ Invalid commit message!"
+    echo "Required format: <emoji>(<scope>) <subject>"
+    echo "Example: ✨(auth) add support for HTTP basic auth"
+    echo "Use 'bin/cz commit' for more assistance (requires that commitzen is installed on your system)"
+    exit 1
+fi

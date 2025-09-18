@@ -1,0 +1,107 @@
+[project]
+name = "csplab-dev"
+version = "0.1.0"
+description = "Development tools for CSPLab"
+requires-python = ">=3.11"
+
+
+[dependency-groups]
+dev = [
+    "pre-commit>=3.0.0",
+    "ruff>=0.1.0"
+]
+
+[tool.commitizen]
+name = "cz_customize"
+version = "0.1.0"
+
+[tool.commitizen.customize]
+message_template = "{{change_type}}({{scope}}) {{subject}}{% if body %}\n\n{{body}}{% endif %}{% if footer %}\n\n{{footer}}{% endif %}"
+example = "✨(auth) add support for HTTP basic auth"
+schema = "<emoji>(<scope>) <subject>"
+schema_pattern = "^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💄|🎉|✅|🔒️|🔐|🔖|🚨|🚧|💚|⬇️|⬆️|📌|👷|📈|♻️|➕|➖|🔧|🔨|🌐|✏️|💩|⏪️|🔀|📦️|👽️|🚚|📄|💥|🍱|♿️|💡|🍻|💬|🗃️|🔊|🔇|👥|🚸|🏗️|📱|🤡|🥚|🙈|📸|⚗️|🔍️|🏷️|🌱|🚩|🥅|💫|🗑️|🛂|🩹|🧐|⚰️|🧪|👔|🩺|🧱|🧑‍💻|💸|🧵|🦺|✈️)\\([a-z0-9:-]+\\) [a-z].{1,50}"
+
+[[tool.commitizen.customize.questions]]
+type = "list"
+name = "change_type"
+message = "Select the type of change:"
+choices = [
+    {value = "✨", name = "✨ sparkles: introduce new features"},
+    {value = "🐛", name = "🐛 bug: fix a bug"},
+    {value = "📝", name = "📝 memo: add or update documentation"},
+    {value = "🎨", name = "🎨 art: improve structure / format of the code"},
+    {value = "♻️", name = "♻️ recycle: refactor code"},
+    {value = "⚡️", name = "⚡️ zap: improve performance"},
+    {value = "✅", name = "✅ white_check_mark: add, update, or pass tests"},
+    {value = "🔧", name = "🔧 wrench: add or update configuration files"},
+    {value = "🚀", name = "🚀 rocket: deploy stuff"},
+    {value = "🔥", name = "🔥 fire: remove code or files"},
+    {value = "🚧", name = "🚧 construction: work in progress"},
+    {value = "💚", name = "💚 green_heart: fix CI build"},
+    {value = "⬆️", name = "⬆️ arrow_up: upgrade dependencies"},
+    {value = "⬇️", name = "⬇️ arrow_down: downgrade dependencies"},
+    {value = "🎉", name = "🎉 tada: begin a project"},
+    {value = "🚑️", name = "🚑️ ambulance: critical hotfix"},
+    {value = "🔒️", name = "🔒️ lock: fix security or privacy issues"},
+    {value = "🏗️", name = "🏗️ building_construction: make architectural changes"},
+    {value = "👷", name = "👷 construction_worker: add or update CI build system"},
+    {value = "💄", name = "💄 lipstick: add or update the UI and style files"},
+]
+
+[[tool.commitizen.customize.questions]]
+type = "input"
+name = "scope"
+message = "scope (front, backend, api, notebook, component):"
+
+[[tool.commitizen.customize.questions]]
+type = "input"
+name = "subject"
+message = "Subject (imperative, lowercase, no dot):"
+
+[[tool.commitizen.customize.questions]]
+type = "input"
+name = "body"
+message = "Body (optional, explain WHY):"
+
+[[tool.commitizen.customize.questions]]
+type = "input"
+name = "footer"
+message = "Footer (optional, breaking changes, issues):"
+
+[tool.ruff]
+line-length = 99
+target-version = "py311"
+exclude = [
+    "migrations",
+]
+
+[tool.ruff.lint]
+select = [
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "D",    # pydocstyle
+    "E",    # pycodestyle error
+    "F",    # Pyflakes
+    "I",    # Isort
+    "ISC",  # flake8-implicit-str-concat
+    "PLC",  # Pylint Convention
+    "PLE",  # Pylint Error
+    "PLR",  # Pylint Refactor
+    "PLW",  # Pylint Warning
+    "RUF100", # Ruff unused-noqa
+    "S",    # flake8-bandit (security)
+    "T20",  # flake8-print
+    "W",    # pycodestyle warning
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "S101", # use of assert
+]
+"src/notebook/*" = [
+    "T20",  # allow print in notebooks
+    "D",    # allow missing docstrings in notebooks
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

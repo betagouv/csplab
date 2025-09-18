@@ -1,0 +1,3 @@
+#!/bin/sh
+
+cz --config dev/pyproject.toml "$@"
