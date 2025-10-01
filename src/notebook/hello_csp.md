@@ -15,5 +15,5 @@ jupyter:
 ---
 
 ```python
-print("Hello CSPLab in markdown!")
+print("Hello CSPLab")
 ```
