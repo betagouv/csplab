@@ -2,7 +2,7 @@ name: Post-merge validation
 
 on:
   push:
-    branches: [ main, test-main ]
+    branches: [ main ]
 
 jobs:
   squash-check:
