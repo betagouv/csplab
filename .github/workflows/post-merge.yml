@@ -1,0 +1,47 @@
+name: Post-merge validation
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  squash-check:
+    name: Check Commits Are Squashed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check squash merge
+        run: |
+          # Check that only one commit was added to main
+          PREVIOUS_COMMIT=$(git rev-parse HEAD~1)
+          COMMITS_ADDED=$(git rev-list --count $PREVIOUS_COMMIT..HEAD)
+
+          echo "Previous commit: $(git rev-parse --short $PREVIOUS_COMMIT)"
+          echo "Current commit: $(git rev-parse --short HEAD)"
+          echo "Commits added: $COMMITS_ADDED"
+
+          if [ $COMMITS_ADDED -ne 1 ]; then
+            echo "❌ Merge was not squashed! $COMMITS_ADDED commits were added to main"
+            echo "Please use 'Squash and merge' when merging PRs"
+            exit 1
+          fi
+
+          echo "✅ Merge was properly squashed (1 commit added)"
+
+          # Validate the commit message format
+          MESSAGE=$(git log --format=%s -n 1 HEAD)
+          echo "Merged commit message: $MESSAGE"
+
+          SCHEMA_REGEX="^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💄|🎉|✅|🔒️|🔐|🔖|🚨|🚧|💚|⬇️|⬆️|📌|👷|📈|♻️|➕|➖|🔧|🔨|🌐|✏️|💩|⏪️|🔀|📦️|👽️|🚚|📄|💥|🍱|♿️|💡|🍻|💬|🗃️|🔊|🔇|👥|🚸|🏗️|📱|🤡|🥚|🙈|📸|⚗️|🔍️|🏷️|🌱|🚩|🥅|💫|🗑️|🛂|🩹|🧐|⚰️|🧪|👔|🩺|🧱|🧑‍💻|💸|🧵|🦺|✈️)\\([a-z0-9:-]+\\) [a-z].{1,50}"
+
+          if ! echo "$MESSAGE" | grep -qE "$SCHEMA_REGEX"; then
+            echo "❌ Merged commit has invalid format: $MESSAGE"
+            echo "Required format: <emoji>(<scope>) <subject>"
+            exit 1
+          fi
+
+          echo "✅ Merged commit format is valid"
