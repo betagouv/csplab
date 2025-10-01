@@ -14,6 +14,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref }} # Checkout the PR branch without merging
       - name: Check single commit and format
         run: |
           # Get all PR commits
@@ -40,7 +41,6 @@ jobs:
             echo "❌ $INVALID_COMMITS commit(s) with invalid format detected"
             echo "Required format: <emoji>(<scope>) <subject>"
             echo "Example: ✨(auth) add support for HTTP basic auth"
-            echo "Use 'bin/cz commit' to create commits with the correct format"
             exit 1
           fi
 
