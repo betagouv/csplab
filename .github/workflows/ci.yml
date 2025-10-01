@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  commit-format:
+    name: Check Commit Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}  # Checkout branch without merge
+      - name: Check single commit and format
+        run: |
+          # Check that there is only one commit in the PR
+          BASE_SHA=$(git merge-base origin/main HEAD)
+          git log --oneline $BASE_SHA..HEAD
+
+          COMMIT_COUNT=$(git rev-list --count $BASE_SHA..HEAD)
+          echo "Commit count: $COMMIT_COUNT"
+          if [ $COMMIT_COUNT -ne 1 ]; then
+            echo "❌ This PR contains $COMMIT_COUNT commits"
+            echo "Please squash your commits into a single commit before merging"
+            if [ $COMMIT_COUNT -gt 1 ]; then
+              echo "Use: git rebase -i HEAD~$COMMIT_COUNT"
+            fi
+            exit 1
+          fi
+
+          echo "✅ Single commit detected"
+          echo "========================="
+
+          # Get the commit message
+          MESSAGE=$(git log --format=%s -n 1 HEAD)
+          echo "Commit message: $MESSAGE"
+
+          # Commit message schema regex
+          SCHEMA_REGEX="^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💄|🎉|✅|🔒️|🔐|🔖|🚨|🚧|💚|⬇️|⬆️|📌|👷|📈|♻️|➕|➖|🔧|🔨|🌐|✏️|💩|⏪️|🔀|📦️|👽️|🚚|📄|💥|🍱|♿️|💡|🍻|💬|🗃️|🔊|🔇|👥|🚸|🏗️|📱|🤡|🥚|🙈|📸|⚗️|🔍️|🏷️|🌱|🚩|🥅|💫|🗑️|🛂|🩹|🧐|⚰️|🧪|👔|🩺|🧱|🧑‍💻|💸|🧵|🦺|✈️)\\([a-z0-9:-]+\\) [a-z].{1,50}"
+
+          # Validate commit message schema
+          if ! echo "$MESSAGE" | grep -qE "$SCHEMA_REGEX"; then
+            echo "❌ Invalid commit message!"
+            echo "Required format: <emoji>(<scope>) <subject>"
+            echo "Example: ✨(auth) add support for HTTP basic auth"
+            echo "Use 'bin/cz commit' to create commits with the correct format"
+            exit 1
+          fi
+
+          echo "✅ Commit format is valid"
