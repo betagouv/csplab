@@ -1,0 +1,21 @@
+# Pre-commit configuration for CSPLab
+repos:
+  # Generic hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: debug-statements
+        files: ^src/.+\.py$
+
+  # Python linting and formatting with Make
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.13.2
+    hooks:
+      # Run the linter.
+      - id: ruff-check
+      # Run the formatter.
+      - id: ruff-format

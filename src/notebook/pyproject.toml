@@ -1,0 +1,26 @@
+[project]
+name = "csplab-notebook"
+version = "0.1.0"
+description = "Jupyter notebook service for CSPLab"
+requires-python = ">=3.12"
+
+dependencies = [
+    "jupyter>=1.0.0",
+    "jupytext>=1.15.0",
+    "jupyterlab>=4.0.0",
+    "ipykernel>=6.25.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "matplotlib>=3.7.0",
+    "requests>=2.31.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.7.0",
+    "ruff>=0.0.280"
+]
+
+[tool.jupytext]
+formats = "ipynb,md"
