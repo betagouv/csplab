@@ -1,0 +1,63 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  commit-format:
+    name: Check Commit Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }} # Checkout the PR branch without merging
+      - name: Check single commit and format
+        run: |
+          # Get all PR commits
+          BASE_SHA=$(git merge-base origin/main HEAD)
+          COMMITS=$(git rev-list --reverse $BASE_SHA..HEAD)
+          echo "Commits in this PR:"
+
+          # Commit message schema regex
+          SCHEMA_REGEX="^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💄|🎉|✅|🔒️|🔐|🔖|🚨|🚧|💚|⬇️|⬆️|📌|👷|📈|♻️|➕|➖|🔧|🔨|🌐|✏️|💩|⏪️|🔀|📦️|👽️|🚚|📄|💥|🍱|♿️|💡|🍻|💬|🗃️|🔊|🔇|👥|🚸|🏗️|📱|🤡|🥚|🙈|📸|⚗️|🔍️|🏷️|🌱|🚩|🥅|💫|🗑️|🛂|🩹|🧐|⚰️|🧪|👔|🩺|🧱|🧑‍💻|💸|🧵|🦺|✈️)\\([a-z0-9:-]+\\) [a-z].{1,50}"
+
+          # Validate commit message schema
+          INVALID_COMMITS=0
+          for commit in $COMMITS; do
+            MESSAGE=$(git log --format=%s -n 1 $commit)
+            echo "$MESSAGE"
+
+            if ! echo "$MESSAGE" | grep -qE "$SCHEMA_REGEX"; then
+              echo "❌ Invalid commit format: $MESSAGE"
+              INVALID_COMMITS=$((INVALID_COMMITS + 1))
+            fi
+          done
+
+          if [ $INVALID_COMMITS -gt 0 ]; then
+            echo "❌ $INVALID_COMMITS commit(s) with invalid format detected"
+            echo "Required format: <emoji>(<scope>) <subject>"
+            echo "Example: ✨(auth) add support for HTTP basic auth"
+            exit 1
+          fi
+
+          echo "✅ All commits have valid format"
+  lint-and-format:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build dev image
+        run: make build-dev
+      - name: Run pre-commit hooks
+        run: ./bin/git-pre-commit-hook
+  build:
+    name: Build All Services
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build all services
+        run: make build
