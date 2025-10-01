@@ -21,7 +21,6 @@ jobs:
           BASE_SHA=$(git merge-base origin/main HEAD)
           COMMITS=$(git rev-list --reverse $BASE_SHA..HEAD)
           echo "Commits in this PR:"
-          echo "$COMMITS"
 
           # Commit message schema regex
           SCHEMA_REGEX="^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💄|🎉|✅|🔒️|🔐|🔖|🚨|🚧|💚|⬇️|⬆️|📌|👷|📈|♻️|➕|➖|🔧|🔨|🌐|✏️|💩|⏪️|🔀|📦️|👽️|🚚|📄|💥|🍱|♿️|💡|🍻|💬|🗃️|🔊|🔇|👥|🚸|🏗️|📱|🤡|🥚|🙈|📸|⚗️|🔍️|🏷️|🌱|🚩|🥅|💫|🗑️|🛂|🩹|🧐|⚰️|🧪|👔|🩺|🧱|🧑‍💻|💸|🧵|🦺|✈️)\\([a-z0-9:-]+\\) [a-z].{1,50}"
@@ -30,9 +29,10 @@ jobs:
           INVALID_COMMITS=0
           for commit in $COMMITS; do
             MESSAGE=$(git log --format=%s -n 1 $commit)
-            echo "Checking commit $commit: $MESSAGE"
+            echo "$MESSAGE"
 
             if ! echo "$MESSAGE" | grep -qE "$SCHEMA_REGEX"; then
+              echo "❌ Invalid commit format: $MESSAGE"
               INVALID_COMMITS=$((INVALID_COMMITS + 1))
             fi
           done
