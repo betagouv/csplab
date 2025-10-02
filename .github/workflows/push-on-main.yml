@@ -2,19 +2,18 @@ name: Post-merge validation
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, test-main ]
 
 jobs:
-  squash-check:
-    name: Check Commits Are Squashed
+  commit-format:
+    name: Check commits are squashed and well formatted
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Check squash merge
+      - name: Check commits are squashed
         run: |
           # Check that only one commit was added to main
           PREVIOUS_COMMIT=$(git rev-parse HEAD~1)
@@ -32,6 +31,8 @@ jobs:
 
           echo "✅ Merge was properly squashed (1 commit added)"
 
+      - name: Check commit format
+        run: |
           # Validate the commit message format
           MESSAGE=$(git log --format=%s -n 1 HEAD)
           echo "Merged commit message: $MESSAGE"
@@ -45,3 +46,10 @@ jobs:
           fi
 
           echo "✅ Merged commit format is valid"
+  build:
+    name: Build All Services
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build all services
+        run: make build
