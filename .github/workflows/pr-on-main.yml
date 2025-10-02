@@ -45,3 +45,10 @@ jobs:
           fi
 
           echo "✅ All commits have valid format"
+  build:
+    name: Build All Services
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build all services
+        run: make build
