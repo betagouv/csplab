@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # read commit message
 MESSAGE=$(cat "$1")

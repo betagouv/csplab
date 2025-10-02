@@ -1,6 +1,5 @@
-#!/bin/sh
+#!/bin/bash
 
-declare DOCKER_USER
 DOCKER_USER="$(id -u):$(id -g)"
 
 DOCKER_USER=${DOCKER_USER} docker compose \
@@ -8,4 +7,4 @@ DOCKER_USER=${DOCKER_USER} docker compose \
     --no-TTY \
     --rm \
     dev \
-    bash -c "cd dev && uv run pre-commit run"
+    bash -c "cd dev && uv run pre-commit run --all-files"
