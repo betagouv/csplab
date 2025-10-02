@@ -1,5 +1,5 @@
 name: Post-merge validation
-
+#todo: delete test-main
 on:
   push:
     branches: [ main, test-main ]
