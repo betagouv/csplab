@@ -53,3 +53,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build all services
         run: make build
+  lint:
+    name: Lint All Services
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build dev image
+        run: make build-dev
+      - name: Lint all services
+        run: make lint
