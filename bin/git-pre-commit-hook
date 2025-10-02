@@ -8,4 +8,4 @@ DOCKER_USER=${DOCKER_USER} docker compose \
     --no-TTY \
     --rm \
     dev \
-    bash -c "cd dev && uv run pre-commit run --all-files"
+    bash -c "cd dev && uv run pre-commit run"
