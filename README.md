@@ -35,6 +35,14 @@ make bootstrap
 make run-notebook
 ```
 
+A des fins exploratoires (hors production), une base de données Elasticsearch
+peut être lancée dans l'environnement de développement à l'aide de la commande
+suivante :
+
+```bash
+make run-es
+```
+
 Pour installer les git hooks (pre-commit et commit-msg):
 
 ```bash

@@ -65,12 +65,18 @@ logs-notebook: ## display notebook logs (follow mode)
 
 ### RUN
 run-all: ## run the whole stack
-	$(COMPOSE_UP) notebook
+run-all: \
+  run-notebook \
+  run-es
 .PHONY: run-all
 
 run-notebook: ## run the notebook service
 	$(COMPOSE_UP) notebook
 .PHONY: run-notebook
+
+run-es: ## run the elasticsearch service
+	$(COMPOSE_UP) elasticsearch
+.PHONY: run-es
 
 ## LINT
 # -- Global linting
