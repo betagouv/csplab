@@ -74,3 +74,37 @@ jobs:
           python-version-file: "./dev/.python-version"
       - name: Run pre-commit
         run: uv run --project dev pre-commit run --all-files
+
+  fixup-commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Check absence of fixup commits
+        run: |
+          ! git log --pretty=format:%s | grep 'fixup!'
+
+  check-changelog:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Check that a CHANGELOG has been modified in the current branch
+        run: |
+          git diff --name-only origin/main | grep CHANGELOG
+
+  lint-changelog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check CHANGELOG files max line length
+        run: |
+          for changelog in src/*/CHANGELOG.md; do
+            test $(cat "${changelog}" | grep -Ev "^\[.*\]: https://github.com/betagouv/csplab" | wc -L) -le 80
+          done
