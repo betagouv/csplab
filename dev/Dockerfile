@@ -18,20 +18,19 @@ ARG DOCKER_GID=1000
 RUN groupadd -g ${DOCKER_GID} dev || true
 RUN useradd -m -u ${DOCKER_UID} -g ${DOCKER_GID} -s /bin/bash dev
 
-# Set working directory for installation
-WORKDIR /workspace
-
-# Copy dependency files
-COPY dev/pyproject.toml dev/uv.lock ./
-
-# Install Python dependencies
-RUN uv sync --frozen
-
 # Switch to dev user
 USER dev
 
-# Set working directory for runtime
+# Set working directory for installation
 WORKDIR /workspace
+
+RUN mkdir -p dev
+
+# Copy dependency files
+COPY dev/pyproject.toml dev/uv.lock dev/
+
+# Install Python dependencies
+RUN cd dev && uv sync --frozen
 
 # Default command
 CMD ["bash"]
