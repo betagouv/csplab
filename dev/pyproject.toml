@@ -2,13 +2,14 @@
 name = "csplab-dev"
 version = "0.1.0"
 description = "Development tools for CSPLab"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 
 [dependency-groups]
 dev = [
     "pre-commit>=3.0.0",
-    "ruff>=0.1.0"
+    "ruff>=0.1.0",
+    "commitizen>=3.0.0"
 ]
 
 [tool.commitizen]
