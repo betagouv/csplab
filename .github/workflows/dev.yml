@@ -9,6 +9,7 @@ on:
     paths:
       - "dev/**"
       - "src/**"
+      - ".github/**"
 
 jobs:
   build-dev:
