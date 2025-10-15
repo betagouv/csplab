@@ -10,6 +10,9 @@ on:
     paths:
       - "src/notebook/**"
 
+permissions:
+  contents: read
+
 jobs:
   build-notebook:
     runs-on: ubuntu-latest

@@ -9,6 +9,9 @@ on:
     paths:
       - "dev/**"
 
+permissions:
+  contents: read
+
 jobs:
   build-dev:
     runs-on: ubuntu-latest
