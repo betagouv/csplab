@@ -9,6 +9,7 @@ on:
     paths:
       - "dev/**"
       - "src/**"
+      - ".github/**"
 
 jobs:
   build-dev:
@@ -57,8 +58,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version-file: "./dev/.python-version"
-      - name: Check commit format with commitizen
-        run: uv run cz check --rev-range origin/${{ github.base_ref }}..origin/${{ github.head_ref }}
+      - name: Check commit format
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            uv run cz check --rev-range origin/${GITHUB_BASE_REF}..origin/${GITHUB_HEAD_REF}
+          else
+            uv run cz check --rev-range ${GITHUB_BASE_REF}..${GITHUB_HEAD_REF}
+          fi
 
   lint-format:
     needs: build-dev
