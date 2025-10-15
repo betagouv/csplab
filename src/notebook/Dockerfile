@@ -1,46 +1,51 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
-# Create notebook user with configurable UID/GID
-ARG DOCKER_UID=1000
+# Paths
+ENV KERNELS_PATH=/home/notebook/kernels
+ENV WORKDIR=/home/notebook/app
 
-# GID 20 already exists in docker image
+# Create notebook user with configurable UID/GID
+# Note hat GID 20 already exists in docker image
+ARG DOCKER_UID=1000
 RUN useradd -m -u ${DOCKER_UID} -s /bin/bash notebook
 
 # Switch to the notebook user
 USER notebook
 
 # Set working directory
-WORKDIR /home/notebook/app
+WORKDIR ${WORKDIR}
 
-# Create directory structure for app and thematic kernels
-RUN mkdir -p /home/notebook/app && \
-    mkdir -p /home/notebook/kernels/nlp
+# Create directory for thematic kernels
+RUN mkdir -p "${KERNELS_PATH}"
 
 # Copy dependency files
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml uv.lock list-kernels.py ./
 
 # Install Python dependencies
 RUN uv sync --frozen
 
-# Create NLP kernel
-RUN cd /home/notebook/kernels/nlp && \
-    uv init --name csplab-nlp && \
-    uv add pandas numpy matplotlib ipykernel spacy transformers
-
-# Now create all kernels as the notebook user with specific environment variables
+# Create the base kernel
 RUN uv run \
       ipython kernel install \
         --user \
         --name=csplab-base \
         --display-name="CSPLab Base (pandas, numpy, matplotlib)"
 
-RUN cd /home/notebook/kernels/nlp && \
-    uv run \
-      ipython kernel install \
-        --user \
-        --env VIRTUAL_ENV $(pwd)/.venv \
-        --name=csplab-nlp \
-        --display-name="CSPLab NLP (spacy, transformers)"
+# Now create all specific kernels
+RUN for kernel in $(python list-kernels.py); do \
+      KERNEL_PATH="${KERNELS_PATH}/${kernel}"; \
+      VIRTUAL_ENV="${KERNEL_PATH}/.venv"; \
+      mkdir -p "${KERNEL_PATH}" && \
+      cp pyproject.toml uv.lock "${KERNEL_PATH}" && \
+      cd "${KERNEL_PATH}" && \
+      uv sync --frozen --only-group "${kernel}" && \
+      VIRTUAL_ENV="${VIRTUAL_ENV}" uv run \
+        ipython kernel install \
+          --user \
+          --env VIRTUAL_ENV "${VIRTUAL_ENV}" \
+          --name="csplab-${kernel}" \
+          --display-name="CSPLab ${kernel}"; \
+    done
 
 CMD [ \
   "uv", \
