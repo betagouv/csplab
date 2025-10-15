@@ -1,0 +1,76 @@
+name: Chore
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+    types: [ opened, synchronize, reopened, edited ]
+
+jobs:
+  build-dev:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./dev
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.17"
+          enable-cache: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "./dev/.python-version"
+      - name: Install dev tools
+        run: uv sync --locked --all-extras --dev
+
+  commit-format:
+    needs: build-dev
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./dev
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.17"
+          enable-cache: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "./dev/.python-version"
+      - name: Check commit format
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            uv run cz check --rev-range origin/${GITHUB_BASE_REF}..origin/${GITHUB_HEAD_REF}
+          else
+            uv run cz check --rev-range ${GITHUB_BASE_REF}..${GITHUB_HEAD_REF}
+          fi
+
+  lint-format:
+    needs: build-dev
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./dev
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.17"
+          enable-cache: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "./dev/.python-version"
+      - name: Run pre-commit
+        run: uv run --project dev pre-commit run --all-files
