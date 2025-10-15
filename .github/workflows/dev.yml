@@ -41,9 +41,6 @@ jobs:
   commit-format:
     needs: build-dev
     runs-on: ubuntu-latest
-    env:
-      BASE_REF: ${{ github.base_ref || 'HEAD~1' }}
-      HEAD_REF: ${{ github.head_ref || 'HEAD' }}
     defaults:
       run:
         working-directory: ./dev
@@ -63,10 +60,10 @@ jobs:
           python-version-file: "./dev/.python-version"
       - name: Check commit format
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            uv run cz check --rev-range origin/${{ env.BASE_REF }}..origin/${{ env.HEAD_REF }}
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            uv run cz check --rev-range origin/${GITHUB_BASE_REF}..origin/${GITHUB_HEAD_REF}
           else
-            uv run cz check --rev-range ${{ env.BASE_REF }}..${{ env.HEAD_REF }}
+            uv run cz check --rev-range ${GITHUB_BASE_REF}..${GITHUB_HEAD_REF}
           fi
 
   lint-format:
