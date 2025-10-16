@@ -31,5 +31,10 @@ nlp = [
     "transformers>=4.57.0",
 ]
 
+concours = [
+    "python-dotenv>=1.1.1",
+    "pylegifrance>=1.2.1b2",
+]
+
 [tool.jupytext]
 formats = "ipynb,md"
