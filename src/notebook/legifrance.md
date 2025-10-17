@@ -60,8 +60,6 @@ def search_concours(page_num, year):
         return []
 
 def get_all_pages(client: LegifranceClient, year: str, max_pages: int = 50):
-    loda = Loda(client)
-
     # Récupère toutes les pages jusqu'à ce qu'une soit vide ou qu'on atteigne la limite
     pages = takewhile(
         lambda results: len(results) > 0,
@@ -71,8 +69,6 @@ def get_all_pages(client: LegifranceClient, year: str, max_pages: int = 50):
     return [result for page in pages for result in page]
 
 def get_sample_results(client: LegifranceClient, year: str, sample_size: int = 5):
-    loda = Loda(client)
-
     # Récupère juste la première page
     first_page = search_concours(1, year)
 
@@ -91,4 +87,22 @@ df_clean = df.dropna(axis=1, how='all')
 
 ```{code-cell} ipython3
 df_clean
+```
+
+```{code-cell} ipython3
+def get_article(text_id: str):
+    article = loda.fetch(text_id)
+    if article and article._texte.consult_response:
+        data = article._texte.consult_response.model_dump()
+        return article.texte_brut
+    return article
+```
+
+```{code-cell} ipython3
+article = get_article("LEGITEXT000044338924_27-06-2025")
+article
+```
+
+```{code-cell} ipython3
+
 ```
