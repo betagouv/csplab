@@ -29,6 +29,8 @@ except ValueError as e:
     print(f"❌ Erreur: {e}")
 ```
 
+# Recherche par mot-clé : concours et année
+
 ```{code-cell} ipython3
 import pandas as pd
 from pylegifrance import LegifranceClient
@@ -60,7 +62,7 @@ def search_concours(page_num, year):
         return []
 
 def get_all_pages(client: LegifranceClient, year: str, max_pages: int = 50):
-    # Récupère toutes les pages jusqu'à ce qu'une soit vide ou qu'on atteigne la limite
+    # retrieve all page until one is empty or we reach the 50 pages limit
     pages = takewhile(
         lambda results: len(results) > 0,
         (search_concours(page, year) for page in count(1) if page <= max_pages)
@@ -68,13 +70,20 @@ def get_all_pages(client: LegifranceClient, year: str, max_pages: int = 50):
 
     return [result for page in pages for result in page]
 
-def get_sample_results(client: LegifranceClient, year: str, sample_size: int = 5):
-    # Récupère juste la première page
-    first_page = search_concours(1, year)
+def get_raw_content(text_id: str):
+    text = loda.fetch(text_id)
+    raw_text = text.texte_brut
+    if raw_text:
+        return raw_text
 
-    # Retourne seulement les N premiers résultats
-    return first_page[:sample_size]
+def get_law_details(text_id: str):
+    text = loda.fetch(text_id)
+    if text and text._texte.consult_response:
+       details = text._texte.consult_response.model_dump()
+       return details
 ```
+
+## Concours 2025
 
 ```{code-cell} ipython3
 year_2025 = get_all_pages(client, "2025")
@@ -83,26 +92,88 @@ year_2025 = get_all_pages(client, "2025")
 ```{code-cell} ipython3
 df = pd.DataFrame(year_2025)
 df_clean = df.dropna(axis=1, how='all')
+df_clean.head()
 ```
 
 ```{code-cell} ipython3
-df_clean
+raw_content = get_raw_content("LEGITEXT000043462808_27-06-2025")
+raw_content[:500]
 ```
 
 ```{code-cell} ipython3
-def get_article(text_id: str):
-    article = loda.fetch(text_id)
-    if article and article._texte.consult_response:
-        data = article._texte.consult_response.model_dump()
-        return article.texte_brut
-    return article
+from IPython.display import JSON
+import json
+law_details = get_law_details("LEGITEXT000043462808_27-06-2025")
+JSON(law_details)
 ```
 
 ```{code-cell} ipython3
-article = get_article("LEGITEXT000044338924_27-06-2025")
-article
+filename = "law_details.json"  # Nom de fichier en string
+with open(filename, 'w', encoding='utf-8') as f:
+    json.dump(law_details, f, ensure_ascii=False, indent=2, default=str)
 ```
 
 ```{code-cell} ipython3
+import re
+from datetime import datetime
 
+def extract_decret_numbers(raw_content):
+    pattern = r'décret n°?\s*(\d{2,4}-\d+)'
+    matches = re.findall(pattern, raw_content, re.IGNORECASE)
+    return list(set(matches))
+```
+
+```{code-cell} ipython3
+extract_decret_numbers(raw_content)
+```
+
+```{code-cell} ipython3
+dict_str = str(law_details)
+decrets = list(set(re.findall(r'Décret n°?\s*(\d{2,4}-\d+)', dict_str, re.IGNORECASE)))
+decrets
+```
+
+# Recherche par Decret
+
++++
+
+### Contexte
+
++++
+
+Utile pour récupérer les statuts des corps par exemple, la recherche par nor ne fonctionne pas, l'id legifrance n'est pas toujours renseigné dans Ingres, mais la recherche par décret, an ajoutant un filtre sur le champ titre, aboutit
+
+```{code-cell} ipython3
+def search_by_decret(decret_number):
+    search_request = SearchRequest(
+        search=decret_number,
+        page_size=20
+    )
+    results = loda.search(search_request)
+    return results
+all_decrets = sum([search_by_decret(decret) for decret in decrets], [])
+unique_decrets = {decret.id: decret for decret in all_decrets}.keys()
+```
+
+```{code-cell} ipython3
+unique_decrets
+```
+
+```{code-cell} ipython3
+all_texts = [get_law_details(id)['title'] for id in unique_decrets]
+```
+
+```{code-cell} ipython3
+all_texts
+```
+
+```{code-cell} ipython3
+original_texts = [text_loda for text_loda in results
+                 if text_loda.titre and corps_decret in text_loda.titre
+                 and "modif" not in text_loda.titre.lower()]
+original_texts
+```
+
+```{code-cell} ipython3
+JSON(get_law_details("LEGITEXT000006061962_01-09-2024"))
 ```
