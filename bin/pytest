@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+declare TEST=true
+declare service=${SERVICE:-tycho}
+declare cmd="uv run pytest"
+declare volume="./src/${service}:/app"
+declare DOCKER_USER
+DOCKER_UID="$(id -u)"
+DOCKER_GID="$(id -g)"
+DOCKER_USER="${DOCKER_UID}:${DOCKER_GID}"
+
+
+DOCKER_USER=${DOCKER_USER} \
+  DOCKER_UID=${DOCKER_UID} \
+  DOCKER_GID=${DOCKER_GID} \
+  docker compose run --rm \
+    -e TEST="${TEST}" \
+    -v "${volume}" \
+    "${service}" \
+    ${cmd} "$@"
