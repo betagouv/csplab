@@ -1,0 +1,105 @@
+name: Tycho
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+    types: [ opened, synchronize, reopened, edited ]
+    paths:
+      - "src/tycho/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build-tycho:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/tycho
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.7"
+          enable-cache: true
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "./src/tycho/.python-version"
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+  build-docker-tycho:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build tycho Docker image
+        run: bin/compose build tycho
+
+  lint-tycho:
+    needs: build-tycho
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/tycho
+    env:
+      TYCHO_SECRET_KEY: the_secret_key
+      TYCHO_DATABASE_URL: psql://tycho:pass@postgresql:5432/tycho
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.7"
+          enable-cache: true
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "./src/tycho/.python-version"
+      - name: Lint with Ruff
+        run: uv run ruff check .
+      - name: Lint format with Ruff
+        run: uv run ruff format --check .
+      - name: Lint with MyPy
+        run: uv run mypy .
+
+  test-tycho:
+    needs: build-tycho
+    runs-on: ubuntu-latest
+    services:
+      postgresql:
+        image: postgres:16.10
+        env:
+          POSTGRES_DB: test-tycho
+          POSTGRES_USER: tycho
+          POSTGRES_PASSWORD: pass
+          TEST: true
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    defaults:
+      run:
+        working-directory: ./src/tycho
+    env:
+      TYCHO_SECRET_KEY: the_secret_key
+      TYCHO_DATABASE_URL: psql://tycho:pass@postgresql:5432/test-tycho
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.7"
+          enable-cache: true
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "./src/tycho/.python-version"
+      - name: Test with pytest
+        run: uv run pytest .
