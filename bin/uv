@@ -2,18 +2,10 @@
 
 set -eo pipefail
 
-declare service="${SERVICE:-tycho}"
-declare volume="./src/${service}:/app"
-declare DOCKER_USER
-DOCKER_UID="$(id -u)"
-DOCKER_GID="$(id -g)"
-DOCKER_USER="${DOCKER_UID}:${DOCKER_GID}"
+source "$(dirname "$(readlink -f "$0")")/_commons.inc.sh"
 
-DOCKER_USER=${DOCKER_USER} \
-  DOCKER_UID=${DOCKER_UID} \
-  DOCKER_GID=${DOCKER_GID} \
-  docker compose run --rm --no-deps \
-    -u "uv:uv" \
-    -v "${volume}" \
-    "${service}" \
-      uv "$@"
+declare service="${SERVICE:-tycho}"
+
+compose_run --no-deps \
+  "${service}" \
+    uv "$@"

@@ -14,6 +14,9 @@ default: help
 .pre-commit-cache:
 	mkdir .pre-commit-cache
 
+.git/hooks/_commons.inc.sh:
+	cp bin/_commons.inc.sh .git/hooks/_commons.inc.sh
+
 .git/hooks/pre-commit:
 	cp bin/git-pre-commit-hook .git/hooks/pre-commit
 
@@ -23,17 +26,18 @@ default: help
 ### BOOTSTRAP
 bootstrap: ## setup development environment (build dev service and install git hooks)
 bootstrap: \
-	build \
-	migrate \
-	create-superuser \
-	jupytext--to-ipynb
+  build \
+  migrate \
+  create-superuser \
+  jupytext--to-ipynb
 .PHONY: bootstrap
 
 git-hooks: ## install pre-commit hook
 git-hooks: \
-	.pre-commit-cache \
-	.git/hooks/pre-commit \
-	.git/hooks/commit-msg
+  .pre-commit-cache \
+  .git/hooks/_commons.inc.sh \
+  .git/hooks/pre-commit \
+  .git/hooks/commit-msg
 .PHONY: git-hooks
 
 ### BUILD
