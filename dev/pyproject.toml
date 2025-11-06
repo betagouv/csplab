@@ -8,7 +8,6 @@ requires-python = ">=3.12"
 [dependency-groups]
 dev = [
     "pre-commit>=3.0.0",
-    "ruff>=0.1.0",
     "commitizen>=3.0.0"
 ]
 
@@ -68,41 +67,3 @@ message = "Body (optional, explain WHY):"
 type = "input"
 name = "footer"
 message = "Footer (optional, breaking changes, issues):"
-
-[tool.ruff]
-line-length = 99
-target-version = "py311"
-exclude = [
-    "migrations",
-]
-
-[tool.ruff.lint]
-select = [
-    "B",    # flake8-bugbear
-    "C4",   # flake8-comprehensions
-    "D",    # pydocstyle
-    "E",    # pycodestyle error
-    "F",    # Pyflakes
-    "I",    # Isort
-    "ISC",  # flake8-implicit-str-concat
-    "PLC",  # Pylint Convention
-    "PLE",  # Pylint Error
-    "PLR",  # Pylint Refactor
-    "PLW",  # Pylint Warning
-    "RUF100", # Ruff unused-noqa
-    "S",    # flake8-bandit (security)
-    "T20",  # flake8-print
-    "W",    # pycodestyle warning
-]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/*" = [
-    "S101", # use of assert
-]
-"src/notebook/*" = [
-    "T20",  # allow print in notebooks
-    "D",    # allow missing docstrings in notebooks
-]
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
