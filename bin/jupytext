@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-declare DOCKER_USER
-DOCKER_USER="$(id -u):$(id -g)"
+set -eo pipefail
 
-DOCKER_USER=${DOCKER_USER} docker compose run --rm notebook uv run jupytext "$@"
+source "$(dirname "$(readlink -f "$0")")/_commons.inc.sh"
+
+compose_run \
+  notebook \
+    uv run jupytext "$@"

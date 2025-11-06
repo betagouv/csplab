@@ -2,14 +2,10 @@
 
 set -eo pipefail
 
-declare DOCKER_USER
-DOCKER_UID="$(id -u)"
-DOCKER_GID="$(id -g)"
-DOCKER_USER="${DOCKER_UID}:${DOCKER_GID}"
+source "$(dirname "$(readlink -f "$0")")/_commons.inc.sh"
 
-DOCKER_USER=${DOCKER_USER} \
-  DOCKER_UID=${DOCKER_UID} \
-  DOCKER_GID=${DOCKER_GID} \
-  docker compose run -it \
-    tycho \
+declare service=${SERVICE:-tycho}
+
+compose_run \
+  "${service}" \
     uv run python manage.py "$@"
