@@ -1,18 +1,18 @@
 ---
-jupytext:
-  formats: md:myst
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: 0.13
-    jupytext_version: 1.17.3
-kernelspec:
-  name: csplab-concours
-  display_name: CSPLab concours
-  language: python
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .md
+      format_name: markdown
+      format_version: '1.3'
+      jupytext_version: 1.17.3
+  kernelspec:
+    display_name: CSPLab concours
+    language: python
+    name: csplab-concours
 ---
 
-```{code-cell} ipython3
+```python
 from dotenv import load_dotenv
 from pylegifrance import ApiConfig
 import os
@@ -28,7 +28,7 @@ import re
 from datetime import datetime
 ```
 
-```{code-cell} ipython3
+```python
 load_dotenv()
 try:
     config = ApiConfig.from_env()
@@ -41,7 +41,7 @@ except ValueError as e:
 
 # Recherche par mot-clé : concours et année
 
-```{code-cell} ipython3
+```python
 client = LegifranceClient()
 loda = Loda(client)
 
@@ -103,27 +103,27 @@ def extract_decret_numbers(raw_content):
 
 ## Concours 2025
 
-```{code-cell} ipython3
+```python
 year_2025 = get_all_pages(client, "2025", search_concours)
 ```
 
-```{code-cell} ipython3
+```python
 df = pd.DataFrame(year_2025)
 df_clean = df.dropna(axis=1, how='all')
 df_clean.head()
 ```
 
-```{code-cell} ipython3
+```python
 raw_content = get_raw_content(df_clean['id'][0])
 raw_content[:500]
 ```
 
-```{code-cell} ipython3
+```python
 law_details = get_law_details(df_clean['id'][0])
 JSON(law_details)
 ```
 
-```{code-cell} ipython3
+```python
 extract_decret_numbers(str(law_details))
 ```
 
@@ -137,22 +137,22 @@ extract_decret_numbers(str(law_details))
 
 Utile pour récupérer les statuts des corps par exemple, la recherche par nor ne fonctionne pas, l'id legifrance n'est pas toujours renseigné dans Ingres, mais la recherche par décret, en ajoutant un filtre sur le champ titre, aboutit
 
-```{code-cell} ipython3
+```python
 df_corps = pd.read_csv('corps_decret_validate.csv', sep='\t', encoding='utf-8')
 decrets = df_corps['selected_law_id'].unique()
 clean_law_ids = [law_id for law_id in decrets if bool(re.match(r'^\d{2,4}-\d+$', str(law_id)))]
 len(decrets), len(clean_law_ids)
 ```
 
-```{code-cell} ipython3
+```python
 clean_law_ids[:10]
 ```
 
-```{code-cell} ipython3
+```python
 all_texts = get_all_pages(client, '90-973', search_by_decret)
 all_texts
 ```
 
-```{code-cell} ipython3
+```python
 JSON(get_law_details(all_texts[0].id))
 ```

@@ -23,10 +23,7 @@ class PisteClient:
         response = requests.post(
             f'{self.oauth_base_url}/api/oauth/token',
             headers={
-                'Accept-Encoding': 'gzip, deflate',
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'User-Agent': 'Apache-HttpClient/4.1.1 (java 1.5)',
-                'Connection': 'Keep-Alive'
+                'Accept': 'application/json',
             },
             data={
                 'grant_type': 'client_credentials',
