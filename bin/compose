@@ -17,6 +17,11 @@ if [[ "$1" == run && "$(tty 2>/dev/null)" == "not a tty" ]]; then
   shift
 fi
 
+# On macOS, GID 20 is reserved for the "staff" group which may cause permission issues
+if [[ "$OSTYPE" == "darwin"* ]] && [[ "$DOCKER_GID" -le "20" ]]; then
+    DOCKER_GID="1000"
+fi
+
 
 DOCKER_USER=${DOCKER_USER} \
   DOCKER_UID=${DOCKER_UID} \
