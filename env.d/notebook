@@ -1,0 +1,9 @@
+
+#Legifrance
+LEGIFRANCE_CLIENT_ID=piste-legifrance-client-id
+LEGIFRANCE_CLIENT_SECRET=piste-legifrance-client-secret
+INGRES_CLIENT_ID=piste-ingres-client-id
+INGRES_CLIENT_SECRET=piste-ingres-client-secret
+PISTE_OAUTH_BASE_URL=https://sandbox-oauth.piste.gouv.fr
+INGRES_BASE_URL=https://sandbox-api.piste.gouv.fr/cisirh/ingres-nomenclatures/v2/nomenclatures
+OPENAI_API_KEY=sk-...

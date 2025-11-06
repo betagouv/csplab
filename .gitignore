@@ -59,4 +59,8 @@ scripts/*.csv
 
 .todo*
 .pre-commit-cache/
+
+# Data
+*.csv
+*.json
 .coverage
