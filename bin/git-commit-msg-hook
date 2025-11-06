@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eo pipefail
+
 # read commit message
 MESSAGE=$(cat "$1")
 

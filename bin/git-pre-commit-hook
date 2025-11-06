@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
-declare DOCKER_USER
-DOCKER_USER="$(id -u):$(id -g)"
+set -eo pipefail
 
-DOCKER_USER=${DOCKER_USER} docker compose \
-  run \
-    --no-TTY \
-    --rm \
-    dev \
+source "$(dirname "$(readlink -f "$0")")/_commons.inc.sh"
+
+compose_run --no-deps \
+  dev \
     bash -c "cd dev && uv run pre-commit run"

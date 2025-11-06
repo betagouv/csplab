@@ -2,16 +2,20 @@
 SHELL := /bin/bash
 
 # -- Docker
-COMPOSE                    	 = bin/compose
-COMPOSE_UP                 	 = $(COMPOSE) up -d --remove-orphans
-COMPOSE_RUN                	 = $(COMPOSE) run --rm --no-deps
-COMPOSE_RUN_DEV_UV         	 = $(COMPOSE_RUN) dev uv run --project dev
+COMPOSE              = bin/compose
+COMPOSE_UP           = $(COMPOSE) up -d --remove-orphans
+COMPOSE_RUN          = $(COMPOSE) run --rm --no-deps
+COMPOSE_RUN_DEV_UV   = $(COMPOSE_RUN) dev uv run
+COMPOSE_RUN_TYCHO_UV = $(COMPOSE_RUN) tycho uv run
 
 default: help
 
 ## -- Files
 .pre-commit-cache:
 	mkdir .pre-commit-cache
+
+.git/hooks/_commons.inc.sh:
+	cp bin/_commons.inc.sh .git/hooks/_commons.inc.sh
 
 .git/hooks/pre-commit:
 	cp bin/git-pre-commit-hook .git/hooks/pre-commit
@@ -22,15 +26,18 @@ default: help
 ### BOOTSTRAP
 bootstrap: ## setup development environment (build dev service and install git hooks)
 bootstrap: \
-	build \
-	jupytext--to-ipynb
+  build \
+  migrate \
+  create-superuser \
+  jupytext--to-ipynb
 .PHONY: bootstrap
 
 git-hooks: ## install pre-commit hook
 git-hooks: \
-	.pre-commit-cache \
-	.git/hooks/pre-commit \
-	.git/hooks/commit-msg
+  .pre-commit-cache \
+  .git/hooks/_commons.inc.sh \
+  .git/hooks/pre-commit \
+  .git/hooks/commit-msg
 .PHONY: git-hooks
 
 ### BUILD
@@ -45,6 +52,10 @@ build-dev: ## build development environment image
 build-notebook: ## build custom jupyter notebook image
 	@$(COMPOSE) build notebook
 .PHONY: build-notebook
+
+build-tycho: ## build tycho image
+	@$(COMPOSE) build tycho
+.PHONY: build-tycho
 
 jupytext--to-md: ## convert local ipynb files into md
 	bin/jupytext --to md **/*.ipynb
@@ -63,6 +74,21 @@ logs-notebook: ## display notebook logs (follow mode)
 	@$(COMPOSE) logs -f notebook
 .PHONY: logs-notebook
 
+logs-tycho: ## display tycho logs (follow mode)
+	@$(COMPOSE) logs -f tycho
+.PHONY: logs-tycho
+
+### Setup
+migrate: ## migrate tycho database
+	@echo "Migrating tycho database…"
+	@bin/manage migrate
+.PHONY: migrate
+
+create-superuser: ## create tycho super user
+	@echo "Creating tycho super user…"
+	@bin/manage createsuperuser --noinput || true
+.PHONY: create-superuser
+
 ### RUN
 run-all: ## run the whole stack
 run-all: \
@@ -78,16 +104,22 @@ run-es: ## run the elasticsearch service
 	$(COMPOSE_UP) elasticsearch
 .PHONY: run-es
 
+run-tycho: ## run the tycho service
+	$(COMPOSE_UP) tycho
+.PHONY: run-tycho
+
 ## LINT
 # -- Global linting
 lint: ## lint all sources
 lint: \
-	lint-notebook
+  lint-notebook \
+  lint-tycho
 .PHONY: lint
 
 lint-fix: ## lint and fix all sources
 lint-fix: \
-	lint-notebook-fix
+  lint-notebook-fix \
+  lint-tycho-fix
 .PHONY: lint-fix
 
 # -- Per-service linting
@@ -103,7 +135,41 @@ lint-notebook-fix: ## lint and fix notebook python sources
 	$(COMPOSE_RUN_DEV_UV) ruff format src/notebook/
 .PHONY: lint-notebook-fix
 
-### MANAGE docker services
+lint-tycho: ## lint tycho python sources
+lint-tycho: \
+  lint-tycho-ruff \
+  lint-tycho-mypy
+.PHONY: lint-tycho
+
+lint-tycho-ruff: ## lint tycho python sources with ruff
+	@echo 'lint:tycho-ruff started…'
+	$(COMPOSE_RUN_TYCHO_UV) ruff check .
+	$(COMPOSE_RUN_TYCHO_UV) ruff format --check .
+.PHONY: lint-tycho-ruff
+
+lint-tycho-ruff-fix: ## lint and fix tycho python sources with ruff
+	@echo 'lint:tycho-ruff-fix started…'
+	$(COMPOSE_RUN_TYCHO_UV) ruff check --fix .
+	$(COMPOSE_RUN_TYCHO_UV) ruff format .
+.PHONY: lint-tycho-ruff-fix
+
+lint-tycho-mypy: ## lint tycho python sources with mypy
+	@echo 'lint:tycho-mypy started…'
+	$(COMPOSE_RUN_TYCHO_UV) mypy .
+.PHONY: lint-tycho-mypy
+
+## TEST
+test: ## test all services
+test: \
+  test-tycho
+.PHONY: test
+
+test-tycho: ## test tycho python sources
+	@echo 'test:tychostarted…'
+	$(COMPOSE_RUN_TYCHO_UV) pytest
+.PHONY: test-tycho
+
+## MANAGE docker services
 status: ## an alias for "docker compose ps"
 	@$(COMPOSE) ps
 .PHONY: status

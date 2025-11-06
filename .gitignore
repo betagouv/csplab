@@ -29,7 +29,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Installed pipenv packages
+# Installed packages
 .cache
 .local
 
@@ -63,3 +63,4 @@ scripts/*.csv
 # Data
 *.csv
 *.json
+.coverage
