@@ -64,3 +64,5 @@ scripts/*.csv
 *.csv
 *.json
 .coverage
+
+ARCHITECTURE*

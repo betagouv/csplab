@@ -301,3 +301,7 @@ with open(filename, 'w', encoding='utf-8') as f:
 ```python
 df_clean.to_csv('corps_decret_validate.csv', sep='\t', index=False, encoding='utf-8')
 ```
+
+```python
+
+```

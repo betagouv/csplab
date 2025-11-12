@@ -114,6 +114,10 @@ df_clean.head()
 ```
 
 ```python
+df_clean['etat'].unique()
+```
+
+```python
 raw_content = get_raw_content(df_clean['id'][0])
 raw_content[:500]
 ```
@@ -145,7 +149,7 @@ len(decrets), len(clean_law_ids)
 ```
 
 ```python
-clean_law_ids[:10]
+clean_law_ids
 ```
 
 ```python
@@ -155,4 +159,8 @@ all_texts
 
 ```python
 JSON(get_law_details(all_texts[0].id))
+```
+
+```python
+
 ```
