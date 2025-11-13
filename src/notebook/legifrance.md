@@ -32,7 +32,6 @@ from datetime import datetime
 load_dotenv()
 try:
     config = ApiConfig.from_env()
-    print(config.client_id)
     print("✅ Configuration chargée depuis les variables d'environnement")
     print(f"Client ID présent: {'✅' if config.client_id else '❌'}")
 except ValueError as e:
@@ -114,16 +113,12 @@ df_clean.head()
 ```
 
 ```python
-df_clean['etat'].unique()
-```
-
-```python
-raw_content = get_raw_content(df_clean['id'][0])
+raw_content = get_raw_content(df_clean['id'][1])
 raw_content[:500]
 ```
 
 ```python
-law_details = get_law_details(df_clean['id'][0])
+law_details = get_law_details(df_clean['id'][1])
 JSON(law_details)
 ```
 
@@ -149,14 +144,18 @@ len(decrets), len(clean_law_ids)
 ```
 
 ```python
-clean_law_ids
+clean_law_ids[:10]
 ```
 
 ```python
-all_texts = get_all_pages(client, '90-973', search_by_decret)
+all_texts = get_all_pages(client, '2010-986', search_by_decret)
 all_texts
 ```
 
 ```python
 JSON(get_law_details(all_texts[0].id))
+```
+
+```python
+JSON(get_law_details("LEGITEXT000024455335_22-06-2013"))
 ```

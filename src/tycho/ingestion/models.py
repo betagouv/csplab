@@ -83,3 +83,18 @@ class RawExamination(models.Model):
     def __str__(self):
         """Return string representation of the model."""
         return f"{self.law_id} - {self.title[:50]}"
+
+
+class RawCorps(models.Model):
+    """Model for storing raw ingres employement body."""
+
+    raw_data = models.JSONField("Contenu brut Ingres")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        """Meta configuration for RawExamination model."""
+
+        verbose_name = "RawCorps"
+        verbose_name_plural = "RawCorps"
+        ordering = ["-created_at"]
