@@ -124,13 +124,13 @@ lint-fix: \
 
 # -- Per-service linting
 lint-notebook: ## lint notebook python sources
-	@echo 'lint:notebook started…'
-	$(COMPOSE_RUN) notebook uv run --with nbqa --with ruff ruff check . || true
+	@echo 'lint:notebook started (warnings only)…'
+	$(COMPOSE_RUN) notebook uv run --with ruff ruff check . || true
 	$(COMPOSE_RUN) notebook uv run --with ruff ruff format --check . || true
 .PHONY: lint-notebook
 
 lint-notebook-fix: ## lint and fix notebook python sources
-	@echo 'lint:notebook-fix started…'
+	@echo 'lint:notebook-fix started (warnings only)…'
 	$(COMPOSE_RUN) notebook uv run --with ruff ruff check --fix . || true
 	$(COMPOSE_RUN) notebook uv run --with ruff ruff format . || true
 .PHONY: lint-notebook-fix
@@ -161,7 +161,7 @@ lint-tycho-ruff-fix: ## lint and fix tycho python sources with ruff
 
 lint-tycho-mypy: ## lint tycho python sources with mypy
 	@echo 'lint:tycho-mypy started…'
-	$(COMPOSE_RUN_TYCHO_UV) --with mypy mypy .
+	$(COMPOSE_RUN_TYCHO_UV) python -m mypy .
 .PHONY: lint-tycho-mypy
 
 ## TEST
