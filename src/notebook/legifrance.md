@@ -160,7 +160,3 @@ all_texts
 ```python
 JSON(get_law_details(all_texts[0].id))
 ```
-
-```python
-
-```

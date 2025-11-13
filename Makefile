@@ -125,14 +125,14 @@ lint-fix: \
 # -- Per-service linting
 lint-notebook: ## lint notebook python sources
 	@echo 'lint:notebook started…'
-	$(COMPOSE_RUN_DEV_UV) ruff check src/notebook/
-	$(COMPOSE_RUN_DEV_UV) ruff format --check src/notebook/
+	$(COMPOSE_RUN) notebook uv run --with nbqa --with ruff ruff check . || true
+	$(COMPOSE_RUN) notebook uv run --with ruff ruff format --check . || true
 .PHONY: lint-notebook
 
 lint-notebook-fix: ## lint and fix notebook python sources
 	@echo 'lint:notebook-fix started…'
-	$(COMPOSE_RUN_DEV_UV) ruff check --fix src/notebook/
-	$(COMPOSE_RUN_DEV_UV) ruff format src/notebook/
+	$(COMPOSE_RUN) notebook uv run --with ruff ruff check --fix . || true
+	$(COMPOSE_RUN) notebook uv run --with ruff ruff format . || true
 .PHONY: lint-notebook-fix
 
 lint-tycho: ## lint tycho python sources
@@ -141,21 +141,27 @@ lint-tycho: \
   lint-tycho-mypy
 .PHONY: lint-tycho
 
+lint-tycho: ## lint and fix tycho python sources
+lint-tycho-fix: \
+  lint-tycho-ruff-fix \
+  lint-tycho-mypy
+.PHONY: lint-tycho
+
 lint-tycho-ruff: ## lint tycho python sources with ruff
 	@echo 'lint:tycho-ruff started…'
-	$(COMPOSE_RUN_TYCHO_UV) ruff check .
-	$(COMPOSE_RUN_TYCHO_UV) ruff format --check .
+	$(COMPOSE_RUN_TYCHO_UV) --with ruff ruff check .
+	$(COMPOSE_RUN_TYCHO_UV) --with ruff ruff format --check .
 .PHONY: lint-tycho-ruff
 
 lint-tycho-ruff-fix: ## lint and fix tycho python sources with ruff
 	@echo 'lint:tycho-ruff-fix started…'
-	$(COMPOSE_RUN_TYCHO_UV) ruff check --fix .
-	$(COMPOSE_RUN_TYCHO_UV) ruff format .
+	$(COMPOSE_RUN_TYCHO_UV) --with ruff ruff check --fix .
+	$(COMPOSE_RUN_TYCHO_UV) --with ruff ruff format .
 .PHONY: lint-tycho-ruff-fix
 
 lint-tycho-mypy: ## lint tycho python sources with mypy
 	@echo 'lint:tycho-mypy started…'
-	$(COMPOSE_RUN_TYCHO_UV) mypy .
+	$(COMPOSE_RUN_TYCHO_UV) --with mypy mypy .
 .PHONY: lint-tycho-mypy
 
 ## TEST

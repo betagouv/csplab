@@ -1,5 +1,4 @@
 services:
-
   dev:
     build:
       context: .
@@ -74,7 +73,8 @@ services:
     env_file:
       - env.d/tycho
     volumes:
-      - ./src/tycho:/app
+      - .:/workspace
+    working_dir: /workspace/src/tycho
     depends_on:
       postgresql:
         condition: service_healthy

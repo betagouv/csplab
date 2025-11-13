@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class LawNature(models.TextChoices):
     DECREE = 'DECREE' #translation in FR: "Decret"
     ORDER = 'ORDER' #translation in FR: "Arrêté"
