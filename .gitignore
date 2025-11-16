@@ -40,7 +40,12 @@ data
 .env
 .venv
 env/
-env.d/notebook-extras
+env.d/notebook-local
+env.d/postgresql-local
+env.d/tycho-local
+env.d/postgresql
+env.d/tycho
+
 venv/
 ENV/
 env.bak/
@@ -64,5 +69,6 @@ scripts/*.csv
 *.csv
 *.json
 .coverage
+
 
 ARCHITECTURE*

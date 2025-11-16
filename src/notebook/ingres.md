@@ -1,5 +1,4 @@
 ```python
-from dotenv import load_dotenv
 import os
 import requests
 import time
@@ -11,13 +10,16 @@ import re
 ```python
 class PisteClient:
     def __init__(self):
-        load_dotenv()
-        self.oauth_base_url = os.getenv('PISTE_OAUTH_BASE_URL')
-        self.ingres_base_url = os.getenv('INGRES_BASE_URL')
-        self.client_id = os.getenv('INGRES_CLIENT_ID')
-        self.client_secret = os.getenv('INGRES_CLIENT_SECRET')
+        self.oauth_base_url = os.environ.get('PISTE_OAUTH_BASE_URL')
+        self.ingres_base_url = os.environ.get('INGRES_BASE_URL')
+        self.client_id = os.environ.get('INGRES_CLIENT_ID')
+        self.client_secret = os.environ.get('INGRES_CLIENT_SECRET')
         self.access_token = None
         self.expires_at = 0
+        print(os.environ.get('PISTE_OAUTH_BASE_URL'))
+        print(os.environ.get('INGRES_BASE_URL'))
+        print(os.environ.get('INGRES_CLIENT_ID'))
+        print(os.environ.get('INGRES_CLIENT_SECRET'))
 
     def _get_token(self):
         response = requests.post(
