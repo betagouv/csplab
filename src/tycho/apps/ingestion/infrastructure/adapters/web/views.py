@@ -1,10 +1,13 @@
 """Views for ingestion API endpoints."""
 
+import logging
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .services.sourcing.corps_sourcer import CorpsSourcer
+
+logger = logging.getLogger(__name__)
 
 
 class CorpsETLView(APIView):
@@ -26,7 +29,8 @@ class CorpsETLView(APIView):
             )
 
         except Exception as e:
+            logger.exception("Failed to run Corps ETL process.")
             return Response(
-                {"status": "error", "message": str(e)},
+                {"status": "error", "message": "Une erreur interne s'est produite."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
