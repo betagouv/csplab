@@ -5,6 +5,7 @@ import time
 import matplotlib.pyplot as plt
 import pandas as pd
 import re
+import json
 ```
 
 ```python
@@ -60,6 +61,8 @@ body = response.json()
 ```
 
 ```python
+with open('fixtures_ingres_corps.json', 'w') as file:
+    json.dump(body, file, indent=4)
 JSON(body)
 ```
 

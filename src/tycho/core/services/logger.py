@@ -1,11 +1,12 @@
 """Logger service implementation."""
 
+import inspect
 import logging
 
-from core.interfaces.logger_interface import ILoggerService
+from core.interfaces.logger_interface import ILogger
 
 
-class LoggerService(ILoggerService):
+class LoggerService(ILogger):
     """Centralized logger service."""
 
     def __init__(self, name: str = "tycho"):
@@ -25,4 +26,12 @@ class LoggerService(ILoggerService):
         Returns:
             Configured logger instance
         """
-        return logging.getLogger(f"tycho.{module_name}")
+        frame = inspect.currentframe()
+        try:
+            caller_frame = frame.f_back if frame else None
+            if caller_frame and "self" in caller_frame.f_locals:
+                class_name = caller_frame.f_locals["self"].__class__.__name__
+                return logging.getLogger(f"tycho.{module_name}.{class_name}")
+            return logging.getLogger(f"tycho.{module_name}")
+        finally:
+            del frame

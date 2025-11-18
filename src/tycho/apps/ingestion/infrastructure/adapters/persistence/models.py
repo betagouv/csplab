@@ -18,7 +18,7 @@ class LawState(models.TextChoices):
     REPEALED = "REPEALED"  # translation in FR: "Abrogé"
 
 
-class RawExamination(models.Model):
+class LegifranceExamination(models.Model):
     """Model for storing raw legal document examination data."""
 
     nor = models.CharField(
@@ -85,16 +85,16 @@ class RawExamination(models.Model):
         return f"{self.law_id} - {self.title[:50]}"
 
 
-class RawCorps(models.Model):
+class IngresCorps(models.Model):
     """Model for storing raw ingres employement body."""
 
-    raw_data = models.JSONField("Contenu brut Ingres")
+    raw_data = models.JSONField("IngresCorps")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         """Meta configuration for RawExamination model."""
 
-        verbose_name = "RawCorps"
-        verbose_name_plural = "RawCorps"
+        verbose_name = "IngresCorps"
+        verbose_name_plural = "IngresCorps"
         ordering = ["-created_at"]

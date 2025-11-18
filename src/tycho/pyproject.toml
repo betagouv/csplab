@@ -115,6 +115,9 @@ plugins = ["mypy_django_plugin.main"]
 exclude = [
   "migrations"
 ]
+mypy_path = "."
+namespace_packages = true
+explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 module = [

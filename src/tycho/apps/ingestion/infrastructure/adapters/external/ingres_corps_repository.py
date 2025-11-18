@@ -4,17 +4,15 @@ import logging
 import traceback
 from typing import Optional
 
+from apps.ingestion.infrastructure.adapters.persistence.models import IngresCorps
 from core.interfaces.http_client_interface import IHttpClient
-from core.interfaces.logger_interface import ILoggerService
-from ingestion.models import RawCorps
+from core.interfaces.logger_interface import ILogger
 
 
-class CorpsSourcer:
+class IngresCorpsRepository:
     """Service for sourcing corps data from INGRES API."""
 
-    def __init__(
-        self, client: IHttpClient, logger_service: Optional[ILoggerService] = None
-    ):
+    def __init__(self, client: IHttpClient, logger_service: Optional[ILogger] = None):
         """Initialize CorpsSourcer with dependencies.
 
         Args:
@@ -42,7 +40,7 @@ class CorpsSourcer:
             created_count = 0
             for doc in documents:
                 # Upsert basé sur un identifiant unique
-                raw_corps, created = RawCorps.objects.update_or_create(
+                raw_corps, created = IngresCorps.objects.update_or_create(  # type: ignore[attr-defined]
                     ingres_id=doc.get("id"),  # Clé unique
                     defaults={"raw_data": doc},
                 )

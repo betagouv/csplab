@@ -2,8 +2,8 @@
 
 from dependency_injector import containers, providers
 
-from core.containers import CoreContainer
-from ingestion.containers import IngestionContainer
+from apps.ingestion.containers import IngestionContainer
+from core.services.containers import CoreContainer
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
@@ -25,7 +25,7 @@ class ApplicationContainer(containers.DeclarativeContainer):
     # Wiring configuration
     wiring_config = containers.WiringConfiguration(
         modules=[
-            "ingestion.views",
-            "ingestion.services.sourcing.corps_sourcer",
+            "apps.ingestion.infrastructure.adapters.web.views",
+            "apps.ingestion.infrastructure.adapters.external.corps_sourcer",
         ]
     )

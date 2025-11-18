@@ -1,8 +1,10 @@
 """Django admin configuration for ingestion models."""
 
 from django.contrib import admin
-
-from ingestion.models import RawCorps, RawExamination
+from tycho.ingestion.infrastructure.adapters.persistence.models import (
+    RawCorps,
+    RawExamination,
+)
 
 
 class RawExaminationAdmin(admin.ModelAdmin):
