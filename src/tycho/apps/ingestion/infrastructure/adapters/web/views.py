@@ -1,6 +1,7 @@
 """Views for ingestion API endpoints."""
 
 import logging
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -28,7 +29,7 @@ class CorpsETLView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to run Corps ETL process.")
             return Response(
                 {"status": "error", "message": "Une erreur interne s'est produite."},

@@ -147,7 +147,7 @@ lint-tycho-fix: \
   lint-tycho-mypy
 .PHONY: lint-tycho
 
-lint-tycho-ruff: ## lint tycho python sources with ruff
+lint-tycho-ruff: ## lint tycho python sources with ruff (check only, like CI)
 	@echo 'lint:tycho-ruff started…'
 	$(COMPOSE_RUN_TYCHO_UV) --with ruff ruff check .
 	$(COMPOSE_RUN_TYCHO_UV) --with ruff ruff format --check .
