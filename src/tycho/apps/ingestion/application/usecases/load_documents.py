@@ -2,7 +2,7 @@
 
 from apps.ingestion.containers import IngestionContainer
 from core.entities.document import DocumentType
-from core.interfaces.document_repository_interface import UpsertResult
+from core.interfaces.document_repository_interface import IUpsertResult
 
 
 class LoadDocumentsUsecase:
@@ -12,7 +12,7 @@ class LoadDocumentsUsecase:
         """Initialize with container."""
         self.container = container
 
-    def execute(self, document_type: DocumentType) -> UpsertResult:
+    def execute(self, document_type: DocumentType) -> IUpsertResult:
         """Execute the usecase to load and persist documents."""
         try:
             repository = self.container.document_repository()

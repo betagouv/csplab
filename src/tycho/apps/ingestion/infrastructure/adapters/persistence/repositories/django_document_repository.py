@@ -5,7 +5,7 @@ from typing import List
 from core.entities.document import Document, DocumentType
 from core.interfaces.document_repository_interface import (
     IDocumentRepository,
-    UpsertResult,
+    IUpsertResult,
 )
 
 
@@ -22,7 +22,7 @@ class DjangoDocumentRepository(IDocumentRepository):
         # TODO: Implement with Django ORM
         return document
 
-    def upsert_batch(self, documents: List[Document]) -> UpsertResult:
+    def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
         """Insert or update multiple documents."""
         # TODO: Implement with Django ORM
-        return UpsertResult(created=0, updated=0)
+        return IUpsertResult(created=0, updated=0)

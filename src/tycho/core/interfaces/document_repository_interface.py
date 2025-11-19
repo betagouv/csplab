@@ -1,15 +1,35 @@
-"""Document repository interface."""
+"""Document repository interface and composite implementation."""
 
 from typing import List, Protocol, TypedDict
 
 from core.entities.document import Document, DocumentType
 
 
-class UpsertResult(TypedDict):
+class IDocumentFetcher(Protocol):
+    """Interface for fetching documents from external sources."""
+
+    def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
+        """Fetch documents from external source by type."""
+        ...
+
+
+class IUpsertResult(TypedDict):
     """Result of upsert batch operation."""
 
     created: int
     updated: int
+
+
+class IDocumentPersister(Protocol):
+    """Interface for persisting documents to local storage."""
+
+    def upsert(self, document: Document) -> Document:
+        """Insert or update a document."""
+        ...
+
+    def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
+        """Insert or update multiple documents."""
+        ...
 
 
 class IDocumentRepository(Protocol):
@@ -23,10 +43,27 @@ class IDocumentRepository(Protocol):
         """Insert or update a document."""
         ...
 
-    def upsert_batch(self, documents: List[Document]) -> UpsertResult:
-        """Insert or update multiple documents.
-
-        Returns:
-            UpsertResult with counts: {'created': int, 'updated': int, 'deleted': int}
-        """
+    def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
+        """Insert or update multiple documents."""
         ...
+
+
+class CompositeDocumentRepository(IDocumentRepository):
+    """Composite repository that delegates fetch and store operations."""
+
+    def __init__(self, fetcher: IDocumentFetcher, persister: IDocumentPersister):
+        """Initialize with fetcher and persister dependencies."""
+        self.fetcher = fetcher
+        self.persister = persister
+
+    def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
+        """Fetch documents by type using external fetcher."""
+        return self.fetcher.fetch_by_type(document_type)
+
+    def upsert(self, document: Document) -> Document:
+        """Insert or update a document using persister."""
+        return self.persister.upsert(document)
+
+    def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
+        """Insert or update multiple documents using persister."""
+        return self.persister.upsert_batch(documents)

@@ -6,7 +6,7 @@ from typing import List
 from core.entities.document import Document, DocumentType
 from core.interfaces.document_repository_interface import (
     IDocumentRepository,
-    UpsertResult,
+    IUpsertResult,
 )
 
 
@@ -50,7 +50,7 @@ class InMemoryDocumentRepository(IDocumentRepository):
         self._documents.append(new_doc)
         return new_doc
 
-    def upsert_batch(self, documents: List[Document]) -> UpsertResult:
+    def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
         """Insert or update multiple documents."""
         created = 0
         updated = 0
@@ -70,7 +70,7 @@ class InMemoryDocumentRepository(IDocumentRepository):
             else:
                 created += 1
 
-        return UpsertResult(
+        return IUpsertResult(
             created=created,
             updated=updated,
         )

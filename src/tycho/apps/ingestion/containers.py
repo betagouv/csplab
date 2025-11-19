@@ -3,12 +3,14 @@
 from dependency_injector import containers, providers
 
 from apps.ingestion.infrastructure.adapters.external import (
-    ingres_corps_repository,
-    piste_client,
+    document_fetcher,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
-    django_document_repository,
+    document_persister,
     in_memory_document_repository,
+)
+from core.interfaces.document_repository_interface import (
+    IDocumentRepository,
 )
 from core.interfaces.http_client_interface import IHttpClient
 from core.interfaces.logger_interface import ILogger
@@ -24,16 +26,15 @@ class IngestionContainer(containers.DeclarativeContainer):
     logger_service: providers.Dependency[ILogger] = providers.Dependency()
     http_client: providers.Dependency[IHttpClient] = providers.Dependency()
 
-    # Ingestion services
-    piste_client = providers.Factory(
-        piste_client.PisteClient, logger_service=logger_service, http_client=http_client
+    # Document adapters
+    document_fetcher = providers.Singleton(
+        document_fetcher.ExternalDocumentFetcher,
+        http_client=http_client,
+        logger_service=logger_service,
     )
 
-    # Ingestion repositories
-    corps_repository = providers.Singleton(
-        ingres_corps_repository.IngresCorpsRepository,
-        client=piste_client,
-        logger_service=logger_service,
+    document_persister = providers.Singleton(
+        document_persister.DjangoDocumentPersister,
     )
 
     # Document repository with conditional selection
@@ -42,5 +43,9 @@ class IngestionContainer(containers.DeclarativeContainer):
         in_memory=providers.Singleton(
             in_memory_document_repository.InMemoryDocumentRepository
         ),
-        django=providers.Singleton(django_document_repository.DjangoDocumentRepository),
+        django=providers.Singleton(
+            IDocumentRepository,
+            fetcher=document_fetcher,
+            persister=document_persister,
+        ),
     )
