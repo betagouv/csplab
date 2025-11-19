@@ -19,12 +19,14 @@ class TestLoadDocumentsUsecase(unittest.TestCase):
     def setUpClass(cls):
         """Load fixtures once for all tests."""
         fixture_data = cls._load_fixture("corps_ingres_20251117.json")
-        cls.raw_corps_documents = fixture_data["items"]
+        cls.raw_corps_documents = fixture_data
 
     @classmethod
     def _load_fixture(cls, filename):
-        fixtures_path = Path(__file__).parent / "fixtures" / filename
-        with open(fixtures_path, "r") as f:
+        """Load fixture from the shared fixtures directory."""
+        # Correction du chemin : remonte de unit/ vers tests/fixtures/
+        fixtures_path = Path(__file__).parent.parent / "fixtures" / filename
+        with open(fixtures_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
     def setUp(self):
@@ -70,7 +72,8 @@ class TestLoadDocumentsUsecase(unittest.TestCase):
         result = self.usecase.execute(DocumentType.CORPS)
 
         # in memory, same repo for fetch and persistence
-        self.assertEqual(result["updated"], 680)
+        # Correction : fixture allégée contient 4 documents, pas 680
+        self.assertEqual(result["updated"], 4)
 
     def test_execute_handles_repository_error(self):
         """Test execute handles repository errors properly."""

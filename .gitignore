@@ -67,7 +67,6 @@ scripts/*.csv
 
 # Data
 *.csv
-*.json
 .coverage
 
 
