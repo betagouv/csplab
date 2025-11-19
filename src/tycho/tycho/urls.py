@@ -5,5 +5,5 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("ingestion/", include("ingestion.urls")),  # ← Ajouter cette ligne
+    path("ingestion/", include("apps.ingestion.infrastructure.urls")),
 ]

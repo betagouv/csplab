@@ -6,7 +6,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .services.sourcing.corps_sourcer import CorpsSourcer
+from apps.ingestion.infrastructure.adapters.external.ingres_corps_repository import (
+    IngresCorpsRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,7 @@ class CorpsETLView(APIView):
     def post(self, request):
         """Trigger corps ETL process."""
         try:
-            sourcer = CorpsSourcer()
+            sourcer = IngresCorpsRepository()
             count = sourcer.fetch_and_store_corps()
 
             return Response(

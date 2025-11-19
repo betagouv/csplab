@@ -6,7 +6,7 @@ from apps.ingestion.infrastructure.adapters.external import (
     ingres_corps_repository,
     piste_client,
 )
-from apps.ingestion.infrastructure.adapters.persistence import (
+from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_document_repository,
     in_memory_document_repository,
 )

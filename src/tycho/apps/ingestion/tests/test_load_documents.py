@@ -105,7 +105,7 @@ class TestLoadDocumentsUsecase(unittest.TestCase):
             Document(
                 id=None,
                 raw_data={"name": "Exam 1"},
-                type=DocumentType.EXAMINATION,
+                type=DocumentType.CONCOURS,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             ),

@@ -4,7 +4,7 @@ import logging
 import traceback
 from typing import Optional
 
-from apps.ingestion.infrastructure.adapters.persistence.models import IngresCorps
+from apps.ingestion.infrastructure.adapters.persistence.models import RawDocument
 from core.interfaces.http_client_interface import IHttpClient
 from core.interfaces.logger_interface import ILogger
 
@@ -39,9 +39,8 @@ class IngresCorpsRepository:
 
             created_count = 0
             for doc in documents:
-                # Upsert basé sur un identifiant unique
-                raw_corps, created = IngresCorps.objects.update_or_create(  # type: ignore[attr-defined]
-                    ingres_id=doc.get("id"),  # Clé unique
+                raw_corps, created = RawDocument.objects.update_or_create(  # type: ignore[attr-defined]
+                    raw_data__id=doc.get("id"),
                     defaults={"raw_data": doc},
                 )
                 if created:
@@ -51,7 +50,7 @@ class IngresCorpsRepository:
                 f"Corps sourcing completed: {created_count} new records created"
             )
             return created_count
-        except Exception as e:
-            self.logger.error(f"Error during corps sourcing: {e}")
+        except Exception:
+            self.logger.error("Error during corps sourcing")
             self.logger.error(traceback.format_exc())
             raise
