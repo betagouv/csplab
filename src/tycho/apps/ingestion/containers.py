@@ -4,13 +4,16 @@ from dependency_injector import containers, providers
 
 from apps.ingestion.infrastructure.adapters.external import (
     document_fetcher,
+    piste_client,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
-    document_persister,
-    in_memory_document_repository,
+    django_document_repository as django_repo,
+)
+from apps.ingestion.infrastructure.adapters.persistence.repositories import (
+    in_memory_document_repository as inmemory_repo,
 )
 from core.interfaces.document_repository_interface import (
-    IDocumentRepository,
+    CompositeDocumentRepository,
 )
 from core.interfaces.http_client_interface import IHttpClient
 from core.interfaces.logger_interface import ILogger
@@ -26,25 +29,30 @@ class IngestionContainer(containers.DeclarativeContainer):
     logger_service: providers.Dependency[ILogger] = providers.Dependency()
     http_client: providers.Dependency[IHttpClient] = providers.Dependency()
 
-    # Document adapters
-    document_fetcher = providers.Singleton(
-        document_fetcher.ExternalDocumentFetcher,
+    # PISTE client for authenticated API calls
+    piste_client = providers.Singleton(
+        piste_client.PisteClient,
         http_client=http_client,
         logger_service=logger_service,
     )
 
+    # Document adapters
+    document_fetcher = providers.Singleton(
+        document_fetcher.ExternalDocumentFetcher,
+        piste_client=piste_client,
+        logger_service=logger_service,
+    )
+
     document_persister = providers.Singleton(
-        document_persister.DjangoDocumentPersister,
+        django_repo.DjangoDocumentRepository,
     )
 
     # Document repository with conditional selection
     document_repository = providers.Selector(
         in_memory_mode,
-        in_memory=providers.Singleton(
-            in_memory_document_repository.InMemoryDocumentRepository
-        ),
-        django=providers.Singleton(
-            IDocumentRepository,
+        in_memory=providers.Singleton(inmemory_repo.InMemoryDocumentRepository),
+        external=providers.Singleton(
+            CompositeDocumentRepository,
             fetcher=document_fetcher,
             persister=document_persister,
         ),

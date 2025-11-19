@@ -5,7 +5,8 @@ import logging
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from tycho.apps.ingestion.infrastructure.adapters.external.ingres_fetcher import (
+
+from apps.ingestion.infrastructure.adapters.external.ingres_fetcher import (
     IngresCorpsRepository,
 )
 

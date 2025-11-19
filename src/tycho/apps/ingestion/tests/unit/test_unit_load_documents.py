@@ -1,4 +1,4 @@
-"""Tests for GetDocuments usecase."""
+"""Unit test cases for LoadDocuments usecase."""
 
 import json
 import unittest
@@ -12,8 +12,8 @@ from core.entities.document import Document, DocumentType
 from core.services.logger import LoggerService
 
 
-class TestLoadDocumentsUsecase(unittest.TestCase):
-    """Test cases for GetDocuments usecase."""
+class TestUnitLoadDocumentsUsecase(unittest.TestCase):
+    """Unit test cases for LoadDocuments usecase."""
 
     @classmethod
     def setUpClass(cls):
@@ -24,13 +24,12 @@ class TestLoadDocumentsUsecase(unittest.TestCase):
     @classmethod
     def _load_fixture(cls, filename):
         """Load fixture from the shared fixtures directory."""
-        # Correction du chemin : remonte de unit/ vers tests/fixtures/
         fixtures_path = Path(__file__).parent.parent / "fixtures" / filename
         with open(fixtures_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
     def setUp(self):
-        """Set up test fixtures."""
+        """Set up container dependencies."""
         self.container = IngestionContainer()
         self.container.in_memory_mode.override("in_memory")
 

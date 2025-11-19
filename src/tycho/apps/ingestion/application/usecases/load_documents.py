@@ -16,6 +16,7 @@ class LoadDocumentsUsecase:
         """Execute the usecase to load and persist documents."""
         try:
             repository = self.container.document_repository()
+
             documents = repository.fetch_by_type(document_type)
 
             result = repository.upsert_batch(documents)
