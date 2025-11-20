@@ -4,8 +4,12 @@ import time
 
 import environ
 import requests
+from rest_framework import status
 
-from core.interfaces.http_client_interface import HTTP_OK, IHttpClient
+from apps.ingestion.infrastructure.exceptions import (
+    ExternalApiError,
+)
+from core.interfaces.http_client_interface import IHttpClient
 from core.interfaces.logger_interface import ILogger
 
 
@@ -42,10 +46,17 @@ class PisteClient:
                 "scope": "openid",
             },
         )
-        if response.status_code != HTTP_OK:
+        if response.status_code != status.HTTP_200_OK:
             error_msg = f"OAuth failed: {response.status_code} - {response.text}"
             self.logger.error(error_msg)
-            raise Exception(error_msg)
+            raise ExternalApiError(
+                error_msg,
+                details={
+                    "status_code": response.status_code,
+                    "response_text": response.text,
+                    "oauth_url": oauth_url,
+                },
+            )
 
         data = response.json()
         self.access_token = data["access_token"]
@@ -70,6 +81,20 @@ class PisteClient:
         response = self.http_client.request(method, url, **kwargs)
 
         self.logger.info(f"API response status: {response.status_code}")
-        if response.status_code != HTTP_OK:
+
+        if response.status_code != status.HTTP_200_OK:
+            error_msg = f"INGRES API error: {response.status_code} - {response.text}"
             self.logger.error(f"API response text: {response.text[:500]}...")
+
+            raise ExternalApiError(
+                error_msg,
+                status_code=response.status_code,
+                details={
+                    "ingres_status": response.status_code,
+                    "method": method,
+                    "endpoint": endpoint,
+                    "response_text": response.text,
+                },
+            )
+
         return response

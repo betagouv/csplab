@@ -1,7 +1,7 @@
 """Logger service implementation."""
 
-import inspect
 import logging
+from typing import Any
 
 from core.interfaces.logger_interface import ILogger
 
@@ -26,12 +26,20 @@ class LoggerService(ILogger):
         Returns:
             Configured logger instance
         """
-        frame = inspect.currentframe()
-        try:
-            caller_frame = frame.f_back if frame else None
-            if caller_frame and "self" in caller_frame.f_locals:
-                class_name = caller_frame.f_locals["self"].__class__.__name__
-                return logging.getLogger(f"tycho.{module_name}.{class_name}")
-            return logging.getLogger(f"tycho.{module_name}")
-        finally:
-            del frame
+        return logging.getLogger(f"tycho.{module_name}")
+
+    def info(self, message: str, *args: Any) -> None:
+        """Log info message."""
+        self.logger.info(message, *args)
+
+    def debug(self, message: str, *args: Any) -> None:
+        """Log debug message."""
+        self.logger.debug(message, *args)
+
+    def warning(self, message: str, *args: Any) -> None:
+        """Log warning message."""
+        self.logger.warning(message, *args)
+
+    def error(self, message: str, *args: Any) -> None:
+        """Log error message."""
+        self.logger.error(message, *args)

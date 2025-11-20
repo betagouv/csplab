@@ -4,8 +4,6 @@ from typing import Any, Protocol
 
 import requests
 
-HTTP_OK = 200
-
 
 class IHttpClient(Protocol):
     """Interface for HTTP client."""

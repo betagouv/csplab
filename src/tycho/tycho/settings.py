@@ -128,6 +128,8 @@ STATIC_ROOT = BASE_DIR.parent / "static"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Logging configuration
+LOG_LEVEL = "DEBUG" if DEBUG else "ERROR"
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -146,14 +148,38 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
+        "exception_console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
     },
     "loggers": {
         "ingestion": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-            "propagate": True,
+            "handlers": ["exception_console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "tycho.DOMAIN": {
+            "handlers": ["exception_console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "tycho.APPLICATION": {
+            "handlers": ["exception_console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "tycho.INFRASTRUCTURE": {
+            "handlers": ["exception_console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
         },
     },
+}
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "tycho.exception_handler.custom_exception_handler"
 }
 
 # Sentry

@@ -1,17 +1,20 @@
 """Integration tests for LoadDocuments usecase with external adapters."""
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import environ
 import pytest
 import responses
 from django.test import TransactionTestCase
+from rest_framework.test import APITestCase
 
+from apps.ingestion.application.exceptions import LoadDocumentsError
 from apps.ingestion.application.usecases.load_documents import LoadDocumentsUsecase
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
 )
+from apps.ingestion.infrastructure.exceptions import ExternalApiError
 from apps.ingestion.tests.factories.ingres_factories import (
     IngresCorpsApiResponseFactory,
 )
@@ -114,82 +117,92 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
 
         self.assertEqual(str(context.exception), "Ingres connection failed")
 
-    # def test_get_by_type_returns_documents_of_correct_type_only(self):
-    #     """Test get_by_type returns only documents of the specified type."""
-    #     repository = self.container.document_repository()
 
-    #     documents = [
-    #         Document(
-    #             id=None,
-    #             raw_data={"name": "Corps 1"},
-    #             type=DocumentType.CORPS,
-    #             created_at=datetime.now(),
-    #             updated_at=datetime.now(),
-    #         ),
-    #         Document(
-    #             id=None,
-    #             raw_data={"name": "Corps 2"},
-    #             type=DocumentType.CORPS,
-    #             created_at=datetime.now(),
-    #             updated_at=datetime.now(),
-    #         ),
-    #         Document(
-    #             id=None,
-    #             raw_data={"name": "Exam 1"},
-    #             type=DocumentType.CONCOURS,
-    #             created_at=datetime.now(),
-    #             updated_at=datetime.now(),
-    #         ),
-    #     ]
+class TestIntegrationExceptions(APITestCase):
+    """Integration tests for the exception system across all layers."""
 
-    #     repository.upsert_batch(documents)
+    def setUp(self):
+        """Set up test environment."""
+        self.load_documents_url = "/ingestion/load/"
 
-    #     corps_docs = repository.fetch_by_type(DocumentType.CORPS)
-    #     self.assertEqual(len(corps_docs), 2)
+    def test_domain_error_invalid_document_type(self):
+        """Test Domain layer exception with invalid document type."""
+        response = self.client.post(
+            self.load_documents_url, {"type": "INVALID_TYPE"}, format="json"
+        )
 
-    #     for doc in corps_docs:
-    #         self.assertEqual(doc.type, DocumentType.CORPS)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["status"], "error")
+        self.assertEqual(
+            response.data["type"],
+            "DomainError::DocumentError::InvalidDocumentTypeError",
+        )
+        self.assertIn("Invalid document type: INVALID_TYPE", response.data["message"])
 
-    # def test_upsert_creates_new_document(self):
-    #     """Test upsert creates a new document when it doesn't exist."""
-    #     repository = self.container.document_repository()
+    @patch(
+        "apps.ingestion.infrastructure.adapters.external.piste_client.PisteClient._get_token"
+    )
+    def test_infrastructure_error_oauth_failure(self, mock_get_token):
+        """Test Infrastructure layer exception with OAuth failure."""
+        # Mock OAuth failure
+        mock_get_token.side_effect = ExternalApiError(
+            "OAuth authentication failed", status_code=401, api_name="PISTE"
+        )
 
-    #     document = Document(
-    #         id=None,
-    #         raw_data={"name": "Test Document"},
-    #         type=DocumentType.CORPS,
-    #         created_at=datetime.now(),
-    #         updated_at=datetime.now(),
-    #     )
+        response = self.client.post(
+            self.load_documents_url, {"type": "CORPS"}, format="json"
+        )
 
-    #     result = repository.upsert(document)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data["status"], "error")
+        self.assertEqual(response.data["type"], "InfrastructureError::ExternalApiError")
+        self.assertIn("OAuth authentication failed", response.data["message"])
 
-    #     self.assertIsNotNone(result.id)
-    #     self.assertEqual(result.raw_data, {"name": "Test Document"})
-    #     self.assertEqual(result.type, DocumentType.CORPS)
+    @responses.activate
+    def test_infrastructure_error_ingres_api_failure(self):
+        """Test Infrastructure layer exception with INGRES API failure."""
+        env = environ.Env()
+        oauth_base_url = env.str("TYCHO_PISTE_OAUTH_BASE_URL")
+        ingres_base_url = env.str("TYCHO_INGRES_BASE_URL")
 
-    # def test_upsert_batch_returns_correct_counts(self):
-    #     """Test upsert_batch returns correct created/updated counts."""
-    #     repository = self.container.document_repository()
+        # Mock successful OAuth
+        responses.add(
+            responses.POST,
+            oauth_base_url + "/api/oauth/token",
+            json={"access_token": "fake_token", "expires_in": 3600},
+            status=200,
+        )
 
-    #     documents = [
-    #         Document(
-    #             id=None,
-    #             raw_data={"name": "Doc 1"},
-    #             type=DocumentType.CORPS,
-    #             created_at=datetime.now(),
-    #             updated_at=datetime.now(),
-    #         ),
-    #         Document(
-    #             id=None,
-    #             raw_data={"name": "Doc 2"},
-    #             type=DocumentType.CORPS,
-    #             created_at=datetime.now(),
-    #             updated_at=datetime.now(),
-    #         ),
-    #     ]
+        # Mock INGRES API failure
+        responses.add(
+            responses.GET,
+            ingres_base_url + "/CORPS",
+            json={"error": "Service unavailable"},
+            status=503,
+        )
 
-    #     result = repository.upsert_batch(documents)
+        response = self.client.post(
+            self.load_documents_url, {"type": "CORPS"}, format="json"
+        )
 
-    #     self.assertEqual(result["created"], 2)
-    #     self.assertEqual(result["updated"], 0)
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.data["status"], "error")
+        self.assertEqual(response.data["type"], "InfrastructureError::ExternalApiError")
+
+    @patch(
+        "apps.ingestion.application.usecases.load_documents.LoadDocumentsUsecase.execute"
+    )
+    def test_application_error_usecase_failure(self, mock_execute):
+        """Test Application layer exception with use case failure."""
+        # Mock use case failure
+        mock_execute.side_effect = LoadDocumentsError(
+            "Failed to orchestrate document loading", status_code=500
+        )
+
+        response = self.client.post(
+            self.load_documents_url, {"type": "CORPS"}, format="json"
+        )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data["status"], "error")
+        self.assertEqual(response.data["type"], "ApplicationError::LoadDocumentsError")
