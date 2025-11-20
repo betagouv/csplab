@@ -206,3 +206,40 @@ class TestIntegrationExceptions(APITestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data["status"], "error")
         self.assertEqual(response.data["type"], "ApplicationError::LoadDocumentsError")
+
+    @responses.activate
+    def test_success_response_format(self):
+        """Test successful API response format and content."""
+        env = environ.Env()
+        oauth_base_url = env.str("TYCHO_PISTE_OAUTH_BASE_URL")
+        ingres_base_url = env.str("TYCHO_INGRES_BASE_URL")
+
+        # Mock successful OAuth
+        responses.add(
+            responses.POST,
+            oauth_base_url + "/api/oauth/token",
+            json={"access_token": "fake_token", "expires_in": 3600},
+            status=200,
+        )
+
+        # Mock successful INGRES API with documents
+        api_response = IngresCorpsApiResponseFactory.build()
+        api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
+        responses.add(
+            responses.GET,
+            ingres_base_url + "/CORPS",
+            json={"items": api_data},
+            status=200,
+        )
+
+        response = self.client.post(
+            self.load_documents_url, {"type": "CORPS"}, format="json"
+        )
+
+        # Test success response format (covers lines 45-48 in views.py)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], "success")
+        self.assertEqual(response.data["document_type"], "CORPS")
+        self.assertEqual(response.data["created"], 4)
+        self.assertEqual(response.data["updated"], 0)
+        self.assertEqual(response.data["message"], "4 documents created, 0 updated")
