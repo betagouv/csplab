@@ -2,6 +2,7 @@
 
 import logging
 
+from pydantic import ValidationError
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -21,13 +22,16 @@ class LoadDocumentsView(APIView):
     def post(self, request):
         """Trigger document loading process."""
         try:
-            # Get document type from query params or default to CORPS
-            document_type_str = request.query_params.get("type", "CORPS")
+            document_type_str = request.data.get("type", "CORPS")
 
             try:
                 document_type = DocumentType[document_type_str.upper()]
             except KeyError:
-                error_msg = f"Invalid document type: {document_type_str}"
+                valid_types = [dt.value for dt in DocumentType]
+                error_msg = (
+                    f"Invalid document type: {document_type_str}. "
+                    f"Valid types: {valid_types}"
+                )
                 return Response(
                     {"status": "error", "message": error_msg},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -61,6 +65,12 @@ class LoadDocumentsView(APIView):
                 status=status.HTTP_200_OK,
             )
 
+        except ValidationError as e:
+            logger.warning("Validation error during document loading: %s", str(e))
+            return Response(
+                {"status": "error", "message": f"Données invalides: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
             logger.exception("Failed to run document loading process.")
             error_message = f"Une erreur interne s'est produite: {str(e)}"

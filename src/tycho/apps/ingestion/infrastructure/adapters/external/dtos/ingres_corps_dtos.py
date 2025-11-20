@@ -102,8 +102,8 @@ class SousCategorie(BaseModel):
     """Sub-category of a corps."""
 
     dateEffet: str
-    codeSousCategorie: str
-    libelleSousCategorie: str
+    codeSousCategorie: str | None = None
+    libelleSousCategorie: str | None = None
 
 
 class MinistereInstitution(BaseModel):
@@ -153,12 +153,12 @@ class TexteAssocie(BaseModel):
     articles: Optional[Any] = None
     indForcage: Optional[Any] = None
     nature: NatureTexte
-    numeroTexte: str
-    dateTexte: str
-    datePublication: str
-    NOR: str
+    numeroTexte: str | None = None
+    dateTexte: str | None = None
+    datePublication: str | None = None
+    NOR: str | None = None
     legiFrance: Optional[str] = None
-    descriptif: str
+    descriptif: str | None = None
 
 
 class DefinitionsHistoriques(BaseModel):
