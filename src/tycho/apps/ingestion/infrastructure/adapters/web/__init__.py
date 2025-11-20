@@ -1,1 +1,0 @@
-"""Ingestion infrastructure web adapters."""

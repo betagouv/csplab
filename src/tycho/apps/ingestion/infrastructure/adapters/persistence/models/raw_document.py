@@ -9,7 +9,6 @@ class RawDocument(models.Model):
     """Model for storing raw ingres employement body."""
 
     id = models.AutoField(primary_key=True)
-    raw_data = models.JSONField("RawDocument")
     document_type = models.CharField(
         "Type de document",
         max_length=10,
@@ -17,6 +16,7 @@ class RawDocument(models.Model):
         null=True,
         blank=True,
     )
+    raw_data = models.JSONField("RawDocument")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

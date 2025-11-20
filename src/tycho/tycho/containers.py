@@ -21,11 +21,3 @@ class ApplicationContainer(containers.DeclarativeContainer):
         logger_service=core.logger_service,
         http_client=core.http_client,
     )
-
-    # Wiring configuration
-    wiring_config = containers.WiringConfiguration(
-        modules=[
-            "apps.ingestion.infrastructure.adapters.web.views",
-            "apps.ingestion.infrastructure.adapters.external.corps_sourcer",
-        ]
-    )
