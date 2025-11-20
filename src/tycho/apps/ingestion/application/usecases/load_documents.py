@@ -23,9 +23,9 @@ class LoadDocumentsUsecase:
 
             return result
 
-        except Exception as e:
+        except Exception:
             logger = self.container.logger_service().get_logger(
                 "INGESTION::APPLICATION::LoadDocumentsUsecase::execute"
             )
-            logger.error(f"Error loading documents: {str(e)}")
+            logger.error("Error loading documents")
             raise

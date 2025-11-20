@@ -68,12 +68,12 @@ class LoadDocumentsView(APIView):
         except ValidationError as e:
             logger.warning("Validation error during document loading: %s", str(e))
             return Response(
-                {"status": "error", "message": f"Données invalides: {str(e)}"},
+                {"status": "error", "message": "Données invalides"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to run document loading process.")
-            error_message = f"Une erreur interne s'est produite: {str(e)}"
+            error_message = "Une erreur interne s'est produite"
             return Response(
                 {"status": "error", "message": error_message},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
