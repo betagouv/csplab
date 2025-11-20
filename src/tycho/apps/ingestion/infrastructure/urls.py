@@ -2,8 +2,8 @@
 
 from django.urls import path
 
-from .adapters.web.views import CorpsETLView
+from apps.ingestion.infrastructure.adapters.web.views import LoadDocumentsView
 
 urlpatterns = [
-    path("etl/corps/", CorpsETLView.as_view(), name="corps-etl"),
+    path("load/", LoadDocumentsView.as_view(), name="load-documents"),
 ]
