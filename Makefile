@@ -162,7 +162,7 @@ lint-tycho-ruff-fix: ## lint and fix tycho python sources with ruff
 
 lint-tycho-mypy: ## lint tycho python sources with mypy
 	@echo 'lint:tycho-mypy started…'
-	$(COMPOSE_RUN_TYCHO_UV) python -m mypy .
+	$(COMPOSE_RUN_TYCHO_UV) mypy .
 .PHONY: lint-tycho-mypy
 
 ## TEST
