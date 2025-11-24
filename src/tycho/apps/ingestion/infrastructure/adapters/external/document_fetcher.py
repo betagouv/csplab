@@ -53,24 +53,19 @@ class ExternalDocumentFetcher(IDocumentFetcher):
         return documents
 
     def _fetch_ingres_api(self, document_type: DocumentType) -> List[dict]:
-        try:
-            document_type_map = {
-                DocumentType.CORPS: "CORPS",
-                DocumentType.GRADE: "GRADE",
-            }
+        document_type_map = {
+            DocumentType.CORPS: "CORPS",
+            DocumentType.GRADE: "GRADE",
+        }
 
-            endpoint = document_type_map.get(document_type)
-            if endpoint is None:
-                raise ValueError(f"Ingres: unknown document type: {document_type}")
+        endpoint = document_type_map.get(document_type)
+        if endpoint is None:
+            raise ValueError(f"Ingres: unknown document type: {document_type}")
 
-            response = self.piste_client.request(
-                "GET", endpoint, params={"enVigueur": "true", "full": "true"}
-            )
+        response = self.piste_client.request(
+            "GET", endpoint, params={"enVigueur": "true", "full": "true"}
+        )
 
-            raw_documents = response.json()["items"]
-            self.logger.info(f"Found {len(raw_documents)} documents")
-            return raw_documents
-
-        except Exception:
-            self.logger.error("Error fetching documents")
-            raise
+        raw_documents = response.json()["items"]
+        self.logger.info(f"Found {len(raw_documents)} documents")
+        return raw_documents
