@@ -2,11 +2,12 @@
 SHELL := /bin/bash
 
 # -- Docker
-COMPOSE              = bin/compose
-COMPOSE_UP           = $(COMPOSE) up -d --remove-orphans
-COMPOSE_RUN          = $(COMPOSE) run --rm --no-deps
-COMPOSE_RUN_DEV_UV   = $(COMPOSE_RUN) dev uv run
-COMPOSE_RUN_TYCHO_UV = $(COMPOSE_RUN) tycho uv run
+COMPOSE                 = bin/compose
+COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
+COMPOSE_RUN             = $(COMPOSE) run --rm --no-deps
+COMPOSE_RUN_DEV_UV      = $(COMPOSE_RUN) dev uv run
+COMPOSE_RUN_TYCHO_UV    = $(COMPOSE_RUN) tycho uv run
+COMPOSE_RUN_NOTEBOOK_UV = $(COMPOSE_RUN) notebook uv run
 
 default: help
 
@@ -125,14 +126,14 @@ lint-fix: \
 # -- Per-service linting
 lint-notebook: ## lint notebook python sources
 	@echo 'lint:notebook started (warnings only)…'
-	$(COMPOSE_RUN) notebook uv run ruff check . || true
-	$(COMPOSE_RUN) notebook uv run ruff format --check . || true
+	$(COMPOSE_RUN_NOTEBOOK_UV) ruff check . || true
+	$(COMPOSE_RUN_NOTEBOOK_UV) ruff format --check . || true
 .PHONY: lint-notebook
 
 lint-notebook-fix: ## lint and fix notebook python sources
 	@echo 'lint:notebook-fix started (warnings only)…'
-	$(COMPOSE_RUN) notebook uv run ruff check --fix . || true
-	$(COMPOSE_RUN) notebook uv run ruff format . || true
+	$(COMPOSE_RUN_NOTEBOOK_UV) ruff check --fix . || true
+	$(COMPOSE_RUN_NOTEBOOK_UV) ruff format . || true
 .PHONY: lint-notebook-fix
 
 lint-tycho: ## lint tycho python sources
