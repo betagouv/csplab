@@ -6,10 +6,9 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock
 
-from apps.ingestion.application.usecases.load_documents import LoadDocumentsUsecase
 from apps.ingestion.containers import IngestionContainer
+from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from core.entities.document import Document, DocumentType
-from core.services.logger import LoggerService
 
 
 class TestUnitLoadDocumentsUsecase(unittest.TestCase):
@@ -36,7 +35,8 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
         logger_service = LoggerService()
         self.container.logger_service.override(logger_service)
 
-        self.usecase = LoadDocumentsUsecase(self.container)
+        # Use container to create usecase with proper dependency injection
+        self.usecase = self.container.load_documents_usecase()
 
     def tearDown(self):
         """Clean up after each test."""
@@ -80,8 +80,11 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
         mock_repo.fetch_by_type.side_effect = Exception("Database connection failed")
         self.container.document_repository.override(mock_repo)
 
+        # Create new usecase with mocked repository
+        usecase = self.container.load_documents_usecase()
+
         with self.assertRaises(Exception) as context:
-            self.usecase.execute(DocumentType.CORPS)
+            usecase.execute(DocumentType.CORPS)
 
         self.assertEqual(str(context.exception), "Database connection failed")
 

@@ -9,8 +9,8 @@ from rest_framework import status
 from apps.ingestion.infrastructure.exceptions import (
     ExternalApiError,
 )
-from core.interfaces.http_client_interface import IHttpClient
-from core.interfaces.logger_interface import ILogger
+from core.services.http_client_interface import IHttpClient
+from core.services.logger_interface import ILogger
 
 
 class PisteClient:

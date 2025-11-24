@@ -12,11 +12,14 @@ from apps.ingestion.infrastructure.adapters.persistence.repositories import (
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     in_memory_document_repository as inmemory_repo,
 )
-from core.interfaces.document_repository_interface import (
+from core.entities.document import DocumentType
+from core.interfaces.usecase_interface import IUseCase
+from core.repositories.document_repository_interface import (
     CompositeDocumentRepository,
+    IUpsertResult,
 )
-from core.interfaces.http_client_interface import IHttpClient
-from core.interfaces.logger_interface import ILogger
+from core.services.http_client_interface import IHttpClient
+from core.services.logger_interface import ILogger
 
 
 class IngestionContainer(containers.DeclarativeContainer):
@@ -56,4 +59,13 @@ class IngestionContainer(containers.DeclarativeContainer):
             fetcher=document_fetcher,
             persister=document_persister,
         ),
+    )
+
+    # Use cases - with type annotation to enforce IUseCase compliance
+    load_documents_usecase: providers.Provider[
+        IUseCase[DocumentType, IUpsertResult]
+    ] = providers.Factory(
+        "apps.ingestion.application.usecases.load_documents.LoadDocumentsUsecase",
+        document_repository=document_repository,
+        logger=logger_service,
     )

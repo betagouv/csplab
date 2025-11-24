@@ -1,8 +1,25 @@
 """HTTP client service implementation."""
 
+from typing import Any, Protocol
+
 import requests
 
-from core.interfaces.http_client_interface import IHttpClient
+
+class IHttpClient(Protocol):
+    """Interface for HTTP client."""
+
+    def request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
+        """Make HTTP request.
+
+        Args:
+            method: HTTP method
+            url: Request URL
+            **kwargs: Additional request parameters
+
+        Returns:
+            HTTP response
+        """
+        ...
 
 
 class HttpClient(IHttpClient):

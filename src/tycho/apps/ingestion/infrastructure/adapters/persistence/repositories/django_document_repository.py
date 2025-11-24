@@ -6,7 +6,7 @@ from apps.ingestion.infrastructure.adapters.persistence.models.raw_document impo
     RawDocument,
 )
 from core.entities.document import Document
-from core.interfaces.document_repository_interface import (
+from core.repositories.document_repository_interface import (
     IDocumentPersister,
     IUpsertResult,
 )

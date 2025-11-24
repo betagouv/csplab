@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List
 
 from core.entities.document import Document, DocumentType
-from core.interfaces.document_repository_interface import (
+from core.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,
 )

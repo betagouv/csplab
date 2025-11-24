@@ -7,9 +7,9 @@ from apps.ingestion.infrastructure.adapters.external.dtos.ingres_corps_dtos impo
     IngresCorpsApiResponse,
 )
 from core.entities.document import Document, DocumentType
-from core.interfaces.document_repository_interface import IDocumentFetcher
-from core.interfaces.http_client_interface import IHttpClient
-from core.interfaces.logger_interface import ILogger
+from core.repositories.document_repository_interface import IDocumentFetcher
+from core.services.http_client_interface import IHttpClient
+from core.services.logger_interface import ILogger
 
 
 class ExternalDocumentFetcher(IDocumentFetcher):

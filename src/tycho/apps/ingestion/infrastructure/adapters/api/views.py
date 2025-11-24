@@ -6,12 +6,11 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.ingestion.application.usecases.load_documents import LoadDocumentsUsecase
 from apps.ingestion.containers import IngestionContainer
+from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
+from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from core.entities.document import DocumentType
-from core.exceptions import InvalidDocumentTypeError
-from core.services.http_client import HttpClient
-from core.services.logger import LoggerService
+from core.errors.domain_errors import InvalidDocumentTypeError
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ class LoadDocumentsView(APIView):
         container.http_client.override(http_client)
 
         # Execute usecase - exceptions handled by global exception handler
-        usecase = LoadDocumentsUsecase(container)
+        usecase = container.load_documents_usecase()
         result = usecase.execute(document_type)
 
         created_count = result["created"]

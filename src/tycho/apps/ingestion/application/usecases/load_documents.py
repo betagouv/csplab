@@ -1,31 +1,33 @@
 """LoadDocuments usecase."""
 
-from apps.ingestion.containers import IngestionContainer
 from core.entities.document import DocumentType
-from core.interfaces.document_repository_interface import IUpsertResult
+from core.repositories.document_repository_interface import (
+    IDocumentRepository,
+    IUpsertResult,
+)
+from core.services.logger_interface import ILogger
 
 
 class LoadDocumentsUsecase:
     """Usecase for loading and persisting documents."""
 
-    def __init__(self, container: IngestionContainer):
-        """Initialize with container."""
-        self.container = container
+    def __init__(self, document_repository: IDocumentRepository, logger: ILogger):
+        """Initialize with dependencies."""
+        self.document_repository = document_repository
+        self.logger = logger
 
-    def execute(self, document_type: DocumentType) -> IUpsertResult:
+    def execute(self, input_data: DocumentType) -> IUpsertResult:
         """Execute the usecase to load and persist documents."""
         try:
-            repository = self.container.document_repository()
+            documents = self.document_repository.fetch_by_type(input_data)
 
-            documents = repository.fetch_by_type(document_type)
-
-            result = repository.upsert_batch(documents)
+            result = self.document_repository.upsert_batch(documents)
 
             return result
 
         except Exception:
-            logger = self.container.logger_service().get_logger(
+            logger_instance = self.logger.get_logger(
                 "INGESTION::APPLICATION::LoadDocumentsUsecase::execute"
             )
-            logger.error("Error loading documents")
+            logger_instance.error("Error loading documents")
             raise

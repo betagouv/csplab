@@ -9,8 +9,9 @@ from django.test import TransactionTestCase
 from rest_framework.test import APITestCase
 
 from apps.ingestion.application.exceptions import LoadDocumentsError
-from apps.ingestion.application.usecases.load_documents import LoadDocumentsUsecase
 from apps.ingestion.containers import IngestionContainer
+from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
+from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
 )
@@ -19,8 +20,6 @@ from apps.ingestion.tests.factories.ingres_factories import (
     IngresCorpsApiResponseFactory,
 )
 from core.entities.document import DocumentType
-from core.services.http_client import HttpClient
-from core.services.logger import LoggerService
 
 
 class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
@@ -35,7 +34,9 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         self.container.logger_service.override(logger_service)
         http_client = HttpClient()
         self.container.http_client.override(http_client)
-        self.usecase = LoadDocumentsUsecase(self.container)
+
+        # Use container to create usecase with proper dependency injection
+        self.usecase = self.container.load_documents_usecase()
 
     @pytest.mark.django_db
     @responses.activate
@@ -112,8 +113,11 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         mock_repo.fetch_by_type.side_effect = Exception("Ingres connection failed")
         self.container.document_repository.override(mock_repo)
 
+        # Create new usecase with mocked repository
+        usecase = self.container.load_documents_usecase()
+
         with self.assertRaises(Exception) as context:
-            self.usecase.execute(DocumentType.CORPS)
+            usecase.execute(DocumentType.CORPS)
 
         self.assertEqual(str(context.exception), "Ingres connection failed")
 
