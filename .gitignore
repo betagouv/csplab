@@ -40,9 +40,7 @@ data
 .env
 .venv
 env/
-env.d/notebook-local
-env.d/postgresql-local
-env.d/tycho-local
+env.d/*-local
 env.d/postgresql
 env.d/tycho
 
