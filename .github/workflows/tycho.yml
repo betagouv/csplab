@@ -78,10 +78,10 @@ jobs:
           POSTGRES_PASSWORD: pass
           TEST: true
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -h localhost -U postgres"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
         ports:
           - 5432:5432
     defaults:
@@ -105,12 +105,5 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version-file: "./src/tycho/.python-version"
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5432 -U postgres; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-          echo "PostgreSQL is ready!"
       - name: Test with pytest
         run: uv run pytest .
