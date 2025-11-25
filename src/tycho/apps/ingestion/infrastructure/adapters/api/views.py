@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
-from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
+from apps.ingestion.infrastructure.adapters.services.http_client import HttpClient
+from apps.ingestion.infrastructure.adapters.services.logger import LoggerService
 from core.entities.document import DocumentType
 from core.errors.domain_errors import InvalidDocumentTypeError
 

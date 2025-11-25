@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import Mock
 
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
+from apps.ingestion.infrastructure.adapters.services.logger import LoggerService
 from core.entities.document import Document, DocumentType
 
 

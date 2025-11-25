@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
+from apps.ingestion.infrastructure.adapters.services.logger import LoggerService
 from core.entities.document import Document, DocumentType
 
 
@@ -60,8 +60,9 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
         repository = self.container.document_repository()
         repository.clear()
 
-    def test_clean_documents_usecase_can_be_created(self):
+    def test_clean_documents(self):
         """Test that CleanDocumentsUsecase can be created with dependencies."""
         result = self.clean_documents_usecase.execute(DocumentType.CORPS)
 
-        self.assertEqual(result["processed"], 4, "Should have processed some documents")
+        self.assertEqual(result["processed"], 4, "Should have processed 4 documents")
+        self.assertEqual(result["cleaned"], 4, "Should have cleaned 4 documents")

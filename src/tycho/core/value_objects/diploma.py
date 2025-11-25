@@ -10,7 +10,7 @@ class Diploma:
     MAX_DIPLOMA_LEVEL = 8
     MIN_DIPLOMA_LEVEL = 1
 
-    value: str  # 1-8=CNCP levels
+    value: int  # 1-8=CNCP levels
 
     def __new__(cls, value: int):
         """Validate diploma level."""

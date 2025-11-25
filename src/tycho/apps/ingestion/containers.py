@@ -13,11 +13,13 @@ from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     in_memory_document_repository as inmemory_repo,
 )
 from core.entities.document import DocumentType
+from core.interfaces.entity_interface import IEntity
 from core.interfaces.usecase_interface import IUseCase
 from core.repositories.document_repository_interface import (
     CompositeDocumentRepository,
     IUpsertResult,
 )
+from core.services.document_cleaner_interface import IDocumentCleaner
 from core.services.http_client_interface import IHttpClient
 from core.services.logger_interface import ILogger
 
@@ -61,6 +63,14 @@ class IngestionContainer(containers.DeclarativeContainer):
         ),
     )
 
+    # Document cleaner factory
+    document_cleaner: providers.Provider[IDocumentCleaner[IEntity]] = (
+        providers.Singleton(
+            "apps.ingestion.infrastructure.adapters.services.document_cleaner.DocumentCleaner",
+            logger=logger_service,
+        )
+    )
+
     # Use cases - with type annotation to enforce IUseCase compliance
     load_documents_usecase: providers.Provider[
         IUseCase[DocumentType, IUpsertResult]
@@ -70,10 +80,11 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger=logger_service,
     )
 
-    clean_documents_usecase: providers.Provider[
-        IUseCase[DocumentType, IUpsertResult]
-    ] = providers.Factory(
-        "apps.ingestion.application.usecases.clean_documents.CleanDocumentsUsecase",
-        document_repository=document_repository,
-        logger=logger_service,
+    clean_documents_usecase: providers.Provider[IUseCase[DocumentType, dict]] = (
+        providers.Factory(
+            "apps.ingestion.application.usecases.clean_documents.CleanDocumentsUsecase",
+            document_repository=document_repository,
+            document_cleaner=document_cleaner,
+            logger=logger_service,
+        )
     )

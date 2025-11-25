@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler, status
 
 from apps.ingestion.application.exceptions import ApplicationError
-from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
+from apps.ingestion.infrastructure.adapters.services.logger import LoggerService
 from apps.ingestion.infrastructure.exceptions import InfrastructureError
 from core.errors.domain_errors import DomainError
 

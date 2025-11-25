@@ -10,11 +10,11 @@ from rest_framework.test import APITestCase
 
 from apps.ingestion.application.exceptions import LoadDocumentsError
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
-from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
 )
+from apps.ingestion.infrastructure.adapters.services.http_client import HttpClient
+from apps.ingestion.infrastructure.adapters.services.logger import LoggerService
 from apps.ingestion.infrastructure.exceptions import ExternalApiError
 from apps.ingestion.tests.factories.ingres_factories import (
     IngresCorpsApiResponseFactory,
