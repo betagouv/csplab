@@ -69,3 +69,11 @@ class IngestionContainer(containers.DeclarativeContainer):
         document_repository=document_repository,
         logger=logger_service,
     )
+
+    clean_documents_usecase: providers.Provider[
+        IUseCase[DocumentType, IUpsertResult]
+    ] = providers.Factory(
+        "apps.ingestion.application.usecases.clean_documents.CleanDocumentsUsecase",
+        document_repository=document_repository,
+        logger=logger_service,
+    )

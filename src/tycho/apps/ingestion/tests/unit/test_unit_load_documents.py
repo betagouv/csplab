@@ -28,7 +28,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
             return json.load(f)
 
     def setUp(self):
-        """Set up container dependencies."""
+        """Set up dependencies."""
         self.container = IngestionContainer()
         self.container.in_memory_mode.override("in_memory")
 
