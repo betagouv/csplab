@@ -21,35 +21,26 @@ class CleanDocumentsUsecase:
         """Initialize with dependencies."""
         self.document_repository = document_repository
         self.document_cleaner = document_cleaner
-        self.logger = logger
+        self.logger = logger.get_logger(
+            "INGESTION::APPLICATION::CleanDocumentsUsecase::execute"
+        )
 
     def execute(self, input_data: DocumentType) -> Dict[str, Any]:
         """Execute the usecase to clean documents and return processing results."""
-        try:
-            # Fetch raw documents
-            raw_documents = self.document_repository.fetch_by_type(input_data)
+        raw_documents = self.document_repository.fetch_by_type(input_data)
+        cleaned_entities = self.document_cleaner.clean(raw_documents)
 
-            # Clean documents using the injected cleaner
-            cleaned_entities = self.document_cleaner.clean(raw_documents)
+        # TODO: Add repository factory to get appropriate repository for entity type
+        # repository = self.repository_factory.get_repository(input_data)
+        # result = repository.save_batch(cleaned_entities)
 
-            # TODO: Add repository factory to get appropriate repository for entity type
-            # repository = self.repository_factory.get_repository(input_data)
-            # result = repository.save_batch(cleaned_entities)
+        # Placeholder result for now
+        result = {
+            "processed": len(raw_documents),
+            "cleaned": len(cleaned_entities),
+            "created": 0,
+            "updated": 0,
+            "errors": 0,
+        }
 
-            # Placeholder result for now
-            result = {
-                "processed": len(raw_documents),
-                "cleaned": len(cleaned_entities),
-                "created": 0,
-                "updated": 0,
-                "errors": 0,
-            }
-
-            return result
-
-        except Exception:
-            logger_instance = self.logger.get_logger(
-                "INGESTION::APPLICATION::CleanDocumentsUsecase::execute"
-            )
-            logger_instance.error("Error cleaning documents")
-            raise
+        return result

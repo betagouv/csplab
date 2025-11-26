@@ -2,6 +2,8 @@
 
 from dependency_injector import containers, providers
 
+from apps.ingestion.application.usecases.clean_documents import CleanDocumentsUsecase
+from apps.ingestion.application.usecases.load_documents import LoadDocumentsUsecase
 from apps.ingestion.infrastructure.adapters.external import (
     document_fetcher,
     piste_client,
@@ -12,6 +14,9 @@ from apps.ingestion.infrastructure.adapters.persistence.repositories import (
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     in_memory_document_repository as inmemory_repo,
 )
+from apps.ingestion.infrastructure.adapters.services.document_cleaner import (
+    DocumentCleaner,
+)
 from core.entities.document import DocumentType
 from core.interfaces.entity_interface import IEntity
 from core.interfaces.usecase_interface import IUseCase
@@ -20,8 +25,6 @@ from core.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from core.services.document_cleaner_interface import IDocumentCleaner
-from core.services.http_client_interface import IHttpClient
-from core.services.logger_interface import ILogger
 
 
 class IngestionContainer(containers.DeclarativeContainer):
@@ -31,8 +34,8 @@ class IngestionContainer(containers.DeclarativeContainer):
     in_memory_mode = providers.Configuration()
 
     # External dependencies (injected by parent container)
-    logger_service: providers.Dependency[ILogger] = providers.Dependency()
-    http_client: providers.Dependency[IHttpClient] = providers.Dependency()
+    logger_service: providers.Dependency = providers.Dependency()
+    http_client: providers.Dependency = providers.Dependency()
 
     # PISTE client for authenticated API calls
     piste_client = providers.Singleton(
@@ -66,7 +69,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     # Document cleaner factory
     document_cleaner: providers.Provider[IDocumentCleaner[IEntity]] = (
         providers.Singleton(
-            "apps.ingestion.infrastructure.adapters.services.document_cleaner.DocumentCleaner",
+            DocumentCleaner,
             logger=logger_service,
         )
     )
@@ -75,14 +78,14 @@ class IngestionContainer(containers.DeclarativeContainer):
     load_documents_usecase: providers.Provider[
         IUseCase[DocumentType, IUpsertResult]
     ] = providers.Factory(
-        "apps.ingestion.application.usecases.load_documents.LoadDocumentsUsecase",
+        LoadDocumentsUsecase,
         document_repository=document_repository,
         logger=logger_service,
     )
 
     clean_documents_usecase: providers.Provider[IUseCase[DocumentType, dict]] = (
         providers.Factory(
-            "apps.ingestion.application.usecases.clean_documents.CleanDocumentsUsecase",
+            CleanDocumentsUsecase,
             document_repository=document_repository,
             document_cleaner=document_cleaner,
             logger=logger_service,

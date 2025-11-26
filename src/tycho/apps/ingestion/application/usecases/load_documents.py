@@ -14,20 +14,12 @@ class LoadDocumentsUsecase:
     def __init__(self, document_repository: IDocumentRepository, logger: ILogger):
         """Initialize with dependencies."""
         self.document_repository = document_repository
-        self.logger = logger
+        self.logger = logger.get_logger(
+            "INGESTION::APPLICATION::LoadDocumentsUsecase::execute"
+        )
 
     def execute(self, input_data: DocumentType) -> IUpsertResult:
         """Execute the usecase to load and persist documents."""
-        try:
-            documents = self.document_repository.fetch_by_type(input_data)
-
-            result = self.document_repository.upsert_batch(documents)
-
-            return result
-
-        except Exception:
-            logger_instance = self.logger.get_logger(
-                "INGESTION::APPLICATION::LoadDocumentsUsecase::execute"
-            )
-            logger_instance.error("Error loading documents")
-            raise
+        documents = self.document_repository.fetch_by_type(input_data)
+        result = self.document_repository.upsert_batch(documents)
+        return result

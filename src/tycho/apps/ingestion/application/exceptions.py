@@ -34,7 +34,3 @@ class ApplicationError(Exception):
 
 
 # Use case specific exceptions
-class LoadDocumentsError(ApplicationError):
-    """Exception for LoadDocuments use case errors."""
-
-    pass

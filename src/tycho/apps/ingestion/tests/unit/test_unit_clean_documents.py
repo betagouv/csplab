@@ -41,7 +41,7 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
         documents = []
         for doc in self.raw_corps_documents:
             document = Document(
-                id=None,
+                id=1,
                 raw_data=doc,
                 type=DocumentType.CORPS,
                 created_at=datetime.now(),
