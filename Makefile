@@ -25,6 +25,13 @@ default: help
 	cp bin/git-commit-msg-hook .git/hooks/commit-msg
 
 ### BOOTSTRAP
+setup-env: ## copy example env files to local files
+	@cp env.d/tycho-example env.d/tycho
+	@cp env.d/notebook-example env.d/notebook
+	@cp env.d/postgresql-example env.d/postgresql
+	@echo "✅ Environment files copied. Please edit env.d/* with your actual values."
+.PHONY: setup-env
+
 bootstrap: ## setup development environment (build dev service and install git hooks)
 bootstrap: \
   build \

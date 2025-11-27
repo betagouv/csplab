@@ -2,6 +2,7 @@
 
 from dependency_injector import containers, providers
 
+from apps.ingestion.config import IngestionConfig
 from apps.ingestion.infrastructure.adapters.external import (
     document_fetcher,
     piste_client,
@@ -18,8 +19,6 @@ from core.repositories.document_repository_interface import (
     CompositeDocumentRepository,
     IUpsertResult,
 )
-from core.services.http_client_interface import IHttpClient
-from core.services.logger_interface import ILogger
 
 
 class IngestionContainer(containers.DeclarativeContainer):
@@ -29,13 +28,18 @@ class IngestionContainer(containers.DeclarativeContainer):
     in_memory_mode = providers.Configuration()
 
     # External dependencies (injected by parent container)
-    logger_service: providers.Dependency[ILogger] = providers.Dependency()
-    http_client: providers.Dependency[IHttpClient] = providers.Dependency()
+    logger_service: providers.Dependency = providers.Dependency()
+    http_client: providers.Dependency = providers.Dependency()
+
+    # Configuration
+    config = providers.Singleton(
+        IngestionConfig.from_environment,
+    )
 
     # PISTE client for authenticated API calls
     piste_client = providers.Singleton(
         piste_client.PisteClient,
-        http_client=http_client,
+        config=providers.Callable(lambda cfg: cfg.piste, config),
         logger_service=logger_service,
     )
 

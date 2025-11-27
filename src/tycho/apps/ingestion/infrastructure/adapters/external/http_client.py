@@ -8,12 +8,12 @@ import requests
 class IHttpClient(Protocol):
     """Interface for HTTP client."""
 
-    def request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
+    def request(self, method: str, endpoint: str, **kwargs: Any) -> requests.Response:
         """Make HTTP request.
 
         Args:
             method: HTTP method
-            url: Request URL
+            endpoint: Request URL
             **kwargs: Additional request parameters
 
         Returns:
@@ -34,16 +34,16 @@ class HttpClient(IHttpClient):
         self.timeout = timeout
         self.session = requests.Session()
 
-    def request(self, method: str, url: str, **kwargs) -> requests.Response:
+    def request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
         """Make HTTP request.
 
         Args:
             method: HTTP method
-            url: Request URL
+            endpoint: Request URL
             **kwargs: Additional request parameters
 
         Returns:
             HTTP response
         """
         kwargs.setdefault("timeout", self.timeout)
-        return self.session.request(method, url, **kwargs)
+        return self.session.request(method, endpoint, **kwargs)

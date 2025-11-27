@@ -2,7 +2,6 @@
 
 from unittest.mock import Mock, patch
 
-import environ
 import pytest
 import responses
 from django.test import TransactionTestCase
@@ -42,14 +41,10 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
     @responses.activate
     def test_execute_returns_zero_when_no_documents(self):
         """Test execute returns 0 when repository is empty."""
-        env = environ.Env()
-        oauth_base_url = env.str("TYCHO_PISTE_OAUTH_BASE_URL")
-        ingres_base_url = env.str("TYCHO_INGRES_BASE_URL")
-
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            oauth_base_url + "/api/oauth/token",
+            "https://test-oauth.example.com/api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -58,7 +53,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint with empty response
         responses.add(
             responses.GET,
-            ingres_base_url + "/CORPS",
+            "https://test-api.example.com/CORPS",
             json={"items": []},
             status=200,
             content_type="application/json",
@@ -74,14 +69,11 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         """Test execute returns correct count when documents exist with mocked API."""
         api_response = IngresCorpsApiResponseFactory.build()
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
-        env = environ.Env()
-        oauth_base_url = env.str("TYCHO_PISTE_OAUTH_BASE_URL")
-        ingres_base_url = env.str("TYCHO_INGRES_BASE_URL")
 
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            oauth_base_url + "/api/oauth/token",
+            "https://test-oauth.example.com/api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -90,7 +82,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint
         responses.add(
             responses.GET,
-            ingres_base_url + "/CORPS",
+            "https://test-api.example.com/CORPS",
             json={"items": api_data},
             status=200,
             content_type="application/json",
@@ -165,14 +157,10 @@ class TestIntegrationExceptions(APITestCase):
     @responses.activate
     def test_infrastructure_error_ingres_api_failure(self):
         """Test Infrastructure layer exception with INGRES API failure."""
-        env = environ.Env()
-        oauth_base_url = env.str("TYCHO_PISTE_OAUTH_BASE_URL")
-        ingres_base_url = env.str("TYCHO_INGRES_BASE_URL")
-
         # Mock successful OAuth
         responses.add(
             responses.POST,
-            oauth_base_url + "/api/oauth/token",
+            "https://test-oauth.example.com/api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
         )
@@ -180,7 +168,7 @@ class TestIntegrationExceptions(APITestCase):
         # Mock INGRES API failure
         responses.add(
             responses.GET,
-            ingres_base_url + "/CORPS",
+            "https://test-api.example.com/CORPS",
             json={"error": "Service unavailable"},
             status=503,
         )
@@ -214,14 +202,10 @@ class TestIntegrationExceptions(APITestCase):
     @responses.activate
     def test_success_response_format(self):
         """Test successful API response format and content."""
-        env = environ.Env()
-        oauth_base_url = env.str("TYCHO_PISTE_OAUTH_BASE_URL")
-        ingres_base_url = env.str("TYCHO_INGRES_BASE_URL")
-
         # Mock successful OAuth
         responses.add(
             responses.POST,
-            oauth_base_url + "/api/oauth/token",
+            "https://test-oauth.example.com/api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
         )
@@ -231,7 +215,7 @@ class TestIntegrationExceptions(APITestCase):
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
         responses.add(
             responses.GET,
-            ingres_base_url + "/CORPS",
+            "https://test-api.example.com/CORPS",
             json={"items": api_data},
             status=200,
         )
