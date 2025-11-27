@@ -19,10 +19,10 @@ class Label:
             raise ValueError("Label is required")
         if not short_value:
             raise ValueError("Short Label is required")
+        if len(short_value) > cls.MAX_SHORT_LABEL_LENGTH:
+            raise ValueError("Short label must be 50 characters or less")
         if len(value) > cls.MAX_LONG_LABEL_LENGTH:
             raise ValueError("Label must be 150 characters or less")
-        if len(value) > cls.MAX_SHORT_LABEL_LENGTH:
-            raise ValueError("Short label must be 50 characters or less")
         return super().__new__(cls)
 
     @property

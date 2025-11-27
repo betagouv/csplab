@@ -20,7 +20,6 @@ class DocumentCleaner:
 
     def __init__(self, logger: ILogger):
         """Initialize the factory with available cleaners."""
-        self.logger = logger
         self._cleaners = {
             DocumentType.CORPS: CorpsCleaner(logger),
             # TODO: Add other cleaners when implemented

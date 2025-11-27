@@ -12,6 +12,10 @@ RUN useradd -m -u ${DOCKER_UID} -s /bin/bash notebook
 # Switch to the notebook user
 USER notebook
 
+# Set UV cache directory
+ENV UV_CACHE_DIR=/home/notebook/.cache/uv
+RUN mkdir -p /home/notebook/.cache/uv
+
 # Set working directory
 WORKDIR ${WORKDIR}
 
