@@ -1,9 +1,10 @@
 """Configuration for ingestion app."""
 
-from typing import cast
-
 import environ
 from pydantic import BaseModel, HttpUrl
+
+# Use django-environ for reading environment variables
+env = environ.Env()
 
 
 class PisteConfig(BaseModel):
@@ -20,19 +21,6 @@ class IngestionConfig(BaseModel):
 
     piste: PisteConfig
 
-    @classmethod
-    def from_environment(cls) -> "IngestionConfig":
-        """Create configuration from environment variables.
-
-        Returns:
-            IngestionConfig instance with values from environment
-        """
-        env = environ.Env()
-        return cls(
-            piste=PisteConfig(
-                oauth_base_url=HttpUrl(cast(str, env("TYCHO_PISTE_OAUTH_BASE_URL"))),
-                ingres_base_url=HttpUrl(cast(str, env("TYCHO_INGRES_BASE_URL"))),
-                client_id=cast(str, env("TYCHO_INGRES_CLIENT_ID")),
-                client_secret=cast(str, env("TYCHO_INGRES_CLIENT_SECRET")),
-            )
-        )
+    def __init__(self, piste_env: PisteConfig):
+        """Create configuration from environment variables."""
+        super().__init__(piste=piste_env)

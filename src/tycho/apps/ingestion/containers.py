@@ -2,7 +2,7 @@
 
 from dependency_injector import containers, providers
 
-from apps.ingestion.config import IngestionConfig
+from apps.ingestion.application.usecases.load_documents import LoadDocumentsUsecase
 from apps.ingestion.infrastructure.adapters.external import (
     document_fetcher,
     piste_client,
@@ -31,10 +31,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     logger_service: providers.Dependency = providers.Dependency()
     http_client: providers.Dependency = providers.Dependency()
 
-    # Configuration
-    config = providers.Singleton(
-        IngestionConfig.from_environment,
-    )
+    config: providers.Dependency = providers.Dependency()
 
     # PISTE client for authenticated API calls
     piste_client = providers.Singleton(
@@ -69,7 +66,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     load_documents_usecase: providers.Provider[
         IUseCase[DocumentType, IUpsertResult]
     ] = providers.Factory(
-        "apps.ingestion.application.usecases.load_documents.LoadDocumentsUsecase",
+        LoadDocumentsUsecase,
         document_repository=document_repository,
         logger=logger_service,
     )

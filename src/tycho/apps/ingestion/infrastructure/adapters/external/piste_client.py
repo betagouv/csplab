@@ -25,7 +25,7 @@ class PisteClient(HttpClient):
         """Initialize with HTTP client."""
         super().__init__(timeout=timeout)
         self.config = config
-        self.logger = logger_service.get_logger("PisteClient")
+        self.logger = logger_service.get_logger("INFRASTRUCTURE")
         self.access_token = None
         self.expires_at = 0
         self.logger.info("Initializing PisteClient")
@@ -33,8 +33,7 @@ class PisteClient(HttpClient):
 
     def _get_token(self):
         """Get OAuth token from PISTE API."""
-        base_url = str(self.config.oauth_base_url).rstrip("/")
-        oauth_url = f"{base_url}/api/oauth/token"
+        oauth_url = f"{self.config.oauth_base_url}api/oauth/token"
         response = super().request(
             "POST",
             oauth_url,
@@ -78,8 +77,7 @@ class PisteClient(HttpClient):
         headers["Authorization"] = f"Bearer {self.access_token}"
         kwargs["headers"] = headers
 
-        base_url = str(self.config.ingres_base_url).rstrip("/")
-        url = f"{base_url}/{endpoint}"
+        url = f"{self.config.ingres_base_url}/{endpoint}"
 
         self.logger.info(f"Making {method} request to: {url}")
 
@@ -90,8 +88,7 @@ class PisteClient(HttpClient):
         try:
             response.raise_for_status()
         except HTTPError as err:
-            error_msg = f"INGRES API error: {response.status_code} - {response.text}"
-            self.logger.error(f"API response text: {response.text[:500]}...")
+            error_msg = f"INGRES API error: {response.status_code}"
 
             raise ExternalApiError(
                 error_msg,

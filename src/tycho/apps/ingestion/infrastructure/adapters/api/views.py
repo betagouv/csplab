@@ -1,18 +1,19 @@
 """Views for ingestion API endpoints."""
 
-import logging
+from typing import cast
 
+import environ
+from pydantic import HttpUrl
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from core.entities.document import DocumentType
 from core.errors.domain_errors import InvalidDocumentTypeError
-
-logger = logging.getLogger(__name__)
 
 
 class LoadDocumentsView(APIView):
@@ -33,6 +34,20 @@ class LoadDocumentsView(APIView):
 
         logger_service = LoggerService()
         container.logger_service.override(logger_service)
+
+        # Create configuration from environment variables
+        env = environ.Env()
+        piste_config = PisteConfig(
+            oauth_base_url=cast(HttpUrl, env.str("TYCHO_PISTE_OAUTH_BASE_URL")),
+            ingres_base_url=cast(HttpUrl, env.str("TYCHO_INGRES_BASE_URL")),
+            client_id=cast(str, env.str("TYCHO_INGRES_CLIENT_ID")),
+            client_secret=cast(str, env.str("TYCHO_INGRES_CLIENT_SECRET")),
+        )
+        logger = logger_service.get_logger("INFRASTRUCTURE")
+        logger.info(piste_config.oauth_base_url)
+        logger.info(piste_config.ingres_base_url)
+        config = IngestionConfig(piste_config)
+        container.config.override(config)
 
         http_client = HttpClient()
         container.http_client.override(http_client)

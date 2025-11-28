@@ -1,13 +1,16 @@
 """Integration tests for LoadDocuments usecase with external adapters."""
 
+import os
 from unittest.mock import Mock, patch
 
 import pytest
 import responses
 from django.test import TransactionTestCase
+from pydantic import HttpUrl
 from rest_framework.test import APITestCase
 
 from apps.ingestion.application.exceptions import LoadDocumentsError
+from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
@@ -28,7 +31,16 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         """Set up container dependencies."""
         self.container = IngestionContainer()
         self.container.in_memory_mode.override("external")
-
+        # Create test configuration with mock values
+        self.config = IngestionConfig(
+            PisteConfig(
+                oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
+                ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
+                client_id="fake-client-id",
+                client_secret="fake-client-secret",  # noqa
+            )
+        )
+        self.container.config.override(self.config)
         logger_service = LoggerService()
         self.container.logger_service.override(logger_service)
         http_client = HttpClient()
@@ -44,7 +56,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            "https://test-oauth.example.com/api/oauth/token",
+            f"{self.config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -53,7 +65,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint with empty response
         responses.add(
             responses.GET,
-            "https://test-api.example.com/CORPS",
+            f"{self.config.piste.ingres_base_url}/CORPS",
             json={"items": []},
             status=200,
             content_type="application/json",
@@ -73,7 +85,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            "https://test-oauth.example.com/api/oauth/token",
+            f"{self.config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -82,7 +94,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint
         responses.add(
             responses.GET,
-            "https://test-api.example.com/CORPS",
+            f"{self.config.piste.ingres_base_url}/CORPS",
             json={"items": api_data},
             status=200,
             content_type="application/json",
@@ -120,7 +132,24 @@ class TestIntegrationExceptions(APITestCase):
     def setUp(self):
         """Set up test environment."""
         self.load_documents_url = "/ingestion/load/"
+        self.config = IngestionConfig(
+            PisteConfig(
+                oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
+                ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
+                client_id="fake-client-id",
+                client_secret="fake-client-secret",  # noqa
+            )
+        )
 
+    @patch.dict(
+        os.environ,
+        {
+            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
+            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
+            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
+            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+        },
+    )
     def test_domain_error_invalid_document_type(self):
         """Test Domain layer exception with invalid document type."""
         response = self.client.post(
@@ -135,6 +164,15 @@ class TestIntegrationExceptions(APITestCase):
         )
         self.assertIn("Invalid document type: INVALID_TYPE", response.data["message"])
 
+    @patch.dict(
+        os.environ,
+        {
+            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
+            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
+            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
+            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+        },
+    )
     @patch(
         "apps.ingestion.infrastructure.adapters.external.piste_client.PisteClient._get_token"
     )
@@ -154,13 +192,22 @@ class TestIntegrationExceptions(APITestCase):
         self.assertEqual(response.data["type"], "InfrastructureError::ExternalApiError")
         self.assertIn("OAuth authentication failed", response.data["message"])
 
+    @patch.dict(
+        os.environ,
+        {
+            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
+            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
+            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
+            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+        },
+    )
     @responses.activate
     def test_infrastructure_error_ingres_api_failure(self):
         """Test Infrastructure layer exception with INGRES API failure."""
         # Mock successful OAuth
         responses.add(
             responses.POST,
-            "https://test-oauth.example.com/api/oauth/token",
+            f"{self.config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
         )
@@ -168,7 +215,7 @@ class TestIntegrationExceptions(APITestCase):
         # Mock INGRES API failure
         responses.add(
             responses.GET,
-            "https://test-api.example.com/CORPS",
+            f"{self.config.piste.ingres_base_url}/CORPS",
             json={"error": "Service unavailable"},
             status=503,
         )
@@ -181,6 +228,15 @@ class TestIntegrationExceptions(APITestCase):
         self.assertEqual(response.data["status"], "error")
         self.assertEqual(response.data["type"], "InfrastructureError::ExternalApiError")
 
+    @patch.dict(
+        os.environ,
+        {
+            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
+            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
+            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
+            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+        },
+    )
     @patch(
         "apps.ingestion.application.usecases.load_documents.LoadDocumentsUsecase.execute"
     )
@@ -199,13 +255,22 @@ class TestIntegrationExceptions(APITestCase):
         self.assertEqual(response.data["status"], "error")
         self.assertEqual(response.data["type"], "ApplicationError::LoadDocumentsError")
 
+    @patch.dict(
+        os.environ,
+        {
+            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
+            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
+            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
+            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+        },
+    )
     @responses.activate
     def test_success_response_format(self):
         """Test successful API response format and content."""
         # Mock successful OAuth
         responses.add(
             responses.POST,
-            "https://test-oauth.example.com/api/oauth/token",
+            f"{self.config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
         )
@@ -215,7 +280,7 @@ class TestIntegrationExceptions(APITestCase):
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
         responses.add(
             responses.GET,
-            "https://test-api.example.com/CORPS",
+            f"{self.config.piste.ingres_base_url}/CORPS",
             json={"items": api_data},
             status=200,
         )
