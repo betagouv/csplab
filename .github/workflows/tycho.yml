@@ -73,7 +73,7 @@ jobs:
       postgresql:
         image: postgres:16.10
         env:
-          POSTGRES_DB: postgres
+          POSTGRES_DB: test-tycho
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: pass
           TEST: true
