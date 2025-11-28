@@ -74,14 +74,14 @@ jobs:
         image: postgres:16.10
         env:
           POSTGRES_DB: test-tycho
-          POSTGRES_USER: tycho
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: pass
           TEST: true
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -h localhost -U postgres"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
         ports:
           - 5432:5432
     defaults:
@@ -89,7 +89,11 @@ jobs:
         working-directory: ./src/tycho
     env:
       TYCHO_SECRET_KEY: the_secret_key
-      TYCHO_DATABASE_URL: psql://tycho:pass@postgresql:5432/test-tycho
+      TYCHO_DATABASE_URL: psql://postgres:pass@localhost:5432/test-tycho
+      TYCHO_PISTE_OAUTH_BASE_URL: https://fake-piste-oauth.example.com
+      TYCHO_INGRES_BASE_URL: https://fake-ingres-api.example.com/path
+      TYCHO_INGRES_CLIENT_ID: fake-client-id
+      TYCHO_INGRES_CLIENT_SECRET: fake-client-secret
     steps:
       - uses: actions/checkout@v5
       - name: Install uv

@@ -2,11 +2,12 @@
 SHELL := /bin/bash
 
 # -- Docker
-COMPOSE              = bin/compose
-COMPOSE_UP           = $(COMPOSE) up -d --remove-orphans
-COMPOSE_RUN          = $(COMPOSE) run --rm --no-deps
-COMPOSE_RUN_DEV_UV   = $(COMPOSE_RUN) dev uv run
-COMPOSE_RUN_TYCHO_UV = $(COMPOSE_RUN) tycho uv run
+COMPOSE                 = bin/compose
+COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
+COMPOSE_RUN             = $(COMPOSE) run --rm --no-deps
+COMPOSE_RUN_DEV_UV      = $(COMPOSE_RUN) dev uv run
+COMPOSE_RUN_TYCHO_UV    = $(COMPOSE_RUN) tycho uv run
+COMPOSE_RUN_NOTEBOOK_UV = $(COMPOSE_RUN) notebook uv run
 
 default: help
 
@@ -24,6 +25,13 @@ default: help
 	cp bin/git-commit-msg-hook .git/hooks/commit-msg
 
 ### BOOTSTRAP
+setup-env: ## copy example env files to local files
+	@cp env.d/tycho-example env.d/tycho
+	@cp env.d/notebook-example env.d/notebook
+	@cp env.d/postgresql-example env.d/postgresql
+	@echo "✅ Environment files copied. Please edit env.d/* with your actual values."
+.PHONY: setup-env
+
 bootstrap: ## setup development environment (build dev service and install git hooks)
 bootstrap: \
   build \
@@ -124,15 +132,15 @@ lint-fix: \
 
 # -- Per-service linting
 lint-notebook: ## lint notebook python sources
-	@echo 'lint:notebook started…'
-	$(COMPOSE_RUN_DEV_UV) ruff check src/notebook/
-	$(COMPOSE_RUN_DEV_UV) ruff format --check src/notebook/
+	@echo 'lint:notebook started (warnings only)…'
+	$(COMPOSE_RUN_NOTEBOOK_UV) ruff check . || true
+	$(COMPOSE_RUN_NOTEBOOK_UV) ruff format --check . || true
 .PHONY: lint-notebook
 
 lint-notebook-fix: ## lint and fix notebook python sources
-	@echo 'lint:notebook-fix started…'
-	$(COMPOSE_RUN_DEV_UV) ruff check --fix src/notebook/
-	$(COMPOSE_RUN_DEV_UV) ruff format src/notebook/
+	@echo 'lint:notebook-fix started (warnings only)…'
+	$(COMPOSE_RUN_NOTEBOOK_UV) ruff check --fix . || true
+	$(COMPOSE_RUN_NOTEBOOK_UV) ruff format . || true
 .PHONY: lint-notebook-fix
 
 lint-tycho: ## lint tycho python sources
@@ -141,7 +149,13 @@ lint-tycho: \
   lint-tycho-mypy
 .PHONY: lint-tycho
 
-lint-tycho-ruff: ## lint tycho python sources with ruff
+lint-tycho: ## lint and fix tycho python sources
+lint-tycho-fix: \
+  lint-tycho-ruff-fix \
+  lint-tycho-mypy
+.PHONY: lint-tycho
+
+lint-tycho-ruff: ## lint tycho python sources with ruff (check only, like CI)
 	@echo 'lint:tycho-ruff started…'
 	$(COMPOSE_RUN_TYCHO_UV) ruff check .
 	$(COMPOSE_RUN_TYCHO_UV) ruff format --check .

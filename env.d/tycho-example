@@ -12,6 +12,11 @@ TYCHO_DATABASE_URL=psql://tycho:pass@postgresql:5432/tycho
 TYCHO_SENTRY_DSN=
 TYCHO_SENTRY_TRACES_SAMPLE_RATE=1.0
 TYCHO_SENTRY_PROFILES_SAMPLE_RATE=1.0
+TYCHO_INGRES_CLIENT_ID=piste-ingres-client-id
+TYCHO_INGRES_CLIENT_SECRET=piste-ingres-client-secret
+TYCHO_PISTE_OAUTH_BASE_URL=https://sandbox-oauth.piste.gouv.fr
+TYCHO_INGRES_BASE_URL=https://sandbox-api.piste.gouv.fr/cisirh/ingres-nomenclatures/v2/nomenclatures
+
 
 # superuser
 DJANGO_SUPERUSER_USERNAME=admin
