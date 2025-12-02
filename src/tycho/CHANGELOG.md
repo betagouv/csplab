@@ -17,11 +17,11 @@ and this project adheres to
 - Hierarchical dependency injection.
 - Generic "load document" use case.
 - Unit tests for in-memory implementation.
-
-### Work in Progress
-
 - Implementation with external adapters.
 - Ingress for fetching.
 - Django for persistence.
+- Integration tests for external adapters.
+- usecase clean documents
+- implementation in-memory and in django
 
 [unreleased]: https://github.com/betagouv/csplab/

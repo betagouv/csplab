@@ -33,29 +33,3 @@ class DomainError(Exception):
                 break
             classes.append(cls.__name__)
         return "::".join(reversed(classes))
-
-
-# Document entity exceptions
-class DocumentError(DomainError):
-    """Base exception for Document entity errors."""
-
-    pass
-
-
-class DocumentValidationError(DocumentError):
-    """Exception for document validation failures."""
-
-    pass
-
-
-class InvalidDocumentTypeError(DocumentError):
-    """Exception for invalid document type in business rules."""
-
-    def __init__(self, document_type: str):
-        """Initialize invalid document type error.
-
-        Args:
-            document_type: The invalid document type
-        """
-        message = f"Invalid document type: {document_type}"
-        super().__init__(message)
