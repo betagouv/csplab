@@ -283,6 +283,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pelage"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "polars" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/49/79/e5b2ba2b185c419eb72ede92794a13df53904221ab207880e5bbb8764ee6/pelage-0.6.0.tar.gz", hash = "sha256:e1c245d9f94e915bb7c2a97ca3a02c83f3c324bcfccac3137f708f9398dafdc5", size = 5465041, upload-time = "2025-11-02T21:35:09.458Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ee/6e/f7265fb09687dc0d7c66d753b47ed6fae4b496f3cb5290bec89e6c8d7df5/pelage-0.6.0-py3-none-any.whl", hash = "sha256:859823a7e4ca0e0f505c5802d7c1dac1a24cb72178a22ba4ef1317ad2e6f294e", size = 32356, upload-time = "2025-11-02T21:35:08.019Z" },
+]
+
+[[package]]
 name = "pluggy"
 version = "1.6.0"
 source = { registry = "https://pypi.org/simple" }
@@ -585,6 +597,7 @@ dependencies = [
     { name = "django-stubs", extra = ["compatible-mypy"] },
     { name = "djangorestframework" },
     { name = "gunicorn" },
+    { name = "pelage" },
     { name = "polars" },
     { name = "psycopg", extra = ["binary", "pool"] },
     { name = "pydantic" },
@@ -614,6 +627,7 @@ requires-dist = [
     { name = "django-stubs", extras = ["compatible-mypy"], specifier = "==5.2.7" },
     { name = "djangorestframework", specifier = ">=3.16.1" },
     { name = "gunicorn", specifier = "==23.0.0" },
+    { name = "pelage", specifier = ">=0.6.0" },
     { name = "polars", specifier = ">=1.0.0" },
     { name = "psycopg", extras = ["binary", "pool"], specifier = "==3.2.12" },
     { name = "pydantic", specifier = ">=2.12.4" },

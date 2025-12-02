@@ -13,7 +13,7 @@ from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from core.entities.document import DocumentType
-from core.errors.domain_errors import InvalidDocumentTypeError
+from core.errors.document_error import InvalidDocumentTypeError
 
 
 class LoadDocumentsView(APIView):

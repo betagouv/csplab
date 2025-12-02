@@ -4,7 +4,7 @@ from typing import List, Sequence
 
 from apps.ingestion.infrastructure.adapters.services.corps_cleaner import CorpsCleaner
 from core.entities.document import Document, DocumentType
-from core.errors.domain_errors import (
+from core.errors.document_error import (
     MixedDocumentTypesError,
     UnsupportedDocumentTypeError,
 )

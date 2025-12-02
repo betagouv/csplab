@@ -1,13 +1,21 @@
 """Corps cleaner adapter."""
 
-import re
 from typing import List, Optional
 
 import polars as pl
 
+from apps.ingestion.infrastructure.adapters.services.pelage_checks import (
+    has_no_minarm_ministry,
+    has_only_civil_servants,
+    has_only_fpe_type,
+)
 from core.entities.corps import Corps
 from core.entities.document import Document, DocumentType
-from core.errors.domain_errors import InvalidDocumentTypeError
+from core.errors.corps_errors import (
+    InvalidAccessModalityError,
+    InvalidDiplomaLevelError,
+)
+from core.errors.document_error import InvalidDocumentTypeError
 from core.services.logger_interface import ILogger
 from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category
@@ -40,19 +48,11 @@ class CorpsCleaner:
             if parsed_data:
                 corps_data.append(parsed_data)
 
-        if not corps_data:
-            return []
-
         df = pl.DataFrame(corps_data)
 
-        # Apply filters (FPE, no MINARM, fonctionnaire)
         df_filtered = self._apply_filters(df)
 
-        # Process laws and select best decree
-        df_processed = self._process_laws(df_filtered)
-
-        # Convert back to Corps entities
-        return self._dataframe_to_corps(df_processed)
+        return self._dataframe_to_corps(df_filtered)
 
     def _parse_corps_data(self, raw_data: dict) -> Optional[dict]:
         """Parse raw corps data into structured format."""
@@ -140,104 +140,26 @@ class CorpsCleaner:
 
     def _apply_filters(self, df: pl.DataFrame) -> pl.DataFrame:
         """Apply filters: FPE only, no MINARM, fonctionnaire only."""
-        return df.filter(
+        df_filtered = df.filter(
             (pl.col("fp_type") == "FPE")
             & (pl.col("ministry") != "MINARM")
             & (pl.col("population") == "Fonctionnaire")
-        ).drop(["fp_type"])
-
-    def _process_laws(self, df: pl.DataFrame) -> pl.DataFrame:
-        """Process laws and select best decree for each corps."""
-        # Explode laws to have one row per law
-        df_expanded = (
-            df.explode(["law_ids", "law_desc", "law_nature"])
-            .rename(
-                {
-                    "law_ids": "law_id",
-                    "law_desc": "law_desc",
-                    "law_nature": "law_nature",
-                }
-            )
-            .filter(pl.col("law_id").is_not_null())
         )
 
-        # Calculate law frequencies
-        law_freq = df_expanded.group_by("law_id").len().rename({"len": "count"})
+        # Validate filtered data with pelage
+        if len(df_filtered) > 0:
+            df_filtered.pipe(has_only_fpe_type, "fp_type")
+            df_filtered.pipe(has_no_minarm_ministry, "ministry")
+            df_filtered.pipe(has_only_civil_servants, "population")
 
-        # Join frequencies back
-        df_with_freq = df_expanded.join(law_freq, on="law_id", how="left")
-
-        # Group by corps and select best law
-        results = []
-        for corps_id in df_with_freq["id"].unique():
-            corps_laws = df_with_freq.filter(pl.col("id") == corps_id)
-            base_info = corps_laws.row(0, named=True)
-
-            # Convert to list of dicts for law selection
-            laws_list = corps_laws.to_dicts()
-            selected_law = self._select_best_law(laws_list)
-
-            if selected_law:
-                result = {
-                    "id": corps_id,
-                    "category": base_info["category"],
-                    "short_label": base_info["short_label"],
-                    "long_label": base_info["long_label"],
-                    "access_mod": base_info["access_mod"],
-                    "diploma": base_info["diploma"],
-                    "ministry": base_info["ministry"],
-                    "selected_law_id": selected_law["law_id"],
-                    "selected_law_desc": selected_law["law_desc"],
-                    "selected_law_nature": selected_law["law_nature"],
-                }
-                results.append(result)
-
-        return pl.DataFrame(results) if results else pl.DataFrame()
-
-    def _has_valid_decree_format(self, law_id: str) -> bool:
-        """Check if law_id has valid decree format (YYYY-NNNN or YY-NNNN)."""
-        if not law_id:
-            return False
-        pattern = r"^\d{2,4}-\d+$"
-        return bool(re.match(pattern, str(law_id)))
-
-    def _select_best_law(self, laws_list: List[dict]) -> Optional[dict]:
-        """Select best law from list - prioritize valid decree format."""
-        # Rule 1: filter out too generic laws (referenced in more than 20 bodies)
-        candidates = [law for law in laws_list if law["count"] <= MAX_DECRETS_BY_CORPS]
-
-        if not candidates:
-            return None
-
-        # Rule 2: valid decree format (regardless of nature)
-        valid_decree_laws = [
-            law for law in candidates if self._has_valid_decree_format(law["law_id"])
-        ]
-
-        if not valid_decree_laws:
-            return None
-
-        # Rule 3: prefer origin texts, the most specific one (least frequent)
-        origin_valid = [
-            law for law in valid_decree_laws if law["law_nature"] == "Texte d'origine"
-        ]
-        if origin_valid:
-            return min(origin_valid, key=lambda x: x["count"])
-
-        # Rule 4: otherwise, modificative texts, the most specific one (least frequent)
-        modif_valid = [
-            law for law in valid_decree_laws if law["law_nature"] == "Texte modificatif"
-        ]
-        if modif_valid:
-            return min(modif_valid, key=lambda x: x["count"])
-
-        # Rule 5: fallback on least frequent
-        return min(candidates, key=lambda x: x["count"])
+        return df_filtered.drop(["fp_type"])
 
     def _dataframe_to_corps(self, df: pl.DataFrame) -> List[Corps]:
         """Convert processed DataFrame back to Corps entities."""
-        corps_list = []
+        if len(df) == 0:
+            return []
 
+        corps_list = []
         for row in df.to_dicts():
             category = self._map_category(row["category"])
             ministry = self._map_ministry(row["ministry"])
@@ -260,62 +182,59 @@ class CorpsCleaner:
 
         return corps_list
 
-    def _map_category(self, category_str: Optional[str]) -> Category:
+    def _map_category(self, category_str: str) -> Category:
         """Map category string to Category enum."""
-        if not category_str:
-            return Category.A  # Default
-
         category_upper = category_str.upper()
-        if "A" in category_upper:
+        if "A+" in category_upper:
+            return Category.APLUS
+        elif "A" in category_upper:
             return Category.A
         elif "B" in category_upper:
             return Category.B
-        elif "C" in category_upper:
-            return Category.C
         else:
-            return Category.A  # Default
+            return Category.C
 
     def _map_ministry(self, ministry_str: Optional[str]) -> Ministry:
         """Map ministry string to Ministry enum."""
-        if not ministry_str:
-            return Ministry.MEN  # Default
+        if ministry_str == "Météo France":
+            return Ministry.METEO_FRANCE
 
-        # Simple mapping - can be extended
-        ministry_upper = ministry_str.upper()
-        if "EDUCATION" in ministry_upper or "MEN" in ministry_upper:
-            return Ministry.MEN
-        else:
-            return Ministry.MEN  # Default for now
+        return Ministry(ministry_str)
 
     def _map_diploma(self, diploma_str: Optional[str]) -> Optional[Diploma]:
-        """Map diploma string to Diploma value object."""
+        """Map diploma string to Diploma value object using CNCP levels 1-8."""
         if not diploma_str:
             return None
 
-        # Extract numeric level from diploma string
-        if "BAC+5" in diploma_str.upper() or "MASTER" in diploma_str.upper():
-            return Diploma(value=5)
-        elif "BAC+3" in diploma_str.upper() or "LICENCE" in diploma_str.upper():
-            return Diploma(value=3)
-        elif "BAC" in diploma_str.upper():
-            return Diploma(value=0)
-        else:
-            return Diploma(value=4)  # Default
+        diploma_lower = diploma_str.lower()
+
+        diploma_mappings = [
+            (["niveau 8", "doctorat"], 8),
+            (["niveau 7", "master"], 7),
+            (["niveau 6", "licence"], 6),
+            (["niveau 5", "bac + 2"], 5),
+            (["niveau 4", "baccalauréat"], 4),
+            (["niveau 3", "cap", "bep"], 3),
+            (["niveau 2", "activités simples"], 2),
+            (["niveau 1", "savoirs de base"], 1),
+        ]
+
+        for keywords, level in diploma_mappings:
+            if any(keyword in diploma_lower for keyword in keywords):
+                return Diploma(value=level)
+
+        raise InvalidDiplomaLevelError(diploma_str)
 
     def _map_access_modalities(
         self, access_mod_list: List[str]
     ) -> List[AccessModality]:
-        """Map access modality strings to AccessModality enums."""
-        if not access_mod_list:
-            return [AccessModality.CONCOURS_EXTERNE]  # Default
-
+        """Map access modality strings to AccessModality enums using direct mapping."""
         modalities = []
         for mod_str in access_mod_list:
-            mod_upper = mod_str.upper()
-            if "EXTERNE" in mod_upper:
-                modalities.append(AccessModality.CONCOURS_EXTERNE)
-            elif "INTERNE" in mod_upper:
-                modalities.append(AccessModality.CONCOURS_INTERNE)
-            # Add more mappings as needed
+            try:
+                modality = AccessModality(mod_str)
+                modalities.append(modality)
+            except ValueError as err:
+                raise InvalidAccessModalityError(mod_str) from err
 
-        return modalities if modalities else [AccessModality.CONCOURS_EXTERNE]
+        return modalities

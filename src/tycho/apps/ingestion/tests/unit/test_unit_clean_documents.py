@@ -5,8 +5,6 @@ import unittest
 from datetime import datetime
 from pathlib import Path
 
-import pytest
-
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.services.logger import LoggerService
 from core.entities.document import Document, DocumentType
@@ -61,18 +59,6 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
         repository = self.container.document_repository()
         repository.clear()
 
-    def test_clean_documents_with_valid_corps_data(self):
-        """Test cleaning valid corps documents returns correct statistics."""
-        self._create_test_documents(self.raw_corps_documents[:2])
-
-        result = self.clean_documents_usecase.execute(DocumentType.CORPS)
-
-        self.assertEqual(result["processed"], 2)
-        self.assertEqual(result["cleaned"], 2)
-        self.assertEqual(result["created"], 0)
-        self.assertEqual(result["updated"], 0)
-        self.assertEqual(result["errors"], 0)
-
     def test_clean_documents_with_empty_repository(self):
         """Test cleaning when no documents exist returns zero statistics."""
         result = self.clean_documents_usecase.execute(DocumentType.CORPS)
@@ -83,24 +69,48 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
         self.assertEqual(result["updated"], 0)
         self.assertEqual(result["errors"], 0)
 
-    @pytest.mark.skip("Skipping until repository factory is implemented")
-    def test_clean_documents_saves_cleaned_entities_to_repository(self):
-        """Test that cleaned entities are saved to appropriate repository."""
-        self._create_test_documents(self.raw_corps_documents[:1])
+    def test_clean_corps_documents_filters_non_fpe_data(self):
+        """Test that non-FPE corps data is properly filtered out."""
+        # Create mixed data: 1 valid FPE + 1 invalid FPT
+        valid_corps_data = self.raw_corps_documents[0].copy()
+        invalid_corps_data = self.raw_corps_documents[1].copy()
+        invalid_corps_data["corpsOuPseudoCorps"]["caracteristiques"][
+            "natureFonctionPublique"
+        ]["libelleNatureFoncPub"] = "FPT"
+
+        self._create_test_documents([valid_corps_data, invalid_corps_data])
 
         result = self.clean_documents_usecase.execute(DocumentType.CORPS)
 
-        self.assertGreater(
-            result["created"], 0, "Should have created entities in repository"
-        )
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["cleaned"], 1)
 
-    @pytest.mark.skip("Skipping until repository factory is implemented")
-    def test_clean_documents_handles_cleaning_errors_gracefully(self):
-        """Test that cleaning errors are handled and reported in statistics."""
-        invalid_data = {"invalid": "data"}
-        self._create_test_documents([invalid_data])
+    def test_clean_corps_documents_filters_non_civil_servants(self):
+        """Test that non-civil servants are properly filtered out."""
+        valid_corps_data = self.raw_corps_documents[0].copy()
+        invalid_corps_data = self.raw_corps_documents[1].copy()
+        invalid_corps_data["corpsOuPseudoCorps"]["caracteristiques"]["population"][
+            "libellePopulation"
+        ] = "Contractuel"
+
+        self._create_test_documents([valid_corps_data, invalid_corps_data])
 
         result = self.clean_documents_usecase.execute(DocumentType.CORPS)
 
-        self.assertEqual(result["processed"], 1)
-        self.assertGreaterEqual(result["errors"], 0, "Should handle cleaning errors")
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["cleaned"], 1)
+
+    def test_clean_corps_documents_filters_minarm_ministry(self):
+        """Test that MINARM ministry is properly filtered out."""
+        valid_corps_data = self.raw_corps_documents[0].copy()
+        invalid_corps_data = self.raw_corps_documents[1].copy()
+        invalid_corps_data["corpsOuPseudoCorps"][
+            "ministereEtInstitutionDeLaRepublique"
+        ][0]["libelleMinistere"] = "MINARM"
+
+        self._create_test_documents([valid_corps_data, invalid_corps_data])
+
+        result = self.clean_documents_usecase.execute(DocumentType.CORPS)
+
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["cleaned"], 1)
