@@ -1,19 +1,24 @@
-"""Django document persister implementation."""
+"""Django document repository implementation."""
 
 from typing import List
 
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
 )
-from core.entities.document import Document
+from core.entities.document import Document, DocumentType
 from core.repositories.document_repository_interface import (
-    IDocumentPersister,
+    IDocumentRepository,
     IUpsertResult,
 )
 
 
-class DjangoDocumentRepository(IDocumentPersister):
-    """Persists documents using Django ORM."""
+class DjangoDocumentRepository(IDocumentRepository):
+    """Complete document repository using Django ORM."""
+
+    def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
+        """Fetch documents from Django database by type."""
+        raw_documents = RawDocument.objects.filter(document_type=document_type.value)
+        return [raw_doc.to_entity() for raw_doc in raw_documents]
 
     def upsert(self, document: Document) -> Document:
         """Insert or update a single document."""

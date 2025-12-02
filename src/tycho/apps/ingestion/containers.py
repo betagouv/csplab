@@ -9,10 +9,11 @@ from apps.ingestion.infrastructure.adapters.external import (
     piste_client,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
-    django_document_repository as django_repo,
+    django_corps_repository,
+    in_memory_corps_repository,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
-    in_memory_corps_repository,
+    django_document_repository as django_repo,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     in_memory_document_repository as inmemory_repo,
@@ -75,8 +76,12 @@ class IngestionContainer(containers.DeclarativeContainer):
     )
 
     # Corps repository
-    corps_repository = providers.Singleton(
-        in_memory_corps_repository.InMemoryCorpsRepository,
+    corps_repository = providers.Selector(
+        in_memory_mode,
+        in_memory=providers.Singleton(
+            in_memory_corps_repository.InMemoryCorpsRepository
+        ),
+        external=providers.Singleton(django_corps_repository.DjangoCorpsRepository),
     )
 
     # Repository factory
