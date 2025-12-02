@@ -12,7 +12,13 @@ from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_document_repository as django_repo,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
+    in_memory_corps_repository,
+)
+from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     in_memory_document_repository as inmemory_repo,
+)
+from apps.ingestion.infrastructure.adapters.persistence.repository_factory import (
+    RepositoryFactory,
 )
 from apps.ingestion.infrastructure.adapters.services.document_cleaner import (
     DocumentCleaner,
@@ -68,6 +74,17 @@ class IngestionContainer(containers.DeclarativeContainer):
         ),
     )
 
+    # Corps repository
+    corps_repository = providers.Singleton(
+        in_memory_corps_repository.InMemoryCorpsRepository,
+    )
+
+    # Repository factory
+    repository_factory = providers.Singleton(
+        RepositoryFactory,
+        corps_repository=corps_repository,
+    )
+
     # Document cleaner factory
     document_cleaner: providers.Provider[IDocumentCleaner[IEntity]] = (
         providers.Singleton(
@@ -90,6 +107,7 @@ class IngestionContainer(containers.DeclarativeContainer):
             CleanDocumentsUsecase,
             document_repository=document_repository,
             document_cleaner=document_cleaner,
+            repository_factory=repository_factory,
             logger=logger_service,
         )
     )

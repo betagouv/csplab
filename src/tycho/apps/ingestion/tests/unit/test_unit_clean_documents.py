@@ -56,8 +56,11 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
 
     def tearDown(self):
         """Clean up after each test."""
-        repository = self.container.document_repository()
-        repository.clear()
+        document_repository = self.container.document_repository()
+        document_repository.clear()
+
+        corps_repository = self.container.corps_repository()
+        corps_repository.clear()
 
     def test_clean_documents_with_empty_repository(self):
         """Test cleaning when no documents exist returns zero statistics."""
@@ -84,6 +87,9 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
 
         self.assertEqual(result["processed"], 2)
         self.assertEqual(result["cleaned"], 1)
+        self.assertEqual(result["created"], 1)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 0)
 
     def test_clean_corps_documents_filters_non_civil_servants(self):
         """Test that non-civil servants are properly filtered out."""
@@ -99,6 +105,9 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
 
         self.assertEqual(result["processed"], 2)
         self.assertEqual(result["cleaned"], 1)
+        self.assertEqual(result["created"], 1)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 0)
 
     def test_clean_corps_documents_filters_minarm_ministry(self):
         """Test that MINARM ministry is properly filtered out."""
@@ -114,3 +123,34 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
 
         self.assertEqual(result["processed"], 2)
         self.assertEqual(result["cleaned"], 1)
+        self.assertEqual(result["created"], 1)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 0)
+
+        # Verify that saved entity can be retrieved by ID
+        corps_repository = self.container.corps_repository()
+        expected_corps_id = int(self.raw_corps_documents[0]["identifiant"])
+        saved_corps = corps_repository.find_by_id(expected_corps_id)
+
+        self.assertIsNotNone(saved_corps)
+        self.assertEqual(saved_corps.id, expected_corps_id)
+        self.assertIsNotNone(saved_corps.label)
+        self.assertIsNotNone(saved_corps.category)
+
+    def test_clean_corps_documents_handles_empty_cleaned_entities(self):
+        """Test that empty cleaned entities list is handled correctly."""
+        # Create documents that will all be filtered out
+        invalid_corps_data = self.raw_corps_documents[0].copy()
+        invalid_corps_data["corpsOuPseudoCorps"]["caracteristiques"][
+            "natureFonctionPublique"
+        ]["libelleNatureFoncPub"] = "FPT"
+
+        self._create_test_documents([invalid_corps_data])
+
+        result = self.clean_documents_usecase.execute(DocumentType.CORPS)
+
+        self.assertEqual(result["processed"], 1)
+        self.assertEqual(result["cleaned"], 0)
+        self.assertEqual(result["created"], 0)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 0)
