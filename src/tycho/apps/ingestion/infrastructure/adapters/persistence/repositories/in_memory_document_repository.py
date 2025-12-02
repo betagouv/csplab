@@ -6,6 +6,7 @@ from typing import List
 from core.entities.document import Document, DocumentType
 from core.repositories.document_repository_interface import (
     IDocumentRepository,
+    IUpsertError,
     IUpsertResult,
 )
 
@@ -54,26 +55,36 @@ class InMemoryDocumentRepository(IDocumentRepository):
         """Insert or update multiple documents."""
         created = 0
         updated = 0
+        errors: List[IUpsertError] = []
 
         for document in documents:
-            # Check if document exists
-            exists = any(
-                doc.id == document.id
-                for doc in self._documents
-                if document.id is not None
-            )
+            try:
+                # Check if document exists
+                exists = any(
+                    doc.id == document.id
+                    for doc in self._documents
+                    if document.id is not None
+                )
 
-            self.upsert(document)
+                self.upsert(document)
 
-            if exists:
-                updated += 1
-            else:
-                created += 1
+                if exists:
+                    updated += 1
+                else:
+                    created += 1
+            except Exception as e:
+                error_detail: IUpsertError = {
+                    "entity_id": document.id,
+                    "error": str(e),
+                    "exception": e,
+                }
+                errors.append(error_detail)
 
-        return IUpsertResult(
-            created=created,
-            updated=updated,
-        )
+        return {
+            "created": created,
+            "updated": updated,
+            "errors": errors,
+        }
 
     def clear(self) -> None:
         """Clear all documents for testing."""

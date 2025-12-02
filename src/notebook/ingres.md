@@ -180,6 +180,19 @@ plt.show()
 ```
 
 ```python
+max([len(label) for label in df_expanded['short_label'].unique()])
+```
+
+```python
+access_mod = df.explode('access_mod')
+access_mod['access_mod'].unique()
+```
+
+```python
+max([len(label) for label in df_expanded['long_label'].unique()])
+```
+
+```python
 law_freq = pd.DataFrame(frequencies).reset_index()
 law_freq.columns = ['law_id', 'count']
 df_rule = df_expanded.merge(law_freq, on='law_id', how='left')
