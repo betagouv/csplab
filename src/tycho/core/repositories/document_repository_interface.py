@@ -1,6 +1,6 @@
 """Document repository interface and composite implementation."""
 
-from typing import List, Protocol, TypedDict
+from typing import Any, List, Protocol, TypedDict
 
 from core.entities.document import Document, DocumentType
 
@@ -13,11 +13,20 @@ class IDocumentFetcher(Protocol):
         ...
 
 
+class IUpsertError(TypedDict):
+    """Details of an upsert error."""
+
+    entity_id: Any
+    error: str
+    exception: Exception
+
+
 class IUpsertResult(TypedDict):
     """Result of upsert batch operation."""
 
     created: int
     updated: int
+    errors: List[IUpsertError]
 
 
 class IDocumentPersister(Protocol):

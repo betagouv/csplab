@@ -53,14 +53,22 @@ class CleanDocumentsUsecase:
 
         repository = self.repository_factory.get_repository(input_data)
         cleaned_corps = cast(List[Corps], cleaned_entities)
-        save_result = repository.save_batch(cleaned_corps)
+        save_result = repository.upsert_batch(cleaned_corps)
 
         self.logger.info(f"Saved entities: {save_result}")
+
+        # Log detailed errors if any
+        if save_result["errors"]:
+            for error in save_result["errors"]:
+                self.logger.error(
+                    f"Failed to save entity {error['entity_id']}: {error['error']}"
+                )
 
         return {
             "processed": len(raw_documents),
             "cleaned": len(cleaned_entities),
-            "created": save_result.get("created", 0),
-            "updated": save_result.get("updated", 0),
-            "errors": save_result.get("errors", 0),
+            "created": save_result["created"],
+            "updated": save_result["updated"],
+            "errors": len(save_result["errors"]),
+            "error_details": save_result["errors"],
         }

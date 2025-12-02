@@ -5,16 +5,35 @@ from typing import List, Optional
 from apps.ingestion.infrastructure.adapters.persistence.models.corps import CorpsModel
 from core.entities.corps import Corps
 from core.repositories.corps_repository_interface import ICorpsRepository
+from core.repositories.document_repository_interface import IUpsertError, IUpsertResult
 
 
 class DjangoCorpsRepository(ICorpsRepository):
     """Django ORM implementation of Corps repository."""
 
-    def save_batch(self, corps: List[Corps]) -> dict:
-        """Save a batch of Corps entities and return operation results."""
+    def upsert(self, corps: Corps) -> Corps:
+        """Insert or update a single Corps entity."""
+        corps_model, _ = CorpsModel.objects.update_or_create(
+            id=corps.id,
+            defaults={
+                "code": corps.code,
+                "category": corps.category.value,
+                "ministry": corps.ministry.value,
+                "diploma_level": corps.diploma.value if corps.diploma else None,
+                "short_label": corps.label.short_value,
+                "long_label": corps.label.value,
+                "access_modalities": [
+                    modality.value for modality in corps.access_modalities
+                ],
+            },
+        )
+        return corps_model.to_entity()
+
+    def upsert_batch(self, corps: List[Corps]) -> IUpsertResult:
+        """Insert or update multiple Corps entities and return operation results."""
         created = 0
         updated = 0
-        errors = 0
+        errors: List[IUpsertError] = []
 
         for entity in corps:
             try:
@@ -38,8 +57,13 @@ class DjangoCorpsRepository(ICorpsRepository):
                     created += 1
                 else:
                     updated += 1
-            except Exception:
-                errors += 1
+            except Exception as e:
+                error_detail: IUpsertError = {
+                    "entity_id": entity.id,
+                    "error": str(e),
+                    "exception": e,
+                }
+                errors.append(error_detail)
 
         return {
             "created": created,

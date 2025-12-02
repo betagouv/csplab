@@ -8,6 +8,7 @@ from apps.ingestion.infrastructure.adapters.persistence.models.raw_document impo
 from core.entities.document import Document, DocumentType
 from core.repositories.document_repository_interface import (
     IDocumentRepository,
+    IUpsertError,
     IUpsertResult,
 )
 
@@ -35,19 +36,32 @@ class DjangoDocumentRepository(IDocumentRepository):
         """Insert or update multiple documents."""
         created_count = 0
         updated_count = 0
+        errors: List[IUpsertError] = []
 
         for document in documents:
-            raw_document, created = RawDocument.objects.update_or_create(
-                id=document.id,
-                defaults={
-                    "raw_data": document.raw_data,
-                    "document_type": document.type.value,
-                },
-            )
+            try:
+                raw_document, created = RawDocument.objects.update_or_create(
+                    id=document.id,
+                    defaults={
+                        "raw_data": document.raw_data,
+                        "document_type": document.type.value,
+                    },
+                )
 
-            if created:
-                created_count += 1
-            else:
-                updated_count += 1
+                if created:
+                    created_count += 1
+                else:
+                    updated_count += 1
+            except Exception as e:
+                error_detail: IUpsertError = {
+                    "entity_id": document.id,
+                    "error": str(e),
+                    "exception": e,
+                }
+                errors.append(error_detail)
 
-        return IUpsertResult(created=created_count, updated=updated_count)
+        return {
+            "created": created_count,
+            "updated": updated_count,
+            "errors": errors,
+        }
