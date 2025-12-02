@@ -50,8 +50,8 @@ services:
   postgresql:
     image: postgres:16.10
     env_file:
-      - env.d/postgresql-local
-      - env.d/tycho-local
+      - env.d/postgresql
+      - env.d/tycho
     healthcheck:
       test:
         - "CMD-SHELL"
@@ -73,7 +73,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - env.d/tycho-local
+      - env.d/tycho
     volumes:
       - .:/workspace
     working_dir: /workspace/src/tycho
