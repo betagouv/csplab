@@ -27,7 +27,6 @@ dev = [
   "django-debug-toolbar==6.1.0",
   "honcho==2.0.0",
   "mypy==1.18.2",
-  "pelage>=0.6.0",
   "polyfactory>=3.0.0",
   "pytest==8.4.2",
   "pytest-cov==7.0.0",

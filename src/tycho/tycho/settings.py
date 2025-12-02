@@ -28,8 +28,12 @@ DEBUG = env.str("DEBUG")
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
+# CSRF trusted origins for HTTPS requests
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+
 
 # Application definition
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",

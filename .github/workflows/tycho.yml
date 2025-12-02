@@ -73,7 +73,7 @@ jobs:
       postgresql:
         image: postgres:16.10
         env:
-          POSTGRES_DB: postgres
+          POSTGRES_DB: test-tycho
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: pass
           TEST: true
@@ -91,7 +91,7 @@ jobs:
       TYCHO_SECRET_KEY: the_secret_key
       TYCHO_DATABASE_URL: psql://postgres:pass@localhost:5432/test-tycho
       TYCHO_PISTE_OAUTH_BASE_URL: https://fake-piste-oauth.example.com
-      TYCHO_INGRES_BASE_URL: https://fake-ingres-api.example.com
+      TYCHO_INGRES_BASE_URL: https://fake-ingres-api.example.com/path
       TYCHO_INGRES_CLIENT_ID: fake-client-id
       TYCHO_INGRES_CLIENT_SECRET: fake-client-secret
     steps:

@@ -1,19 +1,22 @@
 """Integration tests for LoadDocuments usecase with external adapters."""
 
+import os
 from unittest.mock import Mock, patch
 
-import environ
 import pytest
 import responses
 from django.test import TransactionTestCase
+from pydantic import HttpUrl
 from rest_framework.test import APITestCase
 
+from apps.ingestion.application.exceptions import LoadDocumentsError
+from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
+from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
+from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
 )
-from apps.ingestion.infrastructure.adapters.services.http_client import HttpClient
-from apps.ingestion.infrastructure.adapters.services.logger import LoggerService
 from apps.ingestion.infrastructure.exceptions import ExternalApiError
 from apps.ingestion.tests.factories.ingres_factories import (
     IngresCorpsApiResponseFactory,
@@ -28,7 +31,16 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         """Set up container dependencies."""
         self.container = IngestionContainer()
         self.container.in_memory_mode.override("external")
-
+        # Create test configuration with mock values
+        self.config = IngestionConfig(
+            PisteConfig(
+                oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
+                ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
+                client_id="fake-client-id",
+                client_secret="fake-client-secret",  # noqa
+            )
+        )
+        self.container.config.override(self.config)
         logger_service = LoggerService()
         self.container.logger_service.override(logger_service)
         http_client = HttpClient()
@@ -41,14 +53,10 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
     @responses.activate
     def test_execute_returns_zero_when_no_documents(self):
         """Test execute returns 0 when repository is empty."""
-        env = environ.Env()
-        oauth_base_url = env.str("TYCHO_PISTE_OAUTH_BASE_URL")
-        ingres_base_url = env.str("TYCHO_INGRES_BASE_URL")
-
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{oauth_base_url}/api/oauth/token",
+            f"{self.config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -57,7 +65,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint with empty response
         responses.add(
             responses.GET,
-            f"{ingres_base_url}/CORPS",
+            f"{self.config.piste.ingres_base_url}/CORPS",
             json={"items": []},
             status=200,
             content_type="application/json",
@@ -73,14 +81,11 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         """Test execute returns correct count when documents exist with mocked API."""
         api_response = IngresCorpsApiResponseFactory.build()
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
-        env = environ.Env()
-        oauth_base_url = env.str("TYCHO_PISTE_OAUTH_BASE_URL")
-        ingres_base_url = env.str("TYCHO_INGRES_BASE_URL")
 
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{oauth_base_url}/api/oauth/token",
+            f"{self.config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -89,7 +94,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint
         responses.add(
             responses.GET,
-            f"{ingres_base_url}/CORPS",
+            f"{self.config.piste.ingres_base_url}/CORPS",
             json={"items": api_data},
             status=200,
             content_type="application/json",
@@ -127,7 +132,24 @@ class TestIntegrationExceptions(APITestCase):
     def setUp(self):
         """Set up test environment."""
         self.load_documents_url = "/ingestion/load/"
+        self.config = IngestionConfig(
+            PisteConfig(
+                oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
+                ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
+                client_id="fake-client-id",
+                client_secret="fake-client-secret",  # noqa
+            )
+        )
 
+    @patch.dict(
+        os.environ,
+        {
+            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
+            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
+            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
+            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+        },
+    )
     def test_domain_error_invalid_document_type(self):
         """Test Domain layer exception with invalid document type."""
         response = self.client.post(
@@ -135,7 +157,22 @@ class TestIntegrationExceptions(APITestCase):
         )
 
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["status"], "error")
+        self.assertEqual(
+            response.data["type"],
+            "DomainError::DocumentError::InvalidDocumentTypeError",
+        )
+        self.assertIn("Invalid document type: INVALID_TYPE", response.data["message"])
 
+    @patch.dict(
+        os.environ,
+        {
+            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
+            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
+            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
+            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+        },
+    )
     @patch(
         "apps.ingestion.infrastructure.adapters.external.piste_client.PisteClient._get_token"
     )
@@ -151,18 +188,26 @@ class TestIntegrationExceptions(APITestCase):
         )
 
         self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data["status"], "error")
+        self.assertEqual(response.data["type"], "InfrastructureError::ExternalApiError")
+        self.assertIn("OAuth authentication failed", response.data["message"])
 
+    @patch.dict(
+        os.environ,
+        {
+            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
+            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
+            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
+            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+        },
+    )
     @responses.activate
     def test_infrastructure_error_ingres_api_failure(self):
         """Test Infrastructure layer exception with INGRES API failure."""
-        env = environ.Env()
-        oauth_base_url = env.str("TYCHO_PISTE_OAUTH_BASE_URL")
-        ingres_base_url = env.str("TYCHO_INGRES_BASE_URL")
-
         # Mock successful OAuth
         responses.add(
             responses.POST,
-            f"{oauth_base_url}/api/oauth/token",
+            f"{self.config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
         )
@@ -170,7 +215,7 @@ class TestIntegrationExceptions(APITestCase):
         # Mock INGRES API failure
         responses.add(
             responses.GET,
-            f"{ingres_base_url}/CORPS",
+            f"{self.config.piste.ingres_base_url}/CORPS",
             json={"error": "Service unavailable"},
             status=503,
         )
@@ -180,18 +225,52 @@ class TestIntegrationExceptions(APITestCase):
         )
 
         self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.data["status"], "error")
+        self.assertEqual(response.data["type"], "InfrastructureError::ExternalApiError")
 
+    @patch.dict(
+        os.environ,
+        {
+            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
+            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
+            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
+            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+        },
+    )
+    @patch(
+        "apps.ingestion.application.usecases.load_documents.LoadDocumentsUsecase.execute"
+    )
+    def test_application_error_usecase_failure(self, mock_execute):
+        """Test Application layer exception with use case failure."""
+        # Mock use case failure
+        mock_execute.side_effect = LoadDocumentsError(
+            "Failed to orchestrate document loading", status_code=500
+        )
+
+        response = self.client.post(
+            self.load_documents_url, {"type": "CORPS"}, format="json"
+        )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data["status"], "error")
+        self.assertEqual(response.data["type"], "ApplicationError::LoadDocumentsError")
+
+    @patch.dict(
+        os.environ,
+        {
+            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
+            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
+            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
+            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+        },
+    )
     @responses.activate
     def test_success_response_format(self):
         """Test successful API response format and content."""
-        env = environ.Env()
-        oauth_base_url = env.str("TYCHO_PISTE_OAUTH_BASE_URL")
-        ingres_base_url = env.str("TYCHO_INGRES_BASE_URL")
-
         # Mock successful OAuth
         responses.add(
             responses.POST,
-            f"{oauth_base_url}/api/oauth/token",
+            f"{self.config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
         )
@@ -201,7 +280,7 @@ class TestIntegrationExceptions(APITestCase):
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
         responses.add(
             responses.GET,
-            f"{ingres_base_url}/CORPS",
+            f"{self.config.piste.ingres_base_url}/CORPS",
             json={"items": api_data},
             status=200,
         )
@@ -210,4 +289,10 @@ class TestIntegrationExceptions(APITestCase):
             self.load_documents_url, {"type": "CORPS"}, format="json"
         )
 
+        # Test success response format (covers lines 45-48 in views.py)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], "success")
+        self.assertEqual(response.data["document_type"], "CORPS")
+        self.assertEqual(response.data["created"], 4)
+        self.assertEqual(response.data["updated"], 0)
+        self.assertEqual(response.data["message"], "4 documents created, 0 updated")

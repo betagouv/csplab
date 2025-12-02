@@ -37,10 +37,12 @@ class IngestionContainer(containers.DeclarativeContainer):
     logger_service: providers.Dependency = providers.Dependency()
     http_client: providers.Dependency = providers.Dependency()
 
+    config: providers.Dependency = providers.Dependency()
+
     # PISTE client for authenticated API calls
     piste_client = providers.Singleton(
         piste_client.PisteClient,
-        http_client=http_client,
+        config=providers.Callable(lambda cfg: cfg.piste, config),
         logger_service=logger_service,
     )
 

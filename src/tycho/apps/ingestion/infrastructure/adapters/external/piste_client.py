@@ -2,38 +2,39 @@
 
 import time
 
-import environ
 import requests
-from rest_framework import status
+from requests.exceptions import HTTPError
 
+from apps.ingestion.config import PisteConfig
+from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.exceptions import (
     ExternalApiError,
 )
-from core.services.http_client_interface import IHttpClient
 from core.services.logger_interface import ILogger
 
 
-class PisteClient:
+class PisteClient(HttpClient):
     """Client for interacting with PISTE OAuth and INGRES APIs."""
 
-    def __init__(self, http_client: IHttpClient, logger_service: ILogger):
+    def __init__(
+        self,
+        config: PisteConfig,
+        logger_service: ILogger,
+        timeout: int = 30,
+    ):
         """Initialize with HTTP client."""
-        self.http_client = http_client
-        self.logger = logger_service.get_logger("PisteClient")
-        env = environ.Env()
-        self.oauth_base_url = env.str("TYCHO_PISTE_OAUTH_BASE_URL")
-        self.ingres_base_url = env.str("TYCHO_INGRES_BASE_URL")
-        self.client_id = env.str("TYCHO_INGRES_CLIENT_ID")
-        self.client_secret = env.str("TYCHO_INGRES_CLIENT_SECRET")
+        super().__init__(timeout=timeout)
+        self.config = config
+        self.logger = logger_service.get_logger("INFRASTRUCTURE")
         self.access_token = None
         self.expires_at = 0
         self.logger.info("Initializing PisteClient")
-        self.logger.debug(f"OAuth URL: {self.oauth_base_url}")
+        self.logger.debug(f"OAuth URL: {self.config.oauth_base_url}")
 
     def _get_token(self):
         """Get OAuth token from PISTE API."""
-        oauth_url = f"{self.oauth_base_url}/api/oauth/token"
-        response = self.http_client.request(
+        oauth_url = f"{self.config.oauth_base_url}api/oauth/token"
+        response = super().request(
             "POST",
             oauth_url,
             headers={
@@ -41,12 +42,14 @@ class PisteClient:
             },
             data={
                 "grant_type": "client_credentials",
-                "client_id": self.client_id,
-                "client_secret": self.client_secret,
+                "client_id": self.config.client_id,
+                "client_secret": self.config.client_secret,
                 "scope": "openid",
             },
         )
-        if response.status_code != status.HTTP_200_OK:
+        try:
+            response.raise_for_status()
+        except HTTPError as err:
             error_msg = f"OAuth failed: {response.status_code} - {response.text}"
             self.logger.error(error_msg)
             raise ExternalApiError(
@@ -56,7 +59,7 @@ class PisteClient:
                     "response_text": response.text,
                     "oauth_url": oauth_url,
                 },
-            )
+            ) from err
 
         data = response.json()
         self.access_token = data["access_token"]
@@ -74,17 +77,18 @@ class PisteClient:
         headers["Authorization"] = f"Bearer {self.access_token}"
         kwargs["headers"] = headers
 
-        url = f"{self.ingres_base_url}/{endpoint}"
+        url = f"{self.config.ingres_base_url}/{endpoint}"
 
         self.logger.info(f"Making {method} request to: {url}")
 
-        response = self.http_client.request(method, url, **kwargs)
+        response = super().request(method, url, **kwargs)
 
         self.logger.info(f"API response status: {response.status_code}")
 
-        if response.status_code != status.HTTP_200_OK:
-            error_msg = f"INGRES API error: {response.status_code} - {response.text}"
-            self.logger.error(f"API response text: {response.text[:500]}...")
+        try:
+            response.raise_for_status()
+        except HTTPError as err:
+            error_msg = f"INGRES API error: {response.status_code}"
 
             raise ExternalApiError(
                 error_msg,
@@ -95,6 +99,6 @@ class PisteClient:
                     "endpoint": endpoint,
                     "response_text": response.text,
                 },
-            )
+            ) from err
 
         return response

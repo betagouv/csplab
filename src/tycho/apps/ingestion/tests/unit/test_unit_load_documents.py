@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import Mock
 
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.services.logger import LoggerService
+from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from core.entities.document import Document, DocumentType
 
 
@@ -28,7 +28,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
             return json.load(f)
 
     def setUp(self):
-        """Set up dependencies."""
+        """Set up container dependencies."""
         self.container = IngestionContainer()
         self.container.in_memory_mode.override("in_memory")
 
@@ -55,11 +55,9 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
 
         # preload data in repository
         documents = []
-        i = 0
         for doc in self.raw_corps_documents:
-            i += 1
             document = Document(
-                id=i,
+                id=None,
                 raw_data=doc,
                 type=DocumentType.CORPS,
                 created_at=datetime.now(),
@@ -73,6 +71,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
         result = self.usecase.execute(DocumentType.CORPS)
 
         # in memory, same repo for fetch and persistence
+        # Correction : fixture allégée contient 4 documents, pas 680
         self.assertEqual(result["updated"], 4)
 
     def test_execute_handles_repository_error(self):
@@ -95,21 +94,21 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
 
         documents = [
             Document(
-                id=1,
+                id=None,
                 raw_data={"name": "Corps 1"},
                 type=DocumentType.CORPS,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             ),
             Document(
-                id=2,
+                id=None,
                 raw_data={"name": "Corps 2"},
                 type=DocumentType.CORPS,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             ),
             Document(
-                id=3,
+                id=None,
                 raw_data={"name": "Exam 1"},
                 type=DocumentType.CONCOURS,
                 created_at=datetime.now(),
@@ -130,7 +129,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
         repository = self.container.document_repository()
 
         document = Document(
-            id=1,
+            id=None,
             raw_data={"name": "Test Document"},
             type=DocumentType.CORPS,
             created_at=datetime.now(),
@@ -149,14 +148,14 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
 
         documents = [
             Document(
-                id=1,
+                id=None,
                 raw_data={"name": "Doc 1"},
                 type=DocumentType.CORPS,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             ),
             Document(
-                id=2,
+                id=None,
                 raw_data={"name": "Doc 2"},
                 type=DocumentType.CORPS,
                 created_at=datetime.now(),
