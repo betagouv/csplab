@@ -2,7 +2,7 @@
 
 from typing import List
 
-import openai
+from openai import OpenAI
 
 from apps.ingestion.config import OpenAIConfig
 from core.services.embedding_generator_interface import IEmbeddingGenerator
@@ -14,7 +14,7 @@ class OpenAIEmbeddingGenerator(IEmbeddingGenerator):
     def __init__(self, config: OpenAIConfig):
         """Initialize with OpenAI configuration."""
         self.config = config
-        self.client = openai.OpenAI(api_key=config.api_key)
+        self.client = OpenAI(api_key=config.api_key, base_url=str(config.base_url))
 
     def generate_embedding(self, text: str) -> List[float]:
         """Generate an embedding vector from text content."""
