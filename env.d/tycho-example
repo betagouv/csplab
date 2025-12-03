@@ -22,3 +22,5 @@ TYCHO_INGRES_BASE_URL=https://sandbox-api.piste.gouv.fr/cisirh/ingres-nomenclatu
 DJANGO_SUPERUSER_USERNAME=admin
 DJANGO_SUPERUSER_PASSWORD=admin
 DJANGO_SUPERUSER_EMAIL=admin@example.com
+
+TYCHO_OPENROUTER=openrouter-key
