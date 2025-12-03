@@ -23,5 +23,6 @@ and this project adheres to
 - Integration tests for external adapters.
 - usecase clean documents
 - implementation in-memory and in django
+- usecase vectorize documents
 
 [unreleased]: https://github.com/betagouv/csplab/
