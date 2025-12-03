@@ -20,7 +20,8 @@ class OpenAIConfig(BaseModel):
     """Configuration for OpenAI API client."""
 
     api_key: str
-    model: str = "text-embedding-3-large"
+    base_url: HttpUrl
+    model: str
 
 
 class IngestionConfig(BaseModel):

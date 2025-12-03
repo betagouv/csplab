@@ -16,6 +16,8 @@ dependencies = [
     "python-dotenv>=1.1.1",
     "pytest>=7.4.0",
     "ruff==0.14.3",
+    "openai>=2.8.1",
+    "pydantic>=2.12.2",
 ]
 
 [dependency-groups]

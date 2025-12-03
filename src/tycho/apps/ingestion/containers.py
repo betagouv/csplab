@@ -14,6 +14,7 @@ from apps.ingestion.infrastructure.adapters.external import (
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_corps_repository,
     in_memory_corps_repository,
+    in_memory_vector_repository,
     pgvector_repository,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
@@ -117,8 +118,13 @@ class IngestionContainer(containers.DeclarativeContainer):
         config=providers.Callable(lambda cfg: cfg.openai, config),
     )
 
-    vector_repository = providers.Singleton(
-        pgvector_repository.PgVectorRepository,
+    # Vector repository with conditional selection
+    vector_repository = providers.Selector(
+        in_memory_mode,
+        in_memory=providers.Singleton(
+            in_memory_vector_repository.InMemoryVectorRepository
+        ),
+        external=providers.Singleton(pgvector_repository.PgVectorRepository),
     )
 
     # Use cases - with type annotation to enforce IUseCase compliance
