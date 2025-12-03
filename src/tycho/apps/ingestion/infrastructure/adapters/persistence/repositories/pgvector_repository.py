@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from django.db.models import Q
-from pgvector.django import CosineDistance, EuclideanDistance
+from pgvector.django import CosineDistance
 
 from apps.ingestion.infrastructure.adapters.persistence.models import (
     vectorized_document,
@@ -61,10 +61,6 @@ class PgVectorRepository(IVectorRepository):
 
         if similarity_type.metric == SimilarityMetric.COSINE:
             queryset = queryset.order_by(CosineDistance("embedding", query_embedding))
-        elif similarity_type.metric == SimilarityMetric.EUCLIDEAN:
-            queryset = queryset.order_by(
-                EuclideanDistance("embedding", query_embedding)
-            )
         else:
             raise NotImplementedError(
                 f"Similarity metric {similarity_type.metric} not implemented"
