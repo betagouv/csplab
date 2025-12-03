@@ -1,0 +1,30 @@
+"""OpenAI embedding generator service."""
+
+from typing import List
+
+import openai
+
+from apps.ingestion.config import OpenAIConfig
+from core.services.embedding_generator_interface import IEmbeddingGenerator
+
+
+class OpenAIEmbeddingGenerator(IEmbeddingGenerator):
+    """Service for generating embeddings using OpenAI's text-embedding-3-large model."""
+
+    def __init__(self, config: OpenAIConfig):
+        """Initialize with OpenAI configuration."""
+        self.config = config
+        self.client = openai.OpenAI(api_key=config.api_key)
+
+    def generate_embedding(self, text: str) -> List[float]:
+        """Generate an embedding vector from text content."""
+        if not text.strip():
+            raise ValueError("Text content cannot be empty")
+
+        try:
+            response = self.client.embeddings.create(
+                model=self.config.model, input=text, encoding_format="float"
+            )
+            return response.data[0].embedding
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate embedding: {str(e)}") from e

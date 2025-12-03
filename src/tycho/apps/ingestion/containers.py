@@ -4,6 +4,9 @@ from dependency_injector import containers, providers
 
 from apps.ingestion.application.usecases.clean_documents import CleanDocumentsUsecase
 from apps.ingestion.application.usecases.load_documents import LoadDocumentsUsecase
+from apps.ingestion.application.usecases.vectorize_documents import (
+    VectorizeDocumentsUsecase,
+)
 from apps.ingestion.infrastructure.adapters.external import (
     document_fetcher,
     piste_client,
@@ -11,6 +14,7 @@ from apps.ingestion.infrastructure.adapters.external import (
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_corps_repository,
     in_memory_corps_repository,
+    pgvector_repository,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_document_repository as django_repo,
@@ -23,6 +27,12 @@ from apps.ingestion.infrastructure.adapters.persistence.repository_factory impor
 )
 from apps.ingestion.infrastructure.adapters.services.document_cleaner import (
     DocumentCleaner,
+)
+from apps.ingestion.infrastructure.adapters.services.openai_embedding_generator import (
+    OpenAIEmbeddingGenerator,
+)
+from apps.ingestion.infrastructure.adapters.services.text_extractor import (
+    TextExtractor,
 )
 from core.entities.document import DocumentType
 from core.interfaces.entity_interface import IEntity
@@ -98,6 +108,19 @@ class IngestionContainer(containers.DeclarativeContainer):
         )
     )
 
+    text_extractor = providers.Singleton(
+        TextExtractor,
+    )
+
+    embedding_generator = providers.Singleton(
+        OpenAIEmbeddingGenerator,
+        config=providers.Callable(lambda cfg: cfg.openai, config),
+    )
+
+    vector_repository = providers.Singleton(
+        pgvector_repository.PgVectorRepository,
+    )
+
     # Use cases - with type annotation to enforce IUseCase compliance
     load_documents_usecase: providers.Provider[
         IUseCase[DocumentType, IUpsertResult]
@@ -115,4 +138,12 @@ class IngestionContainer(containers.DeclarativeContainer):
             repository_factory=repository_factory,
             logger=logger_service,
         )
+    )
+
+    vectorize_documents_usecase = providers.Factory(
+        VectorizeDocumentsUsecase,
+        vector_repository=vector_repository,
+        text_extractor=text_extractor,
+        embedding_generator=embedding_generator,
+        logger=logger_service,
     )
