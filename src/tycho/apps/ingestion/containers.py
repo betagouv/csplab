@@ -113,9 +113,16 @@ class IngestionContainer(containers.DeclarativeContainer):
         TextExtractor,
     )
 
-    embedding_generator = providers.Singleton(
-        OpenAIEmbeddingGenerator,
-        config=providers.Callable(lambda cfg: cfg.openai, config),
+    # Embedding generator with conditional selection
+    embedding_generator = providers.Selector(
+        in_memory_mode,
+        in_memory=providers.Factory(
+            lambda: None  # Will be overridden in tests
+        ),
+        external=providers.Singleton(
+            OpenAIEmbeddingGenerator,
+            config=providers.Callable(lambda cfg: cfg.openai, config),
+        ),
     )
 
     # Vector repository with conditional selection
