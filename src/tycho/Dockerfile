@@ -50,17 +50,21 @@ ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 
 # Install dependencies
+# WARNING: Installing dev dependencies for local development and linting.
+# For production deployment, remove --group dev to avoid installing unnecessary packages.
 RUN --mount=type=cache,uid=${DOCKER_UID},gid=${DOCKER_GID},target=/home/uv/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project
+    uv sync --locked --no-install-project --group dev
 
 # Copy the project into the image
 ADD --chown=${DOCKER_UID}:${DOCKER_GID} . /app
 
-# Sync the project
+# Sync the project with dev dependencies
+# WARNING: Including dev dependencies for local development and linting.
+# For production deployment, remove --group dev to avoid installing unnecessary packages.
 RUN --mount=type=cache,uid=${DOCKER_UID},gid=${DOCKER_GID},target=/home/uv/.cache/uv \
-    uv sync --locked
+    uv sync --locked --group dev
 
 # -- Run --
 CMD uv run honcho -f Procfile.dev start

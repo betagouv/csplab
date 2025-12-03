@@ -26,6 +26,16 @@ Le monorepo est organisé en services :
 
 [commitizen](https://commitizen-tools.github.io/commitizen/)
 
+## Configuration
+
+Avant de lancer les services, copiez et configurez les fichiers d'environnement :
+
+```bash
+make setup-env
+```
+
+Puis éditez les fichiers env.d/\* avec vos vraies valeurs (clés API, etc.)
+
 ## Installation de l'environnement de dev
 
 ```bash

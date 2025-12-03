@@ -28,8 +28,12 @@ DEBUG = env.str("DEBUG")
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
+# CSRF trusted origins for HTTPS requests
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+
 
 # Application definition
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -38,6 +42,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "apps.ingestion",
 ]
 
 MIDDLEWARE = [
@@ -124,6 +130,61 @@ STATIC_ROOT = BASE_DIR.parent / "static"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Logging configuration
+LOG_LEVEL = "DEBUG" if DEBUG else "ERROR"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "exception_console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+    },
+    "loggers": {
+        "ingestion": {
+            "handlers": ["exception_console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "tycho.DOMAIN": {
+            "handlers": ["exception_console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "tycho.APPLICATION": {
+            "handlers": ["exception_console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "tycho.INFRASTRUCTURE": {
+            "handlers": ["exception_console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+    },
+}
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "tycho.exception_handler.custom_exception_handler"
+}
 
 # Sentry
 sentry_sdk.init(

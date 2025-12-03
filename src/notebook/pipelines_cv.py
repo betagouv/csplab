@@ -1,5 +1,4 @@
-"""
-Benchmark Extraction CV (OCR + LLM + Anonymisation)
+"""Benchmark Extraction CV (OCR + LLM + Anonymisation)
 
 Ce script permet d'extraire des données structurées (Expériences et Compétences) à partir d'un dossier de CVs au format PDF. Il compare trois approches (pipelines) différentes et envoie les traces d'exécution vers Opik pour analyse.
 
@@ -15,22 +14,20 @@ usage :
 python pipelines_cv.py ./dossier_cvs
 """
 
+import json
 import os
 import time
-import json
-from typing import Dict, Any, List
-from dotenv import load_dotenv
+from typing import Any, Dict, List
 
-import requests
+import opik
 import pdfplumber
-
+import requests
+from dotenv import load_dotenv
+from opik import track
+from opik.opik_context import update_current_trace
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
 
-import opik
-from opik import track
-from opik.opik_context import update_current_trace
-    
 # =============================
 #  CONFIG
 # =============================
@@ -38,22 +35,22 @@ from opik.opik_context import update_current_trace
 load_dotenv()
 
 # --- AlbertAPI OCR ---
-ALBERT_API_BASE_URL = "https://albert.api.etalab.gouv.fr"  
-ALBERT_API_KEY = os.getenv("ALBERT_API_KEY")     
-ALBERT_OCR_MODEL = "albert-large"              
+ALBERT_API_BASE_URL = "https://albert.api.etalab.gouv.fr"
+ALBERT_API_KEY = os.getenv("ALBERT_API_KEY")
+ALBERT_OCR_MODEL = "albert-large"
 
 # --- OpenRouter LLM ---
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")  
-OPENROUTER_MODEL = "openai/gpt-5"           
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_MODEL = "openai/gpt-5"
 
 # --- Anonymisation (Presidio) ---
 analyzer = AnalyzerEngine()
 anonymizer = AnonymizerEngine()
-DEFAULT_PRESIDIO_LANG = "en" 
+DEFAULT_PRESIDIO_LANG = "en"
 
 # --- Paramètres Pipelines ---
-ENABLE_ANONYMIZATION = True 
+ENABLE_ANONYMIZATION = True
 
 # =============================
 #  OPIK INIT
@@ -64,7 +61,7 @@ opik.configure(
     workspace="ouladhima",      # None = va chercher dans ENV
     use_local=False      # indispensable pour envoyer vers Comet
 )
-    
+
 
 # =============================
 #  PROMPTS OPIK
@@ -209,16 +206,15 @@ def extract_json_from_fenced_content(text: str) -> dict:
 
 
 def normalize_albert_ocr_structured(ocr_data: Any) -> dict:
-    """
-    Normalise la sortie JSON d'Albert.
+    """Normalise la sortie JSON d'Albert.
     Gère le cas où Albert renvoie une liste de pages contenant chacune un bout de JSON.
     """
     final_experiences = []
     final_skills = []
-    
+
     # 1. Cas simple : c'est déjà le dict final
     if isinstance(ocr_data, dict):
-        if "experiences" in ocr_data and "skills" in ocr_data: 
+        if "experiences" in ocr_data and "skills" in ocr_data:
             return ocr_data
 
         # 2. Cas complexe : Liste de pages (ex: CV multipages)
@@ -238,7 +234,7 @@ def normalize_albert_ocr_structured(ocr_data: Any) -> dict:
                             if isinstance(exps, list): final_experiences.extend(exps)
                             if isinstance(sks, list): final_skills.extend(sks)
                             found_any = True
-            
+
             # Si on a trouvé des données dans au moins une page
             if found_any:
                 # On dédoublonne les skills (optionnel, mais propre)
@@ -250,15 +246,15 @@ def normalize_albert_ocr_structured(ocr_data: Any) -> dict:
         text = ocr_data.get("text")
         if isinstance(text, str):
             parsed = extract_json_from_fenced_content(text)
-            if isinstance(parsed, dict) and ("experiences" in parsed or "skills" in parsed): 
+            if isinstance(parsed, dict) and ("experiences" in parsed or "skills" in parsed):
                 return parsed
 
     # 4. Cas chaîne brute
     if isinstance(ocr_data, str):
         parsed = extract_json_from_fenced_content(ocr_data)
-        if isinstance(parsed, dict) and ("experiences" in parsed or "skills" in parsed): 
+        if isinstance(parsed, dict) and ("experiences" in parsed or "skills" in parsed):
             return parsed
-            
+
     # Fallback vide
     return {"experiences": [], "skills": []}
 
@@ -317,7 +313,7 @@ def pipeline_a_ocr_only(pdf_path: str) -> Dict[str, Any]:
             "file": os.path.basename(pdf_path),
             "ocr_model_id": ALBERT_OCR_MODEL,
             "llm_model_id": None,
-            "use_anonymization": False 
+            "use_anonymization": False
         },
         prompts=[PROMPT_ALBERT],
     )
@@ -330,7 +326,7 @@ def pipeline_a_ocr_only(pdf_path: str) -> Dict[str, Any]:
         "debug": {
             "eval_context": text_reference,
             "raw_ocr_response": str(ocr_structured_raw)
-        } 
+        }
     }
 
 
@@ -339,7 +335,7 @@ def pipeline_b_pdf2text_llm(pdf_path: str) -> Dict[str, Any]:
     start = time.perf_counter()
 
     text = pdf_to_text(pdf_path)
-    
+
     if ENABLE_ANONYMIZATION:
         processed_text = anonymize_text(text)
     else:
@@ -359,7 +355,7 @@ def pipeline_b_pdf2text_llm(pdf_path: str) -> Dict[str, Any]:
             "file": os.path.basename(pdf_path),
             "ocr_model_id": None,
             "llm_model_id": OPENROUTER_MODEL,
-            "use_anonymization": ENABLE_ANONYMIZATION 
+            "use_anonymization": ENABLE_ANONYMIZATION
         },
         prompts=[PROMPT_LLM],
     )
@@ -391,7 +387,7 @@ def pipeline_c_ocr_llm(pdf_path: str) -> Dict[str, Any]:
         processed_text = anonymize_text(ocr_text)
     else:
         processed_text = ocr_text
-    
+
     prompt_text = build_extraction_prompt(processed_text)
 
     # 3. LLM
@@ -402,7 +398,7 @@ def pipeline_c_ocr_llm(pdf_path: str) -> Dict[str, Any]:
 
     latency_total = time.perf_counter() - start_total
     if not isinstance(structured, dict): structured = {"experiences": [], "skills": []}
-    
+
     n_exp = len(structured.get("experiences", []) or [])
     n_sk = len(structured.get("skills", []) or [])
 
@@ -412,7 +408,7 @@ def pipeline_c_ocr_llm(pdf_path: str) -> Dict[str, Any]:
             "file": os.path.basename(pdf_path),
             "ocr_model_id": ALBERT_OCR_MODEL,
             "llm_model_id": OPENROUTER_MODEL,
-            "use_anonymization": ENABLE_ANONYMIZATION, 
+            "use_anonymization": ENABLE_ANONYMIZATION,
             "latency_ocr_step": ocr_duration,
             "latency_llm_step": llm_duration
         },

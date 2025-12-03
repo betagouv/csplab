@@ -40,7 +40,9 @@ data
 .env
 .venv
 env/
-env.d/notebook-extras
+env.d/*
+!env.d/*-example
+
 venv/
 ENV/
 env.bak/
@@ -62,5 +64,9 @@ scripts/*.csv
 
 # Data
 *.csv
-*.json
 .coverage
+
+
+ARCHITECTURE*
+.vscode
+.devcontainer

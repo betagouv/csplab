@@ -1,5 +1,4 @@
 services:
-
   dev:
     build:
       context: .
@@ -21,6 +20,8 @@ services:
       args:
         DOCKER_UID: ${DOCKER_UID:-1000}
         DOCKER_GID: ${DOCKER_GID:-1000}
+    env_file:
+      - env.d/notebook
     user: ${DOCKER_USER:-1000}
     ports:
       - "8888:8888"
@@ -74,7 +75,8 @@ services:
     env_file:
       - env.d/tycho
     volumes:
-      - ./src/tycho:/app
+      - .:/workspace
+    working_dir: /workspace/src/tycho
     depends_on:
       postgresql:
         condition: service_healthy
