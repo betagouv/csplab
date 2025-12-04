@@ -37,9 +37,8 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
             return json.load(f)
 
     def setUp(self):
-        """Set up container dependencies for external mode."""
+        """Set up container dependencies."""
         self.container = IngestionContainer()
-        self.container.in_memory_mode.override("external")
 
         logger_service = LoggerService()
         self.container.logger_service.override(logger_service)

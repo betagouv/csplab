@@ -13,6 +13,12 @@ from pathlib import Path
 
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
+from apps.ingestion.tests.utils.in_memory_corps_repository import (
+    InMemoryCorpsRepository,
+)
+from apps.ingestion.tests.utils.in_memory_vector_repository import (
+    InMemoryVectorRepository,
+)
 from apps.ingestion.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 from core.entities.corps import Corps
 from core.entities.document import Document, DocumentType
@@ -50,11 +56,19 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
     def _create_isolated_container(self):
         """Create an isolated container for each test to avoid concurrency issues."""
         container = IngestionContainer()
-        container.in_memory_mode.override("in_memory")
 
+        # Override with test dependencies
         logger_service = LoggerService()
         container.logger_service.override(logger_service)
 
+        # Override with in-memory repositories for unit tests
+        in_memory_corps_repo = InMemoryCorpsRepository()
+        container.corps_repository.override(in_memory_corps_repo)
+
+        in_memory_vector_repo = InMemoryVectorRepository()
+        container.vector_repository.override(in_memory_vector_repo)
+
+        # Override with mock embedding generator
         mock_generator = MockEmbeddingGenerator(self.embedding_fixtures)
         container.embedding_generator.override(mock_generator)
 

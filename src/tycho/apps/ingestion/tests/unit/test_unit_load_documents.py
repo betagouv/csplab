@@ -15,6 +15,9 @@ from unittest.mock import Mock
 
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
+from apps.ingestion.tests.utils.in_memory_document_repository import (
+    InMemoryDocumentRepository,
+)
 from core.entities.document import Document, DocumentType
 
 
@@ -37,10 +40,14 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
     def _create_isolated_container(self):
         """Create an isolated container for each test to avoid concurrency issues."""
         container = IngestionContainer()
-        container.in_memory_mode.override("in_memory")
 
+        # Override with test dependencies
         logger_service = LoggerService()
         container.logger_service.override(logger_service)
+
+        # Override with in-memory repository for unit tests
+        in_memory_document_repo = InMemoryDocumentRepository()
+        container.document_repository.override(in_memory_document_repo)
 
         return container
 

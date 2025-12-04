@@ -30,7 +30,6 @@ class LoadDocumentsView(APIView):
 
         # Setup container with dependencies
         container = IngestionContainer()
-        container.in_memory_mode.override("external")
 
         logger_service = LoggerService()
         container.logger_service.override(logger_service)

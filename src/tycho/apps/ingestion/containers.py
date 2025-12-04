@@ -11,26 +11,21 @@ from apps.ingestion.infrastructure.adapters.external import (
     document_fetcher,
     piste_client,
 )
+from apps.ingestion.infrastructure.adapters.external.openai_embedding_generator import (
+    OpenAIEmbeddingGenerator,
+)
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_corps_repository,
-    in_memory_corps_repository,
-    in_memory_vector_repository,
     pgvector_repository,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_document_repository as django_repo,
-)
-from apps.ingestion.infrastructure.adapters.persistence.repositories import (
-    in_memory_document_repository as inmemory_repo,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repository_factory import (
     RepositoryFactory,
 )
 from apps.ingestion.infrastructure.adapters.services.document_cleaner import (
     DocumentCleaner,
-)
-from apps.ingestion.infrastructure.adapters.services.openai_embedding_generator import (
-    OpenAIEmbeddingGenerator,
 )
 from apps.ingestion.infrastructure.adapters.services.text_extractor import (
     TextExtractor,
@@ -47,9 +42,6 @@ from core.services.document_cleaner_interface import IDocumentCleaner
 
 class IngestionContainer(containers.DeclarativeContainer):
     """Ingestion services container."""
-
-    # Configuration for in-memory mode
-    in_memory_mode = providers.Configuration()
 
     # External dependencies (injected by parent container)
     logger_service: providers.Dependency = providers.Dependency()
@@ -75,24 +67,16 @@ class IngestionContainer(containers.DeclarativeContainer):
         django_repo.DjangoDocumentRepository,
     )
 
-    # Document repository with conditional selection
-    document_repository = providers.Selector(
-        in_memory_mode,
-        in_memory=providers.Singleton(inmemory_repo.InMemoryDocumentRepository),
-        external=providers.Singleton(
-            CompositeDocumentRepository,
-            fetcher=document_fetcher,
-            persister=document_persister,
-        ),
+    # Document repository
+    document_repository = providers.Singleton(
+        CompositeDocumentRepository,
+        fetcher=document_fetcher,
+        persister=document_persister,
     )
 
     # Corps repository
-    corps_repository = providers.Selector(
-        in_memory_mode,
-        in_memory=providers.Singleton(
-            in_memory_corps_repository.InMemoryCorpsRepository
-        ),
-        external=providers.Singleton(django_corps_repository.DjangoCorpsRepository),
+    corps_repository = providers.Singleton(
+        django_corps_repository.DjangoCorpsRepository
     )
 
     # Repository factory
@@ -113,26 +97,14 @@ class IngestionContainer(containers.DeclarativeContainer):
         TextExtractor,
     )
 
-    # Embedding generator with conditional selection
-    embedding_generator = providers.Selector(
-        in_memory_mode,
-        in_memory=providers.Factory(
-            lambda: None  # Will be overridden in tests
-        ),
-        external=providers.Singleton(
-            OpenAIEmbeddingGenerator,
-            config=providers.Callable(lambda cfg: cfg.openai, config),
-        ),
+    # Embedding generator
+    embedding_generator = providers.Singleton(
+        OpenAIEmbeddingGenerator,
+        config=providers.Callable(lambda cfg: cfg.openai, config),
     )
 
-    # Vector repository with conditional selection
-    vector_repository = providers.Selector(
-        in_memory_mode,
-        in_memory=providers.Singleton(
-            in_memory_vector_repository.InMemoryVectorRepository
-        ),
-        external=providers.Singleton(pgvector_repository.PgVectorRepository),
-    )
+    # Vector repository
+    vector_repository = providers.Singleton(pgvector_repository.PgVectorRepository)
 
     # Use cases - with type annotation to enforce IUseCase compliance
     load_documents_usecase: providers.Provider[
