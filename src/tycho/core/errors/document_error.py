@@ -52,5 +52,5 @@ class UnsupportedDocumentTypeError(DocumentError):
         Args:
             document_type: The unsupported document type
         """
-        message = f"No cleaner available for document type: {document_type}"
+        message = f"Document type: {document_type} is not supported yet"
         super().__init__(message)
