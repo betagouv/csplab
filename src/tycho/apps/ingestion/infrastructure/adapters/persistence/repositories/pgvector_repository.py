@@ -1,17 +1,14 @@
 """PgVector repository implementation for vector operations."""
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
-
-from django.db.models import Q
-from pgvector.django import CosineDistance
 
 from apps.ingestion.infrastructure.adapters.persistence.models import (
     vectorized_document,
 )
 from core.entities.vectorized_document import VectorizedDocument
 from core.repositories.vector_repository_interface import IVectorRepository
-from core.value_objects.similarity_type import SimilarityMetric, SimilarityType
+
+# from core.value_objects.similarity_type import SimilarityMetric, SimilarityType
 
 
 class PgVectorRepository(IVectorRepository):
@@ -37,60 +34,60 @@ class PgVectorRepository(IVectorRepository):
             model.save()
             return model.to_entity()
 
-    def semantic_search(
-        self,
-        query_embedding: List[float],
-        limit: int = 10,
-        filters: Optional[Dict[str, Any]] = None,
-        similarity_type: Optional[SimilarityType] = None,
-    ) -> List[VectorizedDocument]:
-        """Search for documents semantically similar to the query embedding."""
-        if similarity_type is None:
-            similarity_type = SimilarityType()
+    # def semantic_search(
+    #     self,
+    #     query_embedding: List[float],
+    #     limit: int = 10,
+    #     filters: Optional[Dict[str, Any]] = None,
+    #     similarity_type: Optional[SimilarityType] = None,
+    # ) -> List[VectorizedDocument]:
+    #     """Search for documents semantically similar to the query embedding."""
+    #     if similarity_type is None:
+    #         similarity_type = SimilarityType()
 
-        queryset = vectorized_document.VectorizedDocumentModel.objects.all()
+    #     queryset = vectorized_document.VectorizedDocumentModel.objects.all()
 
-        if filters:
-            for key, value in filters.items():
-                if isinstance(value, list):
-                    queryset = queryset.filter(
-                        Q(**{f"metadata__{key}__overlap": value})
-                    )
-                else:
-                    queryset = queryset.filter(**{f"metadata__{key}": value})
+    #     if filters:
+    #         for key, value in filters.items():
+    #             if isinstance(value, list):
+    #                 queryset = queryset.filter(
+    #                     Q(**{f"metadata__{key}__overlap": value})
+    #                 )
+    #             else:
+    #                 queryset = queryset.filter(**{f"metadata__{key}": value})
 
-        if similarity_type.metric == SimilarityMetric.COSINE:
-            queryset = queryset.order_by(CosineDistance("embedding", query_embedding))
-        else:
-            raise NotImplementedError(
-                f"Similarity metric {similarity_type.metric} not implemented"
-            )
+    #     if similarity_type.metric == SimilarityMetric.COSINE:
+    #         queryset = queryset.order_by(CosineDistance("embedding", query_embedding))
+    #     else:
+    #         raise NotImplementedError(
+    #             f"Similarity metric {similarity_type.metric} not implemented"
+    #         )
 
-        results = queryset[:limit]
+    #     results = queryset[:limit]
 
-        return [model.to_entity() for model in results]
+    #     return [model.to_entity() for model in results]
 
-    def similarity_search(
-        self,
-        document_id: int,
-        threshold: float = 0.8,
-        limit: int = 10,
-        similarity_type: Optional[SimilarityType] = None,
-    ) -> List[VectorizedDocument]:
-        """Find documents similar to a specific document."""
-        if similarity_type is None:
-            similarity_type = SimilarityType()
+    # def similarity_search(
+    #     self,
+    #     document_id: int,
+    #     threshold: float = 0.8,
+    #     limit: int = 10,
+    #     similarity_type: Optional[SimilarityType] = None,
+    # ) -> List[VectorizedDocument]:
+    #     """Find documents similar to a specific document."""
+    #     if similarity_type is None:
+    #         similarity_type = SimilarityType()
 
-        try:
-            reference_doc = vectorized_document.VectorizedDocumentModel.objects.get(
-                document_id=document_id
-            )
-        except vectorized_document.VectorizedDocumentModel.DoesNotExist:
-            return []
+    #     try:
+    #         reference_doc = vectorized_document.VectorizedDocumentModel.objects.get(
+    #             document_id=document_id
+    #         )
+    #     except vectorized_document.VectorizedDocumentModel.DoesNotExist:
+    #         return []
 
-        # Use the reference document's embedding for similarity search
-        return self.semantic_search(
-            query_embedding=list(reference_doc.embedding),
-            limit=limit + 1,  # +1 to exclude the reference document itself
-            similarity_type=similarity_type,
-        )[1:]
+    #     # Use the reference document's embedding for similarity search
+    #     return self.semantic_search(
+    #         query_embedding=list(reference_doc.embedding),
+    #         limit=limit + 1,  # +1 to exclude the reference document itself
+    #         similarity_type=similarity_type,
+    #     )[1:]

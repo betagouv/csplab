@@ -30,7 +30,6 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
     def setUp(self):
         """Set up container dependencies."""
         self.container = IngestionContainer()
-        self.container.in_memory_mode.override("external")
         # Create test configuration with mock values
         self.config = IngestionConfig(
             PisteConfig(
