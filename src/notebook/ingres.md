@@ -17,10 +17,6 @@ class PisteClient:
         self.client_secret = os.environ.get('INGRES_CLIENT_SECRET')
         self.access_token = None
         self.expires_at = 0
-        print(os.environ.get('PISTE_OAUTH_BASE_URL'))
-        print(os.environ.get('INGRES_BASE_URL'))
-        print(os.environ.get('INGRES_CLIENT_ID'))
-        print(os.environ.get('INGRES_CLIENT_SECRET'))
 
     def _get_token(self):
         response = requests.post(
@@ -180,19 +176,6 @@ plt.show()
 ```
 
 ```python
-max([len(label) for label in df_expanded['short_label'].unique()])
-```
-
-```python
-access_mod = df.explode('access_mod')
-access_mod['access_mod'].unique()
-```
-
-```python
-max([len(label) for label in df_expanded['long_label'].unique()])
-```
-
-```python
 law_freq = pd.DataFrame(frequencies).reset_index()
 law_freq.columns = ['law_id', 'count']
 df_rule = df_expanded.merge(law_freq, on='law_id', how='left')
@@ -318,6 +301,77 @@ with open(filename, 'w', encoding='utf-8') as f:
 
 ```python
 df_clean.to_csv('corps_decret_validate.csv', sep='\t', index=False, encoding='utf-8')
+```
+
+```python
+df_clean['long_label']
+```
+
+```python
+import openai
+from pydantic import BaseModel
+from typing import List
+
+class OpenAIConfig(BaseModel):
+    """Configuration for OpenAI API client."""
+    api_key: str
+
+class OpenAIEmbeddingGenerator():
+    """Service for generating embeddings using OpenAI's text-embedding-3-large model."""
+
+    def __init__(self, config: OpenAIConfig):
+        """Initialize with OpenAI configuration."""
+        self.config = config
+        self.client = openai.OpenAI(api_key=config.api_key, base_url="https://openrouter.ai/api/v1")
+
+    def generate_embedding(self, text: str) -> List[float]:
+        """Generate an embedding vector from text content."""
+        if not text.strip():
+            raise ValueError("Text content cannot be empty")
+
+        try:
+            response = self.client.embeddings.create(
+                model="openai/text-embedding-3-large", input=text, encoding_format="float"
+            )
+            return response.data[0].embedding
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate embedding: {str(e)}") from e
+```
+
+```python
+config = OpenAIConfig(api_key=os.environ.get('OPENROUTER_API_KEY'))
+generator = OpenAIEmbeddingGenerator(config)
+```
+
+```python
+df_clean[['id', 'long_label']][:20]
+
+```
+
+```python
+fixtures_embeddings = {}
+
+# Itérer sur ton DataFrame
+for index, row in df_clean[['id', 'long_label']][:2].iterrows():
+    corps_id = row['id']
+    long_label = row['long_label']
+
+    print(f"Generating embedding for Corps {corps_id}: {long_label}")
+
+    # Générer l'embedding
+    embedding = generator.generate_embedding(long_label)
+
+    # Stocker dans les fixtures
+    fixtures_embeddings[corps_id] = {
+        "long_label": long_label,
+        "embedding": embedding
+    }
+
+# Sauvegarder les fixtures
+with open("embedding_fixtures.json", "w") as f:
+    json.dump(fixtures_embeddings, f, indent=2)
+
+print(f"✅ Generated {len(fixtures_embeddings)} embedding fixtures")
 ```
 
 ```python

@@ -10,7 +10,7 @@ from pydantic import HttpUrl
 from rest_framework.test import APITestCase
 
 from apps.ingestion.application.exceptions import LoadDocumentsError
-from apps.ingestion.config import IngestionConfig, PisteConfig
+from apps.ingestion.config import IngestionConfig, OpenAIConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
@@ -30,7 +30,6 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
     def setUp(self):
         """Set up container dependencies."""
         self.container = IngestionContainer()
-        self.container.in_memory_mode.override("external")
         # Create test configuration with mock values
         self.config = IngestionConfig(
             PisteConfig(
@@ -38,7 +37,12 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
                 ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
                 client_id="fake-client-id",
                 client_secret="fake-client-secret",  # noqa
-            )
+            ),
+            OpenAIConfig(
+                api_key="fake-api-key",
+                base_url=HttpUrl("https://fake-base-url.example.com"),
+                model="fake-model",
+            ),
         )
         self.container.config.override(self.config)
         logger_service = LoggerService()
@@ -138,7 +142,12 @@ class TestIntegrationExceptions(APITestCase):
                 ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
                 client_id="fake-client-id",
                 client_secret="fake-client-secret",  # noqa
-            )
+            ),
+            OpenAIConfig(
+                api_key="fake-api-key",
+                base_url=HttpUrl("https://fake-base-url.example.com"),
+                model="fake-model",
+            ),
         )
 
     @patch.dict(
@@ -148,6 +157,9 @@ class TestIntegrationExceptions(APITestCase):
             "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
             "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
             "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+            "TYCHO_OPENROUTER_API_KEY": "fake-api-key",
+            "TYCHO_OPENROUTER_BASE_URL": "https://fake-base-url.example.com",
+            "TYCHO_OPENROUTER_EMBEDDING_MODEL": "fake-model",
         },
     )
     def test_domain_error_invalid_document_type(self):
@@ -171,6 +183,9 @@ class TestIntegrationExceptions(APITestCase):
             "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
             "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
             "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+            "TYCHO_OPENROUTER_API_KEY": "fake-api-key",
+            "TYCHO_OPENROUTER_BASE_URL": "https://fake-base-url.example.com",
+            "TYCHO_OPENROUTER_EMBEDDING_MODEL": "fake-model",
         },
     )
     @patch(
@@ -199,6 +214,9 @@ class TestIntegrationExceptions(APITestCase):
             "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
             "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
             "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+            "TYCHO_OPENROUTER_API_KEY": "fake-api-key",
+            "TYCHO_OPENROUTER_BASE_URL": "https://fake-base-url.example.com",
+            "TYCHO_OPENROUTER_EMBEDDING_MODEL": "fake-model",
         },
     )
     @responses.activate
@@ -235,6 +253,9 @@ class TestIntegrationExceptions(APITestCase):
             "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
             "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
             "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+            "TYCHO_OPENROUTER_API_KEY": "fake-api-key",
+            "TYCHO_OPENROUTER_BASE_URL": "https://fake-base-url.example.com",
+            "TYCHO_OPENROUTER_EMBEDDING_MODEL": "fake-model",
         },
     )
     @patch(
@@ -262,6 +283,9 @@ class TestIntegrationExceptions(APITestCase):
             "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
             "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
             "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
+            "TYCHO_OPENROUTER_API_KEY": "fake-api-key",
+            "TYCHO_OPENROUTER_BASE_URL": "https://fake-base-url.example.com",
+            "TYCHO_OPENROUTER_EMBEDDING_MODEL": "fake-model",
         },
     )
     @responses.activate

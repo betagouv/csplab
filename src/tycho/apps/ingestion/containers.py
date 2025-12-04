@@ -4,25 +4,31 @@ from dependency_injector import containers, providers
 
 from apps.ingestion.application.usecases.clean_documents import CleanDocumentsUsecase
 from apps.ingestion.application.usecases.load_documents import LoadDocumentsUsecase
+from apps.ingestion.application.usecases.vectorize_documents import (
+    VectorizeDocumentsUsecase,
+)
 from apps.ingestion.infrastructure.adapters.external import (
     document_fetcher,
     piste_client,
 )
+from apps.ingestion.infrastructure.adapters.external.openai_embedding_generator import (
+    OpenAIEmbeddingGenerator,
+)
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_corps_repository,
-    in_memory_corps_repository,
+    pgvector_repository,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_document_repository as django_repo,
-)
-from apps.ingestion.infrastructure.adapters.persistence.repositories import (
-    in_memory_document_repository as inmemory_repo,
 )
 from apps.ingestion.infrastructure.adapters.persistence.repository_factory import (
     RepositoryFactory,
 )
 from apps.ingestion.infrastructure.adapters.services.document_cleaner import (
     DocumentCleaner,
+)
+from apps.ingestion.infrastructure.adapters.services.text_extractor import (
+    TextExtractor,
 )
 from core.entities.document import DocumentType
 from core.interfaces.entity_interface import IEntity
@@ -36,9 +42,6 @@ from core.services.document_cleaner_interface import IDocumentCleaner
 
 class IngestionContainer(containers.DeclarativeContainer):
     """Ingestion services container."""
-
-    # Configuration for in-memory mode
-    in_memory_mode = providers.Configuration()
 
     # External dependencies (injected by parent container)
     logger_service: providers.Dependency = providers.Dependency()
@@ -64,24 +67,16 @@ class IngestionContainer(containers.DeclarativeContainer):
         django_repo.DjangoDocumentRepository,
     )
 
-    # Document repository with conditional selection
-    document_repository = providers.Selector(
-        in_memory_mode,
-        in_memory=providers.Singleton(inmemory_repo.InMemoryDocumentRepository),
-        external=providers.Singleton(
-            CompositeDocumentRepository,
-            fetcher=document_fetcher,
-            persister=document_persister,
-        ),
+    # Document repository
+    document_repository = providers.Singleton(
+        CompositeDocumentRepository,
+        fetcher=document_fetcher,
+        persister=document_persister,
     )
 
     # Corps repository
-    corps_repository = providers.Selector(
-        in_memory_mode,
-        in_memory=providers.Singleton(
-            in_memory_corps_repository.InMemoryCorpsRepository
-        ),
-        external=providers.Singleton(django_corps_repository.DjangoCorpsRepository),
+    corps_repository = providers.Singleton(
+        django_corps_repository.DjangoCorpsRepository
     )
 
     # Repository factory
@@ -97,6 +92,19 @@ class IngestionContainer(containers.DeclarativeContainer):
             logger=logger_service,
         )
     )
+
+    text_extractor = providers.Singleton(
+        TextExtractor,
+    )
+
+    # Embedding generator
+    embedding_generator = providers.Singleton(
+        OpenAIEmbeddingGenerator,
+        config=providers.Callable(lambda cfg: cfg.openai, config),
+    )
+
+    # Vector repository
+    vector_repository = providers.Singleton(pgvector_repository.PgVectorRepository)
 
     # Use cases - with type annotation to enforce IUseCase compliance
     load_documents_usecase: providers.Provider[
@@ -115,4 +123,12 @@ class IngestionContainer(containers.DeclarativeContainer):
             repository_factory=repository_factory,
             logger=logger_service,
         )
+    )
+
+    vectorize_documents_usecase = providers.Factory(
+        VectorizeDocumentsUsecase,
+        vector_repository=vector_repository,
+        text_extractor=text_extractor,
+        embedding_generator=embedding_generator,
+        logger=logger_service,
     )

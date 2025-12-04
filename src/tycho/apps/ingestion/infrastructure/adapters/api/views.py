@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.ingestion.config import IngestionConfig, PisteConfig
+from apps.ingestion.config import IngestionConfig, OpenAIConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
@@ -30,7 +30,6 @@ class LoadDocumentsView(APIView):
 
         # Setup container with dependencies
         container = IngestionContainer()
-        container.in_memory_mode.override("external")
 
         logger_service = LoggerService()
         container.logger_service.override(logger_service)
@@ -43,10 +42,15 @@ class LoadDocumentsView(APIView):
             client_id=cast(str, env.str("TYCHO_INGRES_CLIENT_ID")),
             client_secret=cast(str, env.str("TYCHO_INGRES_CLIENT_SECRET")),
         )
+        openai_config = OpenAIConfig(
+            api_key=cast(str, env.str("TYCHO_OPENROUTER_API_KEY")),
+            base_url=cast(HttpUrl, env.str("TYCHO_OPENROUTER_BASE_URL")),
+            model=cast(str, env.str("TYCHO_OPENROUTER_EMBEDDING_MODEL")),
+        )
         logger = logger_service.get_logger("INFRASTRUCTURE")
         logger.info(piste_config.oauth_base_url)
         logger.info(piste_config.ingres_base_url)
-        config = IngestionConfig(piste_config)
+        config = IngestionConfig(piste_config, openai_config)
         container.config.override(config)
 
         http_client = HttpClient()

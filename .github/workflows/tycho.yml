@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgresql:
-        image: postgres:16.10
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_DB: test-tycho
           POSTGRES_USER: postgres
@@ -94,6 +94,9 @@ jobs:
       TYCHO_INGRES_BASE_URL: https://fake-ingres-api.example.com/path
       TYCHO_INGRES_CLIENT_ID: fake-client-id
       TYCHO_INGRES_CLIENT_SECRET: fake-client-secret
+      TYCHO_OPENROUTER_API_KEY: fake-api-key
+      TYCHO_OPENROUTER_BASE_URL: https://api.openai.com/v1
+      TYCHO_OPENROUTER_EMBEDDING_MODEL: text-embedding-3-large
     steps:
       - uses: actions/checkout@v5
       - name: Install uv

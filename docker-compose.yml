@@ -48,7 +48,7 @@ services:
       retries: 60
 
   postgresql:
-    image: postgres:16.10
+    image: pgvector/pgvector:pg16
     env_file:
       - env.d/postgresql
       - env.d/tycho
