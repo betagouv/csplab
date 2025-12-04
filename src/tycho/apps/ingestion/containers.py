@@ -118,7 +118,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     clean_documents_usecase: providers.Provider[IUseCase[DocumentType, dict]] = (
         providers.Factory(
             CleanDocumentsUsecase,
-            document_repository=document_repository,
+            document_repository=document_persister,
             document_cleaner=document_cleaner,
             repository_factory=repository_factory,
             logger=logger_service,

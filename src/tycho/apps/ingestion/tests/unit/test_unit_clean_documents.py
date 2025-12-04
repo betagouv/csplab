@@ -53,7 +53,7 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
         container.corps_repository.override(in_memory_corps_repo)
 
         in_memory_document_repo = InMemoryDocumentRepository()
-        container.document_repository.override(in_memory_document_repo)
+        container.document_persister.override(in_memory_document_repo)
 
         return container
 
@@ -61,7 +61,7 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
         self, container, raw_data_list, doc_type=DocumentType.CORPS
     ):
         """Helper to create test documents and load them into repository."""
-        repository = container.document_repository()
+        repository = container.document_persister()
         documents = []
 
         for i, raw_data in enumerate(raw_data_list):
