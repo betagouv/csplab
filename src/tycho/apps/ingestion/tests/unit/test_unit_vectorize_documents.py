@@ -1,4 +1,10 @@
-"""Unit test cases for VectorizeDocuments usecase."""
+"""Unit test cases for VectorizeDocuments usecase.
+
+IMPORTANT: Dependency Injection Override Timing
+- Override timing is crucial with dependency-injector
+- Always override BEFORE creating the usecase, not after
+- Dependencies are resolved at creation time, not execution time
+"""
 
 import json
 import unittest
@@ -41,27 +47,24 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
         with open(fixtures_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    def setUp(self):
-        """Set up container dependencies."""
-        self.container = IngestionContainer()
-        self.container.in_memory_mode.override("in_memory")
+    def _create_isolated_container(self):
+        """Create an isolated container for each test to avoid concurrency issues."""
+        container = IngestionContainer()
+        container.in_memory_mode.override("in_memory")
 
         logger_service = LoggerService()
-        self.container.logger_service.override(logger_service)
+        container.logger_service.override(logger_service)
 
         mock_generator = MockEmbeddingGenerator(self.embedding_fixtures)
-        self.container.embedding_generator.override(mock_generator)
+        container.embedding_generator.override(mock_generator)
 
-        self.usecase = self.container.vectorize_documents_usecase()
-
-    def tearDown(self):
-        """Clean up after each test."""
-        vector_repository = self.container.vector_repository()
-        if hasattr(vector_repository, "_documents"):
-            vector_repository._documents.clear()
+        return container
 
     def test_vectorize_two_corps_returns_correct_embeddings(self):
         """Test vectorizing two Corps returns correct embeddings from fixtures."""
+        container = self._create_isolated_container()
+        usecase = container.vectorize_documents_usecase()
+
         corps_ids = list(self.embedding_fixtures.keys())[:2]
 
         corps_list = []
@@ -84,7 +87,7 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
             corps_list.append(corps)
             expected_embeddings[int(corps_id)] = expected_embedding
 
-        result = self.usecase.execute(corps_list)
+        result = usecase.execute(corps_list)
 
         self.assertEqual(result["processed"], 2)
         self.assertEqual(result["vectorized"], 2)
@@ -92,6 +95,9 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
 
     def test_vectorize_corps_with_exception_handles_error_correctly(self):
         """Test that exceptions during vectorization are properly handled and logged."""
+        container = self._create_isolated_container()
+        usecase = container.vectorize_documents_usecase()
+
         # Create a Corps with None label to trigger an exception
         invalid_corps = Corps(
             id=999,
@@ -103,7 +109,7 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
             label=None,  # This will cause an exception in text extraction
         )
 
-        result = self.usecase.execute([invalid_corps])
+        result = usecase.execute([invalid_corps])
 
         self.assertEqual(result["processed"], 1)
         self.assertEqual(result["vectorized"], 0)
@@ -117,6 +123,9 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
 
     def test_vectorize_document_returns_correct_result(self):
         """Test vectorizing a Document returns correct result."""
+        container = self._create_isolated_container()
+        usecase = container.vectorize_documents_usecase()
+
         document = Document(
             id=1,
             raw_data={"content": "Test document content for vectorization"},
@@ -125,7 +134,7 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
             updated_at=datetime.now(),
         )
 
-        result = self.usecase.execute([document])
+        result = usecase.execute([document])
 
         self.assertEqual(result["processed"], 1)
         self.assertEqual(result["vectorized"], 0)
@@ -137,9 +146,12 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
 
     def test_vectorize_unsupported_source_type_handles_error_correctly(self):
         """Test that unsupported source types are properly handled and logged."""
+        container = self._create_isolated_container()
+        usecase = container.vectorize_documents_usecase()
+
         unsupported_entity = UnsupportedEntity(id=123)
 
-        result = self.usecase.execute([unsupported_entity])
+        result = usecase.execute([unsupported_entity])
 
         self.assertEqual(result["processed"], 1)
         self.assertEqual(result["vectorized"], 0)
