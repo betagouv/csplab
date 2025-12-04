@@ -2,17 +2,28 @@
 
 import json
 import unittest
+from datetime import datetime
 from pathlib import Path
 
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from apps.ingestion.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 from core.entities.corps import Corps
+from core.entities.document import Document, DocumentType
+from core.interfaces.entity_interface import IEntity
 from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category
 from core.value_objects.diploma import Diploma
 from core.value_objects.label import Label
 from core.value_objects.ministry import Ministry
+
+
+class UnsupportedEntity(IEntity):
+    """Mock entity for testing unsupported source type."""
+
+    def __init__(self, id: int):
+        """Initialize with id."""
+        self.id = id
 
 
 class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
@@ -73,31 +84,73 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
             corps_list.append(corps)
             expected_embeddings[int(corps_id)] = expected_embedding
 
-        # result = self.usecase.execute(corps_list)
+        result = self.usecase.execute(corps_list)
 
-        # self.assertEqual(len(result), 2)
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["vectorized"], 2)
+        self.assertEqual(result["errors"], 0)
 
-        # vector_repository = self.container.vector_repository()
+    def test_vectorize_corps_with_exception_handles_error_correctly(self):
+        """Test that exceptions during vectorization are properly handled and logged."""
+        # Create a Corps with None label to trigger an exception
+        invalid_corps = Corps(
+            id=999,
+            code="INVALID",
+            category=Category.A,
+            ministry=Ministry.MAA,
+            diploma=Diploma(5),
+            access_modalities=[AccessModality.CONCOURS_EXTERNE],
+            label=None,  # This will cause an exception in text extraction
+        )
 
-        # for vectorized_doc in result:
-        #     corps_id = vectorized_doc.document_id
-        #     expected_embedding = expected_embeddings[corps_id]
+        result = self.usecase.execute([invalid_corps])
 
-        #     self.assertEqual(vectorized_doc.embedding, expected_embedding)
+        self.assertEqual(result["processed"], 1)
+        self.assertEqual(result["vectorized"], 0)
+        self.assertEqual(result["errors"], 1)
+        self.assertEqual(len(result["error_details"]), 1)
 
-        #     expected_content = next(
-        #         corps.label.value for corps in corps_list if corps.id == corps_id
-        #     )
-        #     self.assertEqual(vectorized_doc.content, expected_content)
+        error_detail = result["error_details"][0]
+        self.assertEqual(error_detail["source_type"], "Corps")
+        self.assertEqual(error_detail["source_id"], 999)
+        self.assertIn("error", error_detail)
 
-        #     self.assertIn("type", vectorized_doc.metadata)
-        #     self.assertEqual(vectorized_doc.metadata["type"], "Corps")
-        #     self.assertEqual(vectorized_doc.metadata["corps_id"], corps_id)
+    def test_vectorize_document_returns_correct_result(self):
+        """Test vectorizing a Document returns correct result."""
+        document = Document(
+            id=1,
+            raw_data={"content": "Test document content for vectorization"},
+            type=DocumentType.GRADE,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        )
 
-        # stored_docs = list(vector_repository._documents.values())
-        # self.assertEqual(len(stored_docs), 2)
+        result = self.usecase.execute([document])
 
-        # for stored_doc in stored_docs:
-        #     self.assertIn(stored_doc.document_id, expected_embeddings)
-        #     expected_embedding = expected_embeddings[stored_doc.document_id]
-        #     self.assertEqual(stored_doc.embedding, expected_embedding)
+        self.assertEqual(result["processed"], 1)
+        self.assertEqual(result["vectorized"], 0)
+        self.assertEqual(result["errors"], 1)
+        self.assertEqual(
+            result["error_details"][0]["error"],
+            "Content extraction not implemented for document type GRADE",
+        )
+
+    def test_vectorize_unsupported_source_type_handles_error_correctly(self):
+        """Test that unsupported source types are properly handled and logged."""
+        unsupported_entity = UnsupportedEntity(id=123)
+
+        result = self.usecase.execute([unsupported_entity])
+
+        self.assertEqual(result["processed"], 1)
+        self.assertEqual(result["vectorized"], 0)
+        self.assertEqual(result["errors"], 1)
+        self.assertEqual(len(result["error_details"]), 1)
+
+        error_detail = result["error_details"][0]
+
+        self.assertEqual(error_detail["source_type"], "UnsupportedEntity")
+        self.assertEqual(error_detail["source_id"], 123)
+        self.assertIn(
+            "Content extraction not implemented",
+            error_detail["error"],
+        )

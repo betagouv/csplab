@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Union
 from core.entities.corps import Corps
 from core.entities.document import Document
 from core.entities.vectorized_document import VectorizedDocument
+from core.errors.document_error import UnsupportedDocumentTypeError
 from core.interfaces.entity_interface import IEntity
 from core.repositories.vector_repository_interface import IVectorRepository
 from core.services.embedding_generator_interface import IEmbeddingGenerator
@@ -79,7 +80,7 @@ class VectorizeDocumentsUsecase:
         elif isinstance(source, Corps):
             document_id = source.id
         else:
-            raise ValueError(f"Unsupported source type: {type(source)}")
+            raise UnsupportedDocumentTypeError(type(source).__name__)
 
         # Create vectorized document
         vectorized_doc = VectorizedDocument(
