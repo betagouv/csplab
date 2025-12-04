@@ -17,7 +17,7 @@ class CorpsModel(models.Model):
 
     id = models.IntegerField(primary_key=True)
     code = models.CharField(max_length=50)
-    category = models.CharField(max_length=10)
+    category = models.CharField(max_length=10, null=True, blank=True)
     ministry = models.CharField(max_length=100)
     diploma_level = models.IntegerField(null=True, blank=True)
     short_label = models.CharField(max_length=200)
@@ -36,7 +36,7 @@ class CorpsModel(models.Model):
 
     def to_entity(self) -> Corps:
         """Convert Django model to Corps entity."""
-        category = Category(self.category)
+        category = Category(self.category) if self.category else None
 
         ministry = Ministry(self.ministry)
 
@@ -64,7 +64,7 @@ class CorpsModel(models.Model):
         return cls(
             id=corps.id,
             code=corps.code,
-            category=corps.category.value,
+            category=corps.category.value if corps.category else None,
             ministry=corps.ministry.value,
             diploma_level=corps.diploma.value if corps.diploma else None,
             short_label=corps.label.short_value,

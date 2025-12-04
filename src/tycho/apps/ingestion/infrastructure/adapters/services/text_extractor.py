@@ -52,7 +52,7 @@ class TextExtractor(ITextExtractor):
     def _extract_metadata_from_corps(self, corps: Corps) -> Dict[str, Any]:
         """Extract metadata from Corps entity."""
         return {
-            "category": corps.category.value,
+            "category": corps.category.value if corps.category else None,
             "access_mod": [am.value for am in corps.access_modalities],
             "ministry": corps.ministry.value,
         }

@@ -17,7 +17,7 @@ class DjangoCorpsRepository(ICorpsRepository):
             id=corps.id,
             defaults={
                 "code": corps.code,
-                "category": corps.category.value,
+                "category": corps.category.value if corps.category else None,
                 "ministry": corps.ministry.value,
                 "diploma_level": corps.diploma.value if corps.diploma else None,
                 "short_label": corps.label.short_value,
@@ -41,7 +41,7 @@ class DjangoCorpsRepository(ICorpsRepository):
                     id=entity.id,
                     defaults={
                         "code": entity.code,
-                        "category": entity.category.value,
+                        "category": entity.category.value if entity.category else None,
                         "ministry": entity.ministry.value,
                         "diploma_level": entity.diploma.value
                         if entity.diploma

@@ -16,7 +16,7 @@ class Corps:
 
     id: int
     code: str
-    category: Category
+    category: Optional[Category]
     ministry: Ministry
     diploma: Optional[Diploma]
     access_modalities: List[AccessModality]

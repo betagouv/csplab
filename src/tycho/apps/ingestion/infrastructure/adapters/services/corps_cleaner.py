@@ -182,8 +182,11 @@ class CorpsCleaner:
 
         return corps_list
 
-    def _map_category(self, category_str: str) -> Category:
+    def _map_category(self, category_str: Optional[str]) -> Optional[Category]:
         """Map category string to Category enum."""
+        if not category_str:
+            return None
+
         category_upper = category_str.upper()
         if "A+" in category_upper:
             return Category.APLUS
