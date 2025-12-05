@@ -14,11 +14,6 @@ class InMemoryCorpsRepository(ICorpsRepository):
         """Initialize with empty storage."""
         self._storage: Dict[int, Corps] = {}
 
-    def upsert(self, corps: Corps) -> Corps:
-        """Insert or update a single Corps entity."""
-        self._storage[corps.id] = corps
-        return corps
-
     def upsert_batch(self, corps: List[Corps]) -> IUpsertResult:
         """Insert or update multiple Corps entities and return operation results."""
         created = 0

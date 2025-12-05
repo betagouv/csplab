@@ -11,24 +11,6 @@ from core.repositories.document_repository_interface import IUpsertError, IUpser
 class DjangoCorpsRepository(ICorpsRepository):
     """Django ORM implementation of Corps repository."""
 
-    def upsert(self, corps: Corps) -> Corps:
-        """Insert or update a single Corps entity."""
-        corps_model, _ = CorpsModel.objects.update_or_create(
-            id=corps.id,
-            defaults={
-                "code": corps.code,
-                "category": corps.category.value if corps.category else None,
-                "ministry": corps.ministry.value,
-                "diploma_level": corps.diploma.value if corps.diploma else None,
-                "short_label": corps.label.short_value,
-                "long_label": corps.label.value,
-                "access_modalities": [
-                    modality.value for modality in corps.access_modalities
-                ],
-            },
-        )
-        return corps_model.to_entity()
-
     def upsert_batch(self, corps: List[Corps]) -> IUpsertResult:
         """Insert or update multiple Corps entities and return operation results."""
         created = 0
