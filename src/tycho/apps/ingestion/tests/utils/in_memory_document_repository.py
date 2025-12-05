@@ -23,34 +23,6 @@ class InMemoryDocumentRepository(IDocumentRepository):
         """Get documents by type."""
         return [doc for doc in self._documents if doc.type == document_type]
 
-    def upsert(self, document: Document) -> Document:
-        """Insert or update a document."""
-        for i, existing_doc in enumerate(self._documents):
-            if existing_doc.id == document.id:
-                updated_doc = Document(
-                    id=document.id,
-                    raw_data=document.raw_data,
-                    type=document.type,
-                    created_at=existing_doc.created_at,
-                    updated_at=datetime.now(),
-                )
-                self._documents[i] = updated_doc
-                return updated_doc
-
-        if document.id is None:
-            document.id = self._next_id
-            self._next_id += 1
-
-        new_doc = Document(
-            id=document.id,
-            raw_data=document.raw_data,
-            type=document.type,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-        )
-        self._documents.append(new_doc)
-        return new_doc
-
     def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
         """Insert or update multiple documents."""
         created = 0
@@ -59,19 +31,39 @@ class InMemoryDocumentRepository(IDocumentRepository):
 
         for document in documents:
             try:
-                # Check if document exists
-                exists = any(
-                    doc.id == document.id
-                    for doc in self._documents
-                    if document.id is not None
-                )
+                # Check if document exists and update it
+                updated_existing = False
+                for i, existing_doc in enumerate(self._documents):
+                    if existing_doc.id == document.id:
+                        updated_doc = Document(
+                            id=document.id,
+                            raw_data=document.raw_data,
+                            type=document.type,
+                            created_at=existing_doc.created_at,
+                            updated_at=datetime.now(),
+                        )
+                        self._documents[i] = updated_doc
+                        updated += 1
+                        updated_existing = True
+                        break
 
-                self.upsert(document)
+                # If not updated, create new document
+                if not updated_existing:
+                    doc_id = document.id
+                    if doc_id is None:
+                        doc_id = self._next_id
+                        self._next_id += 1
 
-                if exists:
-                    updated += 1
-                else:
+                    new_doc = Document(
+                        id=doc_id,
+                        raw_data=document.raw_data,
+                        type=document.type,
+                        created_at=datetime.now(),
+                        updated_at=datetime.now(),
+                    )
+                    self._documents.append(new_doc)
                     created += 1
+
             except Exception as e:
                 error_detail: IUpsertError = {
                     "entity_id": document.id,

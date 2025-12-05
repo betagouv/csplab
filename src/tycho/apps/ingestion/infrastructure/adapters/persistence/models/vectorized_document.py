@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from django.db import models
 from pgvector.django import VectorField
 
+from core.entities.document import DocumentType
 from core.entities.vectorized_document import VectorizedDocument
 
 if TYPE_CHECKING:
@@ -15,6 +16,11 @@ class VectorizedDocumentModel(models.Model):
     """Django model for vectorized documents with pgvector support."""
 
     document_id = models.IntegerField(unique=True, db_index=True)
+    document_type = models.CharField(
+        max_length=20,
+        choices=[(dt.value, dt.value) for dt in DocumentType],
+        db_index=True,
+    )
     content = models.TextField()
     embedding = VectorField(dimensions=3072)
     metadata = models.JSONField()
@@ -39,6 +45,7 @@ class VectorizedDocumentModel(models.Model):
         return VectorizedDocument(
             id=self.id,
             document_id=self.document_id,
+            document_type=DocumentType(self.document_type),
             content=self.content,
             embedding=list(self.embedding),
             metadata=self.metadata,
@@ -52,6 +59,7 @@ class VectorizedDocumentModel(models.Model):
         return cls(
             id=entity.id if entity.id else None,
             document_id=entity.document_id,
+            document_type=entity.document_type.value,
             content=entity.content,
             embedding=entity.embedding,
             metadata=entity.metadata,

@@ -165,13 +165,32 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
 
         result = self.clean_documents_usecase.execute(DocumentType.CORPS)
 
-        # Only the valid corps should be processed
         self.assertEqual(result["processed"], 3)
         self.assertEqual(result["cleaned"], 1)
         self.assertEqual(result["created"], 1)
         self.assertEqual(result["updated"], 0)
         self.assertEqual(result["errors"], 0)
 
-        # Verify only one Corps is saved
-        saved_corps = CorpsModel.objects.all()
-        self.assertEqual(saved_corps.count(), 1)
+        corps_repository = self.container.corps_repository()
+
+        saved_corps = corps_repository.get_all()
+        self.assertEqual(len(saved_corps), 1)
+
+    @pytest.mark.django_db
+    def test_corps_repository_find_by_id_nonexistent(self):
+        """Test find_by_id returns None for nonexistent Corps."""
+        corps_repository = self.container.corps_repository()
+
+        nonexistent_corps = corps_repository.find_by_id(99999)
+
+        self.assertIsNone(nonexistent_corps)
+
+    @pytest.mark.django_db
+    def test_corps_repository_get_all_empty(self):
+        """Test get_all returns empty list when no Corps exist."""
+        corps_repository = self.container.corps_repository()
+
+        all_corps = corps_repository.get_all()
+
+        self.assertEqual(len(all_corps), 0)
+        self.assertIsInstance(all_corps, list)

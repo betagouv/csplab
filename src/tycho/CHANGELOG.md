@@ -24,5 +24,7 @@ and this project adheres to
 - usecase clean documents
 - implementation in-memory and in django
 - usecase vectorize documents
+- add custom django commands to expose usecases
+- add models in admin
 
 [unreleased]: https://github.com/betagouv/csplab/

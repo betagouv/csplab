@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Union
 
 from core.entities.corps import Corps
-from core.entities.document import Document
+from core.entities.document import Document, DocumentType
 from core.entities.vectorized_document import VectorizedDocument
 from core.errors.document_error import UnsupportedDocumentTypeError
 from core.interfaces.entity_interface import IEntity
@@ -74,11 +74,13 @@ class VectorizeDocumentsUsecase:
         # Generate embedding
         embedding = self.embedding_generator.generate_embedding(content)
 
-        # Determine document_id based on source type
+        # Determine document_id and document_type based on source type
         if isinstance(source, Document):
             document_id = source.id
+            document_type = source.type
         elif isinstance(source, Corps):
             document_id = source.id
+            document_type = DocumentType.CORPS
         else:
             raise UnsupportedDocumentTypeError(type(source).__name__)
 
@@ -86,6 +88,7 @@ class VectorizeDocumentsUsecase:
         vectorized_doc = VectorizedDocument(
             id=0,  # Will be set by the repository
             document_id=document_id,
+            document_type=document_type,
             content=content,
             embedding=embedding,
             metadata=metadata,

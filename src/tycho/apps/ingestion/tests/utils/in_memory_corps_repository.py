@@ -14,11 +14,6 @@ class InMemoryCorpsRepository(ICorpsRepository):
         """Initialize with empty storage."""
         self._storage: Dict[int, Corps] = {}
 
-    def upsert(self, corps: Corps) -> Corps:
-        """Insert or update a single Corps entity."""
-        self._storage[corps.id] = corps
-        return corps
-
     def upsert_batch(self, corps: List[Corps]) -> IUpsertResult:
         """Insert or update multiple Corps entities and return operation results."""
         created = 0
@@ -49,6 +44,10 @@ class InMemoryCorpsRepository(ICorpsRepository):
     def find_by_id(self, corps_id: int) -> Optional[Corps]:
         """Find a Corps by its ID."""
         return self._storage.get(corps_id)
+
+    def get_all(self) -> List[Corps]:
+        """Gell all Corps entities."""
+        return list(self._storage.values())
 
     def clear(self) -> None:
         """Clear all stored entities (for testing)."""

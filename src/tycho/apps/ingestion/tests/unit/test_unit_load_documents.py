@@ -149,8 +149,8 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
         for doc in corps_docs:
             self.assertEqual(doc.type, DocumentType.CORPS)
 
-    def test_upsert_creates_new_document(self):
-        """Test upsert creates a new document when it doesn't exist."""
+    def test_upsert_batch_creates_new_document(self):
+        """Test upsert_batch creates a new document when it doesn't exist."""
         container = self._create_isolated_container()
         repository = container.document_repository()
 
@@ -162,11 +162,16 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
             updated_at=datetime.now(),
         )
 
-        result = repository.upsert(document)
+        result = repository.upsert_batch([document])
 
-        self.assertIsNotNone(result.id)
-        self.assertEqual(result.raw_data, {"name": "Test Document"})
-        self.assertEqual(result.type, DocumentType.CORPS)
+        self.assertEqual(result["created"], 1)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(len(result["errors"]), 0)
+
+        # Verify document was created
+        docs = repository.fetch_by_type(DocumentType.CORPS)
+        self.assertEqual(len(docs), 1)
+        self.assertEqual(docs[0].raw_data, {"name": "Test Document"})
 
     def test_upsert_batch_returns_correct_counts(self):
         """Test upsert_batch returns correct created/updated counts."""
