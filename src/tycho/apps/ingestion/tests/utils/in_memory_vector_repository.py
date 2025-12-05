@@ -31,6 +31,7 @@ class InMemoryVectorRepository(IVectorRepository):
             updated_doc = VectorizedDocument(
                 id=existing.id,
                 document_id=vectorized_doc.document_id,
+                document_type=vectorized_doc.document_type,
                 content=vectorized_doc.content,
                 embedding=vectorized_doc.embedding,
                 metadata=vectorized_doc.metadata,
@@ -44,6 +45,7 @@ class InMemoryVectorRepository(IVectorRepository):
             new_doc = VectorizedDocument(
                 id=self._next_id,
                 document_id=vectorized_doc.document_id,
+                document_type=vectorized_doc.document_type,
                 content=vectorized_doc.content,
                 embedding=vectorized_doc.embedding,
                 metadata=vectorized_doc.metadata,

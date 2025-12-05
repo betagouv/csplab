@@ -52,12 +52,13 @@ class VectorizedDocumentAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "document_id",
+        "document_type",
         "content",
         "metadata",
         "created_at",
         "updated_at",
     )
-    list_filter = ("created_at", "updated_at")
+    list_filter = ("document_type", "created_at", "updated_at")
     search_fields = ("document_id", "content")
     readonly_fields = (
         "id",
