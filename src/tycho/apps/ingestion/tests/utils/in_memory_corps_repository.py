@@ -50,6 +50,10 @@ class InMemoryCorpsRepository(ICorpsRepository):
         """Find a Corps by its ID."""
         return self._storage.get(corps_id)
 
+    def get_all(self) -> List[Corps]:
+        """Gell all Corps entities."""
+        return list(self._storage.values())
+
     def clear(self) -> None:
         """Clear all stored entities (for testing)."""
         self._storage.clear()

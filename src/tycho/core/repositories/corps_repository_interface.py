@@ -20,3 +20,7 @@ class ICorpsRepository(Protocol):
     def find_by_id(self, corps_id: int) -> Optional[Corps]:
         """Find a Corps by its ID."""
         ...
+
+    def get_all(self) -> List[Corps]:
+        """Get all Corps entities."""
+        ...

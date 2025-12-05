@@ -21,17 +21,6 @@ class DjangoDocumentRepository(IDocumentRepository):
         raw_documents = RawDocument.objects.filter(document_type=document_type.value)
         return [raw_doc.to_entity() for raw_doc in raw_documents]
 
-    def upsert(self, document: Document) -> Document:
-        """Insert or update a single document."""
-        raw_document, created = RawDocument.objects.update_or_create(
-            id=document.id,
-            defaults={
-                "raw_data": document.raw_data,
-                "document_type": document.type.value,
-            },
-        )
-        return raw_document.to_entity()
-
     def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
         """Insert or update multiple documents."""
         created_count = 0

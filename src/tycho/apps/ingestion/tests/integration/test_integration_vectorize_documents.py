@@ -117,10 +117,12 @@ class TestIntegrationVectorizeDocumentsUsecase(TransactionTestCase):
             ),
         )
 
-        saved_corps_1 = corps_repository.upsert(corps_1)
-        saved_corps_2 = corps_repository.upsert(corps_2)
+        result = corps_repository.upsert_batch([corps_1, corps_2])
 
-        return [saved_corps_1, saved_corps_2]
+        if result["errors"]:
+            raise Exception(f"Failed to save Corps entities: {result['errors']}")
+
+        return [corps_1, corps_2]
 
     @pytest.mark.django_db
     def test_vectorize_corps(self):

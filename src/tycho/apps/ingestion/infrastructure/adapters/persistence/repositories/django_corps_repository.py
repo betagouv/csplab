@@ -78,3 +78,8 @@ class DjangoCorpsRepository(ICorpsRepository):
             return corps_model.to_entity()
         except CorpsModel.DoesNotExist:
             return None
+
+    def get_all(self) -> List[Corps]:
+        """Get all Corps entities."""
+        corps_models = CorpsModel.objects.all()
+        return [corps_model.to_entity() for corps_model in corps_models]
