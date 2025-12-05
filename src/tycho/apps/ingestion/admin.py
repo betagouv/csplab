@@ -2,7 +2,10 @@
 
 from django.contrib import admin
 
-from apps.ingestion.infrastructure.adapters.persistence.models import RawDocument
+from apps.ingestion.infrastructure.adapters.persistence.models import (
+    RawDocument,
+    vectorized_document,
+)
 from apps.ingestion.infrastructure.adapters.persistence.models.corps import CorpsModel
 
 
@@ -43,5 +46,30 @@ class CorpsAdmin(admin.ModelAdmin):
     )
 
 
+class VectorizedDocumentAdmin(admin.ModelAdmin):
+    """Admin interface for VectorizedDocument model."""
+
+    list_display = (
+        "id",
+        "document_id",
+        "content",
+        "metadata",
+        "created_at",
+        "updated_at",
+    )
+    list_filter = ("created_at", "updated_at")
+    search_fields = ("document_id", "content")
+    readonly_fields = (
+        "id",
+        "content",
+        "metadata",
+        "created_at",
+        "updated_at",
+    )
+
+
 admin.site.register(RawDocument, RawDocumentAdmin)
 admin.site.register(CorpsModel, CorpsAdmin)
+admin.site.register(
+    vectorized_document.VectorizedDocumentModel, VectorizedDocumentAdmin
+)
