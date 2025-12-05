@@ -7,20 +7,22 @@ import pytest
 from django.test import TransactionTestCase
 from pydantic import HttpUrl
 
-from apps.ingestion.config import IngestionConfig, OpenAIConfig, PisteConfig
+from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from apps.ingestion.infrastructure.adapters.persistence.models import (
     vectorized_document,
 )
-from apps.ingestion.infrastructure.adapters.persistence.repositories import (
+from apps.ingestion.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
+from apps.shared.config import OpenAIConfig, SharedConfig
+from apps.shared.containers import SharedContainer
+from apps.shared.infrastructure.adapters.persistence.repositories import (
     django_corps_repository as django_corps_repo,
 )
-from apps.ingestion.infrastructure.adapters.persistence.repositories import (
+from apps.shared.infrastructure.adapters.persistence.repositories import (
     pgvector_repository as pgvector_repo,
 )
-from apps.ingestion.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 from core.entities.corps import Corps
 from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category
@@ -48,45 +50,50 @@ class TestIntegrationVectorizeDocumentsUsecase(TransactionTestCase):
 
     def setUp(self):
         """Set up container dependencies."""
-        self.container = IngestionContainer()
+        # Create shared container and config
+        self.shared_container = SharedContainer()
+        self.shared_config = SharedConfig(
+            openai_config=OpenAIConfig(
+                api_key="fake-api-key",
+                base_url=HttpUrl("https://api.openai.com/v1"),
+                model="text-embedding-3-large",
+            )
+        )
+        self.shared_container.config.override(self.shared_config)
 
-        # Create test configuration with mock values
-        self.config = IngestionConfig(
-            PisteConfig(
+        # Create ingestion container
+        self.container = IngestionContainer()
+        self.ingestion_config = IngestionConfig(
+            piste_config=PisteConfig(
                 oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
                 ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
                 client_id="fake-client-id",
                 client_secret="fake-client-secret",  # noqa
-            ),
-            OpenAIConfig(
-                api_key="fake-api-key",
-                base_url=HttpUrl("https://api.openai.com/v1"),
-                model="text-embedding-3-large",
-            ),
+            )
         )
-        self.container.config.override(self.config)
+        self.container.config.override(self.ingestion_config)
+        self.container.shared_container.override(self.shared_container)
 
         logger_service = LoggerService()
         self.container.logger_service.override(logger_service)
-
         http_client = HttpClient()
         self.container.http_client.override(http_client)
 
         django_corps_repository = django_corps_repo.DjangoCorpsRepository()
-        self.container.corps_repository.override(django_corps_repository)
+        self.shared_container.corps_repository.override(django_corps_repository)
 
         pgvector_repository = pgvector_repo.PgVectorRepository()
-        self.container.vector_repository.override(pgvector_repository)
+        self.shared_container.vector_repository.override(pgvector_repository)
 
         # Override embedding generator with mock
         mock_embedding_generator = MockEmbeddingGenerator(self.embedding_fixtures)
-        self.container.embedding_generator.override(mock_embedding_generator)
+        self.shared_container.embedding_generator.override(mock_embedding_generator)
 
         self.vectorize_documents_usecase = self.container.vectorize_documents_usecase()
 
     def _create_corps_entities_and_save(self):
         """Create Corps entities with proper value objects and save via repository."""
-        corps_repository = self.container.corps_repository()
+        corps_repository = self.shared_container.corps_repository()
 
         corps_1 = Corps(
             id=3,

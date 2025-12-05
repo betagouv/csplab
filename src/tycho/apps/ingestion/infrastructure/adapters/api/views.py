@@ -1,17 +1,10 @@
 """Views for ingestion API endpoints."""
 
-from typing import cast
-
-import environ
-from pydantic import HttpUrl
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.ingestion.config import IngestionConfig, OpenAIConfig, PisteConfig
-from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
-from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
+from apps.ingestion.container_singleton import get_ingestion_container
 from core.entities.document import DocumentType
 from core.errors.document_error import InvalidDocumentTypeError
 
@@ -28,35 +21,8 @@ class LoadDocumentsView(APIView):
         except KeyError:
             raise InvalidDocumentTypeError(document_type_str) from None
 
-        # Setup container with dependencies
-        container = IngestionContainer()
+        container = get_ingestion_container()
 
-        logger_service = LoggerService()
-        container.logger_service.override(logger_service)
-
-        # Create configuration from environment variables
-        env = environ.Env()
-        piste_config = PisteConfig(
-            oauth_base_url=cast(HttpUrl, env.str("TYCHO_PISTE_OAUTH_BASE_URL")),
-            ingres_base_url=cast(HttpUrl, env.str("TYCHO_INGRES_BASE_URL")),
-            client_id=cast(str, env.str("TYCHO_INGRES_CLIENT_ID")),
-            client_secret=cast(str, env.str("TYCHO_INGRES_CLIENT_SECRET")),
-        )
-        openai_config = OpenAIConfig(
-            api_key=cast(str, env.str("TYCHO_OPENROUTER_API_KEY")),
-            base_url=cast(HttpUrl, env.str("TYCHO_OPENROUTER_BASE_URL")),
-            model=cast(str, env.str("TYCHO_OPENROUTER_EMBEDDING_MODEL")),
-        )
-        logger = logger_service.get_logger("INFRASTRUCTURE")
-        logger.info(piste_config.oauth_base_url)
-        logger.info(piste_config.ingres_base_url)
-        config = IngestionConfig(piste_config, openai_config)
-        container.config.override(config)
-
-        http_client = HttpClient()
-        container.http_client.override(http_client)
-
-        # Execute usecase - exceptions handled by global exception handler
         usecase = container.load_documents_usecase()
         result = usecase.execute(document_type)
 

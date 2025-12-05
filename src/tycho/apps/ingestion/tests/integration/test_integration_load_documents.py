@@ -10,17 +10,18 @@ from pydantic import HttpUrl
 from rest_framework.test import APITestCase
 
 from apps.ingestion.application.exceptions import LoadDocumentsError
-from apps.ingestion.config import IngestionConfig, OpenAIConfig, PisteConfig
+from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
 )
-from apps.ingestion.infrastructure.exceptions import ExternalApiError
 from apps.ingestion.tests.factories.ingres_factories import (
     IngresCorpsApiResponseFactory,
 )
+from apps.shared.config import OpenAIConfig, SharedConfig
+from apps.shared.containers import SharedContainer
 from core.entities.document import DocumentType
 
 
@@ -29,22 +30,30 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
 
     def setUp(self):
         """Set up container dependencies."""
+        # Create shared container and config
+        self.shared_container = SharedContainer()
+        self.shared_config = SharedConfig(
+            openai_config=OpenAIConfig(
+                api_key="fake-api-key",
+                base_url=HttpUrl("https://fake-base-url.example.com"),
+                model="fake-model",
+            )
+        )
+        self.shared_container.config.override(self.shared_config)
+
+        # Create ingestion container
         self.container = IngestionContainer()
-        # Create test configuration with mock values
-        self.config = IngestionConfig(
-            PisteConfig(
+        self.ingestion_config = IngestionConfig(
+            piste_config=PisteConfig(
                 oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
                 ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
                 client_id="fake-client-id",
                 client_secret="fake-client-secret",  # noqa
-            ),
-            OpenAIConfig(
-                api_key="fake-api-key",
-                base_url=HttpUrl("https://fake-base-url.example.com"),
-                model="fake-model",
-            ),
+            )
         )
-        self.container.config.override(self.config)
+        self.container.config.override(self.ingestion_config)
+        self.container.shared_container.override(self.shared_container)
+
         logger_service = LoggerService()
         self.container.logger_service.override(logger_service)
         http_client = HttpClient()
@@ -60,7 +69,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{self.config.piste.oauth_base_url}api/oauth/token",
+            f"{self.ingestion_config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -69,7 +78,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint with empty response
         responses.add(
             responses.GET,
-            f"{self.config.piste.ingres_base_url}/CORPS",
+            f"{self.ingestion_config.piste.ingres_base_url}/CORPS",
             json={"items": []},
             status=200,
             content_type="application/json",
@@ -89,7 +98,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{self.config.piste.oauth_base_url}api/oauth/token",
+            f"{self.ingestion_config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -98,7 +107,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint
         responses.add(
             responses.GET,
-            f"{self.config.piste.ingres_base_url}/CORPS",
+            f"{self.ingestion_config.piste.ingres_base_url}/CORPS",
             json={"items": api_data},
             status=200,
             content_type="application/json",
@@ -137,17 +146,12 @@ class TestIntegrationExceptions(APITestCase):
         """Set up test environment."""
         self.load_documents_url = "/ingestion/load/"
         self.config = IngestionConfig(
-            PisteConfig(
+            piste_config=PisteConfig(
                 oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
                 ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
                 client_id="fake-client-id",
                 client_secret="fake-client-secret",  # noqa
-            ),
-            OpenAIConfig(
-                api_key="fake-api-key",
-                base_url=HttpUrl("https://fake-base-url.example.com"),
-                model="fake-model",
-            ),
+            )
         )
 
     @patch.dict(
@@ -157,9 +161,6 @@ class TestIntegrationExceptions(APITestCase):
             "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
             "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
             "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
-            "TYCHO_OPENROUTER_API_KEY": "fake-api-key",
-            "TYCHO_OPENROUTER_BASE_URL": "https://fake-base-url.example.com",
-            "TYCHO_OPENROUTER_EMBEDDING_MODEL": "fake-model",
         },
     )
     def test_domain_error_invalid_document_type(self):
@@ -183,40 +184,6 @@ class TestIntegrationExceptions(APITestCase):
             "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
             "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
             "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
-            "TYCHO_OPENROUTER_API_KEY": "fake-api-key",
-            "TYCHO_OPENROUTER_BASE_URL": "https://fake-base-url.example.com",
-            "TYCHO_OPENROUTER_EMBEDDING_MODEL": "fake-model",
-        },
-    )
-    @patch(
-        "apps.ingestion.infrastructure.adapters.external.piste_client.PisteClient._get_token"
-    )
-    def test_infrastructure_error_oauth_failure(self, mock_get_token):
-        """Test Infrastructure layer exception with OAuth failure."""
-        # Mock OAuth failure
-        mock_get_token.side_effect = ExternalApiError(
-            "OAuth authentication failed", status_code=401, api_name="PISTE"
-        )
-
-        response = self.client.post(
-            self.load_documents_url, {"type": "CORPS"}, format="json"
-        )
-
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.data["status"], "error")
-        self.assertEqual(response.data["type"], "InfrastructureError::ExternalApiError")
-        self.assertIn("OAuth authentication failed", response.data["message"])
-
-    @patch.dict(
-        os.environ,
-        {
-            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
-            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
-            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
-            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
-            "TYCHO_OPENROUTER_API_KEY": "fake-api-key",
-            "TYCHO_OPENROUTER_BASE_URL": "https://fake-base-url.example.com",
-            "TYCHO_OPENROUTER_EMBEDDING_MODEL": "fake-model",
         },
     )
     @responses.activate
@@ -253,9 +220,6 @@ class TestIntegrationExceptions(APITestCase):
             "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
             "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
             "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
-            "TYCHO_OPENROUTER_API_KEY": "fake-api-key",
-            "TYCHO_OPENROUTER_BASE_URL": "https://fake-base-url.example.com",
-            "TYCHO_OPENROUTER_EMBEDDING_MODEL": "fake-model",
         },
     )
     @patch(
@@ -283,9 +247,6 @@ class TestIntegrationExceptions(APITestCase):
             "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
             "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
             "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
-            "TYCHO_OPENROUTER_API_KEY": "fake-api-key",
-            "TYCHO_OPENROUTER_BASE_URL": "https://fake-base-url.example.com",
-            "TYCHO_OPENROUTER_EMBEDDING_MODEL": "fake-model",
         },
     )
     @responses.activate

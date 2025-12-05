@@ -4,7 +4,7 @@ from typing import List
 
 from openai import OpenAI
 
-from apps.ingestion.config import OpenAIConfig
+from apps.shared.config import OpenAIConfig
 from core.services.embedding_generator_interface import IEmbeddingGenerator
 
 
