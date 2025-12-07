@@ -12,22 +12,17 @@ from apps.shared.containers import SharedContainer
 class SharedContainerSingleton:
     """Singleton wrapper for SharedContainer with auto-configuration."""
 
-    _instance = None
     _container = None
 
-    def __new__(cls):
-        """Ensure only one instance exists."""
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def get_container(self) -> SharedContainer:
+    @classmethod
+    def get_container(cls) -> SharedContainer:
         """Get configured container instance."""
-        if self._container is None:
-            self._container = self._create_configured_container()
-        return self._container
+        if cls._container is None:
+            cls._container = cls._create_configured_container()
+        return cls._container
 
-    def _create_configured_container(self) -> SharedContainer:
+    @classmethod
+    def _create_configured_container(cls) -> SharedContainer:
         """Create and configure the shared container."""
         container = SharedContainer()
 
@@ -43,11 +38,3 @@ class SharedContainerSingleton:
         container.config.override(shared_config)
 
         return container
-
-
-_shared_singleton = SharedContainerSingleton()
-
-
-def get_shared_container() -> SharedContainer:
-    """Get the configured shared container singleton."""
-    return _shared_singleton.get_container()

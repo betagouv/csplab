@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.ingestion.container_singleton import get_ingestion_container
+from apps.ingestion.container_singleton import IngestionContainerSingleton
 from core.entities.document import DocumentType
 from core.errors.document_error import InvalidDocumentTypeError
 
@@ -21,7 +21,7 @@ class LoadDocumentsView(APIView):
         except KeyError:
             raise InvalidDocumentTypeError(document_type_str) from None
 
-        container = get_ingestion_container()
+        container = IngestionContainerSingleton.get_container()
 
         usecase = container.load_documents_usecase()
         result = usecase.execute(document_type)

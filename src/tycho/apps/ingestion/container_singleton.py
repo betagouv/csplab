@@ -9,28 +9,23 @@ from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
-from apps.shared.container_singleton import get_shared_container
+from apps.shared.container_singleton import SharedContainerSingleton
 
 
 class IngestionContainerSingleton:
     """Singleton wrapper for IngestionContainer with auto-configuration."""
 
-    _instance = None
     _container = None
 
-    def __new__(cls):
-        """Ensure only one instance exists."""
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def get_container(self) -> IngestionContainer:
+    @classmethod
+    def get_container(cls) -> IngestionContainer:
         """Get configured container instance."""
-        if self._container is None:
-            self._container = self._create_configured_container()
-        return self._container
+        if cls._container is None:
+            cls._container = cls._create_configured_container()
+        return cls._container
 
-    def _create_configured_container(self) -> IngestionContainer:
+    @classmethod
+    def _create_configured_container(cls) -> IngestionContainer:
         """Create and configure the ingestion container."""
         container = IngestionContainer()
 
@@ -53,15 +48,7 @@ class IngestionContainerSingleton:
         container.config.override(ingestion_config)
 
         # Inject shared container singleton
-        shared_container = get_shared_container()
+        shared_container = SharedContainerSingleton.get_container()
         container.shared_container.override(shared_container)
 
         return container
-
-
-_ingestion_singleton = IngestionContainerSingleton()
-
-
-def get_ingestion_container() -> IngestionContainer:
-    """Get the configured ingestion container singleton."""
-    return _ingestion_singleton.get_container()
