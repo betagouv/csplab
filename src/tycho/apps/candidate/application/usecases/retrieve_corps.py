@@ -6,6 +6,7 @@ from core.entities.corps import Corps
 from core.repositories.corps_repository_interface import ICorpsRepository
 from core.repositories.vector_repository_interface import IVectorRepository
 from core.services.embedding_generator_interface import IEmbeddingGenerator
+from core.services.logger_interface import ILogger
 
 
 class RetrieveCorpsUsecase:
@@ -16,6 +17,7 @@ class RetrieveCorpsUsecase:
         vector_repository: IVectorRepository,
         embedding_generator: IEmbeddingGenerator,
         corps_repository: ICorpsRepository,
+        logger: ILogger,
     ):
         """Initialize the use case with required dependencies.
 
@@ -23,10 +25,12 @@ class RetrieveCorpsUsecase:
             vector_repository: Repository for vector operations
             embedding_generator: Service for generating embeddings
             corps_repository: Repository for Corps entities
+            logger: Logger for tracing operations
         """
         self._vector_repository = vector_repository
         self._embedding_generator = embedding_generator
         self._corps_repository = corps_repository
+        self._logger = logger
 
     def execute(self, query: str, limit: int = 10) -> List[Corps]:
         """Execute the retrieval of Corps based on semantic similarity.
@@ -41,19 +45,20 @@ class RetrieveCorpsUsecase:
         if not query.strip():
             return []
 
-        # Generate embedding for the query
         query_embedding = self._embedding_generator.generate_embedding(query)
-        query_embedding[:10]
+        similarity_results = self._vector_repository.semantic_search(
+            query_embedding=query_embedding,
+            limit=limit,
+            filters={"document_type": "CORPS"},
+        )
 
-        # TODO: Implement semantic search when vector repository methods are available
-        # For now, return all Corps as a placeholder
-        # This will be replaced with:
-        # vectorized_docs = self._vector_repository.semantic_search(
-        #     query_embedding=query_embedding,
-        #     limit=limit,
-        #     filters={"document_type": "CORPS"}
-        # )
+        corps_list = []
+        for result in similarity_results:
+            corps = self._corps_repository.find_by_id(result.document.document_id)
+            if corps:
+                self._logger.info(
+                    f"Corps {corps.id} ({corps.label.value}): score={result.score:.4f}"
+                )
+                corps_list.append(corps)
 
-        # Placeholder implementation - return all Corps
-        all_corps = self._corps_repository.get_all()
-        return all_corps[:limit]
+        return corps_list

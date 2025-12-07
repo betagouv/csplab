@@ -7,7 +7,7 @@ from requests.exceptions import HTTPError
 
 from apps.ingestion.config import PisteConfig
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
-from apps.ingestion.infrastructure.exceptions import (
+from apps.shared.infrastructure.exceptions import (
     ExternalApiError,
 )
 from core.services.logger_interface import ILogger

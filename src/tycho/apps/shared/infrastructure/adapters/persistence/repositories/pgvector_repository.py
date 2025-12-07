@@ -1,14 +1,21 @@
 """PgVector repository implementation for vector operations."""
 
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from django.db.models import Q
+from pgvector.django import CosineDistance
 
 from apps.ingestion.infrastructure.adapters.persistence.models import (
     vectorized_document,
 )
 from core.entities.vectorized_document import VectorizedDocument
 from core.repositories.vector_repository_interface import IVectorRepository
-
-# from core.value_objects.similarity_type import SimilarityMetric, SimilarityType
+from core.value_objects.similarity_type import (
+    SimilarityMetric,
+    SimilarityResult,
+    SimilarityType,
+)
 
 
 class PgVectorRepository(IVectorRepository):
@@ -34,38 +41,46 @@ class PgVectorRepository(IVectorRepository):
             model.save()
             return model.to_entity()
 
-    # def semantic_search(
-    #     self,
-    #     query_embedding: List[float],
-    #     limit: int = 10,
-    #     filters: Optional[Dict[str, Any]] = None,
-    #     similarity_type: Optional[SimilarityType] = None,
-    # ) -> List[VectorizedDocument]:
-    #     """Search for documents semantically similar to the query embedding."""
-    #     if similarity_type is None:
-    #         similarity_type = SimilarityType()
+    def semantic_search(
+        self,
+        query_embedding: List[float],
+        limit: int = 10,
+        filters: Optional[Dict[str, Any]] = None,
+        similarity_type: Optional[SimilarityType] = None,
+    ) -> List[SimilarityResult]:
+        """Search for documents semantically similar to the query embedding."""
+        if similarity_type is None:
+            similarity_type = SimilarityType()
 
-    #     queryset = vectorized_document.VectorizedDocumentModel.objects.all()
+        queryset = vectorized_document.VectorizedDocumentModel.objects.all()
 
-    #     if filters:
-    #         for key, value in filters.items():
-    #             if isinstance(value, list):
-    #                 queryset = queryset.filter(
-    #                     Q(**{f"metadata__{key}__overlap": value})
-    #                 )
-    #             else:
-    #                 queryset = queryset.filter(**{f"metadata__{key}": value})
+        if filters:
+            for key, value in filters.items():
+                if isinstance(value, list):
+                    queryset = queryset.filter(
+                        Q(**{f"metadata__{key}__overlap": value})
+                    )
+                else:
+                    queryset = queryset.filter(**{f"metadata__{key}": value})
 
-    #     if similarity_type.metric == SimilarityMetric.COSINE:
-    #         queryset = queryset.order_by(CosineDistance("embedding", query_embedding))
-    #     else:
-    #         raise NotImplementedError(
-    #             f"Similarity metric {similarity_type.metric} not implemented"
-    #         )
+        if similarity_type.metric == SimilarityMetric.COSINE:
+            queryset = queryset.annotate(
+                distance=CosineDistance("embedding", query_embedding)
+            ).order_by("distance")
+        else:
+            raise NotImplementedError(
+                f"Similarity metric {similarity_type.metric} not implemented"
+            )
 
-    #     results = queryset[:limit]
+        results = queryset[:limit]
 
-    #     return [model.to_entity() for model in results]
+        return [
+            SimilarityResult(
+                document=model.to_entity(),
+                score=model.distance,  # Use the annotated distance field
+            )
+            for model in results
+        ]
 
     # def similarity_search(
     #     self,

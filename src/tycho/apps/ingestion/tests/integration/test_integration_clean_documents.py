@@ -10,7 +10,6 @@ from pydantic import HttpUrl
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
-from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from apps.ingestion.infrastructure.adapters.persistence.models.corps import CorpsModel
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
@@ -20,6 +19,7 @@ from apps.ingestion.infrastructure.adapters.persistence.repositories import (
 )
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
+from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from core.entities.document import DocumentType
 
 

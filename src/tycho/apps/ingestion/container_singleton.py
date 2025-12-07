@@ -8,8 +8,8 @@ from pydantic import HttpUrl
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
-from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from apps.shared.container_singleton import SharedContainerSingleton
+from apps.shared.infrastructure.adapters.external.logger import LoggerService
 
 
 class IngestionContainerSingleton:

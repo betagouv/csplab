@@ -6,7 +6,11 @@ from typing import Any, Dict, List, Optional
 
 from core.entities.vectorized_document import VectorizedDocument
 from core.repositories.vector_repository_interface import IVectorRepository
-from core.value_objects.similarity_type import SimilarityMetric, SimilarityType
+from core.value_objects.similarity_type import (
+    SimilarityMetric,
+    SimilarityResult,
+    SimilarityType,
+)
 
 
 class InMemoryVectorRepository(IVectorRepository):
@@ -62,7 +66,7 @@ class InMemoryVectorRepository(IVectorRepository):
         limit: int = 10,
         filters: Optional[Dict[str, Any]] = None,
         similarity_type: Optional[SimilarityType] = None,
-    ) -> List[VectorizedDocument]:
+    ) -> List[SimilarityResult]:
         """Search for documents semantically similar to the query embedding."""
         if similarity_type is None:
             similarity_type = SimilarityType()
@@ -91,8 +95,11 @@ class InMemoryVectorRepository(IVectorRepository):
         else:  # EUCLIDEAN
             scored_docs.sort(key=lambda x: x[0])
 
-        # Return top results
-        return [doc for _, doc in scored_docs[:limit]]
+        # Return top results as SimilarityResult objects
+        return [
+            SimilarityResult(document=doc, score=score)
+            for score, doc in scored_docs[:limit]
+        ]
 
     def similarity_search(
         self,
@@ -100,7 +107,7 @@ class InMemoryVectorRepository(IVectorRepository):
         threshold: float = 0.8,
         limit: int = 10,
         similarity_type: Optional[SimilarityType] = None,
-    ) -> List[VectorizedDocument]:
+    ) -> List[SimilarityResult]:
         """Find documents similar to a specific document."""
         if similarity_type is None:
             similarity_type = SimilarityType()
@@ -120,7 +127,9 @@ class InMemoryVectorRepository(IVectorRepository):
             similarity_type=similarity_type,
         )
 
-        return [doc for doc in results if doc.document_id != document_id][:limit]
+        return [
+            result for result in results if result.document.document_id != document_id
+        ][:limit]
 
     def _filter_by_metadata(
         self, documents: List[VectorizedDocument], filters: Dict[str, Any]

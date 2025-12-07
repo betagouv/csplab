@@ -12,10 +12,10 @@ from datetime import datetime
 from pathlib import Path
 
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from apps.ingestion.tests.utils.test_container_factory import (
     create_test_shared_container,
 )
+from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from core.entities.corps import Corps
 from core.entities.document import Document, DocumentType
 from core.interfaces.entity_interface import IEntity

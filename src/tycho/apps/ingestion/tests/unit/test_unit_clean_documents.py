@@ -14,13 +14,13 @@ from pathlib import Path
 from unittest.mock import Mock
 
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.services.logger import LoggerService
 from apps.ingestion.tests.utils.in_memory_corps_repository import (
     InMemoryCorpsRepository,
 )
 from apps.ingestion.tests.utils.in_memory_document_repository import (
     InMemoryDocumentRepository,
 )
+from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from core.entities.document import Document, DocumentType
 
 

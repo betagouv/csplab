@@ -5,6 +5,7 @@ from typing import List
 from openai import OpenAI
 
 from apps.shared.config import OpenAIConfig
+from apps.shared.infrastructure.exceptions import ExternalApiError
 from core.services.embedding_generator_interface import IEmbeddingGenerator
 
 
@@ -27,4 +28,4 @@ class OpenAIEmbeddingGenerator(IEmbeddingGenerator):
             )
             return response.data[0].embedding
         except Exception as e:
-            raise RuntimeError(f"Failed to generate embedding: {str(e)}") from e
+            raise ExternalApiError(f"Failed to generate embedding: {str(e)}") from e
