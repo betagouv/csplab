@@ -13,7 +13,6 @@ from apps.ingestion.infrastructure.adapters.external.http_client import HttpClie
 from apps.ingestion.infrastructure.adapters.persistence.models import (
     vectorized_document,
 )
-from apps.ingestion.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
@@ -23,6 +22,7 @@ from apps.shared.infrastructure.adapters.persistence.repositories import (
 from apps.shared.infrastructure.adapters.persistence.repositories import (
     pgvector_repository as pgvector_repo,
 )
+from apps.shared.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 from core.entities.corps import Corps
 from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category

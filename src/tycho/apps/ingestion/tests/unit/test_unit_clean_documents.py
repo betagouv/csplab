@@ -14,13 +14,13 @@ from pathlib import Path
 from unittest.mock import Mock
 
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.tests.utils.in_memory_corps_repository import (
-    InMemoryCorpsRepository,
-)
 from apps.ingestion.tests.utils.in_memory_document_repository import (
     InMemoryDocumentRepository,
 )
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from apps.shared.tests.utils.in_memory_corps_repository import (
+    InMemoryCorpsRepository,
+)
 from core.entities.document import Document, DocumentType
 
 
@@ -44,11 +44,9 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
         """Create an isolated container for each test to avoid concurrency issues."""
         container = IngestionContainer()
 
-        # Override with test dependencies
         logger_service = LoggerService()
         container.logger_service.override(logger_service)
 
-        # Override with in-memory repositories for unit tests
         in_memory_corps_repo = InMemoryCorpsRepository()
         container.corps_repository.override(in_memory_corps_repo)
 

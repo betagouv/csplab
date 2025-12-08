@@ -8,6 +8,8 @@ from apps.candidate.application.usecases.retrieve_corps import RetrieveCorpsUsec
 class CandidateContainer(containers.DeclarativeContainer):
     """Candidate services container."""
 
+    logger_service: providers.Dependency = providers.Dependency()
+
     shared_container = providers.DependenciesContainer()
 
     corps_repository = shared_container.corps_repository
@@ -19,4 +21,5 @@ class CandidateContainer(containers.DeclarativeContainer):
         vector_repository=vector_repository,
         embedding_generator=embedding_generator,
         corps_repository=corps_repository,
+        logger=logger_service,
     )
