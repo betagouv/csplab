@@ -26,5 +26,8 @@ and this project adheres to
 - usecase vectorize documents
 - add custom django commands to expose usecases
 - add models in admin
+- refactor shared services in shared app
+- add candidate app
+- add retrieval usecase
 
 [unreleased]: https://github.com/betagouv/csplab/
