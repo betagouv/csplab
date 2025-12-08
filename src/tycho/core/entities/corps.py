@@ -12,7 +12,7 @@ from core.value_objects.ministry import Ministry
 
 @dataclass
 class Corps:
-    """Corps entity representing a corps."""
+    """Corps entity."""
 
     id: int
     code: str

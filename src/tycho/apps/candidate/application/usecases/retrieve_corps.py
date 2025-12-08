@@ -30,7 +30,9 @@ class RetrieveCorpsUsecase:
         self._vector_repository = vector_repository
         self._embedding_generator = embedding_generator
         self._corps_repository = corps_repository
-        self._logger = logger
+        self._logger = logger.get_logger(
+            "CANDIDATE::APPLICATION::RetrieveCorpsUsecase::execute"
+        )
 
     def execute(self, query: str, limit: int = 10) -> List[Tuple[Corps, float]]:
         """Execute the retrieval of Corps based on semantic similarity.

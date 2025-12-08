@@ -12,6 +12,8 @@ class DocumentType(Enum):
     CORPS = "CORPS"
     GRADE = "GRADE"
     CONCOURS = "CONCOURS"
+    CONCOURS_LAW = "CONCOURS_LAW"
+    CONCOURS_LAW_DETAILS = "CONCOURS_LAW_DETAILS"
 
     def __str__(self):
         """Return string representation."""

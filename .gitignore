@@ -36,6 +36,9 @@ MANIFEST
 # Directories
 data
 
+# Files
+.DS_Store
+
 # -- Environments
 .env
 .venv
