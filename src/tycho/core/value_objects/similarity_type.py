@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from enum import Enum
 
+from core.entities.vectorized_document import VectorizedDocument
+
 
 class SimilarityMetric(Enum):
     """Enumeration of similarity metrics for vector search."""
@@ -22,3 +24,11 @@ class SimilarityType:
 
     metric: SimilarityMetric = SimilarityMetric.COSINE
     threshold: float = 0.8
+
+
+@dataclass(frozen=True)
+class SimilarityResult:
+    """Result of a similarity search with score."""
+
+    document: VectorizedDocument
+    score: float

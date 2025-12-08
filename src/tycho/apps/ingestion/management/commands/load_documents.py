@@ -2,7 +2,7 @@
 
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.ingestion.container_singleton import get_ingestion_container
+from apps.ingestion.container_singleton import IngestionContainerSingleton
 from core.entities.document import DocumentType
 
 
@@ -24,7 +24,7 @@ class Command(BaseCommand):
         """Execute the command."""
         try:
             document_type = DocumentType(options["type"])
-            container = get_ingestion_container()
+            container = IngestionContainerSingleton.get_container()
             usecase = container.load_documents_usecase()
 
             self.stdout.write(f"Loading documents of type: {document_type.value}")

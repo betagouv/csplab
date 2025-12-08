@@ -11,13 +11,6 @@ from apps.ingestion.infrastructure.adapters.external import (
     document_fetcher,
     piste_client,
 )
-from apps.ingestion.infrastructure.adapters.external.openai_embedding_generator import (
-    OpenAIEmbeddingGenerator,
-)
-from apps.ingestion.infrastructure.adapters.persistence.repositories import (
-    django_corps_repository,
-    pgvector_repository,
-)
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_document_repository as django_repo,
 )
@@ -43,20 +36,22 @@ from core.services.document_cleaner_interface import IDocumentCleaner
 class IngestionContainer(containers.DeclarativeContainer):
     """Ingestion services container."""
 
-    # External dependencies (injected by parent container)
     logger_service: providers.Dependency = providers.Dependency()
     http_client: providers.Dependency = providers.Dependency()
-
     config: providers.Dependency = providers.Dependency()
 
-    # PISTE client for authenticated API calls
+    shared_container = providers.DependenciesContainer()
+
+    corps_repository = shared_container.corps_repository
+    embedding_generator = shared_container.embedding_generator
+    vector_repository = shared_container.vector_repository
+
     piste_client = providers.Singleton(
         piste_client.PisteClient,
         config=providers.Callable(lambda cfg: cfg.piste, config),
         logger_service=logger_service,
     )
 
-    # Document adapters
     document_fetcher = providers.Singleton(
         document_fetcher.ExternalDocumentFetcher,
         piste_client=piste_client,
@@ -67,25 +62,17 @@ class IngestionContainer(containers.DeclarativeContainer):
         django_repo.DjangoDocumentRepository,
     )
 
-    # Document repository
     document_repository = providers.Singleton(
         CompositeDocumentRepository,
         fetcher=document_fetcher,
         persister=document_persister,
     )
 
-    # Corps repository
-    corps_repository = providers.Singleton(
-        django_corps_repository.DjangoCorpsRepository
-    )
-
-    # Repository factory
     repository_factory = providers.Singleton(
         RepositoryFactory,
         corps_repository=corps_repository,
     )
 
-    # Document cleaner factory
     document_cleaner: providers.Provider[IDocumentCleaner[IEntity]] = (
         providers.Singleton(
             DocumentCleaner,
@@ -97,16 +84,6 @@ class IngestionContainer(containers.DeclarativeContainer):
         TextExtractor,
     )
 
-    # Embedding generator
-    embedding_generator = providers.Singleton(
-        OpenAIEmbeddingGenerator,
-        config=providers.Callable(lambda cfg: cfg.openai, config),
-    )
-
-    # Vector repository
-    vector_repository = providers.Singleton(pgvector_repository.PgVectorRepository)
-
-    # Use cases - with type annotation to enforce IUseCase compliance
     load_documents_usecase: providers.Provider[
         IUseCase[DocumentType, IUpsertResult]
     ] = providers.Factory(

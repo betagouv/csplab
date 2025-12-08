@@ -7,19 +7,18 @@ IMPORTANT: Dependency Injection Override Timing
 """
 
 import copy
-import json
 import unittest
 from datetime import datetime
-from pathlib import Path
 from unittest.mock import Mock
 
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.services.logger import LoggerService
-from apps.ingestion.tests.utils.in_memory_corps_repository import (
-    InMemoryCorpsRepository,
-)
 from apps.ingestion.tests.utils.in_memory_document_repository import (
     InMemoryDocumentRepository,
+)
+from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from apps.shared.tests.fixtures.fixture_loader import load_fixture
+from apps.shared.tests.utils.in_memory_corps_repository import (
+    InMemoryCorpsRepository,
 )
 from core.entities.document import Document, DocumentType
 
@@ -30,25 +29,15 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Load fixtures once for all tests."""
-        fixture_data = cls._load_fixture("corps_ingres_20251117.json")
-        cls.raw_corps_documents = fixture_data
-
-    @classmethod
-    def _load_fixture(cls, filename):
-        """Load fixture from the shared fixtures directory."""
-        fixtures_path = Path(__file__).parent.parent / "fixtures" / filename
-        with open(fixtures_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        cls.raw_corps_documents = load_fixture("corps_ingres_20251117.json")
 
     def _create_isolated_container(self):
         """Create an isolated container for each test to avoid concurrency issues."""
         container = IngestionContainer()
 
-        # Override with test dependencies
         logger_service = LoggerService()
         container.logger_service.override(logger_service)
 
-        # Override with in-memory repositories for unit tests
         in_memory_corps_repo = InMemoryCorpsRepository()
         container.corps_repository.override(in_memory_corps_repo)
 

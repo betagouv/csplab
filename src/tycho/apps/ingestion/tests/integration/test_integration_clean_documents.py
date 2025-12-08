@@ -1,14 +1,12 @@
 """Integration tests for CleanDocuments usecase with external adapters."""
 
-import json
-from pathlib import Path
-
 import pytest
 from django.test import TransactionTestCase
+from pydantic import HttpUrl
 
+from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
-from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
 from apps.ingestion.infrastructure.adapters.persistence.models.corps import CorpsModel
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
@@ -16,6 +14,10 @@ from apps.ingestion.infrastructure.adapters.persistence.models.raw_document impo
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_document_repository as django_doc_repo,
 )
+from apps.shared.config import OpenAIConfig, SharedConfig
+from apps.shared.containers import SharedContainer
+from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from apps.shared.tests.fixtures.fixture_loader import load_fixture
 from core.entities.document import DocumentType
 
 
@@ -26,23 +28,36 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
     def setUpClass(cls):
         """Load fixtures once for all tests."""
         super().setUpClass()
-        fixture_data = cls._load_fixture("corps_ingres_20251117.json")
-        cls.raw_corps_documents = fixture_data
-
-    @classmethod
-    def _load_fixture(cls, filename):
-        """Load fixture from the shared fixtures directory."""
-        fixtures_path = Path(__file__).parent.parent / "fixtures" / filename
-        with open(fixtures_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        cls.raw_corps_documents = load_fixture("corps_ingres_20251117.json")
 
     def setUp(self):
         """Set up container dependencies."""
+        # Create shared container and config
+        self.shared_container = SharedContainer()
+        self.shared_config = SharedConfig(
+            openai_config=OpenAIConfig(
+                api_key="fake-api-key",
+                base_url=HttpUrl("https://fake-base-url.example.com"),
+                model="fake-model",
+            )
+        )
+        self.shared_container.config.override(self.shared_config)
+
+        # Create ingestion container
         self.container = IngestionContainer()
+        self.ingestion_config = IngestionConfig(
+            piste_config=PisteConfig(
+                oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
+                ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
+                client_id="fake-client-id",
+                client_secret="fake-client-secret",  # noqa
+            )
+        )
+        self.container.config.override(self.ingestion_config)
+        self.container.shared_container.override(self.shared_container)
 
         logger_service = LoggerService()
         self.container.logger_service.override(logger_service)
-
         http_client = HttpClient()
         self.container.http_client.override(http_client)
 
@@ -134,7 +149,7 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
         self.assertEqual(result["created"], 1)
 
         # Verify saved corps can be retrieved by ID
-        corps_repository = self.container.corps_repository()
+        corps_repository = self.shared_container.corps_repository()
         expected_id = int(self.raw_corps_documents[0]["identifiant"])
         retrieved_corps = corps_repository.find_by_id(expected_id)
 
@@ -171,7 +186,7 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
         self.assertEqual(result["updated"], 0)
         self.assertEqual(result["errors"], 0)
 
-        corps_repository = self.container.corps_repository()
+        corps_repository = self.shared_container.corps_repository()
 
         saved_corps = corps_repository.get_all()
         self.assertEqual(len(saved_corps), 1)
@@ -179,7 +194,7 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
     @pytest.mark.django_db
     def test_corps_repository_find_by_id_nonexistent(self):
         """Test find_by_id returns None for nonexistent Corps."""
-        corps_repository = self.container.corps_repository()
+        corps_repository = self.shared_container.corps_repository()
 
         nonexistent_corps = corps_repository.find_by_id(99999)
 
@@ -188,7 +203,7 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
     @pytest.mark.django_db
     def test_corps_repository_get_all_empty(self):
         """Test get_all returns empty list when no Corps exist."""
-        corps_repository = self.container.corps_repository()
+        corps_repository = self.shared_container.corps_repository()
 
         all_corps = corps_repository.get_all()
 

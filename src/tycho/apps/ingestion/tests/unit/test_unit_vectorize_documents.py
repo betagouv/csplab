@@ -6,20 +6,15 @@ IMPORTANT: Dependency Injection Override Timing
 - Dependencies are resolved at creation time, not execution time
 """
 
-import json
 import unittest
 from datetime import datetime
-from pathlib import Path
 
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.external.logger import LoggerService
-from apps.ingestion.tests.utils.in_memory_corps_repository import (
-    InMemoryCorpsRepository,
+from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from apps.shared.tests.fixtures.fixture_loader import load_fixture
+from apps.shared.tests.utils.test_container_factory import (
+    create_test_shared_container,
 )
-from apps.ingestion.tests.utils.in_memory_vector_repository import (
-    InMemoryVectorRepository,
-)
-from apps.ingestion.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 from core.entities.corps import Corps
 from core.entities.document import Document, DocumentType
 from core.interfaces.entity_interface import IEntity
@@ -44,14 +39,7 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Load fixtures once for all tests."""
-        cls.embedding_fixtures = cls._load_fixture("embedding_fixtures.json")
-
-    @classmethod
-    def _load_fixture(cls, filename):
-        """Load fixture from the shared fixtures directory."""
-        fixtures_path = Path(__file__).parent.parent / "fixtures" / filename
-        with open(fixtures_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        cls.embedding_fixtures = load_fixture("embedding_fixtures.json")
 
     def _create_isolated_container(self):
         """Create an isolated container for each test to avoid concurrency issues."""
@@ -61,16 +49,9 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
         logger_service = LoggerService()
         container.logger_service.override(logger_service)
 
-        # Override with in-memory repositories for unit tests
-        in_memory_corps_repo = InMemoryCorpsRepository()
-        container.corps_repository.override(in_memory_corps_repo)
-
-        in_memory_vector_repo = InMemoryVectorRepository()
-        container.vector_repository.override(in_memory_vector_repo)
-
-        # Override with mock embedding generator
-        mock_generator = MockEmbeddingGenerator(self.embedding_fixtures)
-        container.embedding_generator.override(mock_generator)
+        # Create and configure shared container for testing
+        shared_container = create_test_shared_container(self.embedding_fixtures)
+        container.shared_container.override(shared_container)
 
         return container
 

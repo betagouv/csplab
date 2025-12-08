@@ -1,8 +1,9 @@
 """Vector repository interface for semantic search operations."""
 
-from typing import Protocol
+from typing import Any, Dict, List, Optional, Protocol
 
 from core.entities.vectorized_document import VectorizedDocument
+from core.value_objects.similarity_type import SimilarityResult, SimilarityType
 
 
 class IVectorRepository(Protocol):
@@ -12,15 +13,15 @@ class IVectorRepository(Protocol):
         """Store a vectorized document with its embedding."""
         ...
 
-    # def semantic_search(
-    #     self,
-    #     query_embedding: List[float],
-    #     limit: int = 10,
-    #     filters: Optional[Dict[str, Any]] = None,
-    #     similarity_type: Optional[SimilarityType] = None,
-    # ) -> List[VectorizedDocument]:
-    #     """Search for documents semantically similar to the query embedding."""
-    #     ...
+    def semantic_search(
+        self,
+        query_embedding: List[float],
+        limit: int = 10,
+        filters: Optional[Dict[str, Any]] = None,
+        similarity_type: Optional[SimilarityType] = None,
+    ) -> List[SimilarityResult]:
+        """Search for documents semantically similar to the query embedding."""
+        ...
 
     # def similarity_search(
     #     self,

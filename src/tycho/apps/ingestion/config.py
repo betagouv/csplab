@@ -3,7 +3,6 @@
 import environ
 from pydantic import BaseModel, HttpUrl
 
-# Use django-environ for reading environment variables
 env = environ.Env()
 
 
@@ -16,20 +15,11 @@ class PisteConfig(BaseModel):
     client_secret: str
 
 
-class OpenAIConfig(BaseModel):
-    """Configuration for OpenAI API client."""
-
-    api_key: str
-    base_url: HttpUrl
-    model: str
-
-
 class IngestionConfig(BaseModel):
     """Configuration for ingestion app."""
 
     piste: PisteConfig
-    openai: OpenAIConfig
 
-    def __init__(self, piste_env: PisteConfig, openai_env: OpenAIConfig):
-        """Create configuration from environment variables."""
-        super().__init__(piste=piste_env, openai=openai_env)
+    def __init__(self, piste_config: PisteConfig):
+        """Create configuration from PISTE config."""
+        super().__init__(piste=piste_config)
