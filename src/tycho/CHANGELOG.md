@@ -29,5 +29,6 @@ and this project adheres to
 - refactor shared services in shared app
 - add candidate app
 - add retrieval usecase
+- add simple interface for demo
 
 [unreleased]: https://github.com/betagouv/csplab/

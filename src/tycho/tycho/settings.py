@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "dsfr",
     "apps.ingestion",
     "apps.candidate",
 ]
@@ -62,7 +63,15 @@ ROOT_URLCONF = "tycho.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            BASE_DIR
+            / "apps"
+            / "candidate"
+            / "infrastructure"
+            / "adapters"
+            / "website"
+            / "templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -140,7 +149,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "format": "{levelname} {asctime} [{name}] {message}",
             "style": "{",
         },
         "simple": {
@@ -164,18 +173,8 @@ LOGGING = {
             "level": LOG_LEVEL,
             "propagate": False,
         },
-        "tycho.DOMAIN": {
-            "handlers": ["exception_console"],
-            "level": LOG_LEVEL,
-            "propagate": False,
-        },
-        "tycho.APPLICATION": {
-            "handlers": ["exception_console"],
-            "level": LOG_LEVEL,
-            "propagate": False,
-        },
-        "tycho.INFRASTRUCTURE": {
-            "handlers": ["exception_console"],
+        "candidate": {
+            "handlers": ["console"],
             "level": LOG_LEVEL,
             "propagate": False,
         },

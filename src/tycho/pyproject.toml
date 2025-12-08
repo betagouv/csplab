@@ -7,6 +7,7 @@ requires-python = "~=3.12.0"
 dependencies = [
     "dependency-injector>=4.48.2",
     "django==5.2.7",
+    "django-dsfr>=3.3.0",
     "django-environ==0.12.0",
     "django-stubs[compatible-mypy]==5.2.7",
     "djangorestframework>=3.16.1",

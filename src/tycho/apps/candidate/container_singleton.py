@@ -19,13 +19,13 @@ class CandidateContainerSingleton:
 
     @classmethod
     def _create_configured_container(cls) -> CandidateContainer:
-        """Create and configure the ingestion container."""
+        """Create and configure the candidate container."""
         container = CandidateContainer()
 
-        logger_service = LoggerService()
+        logger_service = LoggerService("candidate")
         container.logger_service.override(logger_service)
 
-        # Inject shared container singleton
+        # Inject shared container singleton (already configured)
         shared_container = SharedContainerSingleton.get_container()
         container.shared_container.override(shared_container)
 

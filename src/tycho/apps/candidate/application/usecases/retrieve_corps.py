@@ -45,20 +45,36 @@ class RetrieveCorpsUsecase:
         if not query.strip():
             return []
 
+        self._logger.info(f"Starting search for query='{query}', limit={limit}")
         query_embedding = self._embedding_generator.generate_embedding(query)
-        similarity_results = self._vector_repository.semantic_search(
-            query_embedding=query_embedding,
-            limit=limit,
-            filters={"document_type": "CORPS"},
-        )
+        self._logger.info(f"Generated embedding of length {len(query_embedding)}")
+
+        try:
+            similarity_results = self._vector_repository.semantic_search(
+                query_embedding=query_embedding,
+                limit=limit,
+                filters=None,
+            )
+            self._logger.info(f"Found {len(similarity_results)} similarity results")
+
+        except Exception as e:
+            self._logger.error(f"Error in semantic_search: {e}")
+            return []
 
         corps_list = []
         for result in similarity_results:
-            corps = self._corps_repository.find_by_id(result.document.document_id)
-            if corps:
-                self._logger.info(
-                    f"Corps {corps.id} ({corps.label.value}): score={result.score:.4f}"
+            try:
+                corps = self._corps_repository.find_by_id(result.document.document_id)
+                if corps:
+                    self._logger.info(
+                        f"Corps {corps.id} ({corps.label.value})"
+                        f": score={result.score:.4f}"
+                    )
+                    corps_list.append(corps)
+            except Exception as e:
+                self._logger.error(
+                    f"Error retrieving corps {result.document.document_id}: {e}"
                 )
-                corps_list.append(corps)
 
+        self._logger.info(f"Returning {len(corps_list)} corps")
         return corps_list

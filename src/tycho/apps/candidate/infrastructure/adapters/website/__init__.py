@@ -1,0 +1,1 @@
+"""Candidate infrastructure website adapters."""

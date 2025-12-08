@@ -1,0 +1,60 @@
+{% load dsfr_tags %}
+<!DOCTYPE html>
+<html lang="fr" data-fr-scheme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% block title %}Recherche de corps - CSPLab{% endblock %}</title>
+    {% dsfr_css %}
+</head>
+<body>
+    <header class="fr-header">
+        <div class="fr-header__body">
+            <div class="fr-container">
+                <div class="fr-header__body-row">
+                    <div class="fr-header__brand fr-enlarge-link">
+                        <div class="fr-header__brand-top">
+                            <div class="fr-header__logo">
+                                <p class="fr-logo">
+                                    République<br>Française
+                                </p>
+                            </div>
+                        </div>
+                        <div class="fr-header__service">
+                            <a href="/" title="Accueil - CSPLab">
+                                <p class="fr-header__service-title">CSPLab</p>
+                            </a>
+                            <p class="fr-header__service-tagline">Recherche de corps de la fonction publique</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main role="main">
+        <div class="fr-container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="fr-footer" role="contentinfo">
+        <div class="fr-container">
+            <div class="fr-footer__body">
+                <div class="fr-footer__brand fr-enlarge-link">
+                    <p class="fr-logo">
+                        République<br>Française
+                    </p>
+                </div>
+                <div class="fr-footer__content">
+                    <p class="fr-footer__content-desc">
+                        CSPLab - Outil de recherche sémantique pour les corps de la fonction publique
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {% dsfr_js %}
+</body>
+</html>
