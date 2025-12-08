@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 MIN_NOR_LENGTH = 10
 
@@ -68,7 +68,8 @@ class ConcoursRowSchema(BaseModel):
     nb_postes_th: Optional[int] = Field(None, alias="Nb postes TH", ge=0)
     nb_postes_total: int = Field(..., alias="Nb postes total", ge=0)
 
-    @validator("date_premiere_epreuve")
+    @field_validator("date_premiere_epreuve")
+    @classmethod
     def validate_date_format(cls, v):
         """Validate date format DD/MM/YYYY."""
         if v is None or v == "":
@@ -79,19 +80,21 @@ class ConcoursRowSchema(BaseModel):
         except ValueError as err:
             raise ValueError("Date must be in DD/MM/YYYY format") from err
 
-    @validator("nor")
+    @field_validator("nor")
+    @classmethod
     def validate_nor_format(cls, v):
         """Basic NOR format validation."""
         if not v or len(v) < MIN_NOR_LENGTH:
             raise ValueError(f"NOR must be at least {MIN_NOR_LENGTH} characters long")
         return v.upper()
 
-    @validator(
+    @field_validator(
         "national",
         "national_affectation_locale",
         "deconcentre",
-        pre=True,
+        mode="before",
     )
+    @classmethod
     def parse_french_boolean(cls, v):
         """Parse French boolean values (Oui/Non) to Python boolean."""
         if isinstance(v, str):
@@ -104,11 +107,10 @@ class ConcoursRowSchema(BaseModel):
                 return None
         return v
 
-    class Config:
-        """Pydantic config."""
-
-        validate_by_name = True
-        str_strip_whitespace = True
+    model_config = ConfigDict(
+        populate_by_name=True,
+        str_strip_whitespace=True,
+    )
 
 
 class ConcoursUploadResponse(BaseModel):

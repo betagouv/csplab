@@ -49,11 +49,12 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
         repository = container.document_repository()
         documents = []
 
-        for _, raw_data in enumerate(raw_data_list):
+        for _, _raw_data in enumerate(raw_data_list):
             document = Document(
                 id=None,
-                raw_data=raw_data,
-                type=doc_type,
+                external_id="test_doc",
+                raw_data={"test": "data"},
+                type=DocumentType.CORPS,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             )
@@ -111,6 +112,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
         documents = [
             Document(
                 id=None,
+                external_id="corps_1",
                 raw_data={"name": "Corps 1"},
                 type=DocumentType.CORPS,
                 created_at=datetime.now(),
@@ -118,6 +120,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
             ),
             Document(
                 id=None,
+                external_id="corps_2",
                 raw_data={"name": "Corps 2"},
                 type=DocumentType.CORPS,
                 created_at=datetime.now(),
@@ -125,6 +128,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
             ),
             Document(
                 id=None,
+                external_id="exam_1",
                 raw_data={"name": "Exam 1"},
                 type=DocumentType.CONCOURS,
                 created_at=datetime.now(),
@@ -147,6 +151,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
 
         document = Document(
             id=None,
+            external_id="test_document",
             raw_data={"name": "Test Document"},
             type=DocumentType.CORPS,
             created_at=datetime.now(),
@@ -172,6 +177,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
         documents = [
             Document(
                 id=None,
+                external_id="doc_1",
                 raw_data={"name": "Doc 1"},
                 type=DocumentType.CORPS,
                 created_at=datetime.now(),
@@ -179,6 +185,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
             ),
             Document(
                 id=None,
+                external_id="doc_2",
                 raw_data={"name": "Doc 2"},
                 type=DocumentType.CORPS,
                 created_at=datetime.now(),

@@ -56,6 +56,7 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
         for i, raw_data in enumerate(raw_data_list):
             document = Document(
                 id=i + 1,
+                external_id=f"test_{i + 1}",
                 raw_data=raw_data,
                 type=doc_type,
                 created_at=datetime.now(),
