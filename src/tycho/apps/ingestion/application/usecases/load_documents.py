@@ -1,6 +1,8 @@
 """LoadDocuments usecase."""
 
-from core.entities.document import DocumentType
+from typing import List, Union
+
+from core.entities.document import Document, DocumentType
 from core.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,
@@ -18,8 +20,12 @@ class LoadDocumentsUsecase:
             "INGESTION::APPLICATION::LoadDocumentsUsecase::execute"
         )
 
-    def execute(self, input_data: DocumentType) -> IUpsertResult:
+    def execute(self, input_data: Union[DocumentType, List[Document]]) -> IUpsertResult:
         """Execute the usecase to load and persist documents."""
-        documents = self.document_repository.fetch_by_type(input_data)
+        if isinstance(input_data, DocumentType):
+            documents = self.document_repository.fetch_by_type(input_data)
+        else:
+            documents = input_data
+
         result = self.document_repository.upsert_batch(documents)
         return result

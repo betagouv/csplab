@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 class DocumentType(Enum):
@@ -24,7 +24,8 @@ class DocumentType(Enum):
 class Document:
     """Document entity representing any type of raw ingested data."""
 
-    id: int
+    id: Optional[int]
+    external_id: Optional[str]
     raw_data: Dict[str, Any]
     type: DocumentType
     created_at: datetime

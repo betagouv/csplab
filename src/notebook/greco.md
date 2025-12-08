@@ -14,6 +14,14 @@ df.columns
 ## Une observation = un numéro NOR
 
 ```python
+df
+```
+
+```python
+df[df['Corps'].isna() == True]
+```
+
+```python
 len(df['N° NOR'].unique())
 len(df)
 ```
@@ -87,6 +95,38 @@ print(f"Date de référence: {aujourd_hui.strftime('%d/%m/%Y')}")
 
 ```python
 df_clean
+```
+
+```python
+df['Examen professionnel'].unique()
+```
+
+```python
+df['Unique'].unique()
+```
+
+```python
+df['Pacte'].unique()
+```
+
+```python
+df['Autres'].unique()
+```
+
+```python
+df['Promotion BOETH'].unique()
+```
+
+```python
+df['Apprenti BOETH'].unique()
+```
+
+```python
+df['Déconcentré'].unique()
+```
+
+```python
+df[df['Ministère']==""]
 ```
 
 ```python
