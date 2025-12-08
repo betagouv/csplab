@@ -37,6 +37,7 @@ class InMemoryDocumentRepository(IDocumentRepository):
                     if existing_doc.id == document.id:
                         updated_doc = Document(
                             id=document.id,
+                            external_id=document.external_id,
                             raw_data=document.raw_data,
                             type=document.type,
                             created_at=existing_doc.created_at,
@@ -56,6 +57,7 @@ class InMemoryDocumentRepository(IDocumentRepository):
 
                     new_doc = Document(
                         id=doc_id,
+                        external_id=document.external_id,
                         raw_data=document.raw_data,
                         type=document.type,
                         created_at=datetime.now(),

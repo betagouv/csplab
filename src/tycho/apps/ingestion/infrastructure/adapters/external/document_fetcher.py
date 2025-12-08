@@ -43,6 +43,9 @@ class ExternalDocumentFetcher(IDocumentFetcher):
             for validated_doc in validated_response.documents:
                 document = Document(
                     id=int(validated_doc.identifiant),
+                    external_id=str(
+                        validated_doc.identifiant
+                    ),  # Use identifiant as external_id for CORPS
                     raw_data=validated_doc.model_dump(),
                     type=document_type,
                     created_at=now,  # Temporary timestamp, will be updated by persister

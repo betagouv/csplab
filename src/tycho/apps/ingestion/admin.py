@@ -12,7 +12,15 @@ from apps.ingestion.infrastructure.adapters.persistence.models.corps import Corp
 class RawDocumentAdmin(admin.ModelAdmin):
     """Admin interface for RawDocument model."""
 
-    list_display = ("id", "document_type", "raw_data", "created_at", "updated_at")
+    list_display = (
+        "id",
+        "external_id",
+        "document_type",
+        "raw_data",
+        "created_at",
+        "updated_at",
+    )
+    list_filter = ("document_type", "created_at", "updated_at")
 
 
 class CorpsAdmin(admin.ModelAdmin):
