@@ -29,7 +29,7 @@ class IngestionContainerSingleton:
         """Create and configure the ingestion container."""
         container = IngestionContainer()
 
-        logger_service = LoggerService()
+        logger_service = LoggerService("ingestion")
         container.logger_service.override(logger_service)
 
         http_client = HttpClient()

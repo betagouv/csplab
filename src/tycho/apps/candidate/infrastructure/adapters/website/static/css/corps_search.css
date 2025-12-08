@@ -1,0 +1,11 @@
+.corps-search {
+    margin-top: 1rem;
+}
+
+.corps-search #search-input-messages {
+    align-self: center;
+}
+
+[hidden] {
+    display: none;
+}

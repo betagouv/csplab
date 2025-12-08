@@ -137,6 +137,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-crispy-forms"
+version = "2.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/79/a1/6a638d13717e4d4f8df169dade0fa51bdc65d9825df39d98ce709a776b49/django_crispy_forms-2.5.tar.gz", hash = "sha256:066e72a8f152a1334f1c811cc37740868efe3265e5a218f79079ef89f848c3d8", size = 1097999, upload-time = "2025-11-06T20:44:01.921Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2c/58/ac3a11950baaf75c1f3242e3af9dfe45201f6ee10c113dd37a9c000876d2/django_crispy_forms-2.5-py3-none-any.whl", hash = "sha256:adc99d5901baca09479c53bf536b3909e80a9f2bb299438a223de4c106ebf1f9", size = 31464, upload-time = "2025-11-06T20:44:00.795Z" },
+]
+
+[[package]]
 name = "django-debug-toolbar"
 version = "6.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -147,6 +159,21 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c0/50/acae2dd379164f6f4c6b6b36fd48a4d21b02095a03f4df7c30a8d1f1a62c/django_debug_toolbar-6.1.0.tar.gz", hash = "sha256:e962ec350c9be8bdba918138e975a9cdb193f60ec396af2bb71b769e8e165519", size = 309141, upload-time = "2025-10-30T19:50:39.458Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6d/72/685c978af45ad08257e2c69687a873eda6b6531c79b6e6091794c41c5ff6/django_debug_toolbar-6.1.0-py3-none-any.whl", hash = "sha256:e214dea4494087e7cebdcea84223819c5eb97f9de3110a3665ad673f0ba98413", size = 269069, upload-time = "2025-10-30T19:50:37.71Z" },
+]
+
+[[package]]
+name = "django-dsfr"
+version = "3.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-crispy-forms" },
+    { name = "django-widget-tweaks" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b6/ed/82ab0bdf1b0c94f4aae334275781b7efc8949ee8748d593643b562a12585/django_dsfr-3.3.0.tar.gz", hash = "sha256:c0db255c1c416220844a9e88f0eb787aeba6cbc164819838478423437b424714", size = 2740066, upload-time = "2025-12-04T18:15:10.751Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/46/39/2487f38999521f392ae14e150cf8af514bbc438961cac143979a7df2c8cd/django_dsfr-3.3.0-py3-none-any.whl", hash = "sha256:23b43642e3ac43153b00ffca4781ec55b655a330d26f2ab84c39fd045b9378cf", size = 3487324, upload-time = "2025-12-04T18:15:09.021Z" },
 ]
 
 [[package]]
@@ -189,6 +216,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/14/a2/d67f4a5200ff7626b104eddceaf529761cba4ed318a73ffdb0677551be73/django_stubs_ext-5.2.8.tar.gz", hash = "sha256:b39938c46d7a547cd84e4a6378dbe51a3dd64d70300459087229e5fee27e5c6b", size = 6487, upload-time = "2025-12-01T08:12:37.486Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/da/2d/cb0151b780c3730cf0f2c0fcb1b065a5e88f877cf7a9217483c375353af1/django_stubs_ext-5.2.8-py3-none-any.whl", hash = "sha256:1dd5470c9675591362c78a157a3cf8aec45d0e7a7f0cf32f227a1363e54e0652", size = 9949, upload-time = "2025-12-01T08:12:36.397Z" },
+]
+
+[[package]]
+name = "django-widget-tweaks"
+version = "1.5.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a5/fe/26eb92fba83844e71bbec0ced7fc2e843e5990020e3cc676925204031654/django-widget-tweaks-1.5.0.tar.gz", hash = "sha256:1c2180681ebb994e922c754804c7ffebbe1245014777ac47897a81f57cc629c7", size = 14767, upload-time = "2023-08-25T15:29:12.778Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/46/6a/6cb6deb5c38b785c77c3ba66f53051eada49205979c407323eb666930915/django_widget_tweaks-1.5.0-py3-none-any.whl", hash = "sha256:a41b7b2f05bd44d673d11ebd6c09a96f1d013ee98121cb98c384fe84e33b881e", size = 8960, upload-time = "2023-08-25T15:29:05.644Z" },
 ]
 
 [[package]]
@@ -748,6 +784,7 @@ source = { editable = "." }
 dependencies = [
     { name = "dependency-injector" },
     { name = "django" },
+    { name = "django-dsfr" },
     { name = "django-environ" },
     { name = "django-stubs", extra = ["compatible-mypy"] },
     { name = "djangorestframework" },
@@ -780,6 +817,7 @@ dev = [
 requires-dist = [
     { name = "dependency-injector", specifier = ">=4.48.2" },
     { name = "django", specifier = "==5.2.7" },
+    { name = "django-dsfr", specifier = ">=3.3.0" },
     { name = "django-environ", specifier = "==0.12.0" },
     { name = "django-stubs", extras = ["compatible-mypy"], specifier = "==5.2.7" },
     { name = "djangorestframework", specifier = ">=3.16.1" },
