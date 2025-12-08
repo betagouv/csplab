@@ -5,7 +5,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.17.3
+      jupytext_version: 1.18.1
   kernelspec:
     display_name: CSPLab concours
     language: python
@@ -103,7 +103,7 @@ def extract_decret_numbers(raw_content):
 ## Concours 2025
 
 ```python
-year_2025 = get_all_pages(client, "2025", search_concours)
+year_2025 = get_all_pages(client, "2026", search_concours)
 ```
 
 ```python
@@ -113,7 +113,11 @@ df_clean.head()
 ```
 
 ```python
-raw_content = get_raw_content(df_clean['id'][1])
+df_clean[df['nor'] == 'MENH2523335A']
+```
+
+```python
+raw_content = get_raw_content('LEGITEXT000052251878_18-09-2025')
 raw_content[:500]
 ```
 
