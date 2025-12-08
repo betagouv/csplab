@@ -123,6 +123,7 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
 
         document = Document(
             id=1,
+            external_id="test_vectorize_doc",
             raw_data={"content": "Test document content for vectorization"},
             type=DocumentType.GRADE,
             created_at=datetime.now(),
