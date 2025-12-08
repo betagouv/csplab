@@ -6,13 +6,12 @@ IMPORTANT: Dependency Injection Override Timing
 - Dependencies are resolved at creation time, not execution time
 """
 
-import json
 import unittest
 from datetime import datetime
-from pathlib import Path
 
 from apps.ingestion.containers import IngestionContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from apps.shared.tests.fixtures.fixture_loader import load_fixture
 from apps.shared.tests.utils.test_container_factory import (
     create_test_shared_container,
 )
@@ -40,14 +39,7 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Load fixtures once for all tests."""
-        cls.embedding_fixtures = cls._load_fixture("embedding_fixtures.json")
-
-    @classmethod
-    def _load_fixture(cls, filename):
-        """Load fixture from the shared fixtures directory."""
-        fixtures_path = Path(__file__).parent.parent / "fixtures" / filename
-        with open(fixtures_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        cls.embedding_fixtures = load_fixture("embedding_fixtures.json")
 
     def _create_isolated_container(self):
         """Create an isolated container for each test to avoid concurrency issues."""

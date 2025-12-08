@@ -1,8 +1,6 @@
 """Integration tests for RetrieveCorpsUsecase with external adapters."""
 
-import json
 from datetime import datetime
-from pathlib import Path
 
 import pytest
 from django.test import TransactionTestCase
@@ -18,6 +16,7 @@ from apps.shared.infrastructure.adapters.persistence.repositories import (
 from apps.shared.infrastructure.adapters.persistence.repositories import (
     pgvector_repository as pgvector_repo,
 )
+from apps.shared.tests.fixtures.fixture_loader import load_fixture
 from apps.shared.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 from core.entities.corps import Corps
 from core.entities.document import DocumentType
@@ -36,14 +35,7 @@ class TestIntegrationRetrieveCorpsUsecase(TransactionTestCase):
     def setUpClass(cls):
         """Load fixtures once for all tests."""
         super().setUpClass()
-        cls.embedding_fixtures = cls._load_fixture("embedding_fixtures.json")
-
-    @classmethod
-    def _load_fixture(cls, filename):
-        """Load fixture from the shared fixtures directory."""
-        fixtures_path = Path(__file__).parent.parent / "fixtures" / filename
-        with open(fixtures_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        cls.embedding_fixtures = load_fixture("embedding_fixtures.json")
 
     def setUp(self):
         """Set up container dependencies."""

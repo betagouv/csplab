@@ -1,8 +1,5 @@
 """Integration tests for VectorizeDocuments usecase with external adapters."""
 
-import json
-from pathlib import Path
-
 import pytest
 from django.test import TransactionTestCase
 from pydantic import HttpUrl
@@ -22,6 +19,7 @@ from apps.shared.infrastructure.adapters.persistence.repositories import (
 from apps.shared.infrastructure.adapters.persistence.repositories import (
     pgvector_repository as pgvector_repo,
 )
+from apps.shared.tests.fixtures.fixture_loader import load_fixture
 from apps.shared.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 from core.entities.corps import Corps
 from core.value_objects.access_modality import AccessModality
@@ -38,15 +36,7 @@ class TestIntegrationVectorizeDocumentsUsecase(TransactionTestCase):
     def setUpClass(cls):
         """Load fixtures once for all tests."""
         super().setUpClass()
-        embedding_fixture_data = cls._load_fixture("embedding_fixtures.json")
-        cls.embedding_fixtures = embedding_fixture_data
-
-    @classmethod
-    def _load_fixture(cls, filename):
-        """Load fixture from the shared fixtures directory."""
-        fixtures_path = Path(__file__).parent.parent / "fixtures" / filename
-        with open(fixtures_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        cls.embedding_fixtures = load_fixture("embedding_fixtures.json")
 
     def setUp(self):
         """Set up container dependencies."""
