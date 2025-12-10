@@ -15,7 +15,6 @@ from apps.ingestion.application.interfaces.load_documents_input import (
 from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.container_singleton import IngestionContainerSingleton
 from core.entities.document import Document, DocumentType
-from core.errors.document_error import InvalidDocumentTypeError
 
 from .schemas import ConcoursRowSchema
 
@@ -40,42 +39,6 @@ def format_validation_error(error: ValidationError) -> str:
             errors.append(f"Erreur dans '{field}': {msg}")
 
     return " | ".join(errors)
-
-
-class LoadDocumentsView(APIView):
-    """API endpoint to trigger document loading."""
-
-    def post(self, request):
-        """Trigger document loading process."""
-        document_type_str = request.data.get("type", "CORPS")
-
-        try:
-            document_type = DocumentType[document_type_str.upper()]
-        except KeyError:
-            raise InvalidDocumentTypeError(document_type_str) from None
-
-        container = IngestionContainerSingleton.get_container()
-
-        usecase = container.load_documents_usecase()
-        input_data = LoadDocumentsInput(
-            operation_type=LoadOperationType.FETCH_FROM_API,
-            kwargs={"document_type": document_type},
-        )
-        result = usecase.execute(input_data)
-
-        created_count = result["created"]
-        updated_count = result["updated"]
-        message = f"{created_count} documents created, {updated_count} updated"
-        return Response(
-            {
-                "status": "success",
-                "document_type": document_type.value,
-                "created": result["created"],
-                "updated": result["updated"],
-                "message": message,
-            },
-            status=status.HTTP_200_OK,
-        )
 
 
 class ConcoursUploadView(APIView):
