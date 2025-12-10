@@ -79,7 +79,7 @@ class TestUnitRetrieveCorpsUsecase(unittest.TestCase):
         return corps_list
 
     def test_execute_with_valid_query_returns_ordered_corps(self):
-        """Test that a valid query returns Corps ordered by semantic similarity."""
+        """Test that a valid query returns Corps with scores ordered by similarity."""
         container = self._create_isolated_container()
         corps_list = self._setup_test_data(container)
         usecase = container.retrieve_corps_usecase()
@@ -90,11 +90,18 @@ class TestUnitRetrieveCorpsUsecase(unittest.TestCase):
 
         self.assertEqual(len(result), 2)
         self.assertIsInstance(result, list)
-        self.assertIsInstance(result[0], Corps)
+        self.assertIsInstance(result[0], tuple)
+        self.assertIsInstance(result[0][0], Corps)
+        self.assertIsInstance(result[0][1], float)
 
-        self.assertEqual(result[0].label.value, query)
+        self.assertEqual(result[0][0].label.value, query)
 
-        returned_ids = {corps.id for corps in result}
+        # Verify scores are between 0 and 1 (relevance scores)
+        for _, score in result:
+            self.assertGreaterEqual(score, 0.0)
+            self.assertLessEqual(score, 1.0)
+
+        returned_ids = {corps.id for corps, score in result}
         expected_ids = {corps.id for corps in corps_list}
         self.assertEqual(returned_ids, expected_ids)
 

@@ -77,7 +77,7 @@ class PgVectorRepository(IVectorRepository):
         return [
             SimilarityResult(
                 document=model.to_entity(),
-                score=model.distance,  # Use the annotated distance field
+                score=1.0 - model.distance,  # Convert distance to relevance score
             )
             for model in results
         ]

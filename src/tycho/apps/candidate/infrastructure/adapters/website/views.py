@@ -22,7 +22,7 @@ class CorpsSearchView(View):
             {
                 "form": form,
                 "query": "",
-                "corps_list": [],
+                "corps_with_scores": [],
             },
         )
 
@@ -40,8 +40,8 @@ class CorpsSearchView(View):
                 logger = container.logger_service()
 
                 logger.info(f"Starting search for '{query}' with limit {limit}")
-                corps_list = retrieve_usecase.execute(query, limit)
-                logger.info(f"Search completed, found {len(corps_list)} results")
+                corps_with_scores = retrieve_usecase.execute(query, limit)
+                logger.info(f"Search completed, found {len(corps_with_scores)} results")
 
                 return render(
                     request,
@@ -49,7 +49,7 @@ class CorpsSearchView(View):
                     {
                         "form": form,
                         "query": query,
-                        "corps_list": corps_list,
+                        "corps_with_scores": corps_with_scores,
                     },
                 )
 
@@ -61,7 +61,7 @@ class CorpsSearchView(View):
                     {
                         "form": form,
                         "query": query,
-                        "corps_list": [],
+                        "corps_with_scores": [],
                     },
                 )
 
@@ -71,6 +71,6 @@ class CorpsSearchView(View):
             {
                 "form": form,
                 "query": "",
-                "corps_list": [],
+                "corps_with_scores": [],
             },
         )
