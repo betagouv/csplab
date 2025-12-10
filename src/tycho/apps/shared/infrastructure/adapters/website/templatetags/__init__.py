@@ -1,1 +1,0 @@
-"""Django shared template tags."""
