@@ -1,6 +1,6 @@
 """Use case for retrieving Corps based on semantic similarity."""
 
-from typing import List
+from typing import List, Tuple
 
 from core.entities.corps import Corps
 from core.repositories.corps_repository_interface import ICorpsRepository
@@ -32,7 +32,7 @@ class RetrieveCorpsUsecase:
         self._corps_repository = corps_repository
         self._logger = logger
 
-    def execute(self, query: str, limit: int = 10) -> List[Corps]:
+    def execute(self, query: str, limit: int = 10) -> List[Tuple[Corps, float]]:
         """Execute the retrieval of Corps based on semantic similarity.
 
         Args:
@@ -40,7 +40,7 @@ class RetrieveCorpsUsecase:
             limit: Maximum number of results to return
 
         Returns:
-            List of Corps entities ordered by relevance
+            List of tuples (Corps, relevance_score) ordered by relevance
         """
         if not query.strip():
             return []
@@ -70,7 +70,7 @@ class RetrieveCorpsUsecase:
                         f"Corps {corps.id} ({corps.label.value})"
                         f": score={result.score:.4f}"
                     )
-                    corps_list.append(corps)
+                    corps_list.append((corps, result.score))
             except Exception as e:
                 self._logger.error(
                     f"Error retrieving corps {result.document.document_id}: {e}"

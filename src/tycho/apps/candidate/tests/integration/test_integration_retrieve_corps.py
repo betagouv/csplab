@@ -109,7 +109,7 @@ class TestIntegrationRetrieveCorpsUsecase(TransactionTestCase):
 
     @pytest.mark.django_db
     def test_retrieve_corps_with_valid_query_returns_results(self):
-        """Test retrieving Corps with valid query using real database."""
+        """Test retrieving Corps with scores using real database."""
         corps_list = self._create_test_data()
 
         query = list(self.embedding_fixtures.values())[0]["long_label"]
@@ -118,11 +118,18 @@ class TestIntegrationRetrieveCorpsUsecase(TransactionTestCase):
 
         self.assertEqual(len(result), 2)
         self.assertIsInstance(result, list)
-        self.assertIsInstance(result[0], Corps)
+        self.assertIsInstance(result[0], tuple)
+        self.assertIsInstance(result[0][0], Corps)
+        self.assertIsInstance(result[0][1], float)
 
-        self.assertEqual(result[0].label.value, query)
+        self.assertEqual(result[0][0].label.value, query)
 
-        returned_ids = {corps.id for corps in result}
+        # Verify scores are between 0 and 1 (relevance scores)
+        for _, score in result:
+            self.assertGreaterEqual(score, 0.0)
+            self.assertLessEqual(score, 1.0)
+
+        returned_ids = {corps.id for corps, score in result}
         expected_ids = {corps.id for corps in corps_list}
         self.assertEqual(returned_ids, expected_ids)
 
@@ -154,4 +161,6 @@ class TestIntegrationRetrieveCorpsUsecase(TransactionTestCase):
         result = self.retrieve_corps_usecase.execute(query, limit=1)
 
         self.assertEqual(len(result), 1)
-        self.assertIsInstance(result[0], Corps)
+        self.assertIsInstance(result[0], tuple)
+        self.assertIsInstance(result[0][0], Corps)
+        self.assertIsInstance(result[0][1], float)

@@ -1,14 +1,15 @@
 {% extends "candidate/base.html" %}
+{% load percentage %}
 
-{% block title %}Recherche de corps - CSPLab{% endblock %}
+{% block title %}Recherche de corps d'Etat - CSPLab{% endblock %}
 
 {% block content %}
 <div class="fr-py-6w">
     <div class="fr-grid-row fr-grid-row--center">
         <div class="fr-col-12 fr-col-md-8">
-            <h1 class="fr-h1">Recherche sémantique de corps</h1>
+            <h1 class="fr-h1">Moteur de recherche des corps de la Fonction Publique d'Etat</h1>
             <p class="fr-text--lead">
-                Trouvez le corps de la fonction publique qui correspond à votre recherche
+                Entrez un métier et trouver le ou les corps de la fonction publique d'Etat qui lui correspond
             </p>
 
             <!-- Formulaire de recherche -->
@@ -22,12 +23,12 @@
                         {{ form.query }}
                         <div class="fr-messages-group" id="search-input-messages" aria-live="polite">
                             {% if form.query.errors %}
-                                {% for error in form.query.errors %}
-                                    <p class="fr-message fr-message--error">{{ error }}</p>
-                                {% endfor %}
+                            {% for error in form.query.errors %}
+                            <p class="fr-message fr-message--error">{{ error }}</p>
+                            {% endfor %}
                             {% endif %}
                         </div>
-                        <button title="Rechercher" type="submit" class="fr-btn">Rechercher</button>
+                        <button title="Entrer un métier" type="submit" class="fr-btn">Entrer un métier</button>
                     </div>
                 </div>
                 {{ form.limit }}
@@ -35,82 +36,83 @@
 
             <!-- Résultats de recherche -->
             {% if query %}
-                <div class="fr-mb-2w">
-                    <h2 class="fr-h3">
-                        Résultats pour "{{ query }}"
-                        {% if corps_list %}
-                            <span class="fr-badge fr-badge--info">{{ corps_list|length }} résultat{{ corps_list|length|pluralize }}</span>
-                        {% endif %}
-                    </h2>
-                </div>
+            <div class="fr-mb-2w">
+                <h2 class="fr-h3">
+                    Résultats pour "{{ query }}"
+                    {% if corps_with_scores %}
+                    <span class="fr-badge fr-badge--info">{{ corps_with_scores|length }} résultat{{ corps_with_scores|length|pluralize }}</span>
+                    {% endif %}
+                </h2>
+            </div>
 
-                {% if corps_list %}
-                    <div class="fr-grid-row fr-grid-row--gutters">
-                        {% for corps in corps_list %}
-                            <div class="fr-col-12">
-                                <div class="fr-card fr-card--horizontal">
-                                    <div class="fr-card__body">
-                                        <div class="fr-card__content">
-                                            <h3 class="fr-card__title">
-                                                {{ corps.label.value }}
-                                            </h3>
-                                            <div class="fr-card__desc">
-                                                <div class="fr-grid-row fr-grid-row--gutters">
-                                                    {% if corps.category %}
-                                                        <div class="fr-col-6 fr-col-md-3">
-                                                            <p class="fr-text--sm fr-mb-1v">
-                                                                <strong>Catégorie :</strong><br>
-                                                                {{ corps.category.value }}
-                                                            </p>
-                                                        </div>
-                                                    {% endif %}
-                                                    {% if corps.ministry %}
-                                                        <div class="fr-col-6 fr-col-md-3">
-                                                            <p class="fr-text--sm fr-mb-1v">
-                                                                <strong>Ministère :</strong><br>
-                                                                {{ corps.ministry.value }}
-                                                            </p>
-                                                        </div>
-                                                    {% endif %}
-                                                    {% if corps.diploma %}
-                                                        <div class="fr-col-6 fr-col-md-3">
-                                                            <p class="fr-text--sm fr-mb-1v">
-                                                                <strong>Diplôme :</strong><br>
-                                                                {{ corps.diploma.value }}
-                                                            </p>
-                                                        </div>
-                                                    {% endif %}
-                                                    {% if corps.access_modality %}
-                                                        <div class="fr-col-6 fr-col-md-3">
-                                                            <p class="fr-text--sm fr-mb-1v">
-                                                                <strong>Modalité d'accès :</strong><br>
-                                                                {{ corps.access_modality.value }}
-                                                            </p>
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
+            {% if corps_with_scores %}
+            <div class="fr-grid-row fr-grid-row--gutters">
+                {% for corps, score in corps_with_scores %}
+                <div class="fr-col-12">
+                    <div class="fr-card fr-card--horizontal">
+                        <div class="fr-card__body">
+                            <div class="fr-card__content">
+                                <h3 class="fr-card__title">
+                                    {{ corps.label.value }}
+                                    <span class="fr-badge fr-badge--success fr-ml-1w">{{ score|pct }}</span>
+                                </h3>
+                                <div class="fr-card__desc">
+                                    <div class="fr-grid-row fr-grid-row--gutters">
+                                        {% if corps.category %}
+                                        <div class="fr-col-6 fr-col-md-3">
+                                            <p class="fr-text--sm fr-mb-1v">
+                                                <strong>Catégorie :</strong><br>
+                                                {{ corps.category.value }}
+                                            </p>
                                         </div>
+                                        {% endif %}
+                                        {% if corps.ministry %}
+                                        <div class="fr-col-6 fr-col-md-3">
+                                            <p class="fr-text--sm fr-mb-1v">
+                                                <strong>Ministère :</strong><br>
+                                                {{ corps.ministry.value }}
+                                            </p>
+                                        </div>
+                                        {% endif %}
+                                        {% if corps.diploma %}
+                                        <div class="fr-col-6 fr-col-md-3">
+                                            <p class="fr-text--sm fr-mb-1v">
+                                                <strong>Diplôme :</strong><br>
+                                                {{ corps.diploma.value }}
+                                            </p>
+                                        </div>
+                                        {% endif %}
+                                        {% if corps.access_modality %}
+                                        <div class="fr-col-6 fr-col-md-3">
+                                            <p class="fr-text--sm fr-mb-1v">
+                                                <strong>Modalité d'accès :</strong><br>
+                                                {{ corps.access_modality.value }}
+                                            </p>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
-                        {% endfor %}
+                        </div>
                     </div>
-                {% else %}
-                    <div class="fr-alert fr-alert--info">
-                        <h3 class="fr-alert__title">Aucun résultat trouvé</h3>
-                        <p>Aucun corps ne correspond à votre recherche "{{ query }}". Essayez avec d'autres mots-clés.</p>
-                    </div>
-                {% endif %}
-            {% else %}
-                <!-- Message d'accueil -->
-                <div class="fr-callout">
-                    <h3 class="fr-callout__title">Comment utiliser la recherche ?</h3>
-                    <p class="fr-callout__text">
-                        Décrivez le type de poste, de mission ou de domaine qui vous intéresse.
-                        Par exemple : "informatique", "enseignement", "finances publiques", etc.
-                    </p>
                 </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="fr-alert fr-alert--info">
+                <h3 class="fr-alert__title">Aucun résultat trouvé</h3>
+                <p>Aucun corps ne correspond à votre recherche "{{ query }}". Essayez avec d'autres mots-clés.</p>
+            </div>
+            {% endif %}
+            {% else %}
+            <!-- Message d'accueil -->
+            <div class="fr-callout">
+                <h3 class="fr-callout__title">Comment utiliser la recherche ?</h3>
+                <p class="fr-callout__text">
+                    Décrivez le type de poste, de mission ou de domaine qui vous intéresse.
+                    Par exemple : "informatique", "enseignement", "finances publiques", etc.
+                </p>
+            </div>
             {% endif %}
         </div>
     </div>
