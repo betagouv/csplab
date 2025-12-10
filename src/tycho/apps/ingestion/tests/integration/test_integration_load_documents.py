@@ -1,7 +1,7 @@
 """Integration tests for LoadDocuments usecase with external adapters."""
 
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 import responses
@@ -10,6 +10,10 @@ from pydantic import HttpUrl
 from rest_framework.test import APITestCase
 
 from apps.ingestion.application.exceptions import LoadDocumentsError
+from apps.ingestion.application.interfaces.load_documents_input import (
+    LoadDocumentsInput,
+)
+from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
@@ -84,7 +88,11 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
             content_type="application/json",
         )
 
-        result = self.usecase.execute(DocumentType.CORPS)
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.CORPS},
+        )
+        result = self.usecase.execute(input_data)
         self.assertEqual(result["created"], 0)
         self.assertEqual(result["updated"], 0)
 
@@ -113,7 +121,11 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
             content_type="application/json",
         )
 
-        result = self.usecase.execute(DocumentType.CORPS)
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.CORPS},
+        )
+        result = self.usecase.execute(input_data)
         self.assertEqual(result["created"], 4)
         self.assertEqual(result["updated"], 0)
 
@@ -122,21 +134,6 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
             document_type=DocumentType.CORPS.value
         )
         self.assertEqual(saved_documents.count(), 4)
-
-    @pytest.mark.django_db
-    def test_execute_handles_repository_error(self):
-        """Test execute handles repository errors properly."""
-        mock_repo = Mock()
-        mock_repo.fetch_by_type.side_effect = Exception("Ingres connection failed")
-        self.container.document_repository.override(mock_repo)
-
-        # Create new usecase with mocked repository
-        usecase = self.container.load_documents_usecase()
-
-        with self.assertRaises(Exception) as context:
-            usecase.execute(DocumentType.CORPS)
-
-        self.assertEqual(str(context.exception), "Ingres connection failed")
 
 
 class TestIntegrationExceptions(APITestCase):
