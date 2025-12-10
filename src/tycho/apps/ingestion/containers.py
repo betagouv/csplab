@@ -2,6 +2,9 @@
 
 from dependency_injector import containers, providers
 
+from apps.ingestion.application.interfaces.load_documents_input import (
+    LoadDocumentsInput,
+)
 from apps.ingestion.application.usecases.clean_documents import CleanDocumentsUsecase
 from apps.ingestion.application.usecases.load_documents import LoadDocumentsUsecase
 from apps.ingestion.application.usecases.vectorize_documents import (
@@ -16,6 +19,9 @@ from apps.ingestion.infrastructure.adapters.persistence.repositories import (
 )
 from apps.ingestion.infrastructure.adapters.persistence.repository_factory import (
     RepositoryFactory,
+)
+from apps.ingestion.infrastructure.adapters.services import (
+    load_documents_strategy_factory as load_strategy,
 )
 from apps.ingestion.infrastructure.adapters.services.document_cleaner import (
     DocumentCleaner,
@@ -84,10 +90,16 @@ class IngestionContainer(containers.DeclarativeContainer):
         TextExtractor,
     )
 
+    load_documents_strategy_factory = providers.Singleton(
+        load_strategy.LoadDocumentsStrategyFactory,
+        document_fetcher=document_fetcher,
+    )
+
     load_documents_usecase: providers.Provider[
-        IUseCase[DocumentType, IUpsertResult]
+        IUseCase[LoadDocumentsInput, IUpsertResult]
     ] = providers.Factory(
         LoadDocumentsUsecase,
+        strategy_factory=load_documents_strategy_factory,
         document_repository=document_repository,
         logger=logger_service,
     )

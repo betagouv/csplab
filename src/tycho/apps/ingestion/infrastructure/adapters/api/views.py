@@ -9,6 +9,10 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.ingestion.application.interfaces.load_documents_input import (
+    LoadDocumentsInput,
+)
+from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.container_singleton import IngestionContainerSingleton
 from core.entities.document import Document, DocumentType
 from core.errors.document_error import InvalidDocumentTypeError
@@ -53,7 +57,11 @@ class LoadDocumentsView(APIView):
         container = IngestionContainerSingleton.get_container()
 
         usecase = container.load_documents_usecase()
-        result = usecase.execute(document_type)
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": document_type},
+        )
+        result = usecase.execute(input_data)
 
         created_count = result["created"]
         updated_count = result["updated"]
@@ -141,7 +149,11 @@ class ConcoursUploadView(APIView):
 
             container = IngestionContainerSingleton.get_container()
             usecase = container.load_documents_usecase()
-            result = usecase.execute(valid_documents)
+            input_data = LoadDocumentsInput(
+                operation_type=LoadOperationType.UPLOAD_FROM_CSV,
+                kwargs={"documents": valid_documents},
+            )
+            result = usecase.execute(input_data)
 
             return Response(
                 {
