@@ -30,5 +30,6 @@ and this project adheres to
 - add candidate app
 - add retrieval usecase
 - add simple interface for demo
+- add scores to corps retrieval
 
 [unreleased]: https://github.com/betagouv/csplab/
