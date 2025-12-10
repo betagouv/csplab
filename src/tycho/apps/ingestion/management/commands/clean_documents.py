@@ -31,7 +31,7 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS(
                     f"✅ Clean completed: {result['cleaned']}/{result['processed']}"
-                    "documents cleaned"
+                    " documents cleaned"
                 )
             )
 

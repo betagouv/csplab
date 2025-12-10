@@ -31,5 +31,6 @@ and this project adheres to
 - add retrieval usecase
 - add simple interface for demo
 - add scores to corps retrieval
+- fix custom template tag
 
 [unreleased]: https://github.com/betagouv/csplab/

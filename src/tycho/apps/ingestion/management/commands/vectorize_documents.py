@@ -63,7 +63,7 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS(
                     f"✅ Completed: {result['vectorized']}/{result['processed']}"
-                    "documents vectorized"
+                    " documents vectorized"
                 )
             )
 
