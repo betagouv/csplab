@@ -88,6 +88,39 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
         self.assertEqual(result["vectorized"], 2)
         self.assertEqual(result["errors"], 0)
 
+    # TODO: vectorize concours pour clean et matcher les corps_id grade_id
+    # def test_vectorize_two_documents_returns_correct_embeddings(self):
+    #     """Test vectorizing two Documents returns correct embeddings from fixtures."""
+    #     container = self._create_isolated_container()
+    #     usecase = container.vectorize_documents_usecase()
+
+    #     doc_ids = list(self.embedding_fixtures.keys())[:2]
+
+    #     doc_list = []
+    #     expected_embeddings = {}
+
+    #     for doc_id in doc_ids:
+    #         fixture_data = self.embedding_fixtures[doc_id]
+    #         long_label = fixture_data["long_label"]
+    #         expected_embedding = fixture_data["embedding"]
+
+    #         document = Document(
+    #             id=int(doc_id),
+    #             external_id=doc_id,
+    #             raw_data=long_label,
+    #             type=DocumentType.CONCOURS,
+    #             created_at=datetime.now(),
+    #             updated_at=datetime.now(),
+    #         )
+    #         doc_list.append(document)
+    #         expected_embeddings[int(doc_id)] = expected_embedding
+
+    #     result = usecase.execute(doc_list)
+
+    #     self.assertEqual(result["processed"], 2)
+    #     self.assertEqual(result["vectorized"], 2)
+    #     self.assertEqual(result["errors"], 0)
+
     def test_vectorize_corps_with_exception_handles_error_correctly(self):
         """Test that exceptions during vectorization are properly handled and logged."""
         container = self._create_isolated_container()

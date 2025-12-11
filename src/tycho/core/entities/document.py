@@ -5,6 +5,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
 
+from core.interfaces.entity_interface import IEntity
+
 
 class DocumentType(Enum):
     """Enumeration of document types for raw data ingestion."""
@@ -21,10 +23,10 @@ class DocumentType(Enum):
 
 
 @dataclass
-class Document:
+class Document(IEntity):
     """Document entity representing any type of raw ingested data."""
 
-    id: Optional[int]
+    id: int
     external_id: Optional[str]
     raw_data: Dict[str, Any]
     type: DocumentType
