@@ -13,9 +13,11 @@ from core.entities.corps import Corps
 from core.entities.document import Document, DocumentType
 from core.errors.corps_errors import (
     InvalidAccessModalityError,
+    InvalidCategoryError,
     InvalidDiplomaLevelError,
 )
 from core.errors.document_error import InvalidDocumentTypeError
+from core.services.document_cleaner_interface import IDocumentCleaner
 from core.services.logger_interface import ILogger
 from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category
@@ -26,21 +28,18 @@ from core.value_objects.ministry import Ministry
 MAX_DECRETS_BY_CORPS = 20
 
 
-class CorpsCleaner:
-    """Adapter for cleaning raw documents of tye CORPS into Corps entities."""
+class CorpsCleaner(IDocumentCleaner[Corps]):
+    """Adapter for cleaning raw documents of type CORPS into Corps entities."""
 
     def __init__(self, logger: ILogger):
         """Initialize with logger dependency."""
         self.logger = logger.get_logger("CorpsCleaner::clean")
 
     def clean(self, raw_documents: List[Document]) -> List[Corps]:
-        """Clean raw documents and return Corps entities using vectorized processing."""
+        """Clean raw documents and return Corps entities."""
         for document in raw_documents:
             if document.type != DocumentType.CORPS:
                 raise InvalidDocumentTypeError(document.type.value)
-
-        if not raw_documents:
-            return []
 
         corps_data = []
         for document in raw_documents:
@@ -194,8 +193,10 @@ class CorpsCleaner:
             return Category.A
         elif "B" in category_upper:
             return Category.B
-        else:
+        elif "C" in category_upper:
             return Category.C
+        else:
+            raise InvalidCategoryError(category_upper)
 
     def _map_ministry(self, ministry_str: Optional[str]) -> Ministry:
         """Map ministry string to Ministry enum."""

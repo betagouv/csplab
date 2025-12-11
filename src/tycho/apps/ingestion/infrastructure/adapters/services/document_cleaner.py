@@ -2,6 +2,9 @@
 
 from typing import List, Sequence
 
+from apps.ingestion.infrastructure.adapters.services.concours_cleaner import (
+    ConcoursCleaner,
+)
 from apps.ingestion.infrastructure.adapters.services.corps_cleaner import CorpsCleaner
 from core.entities.document import Document, DocumentType
 from core.errors.document_error import (
@@ -9,10 +12,11 @@ from core.errors.document_error import (
     UnsupportedDocumentTypeError,
 )
 from core.interfaces.entity_interface import IEntity
+from core.services.document_cleaner_interface import IDocumentCleaner
 from core.services.logger_interface import ILogger
 
 
-class DocumentCleaner:
+class DocumentCleaner(IDocumentCleaner[IEntity]):
     """Factory for creating appropriate document cleaners based on document type.
 
     Implements IDocumentCleaner[IEntity] protocol.
@@ -22,8 +26,7 @@ class DocumentCleaner:
         """Initialize the factory with available cleaners."""
         self._cleaners = {
             DocumentType.CORPS: CorpsCleaner(logger),
-            # TODO: Add other cleaners when implemented
-            # DocumentType.CONCOURS: ConcoursDocumentCleaner(),
+            DocumentType.CONCOURS: ConcoursCleaner(logger),
         }
 
     def clean(self, raw_documents: List[Document]) -> Sequence[IEntity]:
