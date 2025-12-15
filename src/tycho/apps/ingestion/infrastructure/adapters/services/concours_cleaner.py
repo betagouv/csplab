@@ -64,6 +64,7 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
         """Apply filters based on notebook logic."""
         df = df.filter(pl.col("Statut") == "VALIDE")
         df = df.filter(pl.col("Année de référence") > REFERENCE_YEAR)
+        df = df.filter(pl.col("Ministère") != "Ministère des Armées")
 
         required_cols = ["N° NOR", "Année de référence", "Corps", "Catégorie"]
         for col in required_cols:
@@ -181,47 +182,38 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
 
         concours_list: List[Concours] = []
         for row in df.to_dicts():
-            try:
-                category = self._map_category(row["Catégorie"])
-                if category is None:
-                    self.logger.warning(
-                        f"Catégorie manquante pour {row.get('concours_id', 'unknown')}"
-                    )
-                    continue
-
-                ministry = self._map_ministry(row["Ministère"])
-                access_modalities = self._map_access_modalities(row["mod_access"])
-
-                nor_original = NOR(row["concours_id"])
-                nor_list = [NOR(nor) for nor in row["all_nors_in_concours"]]
-
-                # Parse date
-                written_exam_date = self._parse_date(
-                    row.get("Date de première épreuve")
+            category = self._map_category(row["Catégorie"])
+            if category is None:
+                self.logger.warning(
+                    f"Catégorie manquante pour {row.get('concours_id', 'unknown')}"
                 )
-
-                # Parse position number
-                open_position_number = int(row.get("Nb postes total", 0) or 0)
-
-                # TODO: Get corps_id from vector matching service
-                corps_id = 1  # Placeholder until vector matching is implemented
-
-                concours = Concours(
-                    id=0,  # Will be set by repository
-                    nor_original=nor_original,
-                    nor_list=nor_list,
-                    category=category,
-                    ministry=ministry,
-                    access_modality=access_modalities,
-                    corps_id=corps_id,
-                    written_exam_date=written_exam_date,
-                    open_position_number=open_position_number,
-                )
-                concours_list.append(concours)
-
-            except Exception as e:
-                self.logger.error(f"Erreur {row.get('concours_id', 'unknown')}: {e}")
                 continue
+
+            ministry = self._map_ministry(row["Ministère"])
+            access_modalities = self._map_access_modalities(row["mod_access"])
+
+            nor_original = NOR(row["concours_id"])
+            nor_list = [NOR(nor) for nor in row["all_nors_in_concours"]]
+
+            written_exam_date = self._parse_date(row.get("Date de première épreuve"))
+
+            open_position_number = int(row.get("Nb postes total", 0) or 0)
+
+            # TODO: Get corps_id from vector matching service
+            corps_id = 1  # Placeholder until vector matching is implemented
+
+            concours = Concours(
+                id=0,  # Will be set by repository
+                nor_original=nor_original,
+                nor_list=nor_list,
+                category=category,
+                ministry=ministry,
+                access_modality=access_modalities,
+                corps_id=corps_id,
+                written_exam_date=written_exam_date,
+                open_position_number=open_position_number,
+            )
+            concours_list.append(concours)
 
         return concours_list
 
@@ -265,10 +257,40 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
 
     def _map_ministry(self, ministry_str: Optional[str]) -> Ministry:
         """Map ministry string to Ministry enum."""
-        if ministry_str == "Météo France":
-            return Ministry.METEO_FRANCE
+        if not ministry_str:
+            raise ValueError("Ministry string cannot be None or empty")
 
-        return Ministry(ministry_str)
+        # Direct mappings for known ministry names
+        ministry_mappings = {
+            "Météo France": Ministry.METEO_FRANCE,
+            "Ministère de la Culture": Ministry.MC,
+            "Ministère de l'Europe et des Affaires Etrangères": Ministry.MEAE,
+            "Premier ministre": Ministry.PREMIER_MINISTRE,
+            "Ministère de l'Économie, des Finances et de la Souveraineté industrielle et numérique": Ministry.MEF,  # noqa: E501
+            "Ministère de l'Agriculture et de la Souveraineté alimentaire": Ministry.MAA,  # noqa: E501
+            "Ministère de la Transition écologique et de la Cohésion des territoires": Ministry.MTE,  # noqa: E501
+            "Ministère de l'Enseignement supérieur et de la Recherche": Ministry.MESRI,
+            "Ministère de l'Education Nationale et de la Jeunesse": Ministry.MEN,
+            "Ministère du Travail, du Plein emploi et de l'Insertion": Ministry.MTEI,
+            "Ministère de la Justice": Ministry.MJ,
+            "Ministère Solidarités et Santé": Ministry.MSS,
+            "Ministère de l'Intérieur et des Outre-mer": Ministry.MI,
+            "Conseil d'Etat": Ministry.CONSEIL_ETAT,
+            "Caisse des Dépôts et Consignations": Ministry.CAISSE_DES_DEPOTS_ET_CONSIGNATIONS,  # noqa: E501
+            "Cour des comptes": Ministry.COUR_COMPTES,
+        }
+
+        if ministry_str in ministry_mappings:
+            return ministry_mappings[ministry_str]
+
+        # Fallback: try to use the string directly as enum value
+        try:
+            return Ministry(ministry_str)
+        except ValueError:
+            self.logger.warning(
+                f"Ministry non reconnu: {ministry_str}, utilisation de INTERMINISTERIEL"
+            )
+            return Ministry.INTERMINISTERIEL
 
     def _map_access_modalities(
         self, access_mod_list: List[str]

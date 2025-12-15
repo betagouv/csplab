@@ -5,6 +5,7 @@ from typing import Any, Dict, List, cast
 from core.entities.concours import Concours
 from core.entities.corps import Corps
 from core.entities.document import DocumentType
+from core.errors.document_error import InvalidDocumentTypeError
 from core.interfaces.entity_interface import IEntity
 from core.repositories.concours_repository_interface import IConcoursRepository
 from core.repositories.corps_repository_interface import ICorpsRepository
@@ -69,8 +70,7 @@ class CleanDocumentsUsecase:
                 cast(List[Concours], cleaned_entities)
             )
         else:
-            repository = self.repository_factory.get_repository(input_data)
-            save_result = repository.upsert_batch(cast(List[Any], cleaned_entities))
+            raise InvalidDocumentTypeError(input_data.value)
 
         self.logger.info(f"Saved entities: {save_result}")
 

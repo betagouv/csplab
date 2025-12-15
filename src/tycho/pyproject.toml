@@ -59,11 +59,12 @@ packages = [
 # Third party packages configuration
 [tool.coverage.run]
 omit = [
-  "migrations/*",
+  "apps/**/migrations/*",
   "tycho/asgi.py",
   "tycho/wsgi.py",
   "tycho/tests/*",
   "apps/**/tests/*",
+  "apps/**/management/*"
 ]
 
 [tool.pytest.ini_options]

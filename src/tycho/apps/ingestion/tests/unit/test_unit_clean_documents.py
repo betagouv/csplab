@@ -24,6 +24,7 @@ from apps.shared.tests.utils.in_memory_corps_repository import (
     InMemoryCorpsRepository,
 )
 from core.entities.document import Document, DocumentType
+from core.errors.document_error import InvalidDocumentTypeError
 
 REFERENCE_YEAR = 2024
 
@@ -456,3 +457,21 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
         self.assertEqual(result["updated"], 0)
         self.assertEqual(result["errors"], 2)
         self.assertEqual(len(result["error_details"]), 2)
+
+    def test_execute_raises_error_for_unsupported_document_type(self):
+        """Test that InvalidDocumentTypeError is raised."""
+        container = self._create_isolated_container()
+
+        grade_data = {"test": "data"}
+        self._create_test_documents(container, [grade_data], DocumentType.GRADE)
+
+        mock_cleaner = Mock()
+        mock_cleaner.clean.return_value = [Mock()]  # Return fake entities
+        container.document_cleaner.override(mock_cleaner)
+
+        clean_documents_usecase = container.clean_documents_usecase()
+
+        with self.assertRaises(InvalidDocumentTypeError) as context:
+            clean_documents_usecase.execute(DocumentType.GRADE)
+
+        self.assertIn("GRADE", str(context.exception))

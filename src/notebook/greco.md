@@ -51,6 +51,10 @@ for col in required_cols:  # Exclut 'Date de première épreuve'
 ```
 
 ```python
+list(df['Ministère'].unique())
+```
+
+```python
 df.write_csv("greco_after2025.csv", separator=";")
 ```
 
