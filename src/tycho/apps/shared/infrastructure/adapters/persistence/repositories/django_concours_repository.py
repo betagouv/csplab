@@ -21,9 +21,22 @@ class DjangoConcoursRepository(IConcoursRepository):
 
         for concours in concours_list:
             try:
+                defaults = {
+                    "corps_id": concours.corps_id,
+                    "nor_original": concours.nor_original.value,
+                    "nor_list": [nor.value for nor in concours.nor_list],
+                    "category": concours.category.value,
+                    "ministry": concours.ministry.value,
+                    "access_modality": [
+                        modality.value for modality in concours.access_modality
+                    ],
+                    "written_exam_date": concours.written_exam_date,
+                    "open_position_number": concours.open_position_number,
+                }
+
                 _, was_created = ConcoursModel.objects.update_or_create(
                     id=concours.id,
-                    defaults=ConcoursModel.from_entity(concours).__dict__,
+                    defaults=defaults,
                 )
 
                 if was_created:

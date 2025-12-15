@@ -4,10 +4,15 @@ from datetime import datetime
 from typing import List, Optional
 
 import polars as pl
+from django.utils import timezone
 
 from core.entities.concours import Concours
 from core.entities.document import Document, DocumentType
-from core.errors.corps_errors import InvalidAccessModalityError, InvalidCategoryError
+from core.errors.corps_errors import (
+    InvalidAccessModalityError,
+    InvalidCategoryError,
+    InvalidMinistryError,
+)
 from core.errors.document_error import InvalidDocumentTypeError
 from core.services.document_cleaner_interface import IDocumentCleaner
 from core.services.logger_interface import ILogger
@@ -46,15 +51,11 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
             return []
 
         df = pl.DataFrame(concours_data)
-        self.logger.info(f"Données initiales: {len(df)} lignes")
-
         df_filtered = self._apply_filters(df)
-        self.logger.info(f"Après filtrage: {len(df_filtered)} lignes")
-
         df_processed = self._process_concours_data(df_filtered)
-        self.logger.info(f"Après traitement: {len(df_processed)} lignes")
+        concours_list = self._dataframe_to_concours(df_processed)
 
-        return self._dataframe_to_concours(df_processed)
+        return concours_list
 
     def _parse_concours_data(self, raw_data: dict) -> Optional[dict]:
         """Parse raw concours data into structured format."""
@@ -181,6 +182,7 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
             return []
 
         concours_list: List[Concours] = []
+        counter = 0
         for row in df.to_dicts():
             category = self._map_category(row["Catégorie"])
             if category is None:
@@ -200,10 +202,10 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
             open_position_number = int(row.get("Nb postes total", 0) or 0)
 
             # TODO: Get corps_id from vector matching service
-            corps_id = 1  # Placeholder until vector matching is implemented
+            corps_id = counter + 1  # Placeholder until vector matching is implemented
 
             concours = Concours(
-                id=0,  # Will be set by repository
+                id=corps_id,  # Will be set by repository
                 nor_original=nor_original,
                 nor_list=nor_list,
                 category=category,
@@ -229,12 +231,11 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
             return 0
 
     def _parse_date(self, date_str: Optional[str]) -> Optional[datetime]:
-        """Parse date string to datetime."""
+        """Parse date string to timezone-aware datetime."""
         if not date_str:
             return None
         try:
-            # Assume format DD/MM/YYYY or similar
-            return datetime.strptime(date_str, "%d/%m/%Y")
+            return timezone.make_aware(datetime.strptime(date_str, "%d/%m/%Y"))
         except (ValueError, TypeError):
             return None
 
@@ -258,7 +259,7 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
     def _map_ministry(self, ministry_str: Optional[str]) -> Ministry:
         """Map ministry string to Ministry enum."""
         if not ministry_str:
-            raise ValueError("Ministry string cannot be None or empty")
+            raise InvalidMinistryError("Unknown minnistry")
 
         # Direct mappings for known ministry names
         ministry_mappings = {
@@ -282,15 +283,8 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
 
         if ministry_str in ministry_mappings:
             return ministry_mappings[ministry_str]
-
-        # Fallback: try to use the string directly as enum value
-        try:
-            return Ministry(ministry_str)
-        except ValueError:
-            self.logger.warning(
-                f"Ministry non reconnu: {ministry_str}, utilisation de INTERMINISTERIEL"
-            )
-            return Ministry.INTERMINISTERIEL
+        else:
+            raise InvalidMinistryError("Unknown minnistry")
 
     def _map_access_modalities(
         self, access_mod_list: List[str]

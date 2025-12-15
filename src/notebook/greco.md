@@ -168,7 +168,3 @@ df_final.head()
 ```python
 df_final
 ```
-
-```python
-
-```
