@@ -2,4 +2,4 @@
 
 set -eo pipefail
 
-make lint && cz --config dev/pyproject.toml "$@"
+cd dev && uv run cz "$@"

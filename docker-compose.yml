@@ -1,18 +1,4 @@
 services:
-  dev:
-    build:
-      context: .
-      dockerfile: dev/Dockerfile
-      args:
-        DOCKER_UID: ${DOCKER_UID:-1000}
-        DOCKER_GID: ${DOCKER_GID:-1000}
-    user: ${DOCKER_USER:-1000}
-    volumes:
-      - .:/workspace
-    working_dir: /workspace
-    environment:
-      - PRE_COMMIT_HOME=/workspace/.pre-commit-cache
-
   notebook:
     build:
       context: src/notebook

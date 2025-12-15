@@ -5,7 +5,6 @@ SHELL := /bin/bash
 COMPOSE                 = bin/compose
 COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
 COMPOSE_RUN             = $(COMPOSE) run --rm --no-deps
-COMPOSE_RUN_DEV_UV      = $(COMPOSE_RUN) dev uv run
 COMPOSE_RUN_TYCHO_UV    = $(COMPOSE_RUN) tycho uv run
 COMPOSE_RUN_NOTEBOOK_UV = $(COMPOSE_RUN) notebook uv run
 
@@ -53,9 +52,7 @@ build: ## build services image
 	$(COMPOSE) build
 .PHONY: build
 
-build-dev: ## build development environment image
-	@$(COMPOSE) build dev
-.PHONY: build-dev
+
 
 build-notebook: ## build custom jupyter notebook image
 	@$(COMPOSE) build notebook
