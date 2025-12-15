@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 from django.db.models import Q
 from pgvector.django import CosineDistance
 
-from apps.ingestion.infrastructure.adapters.persistence.models import (
+from apps.shared.infrastructure.adapters.persistence.models import (
     vectorized_document,
 )
 from core.entities.vectorized_document import VectorizedDocument

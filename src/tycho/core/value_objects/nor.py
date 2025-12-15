@@ -7,7 +7,7 @@ from core.errors.concours_errors import InvalidNorError
 
 
 @dataclass(frozen=True)
-class Nor:
+class NOR:
     """NOR value object with validation and parsing capabilities."""
 
     value: str

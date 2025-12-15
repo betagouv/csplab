@@ -9,7 +9,7 @@ from core.repositories.document_repository_interface import IUpsertResult
 class IConcoursRepository(Protocol):
     """Interface for Concours repository operations."""
 
-    def upsert_batch(self, corps: List[Concours]) -> IUpsertResult:
+    def upsert_batch(self, concours_list: List[Concours]) -> IUpsertResult:
         """Insert or update multiple Concours entities and return operation results."""
         ...
 

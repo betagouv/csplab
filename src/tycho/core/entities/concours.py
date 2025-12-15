@@ -8,7 +8,7 @@ from core.interfaces.entity_interface import IEntity
 from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category
 from core.value_objects.ministry import Ministry
-from core.value_objects.nor import Nor
+from core.value_objects.nor import NOR
 
 
 @dataclass
@@ -16,15 +16,15 @@ class Concours(IEntity):
     """Concours entity."""
 
     id: int
-    nor_original: Nor
-    nor_list: List[Nor]
+    nor_original: NOR
+    nor_list: List[NOR]
     category: Category
     ministry: Ministry
     access_modality: List[AccessModality]
     corps_id: int
-    grade_id: int
-    opening_registration_date: Optional[datetime]
-    closing_registration_date: Optional[datetime]
+    # grade_id: int
+    # opening_registration_date: Optional[datetime]
+    # closing_registration_date: Optional[datetime]
     written_exam_date: Optional[datetime]
-    registration_url: Optional[str]
+    # registration_url: Optional[str]
     open_position_number: int

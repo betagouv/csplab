@@ -17,10 +17,15 @@ from apps.ingestion.tests.utils.in_memory_document_repository import (
 )
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from apps.shared.tests.fixtures.fixture_loader import load_fixture
+from apps.shared.tests.utils.in_memory_concours_repository import (
+    InMemoryConcoursRepository,
+)
 from apps.shared.tests.utils.in_memory_corps_repository import (
     InMemoryCorpsRepository,
 )
 from core.entities.document import Document, DocumentType
+
+REFERENCE_YEAR = 2024
 
 
 class TestUnitCleanDocumentsUsecase(unittest.TestCase):
@@ -30,6 +35,7 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
     def setUpClass(cls):
         """Load fixtures once for all tests."""
         cls.raw_corps_documents = load_fixture("corps_ingres_20251117.json")
+        cls.raw_concours_documents = load_fixture("concours_greco_2025.json")
 
     def _create_isolated_container(self):
         """Create an isolated container for each test to avoid concurrency issues."""
@@ -40,6 +46,9 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
 
         in_memory_corps_repo = InMemoryCorpsRepository()
         container.corps_repository.override(in_memory_corps_repo)
+
+        in_memory_concours_repo = InMemoryConcoursRepository()
+        container.concours_repository.override(in_memory_concours_repo)
 
         in_memory_document_repo = InMemoryDocumentRepository()
         container.document_persister.override(in_memory_document_repo)
@@ -316,3 +325,134 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
         self.assertTrue(
             any("Failed to save entity 456" in call for call in error_calls)
         )
+
+    def test_clean_concours_documents_with_empty_repository(self):
+        """Test cleaning CONCOURS when no documents exist returns zero statistics."""
+        container = self._create_isolated_container()
+        clean_documents_usecase = container.clean_documents_usecase()
+
+        result = clean_documents_usecase.execute(DocumentType.CONCOURS)
+
+        self.assertEqual(result["processed"], 0)
+        self.assertEqual(result["cleaned"], 0)
+        self.assertEqual(result["created"], 0)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 0)
+
+    def test_clean_concours_documents_filters_invalid_status(self):
+        """Test that CONCOURS with invalid status are filtered out."""
+        container = self._create_isolated_container()
+        clean_documents_usecase = container.clean_documents_usecase()
+
+        valid_concours = [
+            doc for doc in self.raw_concours_documents if doc["Statut"] == "VALIDE"
+        ][:2]
+        invalid_concours = [
+            doc for doc in self.raw_concours_documents if doc["Statut"] == "INVALIDE"
+        ][:1]
+
+        test_data = valid_concours + invalid_concours
+        self._create_test_documents(container, test_data, DocumentType.CONCOURS)
+
+        result = clean_documents_usecase.execute(DocumentType.CONCOURS)
+
+        self.assertEqual(result["processed"], 3)
+        self.assertEqual(result["cleaned"], 2)
+
+    def test_clean_concours_documents_filters_old_year(self):
+        """Test that CONCOURS with year <= 2024 are filtered out."""
+        container = self._create_isolated_container()
+        clean_documents_usecase = container.clean_documents_usecase()
+        new_concours = [
+            doc
+            for doc in self.raw_concours_documents
+            if doc["Année de référence"] > REFERENCE_YEAR
+        ][:2]
+        old_concours = [
+            doc
+            for doc in self.raw_concours_documents
+            if doc["Année de référence"] <= REFERENCE_YEAR
+        ][:1]
+
+        test_data = new_concours + old_concours
+        self._create_test_documents(container, test_data, DocumentType.CONCOURS)
+
+        result = clean_documents_usecase.execute(DocumentType.CONCOURS)
+
+        self.assertEqual(result["processed"], 3)
+        self.assertEqual(result["cleaned"], 2)
+
+    def test_clean_concours_documents_filters_missing_required_fields(self):
+        """Test that CONCOURS with missing required fields are filtered out."""
+        container = self._create_isolated_container()
+        clean_documents_usecase = container.clean_documents_usecase()
+
+        valid_concours = copy.deepcopy(self.raw_concours_documents[0])
+        invalid_concours = copy.deepcopy(self.raw_concours_documents[1])
+        invalid_concours["N° NOR"] = None
+
+        test_data = [valid_concours, invalid_concours]
+        self._create_test_documents(container, test_data, DocumentType.CONCOURS)
+
+        result = clean_documents_usecase.execute(DocumentType.CONCOURS)
+
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["cleaned"], 1)
+
+    def test_clean_concours_documents_successful_processing(self):
+        """Test successful CONCOURS processing with valid data."""
+        container = self._create_isolated_container()
+        clean_documents_usecase = container.clean_documents_usecase()
+
+        valid_concours = [
+            doc
+            for doc in self.raw_concours_documents
+            if doc["Statut"] == "VALIDE" and doc["Année de référence"] > REFERENCE_YEAR
+        ][:2]
+
+        self._create_test_documents(container, valid_concours, DocumentType.CONCOURS)
+
+        result = clean_documents_usecase.execute(DocumentType.CONCOURS)
+
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["cleaned"], 2)
+        self.assertEqual(result["created"], 2)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 0)
+
+        concours_repository = container.concours_repository()
+        saved_concours = concours_repository.get_all()
+        self.assertEqual(len(saved_concours), 2)
+
+    def test_clean_concours_documents_handles_processing_errors(self):
+        """Test that CONCOURS processing errors are handled correctly."""
+        container = self._create_isolated_container()
+
+        valid_concours = [
+            doc
+            for doc in self.raw_concours_documents
+            if doc["Statut"] == "VALIDE" and doc["Année de référence"] > REFERENCE_YEAR
+        ][:2]
+        self._create_test_documents(container, valid_concours, DocumentType.CONCOURS)
+
+        mock_repository = Mock()
+        mock_repository.upsert_batch.return_value = {
+            "created": 0,
+            "updated": 0,
+            "errors": [
+                {"entity_id": 1, "error": "Invalid NOR format"},
+                {"entity_id": 2, "error": "Missing ministry mapping"},
+            ],
+        }
+
+        container.concours_repository.override(mock_repository)
+        clean_documents_usecase = container.clean_documents_usecase()
+
+        result = clean_documents_usecase.execute(DocumentType.CONCOURS)
+
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["cleaned"], 2)
+        self.assertEqual(result["created"], 0)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 2)
+        self.assertEqual(len(result["error_details"]), 2)

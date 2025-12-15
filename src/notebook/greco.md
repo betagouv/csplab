@@ -50,6 +50,10 @@ for col in required_cols:  # Exclut 'Date de première épreuve'
     print_filter_stats(df_before, df, f"Filtre {col} non-null")
 ```
 
+```python
+df.write_csv("greco_after2025.csv", separator=";")
+```
+
 ## Dédoublonnage
 
 ```python
@@ -155,4 +159,12 @@ df_final = df_final.select([
 ])
 
 df_final.head()
+```
+
+```python
+df_final
+```
+
+```python
+
 ```
