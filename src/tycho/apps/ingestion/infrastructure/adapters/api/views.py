@@ -48,14 +48,27 @@ class ConcoursUploadView(APIView):
 
     def post(self, request):
         """Handle CSV file upload and process concours data."""
+        container = IngestionContainerSingleton.get_container()
+        logger = container.logger_service().get_logger(
+            "INGESTION::INFRASTRUCTURE::ConcoursUploadView"
+        )
+
+        file_name = (
+            request.FILES.get("file", {}).name if "file" in request.FILES else "no file"
+        )
+        logger.info(f"CSV upload request received: {file_name}")
+
         if "file" not in request.FILES:
+            logger.warning("No file provided in upload request")
             return Response(
                 {"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         csv_file = request.FILES["file"]
+        logger.info(f"Processing CSV file: {csv_file.name} ({csv_file.size} bytes)")
 
         if not csv_file.name.endswith(".csv"):
+            logger.warning(f"Invalid file type: {csv_file.name}")
             return Response(
                 {"error": "File must be a CSV"}, status=status.HTTP_400_BAD_REQUEST
             )
@@ -67,6 +80,7 @@ class ConcoursUploadView(APIView):
             current_time = datetime.now()
 
             rows = df.to_dicts()
+            logger.info(f"CSV parsed successfully: {len(rows)} rows found")
 
             for index, row_dict in enumerate(rows):
                 try:
@@ -98,10 +112,21 @@ class ConcoursUploadView(APIView):
                     validation_errors.append(
                         {"row": index + 1, "error": format_validation_error(e)}
                     )
-                except Exception as e:
-                    validation_errors.append({"row": index + 1, "error": str(e)})
+                except Exception:
+                    validation_errors.append(
+                        {
+                            "row": index + 1,
+                            "error": f"Error processing on line {index + 1}",
+                        }
+                    )
+
+            logger.info(
+                f"Validation completed: {len(valid_documents)} valid, "
+                f"{len(validation_errors)} errors"
+            )
 
             if not valid_documents:
+                logger.warning("No valid documents found after validation")
                 return Response(
                     {
                         "error": "No valid rows found",
@@ -110,13 +135,22 @@ class ConcoursUploadView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            container = IngestionContainerSingleton.get_container()
+            logger.info(
+                f"Executing load documents usecase with {len(valid_documents)} "
+                "documents"
+            )
             usecase = container.load_documents_usecase()
             input_data = LoadDocumentsInput(
                 operation_type=LoadOperationType.UPLOAD_FROM_CSV,
                 kwargs={"documents": valid_documents},
             )
             result = usecase.execute(input_data)
+
+            created = result.get("created", 0)
+            updated = result.get("updated", 0)
+            logger.info(
+                f"Upload completed successfully: created={created}, updated={updated}"
+            )
 
             return Response(
                 {
@@ -138,12 +172,14 @@ class ConcoursUploadView(APIView):
             )
 
         except pl.exceptions.ComputeError as e:
+            logger.error(f"CSV parsing error: {str(e)}")
             return Response(
-                {"error": f"CSV parsing error: {str(e)}"},
+                {"error": "CSV parsing error"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
+            logger.error(f"Unexpected error during CSV upload: {str(e)}")
             return Response(
-                {"error": f"Unexpected error: {str(e)}"},
+                {"error": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
