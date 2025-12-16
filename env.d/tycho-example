@@ -6,7 +6,7 @@ TYCHO_ALLOWED_HOSTS=*
 TYCHO_SECRET_KEY=the_secret_key
 
 # database
-TYCHO_DATABASE_URL=psql://tycho:pass@postgresql:5432/tycho
+TYCHO_DATABASE_URL=psql://tycho:pass@localhost:5432/tycho
 
 # Third-party integrations
 TYCHO_SENTRY_DSN=

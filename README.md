@@ -21,6 +21,7 @@ Le monorepo est organisé en services :
 - Docker
 - Docker Compose
 - GNU Make
+- [Direnv](https://direnv.net/)
 
 ### Optionnel
 
@@ -32,6 +33,13 @@ Avant de lancer les services, copiez et configurez les fichiers d'environnement 
 
 ```bash
 make setup-env
+```
+
+Automatisez le chargement des variables d'environnement dans le shell lorsque vous
+accèdez à un répertoire du service
+
+```bash
+cd src/tycho; direnv allow
 ```
 
 Puis éditez les fichiers env.d/\* avec vos vraies valeurs (clés API, etc.)
