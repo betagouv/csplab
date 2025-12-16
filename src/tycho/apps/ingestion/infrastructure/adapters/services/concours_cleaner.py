@@ -69,7 +69,7 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
         if not concours_data:
             return []
 
-        df = pl.DataFrame(concours_data)
+        df = pl.DataFrame(concours_data, infer_schema_length=None)
         df_filtered = self._apply_filters(df)
         df_processed = self._process_concours_data(df_filtered)
         concours_list = self._dataframe_to_concours(df_processed)
@@ -229,7 +229,7 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
                 ministry=ministry,
                 access_modality=access_modalities,
                 corps=row["Corps"],
-                grade=row["Grade"],
+                grade=row.get("Grade") or "",
                 written_exam_date=written_exam_date,
                 open_position_number=open_position_number,
             )

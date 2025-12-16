@@ -17,7 +17,7 @@ class ConcoursModel(models.Model):
 
     id = models.AutoField(primary_key=True)
     corps = models.CharField(max_length=200, default="")
-    grade = models.CharField(max_length=200, default="")
+    grade = models.CharField(max_length=200, default="", blank=True)
     nor_original = models.CharField(max_length=50)
     nor_list = ArrayField(models.CharField(max_length=50), blank=True, default=list)
     category = models.CharField(max_length=20)

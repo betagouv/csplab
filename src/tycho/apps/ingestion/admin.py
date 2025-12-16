@@ -8,6 +8,9 @@ from apps.ingestion.infrastructure.adapters.persistence.models import (
 from apps.shared.infrastructure.adapters.persistence.models import (
     vectorized_document,
 )
+from apps.shared.infrastructure.adapters.persistence.models.concours import (
+    ConcoursModel,
+)
 from apps.shared.infrastructure.adapters.persistence.models.corps import CorpsModel
 
 
@@ -56,6 +59,42 @@ class CorpsAdmin(admin.ModelAdmin):
     )
 
 
+class ConcoursAdmin(admin.ModelAdmin):
+    """Admin interface for Concours model."""
+
+    list_display = (
+        "id",
+        "nor_original",
+        "corps",
+        "grade",
+        "category",
+        "ministry",
+        "open_position_number",
+        "written_exam_date",
+    )
+    list_filter = ("category", "ministry", "written_exam_date")
+    search_fields = ("nor_original", "corps", "grade")
+    readonly_fields = ("id", "created_at", "updated_at")
+
+    fieldsets = (
+        (
+            "Informations générales",
+            {"fields": ("id", "nor_original", "corps", "grade")},
+        ),
+        ("Classification", {"fields": ("category", "ministry")}),
+        ("Modalités d'accès", {"fields": ("access_modality",)}),
+        (
+            "Détails du concours",
+            {"fields": ("open_position_number", "written_exam_date")},
+        ),
+        ("NOR associés", {"fields": ("nor_list",)}),
+        (
+            "Métadonnées",
+            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
+        ),
+    )
+
+
 class VectorizedDocumentAdmin(admin.ModelAdmin):
     """Admin interface for VectorizedDocument model."""
 
@@ -81,6 +120,7 @@ class VectorizedDocumentAdmin(admin.ModelAdmin):
 
 admin.site.register(RawDocument, RawDocumentAdmin)
 admin.site.register(CorpsModel, CorpsAdmin)
+admin.site.register(ConcoursModel, ConcoursAdmin)
 admin.site.register(
     vectorized_document.VectorizedDocumentModel, VectorizedDocumentAdmin
 )
