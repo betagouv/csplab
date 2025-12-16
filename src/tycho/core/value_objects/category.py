@@ -10,6 +10,7 @@ class Category(Enum):
     A = "A"
     B = "B"
     C = "C"
+    HORS_CATEGORIE = "HORS_CATEGORIE"
 
     def __str__(self):
         """Return string representation."""

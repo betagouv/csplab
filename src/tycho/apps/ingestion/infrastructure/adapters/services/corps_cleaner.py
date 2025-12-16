@@ -13,7 +13,6 @@ from core.entities.corps import Corps
 from core.entities.document import Document, DocumentType
 from core.errors.corps_errors import (
     InvalidAccessModalityError,
-    InvalidCategoryError,
     InvalidDiplomaLevelError,
 )
 from core.errors.document_error import InvalidDocumentTypeError
@@ -196,7 +195,7 @@ class CorpsCleaner(IDocumentCleaner[Corps]):
         elif "C" in category_upper:
             return Category.C
         else:
-            raise InvalidCategoryError(category_upper)
+            return Category.HORS_CATEGORIE
 
     def _map_ministry(self, ministry_str: Optional[str]) -> Ministry:
         """Map ministry string to Ministry enum."""

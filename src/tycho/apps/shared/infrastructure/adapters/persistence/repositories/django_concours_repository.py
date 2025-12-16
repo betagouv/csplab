@@ -23,7 +23,6 @@ class DjangoConcoursRepository(IConcoursRepository):
             try:
                 defaults = {
                     "corps_id": concours.corps_id,
-                    "nor_original": concours.nor_original.value,
                     "nor_list": [nor.value for nor in concours.nor_list],
                     "category": concours.category.value,
                     "ministry": concours.ministry.value,
@@ -35,7 +34,7 @@ class DjangoConcoursRepository(IConcoursRepository):
                 }
 
                 _, was_created = ConcoursModel.objects.update_or_create(
-                    id=concours.id,
+                    nor_original=concours.nor_original.value,
                     defaults=defaults,
                 )
 

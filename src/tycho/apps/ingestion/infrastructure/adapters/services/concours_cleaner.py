@@ -9,8 +9,6 @@ from django.utils import timezone
 from core.entities.concours import Concours
 from core.entities.document import Document, DocumentType
 from core.errors.corps_errors import (
-    InvalidAccessModalityError,
-    InvalidCategoryError,
     InvalidMinistryError,
 )
 from core.errors.document_error import InvalidDocumentTypeError
@@ -23,6 +21,27 @@ from core.value_objects.nor import NOR
 
 REFERENCE_YEAR = 2024
 DECEMBER = 12
+
+# Mapping from raw data access modality strings to AccessModality enum values
+ACCESS_MODALITY_MAPPING = {
+    "Externe": AccessModality.CONCOURS_EXTERNE,
+    "Interne": AccessModality.CONCOURS_INTERNE,
+    "Troisieme Concours": AccessModality.TROISIEME_CONCOURS,
+    "Unique": AccessModality.CONCOURS_UNIQUE,
+    "Examen professionnel": AccessModality.EXAMEN_PROFESSIONNEL,
+    "Sans concours externe": AccessModality.SANS_CONCOURS,
+    "Concours réservé": AccessModality.CONCOURS_RESERVE,
+    "Sans concours interne réservé": AccessModality.SANS_CONCOURS,
+    "Examen professionnalisé réservé": AccessModality.EXAMEN_PROFESSIONNEL,
+    "Interne exceptionnel": AccessModality.CONCOURS_INTERNE_EXCEPT,
+    # Valeurs par défaut → AU_CHOIX
+    "Pacte": AccessModality.AU_CHOIX,
+    "Sélection professionnelle": AccessModality.AU_CHOIX,
+    "Concours spécial": AccessModality.AU_CHOIX,
+    "Apprenti BOETH": AccessModality.AU_CHOIX,
+    "Promotion BOETH": AccessModality.AU_CHOIX,
+    "Autres": AccessModality.AU_CHOIX,
+}
 
 
 class ConcoursCleaner(IDocumentCleaner[Concours]):
@@ -202,20 +221,20 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
             open_position_number = int(row.get("Nb postes total", 0) or 0)
 
             # TODO: Get corps_id from vector matching service
-            corps_id = counter + 1  # Placeholder until vector matching is implemented
 
             concours = Concours(
-                id=corps_id,  # Will be set by repository
+                id=0,  # Will be set by repository
                 nor_original=nor_original,
                 nor_list=nor_list,
                 category=category,
                 ministry=ministry,
                 access_modality=access_modalities,
-                corps_id=corps_id,
+                corps_id=counter,
                 written_exam_date=written_exam_date,
                 open_position_number=open_position_number,
             )
             concours_list.append(concours)
+            counter += 1  # Increment counter for next concours
 
         return concours_list
 
@@ -254,7 +273,7 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
         elif "C" in category_upper:
             return Category.C
         else:
-            raise InvalidCategoryError(category_upper)
+            return Category.HORS_CATEGORIE
 
     def _map_ministry(self, ministry_str: Optional[str]) -> Ministry:
         """Map ministry string to Ministry enum."""
@@ -289,13 +308,11 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
     def _map_access_modalities(
         self, access_mod_list: List[str]
     ) -> List[AccessModality]:
-        """Map access modality strings to AccessModality enums using direct mapping."""
+        """Map access modality strings to AccessModality."""
         modalities = []
         for mod_str in access_mod_list:
-            try:
-                modality = AccessModality(mod_str)
-                modalities.append(modality)
-            except ValueError as err:
-                raise InvalidAccessModalityError(mod_str) from err
+            # Use mapping dictionary, default to AU_CHOIX if not found
+            modality = ACCESS_MODALITY_MAPPING.get(mod_str, AccessModality.AU_CHOIX)
+            modalities.append(modality)
 
         return modalities

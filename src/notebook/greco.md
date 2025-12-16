@@ -166,5 +166,5 @@ df_final.head()
 ```
 
 ```python
-df_final
+df_final["Catégorie"].unique()
 ```
