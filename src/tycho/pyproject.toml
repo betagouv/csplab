@@ -9,6 +9,7 @@ dependencies = [
     "django==5.2.7",
     "django-dsfr>=3.3.0",
     "django-environ==0.12.0",
+    "django-htmx>=1.27.0",
     "django-stubs[compatible-mypy]==5.2.7",
     "djangorestframework>=3.16.1",
     "gunicorn==23.0.0",

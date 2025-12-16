@@ -1,0 +1,89 @@
+{% extends "candidate/base.html" %}
+{% load static dsfr_tags %}
+
+{% block page_title %}{{ opportunite.title }}{% endblock %}
+
+{% block main %}
+<div class="fr-container fr-py-4w">
+    {% dsfr_breadcrumb breadcrumb_data %}
+</div>
+
+<div class="fr-container fr-pb-8w">
+    <div class="csplab-opportunite-detail">
+        {# Badge type d'opportunité #}
+        <div class="csplab-opportunite-detail__badge">
+            {% if opportunite.type == "concours" %}
+                {% dsfr_tag label=opportunite.type_label|default:"Concours" %}
+            {% else %}
+                {% dsfr_tag label="Offre d'emploi" %}
+            {% endif %}
+        </div>
+
+        {# En-tête avec titre et encart CTA #}
+        <div class="csplab-opportunite-detail__header">
+            {# Colonne gauche : titre et métadonnées #}
+            <div class="csplab-opportunite-detail__main">
+                <h1 class="csplab-opportunite-detail__title">{{ opportunite.title }}</h1>
+
+                {# Métadonnées #}
+                <div class="csplab-opportunite-detail__meta">
+                    {% if opportunite.employer %}
+                    <div class="csplab-opportunite-detail__meta-item">
+                        <span class="fr-icon-map-pin-2-line fr-icon--sm" aria-hidden="true"></span>
+                        <span>{{ opportunite.employer }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if opportunite.public_service_branch %}
+                    <div class="csplab-opportunite-detail__meta-item">
+                        <span class="fr-icon-building-line fr-icon--sm" aria-hidden="true"></span>
+                        <span>{{ opportunite.public_service_branch }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if opportunite.category %}
+                    <div class="csplab-opportunite-detail__meta-item">
+                        <span class="fr-icon-user-setting-line fr-icon--sm" aria-hidden="true"></span>
+                        <span>Catégorie {{ opportunite.category }}</span>
+                        {% if opportunite.recruitment_level %}
+                        <span class="csplab-opportunite-detail__meta-hint">{{ opportunite.recruitment_level }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {# Description / chapô #}
+                {% if opportunite.description %}
+                <p class="csplab-opportunite-detail__description">
+                    {{ opportunite.description }}
+                </p>
+                {% endif %}
+            </div>
+
+            {# Encart CTA "Pour en savoir plus" #}
+            <div class="csplab-opportunite-detail__cta-card">
+                <div class="csplab-opportunite-detail__cta-header">
+                    <p class="csplab-opportunite-detail__cta-title">Pour en savoir plus</p>
+                    <div class="csplab-opportunite-detail__cta-arrow">
+                        <img src="{% static 'candidate/images/scribble.svg' %}" alt="" aria-hidden="true">
+                    </div>
+                </div>
+                <a href="{{ opportunite.external_url|default:'#' }}" class="fr-btn fr-btn--sm" target="_blank" rel="noopener">
+                    Ouvrir l'offre
+                </a>
+            </div>
+        </div>
+
+        {# Bloc métier #}
+        {% if opportunite.intitule_poste %}
+        <div class="csplab-opportunite-detail__intitule-poste">
+            <span class="fr-icon-briefcase-line fr-icon--sm" aria-hidden="true"></span>
+            <div class="csplab-opportunite-detail__intitule-poste-content">
+                <span class="csplab-opportunite-detail__intitule-poste-label">MÉTIER</span>
+                <span class="csplab-opportunite-detail__intitule-poste-title">{{ opportunite.intitule_poste }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock main %}

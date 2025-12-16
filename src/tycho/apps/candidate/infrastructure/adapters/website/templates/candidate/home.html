@@ -1,0 +1,109 @@
+{% extends "candidate/base.html" %}
+{% load static dsfr_tags %}
+
+{% block page_title %}Un outil qui fait le lien entre vos compétences et les métiers du service public{% endblock %}
+
+{% block main %}
+<!-- Hero Section -->
+<section class="csplab-hero">
+    <div class="fr-container">
+        <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
+            <div class="fr-col-12 fr-col-lg-7">
+                <div class="csplab-hero__content">
+                    {% dsfr_tag label="Service officiel de l'État" extra_classes="fr-tag--sm csplab-hero__tag" %}
+                    <h1 class="csplab-hero__title">
+                        Un outil qui fait le lien entre vos compétences et les métiers du service public.
+                    </h1>
+                    <a href="{% url 'candidate:cv_upload' %}" class="fr-btn fr-btn--lg csplab-hero__cta">
+                        Découvrir mes opportunités
+                    </a>
+                </div>
+            </div>
+            <div class="fr-col-12 fr-col-lg-5">
+                <div class="csplab-hero__illustration">
+                    <div class="csplab-hero__illustration-bg"></div>
+                    <img src="{% static 'candidate/images/333.Inspection 2.svg' %}" alt="" class="csplab-hero__illustration-img" aria-hidden="true">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="csplab-features">
+    <div class="fr-container">
+        <div class="fr-grid-row fr-grid-row--gutters">
+            <!-- Feature illustrations column -->
+            <div class="fr-col-12 fr-col-lg-4 csplab-features__illustrations">
+                <div class="csplab-features__circle csplab-features__circle--1"></div>
+                <div class="csplab-features__circle csplab-features__circle--2"></div>
+                <div class="csplab-features__circle csplab-features__circle--3"></div>
+            </div>
+
+            <!-- Features content column -->
+            <div class="fr-col-12 fr-col-lg-8">
+                <!-- Feature 1: Découvrir -->
+                <div class="csplab-feature">
+                    {% dsfr_badge label="Découvrir" extra_classes="fr-badge--blue-france csplab-feature__badge" %}
+                    <h2 class="csplab-feature__title">Une expérience de recherche sans compromis.</h2>
+                    <p class="csplab-feature__description">
+                        CSPLab propose une expérience de recherche d'opportunité inédite.
+                        Retrouvez toutes les modalités d'entrée dans la fonction publique :
+                        offres et concours sur une seule interface.
+                    </p>
+                </div>
+
+                <!-- Feature 2: Faciliter -->
+                <div class="csplab-feature">
+                    {% dsfr_badge label="Faciliter" extra_classes="fr-badge--blue-france csplab-feature__badge" %}
+                    <h2 class="csplab-feature__title">Un accès simplifié aux opportunités du service publique.</h2>
+                    <p class="csplab-feature__description">
+                        CSPLab optimise la recherche d'emploi dans la fonction publique.
+                        Notre outil analyse vos compétences et les compare à une base de données
+                        complète afin de vous proposer des opportunités ciblées.
+                    </p>
+                </div>
+
+                <!-- Feature 3: Personnaliser -->
+                <div class="csplab-feature">
+                    {% dsfr_badge label="Personnaliser" extra_classes="fr-badge--blue-france csplab-feature__badge" %}
+                    <h2 class="csplab-feature__title">Des résultats à votre image.</h2>
+                    <p class="csplab-feature__description">
+                        CSPLab fait des recommandations basées sur votre parcours et vos compétences.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="csplab-about">
+    <div class="fr-container">
+        <div class="csplab-about__card">
+            <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
+                <div class="fr-col-12 fr-col-lg-8">
+                    <div class="csplab-about__content">
+                        <h2 class="csplab-about__title">C'est quoi CSPLab ?</h2>
+                        <p class="csplab-about__description">
+                            CSPLab est un laboratoire d'innovation qui a pour objectif de tester
+                            de nouvelles expériences utilisateurs.
+                        </p>
+                    </div>
+                    <div class="csplab-about__content fr-mt-4w">
+                        <h2 class="csplab-about__title">Quelle est la mission de CSPLab ?</h2>
+                        <p class="csplab-about__description">
+                            Aider les candidats à comprendre et à trouver plus facilement leur voie
+                            dans le service public (emplois et concours de la fonction publique),
+                            en tenant compte de leurs compétences, ressentis et motivations profondes.
+                        </p>
+                    </div>
+                </div>
+                <div class="fr-col-12 fr-col-lg-4 csplab-about__illustration-wrapper">
+                    <img src="{% static 'candidate/images/299.Algorithm.svg' %}" alt="" class="csplab-about__illustration" aria-hidden="true">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock main %}

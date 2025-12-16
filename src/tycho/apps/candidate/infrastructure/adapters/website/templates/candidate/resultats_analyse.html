@@ -1,0 +1,128 @@
+{% extends "candidate/base.html" %}
+{% load static dsfr_tags %}
+
+{% block page_title %}Résultat de l'analyse{% endblock %}
+
+{% block main %}
+<div class="fr-container fr-py-4w">
+    {% dsfr_breadcrumb breadcrumb_data %}
+</div>
+
+<div class="fr-container fr-pb-8w">
+    {# En-tête avec illustration et titre #}
+    <div class="csplab-resultats__header">
+        <div class="csplab-resultats__header-illustration">
+            <img src="{% static 'candidate/images/184.Workspace 1.svg' %}" alt="" aria-hidden="true">
+        </div>
+        <div class="csplab-resultats__header-content">
+            <h1 class="csplab-resultats__title">Des opportunités professionnelles ciblées pour vous.</h1>
+            <p class="csplab-resultats__description">
+                Grâce à une technologie d'analyse intelligente, nous décodons les compétences, expériences
+                et formations présentes dans votre CV pour vous proposer des opportunités personnalisées.
+            </p>
+            {% if cv_data %}
+            <p class="csplab-resultats__cv-info fr-text--sm">
+                <span class="fr-icon-file-text-line fr-icon--sm" aria-hidden="true"></span>
+                CV analysé : <strong>{{ cv_data.name }}</strong>
+                <a href="{% url 'candidate:cv_upload' %}" class="fr-link fr-link--sm fr-ml-1w">
+                    Modifier
+                </a>
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Section titre "Parcourez les opportunités" #}
+    <div class="csplab-resultats__section fr-mt-9w">
+        <h2 class="csplab-resultats__section-title">
+            <span>Parcourez les</span> <span class="text-blue-france">opportunités</span>
+        </h2>
+
+        {# Bloc filtres avec HTMX #}
+        <form class="csplab-resultats__filters fr-mt-3w"
+              hx-get="{% url 'candidate:cv_results' cv_id=cv_data.id %}"
+              hx-trigger="change from:select, click from:.csplab-branch-tag"
+              hx-target="#resultats-container"
+              hx-swap="innerHTML"
+              hx-indicator="#loading-indicator">
+
+            <p class="csplab-resultats__filters-title">Filtres</p>
+
+            <div class="fr-grid-row fr-grid-row--gutters">
+                <div class="fr-col-12 fr-col-md-6">
+                    <div class="fr-select-group">
+                        <label class="fr-label" for="filter-location">Localisation</label>
+                        <select class="fr-select" id="filter-location" name="location">
+                            <option value="">Sélectionner une localisation</option>
+                            <option value="paris" {% if active_filters.location == "paris" %}selected{% endif %}>Paris</option>
+                            <option value="lyon" {% if active_filters.location == "lyon" %}selected{% endif %}>Lyon</option>
+                            <option value="marseille" {% if active_filters.location == "marseille" %}selected{% endif %}>Marseille</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="fr-col-12 fr-col-md-6">
+                    <div class="fr-select-group">
+                        <label class="fr-label" for="filter-category">Catégorie</label>
+                        <select class="fr-select" id="filter-category" name="category">
+                            <option value="">Sélectionner une catégorie</option>
+                            <option value="A" {% if active_filters.category == "A" %}selected{% endif %}>Catégorie A</option>
+                            <option value="B" {% if active_filters.category == "B" %}selected{% endif %}>Catégorie B</option>
+                            <option value="C" {% if active_filters.category == "C" %}selected{% endif %}>Catégorie C</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {# Tags versants fonction publique (checkboxes stylisés en tags) #}
+            <div class="csplab-resultats__filters-branches fr-mt-2w">
+                <p class="fr-text--sm fr-mb-1w">Versants de la fonction publique</p>
+                <ul class="fr-tags-group">
+                    <li>
+                        <input type="checkbox" id="branch-etat" name="branch" value="etat"
+                               class="csplab-branch-checkbox"
+                               {% if "etat" in active_filters.branches %}checked{% endif %}>
+                        <label for="branch-etat" class="fr-tag csplab-branch-tag"
+                               aria-pressed="{% if 'etat' in active_filters.branches %}true{% else %}false{% endif %}">
+                            Fonction publique d'État
+                        </label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="branch-territoriale" name="branch" value="territoriale"
+                               class="csplab-branch-checkbox"
+                               {% if "territoriale" in active_filters.branches %}checked{% endif %}>
+                        <label for="branch-territoriale" class="fr-tag csplab-branch-tag"
+                               aria-pressed="{% if 'territoriale' in active_filters.branches %}true{% else %}false{% endif %}">
+                            Fonction publique Territoriale
+                        </label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="branch-hospitaliere" name="branch" value="hospitaliere"
+                               class="csplab-branch-checkbox"
+                               {% if "hospitaliere" in active_filters.branches %}checked{% endif %}>
+                        <label for="branch-hospitaliere" class="fr-tag csplab-branch-tag"
+                               aria-pressed="{% if 'hospitaliere' in active_filters.branches %}true{% else %}false{% endif %}">
+                            Fonction publique Hospitalière
+                        </label>
+                    </li>
+                </ul>
+            </div>
+        </form>
+    </div>
+
+    {# Indicateur de chargement #}
+    <div id="loading-indicator" class="htmx-indicator fr-mt-2w">
+        <p class="fr-text--sm"><span class="fr-icon-refresh-line fr-icon--sm" aria-hidden="true"></span> Chargement...</p>
+    </div>
+
+    {# Liste des résultats #}
+    <div class="csplab-resultats__list-section fr-mt-3w" id="resultats-container">
+        {% include "candidate/components/opportunite_list.html" %}
+    </div>
+</div>
+{% endblock main %}
+
+{# Plus de JavaScript nécessaire :
+   - La protection CV est gérée côté serveur (RequiresCVMixin)
+   - L'état aria-pressed est rendu côté serveur dans le template
+   - HTMX gère les mises à jour dynamiques
+#}

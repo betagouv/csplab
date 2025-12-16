@@ -1,0 +1,71 @@
+{% extends "candidate/base.html" %}
+{% load static dsfr_tags %}
+
+{% block page_title %}Analyse en cours{% endblock %}
+
+{% block page_css %}
+<style>
+    /* Animation CSS pour les étapes */
+    .csplab-processing__step {
+        opacity: 0.5;
+        transition: opacity 0.3s ease;
+    }
+    .csplab-processing__step:nth-child(1) {
+        opacity: 1;
+    }
+    .csplab-processing__step:nth-child(2) {
+        animation: step-activate 0.3s ease 1.5s forwards;
+    }
+    .csplab-processing__step:nth-child(3) {
+        animation: step-activate 0.3s ease 3s forwards;
+    }
+    @keyframes step-activate {
+        to { opacity: 1; }
+    }
+</style>
+{% endblock page_css %}
+
+{% block main %}
+<div class="fr-container fr-py-4w">
+    {% dsfr_breadcrumb breadcrumb_data %}
+</div>
+
+<div class="fr-container fr-pb-8w">
+    <div class="csplab-processing">
+        <div class="csplab-processing__content">
+            <div class="csplab-processing__spinner"></div>
+            <h1 class="csplab-processing__title">Analyse de votre CV en cours...</h1>
+            <p class="csplab-processing__description">
+              Bientôt le verdict : découvrez la carrière qui vous correspond
+            </p>
+            {% if cv_data %}
+            <p class="csplab-processing__file-info fr-text--sm fr-mb-2w">
+                <span class="fr-icon-file-text-line fr-icon--sm" aria-hidden="true"></span>
+                {{ cv_data.name }}
+            </p>
+            {% endif %}
+            <div class="csplab-cv-upload__illustration">
+              <img src="{% static 'candidate/images/microscope.svg' %}" alt="" aria-hidden="true">
+            </div>
+            <div class="csplab-processing__steps" id="processing-steps">
+                <p class="csplab-processing__step" data-step="1">
+                    <span class="fr-icon-checkbox-circle-fill" aria-hidden="true"></span>
+                    Lecture du CV...
+                </p>
+                <p class="csplab-processing__step" data-step="2">
+                    <span class="fr-icon-checkbox-circle-fill" aria-hidden="true"></span>
+                    Extraction des compétences...
+                </p>
+                <p class="csplab-processing__step" data-step="3">
+                    <span class="fr-icon-checkbox-circle-fill" aria-hidden="true"></span>
+                    Recherche des offres correspondantes...
+                </p>
+            </div>
+            <p class="fr-text--sm fr-mt-2w">
+                Vous serez redirigé automatiquement dans quelques secondes.
+                <a href="{% url 'candidate:cv_results' cv_id=cv_data.id %}" class="fr-link">Cliquez ici</a> si la redirection ne fonctionne pas.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock main %}

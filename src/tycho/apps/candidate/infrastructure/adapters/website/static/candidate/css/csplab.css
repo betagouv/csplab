@@ -1,0 +1,1206 @@
+/* ==========================================================================
+   CSPLab Custom Styles
+   Based on DSFR Design System
+   ========================================================================== */
+
+/* ==========================================================================
+   CSS Variables
+   ========================================================================== */
+:root {
+    --csplab-blue-france: #000091;
+    --csplab-blue-light: #E3E3FD;
+    --csplab-blue-alt: #F5F5FE;
+    --csplab-text-title: #161616;
+    --csplab-text-default: #3A3A3A;
+    --csplab-success-bg: #B8FEC9;
+    --csplab-success-text: #18753C;
+    --csplab-action-info: #0063CB;
+}
+
+/* ==========================================================================
+   Hero Section
+   ========================================================================== */
+.csplab-hero {
+    background: linear-gradient(
+        135deg,
+        var(--csplab-blue-france) 0%,
+        #0b0b98 6.25%,
+        #16169e 12.5%,
+        #2b2bab 25%,
+        #4141b8 37.5%,
+        #5757c5 50%,
+        #8282df 75%,
+        #adadf9 100%
+    );
+    padding: 5rem 0;
+    min-height: 450px;
+    position: relative;
+    overflow: hidden;
+}
+
+.csplab-hero__content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2.5rem;
+}
+
+.csplab-hero__tag {
+    background-color: var(--csplab-blue-light) !important;
+    color: var(--csplab-blue-france) !important;
+    border-radius: 16px;
+    padding: 0.25rem 0.75rem;
+}
+
+.csplab-hero__title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 3rem;
+    line-height: 1.125;
+    color: white;
+    margin: 0;
+    max-width: 720px;
+}
+
+@media (min-width: 992px) {
+    .csplab-hero__title {
+        font-size: 4rem;
+        line-height: 72px;
+    }
+}
+
+.csplab-hero__cta {
+    background-color: white !important;
+    color: var(--csplab-blue-france) !important;
+    font-weight: 500;
+    padding: 0.625rem 1.5rem;
+}
+
+.csplab-hero__cta:hover {
+    background-color: var(--csplab-blue-light) !important;
+}
+
+.csplab-hero__illustration {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 300px;
+}
+
+.csplab-hero__illustration-bg {
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    background-color: var(--csplab-blue-france);
+    border-radius: 16px;
+}
+
+@media (min-width: 992px) {
+    .csplab-hero__illustration-bg {
+        width: 384px;
+        height: 384px;
+    }
+}
+
+.csplab-hero__illustration-img {
+    position: relative;
+    z-index: 1;
+    max-width: 260px;
+    max-height: 260px;
+}
+
+@media (min-width: 992px) {
+    .csplab-hero__illustration-img {
+        max-width: 362px;
+        max-height: 362px;
+    }
+}
+
+/* ==========================================================================
+   Features Section
+   ========================================================================== */
+.csplab-features {
+    padding: 3rem 0;
+    position: relative;
+}
+
+.csplab-features__illustrations {
+    position: relative;
+    min-height: 300px;
+}
+
+@media (max-width: 991px) {
+    .csplab-features__illustrations {
+        display: none;
+    }
+}
+
+.csplab-features__circle {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    opacity: 0.3;
+}
+
+@media (min-width: 992px) {
+    .csplab-features__circle {
+        width: 280px;
+        height: 280px;
+    }
+}
+
+.csplab-features__circle--1 {
+    background: linear-gradient(180deg, #E3E3FD 0%, #ADADF9 100%);
+    top: 2rem;
+    left: 1rem;
+}
+
+.csplab-features__circle--2 {
+    background: linear-gradient(180deg, #ADADF9 0%, #8282DF 100%);
+    top: 14rem;
+    left: 1rem;
+}
+
+.csplab-features__circle--3 {
+    background: linear-gradient(180deg, #8282DF 0%, #5757C5 100%);
+    top: 26rem;
+    left: 1rem;
+}
+
+.csplab-feature {
+    padding: 2.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.csplab-feature__badge {
+    width: fit-content;
+    background-color: var(--csplab-blue-alt) !important;
+    color: var(--csplab-action-info) !important;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+}
+
+.csplab-feature__title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 2rem;
+    line-height: 1.2;
+    color: var(--csplab-text-title);
+    margin: 0;
+}
+
+@media (min-width: 992px) {
+    .csplab-feature__title {
+        font-size: 2.5rem;
+        line-height: 48px;
+    }
+}
+
+.csplab-feature__description {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 400;
+    font-size: 1.125rem;
+    line-height: 1.75;
+    color: var(--csplab-text-title);
+    margin: 0;
+}
+
+@media (min-width: 992px) {
+    .csplab-feature__description {
+        font-size: 1.25rem;
+        line-height: 32px;
+    }
+}
+
+/* ==========================================================================
+   About Section
+   ========================================================================== */
+.csplab-about {
+    padding: 3rem 0 5rem;
+}
+
+.csplab-about__card {
+    background-color: var(--csplab-blue-alt);
+    border-radius: 24px;
+    padding: 3rem 2rem;
+}
+
+@media (min-width: 992px) {
+    .csplab-about__card {
+        padding: 5rem;
+    }
+}
+
+.csplab-about__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.csplab-about__title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 2rem;
+    line-height: 1.2;
+    color: var(--csplab-text-title);
+    margin: 0;
+}
+
+@media (min-width: 992px) {
+    .csplab-about__title {
+        font-size: 2.5rem;
+        line-height: 48px;
+    }
+}
+
+.csplab-about__description {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 400;
+    font-size: 1.125rem;
+    line-height: 1.75;
+    color: var(--csplab-text-title);
+    margin: 0;
+}
+
+@media (min-width: 992px) {
+    .csplab-about__description {
+        font-size: 1.25rem;
+        line-height: 32px;
+    }
+}
+
+.csplab-about__illustration-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.csplab-about__illustration {
+    max-width: 200px;
+    max-height: 200px;
+}
+
+@media (min-width: 992px) {
+    .csplab-about__illustration {
+        max-width: 240px;
+        max-height: 240px;
+    }
+}
+
+/* ==========================================================================
+   Header Customizations
+   ========================================================================== */
+.fr-header__service-title .fr-badge {
+    vertical-align: middle;
+    font-size: 0.75rem;
+}
+
+/* ==========================================================================
+   Search Page Overrides
+   ========================================================================== */
+.csplab-search-page {
+    padding: 3rem 0;
+}
+
+.csplab-search-page .fr-container {
+    max-width: 1200px;
+}
+
+/* ==========================================================================
+   CV Upload Page
+   ========================================================================== */
+.csplab-cv-upload {
+    max-width: 840px;
+    margin: 0 auto;
+}
+
+.csplab-cv-upload__header {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+}
+
+@media (min-width: 768px) {
+    .csplab-cv-upload__header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+}
+
+.csplab-cv-upload__header-content {
+    flex: 1;
+    max-width: 640px;
+}
+
+.csplab-cv-upload__title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 2rem;
+    line-height: 1.2;
+    color: var(--csplab-blue-france);
+    margin: 0 0 1.5rem 0;
+}
+
+@media (min-width: 768px) {
+    .csplab-cv-upload__title {
+        font-size: 2.5rem;
+        line-height: 48px;
+    }
+}
+
+.csplab-cv-upload__description {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 400;
+    font-size: 1.125rem;
+    line-height: 1.75;
+    color: var(--csplab-text-title);
+    margin: 0;
+}
+
+@media (min-width: 768px) {
+    .csplab-cv-upload__description {
+        font-size: 1.25rem;
+        line-height: 32px;
+    }
+}
+
+.csplab-cv-upload__illustration {
+    flex-shrink: 0;
+}
+
+.csplab-cv-upload__illustration img {
+    width: 140px;
+    height: 140px;
+}
+
+@media (min-width: 768px) {
+    .csplab-cv-upload__illustration img {
+        width: 180px;
+        height: 180px;
+    }
+}
+
+/* Section d'upload */
+.csplab-cv-upload__section {
+    margin-bottom: 2rem;
+}
+
+.csplab-cv-upload__section-title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 1.375rem;
+    line-height: 1.75rem;
+    color: var(--csplab-blue-france);
+    margin: 0 0 0.5rem 0;
+}
+
+.csplab-cv-upload__section-description {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+    color: var(--csplab-text-default);
+    margin: 0 0 1rem 0;
+}
+
+/* Zone de drop */
+.csplab-dropzone {
+    border: 1px dashed var(--csplab-blue-france);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: white;
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.csplab-dropzone[hidden] {
+    display: none;
+}
+
+.csplab-dropzone:hover {
+    background-color: var(--csplab-blue-alt);
+}
+
+.csplab-dropzone__content {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* États de la dropzone */
+.csplab-dropzone[data-state="initial"] .csplab-dropzone__content--initial,
+.csplab-dropzone[data-state="dragging"] .csplab-dropzone__content--dragging,
+.csplab-dropzone[data-state="uploading"] .csplab-dropzone__content--uploading,
+.csplab-dropzone[data-state="error"] .csplab-dropzone__content--error {
+    display: flex;
+}
+
+/* État dragging */
+.csplab-dropzone[data-state="dragging"] {
+    background-color: var(--csplab-blue-light);
+    border-style: solid;
+    border-width: 2px;
+}
+    background-color: var(--csplab-success-bg);
+    cursor: default;
+}
+
+/* État error */
+.csplab-dropzone[data-state="error"] {
+    border-color: #CE0500;
+    background-color: #FFE9E9;
+    cursor: default;
+}
+
+/* État uploading */
+.csplab-dropzone[data-state="uploading"] {
+    cursor: wait;
+}
+
+.csplab-dropzone__icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--csplab-blue-france);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+}
+
+.csplab-dropzone__icon--success {
+    background-color: var(--csplab-success-text);
+}
+
+.csplab-dropzone__icon--error {
+    background-color: #CE0500;
+}
+
+.csplab-dropzone__text {
+    font-family: 'Marianne', sans-serif;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    color: var(--csplab-text-title);
+    margin: 0;
+}
+
+.csplab-dropzone__browse {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--csplab-blue-france);
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.csplab-dropzone__browse:hover {
+    text-decoration: none;
+}
+
+.csplab-dropzone__hint {
+    font-family: 'Marianne', sans-serif;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    color: #666666;
+    margin: 0;
+}
+
+.csplab-dropzone__filename {
+    font-family: 'Marianne', sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+    color: #666666;
+    margin: 0;
+}
+
+.csplab-dropzone__error-message {
+    font-family: 'Marianne', sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+    color: #CE0500;
+    margin: 0;
+}
+
+.csplab-dropzone__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Spinner de chargement */
+.csplab-dropzone__spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--csplab-blue-light);
+    border-top-color: var(--csplab-blue-france);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Carte fichier uploadé */
+.csplab-file-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border: 1px solid #E5E5E5;
+    border-radius: 8px;
+    background-color: white;
+}
+
+.csplab-file-card[hidden] {
+    display: none;
+}
+
+.csplab-file-card__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background-color: #ECECFE;
+    border-radius: 2px;
+}
+
+.csplab-file-card__icon .fr-icon-file-text-line {
+    color: var(--csplab-blue-france);
+}
+
+.csplab-file-card__info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.csplab-file-card__name {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #161616;
+}
+
+.csplab-file-card__size {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--csplab-blue-france);
+}
+
+.csplab-file-card__remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #7B7B7B;
+}
+
+.csplab-file-card__remove:hover {
+    color: #161616;
+}
+
+/* Barre d'actions */
+.csplab-cv-upload__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem 0;
+    margin-top: 2rem;
+}
+
+.csplab-cv-upload__actions .fr-hint-text--info {
+    display: none;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--csplab-action-info);
+    font-size: 0.75rem;
+    margin: 0;
+}
+
+/* Ajouter du padding en bas pour éviter que le contenu soit caché */
+.csplab-cv-upload {
+    padding-bottom: 2rem;
+}
+
+/* ==========================================================================
+   Processing Page
+   ========================================================================== */
+.csplab-processing {
+    max-width: 48em;
+    margin: 0 auto;
+    text-align: center;
+    padding: 1rem;
+}
+
+.csplab-processing__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.csplab-processing__spinner {
+    width: 64px;
+    height: 64px;
+    border: 4px solid var(--csplab-blue-light);
+    border-top-color: var(--csplab-blue-france);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.csplab-processing__title {
+    color: var(--csplab-blue-france);
+}
+
+.csplab-processing__description {
+    font-family: 'Marianne', sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--csplab-text-default);
+    margin: 0;
+}
+
+.csplab-processing__steps {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    text-align: left;
+}
+
+.csplab-processing__step {
+    font-family: 'Marianne', sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #666666;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.csplab-processing__step--active {
+    color: var(--csplab-success-text);
+}
+
+.csplab-processing__step--active .fr-icon-checkbox-circle-fill {
+    color: var(--csplab-success-text);
+}
+
+.csplab-processing__step .fr-icon-time-line {
+    color: #666666;
+}
+
+/* ==========================================================================
+   Results Page
+   ========================================================================== */
+
+/* En-tête des résultats */
+.csplab-resultats__header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.csplab-resultats__header-illustration {
+    flex-shrink: 0;
+    width: 180px;
+    height: 180px;
+}
+
+.csplab-resultats__header-illustration img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.csplab-resultats__header-content {
+    flex: 1;
+}
+
+.csplab-resultats__title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 2.5rem;
+    line-height: 1.2;
+    color: var(--csplab-blue-france);
+    margin: 0 0 1rem 0;
+}
+
+.csplab-resultats__description {
+    font-family: 'Marianne', sans-serif;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: var(--csplab-text-title);
+    margin: 0;
+}
+
+/* Section titre */
+.csplab-resultats__section-title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 2.5rem;
+    line-height: 1.2;
+    color: var(--csplab-text-title);
+    margin: 0;
+}
+
+.csplab-resultats__section-title .text-blue-france {
+    color: var(--csplab-blue-france);
+}
+
+/* Bloc filtres */
+.csplab-resultats__filters {
+    background-color: #F6F6F6;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.csplab-resultats__filters-title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.4;
+    color: var(--csplab-text-title);
+    margin: 0 0 1rem 0;
+}
+
+.csplab-resultats__filters-branches {
+    margin-top: 1rem;
+}
+
+/* En-tête liste résultats */
+.csplab-resultats__list-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.csplab-resultats__count {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    line-height: 1.3;
+    color: var(--csplab-text-title);
+    margin: 0;
+}
+
+.csplab-resultats__sort {
+    font-family: 'Marianne', sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--csplab-text-title);
+    margin: 0;
+}
+
+/* Liste des résultats */
+.csplab-resultats__list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* ==========================================================================
+   Opportunite Card Component
+   ========================================================================== */
+.csplab-opportunite-card.fr-card {
+}
+
+.csplab-opportunite-card .fr-card__body {
+}
+
+.csplab-opportunite-card .fr-card__content {
+}
+
+.csplab-opportunite-card .fr-card__title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 1.375rem;
+    line-height: 1.3;
+    color: var(--csplab-text-title);
+    margin: 0 0 1rem 0;
+}
+
+.csplab-opportunite-card .fr-card__title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.csplab-opportunite-card .fr-card__start {
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.csplab-opportunite-card .fr-card__end {
+    padding: 0;
+}
+
+.csplab-opportunite-card .fr-card__footer {
+    padding: 0;
+    margin-top: 0;
+}
+
+/* Détails de l'opportunité */
+.csplab-opportunite-card__details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.csplab-opportunite-card__detail {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Marianne', sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--csplab-text-title);
+}
+
+.csplab-opportunite-card__detail .fr-icon--sm {
+    font-size: 1rem;
+    color: var(--csplab-text-title);
+}
+
+.csplab-opportunite-card__detail-hint {
+    font-style: italic;
+    font-size: 0.75rem;
+    color: #929292;
+}
+
+/* Bloc métier */
+.csplab-opportunite-card__job {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: #F6F6F6;
+    border-radius: 8px;
+    padding: 0.5rem 1.5rem 0.5rem 1rem;
+    width: fit-content;
+}
+
+.csplab-opportunite-card__job .fr-icon--sm {
+    color: var(--csplab-text-default);
+}
+
+.csplab-opportunite-card__job-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.csplab-opportunite-card__job-label {
+    font-family: 'Marianne', sans-serif;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    color: var(--csplab-text-default);
+    text-transform: uppercase;
+}
+
+.csplab-opportunite-card__job-title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--csplab-text-default);
+}
+
+/* Layout horizontal de la carte */
+.csplab-opportunite-card.fr-card {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 1.5rem;
+}
+
+.csplab-opportunite-card .fr-card__footer {
+    flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .csplab-resultats__header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .csplab-resultats__header-illustration {
+        width: 120px;
+        height: 120px;
+    }
+
+    .csplab-resultats__title {
+        font-size: 1.75rem;
+    }
+
+    .csplab-resultats__section-title {
+        font-size: 1.75rem;
+    }
+
+    .csplab-opportunite-card.fr-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .csplab-opportunite-card__details {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* ==========================================================================
+   HTMX & Filter Interactions
+   ========================================================================== */
+
+/* Cacher les checkboxes des filtres de versants (on garde les labels stylisés en tags) */
+.csplab-branch-checkbox {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Style actif pour les tags de versants */
+.csplab-branch-tag[aria-pressed="true"] {
+    background-color: var(--csplab-blue-france) !important;
+    color: white !important;
+}
+
+/* Indicateur de chargement HTMX */
+.htmx-indicator {
+    display: none;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+    display: block;
+}
+
+.htmx-indicator p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--csplab-text-default);
+}
+
+/* Animation de l'icône de chargement */
+.htmx-indicator .fr-icon-refresh-line {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   Opportunite Detail Page
+   ========================================================================== */
+.csplab-opportunite-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+/* Badge type */
+.csplab-opportunite-detail__badge {
+    width: fit-content;
+}
+
+/* En-tête avec titre et CTA */
+.csplab-opportunite-detail__header {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.csplab-opportunite-detail__main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.csplab-opportunite-detail__title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 2.5rem;
+    line-height: 1.2;
+    color: var(--csplab-blue-france);
+    margin: 0;
+}
+
+/* Métadonnées */
+.csplab-opportunite-detail__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.csplab-opportunite-detail__meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Marianne', sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--csplab-blue-france);
+}
+
+.csplab-opportunite-detail__meta-item .fr-icon--sm {
+    font-size: 1rem;
+    color: var(--csplab-blue-france);
+}
+
+.csplab-opportunite-detail__meta-hint {
+    font-style: italic;
+    font-size: 0.75rem;
+    color: #666666;
+}
+
+/* Description */
+.csplab-opportunite-detail__description {
+    font-family: 'Marianne', sans-serif;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: var(--csplab-text-title);
+    margin: 0;
+}
+
+/* Encart CTA */
+.csplab-opportunite-detail__cta-card {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background-color: #F6F6F6;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.csplab-opportunite-detail__cta-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.csplab-opportunite-detail__cta-title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.4;
+    color: var(--csplab-blue-france);
+    margin: 0;
+}
+
+.csplab-opportunite-detail__cta-arrow {
+    width: 40px;
+    height: 40px;
+    transform: rotate(270deg);
+}
+
+.csplab-opportunite-detail__cta-arrow img {
+    width: 100%;
+    height: 100%;
+    transform: scaleY(-1);
+}
+
+.csplab-opportunite-detail__cta-card .fr-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Bloc métier */
+.csplab-opportunite-detail__job {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: #F6F6F6;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    width: fit-content;
+}
+
+.csplab-opportunite-detail__job .fr-icon--sm {
+    color: var(--csplab-text-default);
+}
+
+.csplab-opportunite-detail__job-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.csplab-opportunite-detail__job-label {
+    font-family: 'Marianne', sans-serif;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    color: var(--csplab-text-default);
+}
+
+.csplab-opportunite-detail__job-title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--csplab-text-default);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .csplab-opportunite-detail__header {
+        flex-direction: column;
+    }
+
+    .csplab-opportunite-detail__title {
+        font-size: 1.75rem;
+    }
+
+    .csplab-opportunite-detail__cta-card {
+        width: 100%;
+    }
+
+    .csplab-opportunite-detail__description {
+        font-size: 1rem;
+    }
+}
