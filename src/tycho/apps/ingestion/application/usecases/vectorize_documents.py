@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Union
 
+from core.entities.concours import Concours
 from core.entities.corps import Corps
 from core.entities.document import Document, DocumentType
 from core.entities.vectorized_document import VectorizedDocument
@@ -78,6 +79,9 @@ class VectorizeDocumentsUsecase:
         elif isinstance(source, Corps):
             document_id = source.id
             document_type = DocumentType.CORPS
+        elif isinstance(source, Concours):
+            document_id = source.id
+            document_type = DocumentType.CONCOURS
         else:
             raise UnsupportedDocumentTypeError(type(source).__name__)
 
