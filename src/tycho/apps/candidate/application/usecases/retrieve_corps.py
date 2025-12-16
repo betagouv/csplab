@@ -65,7 +65,7 @@ class RetrieveCorpsUsecase:
                 self._logger.info(
                     f"Corps {corps.id} ({corps.label.value}): score={result.score:.4f}"
                 )
-                corps_list.append(corps)
+                corps_list.append((corps, result.score))
 
         self._logger.info(f"Returning {len(corps_list)} corps")
         return corps_list

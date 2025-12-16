@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     "apps.shared",
     "apps.ingestion",
     "apps.candidate",
-    "apps.shared",
 ]
 
 MIDDLEWARE = [

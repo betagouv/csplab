@@ -32,5 +32,7 @@ and this project adheres to
 - add simple interface for demo
 - add scores to corps retrieval
 - fix custom template tag
+- add concours core
+- load / clean and vectorize concours
 
 [unreleased]: https://github.com/betagouv/csplab/
