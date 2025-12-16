@@ -21,8 +21,8 @@ class Concours(IEntity):
     category: Category
     ministry: Ministry
     access_modality: List[AccessModality]
-    corps_id: int
-    # grade_id: int
+    corps: str
+    grade: str
     # opening_registration_date: Optional[datetime]
     # closing_registration_date: Optional[datetime]
     written_exam_date: Optional[datetime]

@@ -22,7 +22,8 @@ class DjangoConcoursRepository(IConcoursRepository):
         for concours in concours_list:
             try:
                 defaults = {
-                    "corps_id": concours.corps_id,
+                    "corps": concours.corps,
+                    "grade": concours.grade,
                     "nor_list": [nor.value for nor in concours.nor_list],
                     "category": concours.category.value,
                     "ministry": concours.ministry.value,
@@ -53,10 +54,10 @@ class DjangoConcoursRepository(IConcoursRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_corps_id(self, corps_id: int) -> Optional[Concours]:
-        """Find a Concours by its Corps ID."""
+    def find_by_corps(self, corps: str) -> Optional[Concours]:
+        """Find a Concours by its Corps name."""
         try:
-            concours_model = ConcoursModel.objects.get(corps_id=corps_id)
+            concours_model = ConcoursModel.objects.get(corps=corps)
             return concours_model.to_entity()
         except ConcoursModel.DoesNotExist:
             return None

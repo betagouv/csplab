@@ -44,10 +44,10 @@ class InMemoryConcoursRepository(IConcoursRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_corps_id(self, corps_id: int) -> Optional[Concours]:
-        """Find a Concours by its Corps ID."""
+    def find_by_corps(self, corps: str) -> Optional[Concours]:
+        """Find a Concours by its Corps name."""
         for concours in self._concours.values():
-            if concours.corps_id == corps_id:
+            if concours.corps == corps:
                 return concours
         return None
 

@@ -16,7 +16,8 @@ class ConcoursModel(models.Model):
     objects: models.Manager = models.Manager()
 
     id = models.AutoField(primary_key=True)
-    corps_id = models.IntegerField()
+    corps = models.CharField(max_length=200, default="")
+    grade = models.CharField(max_length=200, default="")
     nor_original = models.CharField(max_length=50)
     nor_list = ArrayField(models.CharField(max_length=50), blank=True, default=list)
     category = models.CharField(max_length=20)
@@ -37,7 +38,6 @@ class ConcoursModel(models.Model):
         verbose_name = "Concours"
         verbose_name_plural = "Concours"
         indexes = [
-            models.Index(fields=["corps_id"]),
             models.Index(fields=["nor_original"]),
         ]
 
@@ -45,7 +45,8 @@ class ConcoursModel(models.Model):
         """Convert Django model to Concours entity."""
         return Concours(
             id=self.id,
-            corps_id=self.corps_id,
+            corps=self.corps,
+            grade=self.grade,
             nor_original=NOR(self.nor_original),
             nor_list=[NOR(nor) for nor in self.nor_list],
             category=Category(self.category),
@@ -62,7 +63,8 @@ class ConcoursModel(models.Model):
         """Create Django model from Concours entity."""
         return cls(
             id=concours.id,
-            corps_id=concours.corps_id,
+            corps=concours.corps,
+            grade=concours.grade,
             nor_original=concours.nor_original.value,
             nor_list=[nor.value for nor in concours.nor_list],
             category=concours.category.value,

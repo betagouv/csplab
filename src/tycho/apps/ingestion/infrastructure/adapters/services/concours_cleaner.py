@@ -186,6 +186,7 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
                 "Ministère",
                 "Catégorie",
                 "Corps",
+                "Grade",
                 "all_nors_in_concours",
                 "Nb postes total",
                 "Date de première épreuve",
@@ -220,8 +221,6 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
 
             open_position_number = int(row.get("Nb postes total", 0) or 0)
 
-            # TODO: Get corps_id from vector matching service
-
             concours = Concours(
                 id=0,  # Will be set by repository
                 nor_original=nor_original,
@@ -229,7 +228,8 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
                 category=category,
                 ministry=ministry,
                 access_modality=access_modalities,
-                corps_id=counter,
+                corps=row["Corps"],
+                grade=row["Grade"],
                 written_exam_date=written_exam_date,
                 open_position_number=open_position_number,
             )
