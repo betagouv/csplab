@@ -7,7 +7,6 @@ from pydantic import HttpUrl
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
-from apps.ingestion.infrastructure.adapters.persistence.models.corps import CorpsModel
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
 )
@@ -17,8 +16,14 @@ from apps.ingestion.infrastructure.adapters.persistence.repositories import (
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from apps.shared.infrastructure.adapters.persistence.models.concours import (
+    ConcoursModel,
+)
+from apps.shared.infrastructure.adapters.persistence.models.corps import CorpsModel
 from apps.shared.tests.fixtures.fixture_loader import load_fixture
 from core.entities.document import DocumentType
+
+REFERENCE_YEAR = 2024
 
 
 class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
@@ -29,6 +34,7 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
         """Load fixtures once for all tests."""
         super().setUpClass()
         cls.raw_corps_documents = load_fixture("corps_ingres_20251117.json")
+        cls.raw_concours_documents = load_fixture("concours_greco_2025.json")
 
     def setUp(self):
         """Set up container dependencies."""
@@ -66,14 +72,18 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
 
         self.clean_documents_usecase = self.container.clean_documents_usecase()
 
-    def _create_raw_documents_in_db(self, raw_data_list):
+    def _create_raw_documents_in_db(self, raw_data_list, doc_type=DocumentType.CORPS):
         """Create RawDocument entries directly in Django database."""
         for i, raw_data in enumerate(raw_data_list):
             RawDocument.objects.create(
                 id=i + 1,
                 raw_data=raw_data,
-                document_type=DocumentType.CORPS.value,
+                document_type=doc_type.value,
             )
+
+    def _create_raw_concours_documents_in_db(self, raw_data_list):
+        """Create RawDocument entries for CONCOURS type in Django database."""
+        self._create_raw_documents_in_db(raw_data_list, DocumentType.CONCOURS)
 
     @pytest.mark.django_db
     def test_execute_handles_empty_documents(self):
@@ -209,3 +219,159 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
 
         self.assertEqual(len(all_corps), 0)
         self.assertIsInstance(all_corps, list)
+
+    # CONCOURS Integration Tests
+
+    @pytest.mark.django_db
+    def test_execute_handles_empty_concours_documents(self):
+        """Test that empty concours document list is handled correctly."""
+        result = self.clean_documents_usecase.execute(DocumentType.CONCOURS)
+
+        self.assertEqual(result["processed"], 0)
+        self.assertEqual(result["cleaned"], 0)
+        self.assertEqual(result["created"], 0)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 0)
+
+        saved_concours = ConcoursModel.objects.all()
+        self.assertEqual(saved_concours.count(), 0)
+
+    @pytest.mark.django_db
+    def test_execute_creates_concours_successfully(self):
+        """Test that valid concours documents are processed and saved."""
+        valid_concours = [
+            doc
+            for doc in self.raw_concours_documents
+            if doc.get("Statut") == "VALIDE"
+            and doc.get("Année de référence", 0) > REFERENCE_YEAR
+        ][:2]
+
+        self._create_raw_concours_documents_in_db(valid_concours)
+
+        result = self.clean_documents_usecase.execute(DocumentType.CONCOURS)
+        saved_concours = ConcoursModel.objects.all()
+
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["cleaned"], 2)
+        self.assertEqual(result["created"], 2)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 0)
+
+        self.assertEqual(saved_concours.count(), 2)
+
+    @pytest.mark.django_db
+    def test_execute_filters_invalid_concours_status(self):
+        """Test that concours with invalid status are filtered out."""
+        # Mix valid and invalid status
+        valid_concours = [
+            doc for doc in self.raw_concours_documents if doc.get("Statut") == "VALIDE"
+        ][:1]
+
+        invalid_concours = self.raw_concours_documents[0].copy()
+        invalid_concours["Statut"] = "INVALIDE"
+
+        test_data = valid_concours + [invalid_concours]
+        self._create_raw_concours_documents_in_db(test_data)
+
+        result = self.clean_documents_usecase.execute(DocumentType.CONCOURS)
+
+        # Only valid status should be processed
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["cleaned"], 1)
+        self.assertEqual(result["created"], 1)
+
+        saved_concours = ConcoursModel.objects.all()
+        self.assertEqual(saved_concours.count(), 1)
+
+    @pytest.mark.django_db
+    def test_execute_filters_old_year_concours(self):
+        """Test that concours with year <= 2024 are filtered out."""
+        # Create concours with different years
+        new_concours = self.raw_concours_documents[0].copy()
+        new_concours["Année de référence"] = 2025
+        new_concours["Statut"] = "VALIDE"
+
+        old_concours = self.raw_concours_documents[1].copy()
+        old_concours["Année de référence"] = REFERENCE_YEAR
+        old_concours["Statut"] = "VALIDE"
+
+        test_data = [new_concours, old_concours]
+        self._create_raw_concours_documents_in_db(test_data)
+
+        result = self.clean_documents_usecase.execute(DocumentType.CONCOURS)
+
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["cleaned"], 1)
+        self.assertEqual(result["created"], 1)
+
+        saved_concours = ConcoursModel.objects.all()
+        self.assertEqual(saved_concours.count(), 1)
+
+    @pytest.mark.django_db
+    def test_execute_filters_concours_missing_required_fields(self):
+        """Test that concours with missing required fields are filtered out."""
+        valid_concours = self.raw_concours_documents[0].copy()
+        valid_concours["Statut"] = "VALIDE"
+        valid_concours["Année de référence"] = 2025
+
+        invalid_concours = self.raw_concours_documents[1].copy()
+        invalid_concours["Statut"] = "VALIDE"
+        invalid_concours["Année de référence"] = 2025
+        invalid_concours["N° NOR"] = None  # Missing required field
+
+        test_data = [valid_concours, invalid_concours]
+        self._create_raw_concours_documents_in_db(test_data)
+
+        result = self.clean_documents_usecase.execute(DocumentType.CONCOURS)
+
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["cleaned"], 1)
+        self.assertEqual(result["created"], 1)
+
+        saved_concours = ConcoursModel.objects.all()
+        self.assertEqual(saved_concours.count(), 1)
+
+    @pytest.mark.django_db
+    def test_execute_updates_existing_concours(self):
+        """Test that existing Concours entities are updated correctly."""
+        valid_concours = [
+            doc
+            for doc in self.raw_concours_documents
+            if doc.get("Statut") == "VALIDE"
+            and doc.get("Année de référence", 0) > REFERENCE_YEAR
+        ][:1]
+
+        self._create_raw_concours_documents_in_db(valid_concours)
+
+        # First execution - create concours
+        result1 = self.clean_documents_usecase.execute(DocumentType.CONCOURS)
+        self.assertEqual(result1["created"], 1)
+        self.assertEqual(result1["updated"], 0)
+
+        # Second execution with same data - should update
+        result2 = self.clean_documents_usecase.execute(DocumentType.CONCOURS)
+        self.assertEqual(result2["created"], 0)
+        self.assertEqual(result2["updated"], 1)
+
+        # Verify only one Concours entity exists
+        saved_concours = ConcoursModel.objects.all()
+        self.assertEqual(len(saved_concours), 1)
+
+    @pytest.mark.django_db
+    def test_concours_repository_find_by_id_nonexistent(self):
+        """Test find_by_id returns None for nonexistent Concours."""
+        concours_repository = self.shared_container.concours_repository()
+
+        nonexistent_concours = concours_repository.find_by_id(99999)
+
+        self.assertIsNone(nonexistent_concours)
+
+    @pytest.mark.django_db
+    def test_concours_repository_get_all_empty(self):
+        """Test get_all returns empty list when no Concours exist."""
+        concours_repository = self.shared_container.concours_repository()
+
+        all_concours = concours_repository.get_all()
+
+        self.assertEqual(len(all_concours), 0)
+        self.assertIsInstance(all_concours, list)

@@ -5,10 +5,11 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 from core.entities.document import DocumentType
+from core.interfaces.entity_interface import IEntity
 
 
 @dataclass
-class VectorizedDocument:
+class VectorizedDocument(IEntity):
     """VectorizedDocument entity representing a document with its semantic embedding."""
 
     id: int

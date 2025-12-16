@@ -7,12 +7,12 @@ from pydantic import HttpUrl
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
-from apps.ingestion.infrastructure.adapters.persistence.models import (
-    vectorized_document,
-)
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from apps.shared.infrastructure.adapters.persistence.models import (
+    vectorized_document,
+)
 from apps.shared.infrastructure.adapters.persistence.repositories import (
     django_corps_repository as django_corps_repo,
 )

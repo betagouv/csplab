@@ -1,15 +1,19 @@
 """Integration tests for LoadDocuments usecase with external adapters."""
 
-import os
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 import responses
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TransactionTestCase
 from pydantic import HttpUrl
 from rest_framework.test import APITestCase
 
 from apps.ingestion.application.exceptions import LoadDocumentsError
+from apps.ingestion.application.interfaces.load_documents_input import (
+    LoadDocumentsInput,
+)
+from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
@@ -84,7 +88,11 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
             content_type="application/json",
         )
 
-        result = self.usecase.execute(DocumentType.CORPS)
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.CORPS},
+        )
+        result = self.usecase.execute(input_data)
         self.assertEqual(result["created"], 0)
         self.assertEqual(result["updated"], 0)
 
@@ -113,7 +121,11 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
             content_type="application/json",
         )
 
-        result = self.usecase.execute(DocumentType.CORPS)
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.CORPS},
+        )
+        result = self.usecase.execute(input_data)
         self.assertEqual(result["created"], 4)
         self.assertEqual(result["updated"], 0)
 
@@ -123,161 +135,102 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         )
         self.assertEqual(saved_documents.count(), 4)
 
-    @pytest.mark.django_db
-    def test_execute_handles_repository_error(self):
-        """Test execute handles repository errors properly."""
-        mock_repo = Mock()
-        mock_repo.fetch_by_type.side_effect = Exception("Ingres connection failed")
-        self.container.document_repository.override(mock_repo)
 
-        # Create new usecase with mocked repository
-        usecase = self.container.load_documents_usecase()
-
-        with self.assertRaises(Exception) as context:
-            usecase.execute(DocumentType.CORPS)
-
-        self.assertEqual(str(context.exception), "Ingres connection failed")
-
-
-class TestIntegrationExceptions(APITestCase):
-    """Integration tests for the exception system across all layers."""
+class TestConcoursUploadView(APITestCase):
+    """Integration tests for ConcoursUploadView."""
 
     def setUp(self):
         """Set up test environment."""
-        self.load_documents_url = "/ingestion/load/"
-        self.config = IngestionConfig(
-            piste_config=PisteConfig(
-                oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
-                ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
-                client_id="fake-client-id",
-                client_secret="fake-client-secret",  # noqa
-            )
+        self.concours_upload_url = "/ingestion/concours/upload/"
+
+    def _create_valid_csv_content(self):
+        """Create valid CSV content for testing."""
+        return (
+            "N° NOR;Ministère;Catégorie;Corps;"
+            "Grade;Année de référence;Nb postes total\n"
+            "INTB2400001C;Ministère de l'Intérieur;A;Attaché;Attaché;2024;10\n"
+            "INTB2400002C;Ministère de l'Intérieur;B;Secrétaire;Secrétaire;2024;5\n"
         )
 
-    @patch.dict(
-        os.environ,
-        {
-            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
-            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
-            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
-            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
-        },
-    )
-    def test_domain_error_invalid_document_type(self):
-        """Test Domain layer exception with invalid document type."""
+    def _create_invalid_csv_content(self):
+        """Create invalid CSV content for testing."""
+        return (
+            "N° NOR;Ministère;Catégorie;Corps;Grade;"
+            "Année de référence;Nb postes total\n"
+            ";Ministère de l'Intérieur;A;Attaché;Attaché;2024;10\n"  # Missing NOR
+            "INTB2400002C;;B;Secrétaire;Secrétaire;2024;5\n"  # Missing Ministère
+        )
+
+    def _create_csv_file(self, content, filename="test.csv"):
+        """Create a temporary CSV file for testing."""
+        return SimpleUploadedFile(
+            filename, content.encode("utf-8"), content_type="text/csv"
+        )
+
+    def test_no_file_provided(self):
+        """Test error when no file is provided."""
+        response = self.client.post(self.concours_upload_url, {}, format="multipart")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["error"], "No file provided")
+
+    def test_invalid_file_format(self):
+        """Test error when file is not CSV."""
+        txt_file = SimpleUploadedFile(
+            "test.txt", b"not a csv file", content_type="text/plain"
+        )
+
         response = self.client.post(
-            self.load_documents_url, {"type": "INVALID_TYPE"}, format="json"
+            self.concours_upload_url, {"file": txt_file}, format="multipart"
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data["status"], "error")
-        self.assertEqual(
-            response.data["type"],
-            "DomainError::DocumentError::InvalidDocumentTypeError",
-        )
-        self.assertIn("Invalid document type: INVALID_TYPE", response.data["message"])
+        self.assertEqual(response.data["error"], "File must be a CSV")
 
-    @patch.dict(
-        os.environ,
-        {
-            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
-            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
-            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
-            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
-        },
-    )
-    @responses.activate
-    def test_infrastructure_error_ingres_api_failure(self):
-        """Test Infrastructure layer exception with INGRES API failure."""
-        # Mock successful OAuth
-        responses.add(
-            responses.POST,
-            f"{self.config.piste.oauth_base_url}api/oauth/token",
-            json={"access_token": "fake_token", "expires_in": 3600},
-            status=200,
-        )
-
-        # Mock INGRES API failure
-        responses.add(
-            responses.GET,
-            f"{self.config.piste.ingres_base_url}/CORPS",
-            json={"error": "Service unavailable"},
-            status=503,
-        )
+    def test_validation_errors(self):
+        """Test handling of validation errors in CSV data."""
+        invalid_csv = self._create_csv_file(self._create_invalid_csv_content())
 
         response = self.client.post(
-            self.load_documents_url, {"type": "CORPS"}, format="json"
+            self.concours_upload_url, {"file": invalid_csv}, format="multipart"
         )
 
-        self.assertEqual(response.status_code, 503)
-        self.assertEqual(response.data["status"], "error")
-        self.assertEqual(response.data["type"], "InfrastructureError::ExternalApiError")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["error"], "No valid rows found")
+        self.assertIn("validation_errors", response.data)
+        self.assertEqual(len(response.data["validation_errors"]), 2)
 
-    @patch.dict(
-        os.environ,
-        {
-            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
-            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
-            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
-            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
-        },
-    )
     @patch(
         "apps.ingestion.application.usecases.load_documents.LoadDocumentsUsecase.execute"
     )
-    def test_application_error_usecase_failure(self, mock_execute):
-        """Test Application layer exception with use case failure."""
-        # Mock use case failure
+    def test_usecase_failure(self, mock_execute):
+        """Test handling of usecase execution failure."""
         mock_execute.side_effect = LoadDocumentsError(
-            "Failed to orchestrate document loading", status_code=500
+            "Failed to save documents", status_code=500
         )
 
+        valid_csv = self._create_csv_file(self._create_valid_csv_content())
+
         response = self.client.post(
-            self.load_documents_url, {"type": "CORPS"}, format="json"
+            self.concours_upload_url, {"file": valid_csv}, format="multipart"
         )
 
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data["status"], "error")
-        self.assertEqual(response.data["type"], "ApplicationError::LoadDocumentsError")
+        self.assertIn("Unexpected error", response.data["error"])
 
-    @patch.dict(
-        os.environ,
-        {
-            "TYCHO_PISTE_OAUTH_BASE_URL": "https://fake-piste-oauth.example.com",
-            "TYCHO_INGRES_BASE_URL": "https://fake-ingres-api.example.com/path",
-            "TYCHO_INGRES_CLIENT_ID": "fake-client-id",
-            "TYCHO_INGRES_CLIENT_SECRET": "fake-client-secret",
-        },
-    )
-    @responses.activate
-    def test_success_response_format(self):
-        """Test successful API response format and content."""
-        # Mock successful OAuth
-        responses.add(
-            responses.POST,
-            f"{self.config.piste.oauth_base_url}api/oauth/token",
-            json={"access_token": "fake_token", "expires_in": 3600},
-            status=200,
-        )
-
-        # Mock successful INGRES API with documents
-        api_response = IngresCorpsApiResponseFactory.build()
-        api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
-        responses.add(
-            responses.GET,
-            f"{self.config.piste.ingres_base_url}/CORPS",
-            json={"items": api_data},
-            status=200,
-        )
+    def test_success_response(self):
+        """Test successful CSV upload and processing."""
+        valid_csv = self._create_csv_file(self._create_valid_csv_content())
 
         response = self.client.post(
-            self.load_documents_url, {"type": "CORPS"}, format="json"
+            self.concours_upload_url, {"file": valid_csv}, format="multipart"
         )
 
-        # Test success response format (covers lines 45-48 in views.py)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data["status"], "success")
-        self.assertEqual(response.data["document_type"], "CORPS")
-        self.assertEqual(response.data["created"], 4)
-        self.assertEqual(response.data["updated"], 0)
-        self.assertEqual(response.data["message"], "4 documents created, 0 updated")
+        self.assertEqual(response.data["total_rows"], 2)
+        self.assertEqual(response.data["valid_rows"], 2)
+        self.assertEqual(response.data["invalid_rows"], 0)
+        self.assertIn(
+            "Successfully processed 2 valid concours records", response.data["message"]
+        )

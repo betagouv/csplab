@@ -9,14 +9,14 @@ from core.entities.document import DocumentType
 class Command(BaseCommand):
     """Vectorize documents by type using VectorizeDocumentsUsecase."""
 
-    help = "Vectorize documents by type (CORPS for now)"
+    help = "Vectorize documents by type (CORPS, CONCOURS)"
 
     def add_arguments(self, parser):
         """Add command arguments."""
         parser.add_argument(
             "--type",
             required=True,
-            choices=["CORPS"],
+            choices=["CORPS", "CONCOURS"],
             help="Type of documents to vectorize",
         )
         parser.add_argument(

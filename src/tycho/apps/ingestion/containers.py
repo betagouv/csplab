@@ -2,6 +2,9 @@
 
 from dependency_injector import containers, providers
 
+from apps.ingestion.application.interfaces.load_documents_input import (
+    LoadDocumentsInput,
+)
 from apps.ingestion.application.usecases.clean_documents import CleanDocumentsUsecase
 from apps.ingestion.application.usecases.load_documents import LoadDocumentsUsecase
 from apps.ingestion.application.usecases.vectorize_documents import (
@@ -16,6 +19,9 @@ from apps.ingestion.infrastructure.adapters.persistence.repositories import (
 )
 from apps.ingestion.infrastructure.adapters.persistence.repository_factory import (
     RepositoryFactory,
+)
+from apps.ingestion.infrastructure.adapters.services import (
+    load_documents_strategy_factory as load_strategy,
 )
 from apps.ingestion.infrastructure.adapters.services.document_cleaner import (
     DocumentCleaner,
@@ -43,6 +49,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     shared_container = providers.DependenciesContainer()
 
     corps_repository = shared_container.corps_repository
+    concours_repository = shared_container.concours_repository
     embedding_generator = shared_container.embedding_generator
     vector_repository = shared_container.vector_repository
 
@@ -71,6 +78,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     repository_factory = providers.Singleton(
         RepositoryFactory,
         corps_repository=corps_repository,
+        concours_repository=concours_repository,
     )
 
     document_cleaner: providers.Provider[IDocumentCleaner[IEntity]] = (
@@ -84,10 +92,16 @@ class IngestionContainer(containers.DeclarativeContainer):
         TextExtractor,
     )
 
+    load_documents_strategy_factory = providers.Singleton(
+        load_strategy.LoadDocumentsStrategyFactory,
+        document_fetcher=document_fetcher,
+    )
+
     load_documents_usecase: providers.Provider[
-        IUseCase[DocumentType, IUpsertResult]
+        IUseCase[LoadDocumentsInput, IUpsertResult]
     ] = providers.Factory(
         LoadDocumentsUsecase,
+        strategy_factory=load_documents_strategy_factory,
         document_repository=document_repository,
         logger=logger_service,
     )

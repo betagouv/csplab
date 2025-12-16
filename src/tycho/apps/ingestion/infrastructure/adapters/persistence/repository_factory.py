@@ -1,6 +1,10 @@
 """Repository factory implementation for entity persistence."""
 
+from typing import Union
+
 from core.entities.document import DocumentType
+from core.errors.document_error import UnsupportedDocumentTypeError
+from core.repositories.concours_repository_interface import IConcoursRepository
 from core.repositories.corps_repository_interface import ICorpsRepository
 from core.repositories.repository_factory_interface import IRepositoryFactory
 
@@ -8,13 +12,25 @@ from core.repositories.repository_factory_interface import IRepositoryFactory
 class RepositoryFactory(IRepositoryFactory):
     """Factory that provides appropriate repositories by entity type."""
 
-    def __init__(self, corps_repository: ICorpsRepository):
+    def __init__(
+        self,
+        corps_repository: ICorpsRepository,
+        concours_repository: IConcoursRepository,
+    ):
         """Initialize with repository dependencies."""
         self.corps_repository = corps_repository
+        self.concours_repository = concours_repository
 
-    def get_repository(self, document_type: DocumentType) -> ICorpsRepository:
+    def get_repository(
+        self, document_type: DocumentType
+    ) -> Union[ICorpsRepository, IConcoursRepository]:
         """Get the appropriate repository for the given document type."""
-        if document_type == DocumentType.CORPS:
-            return self.corps_repository
+        match document_type:
+            case DocumentType.CORPS:
+                return self.corps_repository
+            case DocumentType.CONCOURS:
+                return self.concours_repository
 
-        raise ValueError(f"No repository available for document type: {document_type}")
+        raise UnsupportedDocumentTypeError(
+            f"No repository available for document type: {document_type}"
+        )
