@@ -5,6 +5,7 @@ from typing import cast
 import environ
 from pydantic import HttpUrl
 
+from apps.candidate.config import AlbertConfig, CandidateConfig
 from apps.candidate.containers import CandidateContainer
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
@@ -24,7 +25,17 @@ def create_candidate_container() -> CandidateContainer:
     shared_config = SharedConfig(openai_config)
     shared_container.config.override(shared_config)
 
+    albert_config = AlbertConfig(
+        api_base_url=cast(HttpUrl, env.str("TYCHO_ALBERT_API_BASE_URL")),
+        api_key=cast(str, env.str("TYCHO_ALBERT_API_KEY")),
+        model_name=cast(str, env.str("TYCHO_ALBERT_MODEL", default="albert-large")),
+        dpi=cast(int, env.int("TYCHO_ALBERT_DPI", default=200)),
+    )
+
+    candidate_config = CandidateConfig(albert_config)
+
     container = CandidateContainer()
+    container.config.override(candidate_config)
 
     logger_service = LoggerService("candidate")
     container.logger_service.override(logger_service)

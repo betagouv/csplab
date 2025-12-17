@@ -797,6 +797,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "requests" },
     { name = "sentry-sdk", extra = ["django"] },
+    { name = "uuid" },
 ]
 
 [package.dev-dependencies]
@@ -830,6 +831,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.12.4" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "sentry-sdk", extras = ["django"], specifier = "==2.43.0" },
+    { name = "uuid", specifier = ">=1.30" },
 ]
 
 [package.metadata.requires-dev]
@@ -905,3 +907,9 @@ sdist = { url = "https://files.pythonhosted.org/packages/15/22/9ee70a2574a4f4599
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a7/c2/fe1e52489ae3122415c51f387e221dd0773709bad6c6cdaa599e8a2c5185/urllib3-2.5.0-py3-none-any.whl", hash = "sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc", size = 129795, upload-time = "2025-06-18T14:07:40.39Z" },
 ]
+
+[[package]]
+name = "uuid"
+version = "1.30"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ce/63/f42f5aa951ebf2c8dac81f77a8edcc1c218640a2a35a03b9ff2d4aa64c3d/uuid-1.30.tar.gz", hash = "sha256:1f87cc004ac5120466f36c5beae48b4c48cc411968eed0eaecd3da82aa96193f", size = 5811, upload-time = "2007-05-26T11:13:24Z" }
