@@ -27,7 +27,7 @@ TYCHO_OPENROUTER_API_KEY=openrouter-key
 TYCHO_OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 TYCHO_OPENROUTER_EMBEDDING_MODEL="text-embedding-3-large"
 
-ALBERT_API_BASE_URL=https://albert.api.etalab.gouv.fr
-ALBERT_API_KEY=albert-api-key
-ALBERT_OCR_MODEL=albert-large
-OPIK_API_KEY=opik-api-key
+TYCHO_ALBERT_API_BASE_URL=https://albert.api.etalab.gouv.fr
+TYCHO_ALBERT_API_KEY=albert-api-key
+TYCHO_ALBERT_OCR_MODEL=albert-large
+TYCHO_OPIK_API_KEY=opik-api-key

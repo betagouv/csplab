@@ -35,5 +35,7 @@ and this project adheres to
 - add concours core
 - load / clean and vectorize concours
 - fix concurrency pb with containers singletons
+- add CVMetadatas Entity in core
+- add process_cv usecase
 
 [unreleased]: https://github.com/betagouv/csplab/
