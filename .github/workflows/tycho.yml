@@ -97,6 +97,10 @@ jobs:
       TYCHO_OPENROUTER_API_KEY: fake-api-key
       TYCHO_OPENROUTER_BASE_URL: https://api.openai.com/v1
       TYCHO_OPENROUTER_EMBEDDING_MODEL: text-embedding-3-large
+      TYCHO_ALBERT_API_BASE_URL: https://albert.api.etalab.gouv.fr
+      TYCHO_ALBERT_API_KEY: albert-api-key
+      TYCHO_ALBERT_OCR_MODEL: albert-large
+      TYCHO_OPIK_API_KEY: opik-api-key
     steps:
       - uses: actions/checkout@v5
       - name: Install uv

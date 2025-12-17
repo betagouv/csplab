@@ -20,6 +20,7 @@ dependencies = [
     "pydantic>=2.12.4",
     "requests>=2.32.5",
     "sentry-sdk[django]==2.43.0",
+    "uuid>=1.30",
 ]
 
 [build-system]

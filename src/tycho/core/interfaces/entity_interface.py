@@ -1,10 +1,11 @@
 """Entity interface definitions."""
 
-from typing import Protocol
+from typing import Protocol, Union
+from uuid import UUID
 
 
 class IEntity(Protocol):
     """Interface for domain entities."""
 
-    id: int
+    id: Union[int, UUID]
     """Unique identifier for the entity."""

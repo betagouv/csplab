@@ -39,6 +39,7 @@ concours = [
 
 # -- Dependencies for the LLM/OCR pipelines (OPiK)
 pipelines_opik = [
+    "opik>=0.2.0",
     "rapidfuzz==3.9.6",
     "python-Levenshtein==0.25.1",
     "pymupdf==1.24.10",
