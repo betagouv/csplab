@@ -35,11 +35,11 @@ Avant de lancer les services, copiez et configurez les fichiers d'environnement 
 make setup-env
 ```
 
-Automatisez le chargement des variables d'environnement dans le shell lorsque vous
-accèdez à un répertoire du service
+Automatisez le chargement des variables d'environnement dans le shell lorsque vous accèdez à un répertoire du service
 
 ```bash
 cd src/tycho; direnv allow
+cd src/notebook; direnv allow
 ```
 
 Puis éditez les fichiers env.d/\* avec vos vraies valeurs (clés API, etc.)

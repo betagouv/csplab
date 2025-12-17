@@ -5,7 +5,9 @@ SHELL := /bin/bash
 COMPOSE                 = bin/compose
 COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
 COMPOSE_RUN             = $(COMPOSE) run --rm --no-deps
-COMPOSE_RUN_NOTEBOOK_UV = $(COMPOSE_RUN) notebook uv run
+
+# -- Notebook
+NOTEBOOK_UV         = cd src/notebook && direnv exec . uv
 
 # -- Tycho
 TYCHO_UV = cd src/tycho && direnv exec . uv
@@ -58,9 +60,9 @@ build: ## build services image
 
 
 
-build-notebook: ## build custom jupyter notebook image
-	@$(COMPOSE) build notebook
-.PHONY: build-notebook
+setup-notebook: ## setup notebook kernels natively
+	chmod +x bin/setup-kernels.sh && ./bin/setup-kernels.sh
+.PHONY: setup-notebook
 
 build-tycho: ## build tycho image
 	$(TYCHO_UV) sync --group dev
@@ -103,7 +105,7 @@ run-all: \
 .PHONY: run-all
 
 run-notebook: ## run the notebook service
-	$(COMPOSE_UP) notebook
+	$(NOTEBOOK_UV) run jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
 .PHONY: run-notebook
 
 run-es: ## run the elasticsearch service
@@ -131,14 +133,14 @@ lint-fix: \
 # -- Per-service linting
 lint-notebook: ## lint notebook python sources
 	@echo 'lint:notebook started (warnings only)…'
-	$(COMPOSE_RUN_NOTEBOOK_UV) ruff check . || true
-	$(COMPOSE_RUN_NOTEBOOK_UV) ruff format --check . || true
+	$(NOTEBOOK_UV) run ruff check . || true
+	$(NOTEBOOK_UV) run ruff format --check . || true
 .PHONY: lint-notebook
 
 lint-notebook-fix: ## lint and fix notebook python sources
 	@echo 'lint:notebook-fix started (warnings only)…'
-	$(COMPOSE_RUN_NOTEBOOK_UV) ruff check --fix . || true
-	$(COMPOSE_RUN_NOTEBOOK_UV) ruff format . || true
+	$(NOTEBOOK_UV) run ruff check --fix . || true
+	$(NOTEBOOK_UV) run ruff format . || true
 .PHONY: lint-notebook-fix
 
 lint-tycho: ## lint tycho python sources

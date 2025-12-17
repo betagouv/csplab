@@ -1,20 +1,4 @@
 services:
-  notebook:
-    build:
-      context: src/notebook
-      dockerfile: Dockerfile
-      args:
-        DOCKER_UID: ${DOCKER_UID:-1000}
-        DOCKER_GID: ${DOCKER_GID:-1000}
-    env_file:
-      - env.d/notebook
-    user: ${DOCKER_USER:-1000}
-    ports:
-      - "8888:8888"
-    volumes:
-      - ./src/notebook:/home/notebook/app
-    working_dir: /home/notebook/app
-
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.1.5
     environment:
