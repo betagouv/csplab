@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.shortcuts import render
 from django.views import View
 
-from apps.candidate.container_singleton import CandidateContainerSingleton
+from apps.candidate.container_factory import create_candidate_container
 from apps.candidate.infrastructure.adapters.website.forms import CorpsSearchForm
 
 
@@ -35,7 +35,7 @@ class CorpsSearchView(View):
             limit = form.cleaned_data.get("limit", 10)
 
             try:
-                container = CandidateContainerSingleton.get_container()
+                container = create_candidate_container()
                 retrieve_usecase = container.retrieve_corps_usecase()
                 logger = container.logger_service()
 

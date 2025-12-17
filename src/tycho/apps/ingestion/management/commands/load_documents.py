@@ -6,7 +6,7 @@ from apps.ingestion.application.interfaces.load_documents_input import (
     LoadDocumentsInput,
 )
 from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
-from apps.ingestion.container_singleton import IngestionContainerSingleton
+from apps.ingestion.container_factory import create_ingestion_container
 from core.entities.document import DocumentType
 
 
@@ -28,7 +28,7 @@ class Command(BaseCommand):
         """Execute the command."""
         try:
             document_type = DocumentType(options["type"])
-            container = IngestionContainerSingleton.get_container()
+            container = create_ingestion_container()
             usecase = container.load_documents_usecase()
 
             self.stdout.write(f"Loading documents of type: {document_type.value}")

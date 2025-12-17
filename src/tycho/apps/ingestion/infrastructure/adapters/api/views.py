@@ -13,7 +13,7 @@ from apps.ingestion.application.interfaces.load_documents_input import (
     LoadDocumentsInput,
 )
 from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
-from apps.ingestion.container_singleton import IngestionContainerSingleton
+from apps.ingestion.container_factory import create_ingestion_container
 from core.entities.document import Document, DocumentType
 
 from .schemas import ConcoursRowSchema
@@ -48,7 +48,7 @@ class ConcoursUploadView(APIView):
 
     def post(self, request):
         """Handle CSV file upload and process concours data."""
-        container = IngestionContainerSingleton.get_container()
+        container = create_ingestion_container()
         logger = container.logger_service().get_logger(
             "INGESTION::INFRASTRUCTURE::ConcoursUploadView"
         )
