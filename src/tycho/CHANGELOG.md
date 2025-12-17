@@ -34,5 +34,6 @@ and this project adheres to
 - fix custom template tag
 - add concours core
 - load / clean and vectorize concours
+- fix concurrency pb with containers singletons
 
 [unreleased]: https://github.com/betagouv/csplab/
