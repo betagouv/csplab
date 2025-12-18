@@ -2,6 +2,9 @@
 
 from dependency_injector import containers, providers
 
+from apps.candidate.application.usecases.match_opportunities_to_cv import (
+    MatchOpportunitiesToCVUsecase,
+)
 from apps.candidate.application.usecases.process_uploaded_cv import (
     ProcessUploadedCVUsecase,
 )
@@ -24,6 +27,7 @@ class CandidateContainer(containers.DeclarativeContainer):
     shared_container = providers.DependenciesContainer()
 
     corps_repository = shared_container.corps_repository
+    concours_repository = shared_container.concours_repository
     embedding_generator = shared_container.embedding_generator
     vector_repository = shared_container.vector_repository
 
@@ -47,5 +51,14 @@ class CandidateContainer(containers.DeclarativeContainer):
         pdf_text_extractor=pdf_text_extractor,
         query_builder=query_builder,
         cv_metadata_repository=cv_metadata_repository,
+        logger=logger_service,
+    )
+
+    match_opportunities_to_cv_usecase = providers.Factory(
+        MatchOpportunitiesToCVUsecase,
+        cv_metadata_repository=cv_metadata_repository,
+        embedding_generator=embedding_generator,
+        vector_repository=vector_repository,
+        concours_repository=concours_repository,
         logger=logger_service,
     )
