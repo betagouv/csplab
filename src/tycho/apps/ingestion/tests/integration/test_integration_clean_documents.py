@@ -362,7 +362,7 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
         """Test find_by_id returns None for nonexistent Concours."""
         concours_repository = self.shared_container.concours_repository()
 
-        nonexistent_concours = concours_repository.find_by_id(99999)
+        nonexistent_concours = concours_repository.find_by_nor(99999)
 
         self.assertIsNone(nonexistent_concours)
 
