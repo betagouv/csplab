@@ -14,6 +14,9 @@ from apps.ingestion.infrastructure.adapters.external import (
     document_fetcher,
     piste_client,
 )
+from apps.ingestion.infrastructure.adapters.external.talentsoft_client import (
+    TalentSoftClient,
+)
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_document_repository as django_repo,
 )
@@ -59,9 +62,16 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger_service=logger_service,
     )
 
+    talentsoft_client = providers.Singleton(
+        TalentSoftClient,
+        config=providers.Callable(lambda cfg: cfg.talentsoft, config),
+        logger_service=logger_service,
+    )
+
     document_fetcher = providers.Singleton(
         document_fetcher.ExternalDocumentFetcher,
         piste_client=piste_client,
+        talentsoft_client=talentsoft_client,
         logger_service=logger_service,
     )
 

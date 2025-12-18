@@ -6,6 +6,7 @@ from apps.ingestion.infrastructure.adapters.services.concours_cleaner import (
     ConcoursCleaner,
 )
 from apps.ingestion.infrastructure.adapters.services.corps_cleaner import CorpsCleaner
+from apps.ingestion.infrastructure.adapters.services.offer_cleaner import OfferCleaner
 from core.entities.document import Document, DocumentType
 from core.errors.document_error import (
     MixedDocumentTypesError,
@@ -27,6 +28,7 @@ class DocumentCleaner(IDocumentCleaner[IEntity]):
         self._cleaners = {
             DocumentType.CORPS: CorpsCleaner(logger),
             DocumentType.CONCOURS: ConcoursCleaner(logger),
+            DocumentType.OFFER: OfferCleaner(logger),
         }
 
     def clean(self, raw_documents: List[Document]) -> Sequence[IEntity]:

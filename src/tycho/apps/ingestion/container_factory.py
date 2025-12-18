@@ -5,7 +5,7 @@ from typing import cast
 import environ
 from pydantic import HttpUrl
 
-from apps.ingestion.config import IngestionConfig, PisteConfig
+from apps.ingestion.config import IngestionConfig, PisteConfig, TalentSoftConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
@@ -32,7 +32,11 @@ def create_ingestion_container() -> IngestionContainer:
         client_id=cast(str, env.str("TYCHO_INGRES_CLIENT_ID")),
         client_secret=cast(str, env.str("TYCHO_INGRES_CLIENT_SECRET")),
     )
-    ingestion_config = IngestionConfig(piste_config)
+    talentsoft_config = TalentSoftConfig(
+        base_url=cast(HttpUrl, env.str("TYCHO_TALENTSOFT_BASE_URL")),
+        api_key=cast(str, env.str("TYCHO_TALENTSOFT_API_KEY")),
+    )
+    ingestion_config = IngestionConfig(piste_config, talentsoft_config)
     container.config.override(ingestion_config)
 
     logger_service = LoggerService("ingestion")

@@ -15,11 +15,19 @@ class PisteConfig(BaseModel):
     client_secret: str
 
 
+class TalentSoftConfig(BaseModel):
+    """Configuration for TalentSoft API client."""
+
+    base_url: HttpUrl
+    api_key: str
+
+
 class IngestionConfig(BaseModel):
     """Configuration for ingestion app."""
 
     piste: PisteConfig
+    talentsoft: TalentSoftConfig
 
-    def __init__(self, piste_config: PisteConfig):
-        """Create configuration from PISTE config."""
-        super().__init__(piste=piste_config)
+    def __init__(self, piste_config: PisteConfig, talentsoft_config: TalentSoftConfig):
+        """Create configuration from PISTE and TalentSoft configs."""
+        super().__init__(piste=piste_config, talentsoft=talentsoft_config)

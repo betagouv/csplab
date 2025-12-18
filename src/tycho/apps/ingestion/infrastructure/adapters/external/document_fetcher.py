@@ -6,6 +6,9 @@ from typing import List
 from apps.ingestion.infrastructure.adapters.external.dtos.ingres_corps_dtos import (
     IngresCorpsApiResponse,
 )
+from apps.ingestion.infrastructure.adapters.external.dtos.talentsoft_offer_dtos import (
+    TalentSoftOfferDocument,
+)
 from core.entities.document import Document, DocumentType
 from core.repositories.document_repository_interface import IDocumentFetcher
 from core.services.http_client_interface import IHttpClient
@@ -15,17 +18,19 @@ from core.services.logger_interface import ILogger
 class ExternalDocumentFetcher(IDocumentFetcher):
     """Fetches documents from external API sources."""
 
-    def __init__(self, piste_client: IHttpClient, logger_service: ILogger):
-        """Initialize with PISTE client, logger and source."""
+    def __init__(
+        self,
+        piste_client: IHttpClient,
+        talentsoft_client: IHttpClient,
+        logger_service: ILogger,
+    ):
+        """Initialize with PISTE client, TalentSoft client, logger and source."""
         self.piste_client = piste_client
+        self.talentsoft_client = talentsoft_client
         self.logger = logger_service.get_logger("ExternalDocumentFetcher")
         self._source = {
             DocumentType.CORPS: self._fetch_ingres_api,
-            DocumentType.GRADE: self._fetch_ingres_api,
-            # TODO
-            # DocumentType.CONCOURS: self._fetch_from_csv,
-            # DocumentType.LAW_CONCOURS: self._fetch_legifrance_sdk,
-            # DocumentType.LAW_CORPS: self._fetch_legifrance_sdk,
+            DocumentType.OFFER: self._fetch_talentsoft_api,
         }
 
     def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
@@ -52,13 +57,27 @@ class ExternalDocumentFetcher(IDocumentFetcher):
                     updated_at=now,  # Temporary timestamp, will be updated by persister
                 )
                 documents.append(document)
+        elif document_type == DocumentType.OFFER:
+            # Use Pydantic validation for TalentSoft data
+            for raw_doc in raw_documents:
+                offer_doc = TalentSoftOfferDocument(**raw_doc)
+                # Convert string id to int for Document
+                numeric_id = hash(offer_doc.id) % (10**9)
+                document = Document(
+                    id=numeric_id,
+                    external_id=offer_doc.id,
+                    raw_data=offer_doc.model_dump(),
+                    type=document_type,
+                    created_at=now,
+                    updated_at=now,
+                )
+                documents.append(document)
 
         return documents
 
     def _fetch_ingres_api(self, document_type: DocumentType) -> List[dict]:
         document_type_map = {
             DocumentType.CORPS: "CORPS",
-            DocumentType.GRADE: "GRADE",
         }
 
         endpoint = document_type_map.get(document_type)
@@ -71,4 +90,11 @@ class ExternalDocumentFetcher(IDocumentFetcher):
 
         raw_documents = response.json()["items"]
         self.logger.info(f"Found {len(raw_documents)} documents")
+        return raw_documents
+
+    def _fetch_talentsoft_api(self, document_type: DocumentType) -> List[dict]:
+        """Fetch offers from TalentSoft API."""
+        response = self.talentsoft_client.request("GET", "offers")
+        raw_documents = response.json()["offers"]
+        self.logger.info(f"Found {len(raw_documents)} offers")
         return raw_documents
