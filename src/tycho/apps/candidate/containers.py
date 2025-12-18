@@ -10,7 +10,7 @@ from apps.candidate.application.usecases.process_uploaded_cv import (
 )
 from apps.candidate.application.usecases.retrieve_corps import RetrieveCorpsUsecase
 from apps.candidate.infrastructure.adapters.repositories.cv_metadata_repository import (
-    CVMetadataRepository,
+    PostgresCVMetadataRepository,
 )
 from apps.candidate.infrastructure.adapters.services.albert_pdf_extractor import (
     AlbertPDFExtractor,
@@ -36,7 +36,7 @@ class CandidateContainer(containers.DeclarativeContainer):
         config=providers.Callable(lambda cfg: cfg.albert, config),
     )
     query_builder = providers.Factory(QueryBuilder)
-    cv_metadata_repository = providers.Singleton(CVMetadataRepository)
+    cv_metadata_repository = providers.Singleton(PostgresCVMetadataRepository)
 
     retrieve_corps_usecase = providers.Factory(
         RetrieveCorpsUsecase,

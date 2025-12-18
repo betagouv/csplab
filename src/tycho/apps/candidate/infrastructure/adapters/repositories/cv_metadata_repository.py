@@ -12,7 +12,7 @@ from core.entities.cv_metadata import CVMetadata
 from core.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 
 
-class CVMetadataRepository(ICVMetadataRepository):
+class PostgresCVMetadataRepository(ICVMetadataRepository):
     """Django ORM implementation of CV metadata repository."""
 
     def save(self, cv_metadata: CVMetadata) -> CVMetadata:

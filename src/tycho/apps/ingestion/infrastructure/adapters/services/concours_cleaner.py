@@ -221,8 +221,13 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
 
             open_position_number = int(row.get("Nb postes total", 0) or 0)
 
+            # Generate unique ID based on NOR hash to avoid collisions
+            concours_id = hash(row["concours_id"]) % (
+                10**9
+            )  # Keep it positive and reasonable
+
             concours = Concours(
-                id=0,  # Will be set by repository
+                id=concours_id,
                 nor_original=nor_original,
                 nor_list=nor_list,
                 category=category,

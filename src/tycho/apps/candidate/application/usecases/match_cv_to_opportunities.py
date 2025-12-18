@@ -71,9 +71,17 @@ class MatchCVToOpportunitiesUsecase:
 
         concours_list = []
         for result in similarity_results:
+            self._logger.info(
+                f"Searching for concours with ID: {result.document.document_id}"
+            )
             concours = self._concours_repository.find_by_id(result.document.document_id)
             if concours:
+                self._logger.info(f"Found concours with ID: {concours.id}")
                 concours_list.append((concours, result.score))
+            else:
+                self._logger.warning(
+                    f"Concours with ID {result.document.document_id} not found"
+                )
 
         self._logger.info(f"Returning {len(concours_list)} concours")
         return concours_list
