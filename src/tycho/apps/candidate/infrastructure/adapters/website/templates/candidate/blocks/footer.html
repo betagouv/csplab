@@ -2,11 +2,10 @@
 {% load i18n %}
 
 {% block footer_brand %}
-{% translate "Back to home page" as back_to_home_label %}
 <div class="fr-footer__brand fr-enlarge-link">
     <a id="footer-operator"
        href="/"
-       title="{{ back_to_home_label }} - CSPLab - République française">
+       title="{% trans "Retour à la page d'accueil" %} — CSPLab">
         <p class="fr-logo">
             République<br />française
         </p>
@@ -16,21 +15,21 @@
 
 {% block footer_description %}
 <p class="fr-footer__content-desc">
-CSPLab est un laboratoire d'innovation qui aide les candidats à trouver leur voie dans le service public.
+{% trans "CSPLab est un laboratoire d'innovation qui aide les candidats à trouver leur voie dans le service public." %}
 </p>
 {% endblock %}
 
 {% block footer_links %}
 <li class="fr-footer__bottom-item">
-    <a class="fr-footer__bottom-link" href="#">Accessibilité : non conforme</a>
+    <a class="fr-footer__bottom-link" href="#">{% trans "Accessibilité : non conforme" %}</a>
 </li>
 <li class="fr-footer__bottom-item">
-    <a class="fr-footer__bottom-link" href="#">Mentions légales</a>
+    <a class="fr-footer__bottom-link" href="#">{% trans "Mentions légales" %}</a>
 </li>
 <li class="fr-footer__bottom-item">
-    <a class="fr-footer__bottom-link" href="#">Données personnelles</a>
+    <a class="fr-footer__bottom-link" href="#">{% trans "Données personnelles" %}</a>
 </li>
 <li class="fr-footer__bottom-item">
-    <a class="fr-footer__bottom-link" href="#">Gestion des cookies</a>
+    <a class="fr-footer__bottom-link" href="#">{% trans "Gestion des cookies" %}</a>
 </li>
 {% endblock %}

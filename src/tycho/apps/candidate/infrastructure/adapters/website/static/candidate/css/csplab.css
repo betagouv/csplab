@@ -443,7 +443,7 @@
     gap: 0.5rem;
 }
 
-/* États de la dropzone */
+/* Dropzone states */
 .csplab-dropzone[data-state="initial"] .csplab-dropzone__content--initial,
 .csplab-dropzone[data-state="dragging"] .csplab-dropzone__content--dragging,
 .csplab-dropzone[data-state="uploading"] .csplab-dropzone__content--uploading,
@@ -451,7 +451,7 @@
     display: flex;
 }
 
-/* État dragging */
+/* Dragging state */
 .csplab-dropzone[data-state="dragging"] {
     background-color: var(--csplab-blue-light);
     border-style: solid;
@@ -461,14 +461,14 @@
     cursor: default;
 }
 
-/* État error */
+/* Error state */
 .csplab-dropzone[data-state="error"] {
     border-color: #CE0500;
     background-color: #FFE9E9;
     cursor: default;
 }
 
-/* État uploading */
+/* Uploading state */
 .csplab-dropzone[data-state="uploading"] {
     cursor: wait;
 }
@@ -568,7 +568,7 @@
     }
 }
 
-/* Carte fichier uploadé */
+/* Uploaded file card */
 .csplab-file-card {
     display: flex;
     align-items: center;
@@ -654,7 +654,7 @@
     margin: 0;
 }
 
-/* Ajouter du padding en bas pour éviter que le contenu soit caché */
+/* Add bottom padding to prevent content from being hidden */
 .csplab-cv-upload {
     padding-bottom: 2rem;
 }
@@ -733,7 +733,7 @@
    Results Page
    ========================================================================== */
 
-/* En-tête des résultats */
+/* Results header */
 .csplab-resultats__header {
     display: flex;
     align-items: center;
@@ -808,7 +808,7 @@
     margin-top: 1rem;
 }
 
-/* En-tête liste résultats */
+/* Results list header */
 .csplab-resultats__list-header {
     display: flex;
     align-items: baseline;
@@ -833,7 +833,7 @@
     margin: 0;
 }
 
-/* Liste des résultats */
+/* Results list */
 .csplab-resultats__list {
     display: flex;
     flex-direction: column;
@@ -880,7 +880,7 @@
     margin-top: 0;
 }
 
-/* Détails de l'opportunité */
+/* Opportunity details */
 .csplab-opportunite-card__details {
     display: flex;
     flex-wrap: wrap;
@@ -911,7 +911,7 @@
     color: #929292;
 }
 
-/* Bloc métier */
+/* Job block */
 .csplab-opportunite-card__job {
     display: flex;
     align-items: center;
@@ -994,7 +994,7 @@
    HTMX & Filter Interactions
    ========================================================================== */
 
-/* Cacher les checkboxes des filtres de versants (on garde les labels stylisés en tags) */
+/* Hide checkboxes for branch filters (keep styled labels as tags) */
 .csplab-branch-checkbox {
     position: absolute;
     opacity: 0;
@@ -1024,7 +1024,7 @@
     color: var(--csplab-text-default);
 }
 
-/* Animation de l'icône de chargement */
+/* Loading icon animation */
 .htmx-indicator .fr-icon-refresh-line {
     animation: spin 1s linear infinite;
 }
@@ -1048,7 +1048,7 @@
     width: fit-content;
 }
 
-/* En-tête avec titre et CTA */
+/* Header with title and CTA */
 .csplab-opportunite-detail__header {
     display: flex;
     gap: 1.5rem;
@@ -1071,7 +1071,7 @@
     margin: 0;
 }
 
-/* Métadonnées */
+/* Metadata */
 .csplab-opportunite-detail__meta {
     display: flex;
     flex-direction: column;
@@ -1108,7 +1108,7 @@
     margin: 0;
 }
 
-/* Encart CTA */
+/* CTA Block */
 .csplab-opportunite-detail__cta-card {
     flex-shrink: 0;
     display: flex;
@@ -1151,7 +1151,7 @@
     justify-content: center;
 }
 
-/* Bloc métier */
+/* Job block */
 .csplab-opportunite-detail__job {
     display: flex;
     align-items: center;

@@ -1,14 +1,19 @@
 {% comment %}
-Liste des opportunités (fragment HTMX)
+"Opportunites" list (HTMX fragment).
 
-Variables attendues :
-- opportunites: Liste des opportunités filtrées
+Expected variables:
+- opportunites: List of filtered "opportunites"
 {% endcomment %}
+{% load i18n %}
 <div class="csplab-resultats__list-header">
     <p class="csplab-resultats__count">
-        <strong>{{ opportunites|length }}</strong> résultat{{ opportunites|length|pluralize }}
+        {% blocktrans count counter=opportunites|length trimmed %}
+            <strong>{{ counter }}</strong> résultat
+        {% plural %}
+            <strong>{{ counter }}</strong> résultats
+        {% endblocktrans %}
     </p>
-    <p class="csplab-resultats__sort">Triés par pertinence</p>
+    <p class="csplab-resultats__sort">{% trans "Trié par pertinence" %}</p>
 </div>
 
 <div class="csplab-resultats__list">
@@ -17,8 +22,7 @@ Variables attendues :
     {% empty %}
         <div class="fr-callout">
             <p class="fr-callout__text">
-                Aucune opportunité ne correspond à vos critères de recherche.
-                Essayez de modifier vos filtres.
+                {% trans "Aucune opportunité ne correspond à vos critères de recherche. Essayez de modifier vos filtres." %}
             </p>
         </div>
     {% endfor %}

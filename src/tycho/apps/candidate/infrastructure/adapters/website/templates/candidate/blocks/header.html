@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block service_title %}
-<a href="{% url 'home' %}" title="Accueil — CSPLab">
+<a href="{% url 'home' %}" title="{% trans 'Accueil' %} — CSPLab">
     <p class="fr-header__service-title">
         CSPLab
         <span class="fr-badge fr-badge--sm fr-badge--green-emeraude">BETA</span>
@@ -11,13 +11,13 @@
 {% endblock service_title %}
 
 {% block service_tagline %}
-Innover pour choisir le service public
+{% trans "Innover pour choisir la fonction publique" %}
 {% endblock service_tagline %}
 
 {% block header_tools %}
 <li>
     <a class="fr-btn fr-btn--tertiary-no-outline fr-icon-mail-line" href="#">
-        Infolettre
+        {% trans "Infolettre" %}
     </a>
 </li>
 {% endblock header_tools %}
@@ -27,12 +27,12 @@ Innover pour choisir le service public
 {% block main_menu %}
 <div class="fr-header__menu fr-modal" id="fr-menu-mobile" aria-labelledby="fr-btn-menu-mobile">
     <div class="fr-container">
-        <button class="fr-btn--close fr-btn" aria-controls="fr-menu-mobile">{% translate "Close" %}</button>
+        <button class="fr-btn--close fr-btn" aria-controls="fr-menu-mobile">{% translate "Fermer" %}</button>
         <div class="fr-header__menu-links">
             <ul class="fr-btns-group">
                 <li>
                     <a class="fr-btn fr-btn--tertiary-no-outline fr-icon-mail-line" href="#">
-                        Infolettre
+                        {% trans "Infolettre" %}
                     </a>
                 </li>
             </ul>

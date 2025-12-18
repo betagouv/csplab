@@ -1,11 +1,10 @@
 {% extends "candidate/base.html" %}
-{% load static dsfr_tags %}
+{% load static dsfr_tags i18n %}
 
-{% block page_title %}Analyse en cours{% endblock %}
+{% block page_title %}{% trans "Analyse en cours" %}{% endblock %}
 
 {% block page_css %}
 <style>
-    /* Animation CSS pour les étapes */
     .csplab-processing__step {
         opacity: 0.5;
         transition: opacity 0.3s ease;
@@ -34,9 +33,9 @@
     <div class="csplab-processing">
         <div class="csplab-processing__content">
             <div class="csplab-processing__spinner"></div>
-            <h1 class="csplab-processing__title">Analyse de votre CV en cours...</h1>
+            <h1 class="csplab-processing__title">{% trans "Analyse de votre CV en cours..." %}</h1>
             <p class="csplab-processing__description">
-              Bientôt le verdict : découvrez la carrière qui vous correspond
+                {% trans "Bientôt le verdict : découvrez la carrière qui vous correspond" %}
             </p>
             {% if cv_data %}
             <p class="csplab-processing__file-info fr-text--sm fr-mb-2w">
@@ -50,20 +49,20 @@
             <div class="csplab-processing__steps" id="processing-steps">
                 <p class="csplab-processing__step" data-step="1">
                     <span class="fr-icon-checkbox-circle-fill" aria-hidden="true"></span>
-                    Lecture du CV...
+                    {% trans "Lecture du CV..." %}
                 </p>
                 <p class="csplab-processing__step" data-step="2">
                     <span class="fr-icon-checkbox-circle-fill" aria-hidden="true"></span>
-                    Extraction des compétences...
+                    {% trans "Extraction des compétences..." %}
                 </p>
                 <p class="csplab-processing__step" data-step="3">
                     <span class="fr-icon-checkbox-circle-fill" aria-hidden="true"></span>
-                    Recherche des offres correspondantes...
+                    {% trans "Recherche des offres correspondantes..." %}
                 </p>
             </div>
             <p class="fr-text--sm fr-mt-2w">
-                Vous serez redirigé automatiquement dans quelques secondes.
-                <a href="{% url 'candidate:cv_results' cv_id=cv_data.id %}" class="fr-link">Cliquez ici</a> si la redirection ne fonctionne pas.
+                {% trans "Vous serez redirigé automatiquement dans quelques secondes." %}
+                <a href="{% url 'candidate:cv_results' cv_id=cv_data.id %}" class="fr-link">{% trans "Cliquez ici" %}</a> {% trans "si la redirection ne fonctionne pas." %}
             </p>
         </div>
     </div>

@@ -5,17 +5,15 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 
-# Constantes pour la validation du CV
 CV_MAX_SIZE_MB = 5
 CV_MAX_SIZE_BYTES = CV_MAX_SIZE_MB * 1024 * 1024
 CV_ALLOWED_CONTENT_TYPES = ["application/pdf"]
 CV_ALLOWED_EXTENSIONS = [".pdf"]
-# Magic bytes PDF : %PDF-
 PDF_MAGIC_BYTES = b"%PDF-"
 
 
 class CVUploadForm(forms.Form):
-    """Formulaire pour l'upload de CV."""
+    """Form for CV upload."""
 
     cv_file = forms.FileField(
         label=_("Votre CV"),
@@ -32,13 +30,12 @@ class CVUploadForm(forms.Form):
     )
 
     def clean_cv_file(self):
-        """Valide le fichier CV uploadé."""
+        """Validate the uploaded CV file."""
         cv_file = self.cleaned_data.get("cv_file")
 
         if not cv_file:
             raise ValidationError(_("Veuillez sélectionner un fichier."))
 
-        # Validation de la taille
         if cv_file.size > CV_MAX_SIZE_BYTES:
             raise ValidationError(
                 _("Le fichier dépasse la taille maximale de %(max_size)s Mo."),
@@ -46,7 +43,6 @@ class CVUploadForm(forms.Form):
                 params={"max_size": CV_MAX_SIZE_MB},
             )
 
-        # Validation du type MIME (déclaré par le navigateur)
         content_type = cv_file.content_type
         if content_type not in CV_ALLOWED_CONTENT_TYPES:
             raise ValidationError(
@@ -54,7 +50,6 @@ class CVUploadForm(forms.Form):
                 code="invalid_content_type",
             )
 
-        # Validation de l'extension
         file_name = cv_file.name.lower()
         if not any(file_name.endswith(ext) for ext in CV_ALLOWED_EXTENSIONS):
             raise ValidationError(
@@ -62,11 +57,9 @@ class CVUploadForm(forms.Form):
                 code="invalid_extension",
             )
 
-        # Validation des magic bytes (signature réelle du fichier)
-        # Plus fiable que content_type qui peut être spoofé
         cv_file.seek(0)
         file_header = cv_file.read(5)
-        cv_file.seek(0)  # Remettre le curseur au début pour usage ultérieur
+        cv_file.seek(0)
 
         if file_header != PDF_MAGIC_BYTES:
             raise ValidationError(
@@ -86,14 +79,14 @@ class CorpsSearchForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "class": "fr-input",
-                "placeholder": "Rechercher",
+                "placeholder": _("Rechercher"),
                 "id": "search-input",
                 "type": "search",
                 "aria-describedby": "search-input-messages",
             }
         ),
-        label="Recherche",
-        help_text="Décrivez le type de poste ou de corps que vous recherchez",
+        label=_("Recherche"),
+        help_text=_("Décrivez le type de poste ou de corps que vous recherchez"),
     )
 
     limit = forms.IntegerField(
@@ -108,10 +101,10 @@ class CorpsSearchForm(forms.Form):
         """Clean and validate query field."""
         query = self.cleaned_data.get("query", "").strip()
         if not query:
-            raise forms.ValidationError("La recherche ne peut pas être vide.")
+            raise forms.ValidationError(_("La recherche ne peut pas être vide."))
         MIN_QUERY_LENGTH = 3
         if len(query) < MIN_QUERY_LENGTH:
             raise forms.ValidationError(
-                "La recherche doit contenir au moins 3 caractères."
+                _("La recherche doit contenir au moins 3 caractères.")
             )
         return query

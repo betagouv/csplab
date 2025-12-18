@@ -1,5 +1,5 @@
 {% extends "candidate/base.html" %}
-{% load static dsfr_tags %}
+{% load static dsfr_tags i18n %}
 
 {% block page_title %}{{ opportunite.title }}{% endblock %}
 
@@ -10,22 +10,21 @@
 
 <div class="fr-container fr-pb-8w">
     <div class="csplab-opportunite-detail">
-        {# Badge type d'opportunité #}
+        <!-- Type badge -->
         <div class="csplab-opportunite-detail__badge">
             {% if opportunite.type == "concours" %}
-                {% dsfr_tag label=opportunite.type_label|default:"Concours" %}
+                {% dsfr_tag label=opportunite.type_label|default:_("Concours") %}
             {% else %}
-                {% dsfr_tag label="Offre d'emploi" %}
+                {% dsfr_tag label=_("Offre d'emploi") %}
             {% endif %}
         </div>
 
-        {# En-tête avec titre et encart CTA #}
+        <!-- Header -->
         <div class="csplab-opportunite-detail__header">
-            {# Colonne gauche : titre et métadonnées #}
             <div class="csplab-opportunite-detail__main">
                 <h1 class="csplab-opportunite-detail__title">{{ opportunite.title }}</h1>
 
-                {# Métadonnées #}
+                <!-- Metadata -->
                 <div class="csplab-opportunite-detail__meta">
                     {% if opportunite.employer %}
                     <div class="csplab-opportunite-detail__meta-item">
@@ -44,7 +43,7 @@
                     {% if opportunite.category %}
                     <div class="csplab-opportunite-detail__meta-item">
                         <span class="fr-icon-user-setting-line fr-icon--sm" aria-hidden="true"></span>
-                        <span>Catégorie {{ opportunite.category }}</span>
+                        <span>{% trans "Catégorie" %} {{ opportunite.category }}</span>
                         {% if opportunite.recruitment_level %}
                         <span class="csplab-opportunite-detail__meta-hint">{{ opportunite.recruitment_level }}</span>
                         {% endif %}
@@ -52,7 +51,6 @@
                     {% endif %}
                 </div>
 
-                {# Description / chapô #}
                 {% if opportunite.description %}
                 <p class="csplab-opportunite-detail__description">
                     {{ opportunite.description }}
@@ -60,26 +58,26 @@
                 {% endif %}
             </div>
 
-            {# Encart CTA "Pour en savoir plus" #}
+            <!-- CTA card -->
             <div class="csplab-opportunite-detail__cta-card">
                 <div class="csplab-opportunite-detail__cta-header">
-                    <p class="csplab-opportunite-detail__cta-title">Pour en savoir plus</p>
+                    <p class="csplab-opportunite-detail__cta-title">{% trans "Pour en savoir plus" %}</p>
                     <div class="csplab-opportunite-detail__cta-arrow">
                         <img src="{% static 'candidate/images/scribble.svg' %}" alt="" aria-hidden="true">
                     </div>
                 </div>
                 <a href="{{ opportunite.external_url|default:'#' }}" class="fr-btn fr-btn--sm" target="_blank" rel="noopener">
-                    Ouvrir l'offre
+                    {% trans "Consulter l'offre" %}
                 </a>
             </div>
         </div>
 
-        {# Bloc métier #}
+        <!-- Métier block -->
         {% if opportunite.intitule_poste %}
         <div class="csplab-opportunite-detail__intitule-poste">
             <span class="fr-icon-briefcase-line fr-icon--sm" aria-hidden="true"></span>
             <div class="csplab-opportunite-detail__intitule-poste-content">
-                <span class="csplab-opportunite-detail__intitule-poste-label">MÉTIER</span>
+                <span class="csplab-opportunite-detail__intitule-poste-label">{% trans "MÉTIER" %}</span>
                 <span class="csplab-opportunite-detail__intitule-poste-title">{{ opportunite.intitule_poste }}</span>
             </div>
         </div>
