@@ -36,6 +36,7 @@ def create_ingestion_container() -> IngestionContainer:
         base_url=cast(HttpUrl, env.str("TYCHO_TALENTSOFT_BASE_URL")),
         api_key=cast(str, env.str("TYCHO_TALENTSOFT_API_KEY")),
     )
+
     ingestion_config = IngestionConfig(piste_config, talentsoft_config)
     container.config.override(ingestion_config)
 

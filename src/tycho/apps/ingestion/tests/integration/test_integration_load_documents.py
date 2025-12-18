@@ -14,7 +14,7 @@ from apps.ingestion.application.interfaces.load_documents_input import (
     LoadDocumentsInput,
 )
 from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
-from apps.ingestion.config import IngestionConfig, PisteConfig
+from apps.ingestion.config import IngestionConfig, PisteConfig, TalentSoftConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
@@ -53,7 +53,11 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
                 ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
                 client_id="fake-client-id",
                 client_secret="fake-client-secret",  # noqa
-            )
+            ),
+            talentsoft_config=TalentSoftConfig(
+                base_url=HttpUrl("https://fake-talentsoft.example.com"),
+                api_key="fake-talentsoft-api-key",
+            ),
         )
         self.container.config.override(self.ingestion_config)
         self.container.shared_container.override(self.shared_container)
@@ -142,6 +146,20 @@ class TestConcoursUploadView(APITestCase):
     def setUp(self):
         """Set up test environment."""
         self.concours_upload_url = "/ingestion/concours/upload/"
+
+        # Patch environment variables for TalentSoft
+        self.env_patcher = patch.dict(
+            "os.environ",
+            {
+                "TYCHO_TALENTSOFT_BASE_URL": "https://mock-talentsoft.example.com",
+                "TYCHO_TALENTSOFT_API_KEY": "mock-api-key",
+            },
+        )
+        self.env_patcher.start()
+
+    def tearDown(self):
+        """Clean up test environment."""
+        self.env_patcher.stop()
 
     def _create_valid_csv_content(self):
         """Create valid CSV content for testing."""

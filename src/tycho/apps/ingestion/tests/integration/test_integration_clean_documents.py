@@ -4,7 +4,7 @@ import pytest
 from django.test import TransactionTestCase
 from pydantic import HttpUrl
 
-from apps.ingestion.config import IngestionConfig, PisteConfig
+from apps.ingestion.config import IngestionConfig, PisteConfig, TalentSoftConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
@@ -57,7 +57,11 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
                 ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
                 client_id="fake-client-id",
                 client_secret="fake-client-secret",  # noqa
-            )
+            ),
+            talentsoft_config=TalentSoftConfig(
+                base_url=HttpUrl("https://fake-talentsoft.example.com"),
+                api_key="fake-talentsoft-api-key",
+            ),
         )
         self.container.config.override(self.ingestion_config)
         self.container.shared_container.override(self.shared_container)
