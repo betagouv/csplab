@@ -71,10 +71,10 @@ class InMemoryVectorRepository(IVectorRepository):
         if similarity_type is None:
             similarity_type = SimilarityType()
 
-        # Filter documents by metadata if provided
+        # Filter documents if provided
         candidates = list(self._documents.values())
         if filters:
-            candidates = self._filter_by_metadata(candidates, filters)
+            candidates = self._filter_documents(candidates, filters)
 
         # Calculate similarities
         scored_docs = []
@@ -130,6 +130,61 @@ class InMemoryVectorRepository(IVectorRepository):
         return [
             result for result in results if result.document.document_id != document_id
         ][:limit]
+
+    def _filter_documents(
+        self, documents: List[VectorizedDocument], filters: Dict[str, Any]
+    ) -> List[VectorizedDocument]:
+        """Filter documents by direct fields and metadata criteria."""
+        return [doc for doc in documents if self._matches_filters(doc, filters)]
+
+    def _matches_filters(
+        self, doc: VectorizedDocument, filters: Dict[str, Any]
+    ) -> bool:
+        """Check if document matches all filter criteria."""
+        for key, value in filters.items():
+            if not self._matches_single_filter(doc, key, value):
+                return False
+        return True
+
+    def _matches_single_filter(
+        self, doc: VectorizedDocument, key: str, value: Any
+    ) -> bool:
+        """Check if document matches a single filter criterion."""
+        # Check if it's a direct field of VectorizedDocument
+        if hasattr(doc, key):
+            return self._matches_direct_field(doc, key, value)
+
+        # It's a metadata field
+        if key not in doc.metadata:
+            return False
+
+        return self._matches_metadata_field(doc, key, value)
+
+    def _matches_direct_field(
+        self, doc: VectorizedDocument, key: str, value: Any
+    ) -> bool:
+        """Check if document's direct field matches the filter value."""
+        doc_value = getattr(doc, key)
+        # Handle enum values
+        if hasattr(doc_value, "value"):
+            doc_value = doc_value.value
+
+        if isinstance(value, list):
+            return doc_value in value
+        return doc_value == value
+
+    def _matches_metadata_field(
+        self, doc: VectorizedDocument, key: str, value: Any
+    ) -> bool:
+        """Check if document's metadata field matches the filter value."""
+        doc_value = doc.metadata[key]
+
+        if isinstance(value, list):
+            if isinstance(doc_value, list):
+                return any(v in doc_value for v in value)
+            return doc_value in value
+
+        return doc_value == value
 
     def _filter_by_metadata(
         self, documents: List[VectorizedDocument], filters: Dict[str, Any]

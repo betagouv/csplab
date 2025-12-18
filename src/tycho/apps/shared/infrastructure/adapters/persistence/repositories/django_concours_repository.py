@@ -17,55 +17,41 @@ class DjangoConcoursRepository(IConcoursRepository):
         """Insert or update multiple Concours entities and return operation results."""
         created = 0
         updated = 0
-        errors = []
+        errors: List[IUpsertError] = []
 
-        for concours in concours_list:
+        for entity in concours_list:
             try:
-                defaults = {
-                    "corps": concours.corps,
-                    "grade": concours.grade,
-                    "nor_list": [nor.value for nor in concours.nor_list],
-                    "category": concours.category.value,
-                    "ministry": concours.ministry.value,
-                    "access_modality": [
-                        modality.value for modality in concours.access_modality
-                    ],
-                    "written_exam_date": concours.written_exam_date,
-                    "open_position_number": concours.open_position_number,
-                }
-
-                _, was_created = ConcoursModel.objects.update_or_create(
-                    nor_original=concours.nor_original.value,
-                    defaults=defaults,
+                _, created_flag = ConcoursModel.objects.update_or_create(
+                    id=entity.id,  # Use ID as the lookup key
+                    defaults={
+                        "nor_original": entity.nor_original.value,
+                        "corps": entity.corps,
+                        "grade": entity.grade,
+                        "nor_list": [nor.value for nor in entity.nor_list],
+                        "category": entity.category.value,
+                        "ministry": entity.ministry.value,
+                        "access_modality": [
+                            modality.value for modality in entity.access_modality
+                        ],
+                        "written_exam_date": entity.written_exam_date,
+                        "open_position_number": entity.open_position_number,
+                    },
                 )
 
-                if was_created:
+                if created_flag:
                     created += 1
                 else:
                     updated += 1
 
             except Exception as e:
                 error_detail: IUpsertError = {
-                    "entity_id": concours.id,
+                    "entity_id": entity.id,
                     "error": str(e),
                     "exception": e,
                 }
                 errors.append(error_detail)
 
         return {"created": created, "updated": updated, "errors": errors}
-
-    def find_by_corps(self, corps: str) -> Optional[Concours]:
-        """Find a Concours by its Corps name."""
-        try:
-            concours_model = ConcoursModel.objects.get(corps=corps)
-            return concours_model.to_entity()
-        except ConcoursModel.DoesNotExist:
-            return None
-
-    def get_all(self) -> List[Concours]:
-        """Get all Concours entities."""
-        concours_models = ConcoursModel.objects.all()
-        return [model.to_entity() for model in concours_models]
 
     def find_by_id(self, concours_id: int) -> Optional[Concours]:
         """Find a Concours by its ID."""
@@ -74,3 +60,8 @@ class DjangoConcoursRepository(IConcoursRepository):
             return concours_model.to_entity()
         except ConcoursModel.DoesNotExist:
             return None
+
+    def get_all(self) -> List[Concours]:
+        """Get all Concours entities."""
+        concours_models = ConcoursModel.objects.all()
+        return [model.to_entity() for model in concours_models]

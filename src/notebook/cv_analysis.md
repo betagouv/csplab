@@ -225,5 +225,9 @@ def pipeline_a_ocr_only(pdf_path: str) -> Dict[str, Any]:
 ```
 
 ```python
+pipeline_a_ocr_only("./CV_Elodie_Royant_developpeuse_Fullstack_Data_scientist.pdf")
+```
+
+```python
 
 ```
