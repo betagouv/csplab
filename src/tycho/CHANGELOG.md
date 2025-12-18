@@ -38,7 +38,9 @@ and this project adheres to
 - add CVMetadatas Entity in core
 - add process_cv usecase
 - add match cv to opportunities usecase
-- add E2E testing infrastructure with Playwright and accessibility testing with axe-core
-- add CV upload flow integration with error handling and independent mocks
+- add E2E testing infrastructure with Playwright and axe-core
+  accessibility testing
+- add CV upload flow integration with error handling and independent
+  mocks
 
 [unreleased]: https://github.com/betagouv/csplab/

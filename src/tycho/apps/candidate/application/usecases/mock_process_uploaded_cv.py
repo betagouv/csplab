@@ -49,7 +49,9 @@ class MockProcessUploadedCVUsecase:
         Raises:
             ValueError: If filename or pdf_content is empty
         """
-        self._logger.info(f"🎭 MOCK: Processing CV '{filename}' ({len(pdf_content)} bytes)")
+        self._logger.info(
+            f"🎭 MOCK: Processing CV '{filename}' ({len(pdf_content)} bytes)"
+        )
 
         # Basic validation
         if not filename:

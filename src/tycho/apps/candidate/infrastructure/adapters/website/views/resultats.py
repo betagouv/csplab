@@ -2,6 +2,7 @@
 
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import render
 from django.urls import reverse
@@ -49,13 +50,13 @@ class ResultatsAnalyseView(RequiresCVMixin, BreadcrumbMixin, TemplateView):
             "score": score,
             "written_exam_date": concours.written_exam_date,
             "open_position_number": concours.open_position_number,
-            "detail_url": reverse("candidate:opportunite_detail", kwargs={"pk": concours.id}),
+            "detail_url": reverse(
+                "candidate:opportunite_detail", kwargs={"pk": concours.id}
+            ),
         }
 
     def get_opportunites_filtrees(self, request, cv_id):
         """Get matching opportunites using MatchCVToOpportunitiesUsecase."""
-        from django.conf import settings
-
         try:
             container = create_candidate_container()
             match_cv_usecase = container.match_cv_to_opportunities_usecase()
@@ -84,19 +85,24 @@ class ResultatsAnalyseView(RequiresCVMixin, BreadcrumbMixin, TemplateView):
 
         except ValueError as e:
             # Validation error (e.g., invalid cv_id) - USER ERROR
-            logger.warning(f"Validation error fetching opportunities: cv_id={cv_id}, error={str(e)}")
+            logger.warning(
+                f"Validation error fetching opportunities: cv_id={cv_id}, "
+                f"error={str(e)}"
+            )
             messages.error(request, f"Paramètres invalides : {str(e)}")
             return []
 
         except ExternalApiError as e:
             logger.error(
                 f"External API error fetching opportunities: cv_id={cv_id}, "
-                f"api={e.api_name or 'unknown'}, status={e.status_code}, error={str(e)}",
-                exc_info=not settings.DEBUG
+                f"api={e.api_name or 'unknown'}, status={e.status_code}, "
+                f"error={str(e)}",
+                exc_info=not settings.DEBUG,
             )
             messages.error(
                 request,
-                "Le service de matching est temporairement indisponible. Veuillez réessayer."
+                "Le service de matching est temporairement indisponible. "
+                "Veuillez réessayer.",
             )
             if settings.DEBUG:
                 messages.warning(request, f"[DEV] API Error: {e.api_name} - {str(e)}")
@@ -106,7 +112,7 @@ class ResultatsAnalyseView(RequiresCVMixin, BreadcrumbMixin, TemplateView):
             logger.error(
                 f"Network error fetching opportunities: cv_id={cv_id}, "
                 f"error_type={type(e).__name__}, error={str(e)}",
-                exc_info=True
+                exc_info=True,
             )
             messages.error(request, "Problème de connexion. Veuillez réessayer.")
             if settings.DEBUG:
@@ -120,13 +126,14 @@ class ResultatsAnalyseView(RequiresCVMixin, BreadcrumbMixin, TemplateView):
             )
             messages.error(
                 request,
-                "Une erreur s'est produite lors de la récupération des opportunités."
+                "Une erreur s'est produite lors de la récupération des opportunités.",
             )
             if settings.DEBUG:
                 messages.warning(request, f"[DEV] {type(e).__name__}: {str(e)}")
             return []
 
     def get_context_data(self, **kwargs):
+        """Add opportunites and filters to context."""
         context = super().get_context_data(**kwargs)
         cv_id = kwargs.get("cv_id")
         context["opportunites"] = self.get_opportunites_filtrees(self.request, cv_id)
@@ -180,13 +187,12 @@ class OpportuniteDetailView(BreadcrumbMixin, TemplateView):
             "written_exam_date": concours.written_exam_date,
             "open_position_number": concours.open_position_number,
             "nor_list": [nor.value for nor in concours.nor_list],
-            "external_url": "https://choisirleservicepublic.gouv.fr/",  # TODO: add real URL
+            # TODO: add real URL
+            "external_url": "https://choisirleservicepublic.gouv.fr/",
         }
 
     def get_opportunite_data(self, pk):
         """Get opportunite data by ID."""
-        from django.conf import settings
-
         try:
             container = create_candidate_container()
             concours_repository = container.shared_container.concours_repository()
@@ -199,8 +205,7 @@ class OpportuniteDetailView(BreadcrumbMixin, TemplateView):
                 # Not found - could be user error (bad link) or data issue
                 logger.warning(f"Concours not found: id={pk}")
                 messages.warning(
-                    self.request,
-                    "L'opportunité demandée n'existe pas ou plus."
+                    self.request, "L'opportunité demandée n'existe pas ou plus."
                 )
                 return MOCK_OPPORTUNITE_DETAIL
 
@@ -217,8 +222,7 @@ class OpportuniteDetailView(BreadcrumbMixin, TemplateView):
                 f"error_type={type(e).__name__}, error={str(e)}"
             )
             messages.error(
-                self.request,
-                "Impossible de charger les détails de cette opportunité."
+                self.request, "Impossible de charger les détails de cette opportunité."
             )
             if settings.DEBUG:
                 messages.warning(self.request, f"[DEV] {type(e).__name__}: {str(e)}")
@@ -229,13 +233,20 @@ class OpportuniteDetailView(BreadcrumbMixin, TemplateView):
         pk = self.kwargs.get("pk")
         opportunite = self.get_opportunite_data(pk)
         title = opportunite["title"]
-        truncated_title = title[:30] + "..." if len(title) > 30 else title
+        # Truncate long titles for breadcrumb display
+        max_breadcrumb_title_length = 30
+        truncated_title = (
+            title[:max_breadcrumb_title_length] + "..."
+            if len(title) > max_breadcrumb_title_length
+            else title
+        )
         return {
             "links": self.breadcrumb_links,
             "current": truncated_title,
         }
 
     def get_context_data(self, **kwargs):
+        """Add opportunite to context."""
         context = super().get_context_data(**kwargs)
         pk = kwargs.get("pk")
         context["opportunite"] = self.get_opportunite_data(pk)

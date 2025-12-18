@@ -55,7 +55,9 @@ def create_candidate_container() -> CandidateContainer:
     candidate_logger = logger_service.get_logger("CANDIDATE::CONTAINER_FACTORY")
 
     if use_mock_albert:
-        candidate_logger.info("🎭 Using MOCK for Albert (CV processing without external API)")
+        candidate_logger.info(
+            "🎭 Using MOCK for Albert (CV processing without external API)"
+        )
         container.process_uploaded_cv_usecase.override(
             MockProcessUploadedCVUsecase(
                 cv_metadata_repository=container.cv_metadata_repository(),
@@ -64,7 +66,9 @@ def create_candidate_container() -> CandidateContainer:
         )
 
     if use_mock_openrouter:
-        candidate_logger.info("🎭 Using MOCK for OpenRouter (CV matching without embeddings API)")
+        candidate_logger.info(
+            "🎭 Using MOCK for OpenRouter (CV matching without embeddings API)"
+        )
         container.match_cv_to_opportunities_usecase.override(
             MockMatchCVToOpportunitiesUsecase(
                 cv_metadata_repository=container.cv_metadata_repository(),

@@ -91,16 +91,18 @@ class MockMatchCVToOpportunitiesUsecase:
         """Generate mock Concours entities from fixtures data."""
         # Convert fixture dicts to Concours entities
         # Only use fixtures that are type="concours"
-        concours_fixtures = [opp for opp in MOCK_OPPORTUNITES if opp.get("type") == "concours"]
+        concours_fixtures = [
+            opp for opp in MOCK_OPPORTUNITES if opp.get("type") == "concours"
+        ]
 
         mock_concours = []
         for i, fixture in enumerate(concours_fixtures, start=1):
             # Extract category from fixture
-            category_str = fixture.get("category", "A")
+            category_str = str(fixture.get("category", "A"))
             category = getattr(Category, category_str, Category.A)
 
             # Determine access modality from type_label
-            type_label = fixture.get("type_label", "")
+            type_label = str(fixture.get("type_label", ""))
             if "interne" in type_label.lower():
                 access_modality = [AccessModality.CONCOURS_INTERNE]
             elif "externe" in type_label.lower():
@@ -112,15 +114,24 @@ class MockMatchCVToOpportunitiesUsecase:
             # Example: MOCK2500001A (MOCK + year 25 + sequence 00001 + category A)
             nor_code = f"MOCK25{i:05d}{category_str}"
 
+            fixture_id = fixture.get("id", i)
+            concours_id: int
+            if isinstance(fixture_id, int):
+                concours_id = fixture_id
+            elif isinstance(fixture_id, str):
+                concours_id = int(fixture_id)
+            else:
+                concours_id = i
+
             concours = Concours(
-                id=fixture["id"],
+                id=concours_id,
                 nor_original=NOR(nor_code),
                 nor_list=[NOR(nor_code)],
                 category=category,
                 ministry=Ministry.PREMIER_MINISTRE,  # Default ministry for mocks
                 access_modality=access_modality,
-                corps=fixture.get("intitule_poste", "Corps non spécifié"),
-                grade=fixture.get("intitule_poste", "Grade non spécifié"),
+                corps=str(fixture.get("intitule_poste", "Corps non spécifié")),
+                grade=str(fixture.get("intitule_poste", "Grade non spécifié")),
                 written_exam_date=datetime(2025, 6, 15),  # Mock date
                 open_position_number=20,  # Mock number
             )

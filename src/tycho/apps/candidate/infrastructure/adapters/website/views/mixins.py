@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.contrib import messages
 from django.http import HttpResponse
@@ -21,12 +21,15 @@ class RequiresCVMixin:
 
     Verifies that the cv_id passed in the URL corresponds to an existing CV.
     Redirects to the upload page if the CV does not exist.
+
+    Must be used with Django class-based views that have a dispatch method.
     """
 
     cv_required_message: str = "CV non trouvé. Veuillez uploader votre CV."
     cv_metadata: CVMetadata | None = None
 
-    def dispatch(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Verify CV exists before processing request."""
         cv_id = kwargs.get("cv_id")
         if not cv_id:
             messages.warning(request, self.cv_required_message)
@@ -45,7 +48,8 @@ class RequiresCVMixin:
             messages.error(request, "Erreur lors de la récupération du CV.")
             return redirect("candidate:cv_upload")
 
-        return super().dispatch(request, *args, **kwargs)
+        # Mypy can't infer the parent class in mixins, but we know it's a View
+        return super().dispatch(request, *args, **kwargs)  # type: ignore[misc]
 
     def get_cv_data(self) -> dict:
         """Return CV data for template context."""
@@ -58,7 +62,10 @@ class RequiresCVMixin:
 
 
 class BreadcrumbMixin:
-    """Mixin to add breadcrumb data to context."""
+    """Mixin to add breadcrumb data to context.
+
+    Must be used with Django class-based views that have get_context_data.
+    """
 
     breadcrumb_links: list[dict] = []
     breadcrumb_current: str = ""
@@ -70,7 +77,10 @@ class BreadcrumbMixin:
             "current": self.breadcrumb_current,
         }
 
-    def get_context_data(self, **kwargs) -> dict:
-        context = super().get_context_data(**kwargs)
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        """Add breadcrumb data to context."""
+        # Mypy can't infer the parent class in mixins,
+        # but we know it has get_context_data
+        context = super().get_context_data(**kwargs)  # type: ignore[misc]
         context["breadcrumb_data"] = self.get_breadcrumb_data()
         return context

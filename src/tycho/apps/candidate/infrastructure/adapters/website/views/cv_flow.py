@@ -2,6 +2,7 @@
 
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -32,10 +33,10 @@ class CVUploadView(BreadcrumbMixin, FormView):
 
     def form_valid(self, form):
         """Handle valid form submission by processing CV via usecase."""
-        from django.conf import settings
-
         cv_file = form.cleaned_data["cv_file"]
-        logger.info(f"CV upload initiated: filename={cv_file.name}, size={cv_file.size}")
+        logger.info(
+            f"CV upload initiated: filename={cv_file.name}, size={cv_file.size}"
+        )
 
         try:
             pdf_content = cv_file.read()
@@ -47,7 +48,9 @@ class CVUploadView(BreadcrumbMixin, FormView):
                 pdf_content=pdf_content,
             )
 
-            logger.info(f"CV processed successfully: cv_id={cv_id}, filename={cv_file.name}")
+            logger.info(
+                f"CV processed successfully: cv_id={cv_id}, filename={cv_file.name}"
+            )
             messages.success(self.request, "Votre CV a été uploadé avec succès !")
             return redirect("candidate:cv_confirmation", cv_id=cv_id)
 
@@ -55,7 +58,7 @@ class CVUploadView(BreadcrumbMixin, FormView):
             logger.error(
                 f"External API failure: api={e.api_name or 'unknown'}, "
                 f"status={e.status_code}, filename={cv_file.name}, error={str(e)}",
-                exc_info=not settings.DEBUG  # Full traceback only in prod logs
+                exc_info=not settings.DEBUG,  # Full traceback only in prod logs
             )
 
             if e.status_code in (401, 403):
@@ -74,15 +77,14 @@ class CVUploadView(BreadcrumbMixin, FormView):
             if settings.DEBUG:
                 messages.warning(
                     self.request,
-                    f"[DEV] API Error: {e.api_name or 'unknown'} - {e.status_code} - {str(e)}"
+                    f"[DEV] API Error: {e.api_name or 'unknown'} - "
+                    f"{e.status_code} - {str(e)}",
                 )
 
             return self.form_invalid(form)
 
         except ValueError as e:
-            logger.warning(
-                f"Validation error: filename={cv_file.name}, error={str(e)}"
-            )
+            logger.warning(f"Validation error: filename={cv_file.name}, error={str(e)}")
             # Show precise error to user (it's their fault)
             messages.error(self.request, f"Le CV n'a pas pu être traité : {str(e)}")
             return self.form_invalid(form)
@@ -90,8 +92,9 @@ class CVUploadView(BreadcrumbMixin, FormView):
         except (ConnectionError, TimeoutError) as e:
             error_type = type(e).__name__
             logger.error(
-                f"Network error: type={error_type}, filename={cv_file.name}, error={str(e)}",
-                exc_info=True
+                f"Network error: type={error_type}, filename={cv_file.name}, "
+                f"error={str(e)}",
+                exc_info=True,
             )
 
             user_message = (
@@ -114,14 +117,11 @@ class CVUploadView(BreadcrumbMixin, FormView):
 
             messages.error(
                 self.request,
-                "Une erreur inattendue s'est produite. Nos équipes ont été notifiées."
+                "Une erreur inattendue s'est produite. Nos équipes ont été notifiées.",
             )
 
             if settings.DEBUG:
-                messages.warning(
-                    self.request,
-                    f"[DEV] {type(e).__name__}: {str(e)}"
-                )
+                messages.warning(self.request, f"[DEV] {type(e).__name__}: {str(e)}")
 
             return self.form_invalid(form)
 
@@ -129,7 +129,7 @@ class CVUploadView(BreadcrumbMixin, FormView):
         """Handle invalid form submission - USER ERROR."""
         logger.warning(f"Form validation failed: {dict(form.errors)}")
 
-        for field, errors in form.errors.items():
+        for _field, errors in form.errors.items():
             for error in errors:
                 messages.error(self.request, str(error))
 
@@ -149,11 +149,16 @@ class CVConfirmationView(RequiresCVMixin, BreadcrumbMixin, TemplateView):
 
     @property
     def breadcrumb_links(self):
+        """Return breadcrumb navigation links."""
         return [
-            {"url": reverse("candidate:cv_upload"), "title": "Recommandation de carrière"},
+            {
+                "url": reverse("candidate:cv_upload"),
+                "title": "Recommandation de carrière",
+            },
         ]
 
     def get_context_data(self, **kwargs):
+        """Add CV data to context."""
         context = super().get_context_data(**kwargs)
         context["cv_data"] = self.get_cv_data()
         return context
