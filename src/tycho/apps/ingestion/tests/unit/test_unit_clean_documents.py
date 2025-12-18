@@ -23,6 +23,9 @@ from apps.shared.tests.utils.in_memory_concours_repository import (
 from apps.shared.tests.utils.in_memory_corps_repository import (
     InMemoryCorpsRepository,
 )
+from apps.shared.tests.utils.in_memory_offer_repository import (
+    InMemoryOfferRepository,
+)
 from core.entities.document import Document, DocumentType
 from core.errors.document_error import InvalidDocumentTypeError
 
@@ -50,6 +53,9 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
 
         in_memory_concours_repo = InMemoryConcoursRepository()
         container.concours_repository.override(in_memory_concours_repo)
+
+        in_memory_offer_repo = InMemoryOfferRepository()
+        container.offer_repository.override(in_memory_offer_repo)
 
         in_memory_document_repo = InMemoryDocumentRepository()
         container.document_persister.override(in_memory_document_repo)
@@ -475,3 +481,93 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
             clean_documents_usecase.execute(DocumentType.GRADE)
 
         self.assertIn("GRADE", str(context.exception))
+
+    def test_clean_offer_documents_with_empty_repository(self):
+        """Test cleaning OFFER when no documents exist returns zero statistics."""
+        container = self._create_isolated_container()
+        clean_documents_usecase = container.clean_documents_usecase()
+
+        result = clean_documents_usecase.execute(DocumentType.OFFER)
+
+        self.assertEqual(result["processed"], 0)
+        self.assertEqual(result["cleaned"], 0)
+        self.assertEqual(result["created"], 0)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 0)
+
+    def test_clean_offer_documents_successful_processing(self):
+        """Test successful OFFER processing with valid data."""
+        container = self._create_isolated_container()
+
+        in_memory_offer_repo = InMemoryOfferRepository()
+        container.offer_repository.override(in_memory_offer_repo)
+
+        clean_documents_usecase = container.clean_documents_usecase()
+
+        # Create test OFFER documents
+        offer_data = [
+            {
+                "id": "OFFER_001",
+                "title": "Développeur Full Stack",
+                "profile": "Ingénieur informatique",
+                "category": "A",
+                "verse": "FPE",
+            },
+            {
+                "id": "OFFER_002",
+                "title": "Analyste Données",
+                "profile": "Data Scientist",
+                "category": "A",
+                "verse": "FPE",
+            },
+        ]
+        self._create_test_documents(container, offer_data, DocumentType.OFFER)
+
+        result = clean_documents_usecase.execute(DocumentType.OFFER)
+
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["cleaned"], 2)
+        self.assertEqual(result["created"], 2)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 0)
+
+        offer_repository = container.offer_repository()
+        saved_offers = offer_repository.get_all()
+        self.assertEqual(len(saved_offers), 2)
+
+    def test_clean_offer_documents_handles_processing_errors(self):
+        """Test that OFFER processing errors are handled correctly."""
+        container = self._create_isolated_container()
+
+        offer_data = [
+            {
+                "id": "OFFER_001",
+                "title": "Test Offer",
+                "profile": "Test Profile",
+                "category": "A",
+                "verse": "FPE",
+            }
+        ]
+        self._create_test_documents(container, offer_data, DocumentType.OFFER)
+
+        mock_repository = Mock()
+        mock_repository.upsert_batch.return_value = {
+            "created": 0,
+            "updated": 0,
+            "errors": [
+                {"entity_id": 1, "error": "Invalid offer format"},
+                {"entity_id": 2, "error": "Missing required field"},
+            ],
+        }
+
+        container.offer_repository.override(mock_repository)
+        clean_documents_usecase = container.clean_documents_usecase()
+
+        result = clean_documents_usecase.execute(DocumentType.OFFER)
+
+        self.assertEqual(result["processed"], 1)
+        self.assertEqual(result["cleaned"], 1)
+        self.assertEqual(result["created"], 0)
+        self.assertEqual(result["updated"], 0)
+        self.assertEqual(result["errors"], 2)
+        self.assertEqual(len(result["error_details"]), 2)

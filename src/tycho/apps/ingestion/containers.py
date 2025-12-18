@@ -53,6 +53,7 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     corps_repository = shared_container.corps_repository
     concours_repository = shared_container.concours_repository
+    offer_repository = shared_container.offer_repository
     embedding_generator = shared_container.embedding_generator
     vector_repository = shared_container.vector_repository
 
@@ -89,6 +90,7 @@ class IngestionContainer(containers.DeclarativeContainer):
         RepositoryFactory,
         corps_repository=corps_repository,
         concours_repository=concours_repository,
+        offer_repository=offer_repository,
     )
 
     document_cleaner: providers.Provider[IDocumentCleaner[IEntity]] = (

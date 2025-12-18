@@ -5,6 +5,7 @@ from typing import Protocol, TypeVar, Union
 from core.entities.document import DocumentType
 from core.repositories.concours_repository_interface import IConcoursRepository
 from core.repositories.corps_repository_interface import ICorpsRepository
+from core.repositories.offer_repository_interface import IOfferRepository
 
 TRepository = TypeVar("TRepository")
 
@@ -17,6 +18,6 @@ class IRepositoryFactory(Protocol):
 
     def get_repository(
         self, document_type: DocumentType
-    ) -> Union[ICorpsRepository, IConcoursRepository]:
+    ) -> Union[ICorpsRepository, IConcoursRepository, IOfferRepository]:
         """Get the appropriate repository for the given document type."""
         ...

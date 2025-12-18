@@ -26,6 +26,7 @@ from apps.ingestion.tests.factories.ingres_factories import (
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from apps.shared.tests.fixtures.fixture_loader import load_fixture
 from core.entities.document import DocumentType
 
 
@@ -138,6 +139,64 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
             document_type=DocumentType.CORPS.value
         )
         self.assertEqual(saved_documents.count(), 4)
+
+    @pytest.mark.django_db
+    @responses.activate
+    def test_execute_returns_zero_when_no_offer_documents(self):
+        """Test execute returns 0 when TalentSoft API returns empty response."""
+        # Mock TalentSoft API endpoint with empty response
+        responses.add(
+            responses.GET,
+            f"{self.ingestion_config.talentsoft.base_url}offers",
+            json={"offers": []},
+            status=200,
+            content_type="application/json",
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.OFFER},
+        )
+        result = self.usecase.execute(input_data)
+        self.assertEqual(result["created"], 0)
+        self.assertEqual(result["updated"], 0)
+
+    @pytest.mark.django_db
+    @responses.activate
+    def test_execute_returns_correct_count_with_offer_documents(self):
+        """Returns correct count when TalentSoft API returns offers."""
+        offer_data = load_fixture("offers_talentsoft_mock.json")
+
+        # Mock TalentSoft API endpoint
+        responses.add(
+            responses.GET,
+            f"{self.ingestion_config.talentsoft.base_url}offers",
+            json={"offers": offer_data},
+            status=200,
+            content_type="application/json",
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.OFFER},
+        )
+        result = self.usecase.execute(input_data)
+        self.assertEqual(result["created"], 3)
+        self.assertEqual(result["updated"], 0)
+
+        # Verify documents are persisted in database
+        saved_documents = RawDocument.objects.filter(
+            document_type=DocumentType.OFFER.value
+        )
+        self.assertEqual(saved_documents.count(), 3)
+
+        # Verify document structure
+        first_doc = saved_documents.first()
+        self.assertIn("id", first_doc.raw_data)
+        self.assertIn("verse", first_doc.raw_data)
+        self.assertIn("title", first_doc.raw_data)
+        self.assertIn("profile", first_doc.raw_data)
+        self.assertIn("category", first_doc.raw_data)
 
 
 class TestConcoursUploadView(APITestCase):

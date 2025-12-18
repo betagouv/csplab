@@ -29,7 +29,6 @@ class TalentSoftClient(HttpClient):
         self.logger.info(f"Mock TalentSoft API call: {method} {endpoint}")
 
         # TODO YOUNES
-        # Create a mock response
         mock_response = requests.Response()
         mock_response.status_code = 200
 
@@ -41,6 +40,7 @@ class TalentSoftClient(HttpClient):
                     "title": "Développeur Python Senior",
                     "profile": "Expérience en Python, Django, PostgreSQL",
                     "category": "A",
+                    "verse": "FPE",
                     "region": "ILE_DE_FRANCE",
                     "department": "PARIS",
                     "limit_date": "2024-12-31T23:59:59Z",
@@ -50,6 +50,7 @@ class TalentSoftClient(HttpClient):
                     "title": "Data Scientist",
                     "profile": "Machine Learning, Python, SQL",
                     "category": "A",
+                    "verse": "FPE",
                     "region": "AUVERGNE_RHONE_ALPES",
                     "department": "RHONE",
                     "limit_date": "2024-11-30T23:59:59Z",
