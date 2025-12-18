@@ -37,5 +37,6 @@ and this project adheres to
 - fix concurrency pb with containers singletons
 - add CVMetadatas Entity in core
 - add process_cv usecase
+- add match cv to opportunities usecase
 
 [unreleased]: https://github.com/betagouv/csplab/
