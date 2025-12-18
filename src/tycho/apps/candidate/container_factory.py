@@ -5,6 +5,9 @@ from typing import cast
 import environ
 from pydantic import HttpUrl
 
+from apps.candidate.application.usecases.mock_match_cv_to_opportunities import (
+    MockMatchCVToOpportunitiesUsecase,
+)
 from apps.candidate.application.usecases.mock_process_uploaded_cv import (
     MockProcessUploadedCVUsecase,
 )
@@ -45,15 +48,27 @@ def create_candidate_container() -> CandidateContainer:
 
     container.shared_container.override(shared_container)
 
-    # Override usecase with mock if environment variable is enabled
-    use_mock = env.bool("TYCHO_USE_MOCK_CV_PROCESSOR", default=False)
-    if use_mock:
-        logger_service.get_logger("CANDIDATE::CONTAINER_FACTORY").info(
-            "🎭 Using MOCK ProcessUploadedCVUsecase"
-        )
+    # Override usecases with mocks if environment variables are enabled
+    use_mock_albert = env.bool("TYCHO_USE_MOCK_ALBERT", default=False)
+    use_mock_openrouter = env.bool("TYCHO_USE_MOCK_OPENROUTER", default=False)
+
+    candidate_logger = logger_service.get_logger("CANDIDATE::CONTAINER_FACTORY")
+
+    if use_mock_albert:
+        candidate_logger.info("🎭 Using MOCK for Albert (CV processing without external API)")
         container.process_uploaded_cv_usecase.override(
             MockProcessUploadedCVUsecase(
                 cv_metadata_repository=container.cv_metadata_repository(),
+                logger=logger_service,
+            )
+        )
+
+    if use_mock_openrouter:
+        candidate_logger.info("🎭 Using MOCK for OpenRouter (CV matching without embeddings API)")
+        container.match_cv_to_opportunities_usecase.override(
+            MockMatchCVToOpportunitiesUsecase(
+                cv_metadata_repository=container.cv_metadata_repository(),
+                concours_repository=shared_container.concours_repository(),
                 logger=logger_service,
             )
         )

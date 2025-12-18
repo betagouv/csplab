@@ -28,4 +28,10 @@ class OpenAIEmbeddingGenerator(IEmbeddingGenerator):
             )
             return response.data[0].embedding
         except Exception as e:
-            raise ExternalApiError(f"Failed to generate embedding: {str(e)}") from e
+            # Extract status code from OpenAI error if available
+            status_code = getattr(e, 'status_code', None)
+            raise ExternalApiError(
+                f"Failed to generate embedding: {str(e)}",
+                status_code=status_code,
+                api_name="OpenRouter"
+            ) from e

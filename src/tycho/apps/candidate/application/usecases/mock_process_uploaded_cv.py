@@ -17,7 +17,7 @@ class MockProcessUploadedCVUsecase:
     - Generates a mock search query
     - Saves real CV metadata to database
 
-    Use TYCHO_USE_MOCK_CV_PROCESSOR=1 to enable this mock.
+    Use TYCHO_USE_MOCK_ALBERT=1 to enable this mock.
     """
 
     def __init__(
