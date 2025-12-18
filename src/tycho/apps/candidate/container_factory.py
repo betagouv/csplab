@@ -5,6 +5,9 @@ from typing import cast
 import environ
 from pydantic import HttpUrl
 
+from apps.candidate.application.usecases.mock_process_uploaded_cv import (
+    MockProcessUploadedCVUsecase,
+)
 from apps.candidate.config import AlbertConfig, CandidateConfig
 from apps.candidate.containers import CandidateContainer
 from apps.shared.config import OpenAIConfig, SharedConfig
@@ -41,5 +44,18 @@ def create_candidate_container() -> CandidateContainer:
     container.logger_service.override(logger_service)
 
     container.shared_container.override(shared_container)
+
+    # Override usecase with mock if environment variable is enabled
+    use_mock = env.bool("TYCHO_USE_MOCK_CV_PROCESSOR", default=False)
+    if use_mock:
+        logger_service.get_logger("CANDIDATE::CONTAINER_FACTORY").info(
+            "🎭 Using MOCK ProcessUploadedCVUsecase"
+        )
+        container.process_uploaded_cv_usecase.override(
+            MockProcessUploadedCVUsecase(
+                cv_metadata_repository=container.cv_metadata_repository(),
+                logger=logger_service,
+            )
+        )
 
     return container
