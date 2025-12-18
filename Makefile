@@ -179,9 +179,26 @@ test: \
 .PHONY: test
 
 test-tycho: ## test tycho python sources
-	@echo 'test:tychostarted…'
+	@echo 'test:tycho started…'
 	$(COMPOSE_RUN_TYCHO_UV) pytest -s
 .PHONY: test-tycho
+
+setup-playwright: ## install Playwright browsers (run once)
+	@echo 'setup:playwright started…'
+	$(COMPOSE_RUN_TYCHO_UV) playwright install chromium
+.PHONY: setup-playwright
+
+test-e2e: ## run E2E tests with Playwright
+	@echo 'test:e2e started…'
+	$(COMPOSE_RUN) -e RUN_E2E_TESTS=1 -e TYCHO_USE_MOCK_ALBERT=true -e TYCHO_USE_MOCK_OPENROUTER=true \
+		tycho uv run pytest -m e2e -s
+.PHONY: test-e2e
+
+test-a11y: ## run accessibility tests with axe-core
+	@echo 'test:a11y started…'
+	$(COMPOSE_RUN) -e RUN_E2E_TESTS=1 -e TYCHO_USE_MOCK_ALBERT=true -e TYCHO_USE_MOCK_OPENROUTER=true \
+		tycho uv run pytest -m a11y -s
+.PHONY: test-a11y
 
 ## MANAGE docker services
 status: ## an alias for "docker compose ps"

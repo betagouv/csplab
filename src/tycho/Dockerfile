@@ -5,9 +5,28 @@ ARG DOCKER_UID 1000
 ARG DOCKER_GID 1000
 
 # Upgrade system packages to install security updates
+# Include Playwright/Chromium dependencies for E2E testing
 RUN apt-get update && \
     apt-get -y upgrade && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+        # Playwright Chromium dependencies
+        libnss3 \
+        libnspr4 \
+        libdbus-1-3 \
+        libatk1.0-0 \
+        libatk-bridge2.0-0 \
+        libcups2 \
+        libxkbcommon0 \
+        libatspi2.0-0 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxfixes3 \
+        libxrandr2 \
+        libgbm1 \
+        libasound2 \
+        libpango-1.0-0 \
+        libcairo2 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:0.9.7 /uv /uvx /bin/

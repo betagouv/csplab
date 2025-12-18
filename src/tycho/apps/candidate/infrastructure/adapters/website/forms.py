@@ -4,7 +4,6 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-
 CV_MAX_SIZE_MB = 5
 CV_MAX_SIZE_BYTES = CV_MAX_SIZE_MB * 1024 * 1024
 CV_ALLOWED_CONTENT_TYPES = ["application/pdf"]

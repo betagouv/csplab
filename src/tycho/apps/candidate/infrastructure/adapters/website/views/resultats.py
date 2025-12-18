@@ -200,7 +200,7 @@ class OpportuniteDetailView(BreadcrumbMixin, TemplateView):
                 logger.warning(f"Concours not found: id={pk}")
                 messages.warning(
                     self.request,
-                    f"L'opportunité demandée n'existe pas ou plus."
+                    "L'opportunité demandée n'existe pas ou plus."
                 )
                 return MOCK_OPPORTUNITE_DETAIL
 

@@ -40,6 +40,9 @@ dev = [
   "responses>=0.25.8",
   "ruff==0.14.3",
   "types-requests>=2.32.4.20250913",
+  "playwright>=1.49.0",
+  "pytest-playwright>=0.6.2",
+  "axe-playwright-python>=0.1.5",
 ]
 
 [tool.uv]
@@ -80,6 +83,10 @@ testpaths = [
     "tests",
     "tycho/tests",
     "apps/**/tests",
+]
+markers = [
+    "e2e: End-to-end tests with Playwright (deselect with '-m not e2e')",
+    "a11y: Accessibility tests with axe-core (deselect with '-m not a11y')",
 ]
 
 [tool.ruff]

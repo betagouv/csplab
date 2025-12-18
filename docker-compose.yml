@@ -76,7 +76,11 @@ services:
       - env.d/tycho
     volumes:
       - .:/workspace
+      - playwright-cache:/home/uv/.cache/ms-playwright
     working_dir: /workspace/src/tycho
     depends_on:
       postgresql:
         condition: service_healthy
+
+volumes:
+  playwright-cache:
