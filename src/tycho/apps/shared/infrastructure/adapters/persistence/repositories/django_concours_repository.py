@@ -54,10 +54,10 @@ class DjangoConcoursRepository(IConcoursRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_nor(self, nor: str) -> Optional[Concours]:
-        """Find a Concours by its NOR."""
+    def find_by_id(self, concours_id: int) -> Optional[Concours]:
+        """Find a Concours by its ID."""
         try:
-            concours_model = ConcoursModel.objects.get(nor_original=nor)
+            concours_model = ConcoursModel.objects.get(id=concours_id)
             return concours_model.to_entity()
         except ConcoursModel.DoesNotExist:
             return None

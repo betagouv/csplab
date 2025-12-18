@@ -13,8 +13,8 @@ class IConcoursRepository(Protocol):
         """Insert or update multiple Concours entities and return operation results."""
         ...
 
-    def find_by_nor(self, nor: str) -> Optional[Concours]:
-        """Find a Concours by its NOR."""
+    def find_by_id(self, concours_id: int) -> Optional[Concours]:
+        """Find a Concours by its ID."""
         ...
 
     def get_all(self) -> List[Concours]:

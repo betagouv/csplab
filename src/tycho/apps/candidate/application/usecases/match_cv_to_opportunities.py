@@ -5,6 +5,7 @@ from uuid import UUID
 
 from core.entities.concours import Concours
 from core.entities.document import DocumentType
+from core.errors.cv_errors import CVNotFoundError
 from core.repositories.concours_repository_interface import IConcoursRepository
 from core.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from core.repositories.vector_repository_interface import IVectorRepository
@@ -12,7 +13,7 @@ from core.services.embedding_generator_interface import IEmbeddingGenerator
 from core.services.logger_interface import ILogger
 
 
-class MatchOpportunitiesToCVUsecase:
+class MatchCVToOpportunitiesUsecase:
     """Usecase for matching opportunities to CV based on semantic similarity."""
 
     def __init__(
@@ -56,8 +57,7 @@ class MatchOpportunitiesToCVUsecase:
 
         cv_metadata = self._cv_metadata_repository.find_by_id(UUID(cv_id))
         if not cv_metadata:
-            self._logger.warning(f"CV metadata not found for cv_id='{cv_id}'")
-            return []
+            raise CVNotFoundError(cv_id)  # should not happen
 
         query_embedding = self._embedding_generator.generate_embedding(
             cv_metadata.search_query
@@ -71,9 +71,7 @@ class MatchOpportunitiesToCVUsecase:
 
         concours_list = []
         for result in similarity_results:
-            concours = self._concours_repository.find_by_nor(
-                str(result.document.document_id)
-            )
+            concours = self._concours_repository.find_by_id(result.document.document_id)
             if concours:
                 concours_list.append((concours, result.score))
 

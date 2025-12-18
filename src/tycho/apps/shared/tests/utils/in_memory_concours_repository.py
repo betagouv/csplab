@@ -44,20 +44,13 @@ class InMemoryConcoursRepository(IConcoursRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_nor(self, nor: str) -> Optional[Concours]:
-        """Find a Concours by its NOR."""
-        for concours in self._concours.values():
-            if concours.nor_original.value == nor:
-                return concours
-        return None
+    def find_by_id(self, concours_id: int) -> Optional[Concours]:
+        """Find a Concours by its ID."""
+        return self._concours.get(concours_id)
 
     def get_all(self) -> List[Concours]:
         """Get all Concours entities."""
         return list(self._concours.values())
-
-    def find_by_id(self, concours_id: int) -> Optional[Concours]:
-        """Find a Concours by its ID."""
-        return self._concours.get(concours_id)
 
     def clear(self) -> None:
         """Clear all stored concours (for testing)."""

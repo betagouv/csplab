@@ -2,8 +2,8 @@
 
 from dependency_injector import containers, providers
 
-from apps.candidate.application.usecases.match_opportunities_to_cv import (
-    MatchOpportunitiesToCVUsecase,
+from apps.candidate.application.usecases.match_cv_to_opportunities import (
+    MatchCVToOpportunitiesUsecase,
 )
 from apps.candidate.application.usecases.process_uploaded_cv import (
     ProcessUploadedCVUsecase,
@@ -54,8 +54,8 @@ class CandidateContainer(containers.DeclarativeContainer):
         logger=logger_service,
     )
 
-    match_opportunities_to_cv_usecase = providers.Factory(
-        MatchOpportunitiesToCVUsecase,
+    match_cv_to_opportunities_usecase = providers.Factory(
+        MatchCVToOpportunitiesUsecase,
         cv_metadata_repository=cv_metadata_repository,
         embedding_generator=embedding_generator,
         vector_repository=vector_repository,
