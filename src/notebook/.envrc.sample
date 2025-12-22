@@ -1,0 +1,2 @@
+dotenv ../../env.d/notebook
+source .venv/bin/activate

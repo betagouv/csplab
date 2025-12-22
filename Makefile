@@ -26,6 +26,8 @@ default: help
 
 ### BOOTSTRAP
 setup-env: ## copy example env files to local files
+	@cp src/tycho/.envrc.sample src/tycho/.envrc
+	@cp src/notebook/.envrc.sample src/notebook/.envrc
 	@cp env.d/tycho-example env.d/tycho
 	@cp env.d/notebook-example env.d/notebook
 	@cp env.d/postgresql-example env.d/postgresql

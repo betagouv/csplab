@@ -41,6 +41,7 @@ data
 
 # -- Environments
 .env
+.envrc
 .venv
 env/
 env.d/*
