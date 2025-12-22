@@ -66,11 +66,11 @@ build-tycho: ## build tycho image
 .PHONY: build-tycho
 
 jupytext--to-md: ## convert local ipynb files into md
-	bin/jupytext --to md **/*.ipynb
+	bin/jupytext --to md src/notebook/*.ipynb
 .PHONY: jupytext--to-md
 
 jupytext--to-ipynb: ## convert remote md files into ipynb
-	bin/jupytext --to ipynb **/*.md
+	bin/jupytext --to ipynb src/notebook/*.md
 .PHONY: jupytext--to-ipynb
 
 ### LOGS
