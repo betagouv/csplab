@@ -295,8 +295,6 @@ def pipeline_a_ocr_only(pdf_path: str) -> Dict[str, Any]:
     start = time.perf_counter()
     with open(pdf_path, "rb") as f: pdf_bytes = f.read()
 
-    text_reference = pdf_to_text(pdf_path)
-
     ocr_structured_raw = call_albert_ocr(
         pdf_bytes, prompt=PROMPT_ALBERT.prompt, dpi=200, return_json=True
     )

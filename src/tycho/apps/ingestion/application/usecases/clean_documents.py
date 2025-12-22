@@ -2,9 +2,13 @@
 
 from typing import Any, Dict, List, cast
 
+from core.entities.concours import Concours
 from core.entities.corps import Corps
 from core.entities.document import DocumentType
+from core.errors.document_error import InvalidDocumentTypeError
 from core.interfaces.entity_interface import IEntity
+from core.repositories.concours_repository_interface import IConcoursRepository
+from core.repositories.corps_repository_interface import ICorpsRepository
 from core.repositories.document_repository_interface import IDocumentRepository
 from core.repositories.repository_factory_interface import IRepositoryFactory
 from core.services.document_cleaner_interface import IDocumentCleaner
@@ -51,13 +55,25 @@ class CleanDocumentsUsecase:
                 "errors": 0,
             }
 
-        repository = self.repository_factory.get_repository(input_data)
-        cleaned_corps = cast(List[Corps], cleaned_entities)
-        save_result = repository.upsert_batch(cleaned_corps)
+        if input_data == DocumentType.CORPS:
+            corps_repository = cast(
+                ICorpsRepository, self.repository_factory.get_repository(input_data)
+            )
+            save_result = corps_repository.upsert_batch(
+                cast(List[Corps], cleaned_entities)
+            )
+        elif input_data == DocumentType.CONCOURS:
+            concours_repository = cast(
+                IConcoursRepository, self.repository_factory.get_repository(input_data)
+            )
+            save_result = concours_repository.upsert_batch(
+                cast(List[Concours], cleaned_entities)
+            )
+        else:
+            raise InvalidDocumentTypeError(input_data.value)
 
         self.logger.info(f"Saved entities: {save_result}")
 
-        # Log detailed errors if any
         if save_result["errors"]:
             for error in save_result["errors"]:
                 self.logger.error(

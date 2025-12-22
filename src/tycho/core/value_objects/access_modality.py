@@ -8,6 +8,7 @@ class AccessModality(Enum):
 
     CONCOURS_EXTERNE = "Concours externe"
     TROISIEME_CONCOURS = "3ème concours"
+    TROISIEME_CONCOURS_EXCEPT = "3ème concours except"
     CONCOURS_INTERNE = "Concours interne"
     CONCOURS_INTERNE_EXCEPT = "Concours interne except."
     SANS_CONCOURS = "Sans concours"

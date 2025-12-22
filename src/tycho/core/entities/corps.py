@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+from core.interfaces.entity_interface import IEntity
 from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category
 from core.value_objects.diploma import Diploma
@@ -11,8 +12,8 @@ from core.value_objects.ministry import Ministry
 
 
 @dataclass
-class Corps:
-    """Corps entity representing a corps."""
+class Corps(IEntity):
+    """Corps entity."""
 
     id: int
     code: str

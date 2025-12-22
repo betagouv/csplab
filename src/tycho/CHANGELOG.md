@@ -32,5 +32,11 @@ and this project adheres to
 - add simple interface for demo
 - add scores to corps retrieval
 - fix custom template tag
+- add concours core
+- load / clean and vectorize concours
+- fix concurrency pb with containers singletons
+- add CVMetadatas Entity in core
+- add process_cv usecase
+- add match cv to opportunities usecase
 
 [unreleased]: https://github.com/betagouv/csplab/

@@ -23,7 +23,7 @@ WORKDIR ${WORKDIR}
 RUN mkdir -p "${KERNELS_PATH}"
 
 # Copy dependency files
-COPY pyproject.toml uv.lock list-kernels.py ./
+COPY --chown=notebook:notebook pyproject.toml uv.lock list-kernels.py ./
 
 # Install Python dependencies
 RUN uv sync --frozen

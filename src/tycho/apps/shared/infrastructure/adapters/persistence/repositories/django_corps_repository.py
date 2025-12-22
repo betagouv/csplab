@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 
-from apps.ingestion.infrastructure.adapters.persistence.models.corps import CorpsModel
+from apps.shared.infrastructure.adapters.persistence.models.corps import CorpsModel
 from core.entities.corps import Corps
 from core.repositories.corps_repository_interface import ICorpsRepository
 from core.repositories.document_repository_interface import IUpsertError, IUpsertResult

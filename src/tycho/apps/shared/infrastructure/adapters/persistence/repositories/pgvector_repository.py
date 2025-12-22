@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 from django.db.models import Q
 from pgvector.django import CosineDistance
 
-from apps.ingestion.infrastructure.adapters.persistence.models import (
+from apps.shared.infrastructure.adapters.persistence.models import (
     vectorized_document,
 )
 from core.entities.vectorized_document import VectorizedDocument
@@ -56,11 +56,19 @@ class PgVectorRepository(IVectorRepository):
 
         if filters:
             for key, value in filters.items():
-                if isinstance(value, list):
+                # Check if it's a direct model field (like document_type)
+                if hasattr(vectorized_document.VectorizedDocumentModel, key):
+                    if isinstance(value, list):
+                        queryset = queryset.filter(**{f"{key}__in": value})
+                    else:
+                        queryset = queryset.filter(**{key: value})
+                elif isinstance(value, list):
+                    # It's a metadata field with list value
                     queryset = queryset.filter(
                         Q(**{f"metadata__{key}__overlap": value})
                     )
                 else:
+                    # It's a metadata field with single value
                     queryset = queryset.filter(**{f"metadata__{key}": value})
 
         if similarity_type.metric == SimilarityMetric.COSINE:

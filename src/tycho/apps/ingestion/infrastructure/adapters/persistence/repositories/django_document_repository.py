@@ -29,13 +29,23 @@ class DjangoDocumentRepository(IDocumentRepository):
 
         for document in documents:
             try:
-                raw_document, created = RawDocument.objects.update_or_create(
-                    id=document.id,
-                    defaults={
-                        "raw_data": document.raw_data,
-                        "document_type": document.type.value,
-                    },
-                )
+                if document.external_id:
+                    # Upsert based on external_id + document_type
+                    _, created = RawDocument.objects.update_or_create(
+                        external_id=document.external_id,
+                        document_type=document.type.value,
+                        defaults={
+                            "raw_data": document.raw_data,
+                        },
+                    )
+                else:
+                    # Create new document without external_id (fallback)
+                    RawDocument.objects.create(
+                        raw_data=document.raw_data,
+                        document_type=document.type.value,
+                        external_id=document.external_id,
+                    )
+                    created = True
 
                 if created:
                     created_count += 1

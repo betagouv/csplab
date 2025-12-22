@@ -6,6 +6,7 @@ from apps.shared.infrastructure.adapters.external.openai_embedding_generator imp
     OpenAIEmbeddingGenerator,
 )
 from apps.shared.infrastructure.adapters.persistence.repositories import (
+    django_concours_repository,
     django_corps_repository,
     pgvector_repository,
 )
@@ -18,6 +19,10 @@ class SharedContainer(containers.DeclarativeContainer):
 
     corps_repository = providers.Singleton(
         django_corps_repository.DjangoCorpsRepository
+    )
+
+    concours_repository = providers.Singleton(
+        django_concours_repository.DjangoConcoursRepository
     )
 
     embedding_generator = providers.Singleton(

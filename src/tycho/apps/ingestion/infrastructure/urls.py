@@ -2,8 +2,10 @@
 
 from django.urls import path
 
-from apps.ingestion.infrastructure.adapters.api.views import LoadDocumentsView
+from apps.ingestion.infrastructure.adapters.api.views import (
+    ConcoursUploadView,
+)
 
 urlpatterns = [
-    path("load/", LoadDocumentsView.as_view(), name="load-documents"),
+    path("concours/upload/", ConcoursUploadView.as_view(), name="concours-upload"),
 ]

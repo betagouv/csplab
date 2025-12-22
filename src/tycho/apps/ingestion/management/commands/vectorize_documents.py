@@ -2,21 +2,21 @@
 
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.ingestion.container_singleton import IngestionContainerSingleton
+from apps.ingestion.container_factory import create_ingestion_container
 from core.entities.document import DocumentType
 
 
 class Command(BaseCommand):
     """Vectorize documents by type using VectorizeDocumentsUsecase."""
 
-    help = "Vectorize documents by type (CORPS for now)"
+    help = "Vectorize documents by type (CORPS, CONCOURS)"
 
     def add_arguments(self, parser):
         """Add command arguments."""
         parser.add_argument(
             "--type",
             required=True,
-            choices=["CORPS"],
+            choices=["CORPS", "CONCOURS"],
             help="Type of documents to vectorize",
         )
         parser.add_argument(
@@ -30,7 +30,7 @@ class Command(BaseCommand):
         """Execute the command."""
         try:
             document_type = DocumentType(options["type"])
-            container = IngestionContainerSingleton.get_container()
+            container = create_ingestion_container()
 
             repository_factory = container.repository_factory()
             repository = repository_factory.get_repository(document_type)

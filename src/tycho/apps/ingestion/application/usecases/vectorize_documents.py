@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Union
 
+from core.entities.concours import Concours
 from core.entities.corps import Corps
 from core.entities.document import Document, DocumentType
 from core.entities.vectorized_document import VectorizedDocument
@@ -67,24 +68,27 @@ class VectorizeDocumentsUsecase:
         self, source: Union[Document, IEntity]
     ) -> VectorizedDocument:
         """Vectorize a single document or entity."""
-        # Extract content and metadata
         content = self.text_extractor.extract_content(source)
         metadata = self.text_extractor.extract_metadata(source)
 
-        # Generate embedding
         embedding = self.embedding_generator.generate_embedding(content)
 
-        # Determine document_id and document_type based on source type
         if isinstance(source, Document):
             document_id = source.id
             document_type = source.type
         elif isinstance(source, Corps):
             document_id = source.id
             document_type = DocumentType.CORPS
+        elif isinstance(source, Concours):
+            document_id = source.id
+            document_type = DocumentType.CONCOURS
         else:
             raise UnsupportedDocumentTypeError(type(source).__name__)
 
-        # Create vectorized document
+        # Ensure document_id is not None for VectorizedDocument
+        if document_id is None:
+            raise ValueError("Document ID cannot be None for vectorization")
+
         vectorized_doc = VectorizedDocument(
             id=0,  # Will be set by the repository
             document_id=document_id,
@@ -96,5 +100,4 @@ class VectorizeDocumentsUsecase:
             updated_at=datetime.now(),
         )
 
-        # Store in repository
         return self.vector_repository.store_embedding(vectorized_doc)

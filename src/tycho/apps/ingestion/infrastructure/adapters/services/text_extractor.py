@@ -2,6 +2,7 @@
 
 from typing import Any, Dict, Union
 
+from core.entities.concours import Concours
 from core.entities.corps import Corps
 from core.entities.document import Document
 from core.interfaces.entity_interface import IEntity
@@ -17,6 +18,8 @@ class TextExtractor(ITextExtractor):
             return self._extract_from_document(source)
         elif isinstance(source, Corps):
             return self._extract_from_corps(source)
+        elif isinstance(source, Concours):
+            return self._extract_from_concours(source)
         else:
             raise NotImplementedError(
                 f"Content extraction not implemented for {type(source)}"
@@ -28,6 +31,8 @@ class TextExtractor(ITextExtractor):
             return self._extract_metadata_from_document(source)
         elif isinstance(source, Corps):
             return self._extract_metadata_from_corps(source)
+        elif isinstance(source, Concours):
+            return self._extract_metadata_from_concours(source)
         else:
             raise NotImplementedError(
                 f"Metadata extraction not implemented for {type(source)}"
@@ -55,4 +60,16 @@ class TextExtractor(ITextExtractor):
             "category": corps.category.value if corps.category else None,
             "access_mod": [am.value for am in corps.access_modalities],
             "ministry": corps.ministry.value,
+        }
+
+    def _extract_from_concours(self, concours: Concours) -> str:
+        """Extract content from Concours entity."""
+        return f"{concours.corps} {concours.grade}".strip()
+
+    def _extract_metadata_from_concours(self, concours: Concours) -> Dict[str, Any]:
+        """Extract metadata from Concours entity."""
+        return {
+            "category": concours.category.value,
+            "ministry": concours.ministry.value,
+            "access_modality": [am.value for am in concours.access_modality],
         }
