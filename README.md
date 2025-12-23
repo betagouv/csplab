@@ -21,6 +21,8 @@ Le monorepo est organisé en services :
 - Docker
 - Docker Compose
 - GNU Make
+- [uv](https://docs.astral.sh/uv/)
+- [Direnv](https://direnv.net/)
 
 ### Optionnel
 
