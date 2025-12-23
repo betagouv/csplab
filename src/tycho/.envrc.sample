@@ -1,0 +1,2 @@
+dotenv ../../env.d/tycho
+source .venv/bin/activate

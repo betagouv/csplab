@@ -26,6 +26,8 @@ default: help
 
 ### BOOTSTRAP
 setup-env: ## copy example env files to local files
+	@cp src/tycho/.envrc.sample src/tycho/.envrc
+	@cp src/notebook/.envrc.sample src/notebook/.envrc
 	@cp env.d/tycho-example env.d/tycho
 	@cp env.d/notebook-example env.d/notebook
 	@cp env.d/postgresql-example env.d/postgresql
@@ -66,11 +68,11 @@ build-tycho: ## build tycho image
 .PHONY: build-tycho
 
 jupytext--to-md: ## convert local ipynb files into md
-	bin/jupytext --to md **/*.ipynb
+	bin/jupytext --to md src/notebook/*.ipynb
 .PHONY: jupytext--to-md
 
 jupytext--to-ipynb: ## convert remote md files into ipynb
-	bin/jupytext --to ipynb **/*.md
+	bin/jupytext --to ipynb src/notebook/*.md
 .PHONY: jupytext--to-ipynb
 
 ### LOGS

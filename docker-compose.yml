@@ -52,6 +52,8 @@ services:
     env_file:
       - env.d/postgresql
       - env.d/tycho
+    ports:
+      - "5432:5432"
     healthcheck:
       test:
         - "CMD-SHELL"

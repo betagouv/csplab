@@ -1,5 +1,8 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
+# fix hardlinking failure
+ENV UV_LINK_MODE=copy
+
 # Paths
 ENV KERNELS_PATH=/home/notebook/kernels
 ENV WORKDIR=/home/notebook/app
