@@ -5,9 +5,9 @@ SHELL := /bin/bash
 COMPOSE                 = bin/compose
 COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
 COMPOSE_RUN             = $(COMPOSE) run --rm --no-deps
-COMPOSE_RUN_DEV_UV      = $(COMPOSE_RUN) dev uv run
 COMPOSE_RUN_TYCHO_UV    = $(COMPOSE_RUN) tycho uv run
 COMPOSE_RUN_NOTEBOOK_UV = $(COMPOSE_RUN) notebook uv run
+DEV_UV = cd dev && direnv exec .
 
 default: help
 
@@ -52,11 +52,13 @@ git-hooks: \
 
 ### BUILD
 build: ## build services image
-	$(COMPOSE) build
+build: \
+  $(COMPOSE) build
+  build-dev \
 .PHONY: build
 
 build-dev: ## build development environment image
-	@$(COMPOSE) build dev
+	@$(DEV_UV) uv sync
 .PHONY: build-dev
 
 build-notebook: ## build custom jupyter notebook image
