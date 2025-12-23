@@ -151,11 +151,11 @@ lint-tycho: \
   lint-tycho-mypy
 .PHONY: lint-tycho
 
-lint-tycho: ## lint and fix tycho python sources
+lint-tycho-fix: ## lint and fix tycho python sources
 lint-tycho-fix: \
   lint-tycho-ruff-fix \
   lint-tycho-mypy
-.PHONY: lint-tycho
+.PHONY: lint-tycho-fix
 
 lint-tycho-ruff: ## lint tycho python sources with ruff (check only, like CI)
 	@echo 'lint:tycho-ruff started…'
