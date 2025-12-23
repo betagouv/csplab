@@ -5,8 +5,8 @@ SHELL := /bin/bash
 COMPOSE                 = bin/compose
 COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
 COMPOSE_RUN             = $(COMPOSE) run --rm --no-deps
-COMPOSE_RUN_TYCHO_UV    = $(COMPOSE_RUN) tycho uv run
 COMPOSE_RUN_NOTEBOOK_UV = $(COMPOSE_RUN) notebook uv run
+TYCHO_UV = cd src/tycho && direnv exec .
 DEV_UV = cd dev && direnv exec .
 
 default: help
@@ -55,6 +55,7 @@ build: ## build services image
 build: \
   $(COMPOSE) build
   build-dev \
+  build-tycho \
 .PHONY: build
 
 build-dev: ## build development environment image
@@ -66,7 +67,8 @@ build-notebook: ## build custom jupyter notebook image
 .PHONY: build-notebook
 
 build-tycho: ## build tycho image
-	@$(COMPOSE) build tycho
+	# not using @ which suppress the command's echoing in terminal
+	$(TYCHO_UV) uv sync --group dev
 .PHONY: build-tycho
 
 jupytext--to-md: ## convert local ipynb files into md
@@ -82,15 +84,6 @@ logs: ## display all services logs (follow mode)
 	@$(COMPOSE) logs -f
 .PHONY: logs
 
-logs-notebook: ## display notebook logs (follow mode)
-	@$(COMPOSE) logs -f notebook
-.PHONY: logs-notebook
-
-logs-tycho: ## display tycho logs (follow mode)
-	@$(COMPOSE) logs -f tycho
-.PHONY: logs-tycho
-
-### Setup
 migrate: ## migrate tycho database
 	@echo "Migrating tycho database…"
 	@bin/manage migrate
@@ -117,7 +110,7 @@ run-es: ## run the elasticsearch service
 .PHONY: run-es
 
 run-tycho: ## run the tycho service
-	$(COMPOSE_UP) tycho
+	@bin/manage runserver
 .PHONY: run-tycho
 
 ## LINT
@@ -161,19 +154,19 @@ lint-tycho-fix: \
 
 lint-tycho-ruff: ## lint tycho python sources with ruff (check only, like CI)
 	@echo 'lint:tycho-ruff started…'
-	$(COMPOSE_RUN_TYCHO_UV) ruff check .
-	$(COMPOSE_RUN_TYCHO_UV) ruff format --check .
+	$(TYCHO_UV) ruff check .
+	$(TYCHO_UV) ruff format --check .
 .PHONY: lint-tycho-ruff
 
 lint-tycho-ruff-fix: ## lint and fix tycho python sources with ruff
 	@echo 'lint:tycho-ruff-fix started…'
-	$(COMPOSE_RUN_TYCHO_UV) ruff check --fix .
-	$(COMPOSE_RUN_TYCHO_UV) ruff format .
+	$(TYCHO_UV) ruff check --fix .
+	$(TYCHO_UV) ruff format .
 .PHONY: lint-tycho-ruff-fix
 
 lint-tycho-mypy: ## lint tycho python sources with mypy
 	@echo 'lint:tycho-mypy started…'
-	$(COMPOSE_RUN_TYCHO_UV) mypy .
+	$(TYCHO_UV) mypy .
 .PHONY: lint-tycho-mypy
 
 ## TEST
@@ -184,7 +177,7 @@ test: \
 
 test-tycho: ## test tycho python sources
 	@echo 'test:tychostarted…'
-	$(COMPOSE_RUN_TYCHO_UV) pytest -s
+	$(TYCHO_UV) pytest -s
 .PHONY: test-tycho
 
 ## MANAGE docker services
