@@ -5,8 +5,9 @@ SHELL := /bin/bash
 COMPOSE                 = bin/compose
 COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
 COMPOSE_RUN             = $(COMPOSE) run --rm --no-deps
-COMPOSE_RUN_NOTEBOOK_UV = $(COMPOSE_RUN) notebook uv run
+
 TYCHO_UV = cd src/tycho && direnv exec .
+NOTEBOOK_UV = cd src/notebook && direnv exec .
 DEV_UV = cd dev && direnv exec .
 
 default: help
@@ -53,17 +54,17 @@ git-hooks: \
 ### BUILD
 build: ## build services image
 build: \
-  $(COMPOSE) build
   build-dev \
   build-tycho \
+  build-notebook
 .PHONY: build
 
 build-dev: ## build development environment image
 	@$(DEV_UV) uv sync
 .PHONY: build-dev
 
-build-notebook: ## build custom jupyter notebook image
-	@$(COMPOSE) build notebook
+build-notebook: ### setup notebook kernels natively
+	@$(NOTEBOOK_UV) uv sync --locked
 .PHONY: build-notebook
 
 build-tycho: ## build tycho image
@@ -72,11 +73,11 @@ build-tycho: ## build tycho image
 .PHONY: build-tycho
 
 jupytext--to-md: ## convert local ipynb files into md
-	bin/jupytext --to md src/notebook/*.ipynb
+	cd src/notebook && uv run jupytext --to md *.ipynb && cd ../..
 .PHONY: jupytext--to-md
 
 jupytext--to-ipynb: ## convert remote md files into ipynb
-	bin/jupytext --to ipynb src/notebook/*.md
+	cd src/notebook && uv run jupytext --to ipynb *.md && cd ../..
 .PHONY: jupytext--to-ipynb
 
 ### LOGS
@@ -102,7 +103,7 @@ run-all: \
 .PHONY: run-all
 
 run-notebook: ## run the notebook service
-	$(COMPOSE_UP) notebook
+	$(NOTEBOOK_UV) jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
 .PHONY: run-notebook
 
 run-es: ## run the elasticsearch service
@@ -130,14 +131,14 @@ lint-fix: \
 # -- Per-service linting
 lint-notebook: ## lint notebook python sources
 	@echo 'lint:notebook started (warnings only)…'
-	$(COMPOSE_RUN_NOTEBOOK_UV) ruff check . || true
-	$(COMPOSE_RUN_NOTEBOOK_UV) ruff format --check . || true
+	$(NOTEBOOK_UV) ruff check . || true
+	$(NOTEBOOK_UV) ruff format --check . || true
 .PHONY: lint-notebook
 
 lint-notebook-fix: ## lint and fix notebook python sources
 	@echo 'lint:notebook-fix started (warnings only)…'
-	$(COMPOSE_RUN_NOTEBOOK_UV) ruff check --fix . || true
-	$(COMPOSE_RUN_NOTEBOOK_UV) ruff format . || true
+	$(NOTEBOOK_UV) ruff check --fix . || true
+	$(NOTEBOOK_UV) ruff format . || true
 .PHONY: lint-notebook-fix
 
 lint-tycho: ## lint tycho python sources
