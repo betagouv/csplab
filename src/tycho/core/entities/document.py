@@ -16,6 +16,7 @@ class DocumentType(Enum):
     CONCOURS = "CONCOURS"
     CONCOURS_LAW = "CONCOURS_LAW"
     CONCOURS_LAW_DETAILS = "CONCOURS_LAW_DETAILS"
+    OFFER = "OFFER"
 
     def __str__(self):
         """Return string representation."""

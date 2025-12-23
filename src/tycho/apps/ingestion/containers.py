@@ -14,6 +14,9 @@ from apps.ingestion.infrastructure.adapters.external import (
     document_fetcher,
     piste_client,
 )
+from apps.ingestion.infrastructure.adapters.external.talentsoft_client import (
+    TalentSoftClient,
+)
 from apps.ingestion.infrastructure.adapters.persistence.repositories import (
     django_document_repository as django_repo,
 )
@@ -50,6 +53,7 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     corps_repository = shared_container.corps_repository
     concours_repository = shared_container.concours_repository
+    offer_repository = shared_container.offer_repository
     embedding_generator = shared_container.embedding_generator
     vector_repository = shared_container.vector_repository
 
@@ -59,9 +63,16 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger_service=logger_service,
     )
 
+    talentsoft_client = providers.Singleton(
+        TalentSoftClient,
+        config=providers.Callable(lambda cfg: cfg.talentsoft, config),
+        logger_service=logger_service,
+    )
+
     document_fetcher = providers.Singleton(
         document_fetcher.ExternalDocumentFetcher,
         piste_client=piste_client,
+        talentsoft_client=talentsoft_client,
         logger_service=logger_service,
     )
 
@@ -79,6 +90,7 @@ class IngestionContainer(containers.DeclarativeContainer):
         RepositoryFactory,
         corps_repository=corps_repository,
         concours_repository=concours_repository,
+        offer_repository=offer_repository,
     )
 
     document_cleaner: providers.Provider[IDocumentCleaner[IEntity]] = (

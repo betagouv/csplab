@@ -1,0 +1,32 @@
+[
+  {
+    "id": "OFFER_001",
+    "verse": "FPE",
+    "title": "Développeur Full Stack",
+    "profile": "Ingénieur informatique",
+    "category": "A",
+    "region": "Île-de-France",
+    "department": "75",
+    "limit_date": "2025-12-31"
+  },
+  {
+    "id": "OFFER_002",
+    "verse": "FPE",
+    "title": "Analyste de données",
+    "profile": "Data Scientist",
+    "category": "A",
+    "region": "Auvergne-Rhône-Alpes",
+    "department": "69",
+    "limit_date": "2025-11-30"
+  },
+  {
+    "id": "OFFER_003",
+    "verse": "FPT",
+    "title": "Chef de projet digital",
+    "profile": "Manager",
+    "category": "A+",
+    "region": null,
+    "department": null,
+    "limit_date": null
+  }
+]

@@ -5,11 +5,13 @@ from typing import Any, Dict, List, cast
 from core.entities.concours import Concours
 from core.entities.corps import Corps
 from core.entities.document import DocumentType
+from core.entities.offer import Offer
 from core.errors.document_error import InvalidDocumentTypeError
 from core.interfaces.entity_interface import IEntity
 from core.repositories.concours_repository_interface import IConcoursRepository
 from core.repositories.corps_repository_interface import ICorpsRepository
 from core.repositories.document_repository_interface import IDocumentRepository
+from core.repositories.offer_repository_interface import IOfferRepository
 from core.repositories.repository_factory_interface import IRepositoryFactory
 from core.services.document_cleaner_interface import IDocumentCleaner
 from core.services.logger_interface import ILogger
@@ -68,6 +70,13 @@ class CleanDocumentsUsecase:
             )
             save_result = concours_repository.upsert_batch(
                 cast(List[Concours], cleaned_entities)
+            )
+        elif input_data == DocumentType.OFFER:
+            offer_repository = cast(
+                IOfferRepository, self.repository_factory.get_repository(input_data)
+            )
+            save_result = offer_repository.upsert_batch(
+                cast(List[Offer], cleaned_entities)
             )
         else:
             raise InvalidDocumentTypeError(input_data.value)
