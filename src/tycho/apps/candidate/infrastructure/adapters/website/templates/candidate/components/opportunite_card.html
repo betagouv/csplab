@@ -1,0 +1,73 @@
+{% comment %}
+Custom "opportunites" card component based on DSFR card.
+
+Expected variables:
+- opportunite.title: Position/concours title
+- opportunite.location_display: Location (formatted)
+- opportunite.public_service_branch: Versant (e.g., "Fonction publique d'État")
+- opportunite.category: Catégorie (A, B, C)
+- opportunite.recruitment_level: "Niveau de recrutement" (optional)
+- opportunite.type: Type ("emploi" or "concours")
+- opportunite.type_label: Type label (e.g., "Concours interne")
+- opportunite.intitule_poste: Associated "métier" (optional)
+- opportunite.detail_url: URL to "opportunite" detail page
+{% endcomment %}
+{% load dsfr_tags i18n %}
+<div class="fr-card fr-enlarge-link csplab-opportunite-card">
+    <div class="fr-card__body">
+        <div class="fr-card__content">
+            <h3 class="fr-card__title">
+                <a href="{{ opportunite.detail_url|default:'#' }}" class="fr-card__link">
+                    {{ opportunite.title }}
+                </a>
+            </h3>
+
+            <!-- Metadata -->
+            <div class="fr-card__end">
+                <ul class="csplab-opportunite-card__details">
+                    {% if opportunite.type_label %}
+                    <li class="csplab-opportunite-card__detail">
+                        <span class="fr-icon-edit-line fr-icon--sm" aria-hidden="true"></span>
+                        <span>{{ opportunite.type_label }}</span>
+                    </li>
+                    {% endif %}
+
+                    {% if opportunite.location_display %}
+                    <li class="csplab-opportunite-card__detail">
+                        <span class="fr-icon-map-pin-2-line fr-icon--sm" aria-hidden="true"></span>
+                        <span>{{ opportunite.location_display }}</span>
+                    </li>
+                    {% endif %}
+
+                    {% if opportunite.public_service_branch %}
+                    <li class="csplab-opportunite-card__detail">
+                        <span class="fr-icon-building-line fr-icon--sm" aria-hidden="true"></span>
+                        <span>{{ opportunite.public_service_branch }}</span>
+                    </li>
+                    {% endif %}
+
+                    {% if opportunite.category %}
+                    <li class="csplab-opportunite-card__detail">
+                        <span class="fr-icon-user-setting-line fr-icon--sm" aria-hidden="true"></span>
+                        <span>{% trans "Catégorie" %} {{ opportunite.category }}</span>
+                        {% if opportunite.recruitment_level %}
+                        <span class="csplab-opportunite-card__detail-hint">{{ opportunite.recruitment_level }}</span>
+                        {% endif %}
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <!-- Métier block -->
+                {% if opportunite.intitule_poste %}
+                <div class="csplab-opportunite-card__intitule-poste">
+                    <span class="fr-icon-briefcase-line fr-icon--sm" aria-hidden="true"></span>
+                    <div class="csplab-opportunite-card__intitule-poste-content">
+                        <span class="csplab-opportunite-card__intitule-poste-label">{% trans "MÉTIER" %}</span>
+                        <span class="csplab-opportunite-card__intitule-poste-title">{{ opportunite.intitule_poste }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

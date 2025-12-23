@@ -1,0 +1,121 @@
+{% extends "candidate/base.html" %}
+{% load static dsfr_tags i18n %}
+
+{% block page_title %}{% trans "Résultats de l'analyse" %}{% endblock %}
+
+{% block main %}
+<div class="fr-container fr-py-4w">
+    {% dsfr_breadcrumb breadcrumb_data %}
+</div>
+
+<div class="fr-container fr-pb-8w">
+    <!-- Header -->
+    <div class="csplab-resultats__header">
+        <div class="csplab-resultats__header-illustration">
+            <img src="{% static 'candidate/images/184.Workspace 1.svg' %}" alt="" aria-hidden="true">
+        </div>
+        <div class="csplab-resultats__header-content">
+            <h1 class="csplab-resultats__title">{% trans "Des opportunités professionnelles ciblées pour vous." %}</h1>
+            <p class="csplab-resultats__description">
+                {% trans "Grâce à une technologie d'analyse intelligente, nous décodons les compétences, expériences et formations présentes dans votre CV pour vous proposer des opportunités personnalisées." %}
+            </p>
+            {% if cv_data %}
+            <p class="csplab-resultats__cv-info fr-text--sm">
+                <span class="fr-icon-file-text-line fr-icon--sm" aria-hidden="true"></span>
+                {% trans "CV analysé :" %} <strong>{{ cv_data.name }}</strong>
+                <a href="{% url 'candidate:cv_upload' %}" class="fr-link fr-link--sm fr-ml-1w">
+                    {% trans "Modifier" %}
+                </a>
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Opportunities section -->
+    <div class="csplab-resultats__section fr-mt-9w">
+        <h2 class="csplab-resultats__section-title">
+            <span>{% trans "Parcourez les" %}</span> <span class="text-blue-france">{% trans "opportunités" %}</span>
+        </h2>
+
+        <!-- Filters -->
+        <form class="csplab-resultats__filters fr-mt-3w"
+              hx-get="{% url 'candidate:cv_results' cv_id=cv_data.id %}"
+              hx-trigger="change from:select, click from:.csplab-branch-tag"
+              hx-target="#resultats-container"
+              hx-swap="innerHTML"
+              hx-indicator="#loading-indicator">
+
+            <p class="csplab-resultats__filters-title">{% trans "Filtres" %}</p>
+
+            <div class="fr-grid-row fr-grid-row--gutters">
+                <div class="fr-col-12 fr-col-md-6">
+                    <div class="fr-select-group">
+                        <label class="fr-label" for="filter-location">{% trans "Localisation" %}</label>
+                        <select class="fr-select" id="filter-location" name="location">
+                            <option value="">{% trans "Sélectionner une localisation" %}</option>
+                            <option value="paris" {% if active_filters.location == "paris" %}selected{% endif %}>Paris</option>
+                            <option value="lyon" {% if active_filters.location == "lyon" %}selected{% endif %}>Lyon</option>
+                            <option value="marseille" {% if active_filters.location == "marseille" %}selected{% endif %}>Marseille</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="fr-col-12 fr-col-md-6">
+                    <div class="fr-select-group">
+                        <label class="fr-label" for="filter-category">{% trans "Catégorie" %}</label>
+                        <select class="fr-select" id="filter-category" name="category">
+                            <option value="">{% trans "Sélectionner une catégorie" %}</option>
+                            <option value="A" {% if active_filters.category == "A" %}selected{% endif %}>{% trans "Catégorie A" %}</option>
+                            <option value="B" {% if active_filters.category == "B" %}selected{% endif %}>{% trans "Catégorie B" %}</option>
+                            <option value="C" {% if active_filters.category == "C" %}selected{% endif %}>{% trans "Catégorie C" %}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Public service branches -->
+            <div class="csplab-resultats__filters-branches fr-mt-2w">
+                <p class="fr-text--sm fr-mb-1w">{% trans "Versants de la fonction publique" %}</p>
+                <ul class="fr-tags-group">
+                    <li>
+                        <input type="checkbox" id="branch-etat" name="branch" value="etat"
+                               class="csplab-branch-checkbox"
+                               {% if "etat" in active_filters.branches %}checked{% endif %}>
+                        <label for="branch-etat" class="fr-tag csplab-branch-tag"
+                               aria-pressed="{% if 'etat' in active_filters.branches %}true{% else %}false{% endif %}">
+                            {% trans "Fonction publique d'État" %}
+                        </label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="branch-territoriale" name="branch" value="territoriale"
+                               class="csplab-branch-checkbox"
+                               {% if "territoriale" in active_filters.branches %}checked{% endif %}>
+                        <label for="branch-territoriale" class="fr-tag csplab-branch-tag"
+                               aria-pressed="{% if 'territoriale' in active_filters.branches %}true{% else %}false{% endif %}">
+                            {% trans "Fonction publique territoriale" %}
+                        </label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="branch-hospitaliere" name="branch" value="hospitaliere"
+                               class="csplab-branch-checkbox"
+                               {% if "hospitaliere" in active_filters.branches %}checked{% endif %}>
+                        <label for="branch-hospitaliere" class="fr-tag csplab-branch-tag"
+                               aria-pressed="{% if 'hospitaliere' in active_filters.branches %}true{% else %}false{% endif %}">
+                            {% trans "Fonction publique hospitalière" %}
+                        </label>
+                    </li>
+                </ul>
+            </div>
+        </form>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loading-indicator" class="htmx-indicator fr-mt-2w">
+        <p class="fr-text--sm"><span class="fr-icon-refresh-line fr-icon--sm" aria-hidden="true"></span> {% trans "Chargement..." %}</p>
+    </div>
+
+    <!-- Results list -->
+    <div class="csplab-resultats__list-section fr-mt-3w" id="resultats-container">
+        {% include "candidate/components/opportunite_list.html" %}
+    </div>
+</div>
+{% endblock main %}

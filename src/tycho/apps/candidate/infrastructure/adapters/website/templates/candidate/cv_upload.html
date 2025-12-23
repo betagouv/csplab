@@ -1,0 +1,155 @@
+{% extends "candidate/base.html" %}
+{% load static dsfr_tags i18n %}
+
+{% block page_title %}{% trans "Analyse de profil" %}{% endblock %}
+
+{% block main %}
+<div class="fr-container fr-py-4w">
+    {% dsfr_breadcrumb breadcrumb_data %}
+</div>
+
+<div class="fr-container fr-pb-8w">
+    <div class="csplab-cv-upload">
+        <!-- Header -->
+        <div class="csplab-cv-upload__header">
+            <div class="csplab-cv-upload__header-content">
+                <h1 class="csplab-cv-upload__title">{% trans "Analyse de profil" %}</h1>
+                <p class="csplab-cv-upload__description">
+                    {% trans "Grâce à votre CV, découvrez en quelques secondes les concours et les offres d'emploi de la fonction publique les plus adaptés à votre profil." %}
+                </p>
+            </div>
+            <div class="csplab-cv-upload__illustration">
+                <img src="{% static 'candidate/images/460.Ai-Assistant.svg' %}" alt="" aria-hidden="true">
+            </div>
+        </div>
+
+        <!-- Upload section -->
+        <div class="csplab-cv-upload__section">
+            <h2 class="csplab-cv-upload__section-title">{% trans "Ajouter votre CV" %}</h2>
+            <p class="csplab-cv-upload__section-description">
+                {% trans "Afin d'avoir un résultat pertinent, nous vous conseillons d'ajouter un CV à jour." %}
+            </p>
+
+            <form method="post" enctype="multipart/form-data" id="cv-upload-form">
+                {% csrf_token %}
+
+                <!-- Dropzone -->
+                <div class="csplab-dropzone" id="dropzone" data-state="{% if form.errors %}error{% else %}initial{% endif %}">
+                    <div class="csplab-dropzone__content csplab-dropzone__content--initial">
+                        <div class="csplab-dropzone__icon">
+                            <span class="fr-icon-upload-line" aria-hidden="true"></span>
+                        </div>
+                        <p class="csplab-dropzone__text">
+                            <strong>{% trans "Glissez-déposez votre CV" %}</strong> {% trans "ou" %}
+                            <label for="file-input" class="csplab-dropzone__browse">{% trans "parcourez vos dossiers" %}</label>
+                        </p>
+                        <p class="csplab-dropzone__hint">{% trans "Taille maximale : 5 Mo, formats supportés : PDF." %}</p>
+                        {{ form.cv_file }}
+                    </div>
+
+                    <div class="csplab-dropzone__content csplab-dropzone__content--dragging">
+                        <div class="csplab-dropzone__icon">
+                            <span class="fr-icon-download-line" aria-hidden="true"></span>
+                        </div>
+                        <p class="csplab-dropzone__text"><strong>{% trans "Déposez votre fichier ici" %}</strong></p>
+                    </div>
+
+                    <div class="csplab-dropzone__content csplab-dropzone__content--error">
+                        <div class="csplab-dropzone__icon csplab-dropzone__icon--error">
+                            <span class="fr-icon-error-fill" aria-hidden="true"></span>
+                        </div>
+                        <p class="csplab-dropzone__text"><strong>{% trans "Erreur lors de l'import" %}</strong></p>
+                        <p class="csplab-dropzone__error-message">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}{{ error }}{% endfor %}
+                            {% endfor %}
+                        </p>
+                        <a href="{% url 'candidate:cv_upload' %}" class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm fr-mt-2w">
+                            {% trans "Réessayer" %}
+                        </a>
+                    </div>
+                </div>
+
+                <!-- File preview card -->
+                <div class="csplab-file-card" id="file-card" hidden>
+                    <div class="csplab-file-card__icon">
+                        <span class="fr-icon-file-text-line" aria-hidden="true"></span>
+                    </div>
+                    <div class="csplab-file-card__info">
+                        <span class="csplab-file-card__name" id="file-name"></span>
+                        <span class="csplab-file-card__size" id="file-size"></span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="csplab-cv-upload__actions">
+                    <button type="submit" class="fr-btn" id="submit-btn" disabled>
+                        {% trans "Découvrir mes opportunités" %}
+                    </button>
+                    <p class="fr-hint-text fr-hint-text--info" id="confidential-hint" hidden>
+                        <span class="fr-icon-information-line fr-icon--sm" aria-hidden="true"></span>
+                        {% trans "Le CV soumis reste strictement confidentiel." %}
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock main %}
+
+{% block page_js %}
+<script type="module">
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('file-input');
+const fileCard = document.getElementById('file-card');
+const fileName = document.getElementById('file-name');
+const fileSize = document.getElementById('file-size');
+const submitBtn = document.getElementById('submit-btn');
+const hint = document.getElementById('confidential-hint');
+
+const formatSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} octets`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} Ko`;
+    return `${(bytes / 1048576).toFixed(1)} Mo`;
+};
+
+const showFile = (file) => {
+    fileName.textContent = file.name;
+    fileSize.textContent = formatSize(file.size);
+    dropzone.hidden = true;
+    fileCard.hidden = false;
+    hint.hidden = false;
+    submitBtn.disabled = false;
+};
+
+dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.dataset.state = 'dragging';
+});
+
+dropzone.addEventListener('dragleave', () => {
+    dropzone.dataset.state = 'initial';
+});
+
+dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        fileInput.files = dt.files;
+        showFile(file);
+    }
+});
+
+dropzone.addEventListener('click', () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) {
+        showFile(fileInput.files[0]);
+    }
+});
+</script>
+{% endblock page_js %}

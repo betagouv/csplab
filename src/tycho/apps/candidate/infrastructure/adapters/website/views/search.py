@@ -1,4 +1,4 @@
-"""Views for candidate website."""
+"""Corps search view."""
 
 from django.contrib import messages
 from django.shortcuts import render
@@ -54,7 +54,7 @@ class CorpsSearchView(View):
                 )
 
             except Exception as e:
-                messages.error(request, f"Erreur lors de la recherche : {str(e)}")
+                messages.error(request, f"Erreur lors de la recherche : {e!s}")
                 return render(
                     request,
                     self.template_name,
