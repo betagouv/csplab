@@ -42,7 +42,7 @@ data
 # -- Environments
 .env
 .envrc
-.venv
+.venv*
 env/
 env.d/*
 !env.d/*-example
