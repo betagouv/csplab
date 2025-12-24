@@ -10,6 +10,12 @@ and this project adheres to
 
 ### Added
 
+- Homepage with DSFR integration
+- Header and footer blocks with DSFR components
+- HomeView and BreadcrumbMixin for reusable view patterns
+- Custom CSS styles for CSPLab branding
+- SVG illustrations for homepage sections
+- Integration tests for homepage view
 - Core (domain layer).
 - Ingestion app in Tycho project.
 - Application layer with use cases.
@@ -38,5 +44,18 @@ and this project adheres to
 - add CVMetadatas Entity in core
 - add process_cv usecase
 - add match cv to opportunities usecase
+
+### Changed
+
+- Refactored views from single file to modular structure (views/ directory)
+- Reorganized static files to shared `apps/static/` directory
+- Updated base.html template with header/footer block structure
+- Updated search.html template for compatibility with new base template
+- Route `/` now points to HomeView instead of search
+
+### Fixed
+
+- Restored corps_search.css that was missing after static files reorganization
+- Fixed search.html template block naming (content → main)
 
 [unreleased]: https://github.com/betagouv/csplab/
