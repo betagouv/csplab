@@ -1,6 +1,6 @@
 """CV domain specific errors."""
 
-from core.errors.domain_errors import DomainError
+from domain.exceptions.domain_errors import DomainError
 
 
 class CVError(DomainError):

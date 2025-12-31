@@ -6,14 +6,14 @@ from typing import List, Optional
 import polars as pl
 from django.utils import timezone
 
-from core.errors.corps_errors import (
-    InvalidMinistryError,
-)
-from core.errors.document_error import InvalidDocumentTypeError
 from core.services.document_cleaner_interface import IDocumentCleaner
 from core.services.logger_interface import ILogger
 from domain.entities.concours import Concours
 from domain.entities.document import Document, DocumentType
+from domain.exceptions.corps_errors import (
+    InvalidMinistryError,
+)
+from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.ministry import Ministry

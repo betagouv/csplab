@@ -3,15 +3,15 @@
 from datetime import datetime
 from uuid import uuid4
 
-from core.errors.cv_errors import (
-    InvalidPDFError,
-    TextExtractionError,
-)
 from core.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from core.services.logger_interface import ILogger
 from core.services.pdf_text_extractor_interface import IPDFTextExtractor
 from core.services.query_builder_interface import IQueryBuilder
 from domain.entities.cv_metadata import CVMetadata
+from domain.exceptions.cv_errors import (
+    InvalidPDFError,
+    TextExtractionError,
+)
 
 
 class ProcessUploadedCVUsecase:

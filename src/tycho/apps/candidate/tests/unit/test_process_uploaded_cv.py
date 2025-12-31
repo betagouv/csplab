@@ -14,7 +14,7 @@ from apps.candidate.tests.utils.in_memory_cv_metadata_repository import (
     InMemoryCVMetadataRepository,
 )
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
-from core.errors.cv_errors import (
+from domain.exceptions.cv_errors import (
     InvalidPDFError,
     TextExtractionError,
 )

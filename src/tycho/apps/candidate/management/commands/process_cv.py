@@ -7,7 +7,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.candidate.container_factory import create_candidate_container
-from core.errors.cv_errors import CVError
+from domain.exceptions.cv_errors import CVError
 
 
 class Command(BaseCommand):

@@ -6,7 +6,7 @@ from rest_framework.views import exception_handler, status
 from apps.shared.exceptions import ApplicationError
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from apps.shared.infrastructure.exceptions import InfrastructureError
-from core.errors.domain_errors import DomainError
+from domain.exceptions.domain_errors import DomainError
 
 # Initialize specialized loggers for each layer
 logger_service = LoggerService()

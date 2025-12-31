@@ -2,7 +2,6 @@
 
 from typing import Any, Dict, List, cast
 
-from core.errors.document_error import InvalidDocumentTypeError
 from core.interfaces.entity_interface import IEntity
 from core.repositories.concours_repository_interface import IConcoursRepository
 from core.repositories.corps_repository_interface import ICorpsRepository
@@ -13,6 +12,7 @@ from core.services.logger_interface import ILogger
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
+from domain.exceptions.document_error import InvalidDocumentTypeError
 
 
 class CleanDocumentsUsecase:
