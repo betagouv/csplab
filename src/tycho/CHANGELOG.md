@@ -38,5 +38,6 @@ and this project adheres to
 - add CVMetadatas Entity in core
 - add process_cv usecase
 - add match cv to opportunities usecase
+- remove docker for python apps [tooling, out of scope of /src/tycho ;) ]
 
 [unreleased]: https://github.com/betagouv/csplab/
