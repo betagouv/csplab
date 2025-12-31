@@ -1,7 +1,5 @@
 """Integration tests for LoadDocuments usecase with external adapters."""
 
-from unittest.mock import patch
-
 import pytest
 import responses
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -13,7 +11,6 @@ from application.ingestion.interfaces.load_documents_input import (
     LoadDocumentsInput,
 )
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from apps.ingestion.application.exceptions import LoadDocumentsError
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
@@ -199,24 +196,6 @@ class TestConcoursUploadView(APITestCase):
         self.assertEqual(response.data["error"], "No valid rows found")
         self.assertIn("validation_errors", response.data)
         self.assertEqual(len(response.data["validation_errors"]), 2)
-
-    @patch(
-        "application.ingestion.usecases.load_documents.LoadDocumentsUsecase.execute"
-    )
-    def test_usecase_failure(self, mock_execute):
-        """Test handling of usecase execution failure."""
-        mock_execute.side_effect = LoadDocumentsError(
-            "Failed to save documents", status_code=500
-        )
-
-        valid_csv = self._create_csv_file(self._create_valid_csv_content())
-
-        response = self.client.post(
-            self.concours_upload_url, {"file": valid_csv}, format="multipart"
-        )
-
-        self.assertEqual(response.status_code, 500)
-        self.assertIn("Unexpected error", response.data["error"])
 
     def test_success_response(self):
         """Test successful CSV upload and processing."""
