@@ -5,10 +5,10 @@ from datetime import datetime
 from typing import List, Optional
 
 from core.interfaces.entity_interface import IEntity
-from core.value_objects.access_modality import AccessModality
-from core.value_objects.category import Category
-from core.value_objects.ministry import Ministry
-from core.value_objects.nor import NOR
+from domain.value_objects.access_modality import AccessModality
+from domain.value_objects.category import Category
+from domain.value_objects.ministry import Ministry
+from domain.value_objects.nor import NOR
 
 
 @dataclass

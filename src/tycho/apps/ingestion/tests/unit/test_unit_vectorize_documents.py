@@ -16,13 +16,13 @@ from apps.shared.tests.utils.test_container_factory import (
     create_test_shared_container,
 )
 from core.interfaces.entity_interface import IEntity
-from core.value_objects.access_modality import AccessModality
-from core.value_objects.category import Category
-from core.value_objects.diploma import Diploma
-from core.value_objects.label import Label
-from core.value_objects.ministry import Ministry
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
+from domain.value_objects.access_modality import AccessModality
+from domain.value_objects.category import Category
+from domain.value_objects.diploma import Diploma
+from domain.value_objects.label import Label
+from domain.value_objects.ministry import Ministry
 
 
 class UnsupportedEntity(IEntity):
