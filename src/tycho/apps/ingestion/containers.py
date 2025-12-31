@@ -2,12 +2,21 @@
 
 from dependency_injector import containers, providers
 
-from apps.ingestion.application.interfaces.load_documents_input import (
+from application.ingestion.interfaces.load_documents_input import (
     LoadDocumentsInput,
 )
-from apps.ingestion.application.usecases.clean_documents import CleanDocumentsUsecase
-from apps.ingestion.application.usecases.load_documents import LoadDocumentsUsecase
-from apps.ingestion.application.usecases.vectorize_documents import (
+from application.ingestion.services import (
+    load_documents_strategy_factory as load_strategy,
+)
+from application.ingestion.services.document_cleaner import (
+    DocumentCleaner,
+)
+from application.ingestion.services.text_extractor import (
+    TextExtractor,
+)
+from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
+from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
+from application.ingestion.usecases.vectorize_documents import (
     VectorizeDocumentsUsecase,
 )
 from apps.ingestion.infrastructure.adapters.external import (
@@ -19,15 +28,6 @@ from apps.ingestion.infrastructure.adapters.persistence.repositories import (
 )
 from apps.ingestion.infrastructure.adapters.persistence.repository_factory import (
     RepositoryFactory,
-)
-from apps.ingestion.infrastructure.adapters.services import (
-    load_documents_strategy_factory as load_strategy,
-)
-from apps.ingestion.infrastructure.adapters.services.document_cleaner import (
-    DocumentCleaner,
-)
-from apps.ingestion.infrastructure.adapters.services.text_extractor import (
-    TextExtractor,
 )
 from core.interfaces.entity_interface import IEntity
 from core.interfaces.usecase_interface import IUseCase

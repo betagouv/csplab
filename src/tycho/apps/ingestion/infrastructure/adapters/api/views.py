@@ -9,10 +9,10 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.ingestion.application.interfaces.load_documents_input import (
+from application.ingestion.interfaces.load_documents_input import (
     LoadDocumentsInput,
 )
-from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
+from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.container_factory import create_ingestion_container
 from apps.ingestion.infrastructure.adapters.api.schemas import ConcoursRowSchema
 from domain.entities.document import Document, DocumentType

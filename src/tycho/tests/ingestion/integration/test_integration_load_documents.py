@@ -9,11 +9,11 @@ from django.test import TransactionTestCase
 from pydantic import HttpUrl
 from rest_framework.test import APITestCase
 
-from apps.ingestion.application.exceptions import LoadDocumentsError
-from apps.ingestion.application.interfaces.load_documents_input import (
+from application.ingestion.interfaces.load_documents_input import (
     LoadDocumentsInput,
 )
-from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
+from application.ingestion.interfaces.load_operation_type import LoadOperationType
+from apps.ingestion.application.exceptions import LoadDocumentsError
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
@@ -201,7 +201,7 @@ class TestConcoursUploadView(APITestCase):
         self.assertEqual(len(response.data["validation_errors"]), 2)
 
     @patch(
-        "apps.ingestion.application.usecases.load_documents.LoadDocumentsUsecase.execute"
+        "application.ingestion.usecases.load_documents.LoadDocumentsUsecase.execute"
     )
     def test_usecase_failure(self, mock_execute):
         """Test handling of usecase execution failure."""

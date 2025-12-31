@@ -2,10 +2,10 @@
 
 from typing import List, Sequence
 
-from apps.ingestion.infrastructure.adapters.services.concours_cleaner import (
+from application.ingestion.services.concours_cleaner import (
     ConcoursCleaner,
 )
-from apps.ingestion.infrastructure.adapters.services.corps_cleaner import CorpsCleaner
+from application.ingestion.services.corps_cleaner import CorpsCleaner
 from core.interfaces.entity_interface import IEntity
 from core.services.document_cleaner_interface import IDocumentCleaner
 from core.services.logger_interface import ILogger

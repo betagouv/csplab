@@ -4,7 +4,7 @@ from typing import List, Optional
 
 import polars as pl
 
-from apps.ingestion.infrastructure.adapters.services.pelage_checks import (
+from application.ingestion.services.pelage_checks import (
     has_no_minarm_ministry,
     has_only_civil_servants,
     has_only_fpe_type,

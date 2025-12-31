@@ -2,20 +2,20 @@
 
 from dependency_injector import containers, providers
 
-from apps.candidate.application.usecases.match_cv_to_opportunities import (
+from application.candidate.services.albert_pdf_extractor import (
+    AlbertPDFExtractor,
+)
+from application.candidate.services.query_builder import QueryBuilder
+from application.candidate.usecases.match_cv_to_opportunities import (
     MatchCVToOpportunitiesUsecase,
 )
-from apps.candidate.application.usecases.process_uploaded_cv import (
+from application.candidate.usecases.process_uploaded_cv import (
     ProcessUploadedCVUsecase,
 )
-from apps.candidate.application.usecases.retrieve_corps import RetrieveCorpsUsecase
+from application.candidate.usecases.retrieve_corps import RetrieveCorpsUsecase
 from apps.candidate.infrastructure.adapters.repositories.cv_metadata_repository import (
     PostgresCVMetadataRepository,
 )
-from apps.candidate.infrastructure.adapters.services.albert_pdf_extractor import (
-    AlbertPDFExtractor,
-)
-from apps.candidate.infrastructure.adapters.services.query_builder import QueryBuilder
 
 
 class CandidateContainer(containers.DeclarativeContainer):

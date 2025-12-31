@@ -2,7 +2,7 @@
 
 from typing import List
 
-from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
+from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.infrastructure.exceptions import MissingOperationParameterError
 from core.repositories.document_repository_interface import IDocumentFetcher
 from domain.entities.document import Document, DocumentType
