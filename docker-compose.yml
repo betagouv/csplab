@@ -52,6 +52,14 @@ services:
     env_file:
       - env.d/postgresql
       - env.d/tycho
+    environment:
+      # Avoid a log error when starting the itou_postgres container:
+      # > Role "root" does not exist.
+      # Without this variable, the default Unix account ('root')
+      # is used automatically when starting postgres.
+      # https://www.postgresql.org/docs/current/libpq-envars.html
+      - PGUSER=tycho
+      - PGPASSWORD=pass
     ports:
       - "5432:5432"
     healthcheck:
