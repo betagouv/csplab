@@ -63,7 +63,6 @@ omit = [
   "apps/**/migrations/*",
   "config/wsgi.py",
   "tycho/tests/*",
-  "apps/**/tests/*",
   "apps/**/management/*"
 ]
 
@@ -77,7 +76,6 @@ python_files = [
 testpaths = [
     "tests",
     "tycho/tests",
-    "apps/**/tests",
 ]
 
 [tool.ruff]
