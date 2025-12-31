@@ -5,15 +5,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from apps.candidate.containers import CandidateContainer
-from apps.candidate.tests.utils.in_memory_cv_metadata_repository import (
-    InMemoryCVMetadataRepository,
-)
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
-from apps.shared.tests.fixtures.fixture_loader import load_fixture
-from apps.shared.tests.utils.in_memory_concours_repository import (
-    InMemoryConcoursRepository,
-)
-from apps.shared.tests.utils.test_container_factory import create_test_shared_container
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
@@ -23,6 +15,14 @@ from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
+from tests.fixtures.fixture_loader import load_fixture
+from tests.utils.in_memory_concours_repository import (
+    InMemoryConcoursRepository,
+)
+from tests.utils.in_memory_cv_metadata_repository import (
+    InMemoryCVMetadataRepository,
+)
+from tests.utils.test_container_factory import create_test_shared_container
 
 
 class TestUnitMatchCVToOpportunitiesUsecase(unittest.TestCase):

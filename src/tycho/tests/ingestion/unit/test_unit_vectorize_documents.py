@@ -11,10 +11,6 @@ from datetime import datetime
 
 from apps.ingestion.containers import IngestionContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
-from apps.shared.tests.fixtures.fixture_loader import load_fixture
-from apps.shared.tests.utils.test_container_factory import (
-    create_test_shared_container,
-)
 from core.interfaces.entity_interface import IEntity
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
@@ -23,6 +19,10 @@ from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
+from tests.fixtures.fixture_loader import load_fixture
+from tests.utils.test_container_factory import (
+    create_test_shared_container,
+)
 
 
 class UnsupportedEntity(IEntity):

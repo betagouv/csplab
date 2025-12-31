@@ -20,13 +20,13 @@ from apps.ingestion.infrastructure.adapters.external.http_client import HttpClie
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
 )
-from apps.ingestion.tests.factories.ingres_factories import (
-    IngresCorpsApiResponseFactory,
-)
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from domain.entities.document import DocumentType
+from tests.factories.ingres_factories import (
+    IngresCorpsApiResponseFactory,
+)
 
 
 class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):

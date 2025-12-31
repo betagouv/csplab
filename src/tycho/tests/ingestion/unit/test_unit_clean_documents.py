@@ -12,19 +12,19 @@ from datetime import datetime
 from unittest.mock import Mock
 
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.tests.utils.in_memory_document_repository import (
-    InMemoryDocumentRepository,
-)
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
-from apps.shared.tests.fixtures.fixture_loader import load_fixture
-from apps.shared.tests.utils.in_memory_concours_repository import (
-    InMemoryConcoursRepository,
-)
-from apps.shared.tests.utils.in_memory_corps_repository import (
-    InMemoryCorpsRepository,
-)
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import InvalidDocumentTypeError
+from tests.fixtures.fixture_loader import load_fixture
+from tests.utils.in_memory_concours_repository import (
+    InMemoryConcoursRepository,
+)
+from tests.utils.in_memory_corps_repository import (
+    InMemoryCorpsRepository,
+)
+from tests.utils.in_memory_document_repository import (
+    InMemoryDocumentRepository,
+)
 
 REFERENCE_YEAR = 2024
 
