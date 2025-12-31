@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from apps.ingestion.infrastructure.adapters.api.views import (
+from presentation.ingestion.views import (
     ConcoursUploadView,
 )
 
