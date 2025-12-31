@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from .load_operation_type import LoadOperationType
+from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
 
 
 @dataclass
