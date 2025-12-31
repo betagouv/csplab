@@ -2,11 +2,13 @@
 
 from typing import Union
 
-from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
+from application.ingestion.interfaces.load_operation_type import LoadOperationType
+from application.ingestion.services.load_documents_strategies import (
+    FetchFromApiStrategy,
+    UploadFromCsvStrategy,
+)
 from apps.ingestion.infrastructure.exceptions import InvalidLoadOperationError
 from core.repositories.document_repository_interface import IDocumentFetcher
-
-from apps.ingestion.infrastructure.adapters.services.load_documents_strategies import FetchFromApiStrategy, UploadFromCsvStrategy
 
 
 class LoadDocumentsStrategyFactory:
