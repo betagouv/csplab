@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.views import View
 
 from apps.candidate.container_factory import create_candidate_container
-from apps.candidate.infrastructure.adapters.website.forms import CorpsSearchForm
+from presentation.candidate.forms import CorpsSearchForm
 
 
 class CorpsSearchView(View):

@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from apps.candidate.infrastructure.adapters.website.views import CorpsSearchView
+from presentation.candidate.views import CorpsSearchView
 
 app_name = "candidate"
 

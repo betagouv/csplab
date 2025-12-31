@@ -14,8 +14,8 @@ from application.ingestion.interfaces.load_documents_input import (
 )
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.container_factory import create_ingestion_container
-from apps.ingestion.infrastructure.adapters.api.schemas import ConcoursRowSchema
 from domain.entities.document import Document, DocumentType
+from presentation.ingestion.schemas import ConcoursRowSchema
 
 
 def format_validation_error(error: ValidationError) -> str:
