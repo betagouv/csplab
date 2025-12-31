@@ -5,6 +5,7 @@ from typing import Any, Dict, Union
 from core.entities.concours import Concours
 from core.entities.corps import Corps
 from core.entities.document import Document
+from core.entities.offer import Offer
 from core.interfaces.entity_interface import IEntity
 from core.services.text_extractor_interface import ITextExtractor
 
@@ -20,6 +21,8 @@ class TextExtractor(ITextExtractor):
             return self._extract_from_corps(source)
         elif isinstance(source, Concours):
             return self._extract_from_concours(source)
+        elif isinstance(source, Offer):
+            return self._extract_from_offer(source)
         else:
             raise NotImplementedError(
                 f"Content extraction not implemented for {type(source)}"
@@ -33,6 +36,8 @@ class TextExtractor(ITextExtractor):
             return self._extract_metadata_from_corps(source)
         elif isinstance(source, Concours):
             return self._extract_metadata_from_concours(source)
+        elif isinstance(source, Offer):
+            return self._extract_metadata_from_offer(source)
         else:
             raise NotImplementedError(
                 f"Metadata extraction not implemented for {type(source)}"
@@ -73,3 +78,27 @@ class TextExtractor(ITextExtractor):
             "ministry": concours.ministry.value,
             "access_modality": [am.value for am in concours.access_modality],
         }
+
+    def _extract_from_offer(self, offer: Offer) -> str:
+        """Extract content from Offer entity."""
+        return f"{offer.titre} {offer.profile}".strip()
+
+    def _extract_metadata_from_offer(self, offer: Offer) -> Dict[str, Any]:
+        """Extract metadata from Offer entity."""
+        metadata = {
+            "category": offer.category.value if offer.category else None,
+            "verse": offer.verse.value if offer.verse else None,
+        }
+
+        if offer.localisation:
+            if offer.localisation.region:
+                metadata["region"] = offer.localisation.region.value
+            if offer.localisation.department:
+                metadata["department"] = offer.localisation.department.value
+
+        if offer.limit_date:
+            metadata["limit_date"] = (
+                offer.limit_date.value.isoformat() if offer.limit_date.value else None
+            )
+
+        return metadata

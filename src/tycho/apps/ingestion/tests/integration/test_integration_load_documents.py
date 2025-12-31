@@ -14,7 +14,7 @@ from apps.ingestion.application.interfaces.load_documents_input import (
     LoadDocumentsInput,
 )
 from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
-from apps.ingestion.config import IngestionConfig, PisteConfig
+from apps.ingestion.config import IngestionConfig, PisteConfig, TalentSoftConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
@@ -26,6 +26,7 @@ from apps.ingestion.tests.factories.ingres_factories import (
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from apps.shared.tests.fixtures.fixture_loader import load_fixture
 from core.entities.document import DocumentType
 
 
@@ -53,7 +54,11 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
                 ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
                 client_id="fake-client-id",
                 client_secret="fake-client-secret",  # noqa
-            )
+            ),
+            talentsoft_config=TalentSoftConfig(
+                base_url=HttpUrl("https://fake-talentsoft.example.com"),
+                api_key="fake-talentsoft-api-key",
+            ),
         )
         self.container.config.override(self.ingestion_config)
         self.container.shared_container.override(self.shared_container)
@@ -135,6 +140,64 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         )
         self.assertEqual(saved_documents.count(), 4)
 
+    @pytest.mark.django_db
+    @responses.activate
+    def test_execute_returns_zero_when_no_offer_documents(self):
+        """Test execute returns 0 when TalentSoft API returns empty response."""
+        # Mock TalentSoft API endpoint with empty response
+        responses.add(
+            responses.GET,
+            f"{self.ingestion_config.talentsoft.base_url}offers",
+            json={"offers": []},
+            status=200,
+            content_type="application/json",
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.OFFER},
+        )
+        result = self.usecase.execute(input_data)
+        self.assertEqual(result["created"], 0)
+        self.assertEqual(result["updated"], 0)
+
+    @pytest.mark.django_db
+    @responses.activate
+    def test_execute_returns_correct_count_with_offer_documents(self):
+        """Returns correct count when TalentSoft API returns offers."""
+        offer_data = load_fixture("offers_talentsoft_mock.json")
+
+        # Mock TalentSoft API endpoint
+        responses.add(
+            responses.GET,
+            f"{self.ingestion_config.talentsoft.base_url}offers",
+            json={"offers": offer_data},
+            status=200,
+            content_type="application/json",
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.OFFER},
+        )
+        result = self.usecase.execute(input_data)
+        self.assertEqual(result["created"], 3)
+        self.assertEqual(result["updated"], 0)
+
+        # Verify documents are persisted in database
+        saved_documents = RawDocument.objects.filter(
+            document_type=DocumentType.OFFER.value
+        )
+        self.assertEqual(saved_documents.count(), 3)
+
+        # Verify document structure
+        first_doc = saved_documents.first()
+        self.assertIn("id", first_doc.raw_data)
+        self.assertIn("verse", first_doc.raw_data)
+        self.assertIn("title", first_doc.raw_data)
+        self.assertIn("profile", first_doc.raw_data)
+        self.assertIn("category", first_doc.raw_data)
+
 
 class TestConcoursUploadView(APITestCase):
     """Integration tests for ConcoursUploadView."""
@@ -142,6 +205,20 @@ class TestConcoursUploadView(APITestCase):
     def setUp(self):
         """Set up test environment."""
         self.concours_upload_url = "/ingestion/concours/upload/"
+
+        # Patch environment variables for TalentSoft
+        self.env_patcher = patch.dict(
+            "os.environ",
+            {
+                "TYCHO_TALENTSOFT_BASE_URL": "https://mock-talentsoft.example.com",
+                "TYCHO_TALENTSOFT_API_KEY": "mock-api-key",
+            },
+        )
+        self.env_patcher.start()
+
+    def tearDown(self):
+        """Clean up test environment."""
+        self.env_patcher.stop()
 
     def _create_valid_csv_content(self):
         """Create valid CSV content for testing."""

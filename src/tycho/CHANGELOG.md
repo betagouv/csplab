@@ -38,5 +38,6 @@ and this project adheres to
 - add CVMetadatas Entity in core
 - add process_cv usecase
 - add match cv to opportunities usecase
+- add ingestion for offers, except TalentSoftClient
 
 [unreleased]: https://github.com/betagouv/csplab/

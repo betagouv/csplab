@@ -17,12 +17,18 @@ from apps.shared.tests.utils.test_container_factory import (
 )
 from core.entities.corps import Corps
 from core.entities.document import Document, DocumentType
+from core.entities.offer import Offer
 from core.interfaces.entity_interface import IEntity
 from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category
+from core.value_objects.department import Department
 from core.value_objects.diploma import Diploma
 from core.value_objects.label import Label
+from core.value_objects.limit_date import LimitDate
+from core.value_objects.localisation import Localisation
 from core.value_objects.ministry import Ministry
+from core.value_objects.region import Region
+from core.value_objects.verse import Verse
 
 
 class UnsupportedEntity(IEntity):
@@ -195,3 +201,115 @@ class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
             "Content extraction not implemented",
             error_detail["error"],
         )
+
+    def test_vectorize_offer_returns_correct_result(self):
+        """Test vectorizing an Offer entity returns correct result."""
+        container = self._create_isolated_container()
+        usecase = container.vectorize_documents_usecase()
+
+        offer = Offer(
+            id=1,
+            external_id="OFFER_001",
+            titre="Développeur Full Stack",
+            profile="Expérience en Python, Django, PostgreSQL",
+            category=Category.A,
+            verse=Verse.FPE,
+            localisation=Localisation(
+                region=Region.ILE_DE_FRANCE, department=Department.PARIS
+            ),
+            limit_date=LimitDate(datetime(2024, 12, 31, 23, 59, 59)),
+        )
+
+        result = usecase.execute([offer])
+
+        self.assertEqual(result["processed"], 1)
+        self.assertEqual(result["vectorized"], 1)
+        self.assertEqual(result["errors"], 0)
+
+    def test_vectorize_offer_with_minimal_data_returns_correct_result(self):
+        """Test vectorizing an Offer with minimal data returns correct result."""
+        container = self._create_isolated_container()
+        usecase = container.vectorize_documents_usecase()
+
+        offer = Offer(
+            id=2,
+            external_id="OFFER_002",
+            titre="Data Scientist",
+            profile="Machine Learning, Python, SQL",
+            category=None,
+            verse=None,
+            localisation=None,
+            limit_date=None,
+        )
+
+        result = usecase.execute([offer])
+
+        self.assertEqual(result["processed"], 1)
+        self.assertEqual(result["vectorized"], 1)
+        self.assertEqual(result["errors"], 0)
+
+    def test_vectorize_multiple_offers_returns_correct_result(self):
+        """Test vectorizing multiple Offer entities returns correct result."""
+        container = self._create_isolated_container()
+        usecase = container.vectorize_documents_usecase()
+
+        offers = [
+            Offer(
+                id=1,
+                external_id="OFFER_001",
+                titre="Développeur Full Stack",
+                profile="Expérience en Python, Django, PostgreSQL",
+                category=Category.A,
+                verse=Verse.FPE,
+                localisation=Localisation(
+                    region=Region.ILE_DE_FRANCE, department=Department.PARIS
+                ),
+                limit_date=LimitDate(datetime(2024, 12, 31, 23, 59, 59)),
+            ),
+            Offer(
+                id=2,
+                external_id="OFFER_002",
+                titre="Data Scientist",
+                profile="Machine Learning, Python, SQL",
+                category=Category.A,
+                verse=Verse.FPE,
+                localisation=Localisation(
+                    region=Region.AUVERGNE_RHONE_ALPES, department=Department.RHONE
+                ),
+                limit_date=LimitDate(datetime(2024, 11, 30, 23, 59, 59)),
+            ),
+        ]
+
+        result = usecase.execute(offers)
+
+        self.assertEqual(result["processed"], 2)
+        self.assertEqual(result["vectorized"], 2)
+        self.assertEqual(result["errors"], 0)
+
+    def test_vectorize_offer_with_none_id_handles_error_correctly(self):
+        """Test that Offer with None id is properly handled and logged."""
+        container = self._create_isolated_container()
+        usecase = container.vectorize_documents_usecase()
+
+        offer = Offer(
+            id=None,  # This will cause an exception
+            external_id="OFFER_INVALID",
+            titre="Invalid Offer",
+            profile="Test profile",
+            category=Category.A,
+            verse=Verse.FPE,
+            localisation=None,
+            limit_date=None,
+        )
+
+        result = usecase.execute([offer])
+
+        self.assertEqual(result["processed"], 1)
+        self.assertEqual(result["vectorized"], 0)
+        self.assertEqual(result["errors"], 1)
+        self.assertEqual(len(result["error_details"]), 1)
+
+        error_detail = result["error_details"][0]
+        self.assertEqual(error_detail["source_type"], "Offer")
+        self.assertEqual(error_detail["source_id"], None)
+        self.assertIn("Document ID cannot be None", error_detail["error"])

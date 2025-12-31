@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Union
 from core.entities.concours import Concours
 from core.entities.corps import Corps
 from core.entities.document import Document, DocumentType
+from core.entities.offer import Offer
 from core.entities.vectorized_document import VectorizedDocument
 from core.errors.document_error import UnsupportedDocumentTypeError
 from core.interfaces.entity_interface import IEntity
@@ -82,6 +83,9 @@ class VectorizeDocumentsUsecase:
         elif isinstance(source, Concours):
             document_id = source.id
             document_type = DocumentType.CONCOURS
+        elif isinstance(source, Offer):
+            document_id = source.id  # Already an int
+            document_type = DocumentType.OFFER
         else:
             raise UnsupportedDocumentTypeError(type(source).__name__)
 
