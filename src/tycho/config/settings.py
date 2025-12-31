@@ -59,7 +59,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "tycho.urls"
+ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
@@ -84,7 +84,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "tycho.wsgi.application"
+WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Database
@@ -184,7 +184,7 @@ LOGGING = {
 
 # Django REST Framework
 REST_FRAMEWORK = {
-    "EXCEPTION_HANDLER": "tycho.exception_handler.custom_exception_handler"
+    "EXCEPTION_HANDLER": "config.exception_handler.custom_exception_handler"
 }
 
 # Sentry
