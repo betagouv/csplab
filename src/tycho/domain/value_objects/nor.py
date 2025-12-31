@@ -3,7 +3,7 @@
 import re
 from dataclasses import dataclass
 
-from core.errors.concours_errors import InvalidNorError
+from domain.exceptions.concours_errors import InvalidNorError
 
 
 @dataclass(frozen=True)

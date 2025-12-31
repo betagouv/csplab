@@ -14,11 +14,11 @@ from apps.shared.tests.utils.in_memory_concours_repository import (
     InMemoryConcoursRepository,
 )
 from apps.shared.tests.utils.test_container_factory import create_test_shared_container
-from core.errors.cv_errors import CVNotFoundError
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
+from domain.exceptions.cv_errors import CVNotFoundError
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.ministry import Ministry

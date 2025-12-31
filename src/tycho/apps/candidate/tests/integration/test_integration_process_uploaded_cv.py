@@ -15,8 +15,8 @@ from apps.candidate.infrastructure.adapters.persistence.models.cv_metadata impor
 )
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from apps.shared.infrastructure.exceptions import ExternalApiError
-from core.errors.cv_errors import InvalidPDFError, TextExtractionError
 from domain.entities.cv_metadata import CVMetadata
+from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
 
 
 class TestIntegrationProcessUploadedCVUsecase(TransactionTestCase):

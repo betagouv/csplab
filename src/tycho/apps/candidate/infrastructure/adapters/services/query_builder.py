@@ -2,8 +2,8 @@
 
 from typing import Any, Dict
 
-from core.errors.cv_errors import QueryBuildingError
 from core.services.query_builder_interface import IQueryBuilder
+from domain.exceptions.cv_errors import QueryBuildingError
 
 
 class QueryBuilder(IQueryBuilder):

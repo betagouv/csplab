@@ -1,1 +1,1 @@
-"""Core Value Objects package."""
+"""Domain Value Objects package."""

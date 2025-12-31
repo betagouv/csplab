@@ -3,7 +3,6 @@
 from datetime import datetime
 from typing import Any, Dict, List, Union
 
-from core.errors.document_error import UnsupportedDocumentTypeError
 from core.interfaces.entity_interface import IEntity
 from core.repositories.vector_repository_interface import IVectorRepository
 from core.services.embedding_generator_interface import IEmbeddingGenerator
@@ -13,6 +12,7 @@ from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
+from domain.exceptions.document_error import UnsupportedDocumentTypeError
 
 
 class VectorizeDocumentsUsecase:
