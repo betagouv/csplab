@@ -10,7 +10,7 @@ from apps.ingestion.infrastructure.adapters.external.http_client import HttpClie
 from apps.shared.infrastructure.exceptions import (
     ExternalApiError,
 )
-from core.services.logger_interface import ILogger
+from domain.services.logger_interface import ILogger
 
 
 class PisteClient(HttpClient):

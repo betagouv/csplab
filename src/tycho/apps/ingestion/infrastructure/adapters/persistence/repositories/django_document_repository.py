@@ -5,12 +5,12 @@ from typing import List
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
 )
-from core.repositories.document_repository_interface import (
+from domain.entities.document import Document, DocumentType
+from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertError,
     IUpsertResult,
 )
-from domain.entities.document import Document, DocumentType
 
 
 class DjangoDocumentRepository(IDocumentRepository):

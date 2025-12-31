@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-from core.services.logger_interface import ILogger
+from domain.services.logger_interface import ILogger
 
 
 class LoggerService(ILogger):

@@ -2,8 +2,8 @@
 
 from typing import Generic, List, Protocol, Sequence, TypeVar
 
-from core.interfaces.entity_interface import IEntity
 from domain.entities.document import Document
+from domain.interfaces.entity_interface import IEntity
 
 T_co = TypeVar("T_co", bound=IEntity, covariant=True)
 

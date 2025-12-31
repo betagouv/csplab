@@ -2,11 +2,11 @@
 
 from typing import Any, Dict, Union
 
-from core.interfaces.entity_interface import IEntity
-from core.services.text_extractor_interface import ITextExtractor
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import Document
+from domain.interfaces.entity_interface import IEntity
+from domain.services.text_extractor_interface import ITextExtractor
 
 
 class TextExtractor(ITextExtractor):

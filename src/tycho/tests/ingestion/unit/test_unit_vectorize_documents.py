@@ -11,9 +11,9 @@ from datetime import datetime
 
 from apps.ingestion.containers import IngestionContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
-from core.interfaces.entity_interface import IEntity
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
+from domain.interfaces.entity_interface import IEntity
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma

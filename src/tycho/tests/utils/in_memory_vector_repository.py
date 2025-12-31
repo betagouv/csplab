@@ -4,8 +4,8 @@ import math
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from core.repositories.vector_repository_interface import IVectorRepository
 from domain.entities.vectorized_document import VectorizedDocument
+from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.value_objects.similarity_type import (
     SimilarityMetric,
     SimilarityResult,

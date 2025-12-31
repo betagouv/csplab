@@ -29,14 +29,14 @@ from apps.ingestion.infrastructure.adapters.persistence.repositories import (
 from apps.ingestion.infrastructure.adapters.persistence.repository_factory import (
     RepositoryFactory,
 )
-from core.interfaces.entity_interface import IEntity
-from core.interfaces.usecase_interface import IUseCase
-from core.repositories.document_repository_interface import (
+from domain.entities.document import DocumentType
+from domain.interfaces.entity_interface import IEntity
+from domain.interfaces.usecase_interface import IUseCase
+from domain.repositories.document_repository_interface import (
     CompositeDocumentRepository,
     IUpsertResult,
 )
-from core.services.document_cleaner_interface import IDocumentCleaner
-from domain.entities.document import DocumentType
+from domain.services.document_cleaner_interface import IDocumentCleaner
 
 
 class IngestionContainer(containers.DeclarativeContainer):

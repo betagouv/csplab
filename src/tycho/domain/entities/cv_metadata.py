@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any, Dict
 from uuid import UUID
 
-from core.interfaces.entity_interface import IEntity
+from domain.interfaces.entity_interface import IEntity
 
 
 @dataclass

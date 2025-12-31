@@ -3,7 +3,7 @@
 import json
 from typing import Any, Dict, List
 
-from core.services.embedding_generator_interface import IEmbeddingGenerator
+from domain.services.embedding_generator_interface import IEmbeddingGenerator
 
 
 class MockEmbeddingGenerator(IEmbeddingGenerator):
