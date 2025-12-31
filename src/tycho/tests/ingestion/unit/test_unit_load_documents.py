@@ -18,12 +18,12 @@ from apps.ingestion.containers import IngestionContainer
 from apps.ingestion.infrastructure.adapters.services import (
     load_documents_strategy_factory,
 )
-from apps.ingestion.tests.utils.in_memory_document_repository import (
+from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from domain.entities.document import Document, DocumentType
+from tests.fixtures.fixture_loader import load_fixture
+from tests.utils.in_memory_document_repository import (
     InMemoryDocumentRepository,
 )
-from apps.shared.infrastructure.adapters.external.logger import LoggerService
-from apps.shared.tests.fixtures.fixture_loader import load_fixture
-from domain.entities.document import Document, DocumentType
 
 
 class TestUnitLoadDocumentsUsecase(unittest.TestCase):

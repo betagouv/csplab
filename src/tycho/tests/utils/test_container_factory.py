@@ -1,13 +1,13 @@
 """Test container factory for creating isolated test containers."""
 
 from apps.shared.containers import SharedContainer
-from apps.shared.tests.utils.in_memory_corps_repository import (
+from tests.utils.in_memory_corps_repository import (
     InMemoryCorpsRepository,
 )
-from apps.shared.tests.utils.in_memory_vector_repository import (
+from tests.utils.in_memory_vector_repository import (
     InMemoryVectorRepository,
 )
-from apps.shared.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
+from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 
 def create_test_shared_container(embedding_fixtures=None):

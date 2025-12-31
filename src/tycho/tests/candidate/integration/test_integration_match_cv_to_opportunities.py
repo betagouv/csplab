@@ -20,8 +20,6 @@ from apps.shared.infrastructure.adapters.persistence.repositories import (
 from apps.shared.infrastructure.adapters.persistence.repositories import (
     pgvector_repository as pgvector_repo,
 )
-from apps.shared.tests.fixtures.fixture_loader import load_fixture
-from apps.shared.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
@@ -31,6 +29,8 @@ from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
+from tests.fixtures.fixture_loader import load_fixture
+from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 
 class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):

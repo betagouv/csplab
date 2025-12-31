@@ -20,8 +20,8 @@ from apps.shared.infrastructure.adapters.persistence.models.concours import (
     ConcoursModel,
 )
 from apps.shared.infrastructure.adapters.persistence.models.corps import CorpsModel
-from apps.shared.tests.fixtures.fixture_loader import load_fixture
 from domain.entities.document import DocumentType
+from tests.fixtures.fixture_loader import load_fixture
 
 REFERENCE_YEAR = 2024
 
