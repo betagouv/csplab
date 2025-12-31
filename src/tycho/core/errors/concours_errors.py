@@ -1,6 +1,6 @@
 """Domain errors for entity Concours."""
 
-from .domain_errors import DomainError
+from core.errors.domain_errors import DomainError
 
 
 class ConcoursError(DomainError):
