@@ -61,7 +61,6 @@ packages = [
 [tool.coverage.run]
 omit = [
   "apps/**/migrations/*",
-  "tycho/asgi.py",
   "tycho/wsgi.py",
   "tycho/tests/*",
   "apps/**/tests/*",
