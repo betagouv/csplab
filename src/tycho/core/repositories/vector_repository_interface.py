@@ -2,8 +2,8 @@
 
 from typing import Any, Dict, List, Optional, Protocol
 
-from core.entities.vectorized_document import VectorizedDocument
 from core.value_objects.similarity_type import SimilarityResult, SimilarityType
+from domain.entities.vectorized_document import VectorizedDocument
 
 
 class IVectorRepository(Protocol):

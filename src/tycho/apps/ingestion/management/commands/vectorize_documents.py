@@ -3,7 +3,7 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.ingestion.container_factory import create_ingestion_container
-from core.entities.document import DocumentType
+from domain.entities.document import DocumentType
 
 
 class Command(BaseCommand):

@@ -2,9 +2,9 @@
 
 from typing import Protocol, TypeVar, Union
 
-from core.entities.document import DocumentType
 from core.repositories.concours_repository_interface import IConcoursRepository
 from core.repositories.corps_repository_interface import ICorpsRepository
+from domain.entities.document import DocumentType
 
 TRepository = TypeVar("TRepository")
 

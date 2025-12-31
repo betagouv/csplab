@@ -29,7 +29,6 @@ from apps.ingestion.infrastructure.adapters.services.document_cleaner import (
 from apps.ingestion.infrastructure.adapters.services.text_extractor import (
     TextExtractor,
 )
-from core.entities.document import DocumentType
 from core.interfaces.entity_interface import IEntity
 from core.interfaces.usecase_interface import IUseCase
 from core.repositories.document_repository_interface import (
@@ -37,6 +36,7 @@ from core.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from core.services.document_cleaner_interface import IDocumentCleaner
+from domain.entities.document import DocumentType
 
 
 class IngestionContainer(containers.DeclarativeContainer):

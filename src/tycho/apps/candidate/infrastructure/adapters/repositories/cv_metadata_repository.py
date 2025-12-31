@@ -8,8 +8,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from apps.candidate.infrastructure.adapters.persistence.models.cv_metadata import (
     CVMetadataModel,
 )
-from core.entities.cv_metadata import CVMetadata
 from core.repositories.cv_metadata_repository_interface import ICVMetadataRepository
+from domain.entities.cv_metadata import CVMetadata
 
 
 class PostgresCVMetadataRepository(ICVMetadataRepository):

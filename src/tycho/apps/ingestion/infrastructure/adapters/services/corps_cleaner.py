@@ -9,8 +9,6 @@ from apps.ingestion.infrastructure.adapters.services.pelage_checks import (
     has_only_civil_servants,
     has_only_fpe_type,
 )
-from core.entities.corps import Corps
-from core.entities.document import Document, DocumentType
 from core.errors.corps_errors import (
     InvalidAccessModalityError,
     InvalidDiplomaLevelError,
@@ -23,6 +21,8 @@ from core.value_objects.category import Category
 from core.value_objects.diploma import Diploma
 from core.value_objects.label import Label
 from core.value_objects.ministry import Ministry
+from domain.entities.corps import Corps
+from domain.entities.document import Document, DocumentType
 
 MAX_DECRETS_BY_CORPS = 20
 

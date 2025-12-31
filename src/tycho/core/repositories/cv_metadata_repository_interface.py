@@ -3,7 +3,7 @@
 from typing import Optional, Protocol
 from uuid import UUID
 
-from core.entities.cv_metadata import CVMetadata
+from domain.entities.cv_metadata import CVMetadata
 
 
 class ICVMetadataRepository(Protocol):

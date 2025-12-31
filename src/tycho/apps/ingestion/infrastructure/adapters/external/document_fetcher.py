@@ -6,10 +6,10 @@ from typing import List
 from apps.ingestion.infrastructure.adapters.external.dtos.ingres_corps_dtos import (
     IngresCorpsApiResponse,
 )
-from core.entities.document import Document, DocumentType
 from core.repositories.document_repository_interface import IDocumentFetcher
 from core.services.http_client_interface import IHttpClient
 from core.services.logger_interface import ILogger
+from domain.entities.document import Document, DocumentType
 
 
 class ExternalDocumentFetcher(IDocumentFetcher):

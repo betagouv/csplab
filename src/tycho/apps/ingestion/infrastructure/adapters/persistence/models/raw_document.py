@@ -2,7 +2,7 @@
 
 from django.db import models
 
-from core.entities.document import Document, DocumentType
+from domain.entities.document import Document, DocumentType
 
 
 class RawDocument(models.Model):

@@ -6,7 +6,6 @@ from apps.ingestion.infrastructure.adapters.services.concours_cleaner import (
     ConcoursCleaner,
 )
 from apps.ingestion.infrastructure.adapters.services.corps_cleaner import CorpsCleaner
-from core.entities.document import Document, DocumentType
 from core.errors.document_error import (
     MixedDocumentTypesError,
     UnsupportedDocumentTypeError,
@@ -14,6 +13,7 @@ from core.errors.document_error import (
 from core.interfaces.entity_interface import IEntity
 from core.services.document_cleaner_interface import IDocumentCleaner
 from core.services.logger_interface import ILogger
+from domain.entities.document import Document, DocumentType
 
 
 class DocumentCleaner(IDocumentCleaner[IEntity]):

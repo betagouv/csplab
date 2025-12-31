@@ -23,8 +23,8 @@ from apps.shared.tests.utils.in_memory_concours_repository import (
 from apps.shared.tests.utils.in_memory_corps_repository import (
     InMemoryCorpsRepository,
 )
-from core.entities.document import Document, DocumentType
 from core.errors.document_error import InvalidDocumentTypeError
+from domain.entities.document import Document, DocumentType
 
 REFERENCE_YEAR = 2024
 

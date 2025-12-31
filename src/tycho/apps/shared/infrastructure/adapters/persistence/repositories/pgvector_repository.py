@@ -9,13 +9,13 @@ from pgvector.django import CosineDistance
 from apps.shared.infrastructure.adapters.persistence.models import (
     vectorized_document,
 )
-from core.entities.vectorized_document import VectorizedDocument
 from core.repositories.vector_repository_interface import IVectorRepository
 from core.value_objects.similarity_type import (
     SimilarityMetric,
     SimilarityResult,
     SimilarityType,
 )
+from domain.entities.vectorized_document import VectorizedDocument
 
 
 class PgVectorRepository(IVectorRepository):

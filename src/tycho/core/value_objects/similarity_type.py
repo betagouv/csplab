@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from core.entities.vectorized_document import VectorizedDocument
+from domain.entities.vectorized_document import VectorizedDocument
 
 
 class SimilarityMetric(Enum):

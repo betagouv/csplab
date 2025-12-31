@@ -3,14 +3,14 @@
 from typing import List, Tuple
 from uuid import UUID
 
-from core.entities.concours import Concours
-from core.entities.document import DocumentType
 from core.errors.cv_errors import CVNotFoundError
 from core.repositories.concours_repository_interface import IConcoursRepository
 from core.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from core.repositories.vector_repository_interface import IVectorRepository
 from core.services.embedding_generator_interface import IEmbeddingGenerator
 from core.services.logger_interface import ILogger
+from domain.entities.concours import Concours
+from domain.entities.document import DocumentType
 
 
 class MatchCVToOpportunitiesUsecase:

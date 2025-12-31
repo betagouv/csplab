@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 from django.db import models
 from pgvector.django import VectorField
 
-from core.entities.document import DocumentType
-from core.entities.vectorized_document import VectorizedDocument
+from domain.entities.document import DocumentType
+from domain.entities.vectorized_document import VectorizedDocument
 
 if TYPE_CHECKING:
     from django.db.models.manager import Manager

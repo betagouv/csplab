@@ -21,7 +21,7 @@ from apps.shared.infrastructure.adapters.persistence.models.concours import (
 )
 from apps.shared.infrastructure.adapters.persistence.models.corps import CorpsModel
 from apps.shared.tests.fixtures.fixture_loader import load_fixture
-from core.entities.document import DocumentType
+from domain.entities.document import DocumentType
 
 REFERENCE_YEAR = 2024
 

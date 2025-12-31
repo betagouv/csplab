@@ -2,11 +2,11 @@
 
 from typing import List, Tuple
 
-from core.entities.corps import Corps
 from core.repositories.corps_repository_interface import ICorpsRepository
 from core.repositories.vector_repository_interface import IVectorRepository
 from core.services.embedding_generator_interface import IEmbeddingGenerator
 from core.services.logger_interface import ILogger
+from domain.entities.corps import Corps
 
 
 class RetrieveCorpsUsecase:

@@ -2,9 +2,9 @@
 
 from typing import Dict, List, Optional
 
-from core.entities.concours import Concours
 from core.repositories.concours_repository_interface import IConcoursRepository
 from core.repositories.document_repository_interface import IUpsertError, IUpsertResult
+from domain.entities.concours import Concours
 
 
 class InMemoryConcoursRepository(IConcoursRepository):

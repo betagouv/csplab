@@ -6,8 +6,6 @@ from typing import List, Optional
 import polars as pl
 from django.utils import timezone
 
-from core.entities.concours import Concours
-from core.entities.document import Document, DocumentType
 from core.errors.corps_errors import (
     InvalidMinistryError,
 )
@@ -18,6 +16,8 @@ from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category
 from core.value_objects.ministry import Ministry
 from core.value_objects.nor import NOR
+from domain.entities.concours import Concours
+from domain.entities.document import Document, DocumentType
 
 REFERENCE_YEAR = 2024
 DECEMBER = 12
