@@ -6,11 +6,11 @@ from application.ingestion.interfaces.load_documents_input import (
 from application.ingestion.services import (
     load_documents_strategy_factory,
 )
-from core.repositories.document_repository_interface import (
+from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,
 )
-from core.services.logger_interface import ILogger
+from domain.services.logger_interface import ILogger
 
 
 class LoadDocumentsUsecase:

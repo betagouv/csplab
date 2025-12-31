@@ -2,17 +2,17 @@
 
 from typing import Any, Dict, List, cast
 
-from core.interfaces.entity_interface import IEntity
-from core.repositories.concours_repository_interface import IConcoursRepository
-from core.repositories.corps_repository_interface import ICorpsRepository
-from core.repositories.document_repository_interface import IDocumentRepository
-from core.repositories.repository_factory_interface import IRepositoryFactory
-from core.services.document_cleaner_interface import IDocumentCleaner
-from core.services.logger_interface import ILogger
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
 from domain.exceptions.document_error import InvalidDocumentTypeError
+from domain.interfaces.entity_interface import IEntity
+from domain.repositories.concours_repository_interface import IConcoursRepository
+from domain.repositories.corps_repository_interface import ICorpsRepository
+from domain.repositories.document_repository_interface import IDocumentRepository
+from domain.repositories.repository_factory_interface import IRepositoryFactory
+from domain.services.document_cleaner_interface import IDocumentCleaner
+from domain.services.logger_interface import ILogger
 
 
 class CleanDocumentsUsecase:

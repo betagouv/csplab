@@ -2,11 +2,11 @@
 
 from typing import Union
 
-from core.repositories.concours_repository_interface import IConcoursRepository
-from core.repositories.corps_repository_interface import ICorpsRepository
-from core.repositories.repository_factory_interface import IRepositoryFactory
 from domain.entities.document import DocumentType
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.repositories.concours_repository_interface import IConcoursRepository
+from domain.repositories.corps_repository_interface import ICorpsRepository
+from domain.repositories.repository_factory_interface import IRepositoryFactory
 
 
 class RepositoryFactory(IRepositoryFactory):

@@ -6,7 +6,7 @@ from openai import OpenAI
 
 from apps.shared.config import OpenAIConfig
 from apps.shared.infrastructure.exceptions import ExternalApiError
-from core.services.embedding_generator_interface import IEmbeddingGenerator
+from domain.services.embedding_generator_interface import IEmbeddingGenerator
 
 
 class OpenAIEmbeddingGenerator(IEmbeddingGenerator):

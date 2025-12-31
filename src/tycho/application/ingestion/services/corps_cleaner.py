@@ -9,8 +9,6 @@ from application.ingestion.services.pelage_checks import (
     has_only_civil_servants,
     has_only_fpe_type,
 )
-from core.services.document_cleaner_interface import IDocumentCleaner
-from core.services.logger_interface import ILogger
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.corps_errors import (
@@ -18,6 +16,8 @@ from domain.exceptions.corps_errors import (
     InvalidDiplomaLevelError,
 )
 from domain.exceptions.document_error import InvalidDocumentTypeError
+from domain.services.document_cleaner_interface import IDocumentCleaner
+from domain.services.logger_interface import ILogger
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma

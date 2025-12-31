@@ -3,12 +3,12 @@
 from datetime import datetime
 from typing import List
 
-from core.repositories.document_repository_interface import (
+from domain.entities.document import Document, DocumentType
+from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertError,
     IUpsertResult,
 )
-from domain.entities.document import Document, DocumentType
 
 
 class InMemoryDocumentRepository(IDocumentRepository):

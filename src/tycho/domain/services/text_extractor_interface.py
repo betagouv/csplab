@@ -2,8 +2,8 @@
 
 from typing import Any, Dict, Protocol, Union
 
-from core.interfaces.entity_interface import IEntity
 from domain.entities.document import Document
+from domain.interfaces.entity_interface import IEntity
 
 
 class ITextExtractor(Protocol):

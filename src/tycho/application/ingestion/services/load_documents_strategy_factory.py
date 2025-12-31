@@ -8,7 +8,7 @@ from application.ingestion.services.load_documents_strategies import (
     UploadFromCsvStrategy,
 )
 from apps.ingestion.infrastructure.exceptions import InvalidLoadOperationError
-from core.repositories.document_repository_interface import IDocumentFetcher
+from domain.repositories.document_repository_interface import IDocumentFetcher
 
 
 class LoadDocumentsStrategyFactory:

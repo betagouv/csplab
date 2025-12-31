@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List
 
-from core.interfaces.entity_interface import IEntity
 from domain.entities.document import DocumentType
+from domain.interfaces.entity_interface import IEntity
 
 
 @dataclass

@@ -2,9 +2,12 @@
 
 from typing import Dict, List, Optional
 
-from core.repositories.concours_repository_interface import IConcoursRepository
-from core.repositories.document_repository_interface import IUpsertError, IUpsertResult
 from domain.entities.concours import Concours
+from domain.repositories.concours_repository_interface import IConcoursRepository
+from domain.repositories.document_repository_interface import (
+    IUpsertError,
+    IUpsertResult,
+)
 
 
 class InMemoryConcoursRepository(IConcoursRepository):

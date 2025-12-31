@@ -3,8 +3,8 @@
 from typing import Dict, Optional
 from uuid import UUID
 
-from core.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from domain.entities.cv_metadata import CVMetadata
+from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 
 
 class InMemoryCVMetadataRepository(ICVMetadataRepository):
