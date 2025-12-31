@@ -2,8 +2,8 @@
 
 from typing import List, Optional, Protocol
 
-from core.entities.concours import Concours
 from core.repositories.document_repository_interface import IUpsertResult
+from domain.entities.concours import Concours
 
 
 class IConcoursRepository(Protocol):

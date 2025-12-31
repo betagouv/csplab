@@ -2,7 +2,7 @@
 
 from django.db import models
 
-from core.entities.cv_metadata import CVMetadata
+from domain.entities.cv_metadata import CVMetadata
 
 
 class CVMetadataModel(models.Model):

@@ -23,7 +23,7 @@ from apps.ingestion.tests.utils.in_memory_document_repository import (
 )
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from apps.shared.tests.fixtures.fixture_loader import load_fixture
-from core.entities.document import Document, DocumentType
+from domain.entities.document import Document, DocumentType
 
 
 class TestUnitLoadDocumentsUsecase(unittest.TestCase):

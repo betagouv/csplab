@@ -3,16 +3,16 @@
 from datetime import datetime
 from typing import Any, Dict, List, Union
 
-from core.entities.concours import Concours
-from core.entities.corps import Corps
-from core.entities.document import Document, DocumentType
-from core.entities.vectorized_document import VectorizedDocument
 from core.errors.document_error import UnsupportedDocumentTypeError
 from core.interfaces.entity_interface import IEntity
 from core.repositories.vector_repository_interface import IVectorRepository
 from core.services.embedding_generator_interface import IEmbeddingGenerator
 from core.services.logger_interface import ILogger
 from core.services.text_extractor_interface import ITextExtractor
+from domain.entities.concours import Concours
+from domain.entities.corps import Corps
+from domain.entities.document import Document, DocumentType
+from domain.entities.vectorized_document import VectorizedDocument
 
 
 class VectorizeDocumentsUsecase:

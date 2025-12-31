@@ -2,8 +2,8 @@
 
 from typing import List, Optional, Protocol
 
-from core.entities.corps import Corps
 from core.repositories.document_repository_interface import IUpsertResult
+from domain.entities.corps import Corps
 
 
 class ICorpsRepository(Protocol):

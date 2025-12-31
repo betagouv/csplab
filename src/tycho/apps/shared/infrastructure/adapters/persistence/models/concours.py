@@ -3,11 +3,11 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from core.entities.concours import Concours
 from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category
 from core.value_objects.ministry import Ministry
 from core.value_objects.nor import NOR
+from domain.entities.concours import Concours
 
 
 class ConcoursModel(models.Model):

@@ -7,7 +7,7 @@ from apps.ingestion.application.interfaces.load_documents_input import (
 )
 from apps.ingestion.application.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.container_factory import create_ingestion_container
-from core.entities.document import DocumentType
+from domain.entities.document import DocumentType
 
 
 class Command(BaseCommand):

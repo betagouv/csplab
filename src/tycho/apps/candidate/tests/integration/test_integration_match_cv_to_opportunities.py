@@ -22,15 +22,15 @@ from apps.shared.infrastructure.adapters.persistence.repositories import (
 )
 from apps.shared.tests.fixtures.fixture_loader import load_fixture
 from apps.shared.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
-from core.entities.concours import Concours
-from core.entities.cv_metadata import CVMetadata
-from core.entities.document import DocumentType
-from core.entities.vectorized_document import VectorizedDocument
 from core.errors.cv_errors import CVNotFoundError
 from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category
 from core.value_objects.ministry import Ministry
 from core.value_objects.nor import NOR
+from domain.entities.concours import Concours
+from domain.entities.cv_metadata import CVMetadata
+from domain.entities.document import DocumentType
+from domain.entities.vectorized_document import VectorizedDocument
 
 
 class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):

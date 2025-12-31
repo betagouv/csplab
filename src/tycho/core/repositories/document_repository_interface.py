@@ -2,7 +2,7 @@
 
 from typing import Any, List, Protocol, TypedDict
 
-from core.entities.document import Document, DocumentType
+from domain.entities.document import Document, DocumentType
 
 
 class IDocumentFetcher(Protocol):

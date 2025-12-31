@@ -4,13 +4,13 @@ import math
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from core.entities.vectorized_document import VectorizedDocument
 from core.repositories.vector_repository_interface import IVectorRepository
 from core.value_objects.similarity_type import (
     SimilarityMetric,
     SimilarityResult,
     SimilarityType,
 )
+from domain.entities.vectorized_document import VectorizedDocument
 
 
 class InMemoryVectorRepository(IVectorRepository):

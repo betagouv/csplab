@@ -2,9 +2,9 @@
 
 from typing import Dict, List, Optional
 
-from core.entities.corps import Corps
 from core.repositories.corps_repository_interface import ICorpsRepository
 from core.repositories.document_repository_interface import IUpsertError, IUpsertResult
+from domain.entities.corps import Corps
 
 
 class InMemoryCorpsRepository(ICorpsRepository):

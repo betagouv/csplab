@@ -26,7 +26,7 @@ from apps.ingestion.tests.factories.ingres_factories import (
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
-from core.entities.document import DocumentType
+from domain.entities.document import DocumentType
 
 
 class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):

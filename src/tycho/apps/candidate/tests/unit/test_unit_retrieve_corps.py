@@ -7,14 +7,14 @@ from apps.candidate.containers import CandidateContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from apps.shared.tests.fixtures.fixture_loader import load_fixture
 from apps.shared.tests.utils.test_container_factory import create_test_shared_container
-from core.entities.corps import Corps
-from core.entities.document import DocumentType
-from core.entities.vectorized_document import VectorizedDocument
 from core.value_objects.access_modality import AccessModality
 from core.value_objects.category import Category
 from core.value_objects.diploma import Diploma
 from core.value_objects.label import Label
 from core.value_objects.ministry import Ministry
+from domain.entities.corps import Corps
+from domain.entities.document import DocumentType
+from domain.entities.vectorized_document import VectorizedDocument
 
 
 class TestUnitRetrieveCorpsUsecase(unittest.TestCase):
