@@ -66,11 +66,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             BASE_DIR
-            / "apps"
-            / "candidate"
-            / "infrastructure"
-            / "adapters"
-            / "website"
+            / "presentation"
             / "templates",
         ],
         "APP_DIRS": True,
@@ -136,6 +132,12 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR.parent / "static"
+
+# Static files directory inside the package presentation app
+STATIC_DIR = BASE_DIR / "presentation" / "static"
+STATICFILES_DIRS = [
+    STATIC_DIR,
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
