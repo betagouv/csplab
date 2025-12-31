@@ -12,12 +12,12 @@ from core.errors.corps_errors import (
 from core.errors.document_error import InvalidDocumentTypeError
 from core.services.document_cleaner_interface import IDocumentCleaner
 from core.services.logger_interface import ILogger
-from core.value_objects.access_modality import AccessModality
-from core.value_objects.category import Category
-from core.value_objects.ministry import Ministry
-from core.value_objects.nor import NOR
 from domain.entities.concours import Concours
 from domain.entities.document import Document, DocumentType
+from domain.value_objects.access_modality import AccessModality
+from domain.value_objects.category import Category
+from domain.value_objects.ministry import Ministry
+from domain.value_objects.nor import NOR
 
 REFERENCE_YEAR = 2024
 DECEMBER = 12

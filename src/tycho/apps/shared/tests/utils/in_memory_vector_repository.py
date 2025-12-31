@@ -5,12 +5,12 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from core.repositories.vector_repository_interface import IVectorRepository
-from core.value_objects.similarity_type import (
+from domain.entities.vectorized_document import VectorizedDocument
+from domain.value_objects.similarity_type import (
     SimilarityMetric,
     SimilarityResult,
     SimilarityType,
 )
-from domain.entities.vectorized_document import VectorizedDocument
 
 
 class InMemoryVectorRepository(IVectorRepository):

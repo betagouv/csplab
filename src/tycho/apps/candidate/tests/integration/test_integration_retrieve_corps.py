@@ -18,14 +18,14 @@ from apps.shared.infrastructure.adapters.persistence.repositories import (
 )
 from apps.shared.tests.fixtures.fixture_loader import load_fixture
 from apps.shared.tests.utils.mock_embedding_generator import MockEmbeddingGenerator
-from core.value_objects.access_modality import AccessModality
-from core.value_objects.category import Category
-from core.value_objects.diploma import Diploma
-from core.value_objects.label import Label
-from core.value_objects.ministry import Ministry
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
+from domain.value_objects.access_modality import AccessModality
+from domain.value_objects.category import Category
+from domain.value_objects.diploma import Diploma
+from domain.value_objects.label import Label
+from domain.value_objects.ministry import Ministry
 
 
 class TestIntegrationRetrieveCorpsUsecase(TransactionTestCase):
