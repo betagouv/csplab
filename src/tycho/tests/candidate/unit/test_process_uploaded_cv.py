@@ -8,9 +8,12 @@ from uuid import UUID
 import responses
 from pydantic import HttpUrl
 
-from apps.candidate.config import AlbertConfig, CandidateConfig
 from apps.candidate.containers import CandidateContainer
 from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
+from infrastructure.external_services.configs.albert_config import (
+    AlbertConfig,
+    AlbertServiceConfig,
+)
 from infrastructure.external_services.logger import LoggerService
 from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepository
 
@@ -35,8 +38,8 @@ class TestProcessUploadedCVUsecase(unittest.TestCase):
             model_name="albert-large",
             dpi=200,
         )
-        candidate_config = CandidateConfig(albert_config)
-        container.config.override(candidate_config)
+        albert_service_config = AlbertServiceConfig(albert_config)
+        container.config.override(albert_service_config)
 
         return container
 

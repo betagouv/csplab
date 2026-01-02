@@ -11,7 +11,7 @@ class OpenAIConfig(BaseModel):
     model: str
 
 
-class SharedConfig(BaseModel):
+class OpenAIServiceConfig(BaseModel):
     """Configuration for shared services."""
 
     openai: OpenAIConfig

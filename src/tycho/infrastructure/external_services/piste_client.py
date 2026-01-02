@@ -5,9 +5,9 @@ import time
 import requests
 from requests.exceptions import HTTPError
 
-from apps.ingestion.config import PisteConfig
 from domain.services.logger_interface import ILogger
 from infrastructure.exceptions import ExternalApiError
+from infrastructure.external_services.configs.piste_config import PisteConfig
 from infrastructure.external_services.http_client import HttpClient
 
 

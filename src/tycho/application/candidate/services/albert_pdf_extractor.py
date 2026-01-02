@@ -5,10 +5,10 @@ from typing import Any, Dict
 
 import requests
 
-from apps.candidate.config import AlbertConfig
 from apps.candidate.constants.albert_prompts import ALBERT_CV_EXTRACTION_PROMPT
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
 from infrastructure.exceptions import ExternalApiError
+from infrastructure.external_services.configs.albert_config import AlbertConfig
 
 
 class AlbertPDFExtractor(IPDFTextExtractor):

@@ -7,7 +7,6 @@ from django.test import TransactionTestCase
 from pydantic import HttpUrl
 
 from apps.candidate.containers import CandidateContainer
-from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
@@ -17,6 +16,10 @@ from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
+from infrastructure.external_services.configs.openai_config import (
+    OpenAIConfig,
+    OpenAIServiceConfig,
+)
 from infrastructure.external_services.logger import LoggerService
 from infrastructure.repositories.shared import (
     django_corps_repository as django_corps_repo,
@@ -38,14 +41,14 @@ class TestIntegrationRetrieveCorpsUsecase(TransactionTestCase):
     def setUp(self):
         """Set up container dependencies."""
         self.shared_container = SharedContainer()
-        self.shared_config = SharedConfig(
+        self.openai_service_config = OpenAIServiceConfig(
             openai_config=OpenAIConfig(
                 api_key="fake-api-key",
                 base_url=HttpUrl("https://api.openai.com/v1"),
                 model="text-embedding-3-large",
             )
         )
-        self.shared_container.config.override(self.shared_config)
+        self.shared_container.config.override(self.openai_service_config)
 
         self.container = CandidateContainer()
         self.container.shared_container.override(self.shared_container)
