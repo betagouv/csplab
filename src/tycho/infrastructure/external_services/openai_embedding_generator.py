@@ -5,7 +5,7 @@ from typing import List
 from openai import OpenAI
 
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
-from infrastructure.exceptions import ExternalApiError
+from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_services.configs.openai_config import OpenAIConfig
 
 

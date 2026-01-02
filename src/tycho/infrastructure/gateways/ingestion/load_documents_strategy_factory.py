@@ -3,8 +3,8 @@
 from typing import Union
 
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from apps.ingestion.exceptions import InvalidLoadOperationError
 from domain.repositories.document_repository_interface import IDocumentFetcher
+from infrastructure.exceptions.ingestion_exceptions import InvalidLoadOperationError
 from infrastructure.gateways.ingestion.load_documents_strategies import (
     FetchFromApiStrategy,
     UploadFromCsvStrategy,
