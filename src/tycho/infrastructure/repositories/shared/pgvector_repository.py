@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional
 from django.db.models import Q
 from pgvector.django import CosineDistance
 
-from apps.shared.models import vectorized_document
 from domain.entities.vectorized_document import VectorizedDocument
 from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.value_objects.similarity_type import (
@@ -14,6 +13,7 @@ from domain.value_objects.similarity_type import (
     SimilarityResult,
     SimilarityType,
 )
+from infrastructure.django_apps.shared.models import vectorized_document
 
 
 class PgVectorRepository(IVectorRepository):

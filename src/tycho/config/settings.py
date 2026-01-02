@@ -44,9 +44,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "dsfr",
-    "apps.shared",
-    "apps.ingestion",
-    "apps.candidate",
+    "infrastructure.django_apps.shared",
+    "infrastructure.django_apps.ingestion",
+    "infrastructure.django_apps.candidate",
 ]
 
 MIDDLEWARE = [

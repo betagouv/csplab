@@ -1,0 +1,1 @@
+"""Candidate Django apps package."""

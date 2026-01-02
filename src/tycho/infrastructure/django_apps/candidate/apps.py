@@ -7,4 +7,4 @@ class CandidateConfig(AppConfig):
     """Configuration for the candidate Django app."""
 
     default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.candidate"
+    name = "infrastructure.django_apps.candidate"

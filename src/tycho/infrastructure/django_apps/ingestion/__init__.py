@@ -1,0 +1,1 @@
+"""Ingestion Django apps package."""

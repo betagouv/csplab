@@ -2,13 +2,13 @@
 
 from typing import List
 
-from apps.ingestion.models.raw_document import RawDocument
 from domain.entities.document import Document, DocumentType
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertError,
     IUpsertResult,
 )
+from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 
 
 class DjangoDocumentRepository(IDocumentRepository):

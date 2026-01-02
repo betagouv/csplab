@@ -10,11 +10,9 @@ from pydantic import HttpUrl
 
 from apps.candidate.config import AlbertConfig, CandidateConfig
 from apps.candidate.containers import CandidateContainer
-from apps.candidate.models.cv_metadata import (
-    CVMetadataModel,
-)
 from domain.entities.cv_metadata import CVMetadata
 from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
+from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.exceptions import ExternalApiError
 from infrastructure.external_services.logger import LoggerService
 
