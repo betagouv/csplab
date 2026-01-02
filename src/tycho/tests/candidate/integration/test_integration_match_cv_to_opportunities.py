@@ -8,18 +8,9 @@ from django.test import TransactionTestCase
 from pydantic import HttpUrl
 
 from apps.candidate.containers import CandidateContainer
-from apps.candidate.infrastructure.adapters.repositories.cv_metadata_repository import (
-    PostgresCVMetadataRepository,
-)
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
-from apps.shared.infrastructure.adapters.persistence.repositories import (
-    django_concours_repository as django_concours_repo,
-)
-from apps.shared.infrastructure.adapters.persistence.repositories import (
-    pgvector_repository as pgvector_repo,
-)
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
@@ -29,6 +20,15 @@ from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
+from infrastructure.repositories.candidate.cv_metadata_repository import (
+    PostgresCVMetadataRepository,
+)
+from infrastructure.repositories.shared import (
+    django_concours_repository as django_concours_repo,
+)
+from infrastructure.repositories.shared import (
+    pgvector_repository as pgvector_repo,
+)
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 

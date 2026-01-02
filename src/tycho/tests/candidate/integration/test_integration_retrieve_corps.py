@@ -10,12 +10,6 @@ from apps.candidate.containers import CandidateContainer
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
-from apps.shared.infrastructure.adapters.persistence.repositories import (
-    django_corps_repository as django_corps_repo,
-)
-from apps.shared.infrastructure.adapters.persistence.repositories import (
-    pgvector_repository as pgvector_repo,
-)
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
@@ -24,6 +18,12 @@ from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
+from infrastructure.repositories.shared import (
+    django_corps_repository as django_corps_repo,
+)
+from infrastructure.repositories.shared import (
+    pgvector_repository as pgvector_repo,
+)
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 

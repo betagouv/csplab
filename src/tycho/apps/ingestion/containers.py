@@ -23,12 +23,6 @@ from apps.ingestion.infrastructure.adapters.external import (
     document_fetcher,
     piste_client,
 )
-from apps.ingestion.infrastructure.adapters.persistence.repositories import (
-    django_document_repository as django_repo,
-)
-from apps.ingestion.infrastructure.adapters.persistence.repository_factory import (
-    RepositoryFactory,
-)
 from domain.entities.document import DocumentType
 from domain.interfaces.entity_interface import IEntity
 from domain.interfaces.usecase_interface import IUseCase
@@ -37,6 +31,12 @@ from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from domain.services.document_cleaner_interface import IDocumentCleaner
+from infrastructure.repositories.ingestion import (
+    django_document_repository as django_repo,
+)
+from infrastructure.repositories.repository_factory import (
+    RepositoryFactory,
+)
 
 
 class IngestionContainer(containers.DeclarativeContainer):

@@ -13,7 +13,7 @@ from application.candidate.usecases.process_uploaded_cv import (
     ProcessUploadedCVUsecase,
 )
 from application.candidate.usecases.retrieve_corps import RetrieveCorpsUsecase
-from apps.candidate.infrastructure.adapters.repositories.cv_metadata_repository import (
+from infrastructure.repositories.candidate.cv_metadata_repository import (
     PostgresCVMetadataRepository,
 )
 

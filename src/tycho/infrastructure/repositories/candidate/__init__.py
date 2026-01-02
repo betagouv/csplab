@@ -1,0 +1,1 @@
+"""Candidate infrastructure repositories implementations."""
