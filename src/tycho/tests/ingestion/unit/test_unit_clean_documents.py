@@ -16,15 +16,9 @@ from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import InvalidDocumentTypeError
 from infrastructure.external_services.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
-from tests.utils.in_memory_concours_repository import (
-    InMemoryConcoursRepository,
-)
-from tests.utils.in_memory_corps_repository import (
-    InMemoryCorpsRepository,
-)
-from tests.utils.in_memory_document_repository import (
-    InMemoryDocumentRepository,
-)
+from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
+from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
+from tests.utils.in_memory_document_repository import InMemoryDocumentRepository
 
 REFERENCE_YEAR = 2024
 

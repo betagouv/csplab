@@ -9,9 +9,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.ingestion.interfaces.load_documents_input import (
-    LoadDocumentsInput,
-)
+from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.container_factory import create_ingestion_container
 from domain.entities.document import Document, DocumentType

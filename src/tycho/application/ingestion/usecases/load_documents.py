@@ -1,11 +1,7 @@
 """LoadDocuments usecase."""
 
-from application.ingestion.interfaces.load_documents_input import (
-    LoadDocumentsInput,
-)
-from application.ingestion.services import (
-    load_documents_strategy_factory,
-)
+from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
+from application.ingestion.services import load_documents_strategy_factory
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,

@@ -2,16 +2,12 @@
 
 from dependency_injector import containers, providers
 
-from application.candidate.services.albert_pdf_extractor import (
-    AlbertPDFExtractor,
-)
+from application.candidate.services.albert_pdf_extractor import AlbertPDFExtractor
 from application.candidate.services.query_builder import QueryBuilder
 from application.candidate.usecases.match_cv_to_opportunities import (
     MatchCVToOpportunitiesUsecase,
 )
-from application.candidate.usecases.process_uploaded_cv import (
-    ProcessUploadedCVUsecase,
-)
+from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.retrieve_corps import RetrieveCorpsUsecase
 from infrastructure.repositories.candidate.cv_metadata_repository import (
     PostgresCVMetadataRepository,

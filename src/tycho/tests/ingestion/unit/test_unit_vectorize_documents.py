@@ -20,9 +20,7 @@ from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
 from infrastructure.external_services.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
-from tests.utils.test_container_factory import (
-    create_test_shared_container,
-)
+from tests.utils.test_container_factory import create_test_shared_container
 
 
 class UnsupportedEntity(IEntity):

@@ -8,9 +8,7 @@ from django.utils import timezone
 
 from domain.entities.concours import Concours
 from domain.entities.document import Document, DocumentType
-from domain.exceptions.corps_errors import (
-    InvalidMinistryError,
-)
+from domain.exceptions.corps_errors import InvalidMinistryError
 from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.services.document_cleaner_interface import IDocumentCleaner
 from domain.services.logger_interface import ILogger

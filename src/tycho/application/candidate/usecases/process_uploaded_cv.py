@@ -4,10 +4,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from domain.entities.cv_metadata import CVMetadata
-from domain.exceptions.cv_errors import (
-    InvalidPDFError,
-    TextExtractionError,
-)
+from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
 from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from domain.services.logger_interface import ILogger
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
