@@ -9,7 +9,7 @@ from apps.candidate.config import AlbertConfig, CandidateConfig
 from apps.candidate.containers import CandidateContainer
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
-from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from infrastructure.external_services.logger import LoggerService
 
 
 def create_candidate_container() -> CandidateContainer:

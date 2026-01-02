@@ -3,13 +3,13 @@
 from datetime import datetime
 from typing import List
 
-from apps.ingestion.infrastructure.adapters.external.dtos.ingres_corps_dtos import (
-    IngresCorpsApiResponse,
-)
 from domain.entities.document import Document, DocumentType
 from domain.repositories.document_repository_interface import IDocumentFetcher
 from domain.services.http_client_interface import IHttpClient
 from domain.services.logger_interface import ILogger
+from infrastructure.external_services.dtos.ingres_corps_dtos import (
+    IngresCorpsApiResponse,
+)
 
 
 class ExternalDocumentFetcher(IDocumentFetcher):

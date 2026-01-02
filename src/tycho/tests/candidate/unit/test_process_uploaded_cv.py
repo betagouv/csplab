@@ -10,11 +10,11 @@ from pydantic import HttpUrl
 
 from apps.candidate.config import AlbertConfig, CandidateConfig
 from apps.candidate.containers import CandidateContainer
-from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from domain.exceptions.cv_errors import (
     InvalidPDFError,
     TextExtractionError,
 )
+from infrastructure.external_services.logger import LoggerService
 from tests.utils.in_memory_cv_metadata_repository import (
     InMemoryCVMetadataRepository,
 )

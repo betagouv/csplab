@@ -6,11 +6,11 @@ import requests
 from requests.exceptions import HTTPError
 
 from apps.ingestion.config import PisteConfig
-from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.shared.infrastructure.exceptions import (
     ExternalApiError,
 )
 from domain.services.logger_interface import ILogger
+from infrastructure.external_services.http_client import HttpClient
 
 
 class PisteClient(HttpClient):

@@ -18,8 +18,8 @@ from application.ingestion.services import (
     load_documents_strategy_factory,
 )
 from apps.ingestion.containers import IngestionContainer
-from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from domain.entities.document import Document, DocumentType
+from infrastructure.external_services.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_document_repository import (
     InMemoryDocumentRepository,

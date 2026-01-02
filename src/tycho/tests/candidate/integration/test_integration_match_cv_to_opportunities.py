@@ -10,7 +10,6 @@ from pydantic import HttpUrl
 from apps.candidate.containers import CandidateContainer
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
-from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
@@ -20,6 +19,7 @@ from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
+from infrastructure.external_services.logger import LoggerService
 from infrastructure.repositories.candidate.cv_metadata_repository import (
     PostgresCVMetadataRepository,
 )

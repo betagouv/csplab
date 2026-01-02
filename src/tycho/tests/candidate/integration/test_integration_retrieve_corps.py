@@ -9,7 +9,6 @@ from pydantic import HttpUrl
 from apps.candidate.containers import CandidateContainer
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
-from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
@@ -18,6 +17,7 @@ from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
+from infrastructure.external_services.logger import LoggerService
 from infrastructure.repositories.shared import (
     django_corps_repository as django_corps_repo,
 )
