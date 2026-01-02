@@ -13,7 +13,7 @@ from application.ingestion.interfaces.load_documents_input import (
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
+from apps.ingestion.models.raw_document import (
     RawDocument,
 )
 from apps.shared.config import OpenAIConfig, SharedConfig

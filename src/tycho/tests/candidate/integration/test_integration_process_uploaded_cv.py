@@ -10,7 +10,7 @@ from pydantic import HttpUrl
 
 from apps.candidate.config import AlbertConfig, CandidateConfig
 from apps.candidate.containers import CandidateContainer
-from apps.candidate.infrastructure.adapters.persistence.models.cv_metadata import (
+from apps.candidate.models.cv_metadata import (
     CVMetadataModel,
 )
 from domain.entities.cv_metadata import CVMetadata

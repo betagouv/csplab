@@ -2,9 +2,7 @@
 
 from typing import List, Optional
 
-from apps.shared.infrastructure.adapters.persistence.models.concours import (
-    ConcoursModel,
-)
+from apps.shared.models.concours import ConcoursModel
 from domain.entities.concours import Concours
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.document_repository_interface import (
