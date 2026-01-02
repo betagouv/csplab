@@ -4,9 +4,7 @@ import pytest
 from django.test import TransactionTestCase
 from pydantic import HttpUrl
 
-from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
-from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from domain.entities.corps import Corps
 from domain.value_objects.access_modality import AccessModality
@@ -15,6 +13,14 @@ from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
 from infrastructure.django_apps.shared.models import vectorized_document
+from infrastructure.external_services.configs.openai_config import (
+    OpenAIConfig,
+    OpenAIServiceConfig,
+)
+from infrastructure.external_services.configs.piste_config import (
+    PisteConfig,
+    PisteServiceConfig,
+)
 from infrastructure.external_services.http_client import HttpClient
 from infrastructure.external_services.logger import LoggerService
 from infrastructure.repositories.shared import (
@@ -38,18 +44,18 @@ class TestIntegrationVectorizeDocumentsUsecase(TransactionTestCase):
         """Set up container dependencies."""
         # Create shared container and config
         self.shared_container = SharedContainer()
-        self.shared_config = SharedConfig(
+        self.openai_service_config = OpenAIServiceConfig(
             openai_config=OpenAIConfig(
                 api_key="fake-api-key",
                 base_url=HttpUrl("https://api.openai.com/v1"),
                 model="text-embedding-3-large",
             )
         )
-        self.shared_container.config.override(self.shared_config)
+        self.shared_container.config.override(self.openai_service_config)
 
         # Create ingestion container
         self.container = IngestionContainer()
-        self.ingestion_config = IngestionConfig(
+        self.piste_service_config = PisteServiceConfig(
             piste_config=PisteConfig(
                 oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
                 ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
@@ -57,7 +63,7 @@ class TestIntegrationVectorizeDocumentsUsecase(TransactionTestCase):
                 client_secret="fake-client-secret",  # noqa
             )
         )
-        self.container.config.override(self.ingestion_config)
+        self.container.config.override(self.piste_service_config)
         self.container.shared_container.override(self.shared_container)
 
         logger_service = LoggerService()

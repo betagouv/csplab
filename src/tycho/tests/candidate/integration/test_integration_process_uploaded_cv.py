@@ -8,12 +8,15 @@ import responses
 from django.test import TransactionTestCase
 from pydantic import HttpUrl
 
-from apps.candidate.config import AlbertConfig, CandidateConfig
 from apps.candidate.containers import CandidateContainer
 from domain.entities.cv_metadata import CVMetadata
 from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.exceptions import ExternalApiError
+from infrastructure.external_services.configs.albert_config import (
+    AlbertConfig,
+    AlbertServiceConfig,
+)
 from infrastructure.external_services.logger import LoggerService
 
 
@@ -30,8 +33,8 @@ class TestIntegrationProcessUploadedCVUsecase(TransactionTestCase):
             model_name="albert-large",
             dpi=200,
         )
-        candidate_config = CandidateConfig(albert_config)
-        self.container.config.override(candidate_config)
+        albert_service_config = AlbertServiceConfig(albert_config)
+        self.container.config.override(albert_service_config)
 
         logger_service = LoggerService()
         self.container.logger_service.override(logger_service)

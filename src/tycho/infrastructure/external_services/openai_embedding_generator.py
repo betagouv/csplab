@@ -4,9 +4,9 @@ from typing import List
 
 from openai import OpenAI
 
-from apps.shared.config import OpenAIConfig
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
 from infrastructure.exceptions import ExternalApiError
+from infrastructure.external_services.configs.openai_config import OpenAIConfig
 
 
 class OpenAIEmbeddingGenerator(IEmbeddingGenerator):
