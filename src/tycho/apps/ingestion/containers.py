@@ -19,10 +19,6 @@ from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.vectorize_documents import (
     VectorizeDocumentsUsecase,
 )
-from apps.ingestion.infrastructure.adapters.external import (
-    document_fetcher,
-    piste_client,
-)
 from domain.entities.document import DocumentType
 from domain.interfaces.entity_interface import IEntity
 from domain.interfaces.usecase_interface import IUseCase
@@ -31,6 +27,10 @@ from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from domain.services.document_cleaner_interface import IDocumentCleaner
+from infrastructure.external_services import (
+    document_fetcher,
+    piste_client,
+)
 from infrastructure.repositories.ingestion import (
     django_document_repository as django_repo,
 )

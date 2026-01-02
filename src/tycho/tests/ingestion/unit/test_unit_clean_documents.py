@@ -12,9 +12,9 @@ from datetime import datetime
 from unittest.mock import Mock
 
 from apps.ingestion.containers import IngestionContainer
-from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import InvalidDocumentTypeError
+from infrastructure.external_services.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_concours_repository import (
     InMemoryConcoursRepository,

@@ -9,7 +9,7 @@ from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
-from apps.shared.infrastructure.adapters.external.logger import LoggerService
+from infrastructure.external_services.logger import LoggerService
 
 
 def create_ingestion_container() -> IngestionContainer:

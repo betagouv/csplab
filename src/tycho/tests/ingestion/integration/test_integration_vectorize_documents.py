@@ -6,10 +6,8 @@ from pydantic import HttpUrl
 
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
-from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from apps.shared.infrastructure.adapters.persistence.models import (
     vectorized_document,
 )
@@ -19,6 +17,8 @@ from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
+from infrastructure.external_services.http_client import HttpClient
+from infrastructure.external_services.logger import LoggerService
 from infrastructure.repositories.shared import (
     django_corps_repository as django_corps_repo,
 )

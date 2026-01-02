@@ -13,14 +13,14 @@ from application.ingestion.interfaces.load_documents_input import (
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.infrastructure.adapters.external.http_client import HttpClient
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
 )
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
-from apps.shared.infrastructure.adapters.external.logger import LoggerService
 from domain.entities.document import DocumentType
+from infrastructure.external_services.http_client import HttpClient
+from infrastructure.external_services.logger import LoggerService
 from tests.factories.ingres_factories import (
     IngresCorpsApiResponseFactory,
 )
