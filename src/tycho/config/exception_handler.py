@@ -3,9 +3,9 @@
 from rest_framework.response import Response
 from rest_framework.views import exception_handler, status
 
-from apps.shared.exceptions import ApplicationError
-from apps.shared.infrastructure.exceptions import InfrastructureError
+from application.exceptions import ApplicationError
 from domain.exceptions.domain_errors import DomainError
+from infrastructure.exceptions import InfrastructureError
 from infrastructure.external_services.logger import LoggerService
 
 # Initialize specialized loggers for each layer

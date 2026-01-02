@@ -1,6 +1,6 @@
 """Infrastructure exceptions for ingestion module."""
 
-from apps.shared.infrastructure.exceptions import InfrastructureError
+from infrastructure.exceptions import InfrastructureError
 
 
 class InvalidLoadOperationError(InfrastructureError):

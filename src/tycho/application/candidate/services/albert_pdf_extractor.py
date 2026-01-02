@@ -9,8 +9,8 @@ from apps.candidate.config import AlbertConfig
 from apps.candidate.infrastructure.constants.albert_prompts import (
     ALBERT_CV_EXTRACTION_PROMPT,
 )
-from apps.shared.infrastructure.exceptions import ExternalApiError
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
+from infrastructure.exceptions import ExternalApiError
 
 
 class AlbertPDFExtractor(IPDFTextExtractor):

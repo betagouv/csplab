@@ -3,7 +3,7 @@
 from typing import List
 
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from apps.ingestion.infrastructure.exceptions import MissingOperationParameterError
+from apps.ingestion.exceptions import MissingOperationParameterError
 from domain.entities.document import Document, DocumentType
 from domain.repositories.document_repository_interface import IDocumentFetcher
 
