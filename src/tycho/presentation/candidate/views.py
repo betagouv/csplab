@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.shortcuts import render
 from django.views import View
 
-from apps.candidate.container_factory import create_candidate_container
+from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.forms import CorpsSearchForm
 
 

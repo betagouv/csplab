@@ -4,14 +4,14 @@ import pytest
 from django.test import TransactionTestCase
 from pydantic import HttpUrl
 
-from apps.ingestion.containers import IngestionContainer
-from apps.shared.containers import SharedContainer
 from domain.entities.corps import Corps
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
+from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.shared.models import vectorized_document
 from infrastructure.external_services.configs.openai_config import (
     OpenAIConfig,

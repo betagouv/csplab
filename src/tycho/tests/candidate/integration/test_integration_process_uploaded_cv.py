@@ -8,9 +8,9 @@ import responses
 from django.test import TransactionTestCase
 from pydantic import HttpUrl
 
-from apps.candidate.containers import CandidateContainer
 from domain.entities.cv_metadata import CVMetadata
 from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
+from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.exceptions import ExternalApiError
 from infrastructure.external_services.configs.albert_config import (

@@ -6,8 +6,8 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.candidate.container_factory import create_candidate_container
 from domain.exceptions.cv_errors import CVError
+from infrastructure.di.candidate.candidate_factory import create_candidate_container
 
 
 class Command(BaseCommand):

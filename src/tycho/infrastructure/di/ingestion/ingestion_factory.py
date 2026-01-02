@@ -5,12 +5,8 @@ from typing import cast
 import environ
 from pydantic import HttpUrl
 
-from apps.ingestion.containers import IngestionContainer
-from apps.shared.containers import SharedContainer
-from infrastructure.external_services.configs.albert_config import (
-    AlbertConfig,
-    AlbertServiceConfig,
-)
+from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.external_services.configs.openai_config import (
     OpenAIConfig,
     OpenAIServiceConfig,

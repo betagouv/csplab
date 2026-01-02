@@ -5,8 +5,8 @@ from typing import cast
 import environ
 from pydantic import HttpUrl
 
-from apps.candidate.containers import CandidateContainer
-from apps.shared.containers import SharedContainer
+from infrastructure.di.candidate.candidate_container import CandidateContainer
+from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.external_services.configs.albert_config import (
     AlbertConfig,
     AlbertServiceConfig,

@@ -9,9 +9,9 @@ from rest_framework.test import APITestCase
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from apps.ingestion.containers import IngestionContainer
-from apps.shared.containers import SharedContainer
 from domain.entities.document import DocumentType
+from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.external_services.configs.openai_config import (
     OpenAIConfig,

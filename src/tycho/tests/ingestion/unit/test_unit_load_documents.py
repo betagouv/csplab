@@ -13,8 +13,8 @@ from datetime import datetime
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from application.ingestion.services import load_documents_strategy_factory
-from apps.ingestion.containers import IngestionContainer
 from domain.entities.document import Document, DocumentType
+from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.external_services.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_document_repository import InMemoryDocumentRepository

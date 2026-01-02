@@ -4,9 +4,9 @@ import pytest
 from django.test import TransactionTestCase
 from pydantic import HttpUrl
 
-from apps.ingestion.containers import IngestionContainer
-from apps.shared.containers import SharedContainer
 from domain.entities.document import DocumentType
+from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.django_apps.shared.models.concours import ConcoursModel
 from infrastructure.django_apps.shared.models.corps import CorpsModel
