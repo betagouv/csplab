@@ -1,1 +1,0 @@
-"""Core Value Objects package."""

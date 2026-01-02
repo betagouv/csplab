@@ -34,7 +34,8 @@ MANIFEST
 .local
 
 # Directories
-data
+src/notebook/data/*
+!src/notebook/data/README.md
 
 # Files
 .DS_Store

@@ -1,0 +1,1 @@
+"""Shared infrastructure repositories implementations."""
