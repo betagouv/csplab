@@ -7,4 +7,4 @@ class IngestionConfig(AppConfig):
     """Configuration for the ingestion Django app."""
 
     default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.ingestion"
+    name = "infrastructure.django_apps.ingestion"

@@ -8,15 +8,13 @@ from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
-from apps.shared.models import (
-    vectorized_document,
-)
 from domain.entities.corps import Corps
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
+from infrastructure.django_apps.shared.models import vectorized_document
 from infrastructure.external_services.http_client import HttpClient
 from infrastructure.external_services.logger import LoggerService
 from infrastructure.repositories.shared import (

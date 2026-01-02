@@ -2,10 +2,10 @@
 
 from django.contrib import admin
 
-from apps.ingestion.models import RawDocument
-from apps.shared.models import vectorized_document
-from apps.shared.models.concours import ConcoursModel
-from apps.shared.models.corps import CorpsModel
+from infrastructure.django_apps.ingestion.models import RawDocument
+from infrastructure.django_apps.shared.models import vectorized_document
+from infrastructure.django_apps.shared.models.concours import ConcoursModel
+from infrastructure.django_apps.shared.models.corps import CorpsModel
 
 
 class RawDocumentAdmin(admin.ModelAdmin):

@@ -2,13 +2,13 @@
 
 from typing import List, Optional
 
-from apps.shared.models.corps import CorpsModel
 from domain.entities.corps import Corps
 from domain.repositories.corps_repository_interface import ICorpsRepository
 from domain.repositories.document_repository_interface import (
     IUpsertError,
     IUpsertResult,
 )
+from infrastructure.django_apps.shared.models.corps import CorpsModel
 
 
 class DjangoCorpsRepository(ICorpsRepository):

@@ -6,16 +6,12 @@ from pydantic import HttpUrl
 
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
-from apps.ingestion.models.raw_document import (
-    RawDocument,
-)
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
-from apps.shared.models.concours import (
-    ConcoursModel,
-)
-from apps.shared.models.corps import CorpsModel
 from domain.entities.document import DocumentType
+from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
+from infrastructure.django_apps.shared.models.concours import ConcoursModel
+from infrastructure.django_apps.shared.models.corps import CorpsModel
 from infrastructure.external_services.http_client import HttpClient
 from infrastructure.external_services.logger import LoggerService
 from infrastructure.repositories.ingestion import (

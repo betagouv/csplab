@@ -5,9 +5,9 @@ from uuid import UUID
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from apps.candidate.models.cv_metadata import CVMetadataModel
 from domain.entities.cv_metadata import CVMetadata
 from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
+from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 
 
 class PostgresCVMetadataRepository(ICVMetadataRepository):
