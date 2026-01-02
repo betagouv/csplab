@@ -7,9 +7,7 @@ from django.test import TransactionTestCase
 from pydantic import HttpUrl
 from rest_framework.test import APITestCase
 
-from application.ingestion.interfaces.load_documents_input import (
-    LoadDocumentsInput,
-)
+from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from apps.ingestion.config import IngestionConfig, PisteConfig
 from apps.ingestion.containers import IngestionContainer
@@ -19,9 +17,7 @@ from domain.entities.document import DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.external_services.http_client import HttpClient
 from infrastructure.external_services.logger import LoggerService
-from tests.factories.ingres_factories import (
-    IngresCorpsApiResponseFactory,
-)
+from tests.factories.ingres_factories import IngresCorpsApiResponseFactory
 
 
 class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):

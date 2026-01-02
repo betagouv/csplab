@@ -16,12 +16,8 @@ from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
 from infrastructure.external_services.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
-from tests.utils.in_memory_concours_repository import (
-    InMemoryConcoursRepository,
-)
-from tests.utils.in_memory_cv_metadata_repository import (
-    InMemoryCVMetadataRepository,
-)
+from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
+from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepository
 from tests.utils.test_container_factory import create_test_shared_container
 
 

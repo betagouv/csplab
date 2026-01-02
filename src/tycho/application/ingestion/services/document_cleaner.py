@@ -2,9 +2,7 @@
 
 from typing import List, Sequence
 
-from application.ingestion.services.concours_cleaner import (
-    ConcoursCleaner,
-)
+from application.ingestion.services.concours_cleaner import ConcoursCleaner
 from application.ingestion.services.corps_cleaner import CorpsCleaner
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import (

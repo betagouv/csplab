@@ -26,9 +26,7 @@ from infrastructure.repositories.candidate.cv_metadata_repository import (
 from infrastructure.repositories.shared import (
     django_concours_repository as django_concours_repo,
 )
-from infrastructure.repositories.shared import (
-    pgvector_repository as pgvector_repo,
-)
+from infrastructure.repositories.shared import pgvector_repository as pgvector_repo
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
