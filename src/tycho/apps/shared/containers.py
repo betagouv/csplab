@@ -5,7 +5,7 @@ from dependency_injector import containers, providers
 from apps.shared.infrastructure.adapters.external.openai_embedding_generator import (
     OpenAIEmbeddingGenerator,
 )
-from apps.shared.infrastructure.adapters.persistence.repositories import (
+from infrastructure.repositories.shared import (
     django_concours_repository,
     django_corps_repository,
     pgvector_repository,

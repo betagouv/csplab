@@ -10,9 +10,6 @@ from apps.ingestion.infrastructure.adapters.external.http_client import HttpClie
 from apps.ingestion.infrastructure.adapters.persistence.models.raw_document import (
     RawDocument,
 )
-from apps.ingestion.infrastructure.adapters.persistence.repositories import (
-    django_document_repository as django_doc_repo,
-)
 from apps.shared.config import OpenAIConfig, SharedConfig
 from apps.shared.containers import SharedContainer
 from apps.shared.infrastructure.adapters.external.logger import LoggerService
@@ -21,6 +18,9 @@ from apps.shared.infrastructure.adapters.persistence.models.concours import (
 )
 from apps.shared.infrastructure.adapters.persistence.models.corps import CorpsModel
 from domain.entities.document import DocumentType
+from infrastructure.repositories.ingestion import (
+    django_document_repository as django_doc_repo,
+)
 from tests.fixtures.fixture_loader import load_fixture
 
 REFERENCE_YEAR = 2024
