@@ -3,11 +3,6 @@
 from dependency_injector import containers, providers
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
-from application.ingestion.services import (
-    load_documents_strategy_factory as load_strategy,
-)
-from application.ingestion.services.document_cleaner import DocumentCleaner
-from application.ingestion.services.text_extractor import TextExtractor
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
@@ -20,6 +15,11 @@ from domain.repositories.document_repository_interface import (
 )
 from domain.services.document_cleaner_interface import IDocumentCleaner
 from infrastructure.external_services import document_fetcher, piste_client
+from infrastructure.gateways.ingestion import (
+    load_documents_strategy_factory as load_strategy,
+)
+from infrastructure.gateways.ingestion.document_cleaner import DocumentCleaner
+from infrastructure.gateways.ingestion.text_extractor import TextExtractor
 from infrastructure.repositories.ingestion import (
     django_document_repository as django_repo,
 )
