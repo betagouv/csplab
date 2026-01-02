@@ -2,8 +2,6 @@
 
 from typing import List, Sequence
 
-from application.ingestion.services.concours_cleaner import ConcoursCleaner
-from application.ingestion.services.corps_cleaner import CorpsCleaner
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import (
     MixedDocumentTypesError,
@@ -12,6 +10,8 @@ from domain.exceptions.document_error import (
 from domain.interfaces.entity_interface import IEntity
 from domain.services.document_cleaner_interface import IDocumentCleaner
 from domain.services.logger_interface import ILogger
+from infrastructure.gateways.ingestion.concours_cleaner import ConcoursCleaner
+from infrastructure.gateways.ingestion.corps_cleaner import CorpsCleaner
 
 
 class DocumentCleaner(IDocumentCleaner[IEntity]):

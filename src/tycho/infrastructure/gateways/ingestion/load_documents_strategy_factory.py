@@ -3,12 +3,12 @@
 from typing import Union
 
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from application.ingestion.services.load_documents_strategies import (
+from apps.ingestion.exceptions import InvalidLoadOperationError
+from domain.repositories.document_repository_interface import IDocumentFetcher
+from infrastructure.gateways.ingestion.load_documents_strategies import (
     FetchFromApiStrategy,
     UploadFromCsvStrategy,
 )
-from apps.ingestion.exceptions import InvalidLoadOperationError
-from domain.repositories.document_repository_interface import IDocumentFetcher
 
 
 class LoadDocumentsStrategyFactory:

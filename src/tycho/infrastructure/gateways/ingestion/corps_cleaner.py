@@ -4,11 +4,6 @@ from typing import List, Optional
 
 import polars as pl
 
-from application.ingestion.services.pelage_checks import (
-    has_no_minarm_ministry,
-    has_only_civil_servants,
-    has_only_fpe_type,
-)
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.corps_errors import (
@@ -23,6 +18,11 @@ from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
+from infrastructure.gateways.ingestion.pelage_checks import (
+    has_no_minarm_ministry,
+    has_only_civil_servants,
+    has_only_fpe_type,
+)
 
 MAX_DECRETS_BY_CORPS = 20
 
