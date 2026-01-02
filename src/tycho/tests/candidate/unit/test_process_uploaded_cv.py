@@ -8,8 +8,8 @@ from uuid import UUID
 import responses
 from pydantic import HttpUrl
 
-from apps.candidate.containers import CandidateContainer
 from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
+from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.external_services.configs.albert_config import (
     AlbertConfig,
     AlbertServiceConfig,

@@ -4,8 +4,8 @@ from django.core.management.base import BaseCommand, CommandError
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from apps.ingestion.container_factory import create_ingestion_container
 from domain.entities.document import DocumentType
+from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 
 
 class Command(BaseCommand):

@@ -6,8 +6,6 @@ import pytest
 from django.test import TransactionTestCase
 from pydantic import HttpUrl
 
-from apps.candidate.containers import CandidateContainer
-from apps.shared.containers import SharedContainer
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
@@ -16,6 +14,8 @@ from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
+from infrastructure.di.candidate.candidate_container import CandidateContainer
+from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.external_services.configs.openai_config import (
     OpenAIConfig,
     OpenAIServiceConfig,

@@ -9,7 +9,6 @@ IMPORTANT: Dependency Injection Override Timing
 import unittest
 from datetime import datetime
 
-from apps.ingestion.containers import IngestionContainer
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
 from domain.interfaces.entity_interface import IEntity
@@ -18,6 +17,7 @@ from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
+from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.external_services.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.test_container_factory import create_test_shared_container
