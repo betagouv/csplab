@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 
-from apps.shared.infrastructure.adapters.persistence.models.corps import CorpsModel
+from apps.shared.models.corps import CorpsModel
 from domain.entities.corps import Corps
 from domain.repositories.corps_repository_interface import ICorpsRepository
 from domain.repositories.document_repository_interface import (
