@@ -13,9 +13,9 @@ from apps.candidate.containers import CandidateContainer
 from apps.candidate.infrastructure.adapters.persistence.models.cv_metadata import (
     CVMetadataModel,
 )
-from apps.shared.infrastructure.exceptions import ExternalApiError
 from domain.entities.cv_metadata import CVMetadata
 from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
+from infrastructure.exceptions import ExternalApiError
 from infrastructure.external_services.logger import LoggerService
 
 

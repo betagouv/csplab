@@ -5,8 +5,8 @@ from typing import List
 from openai import OpenAI
 
 from apps.shared.config import OpenAIConfig
-from apps.shared.infrastructure.exceptions import ExternalApiError
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
+from infrastructure.exceptions import ExternalApiError
 
 
 class OpenAIEmbeddingGenerator(IEmbeddingGenerator):
