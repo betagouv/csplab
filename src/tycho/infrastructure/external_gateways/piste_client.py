@@ -8,7 +8,7 @@ from requests.exceptions import HTTPError
 from domain.services.logger_interface import ILogger
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.configs.piste_config import PisteConfig
-from infrastructure.external_gateways.http_client import HttpClient
+from infrastructure.gateways.shared.http_client import HttpClient
 
 
 class PisteClient(HttpClient):
@@ -68,14 +68,14 @@ class PisteClient(HttpClient):
         if not self.access_token or time.time() >= self.expires_at:
             self._get_token()
 
-    def request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
+    def request(self, method: str, url: str, **kwargs) -> requests.Response:
         """Make authenticated request to INGRES API."""
         self._ensure_token()
         headers = kwargs.get("headers", {})
         headers["Authorization"] = f"Bearer {self.access_token}"
         kwargs["headers"] = headers
 
-        url = f"{self.config.ingres_base_url}/{endpoint}"
+        url = f"{self.config.ingres_base_url}/{url}"
 
         self.logger.info(f"Making {method} request to: {url}")
 
@@ -94,7 +94,7 @@ class PisteClient(HttpClient):
                 details={
                     "ingres_status": response.status_code,
                     "method": method,
-                    "endpoint": endpoint,
+                    "url": url,
                     "response_text": response.text,
                 },
             ) from err

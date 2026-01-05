@@ -21,8 +21,8 @@ from infrastructure.external_gateways.configs.piste_config import (
     PisteConfig,
     PisteGatewayConfig,
 )
-from infrastructure.external_gateways.http_client import HttpClient
 from infrastructure.external_gateways.logger import LoggerService
+from infrastructure.gateways.shared.http_client import HttpClient
 from tests.factories.ingres_factories import IngresCorpsApiResponseFactory
 
 

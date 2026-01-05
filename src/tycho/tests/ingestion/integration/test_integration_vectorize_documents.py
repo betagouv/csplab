@@ -21,8 +21,8 @@ from infrastructure.external_gateways.configs.piste_config import (
     PisteConfig,
     PisteGatewayConfig,
 )
-from infrastructure.external_gateways.http_client import HttpClient
 from infrastructure.external_gateways.logger import LoggerService
+from infrastructure.gateways.shared.http_client import HttpClient
 from infrastructure.repositories.shared import pgvector_repository as pgvector_repo
 from infrastructure.repositories.shared import (
     postgres_corps_repository as postgres_corps_repo,
