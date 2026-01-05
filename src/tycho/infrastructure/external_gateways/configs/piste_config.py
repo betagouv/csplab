@@ -15,7 +15,7 @@ class PisteConfig(BaseModel):
     client_secret: str
 
 
-class PisteServiceConfig(BaseModel):
+class PisteGatewayConfig(BaseModel):
     """Configuration for ingestion app."""
 
     piste: PisteConfig

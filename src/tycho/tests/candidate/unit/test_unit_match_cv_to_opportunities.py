@@ -4,6 +4,8 @@ import unittest
 from datetime import datetime
 from uuid import uuid4
 
+from infrastructure.external_gateways.logger import LoggerService
+
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
@@ -14,7 +16,6 @@ from domain.value_objects.category import Category
 from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
 from infrastructure.di.candidate.candidate_container import CandidateContainer
-from infrastructure.external_services.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepository

@@ -13,11 +13,11 @@ from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_services.configs.albert_config import (
+from infrastructure.external_gateways.configs.albert_config import (
     AlbertConfig,
-    AlbertServiceConfig,
+    AlbertGatewayConfig,
 )
-from infrastructure.external_services.logger import LoggerService
+from infrastructure.external_gateways.logger import LoggerService
 
 
 class TestIntegrationProcessUploadedCVUsecase(TransactionTestCase):
@@ -33,8 +33,8 @@ class TestIntegrationProcessUploadedCVUsecase(TransactionTestCase):
             model_name="albert-large",
             dpi=200,
         )
-        albert_service_config = AlbertServiceConfig(albert_config)
-        self.container.config.override(albert_service_config)
+        albert_gateway_config = AlbertGatewayConfig(albert_config)
+        self.container.config.override(albert_gateway_config)
 
         logger_service = LoggerService()
         self.container.logger_service.override(logger_service)

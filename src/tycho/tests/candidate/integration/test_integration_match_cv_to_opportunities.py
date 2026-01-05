@@ -18,11 +18,11 @@ from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.external_services.configs.openai_config import (
+from infrastructure.external_gateways.configs.openai_config import (
     OpenAIConfig,
-    OpenAIServiceConfig,
+    OpenAIGatewayConfig,
 )
-from infrastructure.external_services.logger import LoggerService
+from infrastructure.external_gateways.logger import LoggerService
 from infrastructure.repositories.candidate.cv_metadata_repository import (
     PostgresCVMetadataRepository,
 )
@@ -46,14 +46,14 @@ class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):
     def setUp(self):
         """Set up container dependencies."""
         self.shared_container = SharedContainer()
-        self.openai_service_config = OpenAIServiceConfig(
+        self.openai_gateway_config = OpenAIGatewayConfig(
             openai_config=OpenAIConfig(
                 api_key="fake-api-key",
                 base_url=HttpUrl("https://api.openai.com/v1"),
                 model="text-embedding-3-large",
             )
         )
-        self.shared_container.config.override(self.openai_service_config)
+        self.shared_container.config.override(self.openai_gateway_config)
 
         self.container = CandidateContainer()
         self.container.shared_container.override(self.shared_container)

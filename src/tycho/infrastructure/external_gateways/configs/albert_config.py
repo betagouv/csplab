@@ -12,7 +12,7 @@ class AlbertConfig(BaseModel):
     dpi: int = 200
 
 
-class AlbertServiceConfig(BaseModel):
+class AlbertGatewayConfig(BaseModel):
     """Configuration for candidate app."""
 
     albert: AlbertConfig

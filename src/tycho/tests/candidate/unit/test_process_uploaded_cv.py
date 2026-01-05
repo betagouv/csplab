@@ -10,11 +10,11 @@ from pydantic import HttpUrl
 
 from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
 from infrastructure.di.candidate.candidate_container import CandidateContainer
-from infrastructure.external_services.configs.albert_config import (
+from infrastructure.external_gateways.configs.albert_config import (
     AlbertConfig,
-    AlbertServiceConfig,
+    AlbertGatewayConfig,
 )
-from infrastructure.external_services.logger import LoggerService
+from infrastructure.external_gateways.logger import LoggerService
 from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepository
 
 
@@ -38,8 +38,8 @@ class TestProcessUploadedCVUsecase(unittest.TestCase):
             model_name="albert-large",
             dpi=200,
         )
-        albert_service_config = AlbertServiceConfig(albert_config)
-        container.config.override(albert_service_config)
+        albert_gateway_config = AlbertGatewayConfig(albert_config)
+        container.config.override(albert_gateway_config)
 
         return container
 

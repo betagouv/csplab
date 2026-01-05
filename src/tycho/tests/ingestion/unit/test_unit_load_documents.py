@@ -10,11 +10,12 @@ import copy
 import unittest
 from datetime import datetime
 
+from infrastructure.external_gateways.logger import LoggerService
+
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
-from infrastructure.external_services.logger import LoggerService
 from infrastructure.gateways.ingestion import load_documents_strategy_factory
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_document_repository import InMemoryDocumentRepository

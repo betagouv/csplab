@@ -7,15 +7,15 @@ from pydantic import HttpUrl
 
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.external_services.configs.albert_config import (
+from infrastructure.external_gateways.configs.albert_config import (
     AlbertConfig,
-    AlbertServiceConfig,
+    AlbertGatewayConfig,
 )
-from infrastructure.external_services.configs.openai_config import (
+from infrastructure.external_gateways.configs.openai_config import (
     OpenAIConfig,
-    OpenAIServiceConfig,
+    OpenAIGatewayConfig,
 )
-from infrastructure.external_services.logger import LoggerService
+from infrastructure.external_gateways.logger import LoggerService
 
 
 def create_candidate_container() -> CandidateContainer:
@@ -28,8 +28,8 @@ def create_candidate_container() -> CandidateContainer:
         base_url=cast(HttpUrl, env.str("TYCHO_OPENROUTER_BASE_URL")),
         model=cast(str, env.str("TYCHO_OPENROUTER_EMBEDDING_MODEL")),
     )
-    openai_service_config = OpenAIServiceConfig(openai_config)
-    shared_container.config.override(openai_service_config)
+    openai_gateway_config = OpenAIGatewayConfig(openai_config)
+    shared_container.config.override(openai_gateway_config)
 
     albert_config = AlbertConfig(
         api_base_url=cast(HttpUrl, env.str("TYCHO_ALBERT_API_BASE_URL")),
@@ -38,10 +38,10 @@ def create_candidate_container() -> CandidateContainer:
         dpi=cast(int, env.int("TYCHO_ALBERT_DPI", default=200)),
     )
 
-    albert_service_config = AlbertServiceConfig(albert_config)
+    albert_gateway_config = AlbertGatewayConfig(albert_config)
 
     container = CandidateContainer()
-    container.config.override(albert_service_config)
+    container.config.override(albert_gateway_config)
 
     logger_service = LoggerService("candidate")
     container.logger_service.override(logger_service)

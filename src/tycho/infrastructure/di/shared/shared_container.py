@@ -2,7 +2,7 @@
 
 from dependency_injector import containers, providers
 
-from infrastructure.external_services.openai_embedding_generator import (
+from infrastructure.external_gateways.openai_embedding_generator import (
     OpenAIEmbeddingGenerator,
 )
 from infrastructure.repositories.shared import (

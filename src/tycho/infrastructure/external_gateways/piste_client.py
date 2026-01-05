@@ -7,8 +7,8 @@ from requests.exceptions import HTTPError
 
 from domain.services.logger_interface import ILogger
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_services.configs.piste_config import PisteConfig
-from infrastructure.external_services.http_client import HttpClient
+from infrastructure.external_gateways.configs.piste_config import PisteConfig
+from infrastructure.external_gateways.http_client import HttpClient
 
 
 class PisteClient(HttpClient):

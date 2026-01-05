@@ -13,16 +13,16 @@ from domain.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
-from infrastructure.external_services.configs.openai_config import (
+from infrastructure.external_gateways.configs.openai_config import (
     OpenAIConfig,
-    OpenAIServiceConfig,
+    OpenAIGatewayConfig,
 )
-from infrastructure.external_services.configs.piste_config import (
+from infrastructure.external_gateways.configs.piste_config import (
     PisteConfig,
-    PisteServiceConfig,
+    PisteGatewayConfig,
 )
-from infrastructure.external_services.http_client import HttpClient
-from infrastructure.external_services.logger import LoggerService
+from infrastructure.external_gateways.http_client import HttpClient
+from infrastructure.external_gateways.logger import LoggerService
 from tests.factories.ingres_factories import IngresCorpsApiResponseFactory
 
 
@@ -33,18 +33,18 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         """Set up container dependencies."""
         # Create shared container and config
         self.shared_container = SharedContainer()
-        self.openai_service_config = OpenAIServiceConfig(
+        self.openai_gateway_config = OpenAIGatewayConfig(
             openai_config=OpenAIConfig(
                 api_key="fake-api-key",
                 base_url=HttpUrl("https://fake-base-url.example.com"),
                 model="fake-model",
             )
         )
-        self.shared_container.config.override(self.openai_service_config)
+        self.shared_container.config.override(self.openai_gateway_config)
 
         # Create ingestion container
         self.container = IngestionContainer()
-        self.piste_service_config = PisteServiceConfig(
+        self.piste_gateway_config = PisteGatewayConfig(
             piste_config=PisteConfig(
                 oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
                 ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
@@ -52,7 +52,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
                 client_secret="fake-client-secret",  # noqa
             )
         )
-        self.container.config.override(self.piste_service_config)
+        self.container.config.override(self.piste_gateway_config)
         self.container.shared_container.override(self.shared_container)
 
         logger_service = LoggerService()
@@ -70,7 +70,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{self.piste_service_config.piste.oauth_base_url}api/oauth/token",
+            f"{self.piste_gateway_config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -79,7 +79,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint with empty response
         responses.add(
             responses.GET,
-            f"{self.piste_service_config.piste.ingres_base_url}/CORPS",
+            f"{self.piste_gateway_config.piste.ingres_base_url}/CORPS",
             json={"items": []},
             status=200,
             content_type="application/json",
@@ -103,7 +103,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{self.piste_service_config.piste.oauth_base_url}api/oauth/token",
+            f"{self.piste_gateway_config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -112,7 +112,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint
         responses.add(
             responses.GET,
-            f"{self.piste_service_config.piste.ingres_base_url}/CORPS",
+            f"{self.piste_gateway_config.piste.ingres_base_url}/CORPS",
             json={"items": api_data},
             status=200,
             content_type="application/json",

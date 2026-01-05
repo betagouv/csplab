@@ -7,15 +7,15 @@ from pydantic import HttpUrl
 
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.external_services.configs.openai_config import (
+from infrastructure.external_gateways.configs.openai_config import (
     OpenAIConfig,
-    OpenAIServiceConfig,
+    OpenAIGatewayConfig,
 )
-from infrastructure.external_services.configs.piste_config import (
+from infrastructure.external_gateways.configs.piste_config import (
     PisteConfig,
-    PisteServiceConfig,
+    PisteGatewayConfig,
 )
-from infrastructure.external_services.logger import LoggerService
+from infrastructure.external_gateways.logger import LoggerService
 
 
 def create_ingestion_container() -> IngestionContainer:
@@ -28,8 +28,8 @@ def create_ingestion_container() -> IngestionContainer:
         base_url=cast(HttpUrl, env.str("TYCHO_OPENROUTER_BASE_URL")),
         model=cast(str, env.str("TYCHO_OPENROUTER_EMBEDDING_MODEL")),
     )
-    openai_service_config = OpenAIServiceConfig(openai_config)
-    shared_container.config.override(openai_service_config)
+    openai_gateway_config = OpenAIGatewayConfig(openai_config)
+    shared_container.config.override(openai_gateway_config)
 
     container = IngestionContainer()
     piste_config = PisteConfig(
@@ -38,8 +38,8 @@ def create_ingestion_container() -> IngestionContainer:
         client_id=cast(str, env.str("TYCHO_INGRES_CLIENT_ID")),
         client_secret=cast(str, env.str("TYCHO_INGRES_CLIENT_SECRET")),
     )
-    piste_service_config = PisteServiceConfig(piste_config)
-    container.config.override(piste_service_config)
+    piste_gateway_config = PisteGatewayConfig(piste_config)
+    container.config.override(piste_gateway_config)
 
     logger_service = LoggerService("ingestion")
     container.logger_service.override(logger_service)

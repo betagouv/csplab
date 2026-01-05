@@ -1,1 +1,0 @@
-"""External adapters config."""

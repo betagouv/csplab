@@ -5,7 +5,7 @@ from typing import List
 
 from polyfactory.factories.pydantic_factory import ModelFactory
 
-from infrastructure.external_services.dtos.ingres_corps_dtos import (
+from infrastructure.external_gateways.dtos.ingres_corps_dtos import (
     Caracteristiques,
     Categorie,
     CorpsGenerique,

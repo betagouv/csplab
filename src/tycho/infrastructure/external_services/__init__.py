@@ -1,1 +1,0 @@
-"""Infrastructure external services implementations."""

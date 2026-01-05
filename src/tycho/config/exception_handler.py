@@ -1,12 +1,12 @@
 """Global exception handler for automatic HTTP status mapping."""
 
+from infrastructure.external_gateways.logger import LoggerService
 from rest_framework.response import Response
 from rest_framework.views import exception_handler, status
 
 from application.exceptions import ApplicationError
 from domain.exceptions.domain_errors import DomainError
 from infrastructure.exceptions.exceptions import InfrastructureError
-from infrastructure.external_services.logger import LoggerService
 
 # Initialize specialized loggers for each layer
 logger_service = LoggerService()

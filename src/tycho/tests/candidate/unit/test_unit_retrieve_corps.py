@@ -3,6 +3,8 @@
 import unittest
 from datetime import datetime
 
+from infrastructure.external_gateways.logger import LoggerService
+
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
@@ -12,7 +14,6 @@ from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
 from infrastructure.di.candidate.candidate_container import CandidateContainer
-from infrastructure.external_services.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.test_container_factory import create_test_shared_container
 

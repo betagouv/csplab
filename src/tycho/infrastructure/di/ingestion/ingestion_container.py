@@ -14,7 +14,7 @@ from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from domain.services.document_cleaner_interface import IDocumentCleaner
-from infrastructure.external_services import document_fetcher, piste_client
+from infrastructure.external_gateways import document_fetcher, piste_client
 from infrastructure.gateways.ingestion import (
     load_documents_strategy_factory as load_strategy,
 )
