@@ -21,6 +21,8 @@ Le monorepo est organisé en services :
 - Docker
 - Docker Compose
 - GNU Make
+- [uv](https://docs.astral.sh/uv/)
+- [Direnv](https://direnv.net/)
 
 ### Optionnel
 
@@ -31,7 +33,7 @@ Le monorepo est organisé en services :
 Avant de lancer les services, copiez et configurez les fichiers d'environnement :
 
 ```bash
-make setup-env
+make setup
 ```
 
 Puis éditez les fichiers env.d/\* avec vos vraies valeurs (clés API, etc.)
