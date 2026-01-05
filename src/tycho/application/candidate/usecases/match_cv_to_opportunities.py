@@ -18,7 +18,7 @@ class MatchCVToOpportunitiesUsecase:
 
     def __init__(
         self,
-        cv_metadata_repository: ICVMetadataRepository,
+        postgres_cv_metadata_repository: ICVMetadataRepository,
         embedding_generator: IEmbeddingGenerator,
         vector_repository: IVectorRepository,
         concours_repository: IConcoursRepository,
@@ -27,13 +27,13 @@ class MatchCVToOpportunitiesUsecase:
         """Initialize the use case with required dependencies.
 
         Args:
-            cv_metadata_repository: Repository for CV metadata
+            postgres_cv_metadata_repository: Repository for CV metadata
             embedding_generator: Service for generating embeddings
             vector_repository: Repository for vector operations
             concours_repository: Repository for Concours entities
             logger: Logger for tracing operations
         """
-        self._cv_metadata_repository = cv_metadata_repository
+        self._postgres_cv_metadata_repository = postgres_cv_metadata_repository
         self._embedding_generator = embedding_generator
         self._vector_repository = vector_repository
         self._concours_repository = concours_repository
@@ -55,7 +55,7 @@ class MatchCVToOpportunitiesUsecase:
             f"Starting opportunity matching for cv_id='{cv_id}', limit={limit}"
         )
 
-        cv_metadata = self._cv_metadata_repository.find_by_id(UUID(cv_id))
+        cv_metadata = self._postgres_cv_metadata_repository.find_by_id(UUID(cv_id))
         if not cv_metadata:
             raise CVNotFoundError(cv_id)  # should not happen
 

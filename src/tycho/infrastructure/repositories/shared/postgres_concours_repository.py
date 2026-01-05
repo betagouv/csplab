@@ -11,7 +11,7 @@ from domain.repositories.document_repository_interface import (
 from infrastructure.django_apps.shared.models.concours import ConcoursModel
 
 
-class DjangoConcoursRepository(IConcoursRepository):
+class PostgresConcoursRepository(IConcoursRepository):
     """Django ORM implementation of IConcoursRepository."""
 
     def upsert_batch(self, concours_list: List[Concours]) -> IUpsertResult:

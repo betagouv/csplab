@@ -21,10 +21,10 @@ from infrastructure.external_gateways.configs.openai_config import (
     OpenAIGatewayConfig,
 )
 from infrastructure.external_gateways.logger import LoggerService
-from infrastructure.repositories.shared import (
-    django_corps_repository as django_corps_repo,
-)
 from infrastructure.repositories.shared import pgvector_repository as pgvector_repo
+from infrastructure.repositories.shared import (
+    postgres_corps_repository as postgres_corps_repo,
+)
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
@@ -53,8 +53,8 @@ class TestIntegrationRetrieveCorpsUsecase(TransactionTestCase):
         self.container = CandidateContainer()
         self.container.shared_container.override(self.shared_container)
 
-        django_corps_repository = django_corps_repo.DjangoCorpsRepository()
-        self.shared_container.corps_repository.override(django_corps_repository)
+        postgres_corps_repository = postgres_corps_repo.PostgresCorpsRepository()
+        self.shared_container.corps_repository.override(postgres_corps_repository)
 
         pgvector_repository = pgvector_repo.PgVectorRepository()
         self.shared_container.vector_repository.override(pgvector_repository)

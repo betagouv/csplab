@@ -20,9 +20,7 @@ from infrastructure.gateways.ingestion import (
 )
 from infrastructure.gateways.ingestion.document_cleaner import DocumentCleaner
 from infrastructure.gateways.ingestion.text_extractor import TextExtractor
-from infrastructure.repositories.ingestion import (
-    django_document_repository as django_repo,
-)
+from infrastructure.repositories.ingestion import postgres_document_repository
 from infrastructure.repositories.repository_factory import RepositoryFactory
 
 
@@ -53,7 +51,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     )
 
     document_persister = providers.Singleton(
-        django_repo.DjangoDocumentRepository,
+        postgres_document_repository.PostgresDocumentRepository,
     )
 
     document_repository = providers.Singleton(

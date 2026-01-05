@@ -23,13 +23,13 @@ from infrastructure.external_gateways.configs.openai_config import (
     OpenAIGatewayConfig,
 )
 from infrastructure.external_gateways.logger import LoggerService
-from infrastructure.repositories.candidate.cv_metadata_repository import (
+from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,
 )
-from infrastructure.repositories.shared import (
-    django_concours_repository as django_concours_repo,
-)
 from infrastructure.repositories.shared import pgvector_repository as pgvector_repo
+from infrastructure.repositories.shared import (
+    postgres_concours_repository as pg_concours_repo,
+)
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
@@ -59,14 +59,16 @@ class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):
         self.container.shared_container.override(self.shared_container)
 
         # Override with Django repositories
-        django_concours_repository = django_concours_repo.DjangoConcoursRepository()
-        self.shared_container.concours_repository.override(django_concours_repository)
+        postgres_concours_repository = pg_concours_repo.PostgresConcoursRepository()
+        self.shared_container.concours_repository.override(postgres_concours_repository)
 
         pgvector_repository = pgvector_repo.PgVectorRepository()
         self.shared_container.vector_repository.override(pgvector_repository)
 
-        postgres_cv_metadata_repository = PostgresCVMetadataRepository()
-        self.container.cv_metadata_repository.override(postgres_cv_metadata_repository)
+        pg_cv_metadata_repository = PostgresCVMetadataRepository()
+        self.container.postgres_cv_metadata_repository.override(
+            pg_cv_metadata_repository
+        )
 
         mock_embedding_generator = MockEmbeddingGenerator(self.embedding_fixtures)
         self.shared_container.embedding_generator.override(mock_embedding_generator)
@@ -80,7 +82,7 @@ class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):
 
     def _create_test_data(self):
         """Create test CVMetadata, Concours and vectorized documents in database."""
-        cv_metadata_repository = self.container.cv_metadata_repository()
+        pg_cv_metadata_repository = self.container.postgres_cv_metadata_repository()
         concours_repository = self.shared_container.concours_repository()
         vector_repository = self.shared_container.vector_repository()
 
@@ -94,7 +96,7 @@ class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):
             search_query=search_query,
             created_at=datetime.now(),
         )
-        cv_metadata_repository.save(cv_metadata)
+        pg_cv_metadata_repository.save(cv_metadata)
 
         # Create test concours with valid NOR format
         valid_nors = ["MENA2400001A", "AGRI2400002B", "INTE2400003C"]
@@ -220,7 +222,7 @@ class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):
     @pytest.mark.django_db
     def test_execute_with_no_matching_concours_returns_empty_list(self):
         """Test that when no concours match, empty list is returned."""
-        cv_metadata_repository = self.container.cv_metadata_repository()
+        pg_cv_metadata_repository = self.container.postgres_cv_metadata_repository()
 
         # Create CV metadata but no concours
         cv_id = uuid4()
@@ -231,7 +233,7 @@ class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):
             search_query="non-matching query",
             created_at=datetime.now(),
         )
-        cv_metadata_repository.save(cv_metadata)
+        pg_cv_metadata_repository.save(cv_metadata)
 
         result = self.match_cv_to_opportunities_usecase.execute(
             str(cv_metadata.id), limit=10
@@ -243,7 +245,7 @@ class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):
     @pytest.mark.django_db
     def test_execute_with_no_vectorized_documents_returns_empty_list(self):
         """Test query with no matching vectorized documents returns empty list."""
-        cv_metadata_repository = self.container.cv_metadata_repository()
+        pg_cv_metadata_repository = self.container.postgres_cv_metadata_repository()
 
         # Create CV metadata but no vectorized documents
         cv_id = uuid4()
@@ -254,7 +256,7 @@ class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):
             search_query="some random query",
             created_at=datetime.now(),
         )
-        cv_metadata_repository.save(cv_metadata)
+        pg_cv_metadata_repository.save(cv_metadata)
 
         result = self.match_cv_to_opportunities_usecase.execute(
             str(cv_metadata.id), limit=10

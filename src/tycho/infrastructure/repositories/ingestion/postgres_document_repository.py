@@ -11,7 +11,7 @@ from domain.repositories.document_repository_interface import (
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 
 
-class DjangoDocumentRepository(IDocumentRepository):
+class PostgresDocumentRepository(IDocumentRepository):
     """Complete document repository using Django ORM."""
 
     def fetch_by_type(self, document_type: DocumentType) -> List[Document]:

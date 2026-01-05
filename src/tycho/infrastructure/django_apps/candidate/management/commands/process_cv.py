@@ -57,7 +57,7 @@ class Command(BaseCommand):
             self.stdout.write(f"CV ID: {cv_id}")
 
             if verbose:
-                cv_repo = container.cv_metadata_repository()
+                cv_repo = container.postgres_cv_metadata_repository()
                 cv_metadata = cv_repo.find_by_id(cv_id)
 
                 if cv_metadata:

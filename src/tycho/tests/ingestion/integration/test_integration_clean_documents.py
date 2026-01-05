@@ -21,7 +21,7 @@ from infrastructure.external_gateways.configs.piste_config import (
 from infrastructure.external_gateways.http_client import HttpClient
 from infrastructure.external_gateways.logger import LoggerService
 from infrastructure.repositories.ingestion import (
-    django_document_repository as django_doc_repo,
+    postgres_document_repository as postgres_document_repo,
 )
 from tests.fixtures.fixture_loader import load_fixture
 
@@ -69,8 +69,8 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
         http_client = HttpClient()
         self.container.http_client.override(http_client)
 
-        django_document_repository = django_doc_repo.DjangoDocumentRepository()
-        self.container.document_repository.override(django_document_repository)
+        p_document_repository = postgres_document_repo.PostgresDocumentRepository()
+        self.container.document_repository.override(p_document_repository)
 
         self.clean_documents_usecase = self.container.clean_documents_usecase()
 

@@ -4,8 +4,6 @@ import unittest
 from datetime import datetime
 from uuid import uuid4
 
-from infrastructure.external_gateways.logger import LoggerService
-
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
@@ -16,6 +14,7 @@ from domain.value_objects.category import Category
 from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
 from infrastructure.di.candidate.candidate_container import CandidateContainer
+from infrastructure.external_gateways.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepository
@@ -41,8 +40,10 @@ class TestUnitMatchCVToOpportunitiesUsecase(unittest.TestCase):
         container.shared_container.override(shared_container)
 
         # Override with in-memory repositories for testing
-        cv_metadata_repository = InMemoryCVMetadataRepository()
-        container.cv_metadata_repository.override(cv_metadata_repository)
+        postgres_cv_metadata_repository = InMemoryCVMetadataRepository()
+        container.postgres_cv_metadata_repository.override(
+            postgres_cv_metadata_repository
+        )
 
         concours_repository = InMemoryConcoursRepository()
         shared_container.concours_repository.override(concours_repository)
@@ -51,7 +52,7 @@ class TestUnitMatchCVToOpportunitiesUsecase(unittest.TestCase):
 
     def _setup_test_data(self, container):
         """Setup test CVMetadata, Concours and vectorized documents."""
-        cv_metadata_repository = container.cv_metadata_repository()
+        postgres_cv_metadata_repository = container.postgres_cv_metadata_repository()
         concours_repository = container.shared_container.concours_repository()
         vector_repository = container.shared_container.vector_repository()
 
@@ -65,7 +66,7 @@ class TestUnitMatchCVToOpportunitiesUsecase(unittest.TestCase):
             search_query=search_query,
             created_at=datetime.now(),
         )
-        cv_metadata_repository.save(cv_metadata)
+        postgres_cv_metadata_repository.save(cv_metadata)
 
         # Create test concours with valid NOR format
         valid_nors = ["MENA2400001A", "AGRI2400002B", "INTE2400003C"]
@@ -172,7 +173,7 @@ class TestUnitMatchCVToOpportunitiesUsecase(unittest.TestCase):
     def test_execute_with_no_matching_concours_returns_empty_list(self):
         """Test that when no concours match, empty list is returned."""
         container = self._create_isolated_container()
-        cv_metadata_repository = container.cv_metadata_repository()
+        postgres_cv_metadata_repository = container.postgres_cv_metadata_repository()
         usecase = container.match_cv_to_opportunities_usecase()
 
         # Create CV metadata but no concours
@@ -184,7 +185,7 @@ class TestUnitMatchCVToOpportunitiesUsecase(unittest.TestCase):
             search_query="non-matching query",
             created_at=datetime.now(),
         )
-        cv_metadata_repository.save(cv_metadata)
+        postgres_cv_metadata_repository.save(cv_metadata)
 
         result = usecase.execute(str(cv_metadata.id), limit=10)
 

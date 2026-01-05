@@ -18,7 +18,7 @@ class ProcessUploadedCVUsecase:
         self,
         pdf_text_extractor: IPDFTextExtractor,
         query_builder: IQueryBuilder,
-        cv_metadata_repository: ICVMetadataRepository,
+        postgres_cv_metadata_repository: ICVMetadataRepository,
         logger: ILogger,
     ):
         """Initialize the use case with required dependencies.
@@ -26,12 +26,12 @@ class ProcessUploadedCVUsecase:
         Args:
             pdf_text_extractor: Service for extracting text from PDF
             query_builder: Service for building search queries
-            cv_metadata_repository: Repository for CV metadata
+            postgres_cv_metadata_repository: Repository for CV metadata
             logger: Logger for tracing operations
         """
         self._pdf_text_extractor = pdf_text_extractor
         self._query_builder = query_builder
-        self._cv_metadata_repository = cv_metadata_repository
+        self._postgres_cv_metadata_repository = postgres_cv_metadata_repository
         self._logger = logger.get_logger(
             "CANDIDATE::APPLICATION::ProcessUploadedCVUsecase::execute"
         )
@@ -85,6 +85,6 @@ class ProcessUploadedCVUsecase:
             created_at=datetime.now(),
         )
 
-        saved_cv = self._cv_metadata_repository.save(cv_metadata)
+        saved_cv = self._postgres_cv_metadata_repository.save(cv_metadata)
         self._logger.info(f"CV metadata saved with ID: {saved_cv.id}")
         return str(saved_cv.id)

@@ -6,9 +6,9 @@ from infrastructure.external_gateways.openai_embedding_generator import (
     OpenAIEmbeddingGenerator,
 )
 from infrastructure.repositories.shared import (
-    django_concours_repository,
-    django_corps_repository,
     pgvector_repository,
+    postgres_concours_repository,
+    postgres_corps_repository,
 )
 
 
@@ -18,11 +18,11 @@ class SharedContainer(containers.DeclarativeContainer):
     config: providers.Dependency = providers.Dependency()
 
     corps_repository = providers.Singleton(
-        django_corps_repository.DjangoCorpsRepository
+        postgres_corps_repository.PostgresCorpsRepository
     )
 
     concours_repository = providers.Singleton(
-        django_concours_repository.DjangoConcoursRepository
+        postgres_concours_repository.PostgresConcoursRepository
     )
 
     embedding_generator = providers.Singleton(

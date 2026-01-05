@@ -11,7 +11,7 @@ from domain.repositories.document_repository_interface import (
 from infrastructure.django_apps.shared.models.corps import CorpsModel
 
 
-class DjangoCorpsRepository(ICorpsRepository):
+class PostgresCorpsRepository(ICorpsRepository):
     """Django ORM implementation of Corps repository."""
 
     def upsert_batch(self, corps: List[Corps]) -> IUpsertResult:

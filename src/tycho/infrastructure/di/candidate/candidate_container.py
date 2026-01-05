@@ -9,7 +9,7 @@ from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCV
 from application.candidate.usecases.retrieve_corps import RetrieveCorpsUsecase
 from infrastructure.gateways.candidate.albert_pdf_extractor import AlbertPDFExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
-from infrastructure.repositories.candidate.cv_metadata_repository import (
+from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,
 )
 
@@ -32,7 +32,7 @@ class CandidateContainer(containers.DeclarativeContainer):
         config=providers.Callable(lambda cfg: cfg.albert, config),
     )
     query_builder = providers.Factory(QueryBuilder)
-    cv_metadata_repository = providers.Singleton(PostgresCVMetadataRepository)
+    postgres_cv_metadata_repository = providers.Singleton(PostgresCVMetadataRepository)
 
     retrieve_corps_usecase = providers.Factory(
         RetrieveCorpsUsecase,
@@ -46,13 +46,13 @@ class CandidateContainer(containers.DeclarativeContainer):
         ProcessUploadedCVUsecase,
         pdf_text_extractor=pdf_text_extractor,
         query_builder=query_builder,
-        cv_metadata_repository=cv_metadata_repository,
+        postgres_cv_metadata_repository=postgres_cv_metadata_repository,
         logger=logger_service,
     )
 
     match_cv_to_opportunities_usecase = providers.Factory(
         MatchCVToOpportunitiesUsecase,
-        cv_metadata_repository=cv_metadata_repository,
+        postgres_cv_metadata_repository=postgres_cv_metadata_repository,
         embedding_generator=embedding_generator,
         vector_repository=vector_repository,
         concours_repository=concours_repository,

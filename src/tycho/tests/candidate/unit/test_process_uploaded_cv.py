@@ -29,7 +29,7 @@ class TestProcessUploadedCVUsecase(unittest.TestCase):
         container.logger_service.override(logger_service)
 
         in_memory_cv_repo = InMemoryCVMetadataRepository()
-        container.cv_metadata_repository.override(in_memory_cv_repo)
+        container.postgres_cv_metadata_repository.override(in_memory_cv_repo)
 
         # Configure Albert for tests
         albert_config = AlbertConfig(
@@ -78,7 +78,7 @@ class TestProcessUploadedCVUsecase(unittest.TestCase):
         self.assertIsInstance(result, str)
         cv_id = UUID(result)
 
-        cv_repo = container.cv_metadata_repository()
+        cv_repo = container.postgres_cv_metadata_repository()
         self.assertEqual(cv_repo.count(), 1)
 
         saved_cv = cv_repo.find_by_id(cv_id)
@@ -101,7 +101,7 @@ class TestProcessUploadedCVUsecase(unittest.TestCase):
             usecase.execute(filename, pdf_content)
 
         self.assertEqual(context.exception.filename, filename)
-        cv_repo = container.cv_metadata_repository()
+        cv_repo = container.postgres_cv_metadata_repository()
         self.assertEqual(cv_repo.count(), 0)
 
     def test_execute_with_empty_pdf_raises_invalid_pdf_error(self):
@@ -116,7 +116,7 @@ class TestProcessUploadedCVUsecase(unittest.TestCase):
             usecase.execute(filename, pdf_content)
 
         self.assertEqual(context.exception.filename, filename)
-        cv_repo = container.cv_metadata_repository()
+        cv_repo = container.postgres_cv_metadata_repository()
         self.assertEqual(cv_repo.count(), 0)
 
     def test_execute_with_oversized_pdf_raises_invalid_pdf_error(self):
@@ -131,7 +131,7 @@ class TestProcessUploadedCVUsecase(unittest.TestCase):
             usecase.execute(filename, large_content)
 
         self.assertEqual(context.exception.filename, filename)
-        cv_repo = container.cv_metadata_repository()
+        cv_repo = container.postgres_cv_metadata_repository()
         self.assertEqual(cv_repo.count(), 0)
 
     def test_execute_with_empty_extracted_text_raises_text_extraction_error(self):
@@ -155,7 +155,7 @@ class TestProcessUploadedCVUsecase(unittest.TestCase):
 
         self.assertEqual(context.exception.filename, filename)
         self.assertIn("No structured content found", context.exception.reason)
-        cv_repo = container.cv_metadata_repository()
+        cv_repo = container.postgres_cv_metadata_repository()
         self.assertEqual(cv_repo.count(), 0)
 
     def test_query_builder_extracts_keywords_correctly(self):
