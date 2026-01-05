@@ -1,0 +1,1 @@
+"""Infrastructure shared gateways implementations."""

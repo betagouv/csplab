@@ -53,7 +53,6 @@ tycho = { path = ".", editable = true }
 
 [tool.hatch.build.targets.wheel]
 packages = [
-  "apps",
   "tycho",
 ]
 
@@ -61,16 +60,14 @@ packages = [
 [tool.coverage.run]
 omit = [
   "apps/**/migrations/*",
-  "tycho/asgi.py",
-  "tycho/wsgi.py",
+  "config/wsgi.py",
   "tycho/tests/*",
-  "apps/**/tests/*",
   "apps/**/management/*"
 ]
 
 [tool.pytest.ini_options]
 addopts = "-v --cov-report term-missing --cov=apps --cov=tycho"
-DJANGO_SETTINGS_MODULE = "tycho.settings"
+DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = [
     "test_*.py",
     "tests.py",
@@ -78,7 +75,6 @@ python_files = [
 testpaths = [
     "tests",
     "tycho/tests",
-    "apps/**/tests",
 ]
 
 [tool.ruff]
@@ -134,5 +130,5 @@ module = [
 ignore_missing_imports = true
 
 [tool.django-stubs]
-django_settings_module = "tycho.settings"
+django_settings_module = "config.settings"
 ignore_missing_model_attributes = true

@@ -19,5 +19,5 @@ if [ ${debug} == 1 ]; then
 else
   echo "PRODUCTION mode activated."
   echo "🚀 Starting server"
-  gunicorn tycho.wsgi:application --log-file -
+  gunicorn config.wsgi:application --log-file -
 fi
