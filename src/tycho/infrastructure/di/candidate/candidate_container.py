@@ -7,7 +7,7 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.retrieve_corps import RetrieveCorpsUsecase
-from infrastructure.gateways.candidate.albert_pdf_extractor import AlbertPDFExtractor
+from infrastructure.external_gateways.albert_pdf_extractor import AlbertPDFExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,
