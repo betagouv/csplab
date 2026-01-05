@@ -33,6 +33,7 @@ jobs:
   commit-format:
     needs: build-dev
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && !github.event.pull_request.merged
     defaults:
       run:
         working-directory: ./dev

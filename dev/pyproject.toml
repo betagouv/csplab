@@ -14,6 +14,8 @@ dev = [
 [tool.commitizen]
 name = "cz_customize"
 version = "0.1.0"
+check_consistency = true
+ignore_merge_commits = true
 
 [tool.commitizen.customize]
 message_template = "{{change_type}}({{scope}}) {{subject}}{% if body %}\n\n{{body}}{% endif %}{% if footer %}\n\n{{footer}}{% endif %}"
