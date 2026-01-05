@@ -31,6 +31,7 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
   commit-format:
+    if: github.event_name == 'pull_request'
     needs: build-dev
     runs-on: ubuntu-latest
     defaults:
