@@ -33,6 +33,7 @@ setup-env: ## copy example env files to local files
 
 bootstrap: ## setup development environment (build dev service and install git hooks)
 bootstrap: \
+  run-postgres \
   build \
   migrate \
   create-superuser \
@@ -104,6 +105,10 @@ run-notebook: ## run the notebook service
 run-es: ## run the elasticsearch service
 	$(COMPOSE_UP) elasticsearch
 .PHONY: run-es
+
+run-postgres: ## run the DB service
+	$(COMPOSE_UP) postgresql
+.PHONY: run-postgres
 
 run-tycho: ## run the tycho service
 	@bin/manage runserver
