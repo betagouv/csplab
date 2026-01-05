@@ -33,7 +33,7 @@ Le monorepo est organisé en services :
 Avant de lancer les services, copiez et configurez les fichiers d'environnement :
 
 ```bash
-make setup-env
+make setup
 ```
 
 Puis éditez les fichiers env.d/\* avec vos vraies valeurs (clés API, etc.)
