@@ -58,7 +58,7 @@ build: \
 .PHONY: build
 
 build-dev: ## build development environment image
-	@$(DEV_UV) uv sync
+	@$(DEV_UV) uv sync --locked
 .PHONY: build-dev
 
 build-notebook: ### setup notebook kernels natively
@@ -67,7 +67,7 @@ build-notebook: ### setup notebook kernels natively
 
 build-tycho: ## build tycho image
 	# not using @ which suppress the command's echoing in terminal
-	$(TYCHO_UV) uv sync --group dev
+	$(TYCHO_UV) uv sync --group dev --locked
 .PHONY: build-tycho
 
 jupytext--to-md: ## convert local ipynb files into md
