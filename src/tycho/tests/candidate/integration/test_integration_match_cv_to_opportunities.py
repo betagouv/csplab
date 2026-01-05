@@ -22,7 +22,7 @@ from infrastructure.external_gateways.configs.openai_config import (
     OpenAIConfig,
     OpenAIGatewayConfig,
 )
-from infrastructure.external_gateways.logger import LoggerService
+from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,
 )

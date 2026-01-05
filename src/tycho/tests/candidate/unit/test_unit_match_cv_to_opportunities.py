@@ -14,7 +14,7 @@ from domain.value_objects.category import Category
 from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
 from infrastructure.di.candidate.candidate_container import CandidateContainer
-from infrastructure.external_gateways.logger import LoggerService
+from infrastructure.gateways.shared.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepository

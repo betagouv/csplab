@@ -11,11 +11,10 @@ import unittest
 from datetime import datetime
 from unittest.mock import Mock
 
-from infrastructure.external_gateways.logger import LoggerService
-
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import InvalidDocumentTypeError
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.gateways.shared.logger import LoggerService
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository

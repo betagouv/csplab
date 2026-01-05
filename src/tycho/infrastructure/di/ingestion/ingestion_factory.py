@@ -15,7 +15,7 @@ from infrastructure.external_gateways.configs.piste_config import (
     PisteConfig,
     PisteGatewayConfig,
 )
-from infrastructure.external_gateways.logger import LoggerService
+from infrastructure.gateways.shared.logger import LoggerService
 
 
 def create_ingestion_container() -> IngestionContainer:

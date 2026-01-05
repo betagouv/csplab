@@ -17,7 +17,7 @@ from infrastructure.external_gateways.configs.albert_config import (
     AlbertConfig,
     AlbertGatewayConfig,
 )
-from infrastructure.external_gateways.logger import LoggerService
+from infrastructure.gateways.shared.logger import LoggerService
 
 
 class TestIntegrationProcessUploadedCVUsecase(TransactionTestCase):

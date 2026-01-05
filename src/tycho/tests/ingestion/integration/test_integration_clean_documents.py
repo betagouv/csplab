@@ -18,8 +18,8 @@ from infrastructure.external_gateways.configs.piste_config import (
     PisteConfig,
     PisteGatewayConfig,
 )
-from infrastructure.external_gateways.logger import LoggerService
 from infrastructure.gateways.shared.http_client import HttpClient
+from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.ingestion import (
     postgres_document_repository as postgres_document_repo,
 )

@@ -20,7 +20,7 @@ from infrastructure.external_gateways.configs.openai_config import (
     OpenAIConfig,
     OpenAIGatewayConfig,
 )
-from infrastructure.external_gateways.logger import LoggerService
+from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared import pgvector_repository as pgvector_repo
 from infrastructure.repositories.shared import (
     postgres_corps_repository as postgres_corps_repo,
