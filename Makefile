@@ -2,9 +2,8 @@
 SHELL := /bin/bash
 
 # -- Docker
-COMPOSE                 = bin/compose
+COMPOSE                 = docker compose
 COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
-COMPOSE_RUN             = $(COMPOSE) run --rm --no-deps
 
 TYCHO_UV = cd src/tycho && direnv exec .
 NOTEBOOK_UV = cd src/notebook && direnv exec .
@@ -15,9 +14,6 @@ default: help
 ## -- Files
 .pre-commit-cache:
 	mkdir .pre-commit-cache
-
-.git/hooks/_commons.inc.sh:
-	cp bin/_commons.inc.sh .git/hooks/_commons.inc.sh
 
 .git/hooks/pre-commit:
 	cp bin/git-pre-commit-hook .git/hooks/pre-commit
@@ -46,7 +42,6 @@ bootstrap: \
 git-hooks: ## install pre-commit hook
 git-hooks: \
   .pre-commit-cache \
-  .git/hooks/_commons.inc.sh \
   .git/hooks/pre-commit \
   .git/hooks/commit-msg
 .PHONY: git-hooks
