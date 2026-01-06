@@ -10,6 +10,12 @@ and this project adheres to
 
 ### Added
 
+- Homepage with DSFR integration
+- Header and footer blocks with DSFR components
+- HomeView and BreadcrumbMixin for reusable view patterns
+- Custom CSS styles for CSPLab branding
+- SVG illustrations for homepage sections
+- Integration tests for homepage view
 - Core (domain layer).
 - Ingestion app in Tycho project.
 - Application layer with use cases.

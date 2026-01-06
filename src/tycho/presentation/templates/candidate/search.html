@@ -1,9 +1,13 @@
-{% extends "candidate/base.html" %}
-{% load percentage %}
+{% extends "layouts/base.html" %}
+{% load static percentage %}
 
-{% block title %}Recherche de corps d'Etat - CSPLab{% endblock %}
+{% block page_title %}Recherche de corps d'État{% endblock page_title %}
 
-{% block content %}
+{% block page_css %}
+  <link rel="stylesheet" href="{% static 'candidate/css/corps_search.css' %}">
+{% endblock page_css %}
+
+{% block main %}
 <div class="fr-py-6w">
     <div class="fr-grid-row fr-grid-row--center">
         <div class="fr-col-12 fr-col-md-8">
@@ -117,4 +121,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock main %}
