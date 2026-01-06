@@ -1,4 +1,4 @@
-"""Views for candidate website."""
+"""Corps search view."""
 
 from django.contrib import messages
 from django.shortcuts import render

@@ -1,0 +1,58 @@
+{% load static dsfr_tags %}
+<!DOCTYPE html>
+<html lang="{% block lang %}fr{% endblock lang %}"
+      data-fr-scheme="light"
+      {% if SITE_CONFIG.mourning %}data-fr-mourning{% endif %}>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description"
+          content="{% block meta_description %}CSPLab - Plateforme de candidature{% endblock meta_description %}">
+    <meta name="keywords"
+          content="{% block meta_keywords %}CSPLab, candidature{% endblock meta_keywords %}">
+    {% dsfr_css %}
+    {% dsfr_favicon %}
+    <link rel="stylesheet" href="{% static 'candidate/css/csplab.css' %}">
+    {% block page_css %}
+    {% endblock page_css %}
+    {% block title %}
+      <title>
+        {% block page_title %}
+        {% endblock page_title %}
+        {% if page_title %}|{% endif %}
+      CSPLab</title>
+    {% endblock title %}
+    <meta name="format-detection"
+          content="telephone=no,date=no,address=no,email=no,url=no">
+    {% block opengraph %}
+    {% endblock opengraph %}
+  </head>
+  <body>
+    {% block skiplinks %}
+      {% dsfr_skiplinks skiplinks %}
+    {% endblock skiplinks %}
+    {% block header %}
+      {% include "partials/header.html" %}
+    {% endblock header %}
+    {% if SITE_CONFIG.notice_title or SITE_CONFIG.notice_description %}
+      {% dsfr_notice title=SITE_CONFIG.notice_title description=SITE_CONFIG.notice_description link=SITE_CONFIG.notice_link type=SITE_CONFIG.notice_type icon=SITE_CONFIG.notice_icon_class is_collapsible=SITE_CONFIG.notice_is_collapsible %}
+    {% endif %}
+    <div class="fr-container">{% dsfr_django_messages is_collapsible=True %}</div>
+    <main id="content" role="main">
+      {% block main %}
+      {% endblock main %}
+    </main>
+    {% block follow_newsletter_social_media %}
+    {% endblock follow_newsletter_social_media %}
+    {% block footer %}
+      {% include "partials/footer.html" %}
+    {% endblock footer %}
+    {% block theme_modale %}
+      {% dsfr_theme_modale %}
+    {% endblock theme_modale %}
+    {% dsfr_js nonce=request.csp_nonce %}
+    {% block page_js %}
+    {% endblock page_js %}
+  </body>
+</html>
