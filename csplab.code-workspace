@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "name": "Root",
+      "path": "."
+    },
+    {
+      "name": "Tycho",
+      "path": "./src/tycho"
+    },
+    {
+      "name": "Notebook",
+      "path": "./src/notebook"
+    }
+  ]
+}

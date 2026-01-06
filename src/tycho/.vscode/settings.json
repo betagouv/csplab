@@ -1,0 +1,20 @@
+{
+  "python.defaultInterpreterPath": "./.venv/bin/python",
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestPath": "./.venv/bin/pytest",
+  "python.testing.pytestArgs": ["tests/"],
+  "python.testing.cwd": "${workspaceFolder}",
+  "python.envFile": "../../env.d/tycho",
+  "python.terminal.activateEnvironment": true,
+  "mypy-type-checker.path": ["./.venv/bin/mypy"],
+  "mypy-type-checker.args": ["--config-file=./pyproject.toml"],
+  "ruff.path": ["./.venv/bin/ruff"],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll.ruff": "explicit"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  }
+}
