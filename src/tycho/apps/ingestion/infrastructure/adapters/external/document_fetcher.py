@@ -3,11 +3,12 @@
 from datetime import datetime
 from typing import List
 
-from apps.ingestion.infrastructure.adapters.external.dtos.ingres_corps_dtos import (
-    IngresCorpsApiResponse,
-)
 from apps.ingestion.infrastructure.adapters.external.dtos.talentsoft_offer_dtos import (
     TalentSoftOfferDocument,
+)
+
+from apps.ingestion.infrastructure.adapters.external.dtos.ingres_corps_dtos import (
+    IngresCorpsApiResponse,
 )
 from core.entities.document import Document, DocumentType
 from core.repositories.document_repository_interface import IDocumentFetcher

@@ -1,5 +1,4 @@
-"""
-Credential parsing helpers.
+"""Credential parsing helpers.
 
 TalentSoft token endpoint requires:
 - grant_type
@@ -16,7 +15,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Optional
 from urllib.parse import parse_qs
 
 
@@ -45,10 +44,14 @@ def _from_api_key_as_querystring(api_key: str) -> Optional[TalentSoftCredentials
     parsed = parse_qs(api_key, keep_blank_values=True)
     client_id = (parsed.get("client_id", [""])[0] or "").strip()
     client_secret = (parsed.get("client_secret", [""])[0] or "").strip()
-    grant_type = (parsed.get("grant_type", ["client_credentials"])[0] or "client_credentials").strip()
+    grant_type = (
+        parsed.get("grant_type", ["client_credentials"])[0] or "client_credentials"
+    ).strip()
 
     if client_id and client_secret:
-        return TalentSoftCredentials(client_id=client_id, client_secret=client_secret, grant_type=grant_type)
+        return TalentSoftCredentials(
+            client_id=client_id, client_secret=client_secret, grant_type=grant_type
+        )
     return None
 
 
@@ -60,13 +63,14 @@ def _from_api_key_as_pair(api_key: str) -> Optional[TalentSoftCredentials]:
             client_id = left.strip()
             client_secret = right.strip()
             if client_id and client_secret:
-                return TalentSoftCredentials(client_id=client_id, client_secret=client_secret)
+                return TalentSoftCredentials(
+                    client_id=client_id, client_secret=client_secret
+                )
     return None
 
 
 def parse_credentials(api_key: str) -> TalentSoftCredentials:
-    """
-    Parse credentials from config.api_key or environment.
+    """Parse credentials from config.api_key or environment.
 
     Raises ValueError if nothing usable is found.
     """

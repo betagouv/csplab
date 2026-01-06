@@ -1,5 +1,4 @@
-"""
-Token service for TalentSoft.
+"""Token service for TalentSoft.
 
 Responsibilities:
 - Call POST /api/token with body params: grant_type, client_id, client_secret
@@ -57,9 +56,8 @@ class TalentSoftTokenService:
         return self._cached
 
     def _fetch_token(self) -> CachedToken:
-        """
-        POST /api/token with x-www-form-urlencoded body:
-          grant_type=client_credentials&client_id=XXX&client_secret=YYY
+        """POST /api/token with x-www-form-urlencoded body:
+        grant_type=client_credentials&client_id=XXX&client_secret=YYY
         """
         try:
             creds = parse_credentials(self._config.api_key)
@@ -83,15 +81,25 @@ class TalentSoftTokenService:
         self._logger.info("Requesting TalentSoft token: POST %s", url)
 
         try:
-            response = self._session.post(url, headers=headers, data=data, timeout=self._timeout)
+            response = self._session.post(
+                url, headers=headers, data=data, timeout=self._timeout
+            )
         except requests.RequestException as exc:
             self._logger.exception("TalentSoft token request failed (network)")
-            raise TalentSoftAuthError(f"TalentSoft token request failed: {exc}") from exc
+            raise TalentSoftAuthError(
+                f"TalentSoft token request failed: {exc}"
+            ) from exc
 
         if response.status_code >= 400:
             preview = (response.text or "")[:500]
-            self._logger.error("TalentSoft token request failed: %s - %s", response.status_code, preview)
-            raise TalentSoftAuthError(f"TalentSoft token request failed: {response.status_code}")
+            self._logger.error(
+                "TalentSoft token request failed: %s - %s",
+                response.status_code,
+                preview,
+            )
+            raise TalentSoftAuthError(
+                f"TalentSoft token request failed: {response.status_code}"
+            )
 
         try:
             payload = response.json() if response.content else {}
@@ -109,10 +117,11 @@ class TalentSoftTokenService:
             expires_in = 0
 
         if not access_token:
-            self._logger.error("TalentSoft token response missing access_token: %s", payload)
+            self._logger.error(
+                "TalentSoft token response missing access_token: %s", payload
+            )
             raise TalentSoftAuthError("TalentSoft token response missing access_token")
 
-        
         if expires_in <= 0:
             expires_in = 10 * 60
 

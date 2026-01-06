@@ -12,8 +12,7 @@ from .talentsoft.client import TalentSoftHttpClient
 
 
 class TalentSoftClient(HttpClient):
-    """
-    Façade compat.
+    """Façade compat.
 
     Toute la logique HTTP / token / mapping est dans TalentSoftHttpClient.
     """

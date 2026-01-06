@@ -1,5 +1,4 @@
-"""
-Pure API layer for /api/v2/offersummaries.
+"""Pure API layer for /api/v2/offersummaries.
 
 Responsibilities:
 - Execute the GET request with proper Authorization header
@@ -40,7 +39,9 @@ class OfferSummariesApi:
         path = self.ENDPOINT.lstrip("/")
         return f"{base}/{path}"
 
-    def fetch(self, bearer_token: str, params: Optional[Dict[str, Any]] = None) -> requests.Response:
+    def fetch(
+        self, bearer_token: str, params: Optional[Dict[str, Any]] = None
+    ) -> requests.Response:
         """GET /api/v2/offersummaries with Bearer token."""
         url = self._build_url()
         headers = {
@@ -51,7 +52,11 @@ class OfferSummariesApi:
         self._logger.info("TalentSoft offersummaries call: GET %s", url)
 
         try:
-            return self._session.get(url, headers=headers, params=params, timeout=self._timeout)
+            return self._session.get(
+                url, headers=headers, params=params, timeout=self._timeout
+            )
         except requests.RequestException as exc:
             self._logger.exception("TalentSoft offersummaries request failed (network)")
-            raise TalentSoftApiError(f"TalentSoft offersummaries request failed: {exc}") from exc
+            raise TalentSoftApiError(
+                f"TalentSoft offersummaries request failed: {exc}"
+            ) from exc

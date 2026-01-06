@@ -1,5 +1,4 @@
-"""
-High-level TalentSoft HTTP client.
+"""High-level TalentSoft HTTP client.
 
 Responsibilities:
 - Provide `request(method, endpoint, **kwargs)` used by the existing facade
@@ -11,16 +10,16 @@ Responsibilities:
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 import requests
 
 from apps.ingestion.config import TalentSoftConfig
 from core.services.logger_interface import ILogger
 
-from .exceptions import TalentSoftApiError, TalentSoftAuthError
+from .exceptions import TalentSoftApiError
 from .offersummaries_api import OfferSummariesApi
-from .offersummaries_mapper import OfferSummariesMapper
+from .offersummaries_mapper import OfferSummariesMapper, OfferSummariesPayload
 from .token_service import TalentSoftTokenService
 
 
@@ -69,15 +68,18 @@ class TalentSoftHttpClient:
         ep = endpoint.strip()
         if ep.startswith("http://") or ep.startswith("https://"):
             return ep.rstrip("/").endswith(self.OFFER_SUMMARIES_ENDPOINT.rstrip("/"))
-        return ep.lstrip("/").rstrip("/").endswith(self.OFFER_SUMMARIES_ENDPOINT.lstrip("/").rstrip("/"))
+        return (
+            ep.lstrip("/")
+            .rstrip("/")
+            .endswith(self.OFFER_SUMMARIES_ENDPOINT.lstrip("/").rstrip("/"))
+        )
 
     # -------------------------
     # Public API (compat)
     # -------------------------
 
     def request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
-        """
-        Main entrypoint used by the facade.
+        """Main entrypoint used by the facade.
 
         If endpoint is /api/v2/offersummaries:
           - calls offersummaries api
@@ -112,7 +114,9 @@ class TalentSoftHttpClient:
                 timeout=self._timeout,
             )
         except requests.RequestException as exc:
-            self._logger.exception("TalentSoft request failed (network): %s %s", method_upper, url)
+            self._logger.exception(
+                "TalentSoft request failed (network): %s %s", method_upper, url
+            )
             raise TalentSoftApiError(f"TalentSoft request failed: {exc}") from exc
 
         # retry once on 401
@@ -137,9 +141,10 @@ class TalentSoftHttpClient:
     # Offersummaries flow
     # -------------------------
 
-    def _request_offersummaries(self, params: Optional[Dict[str, Any]] = None) -> requests.Response:
-        """
-        Full flow for /api/v2/offersummaries:
+    def _request_offersummaries(
+        self, params: Optional[Dict[str, Any]] = None
+    ) -> requests.Response:
+        """Full flow for /api/v2/offersummaries:
         - get token
         - call endpoint
         - retry once on 401
@@ -149,26 +154,38 @@ class TalentSoftHttpClient:
         resp = self._offers_api.fetch(bearer_token=token.access_token, params=params)
 
         if resp.status_code == 401:
-            self._logger.warning("offersummaries returned 401; refreshing token and retrying once.")
+            self._logger.warning(
+                "offersummaries returned 401; refreshing token and retrying once."
+            )
             token = self._token_service.force_refresh()
-            resp = self._offers_api.fetch(bearer_token=token.access_token, params=params)
+            resp = self._offers_api.fetch(
+                bearer_token=token.access_token, params=params
+            )
 
         if resp.status_code >= 400:
             preview = (resp.text or "")[:500]
-            self._logger.error("offersummaries failed: %s - %s", resp.status_code, preview)
-            raise TalentSoftApiError(f"TalentSoft offersummaries failed: {resp.status_code}")
+            self._logger.error(
+                "offersummaries failed: %s - %s", resp.status_code, preview
+            )
+            raise TalentSoftApiError(
+                f"TalentSoft offersummaries failed: {resp.status_code}"
+            )
 
         # Normalize content to {"offers":[...]}
         return self._normalize_offersummaries_response(resp)
 
-    def _normalize_offersummaries_response(self, upstream: requests.Response) -> requests.Response:
+    def _normalize_offersummaries_response(
+        self, upstream: requests.Response
+    ) -> requests.Response:
         """Create a new Response that contains the normalized payload."""
         try:
             payload = upstream.json() if upstream.content else {}
         except ValueError:
             payload = {}
 
-        normalized = OfferSummariesMapper.map_payload(payload)
+        normalized = OfferSummariesMapper.map_payload(
+            cast(OfferSummariesPayload, payload)
+        )
         offers_count = len(normalized.get("offers") or [])
         self._logger.info("Normalized offersummaries payload: %s offers", offers_count)
 

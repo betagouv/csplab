@@ -19,8 +19,7 @@ class TalentSoftTokenResponse:
 
 @dataclass
 class CachedToken:
-    """
-    Cached token with an absolute expiry timestamp.
+    """Cached token with an absolute expiry timestamp.
 
     `expires_at_epoch` is computed from now + expires_in.
     """
