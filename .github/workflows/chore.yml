@@ -55,7 +55,7 @@ jobs:
           if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
             uv run cz check --rev-range origin/${GITHUB_BASE_REF}..origin/${GITHUB_HEAD_REF}
           else
-            uv run cz check --rev-range ${GITHUB_BASE_REF}..${GITHUB_HEAD_REF}
+            uv run cz check --message "$(git log -1 --pretty=format:'%s')"
           fi
 
   lint-format:
