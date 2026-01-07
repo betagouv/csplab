@@ -3,6 +3,8 @@
 from datetime import datetime
 from uuid import uuid4
 
+from asgiref.sync import sync_to_async
+
 from domain.entities.cv_metadata import CVMetadata
 from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
 from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
@@ -88,6 +90,8 @@ class ProcessUploadedCVUsecase:
             created_at=datetime.now(),
         )
 
-        saved_cv = self._postgres_cv_metadata_repository.save(cv_metadata)
+        saved_cv = await sync_to_async(self._postgres_cv_metadata_repository.save)(
+            cv_metadata
+        )
         self._logger.info(f"CV metadata saved with ID: {saved_cv.id}")
         return str(saved_cv.id)
