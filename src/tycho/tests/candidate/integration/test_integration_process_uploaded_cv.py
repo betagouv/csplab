@@ -227,3 +227,175 @@ async def test_multiple_cv_processing_creates_separate_records(httpx_mock):
     assert cv2_model.filename == "cv2.pdf"
     assert cv1_model.extracted_text == mock_response
     assert cv2_model.extracted_text == mock_response
+
+
+# Tests with OpenAI PDF Extractor
+@pytest.mark.asyncio
+@pytest.mark.django_db
+async def test_execute_with_valid_pdf_saves_to_database_openai(httpx_mock):
+    """Test that valid PDF is processed and saved to real database using OpenAI."""
+    # Mock OpenAI API response
+    mock_response = {
+        "experiences": [
+            {
+                "title": "Data Engineer",
+                "company": "OpenAI Corp",
+                "sector": "AI",
+                "description": "3 years in data engineering",
+            }
+        ],
+        "skills": ["Python", "TensorFlow"],
+    }
+
+    httpx_mock.add_response(
+        method="POST",
+        url="https://openrouter.ai/api/v1/chat/completions",
+        json={
+            "choices": [{"message": {"content": str(mock_response).replace("'", '"')}}]
+        },
+        status_code=200,
+    )
+
+    container = _create_integration_container(PDFExtractorType.OPENAI)
+    usecase = container.process_uploaded_cv_usecase()
+
+    pdf_content = create_minimal_valid_pdf()
+    filename = "openai_integration_test_cv.pdf"
+
+    result = await usecase.execute(filename, pdf_content)
+
+    assert isinstance(result, str)
+    cv_id = UUID(result)
+
+    cv_model = await sync_to_async(CVMetadataModel.objects.get)(id=cv_id)
+    assert cv_model.filename == filename
+    assert cv_model.extracted_text == mock_response
+    assert "data engineer" in cv_model.search_query
+    assert isinstance(cv_model.created_at, datetime)
+
+    cv_entity = cv_model.to_entity()
+    assert isinstance(cv_entity, CVMetadata)
+    assert cv_entity.id == cv_id
+    assert cv_entity.filename == filename
+    assert cv_entity.extracted_text == mock_response
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db
+async def test_execute_with_openai_api_failure_does_not_save_to_database(httpx_mock):
+    """Test that OpenAI API failure raises error and doesn't save to database."""
+    # Mock multiple potential retry attempts
+    for _ in range(3):
+        httpx_mock.add_response(
+            method="POST",
+            url="https://openrouter.ai/api/v1/chat/completions",
+            json={"error": "API Error"},
+            status_code=500,
+        )
+
+    container = _create_integration_container(PDFExtractorType.OPENAI)
+    usecase = container.process_uploaded_cv_usecase()
+
+    pdf_content = create_minimal_valid_pdf()
+    filename = "openai_test.pdf"
+
+    initial_count = await sync_to_async(CVMetadataModel.objects.count)()
+
+    # OpenAI extractor raises ExternalApiError for HTTP errors with status codes
+    with pytest.raises(ExternalApiError):
+        await usecase.execute(filename, pdf_content)
+
+    final_count = await sync_to_async(CVMetadataModel.objects.count)()
+    assert initial_count == final_count
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db
+async def test_execute_with_empty_experiences_does_not_save_to_db_openai(httpx_mock):
+    """Test that empty experiences raises error and doesn't save to database."""
+    mock_response = {"experiences": [], "skills": []}
+
+    httpx_mock.add_response(
+        method="POST",
+        url="https://openrouter.ai/api/v1/chat/completions",
+        json={
+            "choices": [{"message": {"content": str(mock_response).replace("'", '"')}}]
+        },
+        status_code=200,
+    )
+
+    container = _create_integration_container(PDFExtractorType.OPENAI)
+    usecase = container.process_uploaded_cv_usecase()
+
+    pdf_content = create_minimal_valid_pdf()
+    filename = "empty_experiences_openai.pdf"
+
+    initial_count = await sync_to_async(CVMetadataModel.objects.count)()
+
+    with pytest.raises(TextExtractionError):
+        await usecase.execute(filename, pdf_content)
+
+    final_count = await sync_to_async(CVMetadataModel.objects.count)()
+    assert initial_count == final_count
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db
+async def test_multiple_cv_processing_creates_separate_records_openai(httpx_mock):
+    """Test that multiple CV processing creates separate database records."""
+    mock_response = {
+        "experiences": [
+            {
+                "title": "ML Engineer",
+                "company": "DeepMind",
+                "sector": "Research",
+                "description": "2 years in machine learning research",
+            }
+        ],
+        "skills": ["PyTorch", "Research"],
+    }
+
+    # First API call
+    httpx_mock.add_response(
+        method="POST",
+        url="https://openrouter.ai/api/v1/chat/completions",
+        json={
+            "choices": [{"message": {"content": str(mock_response).replace("'", '"')}}]
+        },
+        status_code=200,
+    )
+
+    container = _create_integration_container(PDFExtractorType.OPENAI)
+    usecase = container.process_uploaded_cv_usecase()
+
+    pdf_content = create_minimal_valid_pdf()
+
+    initial_count = await sync_to_async(CVMetadataModel.objects.count)()
+
+    result1 = await usecase.execute("openai_cv1.pdf", pdf_content)
+    cv_id1 = UUID(result1)
+
+    # Second API call
+    httpx_mock.add_response(
+        method="POST",
+        url="https://openrouter.ai/api/v1/chat/completions",
+        json={
+            "choices": [{"message": {"content": str(mock_response).replace("'", '"')}}]
+        },
+        status_code=200,
+    )
+    result2 = await usecase.execute("openai_cv2.pdf", pdf_content)
+    cv_id2 = UUID(result2)
+
+    final_count = await sync_to_async(CVMetadataModel.objects.count)()
+    assert final_count == initial_count + 2
+
+    assert cv_id1 != cv_id2
+
+    cv1_model = await sync_to_async(CVMetadataModel.objects.get)(id=cv_id1)
+    cv2_model = await sync_to_async(CVMetadataModel.objects.get)(id=cv_id2)
+
+    assert cv1_model.filename == "openai_cv1.pdf"
+    assert cv2_model.filename == "openai_cv2.pdf"
+    assert cv1_model.extracted_text == mock_response
+    assert cv2_model.extracted_text == mock_response
