@@ -27,6 +27,10 @@ from infrastructure.repositories.shared import (
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
+# Test constants
+EXPECTED_TEST_CORPS_COUNT = 2
+EXPECTED_TEST_CORPS_COUNT_WITH_LIMIT = 1
+
 
 @pytest.fixture(name="embeddings", scope="session")
 def embeddings_fixture():
@@ -85,7 +89,7 @@ def corps_data_fixture(shared_container, embeddings):
     vector_repository = shared_container.vector_repository()
 
     corps_list = []
-    for corps_id, fixture_data in list(embeddings.items())[:2]:
+    for corps_id, fixture_data in list(embeddings.items())[:EXPECTED_TEST_CORPS_COUNT]:
         corps = Corps(
             id=int(corps_id),
             code=f"CODE{corps_id}",
@@ -129,7 +133,7 @@ def test_retrieve_corps_with_valid_query_returns_results(
 
     result = retrieve_corps_usecase.execute(query, limit=10)
 
-    assert len(result) == 2
+    assert len(result) == EXPECTED_TEST_CORPS_COUNT
     assert isinstance(result, list)
     assert isinstance(result[0], tuple)
     assert isinstance(result[0][0], Corps)
@@ -173,7 +177,7 @@ def test_retrieve_corps_respects_limit_parameter(
 
     result = retrieve_corps_usecase.execute(query, limit=1)
 
-    assert len(result) == 1
+    assert len(result) == EXPECTED_TEST_CORPS_COUNT_WITH_LIMIT
     assert isinstance(result[0], tuple)
     assert isinstance(result[0][0], Corps)
     assert isinstance(result[0][1], float)
