@@ -2,12 +2,13 @@
 
 import base64
 import json
-from typing import Any, Dict
+from typing import cast
 
 import pymupdf
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
+from domain.value_objects.cv_extraction_types import CVExtractionResult
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.configs.openai_config import OpenAIConfig
 from infrastructure.external_gateways.constants.ocr_cv_prompts import (
@@ -21,27 +22,16 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
     def __init__(self, config: OpenAIConfig):
         """Initialize with OpenAI configuration."""
         self.config = config
-        self.client = OpenAI(api_key=config.api_key, base_url=str(config.base_url))
+        self.client = AsyncOpenAI(api_key=config.api_key, base_url=str(config.base_url))
 
-    def extract_text(self, pdf_content: bytes) -> Dict[str, Any]:
+    async def extract_text(self, pdf_content: bytes) -> CVExtractionResult:
         """Extract structured content from PDF bytes.
 
         Args:
             pdf_content: PDF file content as bytes
 
         Returns:
-            Structured data as dict with format:
-            {
-                "experiences": [
-                    {
-                        "title": str,
-                        "company": str,
-                        "sector": str|None,
-                        "description": str
-                    }
-                ],
-                "skills": [str]
-            }
+            Structured CV extraction result with experiences and skills
 
         Raises:
             ValueError: If PDF content is invalid or corrupted
@@ -78,7 +68,7 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
                 )
 
             # Call OpenAI API
-            response = self.client.chat.completions.create(
+            response = await self.client.chat.completions.create(
                 model=self.config.model,
                 messages=[{"role": "user", "content": content}],  # type: ignore
                 max_tokens=2000,
@@ -107,7 +97,7 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
             ):
                 raise ValueError("Invalid response structure from API")
 
-            return result
+            return cast(CVExtractionResult, result)
 
         except json.JSONDecodeError as e:
             raise ValueError("Failed to parse JSON response") from e

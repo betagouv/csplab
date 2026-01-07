@@ -36,7 +36,7 @@ class ProcessUploadedCVUsecase:
             "CANDIDATE::APPLICATION::ProcessUploadedCVUsecase::execute"
         )
 
-    def execute(self, filename: str, pdf_content: bytes) -> str:
+    async def execute(self, filename: str, pdf_content: bytes) -> str:
         """Execute the processing of uploaded CV.
 
         Args:
@@ -60,27 +60,30 @@ class ProcessUploadedCVUsecase:
 
         self._logger.info("PDF validation successful")
 
-        extracted_text = self._pdf_text_extractor.extract_text(pdf_content)
+        extracted_text = await self._pdf_text_extractor.extract_text(pdf_content)
 
         if not extracted_text or (
-            not extracted_text.get("experiences") and not extracted_text.get("skills")
+            not extracted_text["experiences"] and not extracted_text["skills"]
         ):
             self._logger.error("No structured content found in PDF")
             raise TextExtractionError(filename, "No structured content found in PDF")
 
         self._logger.info(
             "Text extraction successful, experiences:"
-            f"{len(extracted_text.get('experiences', []))}, "
+            f"{len(extracted_text['experiences'])}"
+            f"skills: {len(extracted_text['skills'])}"
         )
 
-        search_query = self._query_builder.build_query(extracted_text)
+        # Convert CVExtractionResult to dict for query builder compatibility
+        extracted_text_dict = dict(extracted_text)
+        search_query = self._query_builder.build_query(extracted_text_dict)
 
         self._logger.info("Search query built successfully")
 
         cv_metadata = CVMetadata(
             id=uuid4(),
             filename=filename,
-            extracted_text=extracted_text,
+            extracted_text=extracted_text_dict,
             search_query=search_query,
             created_at=datetime.now(),
         )

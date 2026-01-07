@@ -1,30 +1,21 @@
 """PDF text extractor interface for CV content extraction."""
 
-from typing import Any, Dict, Protocol
+from typing import Protocol
+
+from domain.value_objects.cv_extraction_types import CVExtractionResult
 
 
 class IPDFTextExtractor(Protocol):
     """Interface for extracting structured content from PDF files."""
 
-    def extract_text(self, pdf_content: bytes) -> Dict[str, Any]:
+    async def extract_text(self, pdf_content: bytes) -> CVExtractionResult:
         """Extract structured content from PDF bytes.
 
         Args:
             pdf_content: PDF file content as bytes
 
         Returns:
-            Structured data as dict with format:
-            {
-                "experiences": [
-                    {
-                        "title": str,
-                        "company": str,
-                        "sector": str|None,
-                        "description": str
-                    }
-                ],
-                "skills": [str]
-            }
+            Structured CV extraction result with experiences and skills
 
         Raises:
             ValueError: If PDF content is invalid or corrupted

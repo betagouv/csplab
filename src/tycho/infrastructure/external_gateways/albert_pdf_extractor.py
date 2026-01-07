@@ -3,9 +3,9 @@
 import json
 from typing import Any, Dict
 
-import requests
-
+from domain.services.async_http_client_interface import IAsyncHttpClient
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
+from domain.value_objects.cv_extraction_types import CVExtractionResult
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.configs.albert_config import AlbertConfig
 from infrastructure.external_gateways.constants.ocr_cv_prompts import (
@@ -16,28 +16,19 @@ from infrastructure.external_gateways.constants.ocr_cv_prompts import (
 class AlbertPDFExtractor(IPDFTextExtractor):
     """Implementation of PDF text extraction service using Albert API."""
 
-    def __init__(self, config: AlbertConfig):
-        """Initialize with Albert configuration."""
+    def __init__(self, config: AlbertConfig, http_client: IAsyncHttpClient):
+        """Initialize with Albert configuration and HTTP client."""
         self.config = config
+        self.http_client = http_client
 
-    def extract_text(self, pdf_content: bytes) -> Dict[str, Any]:
+    async def extract_text(self, pdf_content: bytes) -> CVExtractionResult:
         """Extract structured content from PDF bytes using Albert API.
 
         Args:
             pdf_content: PDF file content as bytes
 
         Returns:
-            Structured data as dict with format:
-            {
-                "experiences": [
-                    {
-                        "title": str,
-                        "company": str,
-                        "sector": str|None,
-                        "description": str
-                    }
-                ]
-            }
+            Structured CV extraction result with experiences and skills
 
         Raises:
             ExternalApiError: If PDF content is invalid or API call fails
@@ -51,13 +42,12 @@ class AlbertPDFExtractor(IPDFTextExtractor):
             "prompt": CV_EXTRACTION_PROMPT,
         }
 
-        response = requests.post(
-            url, headers=headers, files=files, data=data, timeout=120
-        )
+        async with self.http_client as client:
+            response = await client.post(url, headers=headers, files=files, data=data)
 
         try:
             response.raise_for_status()
-        except requests.HTTPError as e:
+        except Exception as e:
             raise ExternalApiError(
                 f"Albert API error: {response.status_code}",
                 status_code=response.status_code,
@@ -117,17 +107,21 @@ class AlbertPDFExtractor(IPDFTextExtractor):
         except json.JSONDecodeError:
             return {}
 
-    def _normalize_albert_ocr_structured(self, ocr_data: Any) -> Dict[str, Any]:
-        """Normalize Albert OCR JSON output to extract experiences only."""
+    def _normalize_albert_ocr_structured(self, ocr_data: Any) -> CVExtractionResult:
+        """Normalize Albert OCR JSON output to extract experiences and skills."""
         # Guard: Not a dict or string, return empty
         if not isinstance(ocr_data, (dict, str)):
-            return {"experiences": []}
+            return {"experiences": [], "skills": []}
 
         # Case 1: Direct experiences in dict
         if isinstance(ocr_data, dict):
             experiences = ocr_data.get("experiences")
+            skills = ocr_data.get("skills", [])
             if isinstance(experiences, list):
-                return {"experiences": experiences}
+                return {
+                    "experiences": experiences,
+                    "skills": skills if isinstance(skills, list) else [],
+                }
 
             # Case 2: Multi-page structure
             data = ocr_data.get("data")
@@ -143,11 +137,12 @@ class AlbertPDFExtractor(IPDFTextExtractor):
         if isinstance(ocr_data, str):
             return self._extract_from_text(ocr_data)
 
-        return {"experiences": []}
+        return {"experiences": [], "skills": []}
 
-    def _extract_from_pages(self, pages: list) -> Dict[str, Any]:
-        """Extract experiences from multi-page data."""
+    def _extract_from_pages(self, pages: list) -> CVExtractionResult:
+        """Extract experiences and skills from multi-page data."""
         final_experiences = []
+        final_skills = []
         for page in pages:
             if not isinstance(page, dict):
                 continue
@@ -158,16 +153,21 @@ class AlbertPDFExtractor(IPDFTextExtractor):
             if not isinstance(parsed, dict):
                 continue
             experiences = parsed.get("experiences", [])
+            skills = parsed.get("skills", [])
             if isinstance(experiences, list):
                 final_experiences.extend(experiences)
-        return {"experiences": final_experiences}
+            if isinstance(skills, list):
+                final_skills.extend(skills)
+        return {"experiences": final_experiences, "skills": final_skills}
 
-    def _extract_from_text(self, text: str) -> Dict[str, Any]:
-        """Extract experiences from text content."""
+    def _extract_from_text(self, text: str) -> CVExtractionResult:
+        """Extract experiences and skills from text content."""
         parsed = self._extract_json_from_fenced_content(text)
         if not isinstance(parsed, dict):
-            return {"experiences": []}
+            return {"experiences": [], "skills": []}
         experiences = parsed.get("experiences", [])
-        if isinstance(experiences, list):
-            return {"experiences": experiences}
-        return {"experiences": []}
+        skills = parsed.get("skills", [])
+        return {
+            "experiences": experiences if isinstance(experiences, list) else [],
+            "skills": skills if isinstance(skills, list) else [],
+        }

@@ -10,6 +10,7 @@ from application.candidate.usecases.retrieve_corps import RetrieveCorpsUsecase
 from infrastructure.external_gateways.albert_pdf_extractor import AlbertPDFExtractor
 from infrastructure.external_gateways.openai_pdf_extractor import OpenAIPDFExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
+from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
 from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,
 )
@@ -28,11 +29,15 @@ class CandidateContainer(containers.DeclarativeContainer):
     embedding_generator = shared_container.embedding_generator
     vector_repository = shared_container.vector_repository
 
+    # HTTP client for async operations
+    async_http_client = providers.Factory(AsyncHttpClient)
+
     pdf_text_extractor = providers.Selector(
         providers.Callable(lambda cfg: cfg.pdf_extractor_type.value, config),
         albert=providers.Factory(
             AlbertPDFExtractor,
             config=providers.Callable(lambda cfg: cfg.albert, config),
+            http_client=async_http_client,
         ),
         openai=providers.Factory(
             OpenAIPDFExtractor,
