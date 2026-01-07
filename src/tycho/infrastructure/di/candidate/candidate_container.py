@@ -8,6 +8,7 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.retrieve_corps import RetrieveCorpsUsecase
 from infrastructure.external_gateways.albert_pdf_extractor import AlbertPDFExtractor
+from infrastructure.external_gateways.openai_pdf_extractor import OpenAIPDFExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,
@@ -27,9 +28,16 @@ class CandidateContainer(containers.DeclarativeContainer):
     embedding_generator = shared_container.embedding_generator
     vector_repository = shared_container.vector_repository
 
-    pdf_text_extractor = providers.Factory(
-        AlbertPDFExtractor,
-        config=providers.Callable(lambda cfg: cfg.albert, config),
+    pdf_text_extractor = providers.Selector(
+        providers.Callable(lambda cfg: cfg.pdf_extractor_type.value, config),
+        albert=providers.Factory(
+            AlbertPDFExtractor,
+            config=providers.Callable(lambda cfg: cfg.albert, config),
+        ),
+        openai=providers.Factory(
+            OpenAIPDFExtractor,
+            config=providers.Callable(lambda cfg: cfg.openai, config),
+        ),
     )
     query_builder = providers.Factory(QueryBuilder)
     postgres_cv_metadata_repository = providers.Singleton(PostgresCVMetadataRepository)

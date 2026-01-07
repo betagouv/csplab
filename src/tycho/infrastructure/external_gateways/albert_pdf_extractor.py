@@ -8,8 +8,8 @@ import requests
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.configs.albert_config import AlbertConfig
-from infrastructure.external_gateways.constants.albert_prompts import (
-    ALBERT_CV_EXTRACTION_PROMPT,
+from infrastructure.external_gateways.constants.ocr_cv_prompts import (
+    CV_EXTRACTION_PROMPT,
 )
 
 
@@ -48,7 +48,7 @@ class AlbertPDFExtractor(IPDFTextExtractor):
         data = {
             "model": self.config.model_name,
             "dpi": str(self.config.dpi),
-            "prompt": ALBERT_CV_EXTRACTION_PROMPT,
+            "prompt": CV_EXTRACTION_PROMPT,
         }
 
         response = requests.post(

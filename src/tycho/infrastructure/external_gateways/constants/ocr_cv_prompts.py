@@ -1,6 +1,6 @@
-"""Albert API prompts constants."""
+"""OCR CV prompts constants."""
 
-ALBERT_CV_EXTRACTION_PROMPT = """Tu es un assistant qui extrait les expériences
+CV_EXTRACTION_PROMPT = """Tu es un assistant qui extrait les expériences
 professionnelles et les compétences d'un CV.
 
 Consignes importantes :
@@ -16,7 +16,8 @@ Le format de sortie doit être exactement :
             "sector": "string|null",
             "description": "string"
         }
-    ]
+    ],
+    "skills": ["string"]
 }
 
 Règles supplémentaires :
