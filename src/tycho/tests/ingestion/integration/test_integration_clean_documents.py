@@ -18,7 +18,7 @@ from infrastructure.external_gateways.configs.piste_config import (
     PisteConfig,
     PisteGatewayConfig,
 )
-from infrastructure.gateways.shared.http_client import HttpClient
+from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.ingestion import (
     postgres_document_repository as postgres_document_repo,
@@ -66,7 +66,7 @@ class TestIntegrationCleanDocumentsUsecase(TransactionTestCase):
 
         logger_service = LoggerService()
         self.container.logger_service.override(logger_service)
-        http_client = HttpClient()
+        http_client = SyncHttpClient()
         self.container.http_client.override(http_client)
 
         p_document_repository = postgres_document_repo.PostgresDocumentRepository()
