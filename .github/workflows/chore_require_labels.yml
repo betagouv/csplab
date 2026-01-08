@@ -1,0 +1,26 @@
+name: Label Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  merge_group:
+
+jobs:
+  require-label:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Verify changelog label
+        uses: mheap/github-action-required-labels@8afbe8ae6ab7647d0c9f0cfa7c2f939650d22509 # v5.5
+        with:
+          mode: exactly
+          count: 1
+          labels: |
+            breaking
+            added
+            modified
+            removed
+            bugfix
+            dependencies
+            documentation
