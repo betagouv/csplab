@@ -1,21 +1,12 @@
 """Unit test cases for ProcessUploadedCVUsecase."""
 
+import json
 from datetime import datetime
 from uuid import UUID
 
 import pytest
-from pydantic import HttpUrl
 
 from domain.exceptions.cv_errors import InvalidPDFError
-from domain.value_objects.pdf_extractor_type import PDFExtractorType
-from infrastructure.di.candidate.candidate_container import CandidateContainer
-from infrastructure.external_gateways.configs.albert_config import AlbertConfig
-from infrastructure.external_gateways.configs.openai_config import OpenAIConfig
-from infrastructure.external_gateways.configs.pdf_extractor_config import (
-    PDFExtractorConfig,
-)
-from infrastructure.gateways.shared.logger import LoggerService
-from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepository
 from tests.utils.pdf_test_utils import create_large_pdf, create_minimal_valid_pdf
 
 # Test constants
@@ -23,73 +14,25 @@ EXPECTED_EXPERIENCES_COUNT = 1
 EXPECTED_SKILLS_COUNT = 2
 
 
-def _create_isolated_container(pdf_extractor_type=PDFExtractorType.ALBERT):
-    """Create an isolated container."""
-    container = CandidateContainer()
-
-    logger_service = LoggerService()
-    container.logger_service.override(logger_service)
-
-    in_memory_cv_repo = InMemoryCVMetadataRepository()
-    container.postgres_cv_metadata_repository.override(in_memory_cv_repo)
-
-    # Configure extractors for tests
-    albert_config = AlbertConfig(
-        api_base_url=HttpUrl("https://albert.api.etalab.gouv.fr"),
-        api_key="test-albert-key",
-        model_name="albert-large",
-        dpi=200,
-    )
-    openai_config = OpenAIConfig(
-        api_key="test-api-key",
-        model="gpt-4o",
-        base_url=HttpUrl("https://openrouter.ai/api/v1"),
-    )
-    pdf_config = PDFExtractorConfig(
-        pdf_extractor_type=pdf_extractor_type,
-        albert_config=albert_config,
-        openai_config=openai_config,
-    )
-    container.config.override(pdf_config)
-
-    return container
-
-
 @pytest.mark.asyncio
-async def test_execute_with_valid_pdf_returns_cv_id_albert(httpx_mock):
+async def test_execute_with_valid_pdf_returns_cv_id_albert(
+    httpx_mock, process_cv_usecase, candidate_container, mock_api_responses, pdf_content
+):
     """Test that a valid PDF is processed successfully with Albert extractor."""
-    # Mock Albert API response - format that Albert actually returns
-    mock_response = {
-        "experiences": [
-            {
-                "title": "Software Engineer",
-                "company": "Tech Corp",
-                "sector": "Technology",
-                "description": "5 years in Python development",
-            }
-        ],
-        "skills": ["Python", "Django"],
-    }
-
     httpx_mock.add_response(
         method="POST",
         url="https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-        json=mock_response,
+        json=mock_api_responses["albert"],
         status_code=200,
     )
 
-    container = _create_isolated_container(PDFExtractorType.ALBERT)
-    usecase = container.process_uploaded_cv_usecase()
-
-    pdf_content = create_minimal_valid_pdf()
     filename = "test_cv.pdf"
-
-    result = await usecase.execute(filename, pdf_content)
+    result = await process_cv_usecase.execute(filename, pdf_content)
 
     assert isinstance(result, str)
     cv_id = UUID(result)
 
-    cv_repo = container.postgres_cv_metadata_repository()
+    cv_repo = candidate_container.postgres_cv_metadata_repository()
     assert cv_repo.count() == 1
 
     saved_cv = cv_repo.find_by_id(cv_id)
@@ -104,43 +47,32 @@ async def test_execute_with_valid_pdf_returns_cv_id_albert(httpx_mock):
 
 
 @pytest.mark.asyncio
-async def test_execute_with_valid_pdf_returns_cv_id_openai(httpx_mock):
+async def test_execute_with_valid_pdf_returns_cv_id_openai(
+    httpx_mock,
+    openai_process_cv_usecase,
+    openai_candidate_container,
+    mock_api_responses,
+    pdf_content,
+):
     """Test that a valid PDF is processed successfully with OpenAI extractor."""
-    # Mock OpenAI API response using pytest-httpx
-    mock_response = {
-        "choices": [
-            {
-                "message": {
-                    "content": (
-                        '{"experiences": [{"title": "Software Engineer", '
-                        '"company": "Tech Corp", "sector": "Technology", '
-                        '"description": "5 years in Python development"}], '
-                        '"skills": ["Python", "Django"]}'
-                    )
-                }
-            }
-        ]
-    }
-
     httpx_mock.add_response(
         method="POST",
         url="https://openrouter.ai/api/v1/chat/completions",
-        json=mock_response,
+        json={
+            "choices": [
+                {"message": {"content": json.dumps(mock_api_responses["openai"])}}
+            ]
+        },
         status_code=200,
     )
 
-    container = _create_isolated_container(PDFExtractorType.OPENAI)
-    usecase = container.process_uploaded_cv_usecase()
-
-    pdf_content = create_minimal_valid_pdf()
     filename = "test_cv.pdf"
-
-    result = await usecase.execute(filename, pdf_content)
+    result = await openai_process_cv_usecase.execute(filename, pdf_content)
 
     assert isinstance(result, str)
     cv_id = UUID(result)
 
-    cv_repo = container.postgres_cv_metadata_repository()
+    cv_repo = openai_candidate_container.postgres_cv_metadata_repository()
     assert cv_repo.count() == 1
 
     saved_cv = cv_repo.find_by_id(cv_id)
@@ -155,77 +87,72 @@ async def test_execute_with_valid_pdf_returns_cv_id_openai(httpx_mock):
 
 
 @pytest.mark.asyncio
-async def test_execute_with_invalid_pdf_raises_invalid_pdf_error_albert():
+async def test_execute_with_invalid_pdf_raises_invalid_pdf_error_albert(
+    process_cv_usecase, candidate_container
+):
     """Test that invalid PDF content raises InvalidPDFError with Albert extractor."""
-    container = _create_isolated_container(PDFExtractorType.ALBERT)
-    usecase = container.process_uploaded_cv_usecase()
-
     pdf_content = b"This is not a PDF file"
     filename = "invalid.pdf"
 
     with pytest.raises(InvalidPDFError) as exc_info:
-        await usecase.execute(filename, pdf_content)
+        await process_cv_usecase.execute(filename, pdf_content)
 
     assert exc_info.value.filename == filename
-    cv_repo = container.postgres_cv_metadata_repository()
+    cv_repo = candidate_container.postgres_cv_metadata_repository()
     assert cv_repo.count() == 0
 
 
 @pytest.mark.asyncio
-async def test_execute_with_invalid_pdf_raises_invalid_pdf_error_openai():
+async def test_execute_with_invalid_pdf_raises_invalid_pdf_error_openai(
+    openai_process_cv_usecase, openai_candidate_container
+):
     """Test that invalid PDF content raises InvalidPDFError with OpenAI extractor."""
-    container = _create_isolated_container(PDFExtractorType.OPENAI)
-    usecase = container.process_uploaded_cv_usecase()
-
     pdf_content = b"This is not a PDF file"
     filename = "invalid.pdf"
 
     with pytest.raises(InvalidPDFError) as exc_info:
-        await usecase.execute(filename, pdf_content)
+        await openai_process_cv_usecase.execute(filename, pdf_content)
 
     assert exc_info.value.filename == filename
-    cv_repo = container.postgres_cv_metadata_repository()
+    cv_repo = openai_candidate_container.postgres_cv_metadata_repository()
     assert cv_repo.count() == 0
 
 
 @pytest.mark.asyncio
-async def test_execute_with_empty_pdf_raises_invalid_pdf_error_albert():
+async def test_execute_with_empty_pdf_raises_invalid_pdf_error_albert(
+    process_cv_usecase, candidate_container
+):
     """Test that empty PDF content raises InvalidPDFError with Albert extractor."""
-    container = _create_isolated_container(PDFExtractorType.ALBERT)
-    usecase = container.process_uploaded_cv_usecase()
-
     pdf_content = b""
     filename = "empty.pdf"
 
     with pytest.raises(InvalidPDFError) as exc_info:
-        await usecase.execute(filename, pdf_content)
+        await process_cv_usecase.execute(filename, pdf_content)
 
     assert exc_info.value.filename == filename
-    cv_repo = container.postgres_cv_metadata_repository()
+    cv_repo = candidate_container.postgres_cv_metadata_repository()
     assert cv_repo.count() == 0
 
 
 @pytest.mark.asyncio
-async def test_execute_with_empty_pdf_raises_invalid_pdf_error_openai():
+async def test_execute_with_empty_pdf_raises_invalid_pdf_error_openai(
+    openai_process_cv_usecase, openai_candidate_container
+):
     """Test that empty PDF content raises InvalidPDFError with OpenAI extractor."""
-    container = _create_isolated_container(PDFExtractorType.OPENAI)
-    usecase = container.process_uploaded_cv_usecase()
-
     pdf_content = b""
     filename = "empty.pdf"
 
     with pytest.raises(InvalidPDFError) as exc_info:
-        await usecase.execute(filename, pdf_content)
+        await openai_process_cv_usecase.execute(filename, pdf_content)
 
     assert exc_info.value.filename == filename
-    cv_repo = container.postgres_cv_metadata_repository()
+    cv_repo = openai_candidate_container.postgres_cv_metadata_repository()
     assert cv_repo.count() == 0
 
 
-def test_query_builder_extracts_keywords_correctly():
+def test_query_builder_extracts_keywords_correctly(candidate_container):
     """Test that query builder extracts keywords from CV structured data."""
-    container = _create_isolated_container(PDFExtractorType.ALBERT)
-    query_builder = container.query_builder()
+    query_builder = candidate_container.query_builder()
 
     cv_data = {
         "experiences": [
@@ -258,13 +185,12 @@ def test_query_builder_extracts_keywords_correctly():
     assert result == ""
 
 
-def test_both_extractors_validate_pdf_consistently():
+def test_both_extractors_validate_pdf_consistently(
+    candidate_container, openai_candidate_container
+):
     """Test that both extractors validate PDFs consistently."""
-    albert_container = _create_isolated_container(PDFExtractorType.ALBERT)
-    openai_container = _create_isolated_container(PDFExtractorType.OPENAI)
-
-    albert_extractor = albert_container.pdf_text_extractor()
-    openai_extractor = openai_container.pdf_text_extractor()
+    albert_extractor = candidate_container.pdf_text_extractor()
+    openai_extractor = openai_candidate_container.pdf_text_extractor()
 
     # Test cases
     valid_pdf = create_minimal_valid_pdf()
@@ -288,68 +214,45 @@ def test_both_extractors_validate_pdf_consistently():
 
 
 @pytest.mark.asyncio
-async def test_both_extractors_process_same_pdf_consistently(httpx_mock):
+async def test_both_extractors_process_same_pdf_consistently(
+    httpx_mock,
+    candidate_container,
+    openai_candidate_container,
+    mock_api_responses,
+    pdf_content,
+):
     """Test that both extractors process the same PDF consistently."""
-    # Mock Albert API response
-    albert_mock_response = {
-        "experiences": [
-            {
-                "title": "Data Scientist",
-                "company": "AI Corp",
-                "sector": "Technology",
-                "description": "3 years in machine learning",
-            }
-        ],
-        "skills": ["Python", "Machine Learning"],
-    }
-
     httpx_mock.add_response(
         method="POST",
         url="https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-        json=albert_mock_response,
+        json=mock_api_responses["albert"],
         status_code=200,
     )
-
-    # Mock OpenAI API response
-    openai_mock_response = {
-        "choices": [
-            {
-                "message": {
-                    "content": (
-                        '{"experiences": [{"title": "Data Scientist", '
-                        '"company": "AI Corp", "sector": "Technology", '
-                        '"description": "3 years in machine learning"}], '
-                        '"skills": ["Python", "Machine Learning"]}'
-                    )
-                }
-            }
-        ]
-    }
 
     httpx_mock.add_response(
         method="POST",
         url="https://openrouter.ai/api/v1/chat/completions",
-        json=openai_mock_response,
+        json={
+            "choices": [
+                {"message": {"content": json.dumps(mock_api_responses["openai"])}}
+            ]
+        },
         status_code=200,
     )
 
     # Test Albert extractor
-    albert_container = _create_isolated_container(PDFExtractorType.ALBERT)
-    albert_usecase = albert_container.process_uploaded_cv_usecase()
-
-    pdf_content = create_minimal_valid_pdf()
+    albert_usecase = candidate_container.process_uploaded_cv_usecase()
     filename = "test_cv.pdf"
 
     albert_result = await albert_usecase.execute(filename, pdf_content)
-    albert_cv_repo = albert_container.postgres_cv_metadata_repository()
+    albert_cv_repo = candidate_container.postgres_cv_metadata_repository()
     albert_saved_cv = albert_cv_repo.find_by_id(UUID(albert_result))
 
     # Test OpenAI extractor
-    openai_container = _create_isolated_container(PDFExtractorType.OPENAI)
-    openai_usecase = openai_container.process_uploaded_cv_usecase()
+    openai_usecase = openai_candidate_container.process_uploaded_cv_usecase()
 
     openai_result = await openai_usecase.execute(filename, pdf_content)
-    openai_cv_repo = openai_container.postgres_cv_metadata_repository()
+    openai_cv_repo = openai_candidate_container.postgres_cv_metadata_repository()
     openai_saved_cv = openai_cv_repo.find_by_id(UUID(openai_result))
 
     # Both should have the same structure
