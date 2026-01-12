@@ -1,7 +1,7 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: ''
+name: Rapport d'incident
+about: Créez un rapport pour nous aider à nous améliorer
+title: "[bug]"
 labels: ''
 assignees: ''
 
@@ -13,8 +13,10 @@ assignees: ''
 …
 
 ## comportement attendu
+…
 
 ## utilisateurs impactés
+…
 
 ## écrans concernés
 :warning: copies d'écran
