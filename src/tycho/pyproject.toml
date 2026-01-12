@@ -59,14 +59,13 @@ packages = [
 # Third party packages configuration
 [tool.coverage.run]
 omit = [
-  "apps/**/migrations/*",
+  "*/migrations/*",
   "config/wsgi.py",
-  "tycho/tests/*",
-  "apps/**/management/*"
+  "*/management/*"
 ]
 
 [tool.pytest.ini_options]
-addopts = "-v --cov-report term-missing --cov=apps --cov=tycho"
+addopts = "-v --cov-report term-missing --cov=application --cov=domain --cov=infrastructure --cov=presentation --cov=config"
 DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = [
     "test_*.py",
