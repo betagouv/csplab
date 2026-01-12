@@ -180,7 +180,7 @@ test: \
 
 test-tycho: ## test tycho python sources
 	@echo 'test:tychostarted…'
-	$(TYCHO_UV) pytest -s
+	$(TYCHO_UV) pytest --numprocesses=logical --create-db
 .PHONY: test-tycho
 
 ## MANAGE docker services
