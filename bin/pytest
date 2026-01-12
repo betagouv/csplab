@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-set -eo pipefail
-
-cd src/tycho && direnv exec . pytest "$@"
