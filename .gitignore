@@ -73,3 +73,8 @@ scripts/*.csv
 
 
 ARCHITECTURE*
+
+# VSCode - opt-in for shared configs, ignore private configs
+.vscode/**
+!.vscode/settings.json
+!.vscode/extensions.json
