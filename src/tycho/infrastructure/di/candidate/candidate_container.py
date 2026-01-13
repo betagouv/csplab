@@ -16,6 +16,17 @@ from infrastructure.repositories.candidate.postgres_cv_metadata_repository impor
 )
 
 
+def _create_pdf_extractor(config, http_client):
+    """Create PDF extractor based on configuration using a more readable approach."""
+    extractors = {
+        "albert": lambda cfg: AlbertPDFExtractor(
+            config=cfg.albert, http_client=http_client
+        ),
+        "openai": lambda cfg: OpenAIPDFExtractor(config=cfg.openai),
+    }
+    return extractors[config.pdf_extractor_type.value](config)
+
+
 class CandidateContainer(containers.DeclarativeContainer):
     """Candidate services container."""
 
@@ -32,17 +43,10 @@ class CandidateContainer(containers.DeclarativeContainer):
     # HTTP client for async operations
     async_http_client = providers.Factory(AsyncHttpClient)
 
-    pdf_text_extractor = providers.Selector(
-        providers.Callable(lambda cfg: cfg.pdf_extractor_type.value, config),
-        albert=providers.Factory(
-            AlbertPDFExtractor,
-            config=providers.Callable(lambda cfg: cfg.albert, config),
-            http_client=async_http_client,
-        ),
-        openai=providers.Factory(
-            OpenAIPDFExtractor,
-            config=providers.Callable(lambda cfg: cfg.openai, config),
-        ),
+    pdf_text_extractor = providers.Callable(
+        lambda cfg, http_client: _create_pdf_extractor(cfg, http_client),
+        config,
+        async_http_client,
     )
     query_builder = providers.Factory(QueryBuilder)
     postgres_cv_metadata_repository = providers.Singleton(PostgresCVMetadataRepository)
