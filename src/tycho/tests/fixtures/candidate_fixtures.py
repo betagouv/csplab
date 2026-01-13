@@ -1,5 +1,7 @@
 """Shared fixtures for candidate tests."""
 
+import json
+
 import pytest
 from pydantic import HttpUrl
 
@@ -152,33 +154,52 @@ def openai_process_cv_usecase_integration_fixture(openai_integration_container):
     return openai_integration_container.process_uploaded_cv_usecase()
 
 
-@pytest.fixture(name="mock_api_responses")
-def mock_api_responses_fixture():
-    """Mock API responses for testing."""
-    return {
-        "albert": {
-            "experiences": [
-                {
-                    "title": "Software Engineer",
-                    "company": "Tech Corp",
-                    "sector": "Technology",
-                    "description": "5 years in Python development",
-                }
-            ],
-            "skills": ["Python", "Django"],
-        },
-        "openai": {
-            "experiences": [
-                {
-                    "title": "Software Engineer",
-                    "company": "Tech Corp",
-                    "sector": "Technology",
-                    "description": "5 years in Python development",
-                }
-            ],
-            "skills": ["Python", "Django"],
-        },
-    }
+@pytest.fixture(params=["albert", "openai"])
+def extractor_config(request):
+    """Parametrized fixture for both Albert and OpenAI extractors."""
+    if request.param == "albert":
+        return {
+            "type": "albert",
+            "api_url": "https://albert.api.etalab.gouv.fr/v1/ocr-beta",
+            "usecase_fixture": "process_cv_usecase",
+            "container_fixture": "candidate_container",
+            "response_wrapper": lambda response: response,
+            "retry_count": 1,
+        }
+    else:  # openai
+        return {
+            "type": "openai",
+            "api_url": "https://openrouter.ai/api/v1/chat/completions",
+            "usecase_fixture": "openai_process_cv_usecase",
+            "container_fixture": "openai_candidate_container",
+            "response_wrapper": lambda response: {
+                "choices": [{"message": {"content": json.dumps(response)}}]
+            },
+            "retry_count": 3,
+        }
+
+
+@pytest.fixture(params=["albert", "openai"])
+def extractor_config_integration(request):
+    """Parametrized fixture for both Albert and OpenAI extractors."""
+    if request.param == "albert":
+        return {
+            "type": "albert",
+            "api_url": "https://albert.api.etalab.gouv.fr/v1/ocr-beta",
+            "usecase_fixture": "process_cv_usecase_integration",
+            "response_wrapper": lambda response: response,
+            "retry_count": 1,
+        }
+    else:  # openai
+        return {
+            "type": "openai",
+            "api_url": "https://openrouter.ai/api/v1/chat/completions",
+            "usecase_fixture": "openai_process_cv_usecase_integration",
+            "response_wrapper": lambda response: {
+                "choices": [{"message": {"content": json.dumps(response)}}]
+            },
+            "retry_count": 3,
+        }
 
 
 @pytest.fixture(name="pdf_content")

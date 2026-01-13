@@ -1,6 +1,5 @@
 """Integration tests for ProcessUploadedCVUsecase with Django persistence."""
 
-import json
 from datetime import datetime
 from uuid import UUID
 
@@ -10,29 +9,37 @@ from domain.entities.cv_metadata import CVMetadata
 from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.exceptions.exceptions import ExternalApiError
+from tests.utils.mock_api_response_factory import MockApiResponseFactory
 
 
 @pytest.mark.django_db
 async def test_execute_with_valid_pdf_saves_to_database(
-    httpx_mock, process_cv_usecase_integration, mock_api_responses, pdf_content
+    httpx_mock, request, pdf_content, extractor_config_integration
 ):
     """Test that valid PDF is processed and saved to real database."""
+    mock_response = MockApiResponseFactory.create_ocr_api_response(
+        experiences=[("Software Engineer", "Tech Corp")],
+        skills=["Python", "Django"],
+        description="5 years in Python development",
+    )
+
     httpx_mock.add_response(
         method="POST",
-        url="https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-        json=mock_api_responses["albert"],
+        url=extractor_config_integration["api_url"],
+        json=extractor_config_integration["response_wrapper"](mock_response),
         status_code=200,
     )
 
-    filename = "integration_test_cv.pdf"
-    result = await process_cv_usecase_integration.execute(filename, pdf_content)
+    usecase = request.getfixturevalue(extractor_config_integration["usecase_fixture"])
+    filename = f"{extractor_config_integration['type']}_integration_test_cv.pdf"
+    result = await usecase.execute(filename, pdf_content)
 
     assert isinstance(result, str)
     cv_id = UUID(result)
 
     cv_model = await CVMetadataModel.objects.aget(id=cv_id)
     assert cv_model.filename == filename
-    assert cv_model.extracted_text == mock_api_responses["albert"]
+    assert cv_model.extracted_text == mock_response
     assert "software engineer" in cv_model.search_query
     assert isinstance(cv_model.created_at, datetime)
 
@@ -40,7 +47,7 @@ async def test_execute_with_valid_pdf_saves_to_database(
     assert isinstance(cv_entity, CVMetadata)
     assert cv_entity.id == cv_id
     assert cv_entity.filename == filename
-    assert cv_entity.extracted_text == mock_api_responses["albert"]
+    assert cv_entity.extracted_text == mock_response
 
 
 @pytest.mark.django_db
@@ -62,22 +69,27 @@ async def test_execute_with_invalid_pdf_does_not_save_to_database(
 
 
 @pytest.mark.django_db
-async def test_execute_with_albert_api_failure_does_not_save_to_database(
-    httpx_mock, process_cv_usecase_integration, pdf_content
+async def test_execute_with_api_failure_does_not_save_to_database(
+    httpx_mock, request, pdf_content, extractor_config_integration
 ):
-    """Test that Albert API failure raises error and doesn't save to database."""
-    httpx_mock.add_response(
-        method="POST",
-        url="https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-        json={"error": "API Error"},
-        status_code=500,
-    )
+    """Test that API failure raises error and doesn't save to database."""
+    # Mock multiple potential retry attempts for OpenAI
+    for _ in range(extractor_config_integration["retry_count"]):
+        httpx_mock.add_response(
+            method="POST",
+            url=extractor_config_integration["api_url"],
+            json={"error": "API Error"},
+            status_code=500,
+        )
 
-    filename = "test.pdf"
+    filename = f"{extractor_config_integration['type']}_test.pdf"
     initial_count = await CVMetadataModel.objects.acount()
 
     with pytest.raises(ExternalApiError):
-        await process_cv_usecase_integration.execute(filename, pdf_content)
+        usecase = request.getfixturevalue(
+            extractor_config_integration["usecase_fixture"]
+        )
+        await usecase.execute(filename, pdf_content)
 
     final_count = await CVMetadataModel.objects.acount()
     assert initial_count == final_count
@@ -85,23 +97,26 @@ async def test_execute_with_albert_api_failure_does_not_save_to_database(
 
 @pytest.mark.django_db
 async def test_execute_with_empty_experiences_does_not_save_to_database(
-    httpx_mock, process_cv_usecase_integration, pdf_content
+    httpx_mock, request, pdf_content, extractor_config_integration
 ):
     """Test that empty experiences raises error and doesn't save to database."""
-    mock_response = {"experiences": [], "skills": []}
+    mock_response = MockApiResponseFactory.create_empty_response()
 
     httpx_mock.add_response(
         method="POST",
-        url="https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-        json=mock_response,
+        url=extractor_config_integration["api_url"],
+        json=extractor_config_integration["response_wrapper"](mock_response),
         status_code=200,
     )
 
-    filename = "empty_experiences.pdf"
+    filename = f"empty_experiences_{extractor_config_integration['type']}.pdf"
     initial_count = await CVMetadataModel.objects.acount()
 
     with pytest.raises(TextExtractionError):
-        await process_cv_usecase_integration.execute(filename, pdf_content)
+        usecase = request.getfixturevalue(
+            extractor_config_integration["usecase_fixture"]
+        )
+        await usecase.execute(filename, pdf_content)
 
     final_count = await CVMetadataModel.objects.acount()
     assert initial_count == final_count
@@ -109,166 +124,40 @@ async def test_execute_with_empty_experiences_does_not_save_to_database(
 
 @pytest.mark.django_db
 async def test_multiple_cv_processing_creates_separate_records(
-    httpx_mock, process_cv_usecase_integration, pdf_content, mock_api_responses
+    httpx_mock, request, pdf_content, extractor_config_integration
 ):
     """Test that multiple CV processing creates separate database records."""
-    httpx_mock.add_response(
-        method="POST",
-        url="https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-        json=mock_api_responses["albert"],
-        status_code=200,
+    mock_response = MockApiResponseFactory.create_ocr_api_response(
+        experiences=[("Software Engineer", "Tech Corp")],
+        skills=["Python", "Django"],
+        description="5 years in Python development",
     )
 
-    initial_count = await CVMetadataModel.objects.acount()
-
-    result1 = await process_cv_usecase_integration.execute("cv1.pdf", pdf_content)
-    cv_id1 = UUID(result1)
-
-    httpx_mock.add_response(
-        method="POST",
-        url="https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-        json=mock_api_responses["albert"],
-        status_code=200,
-    )
-    result2 = await process_cv_usecase_integration.execute("cv2.pdf", pdf_content)
-    cv_id2 = UUID(result2)
-
-    final_count = await CVMetadataModel.objects.acount()
-    assert final_count == initial_count + 2
-
-    assert cv_id1 != cv_id2
-
-    cv1_model = await CVMetadataModel.objects.aget(id=cv_id1)
-    cv2_model = await CVMetadataModel.objects.aget(id=cv_id2)
-
-    assert cv1_model.filename == "cv1.pdf"
-    assert cv2_model.filename == "cv2.pdf"
-    assert cv1_model.extracted_text == mock_api_responses["albert"]
-    assert cv2_model.extracted_text == mock_api_responses["albert"]
-
-
-# Tests with OpenAI PDF Extractor
-@pytest.mark.django_db
-async def test_execute_with_valid_pdf_saves_to_database_openai(
-    httpx_mock, openai_process_cv_usecase_integration, mock_api_responses, pdf_content
-):
-    """Test that valid PDF is processed and saved to real database using OpenAI."""
-    httpx_mock.add_response(
-        method="POST",
-        url="https://openrouter.ai/api/v1/chat/completions",
-        json={
-            "choices": [
-                {"message": {"content": json.dumps(mock_api_responses["openai"])}}
-            ]
-        },
-        status_code=200,
-    )
-
-    filename = "openai_integration_test_cv.pdf"
-    result = await openai_process_cv_usecase_integration.execute(filename, pdf_content)
-
-    assert isinstance(result, str)
-    cv_id = UUID(result)
-
-    cv_model = await CVMetadataModel.objects.aget(id=cv_id)
-    assert cv_model.filename == filename
-    assert cv_model.extracted_text == mock_api_responses["openai"]
-    assert "software engineer" in cv_model.search_query
-    assert isinstance(cv_model.created_at, datetime)
-
-    cv_entity = cv_model.to_entity()
-    assert isinstance(cv_entity, CVMetadata)
-    assert cv_entity.id == cv_id
-    assert cv_entity.filename == filename
-    assert cv_entity.extracted_text == mock_api_responses["openai"]
-
-
-@pytest.mark.django_db
-async def test_execute_with_openai_api_failure_does_not_save_to_database(
-    httpx_mock, openai_process_cv_usecase_integration, pdf_content
-):
-    """Test that OpenAI API failure raises error and doesn't save to database."""
-    # Mock multiple potential retry attempts
-    for _ in range(3):
-        httpx_mock.add_response(
-            method="POST",
-            url="https://openrouter.ai/api/v1/chat/completions",
-            json={"error": "API Error"},
-            status_code=500,
-        )
-
-    filename = "openai_test.pdf"
-    initial_count = await CVMetadataModel.objects.acount()
-
-    # OpenAI extractor raises ExternalApiError for HTTP errors with status codes
-    with pytest.raises(ExternalApiError):
-        await openai_process_cv_usecase_integration.execute(filename, pdf_content)
-
-    final_count = await CVMetadataModel.objects.acount()
-    assert initial_count == final_count
-
-
-@pytest.mark.django_db
-async def test_execute_with_empty_experiences_does_not_save_to_db_openai(
-    httpx_mock, openai_process_cv_usecase_integration, pdf_content
-):
-    """Test that empty experiences raises error and doesn't save to database."""
-    mock_response = {"experiences": [], "skills": []}
-
-    httpx_mock.add_response(
-        method="POST",
-        url="https://openrouter.ai/api/v1/chat/completions",
-        json={"choices": [{"message": {"content": json.dumps(mock_response)}}]},
-        status_code=200,
-    )
-
-    filename = "empty_experiences_openai.pdf"
-    initial_count = await CVMetadataModel.objects.acount()
-
-    with pytest.raises(TextExtractionError):
-        await openai_process_cv_usecase_integration.execute(filename, pdf_content)
-
-    final_count = await CVMetadataModel.objects.acount()
-    assert initial_count == final_count
-
-
-@pytest.mark.django_db
-async def test_multiple_cv_processing_creates_separate_records_openai(
-    httpx_mock, openai_process_cv_usecase_integration, pdf_content, mock_api_responses
-):
-    """Test that multiple CV processing creates separate DB records."""
     # First API call
     httpx_mock.add_response(
         method="POST",
-        url="https://openrouter.ai/api/v1/chat/completions",
-        json={
-            "choices": [
-                {"message": {"content": json.dumps(mock_api_responses["openai"])}}
-            ]
-        },
+        url=extractor_config_integration["api_url"],
+        json=extractor_config_integration["response_wrapper"](mock_response),
         status_code=200,
     )
 
     initial_count = await CVMetadataModel.objects.acount()
+    usecase = request.getfixturevalue(extractor_config_integration["usecase_fixture"])
 
-    result1 = await openai_process_cv_usecase_integration.execute(
-        "openai_cv1.pdf", pdf_content
+    result1 = await usecase.execute(
+        f"{extractor_config_integration['type']}_cv1.pdf", pdf_content
     )
     cv_id1 = UUID(result1)
 
     # Second API call
     httpx_mock.add_response(
         method="POST",
-        url="https://openrouter.ai/api/v1/chat/completions",
-        json={
-            "choices": [
-                {"message": {"content": json.dumps(mock_api_responses["openai"])}}
-            ]
-        },
+        url=extractor_config_integration["api_url"],
+        json=extractor_config_integration["response_wrapper"](mock_response),
         status_code=200,
     )
-    result2 = await openai_process_cv_usecase_integration.execute(
-        "openai_cv2.pdf", pdf_content
+    result2 = await usecase.execute(
+        f"{extractor_config_integration['type']}_cv2.pdf", pdf_content
     )
     cv_id2 = UUID(result2)
 
@@ -280,7 +169,7 @@ async def test_multiple_cv_processing_creates_separate_records_openai(
     cv1_model = await CVMetadataModel.objects.aget(id=cv_id1)
     cv2_model = await CVMetadataModel.objects.aget(id=cv_id2)
 
-    assert cv1_model.filename == "openai_cv1.pdf"
-    assert cv2_model.filename == "openai_cv2.pdf"
-    assert cv1_model.extracted_text == mock_api_responses["openai"]
-    assert cv2_model.extracted_text == mock_api_responses["openai"]
+    assert cv1_model.filename == f"{extractor_config_integration['type']}_cv1.pdf"
+    assert cv2_model.filename == f"{extractor_config_integration['type']}_cv2.pdf"
+    assert cv1_model.extracted_text == mock_response
+    assert cv2_model.extracted_text == mock_response

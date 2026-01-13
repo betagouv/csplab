@@ -7,6 +7,7 @@ from uuid import UUID
 import pytest
 
 from domain.exceptions.cv_errors import InvalidPDFError
+from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.pdf_test_utils import create_large_pdf, create_minimal_valid_pdf
 
 # Test constants
@@ -15,24 +16,33 @@ EXPECTED_SKILLS_COUNT = 2
 
 
 @pytest.mark.asyncio
-async def test_execute_with_valid_pdf_returns_cv_id_albert(
-    httpx_mock, process_cv_usecase, candidate_container, mock_api_responses, pdf_content
+async def test_execute_with_valid_pdf_returns_cv_id(
+    httpx_mock, request, pdf_content, extractor_config
 ):
-    """Test that a valid PDF is processed successfully with Albert extractor."""
+    """Test that a valid PDF is processed successfully."""
+    mock_response = MockApiResponseFactory.create_ocr_api_response(
+        experiences=[("Software Engineer", "Tech Corp")],
+        skills=["Python", "Django"],
+        description="5 years in Python development",
+    )
+
     httpx_mock.add_response(
         method="POST",
-        url="https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-        json=mock_api_responses["albert"],
+        url=extractor_config["api_url"],
+        json=extractor_config["response_wrapper"](mock_response),
         status_code=200,
     )
 
-    filename = "test_cv.pdf"
-    result = await process_cv_usecase.execute(filename, pdf_content)
+    usecase = request.getfixturevalue(extractor_config["usecase_fixture"])
+    container = request.getfixturevalue(extractor_config["container_fixture"])
+
+    filename = f"test_cv_{extractor_config['type']}.pdf"
+    result = await usecase.execute(filename, pdf_content)
 
     assert isinstance(result, str)
     cv_id = UUID(result)
 
-    cv_repo = candidate_container.async_cv_metadata_repository()
+    cv_repo = container.async_cv_metadata_repository()
     assert cv_repo.count() == 1
 
     saved_cv = await cv_repo.find_by_id(cv_id)
@@ -41,118 +51,46 @@ async def test_execute_with_valid_pdf_returns_cv_id_albert(
     assert isinstance(saved_cv.extracted_text, dict)
     assert "experiences" in saved_cv.extracted_text
     assert "skills" in saved_cv.extracted_text
-    assert (
-        saved_cv.extracted_text["experiences"]
-        == mock_api_responses["albert"]["experiences"]
-    )
-    assert saved_cv.extracted_text["skills"] == mock_api_responses["albert"]["skills"]
+    assert saved_cv.extracted_text["experiences"] == mock_response["experiences"]
+    assert saved_cv.extracted_text["skills"] == mock_response["skills"]
     assert isinstance(saved_cv.created_at, datetime)
 
 
 @pytest.mark.asyncio
-async def test_execute_with_valid_pdf_returns_cv_id_openai(
-    httpx_mock,
-    openai_process_cv_usecase,
-    openai_candidate_container,
-    mock_api_responses,
-    pdf_content,
+async def test_execute_with_invalid_pdf_raises_invalid_pdf_error(
+    request, extractor_config
 ):
-    """Test that a valid PDF is processed successfully with OpenAI extractor."""
-    httpx_mock.add_response(
-        method="POST",
-        url="https://openrouter.ai/api/v1/chat/completions",
-        json={
-            "choices": [
-                {"message": {"content": json.dumps(mock_api_responses["openai"])}}
-            ]
-        },
-        status_code=200,
-    )
-
-    filename = "test_cv.pdf"
-    result = await openai_process_cv_usecase.execute(filename, pdf_content)
-
-    assert isinstance(result, str)
-    cv_id = UUID(result)
-
-    cv_repo = openai_candidate_container.async_cv_metadata_repository()
-    assert cv_repo.count() == 1
-
-    saved_cv = await cv_repo.find_by_id(cv_id)
-    assert saved_cv is not None
-    assert saved_cv.filename == filename
-    assert isinstance(saved_cv.extracted_text, dict)
-    assert "experiences" in saved_cv.extracted_text
-    assert "skills" in saved_cv.extracted_text
-    assert (
-        saved_cv.extracted_text["experiences"]
-        == mock_api_responses["openai"]["experiences"]
-    )
-    assert saved_cv.extracted_text["skills"] == mock_api_responses["openai"]["skills"]
-    assert isinstance(saved_cv.created_at, datetime)
-
-
-@pytest.mark.asyncio
-async def test_execute_with_invalid_pdf_raises_invalid_pdf_error_albert(
-    process_cv_usecase, candidate_container
-):
-    """Test that invalid PDF content raises InvalidPDFError with Albert extractor."""
+    """Test that invalid PDF content raises InvalidPDFError."""
     pdf_content = b"This is not a PDF file"
-    filename = "invalid.pdf"
+    filename = f"invalid_{extractor_config['type']}.pdf"
+
+    usecase = request.getfixturevalue(extractor_config["usecase_fixture"])
+    container = request.getfixturevalue(extractor_config["container_fixture"])
 
     with pytest.raises(InvalidPDFError) as exc_info:
-        await process_cv_usecase.execute(filename, pdf_content)
+        await usecase.execute(filename, pdf_content)
 
     assert exc_info.value.filename == filename
-    cv_repo = candidate_container.async_cv_metadata_repository()
+    cv_repo = container.async_cv_metadata_repository()
     assert cv_repo.count() == 0
 
 
 @pytest.mark.asyncio
-async def test_execute_with_invalid_pdf_raises_invalid_pdf_error_openai(
-    openai_process_cv_usecase, openai_candidate_container
+async def test_execute_with_empty_pdf_raises_invalid_pdf_error(
+    request, extractor_config
 ):
-    """Test that invalid PDF content raises InvalidPDFError with OpenAI extractor."""
-    pdf_content = b"This is not a PDF file"
-    filename = "invalid.pdf"
-
-    with pytest.raises(InvalidPDFError) as exc_info:
-        await openai_process_cv_usecase.execute(filename, pdf_content)
-
-    assert exc_info.value.filename == filename
-    cv_repo = openai_candidate_container.async_cv_metadata_repository()
-    assert cv_repo.count() == 0
-
-
-@pytest.mark.asyncio
-async def test_execute_with_empty_pdf_raises_invalid_pdf_error_albert(
-    process_cv_usecase, candidate_container
-):
-    """Test that empty PDF content raises InvalidPDFError with Albert extractor."""
+    """Test that empty PDF content raises InvalidPDFError."""
     pdf_content = b""
-    filename = "empty.pdf"
+    filename = f"empty_{extractor_config['type']}.pdf"
+
+    usecase = request.getfixturevalue(extractor_config["usecase_fixture"])
+    container = request.getfixturevalue(extractor_config["container_fixture"])
 
     with pytest.raises(InvalidPDFError) as exc_info:
-        await process_cv_usecase.execute(filename, pdf_content)
+        await usecase.execute(filename, pdf_content)
 
     assert exc_info.value.filename == filename
-    cv_repo = candidate_container.async_cv_metadata_repository()
-    assert cv_repo.count() == 0
-
-
-@pytest.mark.asyncio
-async def test_execute_with_empty_pdf_raises_invalid_pdf_error_openai(
-    openai_process_cv_usecase, openai_candidate_container
-):
-    """Test that empty PDF content raises InvalidPDFError with OpenAI extractor."""
-    pdf_content = b""
-    filename = "empty.pdf"
-
-    with pytest.raises(InvalidPDFError) as exc_info:
-        await openai_process_cv_usecase.execute(filename, pdf_content)
-
-    assert exc_info.value.filename == filename
-    cv_repo = openai_candidate_container.async_cv_metadata_repository()
+    cv_repo = container.async_cv_metadata_repository()
     assert cv_repo.count() == 0
 
 
@@ -224,25 +162,32 @@ async def test_both_extractors_process_same_pdf_consistently(
     httpx_mock,
     candidate_container,
     openai_candidate_container,
-    mock_api_responses,
     pdf_content,
 ):
     """Test that both extractors process the same PDF consistently."""
+    albert_mock_response = MockApiResponseFactory.create_ocr_api_response(
+        experiences=[("Software Engineer", "Tech Corp")],
+        skills=["Python", "Django"],
+        description="5 years in Python development",
+    )
+
+    openai_mock_response = MockApiResponseFactory.create_ocr_api_response(
+        experiences=[("Software Engineer", "Tech Corp")],
+        skills=["Python", "Django"],
+        description="5 years in Python development",
+    )
+
     httpx_mock.add_response(
         method="POST",
         url="https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-        json=mock_api_responses["albert"],
+        json=albert_mock_response,
         status_code=200,
     )
 
     httpx_mock.add_response(
         method="POST",
         url="https://openrouter.ai/api/v1/chat/completions",
-        json={
-            "choices": [
-                {"message": {"content": json.dumps(mock_api_responses["openai"])}}
-            ]
-        },
+        json={"choices": [{"message": {"content": json.dumps(openai_mock_response)}}]},
         status_code=200,
     )
 
@@ -272,20 +217,14 @@ async def test_both_extractors_process_same_pdf_consistently(
     # Validate exact content matches mocked response (more explicit than length checks)
     assert (
         albert_saved_cv.extracted_text["experiences"]
-        == mock_api_responses["albert"]["experiences"]
+        == albert_mock_response["experiences"]
     )
-    assert (
-        albert_saved_cv.extracted_text["skills"]
-        == mock_api_responses["albert"]["skills"]
-    )
+    assert albert_saved_cv.extracted_text["skills"] == albert_mock_response["skills"]
     assert (
         openai_saved_cv.extracted_text["experiences"]
-        == mock_api_responses["openai"]["experiences"]
+        == openai_mock_response["experiences"]
     )
-    assert (
-        openai_saved_cv.extracted_text["skills"]
-        == mock_api_responses["openai"]["skills"]
-    )
+    assert openai_saved_cv.extracted_text["skills"] == openai_mock_response["skills"]
 
     # Both should have extracted the same experience data
     albert_exp = albert_saved_cv.extracted_text["experiences"][0]
