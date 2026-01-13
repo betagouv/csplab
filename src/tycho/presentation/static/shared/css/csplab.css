@@ -1,1 +1,7 @@
 /** Global styles */
+
+/* JS DSFR detection utilities */
+html:not([data-fr-js="true"]) .js-only,
+html[data-fr-js="true"] .no-js-only {
+  display: none !important;
+}
