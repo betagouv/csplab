@@ -11,6 +11,9 @@ from infrastructure.external_gateways.configs.pdf_extractor_config import (
     PDFExtractorConfig,
 )
 from infrastructure.gateways.shared.logger import LoggerService
+from tests.utils.async_in_memory_cv_metadata_repository import (
+    AsyncInMemoryCVMetadataRepository,
+)
 from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepository
 from tests.utils.pdf_test_utils import create_minimal_valid_pdf
 
@@ -43,6 +46,11 @@ def candidate_container_fixture(pdf_extractor_configs):
     logger_service = LoggerService()
     container.logger_service.override(logger_service)
 
+    # Use async in-memory repository for unit tests
+    async_in_memory_cv_repo = AsyncInMemoryCVMetadataRepository()
+    container.async_cv_metadata_repository.override(async_in_memory_cv_repo)
+
+    # Keep sync repository for tests that still need it
     in_memory_cv_repo = InMemoryCVMetadataRepository()
     container.postgres_cv_metadata_repository.override(in_memory_cv_repo)
 
@@ -65,6 +73,11 @@ def openai_candidate_container_fixture(pdf_extractor_configs):
     logger_service = LoggerService()
     container.logger_service.override(logger_service)
 
+    # Use async in-memory repository for unit tests
+    async_in_memory_cv_repo = AsyncInMemoryCVMetadataRepository()
+    container.async_cv_metadata_repository.override(async_in_memory_cv_repo)
+
+    # Keep sync repository for tests that still need it
     in_memory_cv_repo = InMemoryCVMetadataRepository()
     container.postgres_cv_metadata_repository.override(in_memory_cv_repo)
 

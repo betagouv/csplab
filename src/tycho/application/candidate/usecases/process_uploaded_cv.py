@@ -3,11 +3,11 @@
 from datetime import datetime
 from uuid import uuid4
 
-from asgiref.sync import sync_to_async
-
 from domain.entities.cv_metadata import CVMetadata
 from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
-from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
+from domain.repositories.async_cv_metadata_repository_interface import (
+    IAsyncCVMetadataRepository,
+)
 from domain.services.logger_interface import ILogger
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
 from domain.services.query_builder_interface import IQueryBuilder
@@ -20,7 +20,7 @@ class ProcessUploadedCVUsecase:
         self,
         pdf_text_extractor: IPDFTextExtractor,
         query_builder: IQueryBuilder,
-        postgres_cv_metadata_repository: ICVMetadataRepository,
+        async_cv_metadata_repository: IAsyncCVMetadataRepository,
         logger: ILogger,
     ):
         """Initialize the use case with required dependencies.
@@ -28,12 +28,12 @@ class ProcessUploadedCVUsecase:
         Args:
             pdf_text_extractor: Service for extracting text from PDF
             query_builder: Service for building search queries
-            postgres_cv_metadata_repository: Repository for CV metadata
+            async_cv_metadata_repository: Async repository for CV metadata
             logger: Logger for tracing operations
         """
         self._pdf_text_extractor = pdf_text_extractor
         self._query_builder = query_builder
-        self._postgres_cv_metadata_repository = postgres_cv_metadata_repository
+        self._async_cv_metadata_repository = async_cv_metadata_repository
         self._logger = logger.get_logger(
             "CANDIDATE::APPLICATION::ProcessUploadedCVUsecase::execute"
         )
@@ -90,8 +90,7 @@ class ProcessUploadedCVUsecase:
             created_at=datetime.now(),
         )
 
-        saved_cv = await sync_to_async(self._postgres_cv_metadata_repository.save)(
-            cv_metadata
-        )
+        # Use native async repository method - no more sync_to_async wrapper!
+        saved_cv = await self._async_cv_metadata_repository.save(cv_metadata)
         self._logger.info(f"CV metadata saved with ID: {saved_cv.id}")
         return str(saved_cv.id)

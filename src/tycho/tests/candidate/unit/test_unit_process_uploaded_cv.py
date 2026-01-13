@@ -32,10 +32,10 @@ async def test_execute_with_valid_pdf_returns_cv_id_albert(
     assert isinstance(result, str)
     cv_id = UUID(result)
 
-    cv_repo = candidate_container.postgres_cv_metadata_repository()
+    cv_repo = candidate_container.async_cv_metadata_repository()
     assert cv_repo.count() == 1
 
-    saved_cv = cv_repo.find_by_id(cv_id)
+    saved_cv = await cv_repo.find_by_id(cv_id)
     assert saved_cv is not None
     assert saved_cv.filename == filename
     assert isinstance(saved_cv.extracted_text, dict)
@@ -75,10 +75,10 @@ async def test_execute_with_valid_pdf_returns_cv_id_openai(
     assert isinstance(result, str)
     cv_id = UUID(result)
 
-    cv_repo = openai_candidate_container.postgres_cv_metadata_repository()
+    cv_repo = openai_candidate_container.async_cv_metadata_repository()
     assert cv_repo.count() == 1
 
-    saved_cv = cv_repo.find_by_id(cv_id)
+    saved_cv = await cv_repo.find_by_id(cv_id)
     assert saved_cv is not None
     assert saved_cv.filename == filename
     assert isinstance(saved_cv.extracted_text, dict)
@@ -104,7 +104,7 @@ async def test_execute_with_invalid_pdf_raises_invalid_pdf_error_albert(
         await process_cv_usecase.execute(filename, pdf_content)
 
     assert exc_info.value.filename == filename
-    cv_repo = candidate_container.postgres_cv_metadata_repository()
+    cv_repo = candidate_container.async_cv_metadata_repository()
     assert cv_repo.count() == 0
 
 
@@ -120,7 +120,7 @@ async def test_execute_with_invalid_pdf_raises_invalid_pdf_error_openai(
         await openai_process_cv_usecase.execute(filename, pdf_content)
 
     assert exc_info.value.filename == filename
-    cv_repo = openai_candidate_container.postgres_cv_metadata_repository()
+    cv_repo = openai_candidate_container.async_cv_metadata_repository()
     assert cv_repo.count() == 0
 
 
@@ -136,7 +136,7 @@ async def test_execute_with_empty_pdf_raises_invalid_pdf_error_albert(
         await process_cv_usecase.execute(filename, pdf_content)
 
     assert exc_info.value.filename == filename
-    cv_repo = candidate_container.postgres_cv_metadata_repository()
+    cv_repo = candidate_container.async_cv_metadata_repository()
     assert cv_repo.count() == 0
 
 
@@ -152,7 +152,7 @@ async def test_execute_with_empty_pdf_raises_invalid_pdf_error_openai(
         await openai_process_cv_usecase.execute(filename, pdf_content)
 
     assert exc_info.value.filename == filename
-    cv_repo = openai_candidate_container.postgres_cv_metadata_repository()
+    cv_repo = openai_candidate_container.async_cv_metadata_repository()
     assert cv_repo.count() == 0
 
 
@@ -251,15 +251,15 @@ async def test_both_extractors_process_same_pdf_consistently(
     filename = "test_cv.pdf"
 
     albert_result = await albert_usecase.execute(filename, pdf_content)
-    albert_cv_repo = candidate_container.postgres_cv_metadata_repository()
-    albert_saved_cv = albert_cv_repo.find_by_id(UUID(albert_result))
+    albert_cv_repo = candidate_container.async_cv_metadata_repository()
+    albert_saved_cv = await albert_cv_repo.find_by_id(UUID(albert_result))
 
     # Test OpenAI extractor
     openai_usecase = openai_candidate_container.process_uploaded_cv_usecase()
 
     openai_result = await openai_usecase.execute(filename, pdf_content)
-    openai_cv_repo = openai_candidate_container.postgres_cv_metadata_repository()
-    openai_saved_cv = openai_cv_repo.find_by_id(UUID(openai_result))
+    openai_cv_repo = openai_candidate_container.async_cv_metadata_repository()
+    openai_saved_cv = await openai_cv_repo.find_by_id(UUID(openai_result))
 
     # Both should have the same structure
     assert isinstance(albert_saved_cv.extracted_text, dict)
@@ -268,14 +268,24 @@ async def test_both_extractors_process_same_pdf_consistently(
     assert "experiences" in openai_saved_cv.extracted_text
     assert "skills" in albert_saved_cv.extracted_text
     assert "skills" in openai_saved_cv.extracted_text
+
+    # Validate exact content matches mocked response (more explicit than length checks)
     assert (
-        len(albert_saved_cv.extracted_text["experiences"]) == EXPECTED_EXPERIENCES_COUNT
+        albert_saved_cv.extracted_text["experiences"]
+        == mock_api_responses["albert"]["experiences"]
     )
     assert (
-        len(openai_saved_cv.extracted_text["experiences"]) == EXPECTED_EXPERIENCES_COUNT
+        albert_saved_cv.extracted_text["skills"]
+        == mock_api_responses["albert"]["skills"]
     )
-    assert len(albert_saved_cv.extracted_text["skills"]) == EXPECTED_SKILLS_COUNT
-    assert len(openai_saved_cv.extracted_text["skills"]) == EXPECTED_SKILLS_COUNT
+    assert (
+        openai_saved_cv.extracted_text["experiences"]
+        == mock_api_responses["openai"]["experiences"]
+    )
+    assert (
+        openai_saved_cv.extracted_text["skills"]
+        == mock_api_responses["openai"]["skills"]
+    )
 
     # Both should have extracted the same experience data
     albert_exp = albert_saved_cv.extracted_text["experiences"][0]
