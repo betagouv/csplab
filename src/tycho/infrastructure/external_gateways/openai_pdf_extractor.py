@@ -1,11 +1,13 @@
 """OpenAI PDF text extractor implementation."""
 
 import base64
+import io
 import json
-from typing import cast
 
 import pymupdf
+import pypdf
 from openai import AsyncOpenAI
+from pydantic import ValidationError
 
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
 from domain.value_objects.cv_extraction_types import CVExtractionResult
@@ -14,6 +16,7 @@ from infrastructure.external_gateways.configs.openai_config import OpenAIConfig
 from infrastructure.external_gateways.constants.ocr_cv_prompts import (
     CV_EXTRACTION_PROMPT,
 )
+from infrastructure.external_gateways.dtos.openai_dtos import OpenAIResponse
 
 
 class OpenAIPDFExtractor(IPDFTextExtractor):
@@ -68,17 +71,21 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
                 )
 
             # Call OpenAI API
-            response = await self.client.chat.completions.create(
+            raw_response = await self.client.chat.completions.create(
                 model=self.config.model,
                 messages=[{"role": "user", "content": content}],  # type: ignore
                 max_tokens=2000,
                 temperature=0.1,
             )
 
-            # Parse JSON response
-            response_text = response.choices[0].message.content
+            # Validate OpenAI response structure with Pydantic
+            validated_response = OpenAIResponse.model_validate(
+                raw_response.model_dump()
+            )
+
+            response_text = validated_response.choices[0].message.content
             if response_text is None:
-                raise ValueError("Empty response from API")
+                raise ExternalApiError("Empty response from API")
             response_text = response_text.strip()
 
             # Remove potential markdown code blocks
@@ -87,28 +94,16 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
             elif response_text.startswith("```"):
                 response_text = response_text[3:-3].strip()
 
-            result = json.loads(response_text)
+            result_dict = json.loads(response_text)
 
-            # Validate structure
-            if (
-                not isinstance(result, dict)
-                or "experiences" not in result
-                or "skills" not in result
-            ):
-                raise ValueError("Invalid response structure from API")
-
-            return cast(CVExtractionResult, result)
+            return CVExtractionResult.model_validate(result_dict)
 
         except json.JSONDecodeError as e:
-            raise ValueError("Failed to parse JSON response") from e
+            raise ExternalApiError("Failed to parse JSON response") from e
+        except ValidationError as e:
+            raise ExternalApiError(f"Invalid response structure: {e}") from e
         except Exception as e:
-            if hasattr(e, "status_code"):
-                raise ExternalApiError(
-                    f"OpenAI API error: {e.status_code}",
-                    status_code=e.status_code,
-                    api_name="OpenAI",
-                ) from e
-            raise ValueError("Error processing PDF") from e
+            raise ExternalApiError("Error processing PDF") from e
 
     def validate_pdf(self, pdf_content: bytes, max_size_mb: int = 5) -> bool:
         """Validate PDF format and size.
@@ -128,8 +123,9 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
         if size_mb > max_size_mb:
             return False
 
-        # Check PDF magic bytes
-        if not pdf_content.startswith(b"%PDF-"):
+        # Validate PDF structure using pypdf
+        try:
+            pypdf.PdfReader(io.BytesIO(pdf_content))
+            return True
+        except Exception:
             return False
-
-        return True

@@ -1,9 +1,11 @@
 """Types for CV extraction results."""
 
-from typing import List, Optional, TypedDict
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 
-class CVExperience(TypedDict):
+class CVExperience(BaseModel):
     """Structure for a CV experience entry."""
 
     title: str
@@ -12,7 +14,7 @@ class CVExperience(TypedDict):
     description: str
 
 
-class CVExtractionResult(TypedDict):
+class CVExtractionResult(BaseModel):
     """Structure for complete CV extraction result."""
 
     experiences: List[CVExperience]

@@ -111,17 +111,17 @@ class AlbertPDFExtractor(IPDFTextExtractor):
         """Normalize Albert OCR JSON output to extract experiences and skills."""
         # Guard: Not a dict or string, return empty
         if not isinstance(ocr_data, (dict, str)):
-            return {"experiences": [], "skills": []}
+            return CVExtractionResult(experiences=[], skills=[])
 
         # Case 1: Direct experiences in dict
         if isinstance(ocr_data, dict):
             experiences = ocr_data.get("experiences")
             skills = ocr_data.get("skills", [])
             if isinstance(experiences, list):
-                return {
-                    "experiences": experiences,
-                    "skills": skills if isinstance(skills, list) else [],
-                }
+                return CVExtractionResult(
+                    experiences=experiences,
+                    skills=skills if isinstance(skills, list) else [],
+                )
 
             # Case 2: Multi-page structure
             data = ocr_data.get("data")
@@ -137,7 +137,7 @@ class AlbertPDFExtractor(IPDFTextExtractor):
         if isinstance(ocr_data, str):
             return self._extract_from_text(ocr_data)
 
-        return {"experiences": [], "skills": []}
+        return CVExtractionResult(experiences=[], skills=[])
 
     def _extract_from_pages(self, pages: list) -> CVExtractionResult:
         """Extract experiences and skills from multi-page data."""
@@ -158,16 +158,16 @@ class AlbertPDFExtractor(IPDFTextExtractor):
                 final_experiences.extend(experiences)
             if isinstance(skills, list):
                 final_skills.extend(skills)
-        return {"experiences": final_experiences, "skills": final_skills}
+        return CVExtractionResult(experiences=final_experiences, skills=final_skills)
 
     def _extract_from_text(self, text: str) -> CVExtractionResult:
         """Extract experiences and skills from text content."""
         parsed = self._extract_json_from_fenced_content(text)
         if not isinstance(parsed, dict):
-            return {"experiences": [], "skills": []}
+            return CVExtractionResult(experiences=[], skills=[])
         experiences = parsed.get("experiences", [])
         skills = parsed.get("skills", [])
-        return {
-            "experiences": experiences if isinstance(experiences, list) else [],
-            "skills": skills if isinstance(skills, list) else [],
-        }
+        return CVExtractionResult(
+            experiences=experiences if isinstance(experiences, list) else [],
+            skills=skills if isinstance(skills, list) else [],
+        )
