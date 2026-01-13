@@ -43,6 +43,12 @@ async def test_execute_with_valid_pdf_returns_cv_id_albert(
     assert "skills" in saved_cv.extracted_text
     assert len(saved_cv.extracted_text["experiences"]) == EXPECTED_EXPERIENCES_COUNT
     assert len(saved_cv.extracted_text["skills"]) == EXPECTED_SKILLS_COUNT
+    # Validate exact content matches mocked response
+    assert (
+        saved_cv.extracted_text["experiences"]
+        == mock_api_responses["albert"]["experiences"]
+    )
+    assert saved_cv.extracted_text["skills"] == mock_api_responses["albert"]["skills"]
     assert isinstance(saved_cv.created_at, datetime)
 
 
@@ -83,6 +89,11 @@ async def test_execute_with_valid_pdf_returns_cv_id_openai(
     assert "skills" in saved_cv.extracted_text
     assert len(saved_cv.extracted_text["experiences"]) == EXPECTED_EXPERIENCES_COUNT
     assert len(saved_cv.extracted_text["skills"]) == EXPECTED_SKILLS_COUNT
+    assert (
+        saved_cv.extracted_text["experiences"]
+        == mock_api_responses["openai"]["experiences"]
+    )
+    assert saved_cv.extracted_text["skills"] == mock_api_responses["openai"]["skills"]
     assert isinstance(saved_cv.created_at, datetime)
 
 
