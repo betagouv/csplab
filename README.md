@@ -38,6 +38,8 @@ make setup
 
 Puis éditez les fichiers env.d/\* avec vos vraies valeurs (clés API, etc.)
 
+Pour personnaliser Docker Compose localement (ex: changer les ports), voir [docs/docker_compose_override.md](docs/docker_compose_override.md).
+
 ## Installation de l'environnement de dev
 
 ```bash
