@@ -10,6 +10,20 @@
   <script type="module" src="{% static 'candidate/js/cv-upload.js' %}"></script>
 {% endblock page_js %}
 {% block main %}
+  <!-- Toast alerts (server-side errors) -->
+  {% if form.errors %}
+    {% for field, errors in form.errors.items %}
+      {% for error in errors %}
+        {% dsfr_alert title="Le fichier n'a pas pu être importé." type="error" content=error is_collapsible=True extra_classes="csplab-toast" %}
+      {% endfor %}
+    {% endfor %}
+  {% endif %}
+
+  <!-- Template for JS-generated info toasts -->
+  <template id="info-toast-template">
+    {% dsfr_alert title="CV supprimé" type="info" content="Votre CV a bien été supprimé. Vous pouvez en charger un nouveau." is_collapsible=True extra_classes="csplab-toast" %}
+  </template>
+
   <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
   <div class="fr-container">
     <!-- Header -->
@@ -38,6 +52,14 @@
             <h2 class="fr-h5 csplab-text-blue-france">Ajouter votre CV</h2>
             <p class="fr-text--sm">Afin d'avoir un résultat pertinent, nous vous conseillons d'ajouter un CV à jour.</p>
           </hgroup>
+          <form method="post" enctype="multipart/form-data" id="cv-upload-form">
+            {% csrf_token %}
+            {% include "components/file_upload.html" with field=form.cv_file dropzone_text="Glissez-déposez votre CV ou" %}
+            <!-- No-JS: always visible submit -->
+            {% include "components/cv_upload_actions.html" with extra_classes="no-js-only" %}
+            <!-- JS: shown after file selection -->
+            {% include "components/cv_upload_actions.html" with extra_classes="js-only" extra_attrs="data-upload-actions hidden aria-hidden='true'" %}
+          </form>
         </div>
       </div>
     </div>
