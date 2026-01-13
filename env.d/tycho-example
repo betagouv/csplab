@@ -32,5 +32,5 @@ TYCHO_OCR_TYPE=OPENAI
 TYCHO_ALBERT_API_BASE_URL=https://albert.api.etalab.gouv.fr
 TYCHO_ALBERT_API_KEY=albert-api-key
 TYCHO_ALBERT_OCR_MODEL=albert-large
-
+TYCHO_ALBERT_OCR_DPI=200
 TYCHO_OPIK_API_KEY=opik-api-key
