@@ -1,1 +1,7 @@
 /** Global styles */
+
+/* JS detection utilities - show/hide elements based on JS availability */
+.no-js .js-only,
+.js .no-js-only {
+  display: none !important;
+}
