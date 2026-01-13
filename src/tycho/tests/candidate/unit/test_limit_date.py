@@ -15,20 +15,19 @@ def test_limit_date_creation_with_valid_datetime():
     assert limit_date.value == date
 
 
-def test_is_expired_with_past_date():
-    """Test is_expired returns True for past dates."""
-    past_date = datetime.now() - timedelta(days=1)
-    limit_date = LimitDate(past_date)
+@pytest.mark.parametrize(
+    "days_offset, expected_expired",
+    [
+        (-1, True),  # past date
+        (1, False),  # future date
+    ],
+)
+def test_is_expired(days_offset, expected_expired):
+    """Test is_expired returns correct value for past and future dates."""
+    date = datetime.now() + timedelta(days=days_offset)
+    limit_date = LimitDate(date)
 
-    assert limit_date.is_expired() is True
-
-
-def test_is_expired_with_future_date():
-    """Test is_expired returns False for future dates."""
-    future_date = datetime.now() + timedelta(days=1)
-    limit_date = LimitDate(future_date)
-
-    assert limit_date.is_expired() is False
+    assert limit_date.is_expired() is expected_expired
 
 
 def test_limit_date_is_frozen():
