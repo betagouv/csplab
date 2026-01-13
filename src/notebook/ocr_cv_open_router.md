@@ -21,6 +21,8 @@ import os
 import json
 import pymupdf as fitz
 import base64
+import pypdf
+import io
 ```
 
 ```python
@@ -216,15 +218,16 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
         if size_mb > max_size_mb:
             return False
 
-        # Check PDF magic bytes
-        if not pdf_content.startswith(b"%PDF-"):
+        # Validate PDF structure using pypdf
+        try:
+            pypdf.PdfReader(io.BytesIO(pdf_content))
+            return True
+        except pypdf.errors.PyPdfError:
             return False
-
-        return True
 ```
 
 ```python
-with open("CV_Elodie_Royant_developpeuse_Fullstack_Data_scientist.pdf", "rb") as f:
+with open("data/CV_Elodie_Royant_developpeuse_Fullstack_Data_scientist.pdf", "rb") as f:
     pdf_content = f.read()
 ```
 
