@@ -39,6 +39,7 @@ src/notebook/data/*
 
 # Files
 .DS_Store
+.ropeproject
 
 # -- Environments
 .env
