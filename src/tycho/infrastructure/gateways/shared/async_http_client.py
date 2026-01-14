@@ -8,6 +8,7 @@ from domain.services.async_http_client_interface import (
     IAsyncHttpClient,
     IAsyncHttpResponse,
 )
+from domain.types import JsonDataType
 
 
 class HttpxResponse(IAsyncHttpResponse):
@@ -19,7 +20,7 @@ class HttpxResponse(IAsyncHttpResponse):
         self.status_code = response.status_code
         self.text = response.text
 
-    def json(self) -> Dict[str, Any]:
+    def json(self) -> JsonDataType:
         """Parse response as JSON."""
         return self._response.json()
 
@@ -57,7 +58,7 @@ class AsyncHttpClient(IAsyncHttpClient):
         headers: Optional[Dict[str, str]] = None,
         files: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
-        json: Optional[Dict[str, Any]] = None,
+        json: Optional[JsonDataType] = None,
     ) -> IAsyncHttpResponse:
         """Make an async POST request.
 

@@ -2,6 +2,8 @@
 
 from typing import Any, Dict, Optional, Protocol
 
+from domain.types import JsonDataType
+
 
 class IAsyncHttpResponse(Protocol):
     """HTTP response interface."""
@@ -9,7 +11,7 @@ class IAsyncHttpResponse(Protocol):
     status_code: int
     text: str
 
-    def json(self) -> Dict[str, Any]:
+    def json(self) -> JsonDataType:
         """Parse response as JSON."""
         ...
 
@@ -35,7 +37,7 @@ class IAsyncHttpClient(Protocol):
         headers: Optional[Dict[str, str]] = None,
         files: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
-        json: Optional[Dict[str, Any]] = None,
+        json: Optional[JsonDataType] = None,
     ) -> IAsyncHttpResponse:
         """Make an async POST request.
 
