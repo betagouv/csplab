@@ -71,6 +71,8 @@ scripts/*.csv
 *.csv
 .coverage
 
+# Docker Compose local overrides
+docker-compose.override.yml
 
 ARCHITECTURE*
 
