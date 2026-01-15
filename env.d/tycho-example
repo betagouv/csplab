@@ -33,3 +33,7 @@ TYCHO_ALBERT_API_KEY=albert-api-key
 TYCHO_ALBERT_OCR_MODEL=albert-large
 TYCHO_ALBERT_OCR_DPI=200
 TYCHO_OPIK_API_KEY=opik-api-key
+
+TYCHO_TALENTSOFT_CLIENT_ID=talentsoft-client-id
+TYCHO_TALENTSOFT_CLIENT_SECRET=talentsoft-client-secret
+TYCHO_TALENTSOFT_BASE_URL=talentsoft-base-url
