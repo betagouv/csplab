@@ -4,7 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-01-12
+## [0.1.1] - 2026-01-15
+
+### <!-- 0 --> Breaking Changes
+
+- 🔧(tycho:candidate) remove redundant search path from candidate URLs ([#92](https://github.com/betagouv/csplab/pull/92))
+
+### <!-- 1 --> Added
+
+- ✨(tycho:ingestion) define entities and value objects for offers
+- 🔧(project) share vscode config ([#55](https://github.com/betagouv/csplab/pull/55))
+- ✨ (tycho:candidate) add openai implementation for cv ocr ([#46](https://github.com/betagouv/csplab/pull/46))
+
+### <!-- 2 --> Modified
+
+- 🔧(tooling) ignore docker-compose.override.yml for local port customization ([#80](https://github.com/betagouv/csplab/pull/80))
+
+## [0.1.0] - 2026-01-13
 
 ### <!-- 1 --> Added
 
