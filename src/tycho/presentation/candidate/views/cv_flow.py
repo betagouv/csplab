@@ -5,10 +5,13 @@ import logging
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse_lazy
-from django.views.generic import FormView
+from django.views.generic import FormView, TemplateView
 
 from presentation.candidate.forms.cv_flow import CVUploadForm
-from presentation.candidate.mixins import BreadcrumbLink, BreadcrumbMixin
+from presentation.candidate.mixins import (
+    BreadcrumbLink,
+    BreadcrumbMixin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,3 +43,9 @@ class CVUploadView(BreadcrumbMixin, FormView):
         """Handle invalid form submission."""
         logger.warning("Form validation failed: %s", dict(form.errors))
         return super().form_invalid(form)
+
+
+class CVProcessingView(BreadcrumbMixin, TemplateView):
+    """View for CV confirmation/processing page."""
+
+    template_name = "candidate/cv_processing.html"
