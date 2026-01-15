@@ -3,6 +3,8 @@
 import json
 from typing import Any, Dict
 
+from pydantic import ValidationError
+
 from domain.services.async_http_client_interface import IAsyncHttpClient
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
 from domain.value_objects.cv_extraction_types import CVExtractionResult
@@ -111,14 +113,28 @@ class AlbertPDFExtractor(IPDFTextExtractor):
         """Normalize Albert OCR JSON output to extract experiences and skills."""
         # Guard: Not a dict or string, return empty
         if not isinstance(ocr_data, (dict, str)):
-            return CVExtractionResult(experiences=[], skills=[])
+            try:
+                return CVExtractionResult.model_validate(
+                    {"experiences": [], "skills": []}
+                )
+            except ValidationError as e:
+                raise ExternalApiError(
+                    f"Invalid extraction result structure: {e}"
+                ) from e
 
         # Case 1: Direct experiences in dict
         if isinstance(ocr_data, dict):
             experiences = ocr_data.get("experiences", [])
             skills = ocr_data.get("skills", [])
             if isinstance(experiences, list) and isinstance(skills, list):
-                return CVExtractionResult(experiences=experiences, skills=skills)
+                try:
+                    return CVExtractionResult.model_validate(
+                        {"experiences": experiences, "skills": skills}
+                    )
+                except ValidationError as e:
+                    raise ExternalApiError(
+                        f"Invalid extraction result structure: {e}"
+                    ) from e
 
             # Case 2: Multi-page structure
             data = ocr_data.get("data")
@@ -134,7 +150,10 @@ class AlbertPDFExtractor(IPDFTextExtractor):
         if isinstance(ocr_data, str):
             return self._extract_from_text(ocr_data)
 
-        return CVExtractionResult(experiences=[], skills=[])
+        try:
+            return CVExtractionResult.model_validate({"experiences": [], "skills": []})
+        except ValidationError as e:
+            raise ExternalApiError(f"Invalid extraction result structure: {e}") from e
 
     def _extract_from_pages(self, pages: list) -> CVExtractionResult:
         """Extract experiences and skills from multi-page data."""
@@ -155,7 +174,12 @@ class AlbertPDFExtractor(IPDFTextExtractor):
                 final_experiences.extend(experiences)
             if isinstance(skills, list):
                 final_skills.extend(skills)
-        return CVExtractionResult(experiences=final_experiences, skills=final_skills)
+        try:
+            return CVExtractionResult.model_validate(
+                {"experiences": final_experiences, "skills": final_skills}
+            )
+        except ValidationError as e:
+            raise ExternalApiError(f"Invalid extraction result structure: {e}") from e
 
     def _extract_from_text(self, text: str) -> CVExtractionResult:
         """Extract experiences and skills from text content."""
@@ -164,5 +188,15 @@ class AlbertPDFExtractor(IPDFTextExtractor):
             experiences = parsed.get("experiences", [])
             skills = parsed.get("skills", [])
             if isinstance(experiences, list) and isinstance(skills, list):
-                return CVExtractionResult(experiences=experiences, skills=skills)
-        return CVExtractionResult(experiences=[], skills=[])
+                try:
+                    return CVExtractionResult.model_validate(
+                        {"experiences": experiences, "skills": skills}
+                    )
+                except ValidationError as e:
+                    raise ExternalApiError(
+                        f"Invalid extraction result structure: {e}"
+                    ) from e
+        try:
+            return CVExtractionResult.model_validate({"experiences": [], "skills": []})
+        except ValidationError as e:
+            raise ExternalApiError(f"Invalid extraction result structure: {e}") from e
