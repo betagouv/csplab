@@ -1,0 +1,85 @@
+.csplab-processing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--5w, 40px);
+    padding-bottom: 20rem;
+}
+
+.csplab-processing__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--3w, 24px);
+    width: 100%;
+}
+
+.csplab-processing__title {
+    color: #000091;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .csplab-processing {
+        padding-bottom: var(--12w, 96px);
+    }
+}
+
+.csplab-processing__spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #E8DEF8;
+    border-top-color: #6750A4;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.csplab-processing__messages {
+    position: relative;
+    min-height: 1.5rem;
+    width: 100%;
+    text-align: center;
+}
+
+.csplab-processing__message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0;
+    animation: messageRotate 9s infinite;
+}
+
+.csplab-processing__message[data-message="1"] {
+    animation-delay: 0s;
+}
+
+.csplab-processing__message[data-message="2"] {
+    animation-delay: 3s;
+}
+
+.csplab-processing__message[data-message="3"] {
+    animation-delay: 6s;
+}
+
+@keyframes messageRotate {
+    0% { opacity: 0; }
+    3% { opacity: 1; }
+    30% { opacity: 1; }
+    33% { opacity: 0; }
+    100% { opacity: 0; }
+}
+
+.csplab-processing__illustration {
+    width: 128px;
+    height: 128px;
+}
+
+.csplab-processing__illustration img {
+    width: 100%;
+    height: 100%;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
