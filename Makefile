@@ -93,6 +93,15 @@ create-superuser: ## create tycho super user
 	@bin/manage createsuperuser --noinput || true
 .PHONY: create-superuser
 
+### SASS
+sass-compile: ## compile SCSS files to CSS
+	@bin/sass compile
+.PHONY: sass-compile
+
+sass-watch: ## watch and compile SCSS files on changes
+	@bin/sass watch
+.PHONY: sass-watch
+
 ### RUN
 run-all: ## run the whole stack
 run-all: \

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# Configuration
+SCSS_DIR="${SCSS_DIR:-src/tycho/presentation/assets/styles}"
+CSS_DIR="${CSS_DIR:-src/tycho/presentation/static/css}"
+SOURCE_MAP="${SOURCE_MAP:-false}"
+
+# Check if sass is installed
+if ! command -v sass >/dev/null 2>&1; then
+    echo "Error: Dart Sass CLI not found." >&2
+    exit 1
+fi
+
+# Parse command
+case "${1:-compile}" in
+    compile)
+        sass "$SCSS_DIR:$CSS_DIR" --no-source-map
+        ;;
+    watch)
+        sass "$SCSS_DIR:$CSS_DIR" --watch --no-source-map
+        ;;
+    *)
+        echo "Usage: $0 {compile|watch}" >&2
+        exit 1
+        ;;
+esac
