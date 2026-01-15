@@ -115,13 +115,10 @@ class AlbertPDFExtractor(IPDFTextExtractor):
 
         # Case 1: Direct experiences in dict
         if isinstance(ocr_data, dict):
-            experiences = ocr_data.get("experiences")
+            experiences = ocr_data.get("experiences", [])
             skills = ocr_data.get("skills", [])
-            if isinstance(experiences, list):
-                return CVExtractionResult(
-                    experiences=experiences,
-                    skills=skills if isinstance(skills, list) else [],
-                )
+            if isinstance(experiences, list) and isinstance(skills, list):
+                return CVExtractionResult(experiences=experiences, skills=skills)
 
             # Case 2: Multi-page structure
             data = ocr_data.get("data")
@@ -163,11 +160,9 @@ class AlbertPDFExtractor(IPDFTextExtractor):
     def _extract_from_text(self, text: str) -> CVExtractionResult:
         """Extract experiences and skills from text content."""
         parsed = self._extract_json_from_fenced_content(text)
-        if not isinstance(parsed, dict):
-            return CVExtractionResult(experiences=[], skills=[])
-        experiences = parsed.get("experiences", [])
-        skills = parsed.get("skills", [])
-        return CVExtractionResult(
-            experiences=experiences if isinstance(experiences, list) else [],
-            skills=skills if isinstance(skills, list) else [],
-        )
+        if isinstance(parsed, dict):
+            experiences = parsed.get("experiences", [])
+            skills = parsed.get("skills", [])
+            if isinstance(experiences, list) and isinstance(skills, list):
+                return CVExtractionResult(experiences=experiences, skills=skills)
+        return CVExtractionResult(experiences=[], skills=[])
