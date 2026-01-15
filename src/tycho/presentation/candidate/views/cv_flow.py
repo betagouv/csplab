@@ -1,7 +1,6 @@
 """CV upload flow views."""
 
 import logging
-from typing import Any
 
 from django.contrib import messages
 from django.http import HttpResponse
@@ -9,7 +8,7 @@ from django.urls import reverse_lazy
 from django.views.generic import FormView
 
 from presentation.candidate.forms.cv_flow import CVUploadForm
-from presentation.candidate.mixins import BreadcrumbMixin
+from presentation.candidate.mixins import BreadcrumbLink, BreadcrumbMixin
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +22,7 @@ class CVUploadView(BreadcrumbMixin, FormView):
     template_name = "candidate/cv_upload.html"
     form_class = CVUploadForm
     breadcrumb_current = "Recommandation de carrière"
-    breadcrumb_links: list[dict[str, Any]] = []
+    breadcrumb_links: list[BreadcrumbLink] = []
     success_url = reverse_lazy("candidate:cv_upload")  # TODO: change to next step URL
 
     def form_valid(self, form: CVUploadForm) -> HttpResponse:
