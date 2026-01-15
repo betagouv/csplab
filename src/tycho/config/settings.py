@@ -143,6 +143,9 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Maximum CV size in cv upload flow
+CV_MAX_SIZE_MB = 5
+
 # Logging configuration
 LOG_LEVEL = "DEBUG" if DEBUG else "ERROR"
 

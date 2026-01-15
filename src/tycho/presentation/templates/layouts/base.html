@@ -1,6 +1,7 @@
 {% load static dsfr_tags %}
 <!DOCTYPE html>
 <html lang="{% block lang %}fr{% endblock lang %}"
+      class="no-js"
       data-fr-scheme="light"
       {% if SITE_CONFIG.mourning %}data-fr-mourning{% endif %}>
   <head>
@@ -11,6 +12,7 @@
           content="{% block meta_description %}CSPLab - Plateforme de candidature{% endblock meta_description %}">
     <meta name="keywords"
           content="{% block meta_keywords %}CSPLab, candidature{% endblock meta_keywords %}">
+    <script>document.documentElement.classList.replace('no-js','js')</script>
     {% dsfr_css %}
     {% dsfr_favicon %}
     <link rel="stylesheet" href="{% static 'shared/css/csplab.css' %}">
