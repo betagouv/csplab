@@ -4,21 +4,21 @@ import pytest
 
 from domain.exceptions.cv_errors import InvalidPDFError
 
-# Test constants
-EXPECTED_EXPERIENCES_COUNT = 1
-EXPECTED_SKILLS_COUNT = 2
 
-
+@pytest.mark.parametrize(
+    "container_name", ["albert_candidate_container", "openai_candidate_container"]
+)
 @pytest.mark.asyncio
 async def test_execute_with_invalid_pdf_raises_invalid_pdf_error(
-    request, extractor_config
+    request, container_name
 ):
     """Test that invalid PDF content raises InvalidPDFError."""
-    pdf_content = b"This is not a PDF file"
-    filename = f"invalid_{extractor_config['type']}.pdf"
+    container = request.getfixturevalue(container_name)
 
-    usecase = request.getfixturevalue(extractor_config["usecase_fixture"])
-    container = request.getfixturevalue(extractor_config["container_fixture"])
+    pdf_content = b"This is not a PDF file"
+    filename = "invalid.pdf"
+
+    usecase = container.process_uploaded_cv_usecase()
 
     with pytest.raises(InvalidPDFError) as exc_info:
         await usecase.execute(filename, pdf_content)
@@ -28,16 +28,18 @@ async def test_execute_with_invalid_pdf_raises_invalid_pdf_error(
     assert cv_repo.count() == 0
 
 
+@pytest.mark.parametrize(
+    "container_name", ["albert_candidate_container", "openai_candidate_container"]
+)
 @pytest.mark.asyncio
-async def test_execute_with_empty_pdf_raises_invalid_pdf_error(
-    request, extractor_config
-):
+async def test_execute_with_empty_pdf_raises_invalid_pdf_error(request, container_name):
     """Test that empty PDF content raises InvalidPDFError."""
-    pdf_content = b""
-    filename = f"empty_{extractor_config['type']}.pdf"
+    container = request.getfixturevalue(container_name)
 
-    usecase = request.getfixturevalue(extractor_config["usecase_fixture"])
-    container = request.getfixturevalue(extractor_config["container_fixture"])
+    pdf_content = b""
+    filename = "empty.pdf"
+
+    usecase = container.process_uploaded_cv_usecase()
 
     with pytest.raises(InvalidPDFError) as exc_info:
         await usecase.execute(filename, pdf_content)

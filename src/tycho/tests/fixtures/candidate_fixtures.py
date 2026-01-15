@@ -1,7 +1,5 @@
 """Shared fixtures for candidate tests."""
 
-import json
-
 import pytest
 from pydantic import HttpUrl
 
@@ -40,166 +38,65 @@ def pdf_extractor_configs_fixture():
     }
 
 
-@pytest.fixture(name="candidate_container")
-def candidate_container_fixture(pdf_extractor_configs):
-    """Set up candidate container with in-memory repository for unit tests."""
+def _create_candidate_container(
+    pdf_extractor_configs, pdf_extractor_type: PDFExtractorType, in_memory: bool
+):
+    """Factory function to create candidate containers with specified configuration."""
     container = CandidateContainer()
 
     logger_service = LoggerService()
     container.logger_service.override(logger_service)
 
-    # Use async in-memory repository for unit tests
-    async_in_memory_cv_repo = AsyncInMemoryCVMetadataRepository()
-    container.async_cv_metadata_repository.override(async_in_memory_cv_repo)
+    if in_memory:
+        # Use in-memory repositories for unit tests
+        async_in_memory_cv_repo = AsyncInMemoryCVMetadataRepository()
+        container.async_cv_metadata_repository.override(async_in_memory_cv_repo)
 
-    # Keep sync repository for tests that still need it
-    in_memory_cv_repo = InMemoryCVMetadataRepository()
-    container.postgres_cv_metadata_repository.override(in_memory_cv_repo)
+        # Keep sync repository for tests that still need it
+        in_memory_cv_repo = InMemoryCVMetadataRepository()
+        container.postgres_cv_metadata_repository.override(in_memory_cv_repo)
 
-    # Default to Albert configuration
+    # Configure PDF extractor
     pdf_config = PDFExtractorConfig(
-        pdf_extractor_type=PDFExtractorType.ALBERT,
+        pdf_extractor_type=pdf_extractor_type,
         albert_config=pdf_extractor_configs["albert"],
         openai_config=pdf_extractor_configs["openai"],
     )
     container.config.override(pdf_config)
 
     return container
+
+
+@pytest.fixture(name="albert_candidate_container")
+def albert_candidate_container_fixture(pdf_extractor_configs):
+    """Set up candidate container with Albert extractor and in-memory repository."""
+    return _create_candidate_container(
+        pdf_extractor_configs, PDFExtractorType.ALBERT, in_memory=True
+    )
 
 
 @pytest.fixture(name="openai_candidate_container")
 def openai_candidate_container_fixture(pdf_extractor_configs):
-    """Set up candidate container with OpenAI extractor for unit tests."""
-    container = CandidateContainer()
-
-    logger_service = LoggerService()
-    container.logger_service.override(logger_service)
-
-    # Use async in-memory repository for unit tests
-    async_in_memory_cv_repo = AsyncInMemoryCVMetadataRepository()
-    container.async_cv_metadata_repository.override(async_in_memory_cv_repo)
-
-    # Keep sync repository for tests that still need it
-    in_memory_cv_repo = InMemoryCVMetadataRepository()
-    container.postgres_cv_metadata_repository.override(in_memory_cv_repo)
-
-    pdf_config = PDFExtractorConfig(
-        pdf_extractor_type=PDFExtractorType.OPENAI,
-        albert_config=pdf_extractor_configs["albert"],
-        openai_config=pdf_extractor_configs["openai"],
+    """Set up candidate container with OpenAI extractor and in-memory repository."""
+    return _create_candidate_container(
+        pdf_extractor_configs, PDFExtractorType.OPENAI, in_memory=True
     )
-    container.config.override(pdf_config)
-
-    return container
 
 
-@pytest.fixture(name="integration_container")
-def integration_container_fixture(pdf_extractor_configs):
-    """Set up integration container with Django persistence."""
-    container = CandidateContainer()
-
-    logger_service = LoggerService()
-    container.logger_service.override(logger_service)
-
-    # Default to Albert configuration
-    pdf_config = PDFExtractorConfig(
-        pdf_extractor_type=PDFExtractorType.ALBERT,
-        albert_config=pdf_extractor_configs["albert"],
-        openai_config=pdf_extractor_configs["openai"],
+@pytest.fixture(name="albert_integration_container")
+def albert_integration_container_fixture(pdf_extractor_configs):
+    """Set up integration container with Albert extractor and Django persistence."""
+    return _create_candidate_container(
+        pdf_extractor_configs, PDFExtractorType.ALBERT, in_memory=False
     )
-    container.config.override(pdf_config)
-
-    return container
 
 
 @pytest.fixture(name="openai_integration_container")
 def openai_integration_container_fixture(pdf_extractor_configs):
-    """Set up integration container with OpenAI extractor."""
-    container = CandidateContainer()
-
-    logger_service = LoggerService()
-    container.logger_service.override(logger_service)
-
-    pdf_config = PDFExtractorConfig(
-        pdf_extractor_type=PDFExtractorType.OPENAI,
-        albert_config=pdf_extractor_configs["albert"],
-        openai_config=pdf_extractor_configs["openai"],
+    """Set up integration container with OpenAI extractor and Django persistence."""
+    return _create_candidate_container(
+        pdf_extractor_configs, PDFExtractorType.OPENAI, in_memory=False
     )
-    container.config.override(pdf_config)
-
-    return container
-
-
-@pytest.fixture(name="process_cv_usecase")
-def process_cv_usecase_fixture(candidate_container):
-    """Process CV usecase with Albert extractor for unit tests."""
-    return candidate_container.process_uploaded_cv_usecase()
-
-
-@pytest.fixture(name="openai_process_cv_usecase")
-def openai_process_cv_usecase_fixture(openai_candidate_container):
-    """Process CV usecase with OpenAI extractor for unit tests."""
-    return openai_candidate_container.process_uploaded_cv_usecase()
-
-
-@pytest.fixture(name="process_cv_usecase_integration")
-def process_cv_usecase_integration_fixture(integration_container):
-    """Process CV usecase for integration tests with Albert extractor."""
-    return integration_container.process_uploaded_cv_usecase()
-
-
-@pytest.fixture(name="openai_process_cv_usecase_integration")
-def openai_process_cv_usecase_integration_fixture(openai_integration_container):
-    """Process CV usecase for integration tests with OpenAI extractor."""
-    return openai_integration_container.process_uploaded_cv_usecase()
-
-
-@pytest.fixture(params=["albert", "openai"])
-def extractor_config(request):
-    """Parametrized fixture for both Albert and OpenAI extractors."""
-    if request.param == "albert":
-        return {
-            "type": "albert",
-            "api_url": "https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-            "usecase_fixture": "process_cv_usecase",
-            "container_fixture": "candidate_container",
-            "response_wrapper": lambda response: response,
-            "retry_count": 1,
-        }
-    else:  # openai
-        return {
-            "type": "openai",
-            "api_url": "https://openrouter.ai/api/v1/chat/completions",
-            "usecase_fixture": "openai_process_cv_usecase",
-            "container_fixture": "openai_candidate_container",
-            "response_wrapper": lambda response: {
-                "choices": [{"message": {"content": json.dumps(response)}}]
-            },
-            "retry_count": 3,
-        }
-
-
-@pytest.fixture(params=["albert", "openai"])
-def extractor_config_integration(request):
-    """Parametrized fixture for both Albert and OpenAI extractors."""
-    if request.param == "albert":
-        return {
-            "type": "albert",
-            "api_url": "https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-            "usecase_fixture": "process_cv_usecase_integration",
-            "response_wrapper": lambda response: response,
-            "retry_count": 1,
-        }
-    else:  # openai
-        return {
-            "type": "openai",
-            "api_url": "https://openrouter.ai/api/v1/chat/completions",
-            "usecase_fixture": "openai_process_cv_usecase_integration",
-            "response_wrapper": lambda response: {
-                "choices": [{"message": {"content": json.dumps(response)}}]
-            },
-            "retry_count": 3,
-        }
 
 
 @pytest.fixture(name="pdf_content")
