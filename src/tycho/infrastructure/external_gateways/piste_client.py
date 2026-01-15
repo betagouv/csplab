@@ -8,10 +8,10 @@ from requests.exceptions import HTTPError
 from domain.services.logger_interface import ILogger
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.configs.piste_config import PisteConfig
-from infrastructure.gateways.shared.http_client import HttpClient
+from infrastructure.gateways.shared.http_client import SyncHttpClient
 
 
-class PisteClient(HttpClient):
+class PisteClient(SyncHttpClient):
     """Client for interacting with PISTE OAuth and INGRES APIs."""
 
     def __init__(

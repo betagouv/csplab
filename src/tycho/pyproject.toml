@@ -18,6 +18,8 @@ dependencies = [
     "polars>=1.0.0",
     "psycopg[binary,pool]==3.2.12",
     "pydantic>=2.12.4",
+    "pymupdf>=1.26.7",
+    "pypdf>=6.6.0",
     "requests>=2.32.5",
     "sentry-sdk[django]==2.43.0",
     "uuid>=1.30",
@@ -35,9 +37,11 @@ dev = [
   "mypy==1.18.2",
   "polyfactory>=3.0.0",
   "pytest==8.4.2",
+  "pytest-asyncio>=0.25.0",
   "pytest-cov==7.0.0",
   "pytest-django==4.11.1",
   "pytest-xdist>=3.8.0",
+  "pytest-httpx>=0.35.0",
   "responses>=0.25.8",
   "ruff==0.14.3",
   "types-requests>=2.32.4.20250913",
@@ -69,6 +73,7 @@ omit = [
 [tool.pytest.ini_options]
 addopts = "-v --cov-report term-missing --cov=application --cov=domain --cov=infrastructure --cov=presentation"
 DJANGO_SETTINGS_MODULE = "config.settings"
+asyncio_mode = "auto"
 python_files = [
     "test_*.py",
     "tests.py",

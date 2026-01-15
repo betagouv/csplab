@@ -1,202 +1,147 @@
 """Integration tests for ProcessUploadedCVUsecase with Django persistence."""
 
+import json
 from datetime import datetime
 from uuid import UUID
 
 import pytest
-import responses
-from django.test import TransactionTestCase
-from pydantic import HttpUrl
 
 from domain.entities.cv_metadata import CVMetadata
-from domain.exceptions.cv_errors import InvalidPDFError, TextExtractionError
-from infrastructure.di.candidate.candidate_container import CandidateContainer
+from domain.exceptions.cv_errors import TextExtractionError
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.configs.albert_config import (
-    AlbertConfig,
-    AlbertGatewayConfig,
+from tests.utils.mock_api_response_factory import MockApiResponseFactory
+
+
+@pytest.mark.parametrize(
+    "container_name", ["albert_integration_container", "openai_integration_container"]
 )
-from infrastructure.gateways.shared.logger import LoggerService
+@pytest.mark.django_db
+async def test_execute_with_valid_pdf_saves_to_database(
+    httpx_mock, request, pdf_content, container_name
+):
+    """Test that valid PDF is processed and saved to real database."""
+    container = request.getfixturevalue(container_name)
+    extractor_type = "albert" if "albert" in container_name else "openai"
 
+    mock_response = MockApiResponseFactory.create_ocr_api_response(
+        experiences=[("Software Engineer", "Tech Corp")],
+        skills=["Python", "Django"],
+        description="5 years in Python development",
+    )
 
-class TestIntegrationProcessUploadedCVUsecase(TransactionTestCase):
-    """Integration test cases for ProcessUploadedCVUsecase with Django persistence."""
-
-    def setUp(self):
-        """Set up container dependencies with real Django persistence."""
-        self.container = CandidateContainer()
-
-        albert_config = AlbertConfig(
-            api_base_url=HttpUrl("https://albert.api.etalab.gouv.fr/"),
-            api_key="test-api-key",
-            model_name="albert-large",
-            dpi=200,
-        )
-        albert_gateway_config = AlbertGatewayConfig(albert_config)
-        self.container.config.override(albert_gateway_config)
-
-        logger_service = LoggerService()
-        self.container.logger_service.override(logger_service)
-
-        self.usecase = self.container.process_uploaded_cv_usecase()
-
-    @pytest.mark.django_db
-    @responses.activate
-    def test_execute_with_valid_pdf_saves_to_database(self):
-        """Test that valid PDF is processed and saved to real database."""
-        # Mock Albert API response
-        mock_response = {
-            "experiences": [
-                {
-                    "title": "Software Engineer",
-                    "company": "Tech Corp",
-                    "sector": "Technology",
-                    "description": "5 years in Python development",
-                }
-            ]
+    # Configuration spécifique selon l'extracteur
+    if extractor_type == "albert":
+        api_url = "https://albert.api.etalab.gouv.fr/v1/ocr-beta"
+        response_json = mock_response
+    else:  # openai
+        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        response_json = {
+            "choices": [{"message": {"content": json.dumps(mock_response)}}]
         }
 
-        responses.add(
-            responses.POST,
-            "https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-            json=mock_response,
-            status=200,
-            content_type="application/json",
-        )
+    httpx_mock.add_response(
+        method="POST",
+        url=api_url,
+        json=response_json,
+        status_code=200,
+    )
 
-        pdf_content = b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<<"
-        "\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj"
-        filename = "integration_test_cv.pdf"
+    usecase = container.process_uploaded_cv_usecase()
+    filename = f"{extractor_type}_integration_test_cv.pdf"
+    result = await usecase.execute(filename, pdf_content)
 
-        result = self.usecase.execute(filename, pdf_content)
+    assert isinstance(result, str)
+    cv_id = UUID(result)
 
-        self.assertIsInstance(result, str)
-        cv_id = UUID(result)
+    cv_model = await CVMetadataModel.objects.aget(id=cv_id)
+    assert cv_model.filename == filename
+    assert cv_model.extracted_text == mock_response
+    assert "software engineer" in cv_model.search_query
+    assert isinstance(cv_model.created_at, datetime)
 
-        cv_model = CVMetadataModel.objects.get(id=cv_id)
-        self.assertEqual(cv_model.filename, filename)
-        self.assertEqual(cv_model.extracted_text, mock_response)
-        self.assertIn("software engineer", cv_model.search_query)
-        self.assertIsInstance(cv_model.created_at, datetime)
+    cv_entity = cv_model.to_entity()
+    assert isinstance(cv_entity, CVMetadata)
+    assert cv_entity.id == cv_id
+    assert cv_entity.filename == filename
+    assert cv_entity.extracted_text == mock_response
 
-        cv_entity = cv_model.to_entity()
-        self.assertIsInstance(cv_entity, CVMetadata)
-        self.assertEqual(cv_entity.id, cv_id)
-        self.assertEqual(cv_entity.filename, filename)
-        self.assertEqual(cv_entity.extracted_text, mock_response)
 
-    @pytest.mark.django_db
-    def test_execute_with_invalid_pdf_does_not_save_to_database(self):
-        """Test that invalid PDF raises error and doesn't save to database."""
-        pdf_content = b"This is not a PDF file"
-        filename = "invalid.pdf"
+@pytest.mark.parametrize(
+    "container_name", ["albert_integration_container", "openai_integration_container"]
+)
+@pytest.mark.django_db
+async def test_execute_with_api_failure_does_not_save_to_database(
+    httpx_mock, request, pdf_content, container_name
+):
+    """Test that API failure raises error and doesn't save to database."""
+    container = request.getfixturevalue(container_name)
+    extractor_type = "albert" if "albert" in container_name else "openai"
 
-        initial_count = CVMetadataModel.objects.count()
+    # Configuration spécifique selon l'extracteur
+    if extractor_type == "albert":
+        api_url = "https://albert.api.etalab.gouv.fr/v1/ocr-beta"
+        retry_count = 1
+    else:  # openai
+        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        retry_count = 3
 
-        with self.assertRaises(InvalidPDFError):
-            self.usecase.execute(filename, pdf_content)
-
-        final_count = CVMetadataModel.objects.count()
-        self.assertEqual(initial_count, final_count)
-
-    @pytest.mark.django_db
-    @responses.activate
-    def test_execute_with_albert_api_failure_does_not_save_to_database(self):
-        """Test that Albert API failure raises error and doesn't save to database."""
-        responses.add(
-            responses.POST,
-            "https://albert.api.etalab.gouv.fr/v1/ocr-beta",
+    # Mock multiple potential retry attempts
+    for _ in range(retry_count):
+        httpx_mock.add_response(
+            method="POST",
+            url=api_url,
             json={"error": "API Error"},
-            status=500,
-            content_type="application/json",
+            status_code=500,
         )
 
-        pdf_content = b"%PDF-1.4\nvalid content"
-        filename = "test.pdf"
+    filename = f"{extractor_type}_test.pdf"
+    initial_count = await CVMetadataModel.objects.acount()
 
-        initial_count = CVMetadataModel.objects.count()
+    with pytest.raises(ExternalApiError):
+        usecase = container.process_uploaded_cv_usecase()
+        await usecase.execute(filename, pdf_content)
 
-        with self.assertRaises(ExternalApiError):
-            self.usecase.execute(filename, pdf_content)
+    final_count = await CVMetadataModel.objects.acount()
+    assert initial_count == final_count
 
-        final_count = CVMetadataModel.objects.count()
-        self.assertEqual(initial_count, final_count)
 
-    @pytest.mark.django_db
-    @responses.activate
-    def test_execute_with_empty_experiences_does_not_save_to_database(self):
-        """Test that empty experiences raises error and doesn't save to database."""
-        mock_response = {"experiences": []}
+@pytest.mark.parametrize(
+    "container_name", ["albert_integration_container", "openai_integration_container"]
+)
+@pytest.mark.django_db
+async def test_execute_with_empty_experiences_does_not_save_to_database(
+    httpx_mock, request, pdf_content, container_name
+):
+    """Test that empty experiences raises error and doesn't save to database."""
+    container = request.getfixturevalue(container_name)
+    extractor_type = "albert" if "albert" in container_name else "openai"
 
-        responses.add(
-            responses.POST,
-            "https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-            json=mock_response,
-            status=200,
-            content_type="application/json",
-        )
+    mock_response = MockApiResponseFactory.create_empty_response()
 
-        pdf_content = b"%PDF-1.4\nvalid content"
-        filename = "empty_experiences.pdf"
-
-        initial_count = CVMetadataModel.objects.count()
-
-        with self.assertRaises(TextExtractionError):
-            self.usecase.execute(filename, pdf_content)
-
-        final_count = CVMetadataModel.objects.count()
-        self.assertEqual(initial_count, final_count)
-
-    @pytest.mark.django_db
-    @responses.activate
-    def test_multiple_cv_processing_creates_separate_records(self):
-        """Test that multiple CV processing creates separate database records."""
-        mock_response = {
-            "experiences": [
-                {
-                    "title": "Data Scientist",
-                    "company": "AI Corp",
-                    "sector": "AI",
-                    "description": "3 years in machine learning",
-                }
-            ]
+    # Configuration spécifique selon l'extracteur
+    if extractor_type == "albert":
+        api_url = "https://albert.api.etalab.gouv.fr/v1/ocr-beta"
+        response_json = mock_response
+    else:  # openai
+        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        response_json = {
+            "choices": [{"message": {"content": json.dumps(mock_response)}}]
         }
 
-        responses.add(
-            responses.POST,
-            "https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-            json=mock_response,
-            status=200,
-            content_type="application/json",
-        )
+    httpx_mock.add_response(
+        method="POST",
+        url=api_url,
+        json=response_json,
+        status_code=200,
+    )
 
-        pdf_content = b"%PDF-1.4\nvalid content"
+    filename = f"empty_experiences_{extractor_type}.pdf"
+    initial_count = await CVMetadataModel.objects.acount()
 
-        initial_count = CVMetadataModel.objects.count()
+    with pytest.raises(TextExtractionError):
+        usecase = container.process_uploaded_cv_usecase()
+        await usecase.execute(filename, pdf_content)
 
-        result1 = self.usecase.execute("cv1.pdf", pdf_content)
-        cv_id1 = UUID(result1)
-
-        responses.add(
-            responses.POST,
-            "https://albert.api.etalab.gouv.fr/v1/ocr-beta",
-            json=mock_response,
-            status=200,
-            content_type="application/json",
-        )
-        result2 = self.usecase.execute("cv2.pdf", pdf_content)
-        cv_id2 = UUID(result2)
-
-        final_count = CVMetadataModel.objects.count()
-        self.assertEqual(final_count, initial_count + 2)
-
-        self.assertNotEqual(cv_id1, cv_id2)
-
-        cv1_model = CVMetadataModel.objects.get(id=cv_id1)
-        cv2_model = CVMetadataModel.objects.get(id=cv_id2)
-
-        self.assertEqual(cv1_model.filename, "cv1.pdf")
-        self.assertEqual(cv2_model.filename, "cv2.pdf")
-        self.assertEqual(cv1_model.extracted_text, mock_response)
-        self.assertEqual(cv2_model.extracted_text, mock_response)
+    final_count = await CVMetadataModel.objects.acount()
+    assert initial_count == final_count

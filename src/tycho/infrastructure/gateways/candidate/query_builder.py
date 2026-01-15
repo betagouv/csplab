@@ -1,15 +1,14 @@
 """Query builder implementation."""
 
-from typing import Any, Dict
-
 from domain.exceptions.cv_errors import QueryBuildingError
 from domain.services.query_builder_interface import IQueryBuilder
+from domain.types import JsonDataType
 
 
 class QueryBuilder(IQueryBuilder):
     """Implementation of query building service."""
 
-    def build_query(self, cv_data: Dict[str, Any]) -> str:
+    def build_query(self, cv_data: JsonDataType) -> str:
         """Build a search query from CV structured data.
 
         Args:
@@ -39,8 +38,9 @@ class QueryBuilder(IQueryBuilder):
         if isinstance(experiences, list):
             for exp in experiences:
                 if isinstance(exp, dict):
-                    title = exp.get("title", "").lower()
-                    keywords.append(title)
+                    title = exp.get("title", "")
+                    if isinstance(title, str) and title:
+                        keywords.append(title.lower())
 
         unique_keywords = list(set(keywords))
         return " ".join(unique_keywords)

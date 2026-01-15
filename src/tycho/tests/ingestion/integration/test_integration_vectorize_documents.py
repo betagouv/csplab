@@ -21,7 +21,7 @@ from infrastructure.external_gateways.configs.piste_config import (
     PisteConfig,
     PisteGatewayConfig,
 )
-from infrastructure.gateways.shared.http_client import HttpClient
+from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared import pgvector_repository as pgvector_repo
 from infrastructure.repositories.shared import (
@@ -68,7 +68,7 @@ class TestIntegrationVectorizeDocumentsUsecase(TransactionTestCase):
 
         logger_service = LoggerService()
         self.container.logger_service.override(logger_service)
-        http_client = HttpClient()
+        http_client = SyncHttpClient()
         self.container.http_client.override(http_client)
 
         postgres_corps_repository = postgres_corps_repo.PostgresCorpsRepository()

@@ -5,8 +5,8 @@ import requests
 from domain.services.http_client_interface import IHttpClient
 
 
-class HttpClient(IHttpClient):
-    """HTTP client wrapper."""
+class SyncHttpClient(IHttpClient):
+    """Sync HTTP client wrapper with request implementation."""
 
     def __init__(self, timeout: int = 30):
         """Initialize HTTP client.
