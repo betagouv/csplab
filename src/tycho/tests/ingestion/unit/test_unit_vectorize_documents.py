@@ -6,190 +6,113 @@ IMPORTANT: Dependency Injection Override Timing
 - Dependencies are resolved at creation time, not execution time
 """
 
-import unittest
-from datetime import datetime
+import pytest
 
-from domain.entities.corps import Corps
-from domain.entities.document import Document, DocumentType
-from domain.interfaces.entity_interface import IEntity
-from domain.value_objects.access_modality import AccessModality
-from domain.value_objects.category import Category
-from domain.value_objects.diploma import Diploma
-from domain.value_objects.label import Label
-from domain.value_objects.ministry import Ministry
-from infrastructure.di.ingestion.ingestion_container import IngestionContainer
-from infrastructure.gateways.shared.logger import LoggerService
-from tests.fixtures.fixture_loader import load_fixture
-from tests.utils.test_container_factory import create_test_shared_container
-
-
-class UnsupportedEntity(IEntity):
-    """Mock entity for testing unsupported source type."""
-
-    def __init__(self, id: int):
-        """Initialize with id."""
-        self.id = id
+from domain.entities.document import DocumentType
+from tests.fixtures.vectorize_test_factories import (
+    MIXED_ENTITIES_COUNT,
+    MIXED_ENTITIES_INVALID_ID,
+    MIXED_ENTITIES_VECTORIZED,
+    MULTIPLE_ENTITIES_COUNT,
+    UNSUPPORTED_ENTITY_ID,
+    UnsupportedEntity,
+    create_test_concours,
+    create_test_corps,
+    create_test_document,
+    create_test_offer,
+)
 
 
-class TestUnitVectorizeDocumentsUsecase(unittest.TestCase):
-    """Unit test cases for VectorizeDocuments usecase."""
+@pytest.mark.parametrize("entity_type", ["corps", "concours", "offer"])
+def test_vectorize_entity_success(ingestion_container, entity_type):
+    """Test vectorizing different entity types successfully."""
+    usecase = ingestion_container.vectorize_documents_usecase()
 
-    @classmethod
-    def setUpClass(cls):
-        """Load fixtures once for all tests."""
-        cls.embedding_fixtures = load_fixture("embedding_fixtures.json")
+    if entity_type == "corps":
+        entity = create_test_corps()
+    elif entity_type == "concours":
+        entity = create_test_concours()
+    else:  # offer
+        entity = create_test_offer()
 
-    def _create_isolated_container(self):
-        """Create an isolated container for each test to avoid concurrency issues."""
-        container = IngestionContainer()
+    result = usecase.execute([entity])
 
-        # Override with test dependencies
-        logger_service = LoggerService()
-        container.logger_service.override(logger_service)
+    assert result["processed"] == 1
+    assert result["vectorized"] == 1
+    assert result["errors"] == 0
 
-        # Create and configure shared container for testing
-        shared_container = create_test_shared_container(self.embedding_fixtures)
-        container.shared_container.override(shared_container)
 
-        return container
+@pytest.mark.parametrize("entity_type", ["corps", "concours", "offer"])
+def test_vectorize_multiple_entities_success(ingestion_container, entity_type):
+    """Test vectorizing multiple entities of the same type."""
+    usecase = ingestion_container.vectorize_documents_usecase()
 
-    def test_vectorize_two_corps_returns_correct_embeddings(self):
-        """Test vectorizing two Corps returns correct embeddings from fixtures."""
-        container = self._create_isolated_container()
-        usecase = container.vectorize_documents_usecase()
+    # Create multiple entities
+    if entity_type == "corps":
+        entities = [create_test_corps(i) for i in range(1, MULTIPLE_ENTITIES_COUNT + 1)]
+    elif entity_type == "concours":
+        entities = [
+            create_test_concours(i) for i in range(1, MULTIPLE_ENTITIES_COUNT + 1)
+        ]
+    else:  # offer
+        entities = [create_test_offer(i) for i in range(1, MULTIPLE_ENTITIES_COUNT + 1)]
 
-        corps_ids = list(self.embedding_fixtures.keys())[:2]
+    result = usecase.execute(entities)
 
-        corps_list = []
-        expected_embeddings = {}
+    assert result["processed"] == MULTIPLE_ENTITIES_COUNT
+    assert result["vectorized"] == MULTIPLE_ENTITIES_COUNT
+    assert result["errors"] == 0
 
-        for corps_id in corps_ids:
-            fixture_data = self.embedding_fixtures[corps_id]
-            long_label = fixture_data["long_label"]
-            expected_embedding = fixture_data["embedding"]
 
-            corps = Corps(
-                id=int(corps_id),
-                code=f"CODE{corps_id}",
-                category=Category.A,
-                ministry=Ministry.MAA,
-                diploma=Diploma(5),
-                access_modalities=[AccessModality.CONCOURS_EXTERNE],
-                label=Label(short_value=long_label[:20], value=long_label),
-            )
-            corps_list.append(corps)
-            expected_embeddings[int(corps_id)] = expected_embedding
+def test_vectorize_entity_error_handling_unsupported_type(ingestion_container):
+    """Test error handling for unsupported entity types."""
+    usecase = ingestion_container.vectorize_documents_usecase()
 
-        result = usecase.execute(corps_list)
+    entities = [UnsupportedEntity(id=UNSUPPORTED_ENTITY_ID)]
+    result = usecase.execute(entities)
 
-        self.assertEqual(result["processed"], 2)
-        self.assertEqual(result["vectorized"], 2)
-        self.assertEqual(result["errors"], 0)
+    assert result["processed"] == 1
+    assert result["vectorized"] == 0
+    assert result["errors"] == 1
+    assert len(result["error_details"]) == 1
 
-    # TODO: vectorize concours pour clean et matcher les corps_id grade_id
-    # def test_vectorize_two_documents_returns_correct_embeddings(self):
-    #     """Test vectorizing two Documents returns correct embeddings from fixtures."""
-    #     container = self._create_isolated_container()
-    #     usecase = container.vectorize_documents_usecase()
+    error_detail = result["error_details"][0]
+    assert error_detail["source_type"] == "UnsupportedEntity"
+    assert error_detail["source_id"] == UNSUPPORTED_ENTITY_ID
+    assert "error" in error_detail
 
-    #     doc_ids = list(self.embedding_fixtures.keys())[:2]
 
-    #     doc_list = []
-    #     expected_embeddings = {}
+def test_vectorize_document_unsupported_type(ingestion_container):
+    """Test vectorizing unsupported document type."""
+    usecase = ingestion_container.vectorize_documents_usecase()
 
-    #     for doc_id in doc_ids:
-    #         fixture_data = self.embedding_fixtures[doc_id]
-    #         long_label = fixture_data["long_label"]
-    #         expected_embedding = fixture_data["embedding"]
+    document = create_test_document(doc_type=DocumentType.GRADE)
+    result = usecase.execute([document])
 
-    #         document = Document(
-    #             id=int(doc_id),
-    #             external_id=doc_id,
-    #             raw_data=long_label,
-    #             type=DocumentType.CONCOURS,
-    #             created_at=datetime.now(),
-    #             updated_at=datetime.now(),
-    #         )
-    #         doc_list.append(document)
-    #         expected_embeddings[int(doc_id)] = expected_embedding
+    assert result["processed"] == 1
+    assert result["vectorized"] == 0
+    assert result["errors"] == 1
+    assert (
+        "Content extraction not implemented for document type GRADE"
+        in result["error_details"][0]["error"]
+    )
 
-    #     result = usecase.execute(doc_list)
 
-    #     self.assertEqual(result["processed"], 2)
-    #     self.assertEqual(result["vectorized"], 2)
-    #     self.assertEqual(result["errors"], 0)
+def test_vectorize_mixed_entities_with_errors(ingestion_container):
+    """Test vectorizing mixed entities with some errors."""
+    usecase = ingestion_container.vectorize_documents_usecase()
 
-    def test_vectorize_corps_with_exception_handles_error_correctly(self):
-        """Test that exceptions during vectorization are properly handled and logged."""
-        container = self._create_isolated_container()
-        usecase = container.vectorize_documents_usecase()
+    # Mix of valid and invalid entities
+    valid_corps = create_test_corps(1)
+    valid_concours = create_test_concours(2)
+    valid_offer = create_test_offer(3)
+    invalid_entity = UnsupportedEntity(id=MIXED_ENTITIES_INVALID_ID)
 
-        # Create a Corps with None label to trigger an exception
-        invalid_corps = Corps(
-            id=999,
-            code="INVALID",
-            category=Category.A,
-            ministry=Ministry.MAA,
-            diploma=Diploma(5),
-            access_modalities=[AccessModality.CONCOURS_EXTERNE],
-            label=None,  # This will cause an exception in text extraction
-        )
+    entities = [valid_corps, valid_concours, valid_offer, invalid_entity]
+    result = usecase.execute(entities)
 
-        result = usecase.execute([invalid_corps])
-
-        self.assertEqual(result["processed"], 1)
-        self.assertEqual(result["vectorized"], 0)
-        self.assertEqual(result["errors"], 1)
-        self.assertEqual(len(result["error_details"]), 1)
-
-        error_detail = result["error_details"][0]
-        self.assertEqual(error_detail["source_type"], "Corps")
-        self.assertEqual(error_detail["source_id"], 999)
-        self.assertIn("error", error_detail)
-
-    def test_vectorize_document_returns_correct_result(self):
-        """Test vectorizing a Document returns correct result."""
-        container = self._create_isolated_container()
-        usecase = container.vectorize_documents_usecase()
-
-        document = Document(
-            id=1,
-            external_id="test_vectorize_doc",
-            raw_data={"content": "Test document content for vectorization"},
-            type=DocumentType.GRADE,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-        )
-
-        result = usecase.execute([document])
-
-        self.assertEqual(result["processed"], 1)
-        self.assertEqual(result["vectorized"], 0)
-        self.assertEqual(result["errors"], 1)
-        self.assertEqual(
-            result["error_details"][0]["error"],
-            "Content extraction not implemented for document type GRADE",
-        )
-
-    def test_vectorize_unsupported_source_type_handles_error_correctly(self):
-        """Test that unsupported source types are properly handled and logged."""
-        container = self._create_isolated_container()
-        usecase = container.vectorize_documents_usecase()
-
-        unsupported_entity = UnsupportedEntity(id=123)
-
-        result = usecase.execute([unsupported_entity])
-
-        self.assertEqual(result["processed"], 1)
-        self.assertEqual(result["vectorized"], 0)
-        self.assertEqual(result["errors"], 1)
-        self.assertEqual(len(result["error_details"]), 1)
-
-        error_detail = result["error_details"][0]
-
-        self.assertEqual(error_detail["source_type"], "UnsupportedEntity")
-        self.assertEqual(error_detail["source_id"], 123)
-        self.assertIn(
-            "Content extraction not implemented",
-            error_detail["error"],
-        )
+    assert result["processed"] == MIXED_ENTITIES_COUNT
+    assert result["vectorized"] == MIXED_ENTITIES_VECTORIZED
+    assert result["errors"] == 1
+    assert len(result["error_details"]) == 1
+    assert result["error_details"][0]["source_type"] == "UnsupportedEntity"

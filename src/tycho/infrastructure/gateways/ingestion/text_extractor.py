@@ -5,6 +5,7 @@ from typing import Any, Dict, Union
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import Document
+from domain.entities.offer import Offer
 from domain.interfaces.entity_interface import IEntity
 from domain.services.text_extractor_interface import ITextExtractor
 
@@ -20,6 +21,8 @@ class TextExtractor(ITextExtractor):
             return self._extract_from_corps(source)
         elif isinstance(source, Concours):
             return self._extract_from_concours(source)
+        elif isinstance(source, Offer):
+            return self._extract_from_offer(source)
         else:
             raise NotImplementedError(
                 f"Content extraction not implemented for {type(source)}"
@@ -33,6 +36,8 @@ class TextExtractor(ITextExtractor):
             return self._extract_metadata_from_corps(source)
         elif isinstance(source, Concours):
             return self._extract_metadata_from_concours(source)
+        elif isinstance(source, Offer):
+            return self._extract_metadata_from_offer(source)
         else:
             raise NotImplementedError(
                 f"Metadata extraction not implemented for {type(source)}"
@@ -72,4 +77,23 @@ class TextExtractor(ITextExtractor):
             "category": concours.category.value,
             "ministry": concours.ministry.value,
             "access_modality": [am.value for am in concours.access_modality],
+        }
+
+    def _extract_from_offer(self, offer: Offer) -> str:
+        """Extract content from Offer entity."""
+        return f"{offer.titre}"
+
+    def _extract_metadata_from_offer(self, offer: Offer) -> Dict[str, Any]:
+        """Extract metadata from Offer entity."""
+        localisation_data = None
+        if offer.localisation:
+            localisation_data = {
+                "region": offer.localisation.region.value,
+                "department": offer.localisation.department.value,
+            }
+
+        return {
+            "category": offer.category.value,
+            "verse": offer.verse.value,
+            "localisation": localisation_data,
         }

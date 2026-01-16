@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from typing import Optional
-from uuid import UUID
 
 from domain.interfaces.entity_interface import IEntity
 from domain.value_objects.category import Category
@@ -15,7 +14,7 @@ from domain.value_objects.verse import Verse
 class Offer(IEntity):
     """Offer entity."""
 
-    id: UUID
+    id: int
     external_id: str
     verse: Verse
     titre: str
