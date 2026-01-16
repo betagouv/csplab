@@ -7,10 +7,11 @@ from tests.fixtures.vectorize_test_factories import (
     INTEGRATION_ENTITIES_COUNT,
     create_test_concours_for_integration,
     create_test_corps_for_integration,
+    create_test_offer_for_integration,
 )
 
 
-@pytest.mark.parametrize("entity_type", ["corps", "concours"])
+@pytest.mark.parametrize("entity_type", ["corps", "concours", "offer"])
 @pytest.mark.django_db
 def test_vectorize_entity_integration(ingestion_integration_container, entity_type):
     """Test vectorizing different entity types with Django persistence."""
@@ -25,6 +26,12 @@ def test_vectorize_entity_integration(ingestion_integration_container, entity_ty
         entity = create_test_concours_for_integration(1)
         repository = (
             ingestion_integration_container.shared_container.concours_repository()
+        )
+        save_result = repository.upsert_batch([entity])
+    else:  # offer
+        entity = create_test_offer_for_integration(1)
+        repository = (
+            ingestion_integration_container.shared_container.offers_repository()
         )
         save_result = repository.upsert_batch([entity])
 
@@ -52,7 +59,7 @@ def test_vectorize_entity_integration(ingestion_integration_container, entity_ty
     assert vector.metadata is not None
 
 
-@pytest.mark.parametrize("entity_type", ["corps", "concours"])
+@pytest.mark.parametrize("entity_type", ["corps", "concours", "offer"])
 @pytest.mark.django_db
 def test_vectorize_multiple_entities_integration(
     ingestion_integration_container, entity_type
@@ -74,6 +81,14 @@ def test_vectorize_multiple_entities_integration(
         ]
         repository = (
             ingestion_integration_container.shared_container.concours_repository()
+        )
+    else:  # offer
+        entities = [
+            create_test_offer_for_integration(i)
+            for i in range(1, INTEGRATION_ENTITIES_COUNT + 1)
+        ]
+        repository = (
+            ingestion_integration_container.shared_container.offers_repository()
         )
 
     save_result = repository.upsert_batch(entities)

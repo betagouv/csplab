@@ -11,6 +11,9 @@ from infrastructure.repositories.shared.postgres_concours_repository import (
 from infrastructure.repositories.shared.postgres_corps_repository import (
     PostgresCorpsRepository,
 )
+from infrastructure.repositories.shared.postgres_offers_repository import (
+    PostgresOffersRepository,
+)
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
@@ -55,8 +58,8 @@ def _create_ingestion_container(in_memory: bool = True):
         postgres_concours_repo = PostgresConcoursRepository()
         container.shared_container.concours_repository.override(postgres_concours_repo)
 
-        in_memory_offers_repo = InMemoryOffersRepository()
-        container.shared_container.offers_repository.override(in_memory_offers_repo)
+        postgres_offers_repo = PostgresOffersRepository()
+        container.shared_container.offers_repository.override(postgres_offers_repo)
 
         pgvector_repo = PgVectorRepository()
         container.vector_repository.override(pgvector_repo)

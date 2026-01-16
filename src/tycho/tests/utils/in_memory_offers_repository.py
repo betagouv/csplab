@@ -1,8 +1,9 @@
 """In-memory implementation of IOffersRepository for testing purposes."""
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from domain.entities.offer import Offer
+from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.repositories.document_repository_interface import (
     IUpsertError,
     IUpsertResult,
@@ -47,9 +48,12 @@ class InMemoryOffersRepository(IOffersRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_id(self, offer_id: int) -> Optional[Offer]:
+    def find_by_id(self, offer_id: int) -> Offer:
         """Find a Offer by its ID."""
-        return self._offers.get(offer_id)
+        offer = self._offers.get(offer_id)
+        if offer is None:
+            raise OfferDoesNotExist(offer_id)
+        return offer
 
     def clear(self) -> None:
         """Clear all stored offers (for testing)."""
