@@ -35,6 +35,7 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     corps_repository = shared_container.corps_repository
     concours_repository = shared_container.concours_repository
+    offers_repository = shared_container.offers_repository
     embedding_generator = shared_container.embedding_generator
     vector_repository = shared_container.vector_repository
 
