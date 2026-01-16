@@ -1,7 +1,6 @@
 """In-memory implementation of IOffersRepository for testing purposes."""
 
 from typing import Dict, List, Optional
-from uuid import UUID, uuid4
 
 from domain.entities.offer import Offer
 from domain.repositories.document_repository_interface import (
@@ -16,7 +15,8 @@ class InMemoryOffersRepository(IOffersRepository):
 
     def __init__(self):
         """Initialize with empty storage."""
-        self._offers: Dict[UUID, Offer] = {}
+        self._offers: Dict[int, Offer] = {}
+        self._next_id = 1
 
     def upsert_batch(self, offers_list: List[Offer]) -> IUpsertResult:
         """Insert or update multiple Offers entities and return operation results."""
@@ -26,10 +26,11 @@ class InMemoryOffersRepository(IOffersRepository):
 
         for offer in offers_list:
             try:
-                if offer.id is None or offer.id not in self._offers:
+                if offer.id == 0 or offer.id not in self._offers:
                     # Create new
-                    if offer.id is None:
-                        offer.id = uuid4()
+                    if offer.id == 0:
+                        offer.id = self._next_id
+                        self._next_id += 1
                     self._offers[offer.id] = offer
                     created += 1
                 else:
@@ -46,10 +47,11 @@ class InMemoryOffersRepository(IOffersRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_id(self, offer_id: UUID) -> Optional[Offer]:
+    def find_by_id(self, offer_id: int) -> Optional[Offer]:
         """Find a Offer by its ID."""
         return self._offers.get(offer_id)
 
     def clear(self) -> None:
         """Clear all stored offers (for testing)."""
         self._offers.clear()
+        self._next_id = 1
