@@ -13,19 +13,25 @@ import pytest
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
+from domain.entities.offer import Offer
 from domain.interfaces.entity_interface import IEntity
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
+from domain.value_objects.department import Department
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
+from domain.value_objects.limit_date import LimitDate
+from domain.value_objects.localisation import Localisation
 from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
+from domain.value_objects.region import Region
+from domain.value_objects.verse import Verse
 
 # Test constants
 MULTIPLE_ENTITIES_COUNT = 3
 UNSUPPORTED_ENTITY_ID = 123
-MIXED_ENTITIES_COUNT = 3
-MIXED_ENTITIES_VECTORIZED = 2
+MIXED_ENTITIES_COUNT = 4
+MIXED_ENTITIES_VECTORIZED = 3
 MIXED_ENTITIES_INVALID_ID = 999
 
 
@@ -66,6 +72,22 @@ def create_test_concours(entity_id: int = 1) -> Concours:
     )
 
 
+def create_test_offer(entity_id: int = 1):
+    """Create a test Offer entity."""
+    return Offer(
+        id=entity_id,
+        external_id=f"OFFER_{entity_id:03d}",
+        verse=Verse.FPE,
+        titre="Développeur Python Senior",
+        profile="Profil technique avec expertise Python",
+        category=Category.A,
+        localisation=Localisation(
+            region=Region.ILE_DE_FRANCE, department=Department.PARIS
+        ),
+        limit_date=LimitDate(datetime(2024, 12, 31)),
+    )
+
+
 def create_test_document(
     entity_id: int = 1, doc_type: DocumentType = DocumentType.GRADE
 ) -> Document:
@@ -80,15 +102,17 @@ def create_test_document(
     )
 
 
-@pytest.mark.parametrize("entity_type", ["corps", "concours"])
+@pytest.mark.parametrize("entity_type", ["corps", "concours", "offer"])
 def test_vectorize_entity_success(ingestion_container, entity_type):
     """Test vectorizing different entity types successfully."""
     usecase = ingestion_container.vectorize_documents_usecase()
 
     if entity_type == "corps":
         entity = create_test_corps()
-    else:  # concours
+    elif entity_type == "concours":
         entity = create_test_concours()
+    else:  # offer
+        entity = create_test_offer()
 
     result = usecase.execute([entity])
 
@@ -97,7 +121,7 @@ def test_vectorize_entity_success(ingestion_container, entity_type):
     assert result["errors"] == 0
 
 
-@pytest.mark.parametrize("entity_type", ["corps", "concours"])
+@pytest.mark.parametrize("entity_type", ["corps", "concours", "offer"])
 def test_vectorize_multiple_entities_success(ingestion_container, entity_type):
     """Test vectorizing multiple entities of the same type."""
     usecase = ingestion_container.vectorize_documents_usecase()
@@ -105,10 +129,12 @@ def test_vectorize_multiple_entities_success(ingestion_container, entity_type):
     # Create multiple entities
     if entity_type == "corps":
         entities = [create_test_corps(i) for i in range(1, MULTIPLE_ENTITIES_COUNT + 1)]
-    else:  # concours
+    elif entity_type == "concours":
         entities = [
             create_test_concours(i) for i in range(1, MULTIPLE_ENTITIES_COUNT + 1)
         ]
+    else:  # offer
+        entities = [create_test_offer(i) for i in range(1, MULTIPLE_ENTITIES_COUNT + 1)]
 
     result = usecase.execute(entities)
 
@@ -158,9 +184,10 @@ def test_vectorize_mixed_entities_with_errors(ingestion_container):
     # Mix of valid and invalid entities
     valid_corps = create_test_corps(1)
     valid_concours = create_test_concours(2)
+    valid_offer = create_test_offer(3)
     invalid_entity = UnsupportedEntity(id=MIXED_ENTITIES_INVALID_ID)
 
-    entities = [valid_corps, valid_concours, invalid_entity]
+    entities = [valid_corps, valid_concours, valid_offer, invalid_entity]
     result = usecase.execute(entities)
 
     assert result["processed"] == MIXED_ENTITIES_COUNT
