@@ -4,6 +4,13 @@ import pytest
 
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.repositories.shared.pgvector_repository import PgVectorRepository
+from infrastructure.repositories.shared.postgres_concours_repository import (
+    PostgresConcoursRepository,
+)
+from infrastructure.repositories.shared.postgres_corps_repository import (
+    PostgresCorpsRepository,
+)
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
@@ -40,6 +47,19 @@ def _create_ingestion_container(in_memory: bool = True):
 
         in_memory_vector_repo = InMemoryVectorRepository()
         container.vector_repository.override(in_memory_vector_repo)
+    else:
+        # Use Django persistence for integration tests
+        postgres_corps_repo = PostgresCorpsRepository()
+        container.shared_container.corps_repository.override(postgres_corps_repo)
+
+        postgres_concours_repo = PostgresConcoursRepository()
+        container.shared_container.concours_repository.override(postgres_concours_repo)
+
+        in_memory_offers_repo = InMemoryOffersRepository()
+        container.shared_container.offers_repository.override(in_memory_offers_repo)
+
+        pgvector_repo = PgVectorRepository()
+        container.vector_repository.override(pgvector_repo)
 
     return container
 
