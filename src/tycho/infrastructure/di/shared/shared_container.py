@@ -25,6 +25,9 @@ class SharedContainer(containers.DeclarativeContainer):
         postgres_concours_repository.PostgresConcoursRepository
     )
 
+    # Temporary placeholder for offers repository (for testing)
+    offers_repository: providers.Dependency = providers.Dependency()
+
     embedding_generator = providers.Singleton(
         OpenAIEmbeddingGenerator,
         config=providers.Callable(lambda cfg: cfg.openai, config),
