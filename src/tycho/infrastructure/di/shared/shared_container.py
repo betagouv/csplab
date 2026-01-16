@@ -9,6 +9,7 @@ from infrastructure.repositories.shared import (
     pgvector_repository,
     postgres_concours_repository,
     postgres_corps_repository,
+    postgres_offers_repository,
 )
 
 
@@ -25,8 +26,9 @@ class SharedContainer(containers.DeclarativeContainer):
         postgres_concours_repository.PostgresConcoursRepository
     )
 
-    # Temporary placeholder for offers repository (for testing)
-    offers_repository: providers.Dependency = providers.Dependency()
+    offers_repository = providers.Singleton(
+        postgres_offers_repository.PostgresOffersRepository
+    )
 
     embedding_generator = providers.Singleton(
         OpenAIEmbeddingGenerator,

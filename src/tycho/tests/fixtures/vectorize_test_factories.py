@@ -121,6 +121,25 @@ def create_test_offer(entity_id: int = 1) -> Offer:
     )
 
 
+def create_test_offer_for_integration(entity_id: int = 1) -> Offer:
+    """Create a test Offer entity for integration tests."""
+    return Offer(
+        id=entity_id + 2,  # Start from ID 3 to avoid conflicts
+        external_id=f"OFFER_{entity_id + 2:03d}",
+        verse=Verse.FPE if entity_id == 1 else Verse.FPT,
+        titre=f"Développeur Python Senior {entity_id}",
+        profile=f"Profil technique avec expertise Python {entity_id}",
+        category=Category.A if entity_id == 1 else Category.B,
+        localisation=Localisation(
+            region=Region.ILE_DE_FRANCE
+            if entity_id == 1
+            else Region.AUVERGNE_RHONE_ALPES,
+            department=Department.PARIS if entity_id == 1 else Department.RHONE,
+        ),
+        limit_date=LimitDate(datetime(2024, 12, 31)),
+    )
+
+
 def create_test_document(
     entity_id: int = 1, doc_type: DocumentType = DocumentType.GRADE
 ) -> Document:
