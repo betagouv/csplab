@@ -128,3 +128,109 @@ class TestGetAccessToken:
                 await talentsoft_client.get_access_token()
 
             assert exc_info.value.api_name == "Talentsoft Front API"
+
+
+class TestGetOffers:
+    """Tests for get_offers method."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("expected_has_more", [True, False])
+    async def test_get_offers(self, talentsoft_client, expected_has_more):
+        """Test successful get_offers call returns offers and pagination info."""
+        # Setup
+        expected_offers = [
+            {"id": fake.uuid4(), "title": fake.job()},
+            {"id": fake.uuid4(), "title": fake.job()},
+        ]
+        mock_response = mocked_response(
+            return_value={
+                "data": expected_offers,
+                "_pagination": {"hasMore": expected_has_more, "total": 2},
+            }
+        )
+
+        talentsoft_client.cached_token = cached_token()
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_response
+            offers, has_more = await talentsoft_client.get_offers()
+
+            assert offers == expected_offers
+            assert has_more == expected_has_more
+            mock_get.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_get_offers_handles_empty_data(self, talentsoft_client):
+        """Test get_offers handles response with empty or missing data."""
+        # Setup - response without data key
+        mock_response = mocked_response(return_value={})
+
+        talentsoft_client.cached_token = cached_token()
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_response
+
+            offers, has_more = await talentsoft_client.get_offers()
+
+            assert offers == []
+            assert has_more is False
+
+    @pytest.mark.asyncio
+    async def test_get_offers_fails_due_to_unauthorized_token(self, talentsoft_client):
+        """Test get_offers handles 401 unauthorized by refreshing token and retrying."""
+        expected_offers = [{"id": fake.uuid4(), "title": fake.job()}]
+
+        unauthorized_response = mocked_response(status_code=401)
+        unauthorized_response.raise_for_status.side_effect = Exception(
+            "401 Unauthorized"
+        )
+
+        success_response = mocked_response(
+            return_value={"data": expected_offers, "_pagination": {"hasMore": False}}
+        )
+
+        new_token_response = mocked_response(
+            return_value={
+                "access_token": fake.uuid4(),
+                "token_type": fake.word(),
+                "expires_in": 3600,
+            }
+        )
+
+        talentsoft_client.cached_token = cached_token()
+
+        with (
+            patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get,
+            patch.object(
+                talentsoft_client, "post", new_callable=AsyncMock
+            ) as mock_post,
+        ):
+            mock_get.side_effect = [unauthorized_response, success_response]
+            mock_post.return_value = new_token_response
+
+            offers, has_more = await talentsoft_client.get_offers()
+
+            assert offers == expected_offers
+            assert mock_get.call_count == 2  # noqa - First failed, second succeeded
+            mock_post.assert_called_once()  # Token refresh called
+
+    @pytest.mark.asyncio
+    async def test_get_offers_fails_after_max_retries_attempts(self, talentsoft_client):
+        """Test get_offers raises ExternalApiError after max retries exceeded."""
+        failed_response = mocked_response(status_code=500)
+        failed_response.raise_for_status.side_effect = Exception(
+            "500 Internal Server Error"
+        )
+
+        talentsoft_client.cached_token = cached_token()
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = failed_response
+
+            with pytest.raises(
+                ExternalApiError, match="Request failed after retries"
+            ) as exc_info:
+                await talentsoft_client.get_offers()
+
+            assert exc_info.value.api_name == "Talentsoft Front API"
+            assert mock_get.call_count == talentsoft_client.max_retries + 1

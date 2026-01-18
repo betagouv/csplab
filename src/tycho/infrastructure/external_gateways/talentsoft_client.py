@@ -5,7 +5,9 @@ from http import HTTPStatus
 from time import time
 from typing import Any, Dict, List, Optional, Tuple, cast
 
+from domain.services.async_http_client_interface import IAsyncHttpResponse
 from domain.services.logger_interface import ILogger
+from domain.types import JsonDataType
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.configs.talentsoft_config import TalentsoftConfig
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
@@ -15,6 +17,7 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
 
 TOKEN_ENDPOINT = "/api/token"  # noqa
+OFFERS_ENDPOINT = "/api/v2/offersummaries"
 
 
 class TalentsoftFrontClient(AsyncHttpClient):
@@ -82,3 +85,77 @@ class TalentsoftFrontClient(AsyncHttpClient):
             if self.cached_token and self.cached_token.is_valid():
                 return self.cached_token.access_token
             return await self._fetch_new_token()
+
+    def _build_auth_headers(self, token: str) -> Dict[str, str]:
+        """Build headers with authorization token."""
+        return {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {token}",
+        }
+
+    async def _make_authenticated_request(
+        self, url: str, params: Dict[str, int]
+    ) -> IAsyncHttpResponse:
+        """Make HTTP request with automatic retry on 401."""
+        token = await self.get_access_token()
+
+        for attempt in range(self.max_retries + 1):
+            try:
+                response = await self.get(
+                    url, headers=self._build_auth_headers(token), params=params
+                )
+
+                if (
+                    response.status_code == HTTPStatus.UNAUTHORIZED
+                    and attempt < self.max_retries
+                ):
+                    self.logger.info(
+                        "Token expired, fetching new token (attempt %d)", attempt + 1
+                    )
+                    self.cached_token = None
+                    token = await self.get_access_token()
+                    continue
+
+                response.raise_for_status()
+                return response
+
+            except Exception as exc:
+                if attempt == self.max_retries:
+                    self.logger.exception(
+                        "Failed to get response from Talentsoft API Front: %s", url
+                    )
+                    raise ExternalApiError(
+                        message=f"Request failed after retries: {exc}",
+                        api_name="Talentsoft Front API",
+                    ) from exc
+
+                self.logger.warning(
+                    "Request attempt %d failed, retrying: %s", attempt + 1, exc
+                )
+
+        # This should never be reached, but added for type safety
+        raise ExternalApiError(
+            message="Unexpected end of retry loop",
+            api_name="Talentsoft Front API",
+        )
+
+    async def get_offers(
+        self, count: int = 1000, start: int = 1
+    ) -> Tuple[List[JsonDataType], bool]:
+        """Fetch job offers from Talentsoft API Front."""
+        url = f"{self.config.base_url}{OFFERS_ENDPOINT}"
+        params = {"count": count, "start": start}
+
+        response = await self._make_authenticated_request(url, params)
+        json = response.json()
+
+        # TO BE REVIEWED REGARDING JsonDataType
+        payload = cast(Dict[str, Any], json)
+
+        offers = payload.get("data", [])
+        if not isinstance(offers, list):
+            offers = []
+
+        has_more = bool(payload.get("_pagination", {}).get("hasMore", False))
+
+        return offers, has_more
