@@ -1,58 +1,55 @@
 <!-- No-JS: DSFR native file upload -->
 <div class="fr-upload-group no-js-only">
-  <label class="fr-label" for="{{ field.id_for_label }}">
-    {{ field.label }}
-    <span class="fr-hint-text">{{ field.help_text }}</span>
-  </label>
-  <input type="file"
-         id="{{ field.id_for_label }}"
-         name="{{ field.html_name }}"
-         accept="{{ field.field.widget.attrs.accept }}"
-         class="fr-upload"
-         data-nojs-input>
+    <label class="fr-label" for="{{ field.id_for_label }}">
+        {{ field.label }}
+        <span class="fr-hint-text">{{ field.help_text }}</span>
+    </label>
+    <input type="file"
+           id="{{ field.id_for_label }}"
+           name="{{ field.html_name }}"
+           accept="{{ field.field.widget.attrs.accept }}"
+           class="fr-upload"
+           data-nojs-input>
 </div>
-
 <!-- JS: Custom dropzone UI -->
 <div class="csplab-upload-wrapper js-only">
-  <!-- Hidden file input -->
-  <input type="file"
-         id="{{ field.id_for_label }}-js"
-         name="{{ field.html_name }}"
-         accept="{{ field.field.widget.attrs.accept }}"
-         class="fr-sr-only"
-         data-file-input>
-
-  <!-- Dropzone -->
-  <div class="csplab-dropzone" data-dropzone data-state="initial">
-    <label for="{{ field.id_for_label }}-js" class="csplab-dropzone__label">
-      <span class="fr-sr-only">{{ field.label }}</span>
-    </label>
-    <div class="csplab-dropzone__icon">
-      <span class="fr-icon-upload-line fr-icon--sm" aria-hidden="true"></span>
+    <!-- Hidden file input -->
+    <input type="file"
+           id="{{ field.id_for_label }}-js"
+           name="{{ field.html_name }}"
+           accept="{{ field.field.widget.attrs.accept }}"
+           class="fr-sr-only"
+           data-file-input>
+    <!-- Dropzone -->
+    <div class="csplab-dropzone" data-dropzone data-state="initial">
+        <label for="{{ field.id_for_label }}-js" class="csplab-dropzone__label">
+            <span class="fr-sr-only">{{ field.label }}</span>
+        </label>
+        <div class="csplab-dropzone__icon">
+            <span class="fr-icon-upload-line fr-icon--sm" aria-hidden="true"></span>
+        </div>
+        <p class="csplab-dropzone__text fr-text--bold fr-m-0">
+            {{ dropzone_text|default:"Glissez-déposez votre fichier ou" }}
+            <span class="csplab-dropzone__browse">parcourez vos dossiers</span>
+        </p>
+        <p class="csplab-dropzone__hint fr-hint-text">{{ field.help_text }}</p>
     </div>
-    <p class="csplab-dropzone__text fr-text--bold fr-m-0">
-      {{ dropzone_text|default:"Glissez-déposez votre fichier ou" }}
-      <span class="csplab-dropzone__browse">parcourez vos dossiers</span>
-    </p>
-    <p class="csplab-dropzone__hint fr-hint-text">{{ field.help_text }}</p>
-  </div>
-
-  <!-- File card -->
-  <div class="csplab-file-card" data-file-card hidden aria-live="polite">
-    <div class="csplab-file-card__content">
-      <div class="csplab-file-card__icon-badge">
-        <span class="fr-icon fr-icon-file-text-fill" aria-hidden="true"></span>
-      </div>
-      <div class="csplab-file-card__info">
-        <span class="csplab-file-card__name" data-file-name></span>
-        <span class="csplab-file-card__size" data-file-size></span>
-      </div>
+    <!-- File card -->
+    <div class="csplab-file-card" data-file-card hidden aria-live="polite">
+        <div class="csplab-file-card__content">
+            <div class="csplab-file-card__icon-badge">
+                <span class="fr-icon fr-icon-file-text-fill" aria-hidden="true"></span>
+            </div>
+            <div class="csplab-file-card__info">
+                <span class="csplab-file-card__name" data-file-name></span>
+                <span class="csplab-file-card__size" data-file-size></span>
+            </div>
+        </div>
+        <button type="button"
+                class="fr-btn fr-btn--tertiary-no-outline fr-btn--icon-only"
+                aria-label="Supprimer le fichier"
+                data-remove-file>
+            <span class="fr-icon-close-line" aria-hidden="true"></span>
+        </button>
     </div>
-    <button type="button"
-            class="fr-btn fr-btn--tertiary-no-outline fr-btn--icon-only"
-            aria-label="Supprimer le fichier"
-            data-remove-file>
-      <span class="fr-icon-close-line" aria-hidden="true"></span>
-    </button>
-  </div>
 </div>
