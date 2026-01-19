@@ -146,12 +146,14 @@ lint-notebook-fix: ## lint and fix notebook python sources
 lint-tycho: ## lint tycho python sources
 lint-tycho: \
   lint-tycho-ruff \
+  lint-tycho-djlint \
   lint-tycho-mypy
 .PHONY: lint-tycho
 
 lint-tycho-fix: ## lint and fix tycho python sources
 lint-tycho-fix: \
   lint-tycho-ruff-fix \
+  lint-tycho-djlint-fix \
   lint-tycho-mypy
 .PHONY: lint-tycho-fix
 
@@ -166,6 +168,16 @@ lint-tycho-ruff-fix: ## lint and fix tycho python sources with ruff
 	$(TYCHO_UV) ruff check --fix .
 	$(TYCHO_UV) ruff format .
 .PHONY: lint-tycho-ruff-fix
+
+lint-tycho-djlint: ## lint tycho template sources with djlint
+	@echo 'lint:tycho-djlint started…'
+	$(TYCHO_UV) djlint presentation/templates --check
+.PHONY: lint-tycho-djlint
+
+lint-tycho-djlint-fix: ## lint and fix tycho template sources with djlint
+	@echo 'lint:tycho-djlint-fix started…'
+	$(TYCHO_UV) djlint presentation/templates --reformat
+.PHONY: lint-tycho-djlint-fix
 
 lint-tycho-mypy: ## lint tycho python sources with mypy
 	@echo 'lint:tycho-mypy started…'
