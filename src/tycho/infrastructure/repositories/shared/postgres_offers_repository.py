@@ -1,11 +1,10 @@
 """Django implementation of IOffersRepository."""
 
-from typing import List
+from typing import Dict, List
 
 from domain.entities.offer import Offer
 from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.repositories.document_repository_interface import (
-    IUpsertError,
     IUpsertResult,
 )
 from domain.repositories.offers_repository_interface import IOffersRepository
@@ -21,8 +20,6 @@ class PostgresOffersRepository(IOffersRepository):
         if not offers_list:
             return {"created": 0, "updated": 0, "errors": []}
 
-        errors: List[IUpsertError] = []
-
         try:
             # Get existing external_ids in one query
             existing_external_ids = set(
@@ -31,49 +28,55 @@ class PostgresOffersRepository(IOffersRepository):
                 ).values_list("external_id", flat=True)
             )
 
-            # Separate new and existing offers
-            to_create = []
-            to_update = []
-            valid_offers = []
-
+            # Partition offers into new and existing
+            partitioned: Dict[str, List[Offer]] = {"new": [], "existing": []}
             for offer in offers_list:
-                offer_model = OfferModel.from_entity(offer)
-                valid_offers.append(offer)
                 if offer.external_id in existing_external_ids:
-                    to_update.append(offer_model)
+                    partitioned["existing"].append(offer)
                 else:
-                    to_create.append(offer_model)
+                    partitioned["new"].append(offer)
 
             created = 0
             updated = 0
 
             # Bulk create new offers
-            if to_create:
-                try:
-                    OfferModel.objects.bulk_create(to_create, ignore_conflicts=True)
-                    created = len(to_create)
-                except Exception as e:
-                    # Add all failed creates to errors
-                    for _, offer in enumerate(
-                        [
-                            o
-                            for o in valid_offers
-                            if o.external_id not in existing_external_ids
-                        ]
-                    ):
-                        errors.append(
-                            {
-                                "entity_id": offer.id,
-                                "error": f"Bulk create failed: {str(e)}",
-                                "exception": e,
-                            }
-                        )
+            if partitioned["new"]:
+                new_models = [
+                    OfferModel.from_entity(offer) for offer in partitioned["new"]
+                ]
+                OfferModel.objects.bulk_create(new_models, ignore_conflicts=True)
+                created = len(new_models)
 
             # Bulk update existing offers
-            if to_update:
-                try:
+            if partitioned["existing"]:
+                # Get existing models to update
+                existing_models = list(
+                    OfferModel.objects.filter(
+                        external_id__in=[
+                            offer.external_id for offer in partitioned["existing"]
+                        ]
+                    )
+                )
+
+                # Create mapping for efficient lookup
+                existing_models_map = {
+                    model.external_id: model for model in existing_models
+                }
+
+                # Update models using from_entity
+                models_to_update = []
+                for offer in partitioned["existing"]:
+                    if offer.external_id in existing_models_map:
+                        existing_model = existing_models_map[offer.external_id]
+                        updated_model = OfferModel.from_entity(offer)
+                        # Keep the existing ID and timestamps
+                        updated_model.id = existing_model.id
+                        updated_model.created_at = existing_model.created_at
+                        models_to_update.append(updated_model)
+
+                if models_to_update:
                     OfferModel.objects.bulk_update(
-                        to_update,
+                        models_to_update,
                         fields=[
                             "verse",
                             "title",
@@ -84,26 +87,23 @@ class PostgresOffersRepository(IOffersRepository):
                             "limit_date",
                         ],
                     )
-                    updated = len(to_update)
-                except Exception as e:
-                    # Add all failed updates to errors
-                    for offer in [
-                        o
-                        for o in valid_offers
-                        if o.external_id in existing_external_ids
-                    ]:
-                        errors.append(
-                            {
-                                "entity_id": offer.id,
-                                "error": f"Bulk update failed: {str(e)}",
-                                "exception": e,
-                            }
-                        )
+                    updated = len(models_to_update)
 
-            return {"created": created, "updated": updated, "errors": errors}
+            return {"created": created, "updated": updated, "errors": []}
 
-        except Exception as e:
-            raise DatabaseError("Erreur lors de l'upsert batch des offres") from e
+        except Exception:
+            db_error = DatabaseError("Erreur lors de l'upsert batch des offres")
+            return {
+                "created": 0,
+                "updated": 0,
+                "errors": [
+                    {
+                        "entity_id": None,
+                        "error": "Database error during bulk upsert",
+                        "exception": db_error,
+                    }
+                ],
+            }
 
     def find_by_id(self, offer_id: int) -> Offer:
         """Find an Offer by its ID."""
