@@ -48,11 +48,3 @@ html[data-fr-js="true"] .no-js-only {
 .csplab-space-y-3w {
   gap: 1.5rem;
 }
-
-.csplab-text-blue-france {
-  color: var(--text-title-blue-france);
-}
-
-.csplab-text-info {
-  color: var(--text-default-info);
-}
