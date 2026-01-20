@@ -19,7 +19,9 @@ class PostgresDocumentRepository(IDocumentRepository):
         raw_documents = RawDocument.objects.filter(document_type=document_type.value)
         return [raw_doc.to_entity() for raw_doc in raw_documents]
 
-    def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
+    def upsert_batch(
+        self, documents: List[Document], document_type: DocumentType
+    ) -> IUpsertResult:
         """Insert or update multiple documents."""
         created_count = 0
         updated_count = 0

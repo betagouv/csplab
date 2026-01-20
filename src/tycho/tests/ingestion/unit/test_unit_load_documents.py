@@ -66,7 +66,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
             )
             documents.append(document)
 
-        repository.upsert_batch(documents)
+        repository.upsert_batch(documents, DocumentType.CORPS.value)
         return documents
 
     def test_execute_returns_zero_when_no_documents(self):
@@ -102,7 +102,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
         container = self._create_isolated_container()
         repository = container.document_repository()
 
-        documents = [
+        corps_documents = [
             Document(
                 id=None,
                 external_id="corps_1",
@@ -119,6 +119,8 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             ),
+        ]
+        contest_documents = [
             Document(
                 id=None,
                 external_id="exam_1",
@@ -129,7 +131,8 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
             ),
         ]
 
-        repository.upsert_batch(documents)
+        repository.upsert_batch(corps_documents, DocumentType.CORPS.value)
+        repository.upsert_batch(contest_documents, DocumentType.CONCOURS.value)
 
         corps_docs = repository.fetch_by_type(DocumentType.CORPS)
         self.assertEqual(len(corps_docs), 2)
@@ -151,7 +154,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
             updated_at=datetime.now(),
         )
 
-        result = repository.upsert_batch([document])
+        result = repository.upsert_batch([document], DocumentType.CORPS.value)
 
         self.assertEqual(result["created"], 1)
         self.assertEqual(result["updated"], 0)
@@ -186,7 +189,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
             ),
         ]
 
-        result = repository.upsert_batch(documents)
+        result = repository.upsert_batch(documents, DocumentType.CORPS.value)
 
         self.assertEqual(result["created"], 2)
         self.assertEqual(result["updated"], 0)
@@ -201,7 +204,7 @@ class TestUnitLoadDocumentsUsecase(unittest.TestCase):
 
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.UPLOAD_FROM_CSV,
-            kwargs={"documents": documents},
+            kwargs={"documents": documents, "document_type": DocumentType.CORPS},
         )
         result = usecase.execute(input_data)
         self.assertEqual(result["created"], 4)
