@@ -37,4 +37,4 @@ def test_upsert_and_find_by_id_success():
     assert found_offer is not None
     assert found_offer.id == offer.id
     assert found_offer.external_id == offer.external_id
-    assert found_offer.titre == offer.titre
+    assert found_offer.title == offer.title

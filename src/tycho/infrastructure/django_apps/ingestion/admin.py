@@ -16,7 +16,7 @@ class OfferAdmin(admin.ModelAdmin):
         "id",
         "external_id",
         "verse",
-        "titre",
+        "title",
         "category",
         "region",
         "department",
@@ -25,12 +25,12 @@ class OfferAdmin(admin.ModelAdmin):
         "updated_at",
     )
     list_filter = ("verse", "category", "region", "created_at", "updated_at")
-    search_fields = ("external_id", "titre", "profile")
+    search_fields = ("external_id", "title", "profile")
     readonly_fields = (
         "id",
         "external_id",
         "verse",
-        "titre",
+        "title",
         "profile",
         "category",
         "region",

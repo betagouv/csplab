@@ -17,7 +17,7 @@ class Offer(IEntity):
     id: int
     external_id: str
     verse: Verse
-    titre: str
+    title: str
     profile: str
     category: Category
     localisation: Optional[Localisation]

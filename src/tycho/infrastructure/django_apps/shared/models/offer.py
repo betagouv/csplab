@@ -19,7 +19,7 @@ class OfferModel(models.Model):
     id = models.AutoField(primary_key=True)
     external_id = models.CharField(max_length=100, unique=True)
     verse = models.CharField(max_length=20)
-    titre = models.CharField(max_length=500)
+    title = models.CharField(max_length=500)
     profile = models.TextField()
     category = models.CharField(max_length=20)
 
@@ -59,7 +59,7 @@ class OfferModel(models.Model):
             id=self.id,
             external_id=self.external_id,
             verse=Verse(self.verse),
-            titre=self.titre,
+            title=self.title,
             profile=self.profile,
             category=Category(self.category),
             localisation=localisation,
@@ -85,7 +85,7 @@ class OfferModel(models.Model):
             id=offer.id,
             external_id=offer.external_id,
             verse=offer.verse.value,
-            titre=offer.titre,
+            title=offer.title,
             profile=offer.profile,
             category=offer.category.value,
             region=region,
@@ -95,4 +95,4 @@ class OfferModel(models.Model):
 
     def __str__(self) -> str:
         """String representation of OfferModel."""
-        return f"Offer {self.external_id} - {self.titre}"
+        return f"Offer {self.external_id} - {self.title}"

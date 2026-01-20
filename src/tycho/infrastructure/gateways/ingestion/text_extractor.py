@@ -81,7 +81,7 @@ class TextExtractor(ITextExtractor):
 
     def _extract_from_offer(self, offer: Offer) -> str:
         """Extract content from Offer entity."""
-        return f"{offer.titre}"
+        return f"{offer.title}"
 
     def _extract_metadata_from_offer(self, offer: Offer) -> Dict[str, Any]:
         """Extract metadata from Offer entity."""

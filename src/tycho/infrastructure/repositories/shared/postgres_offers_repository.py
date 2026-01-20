@@ -76,7 +76,7 @@ class PostgresOffersRepository(IOffersRepository):
                         to_update,
                         fields=[
                             "verse",
-                            "titre",
+                            "title",
                             "profile",
                             "category",
                             "region",

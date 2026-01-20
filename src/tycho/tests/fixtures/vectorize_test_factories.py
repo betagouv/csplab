@@ -111,7 +111,7 @@ def create_test_offer(entity_id: int = 1) -> Offer:
         id=entity_id,
         external_id=f"OFFER_{entity_id:03d}",
         verse=Verse.FPE,
-        titre="Développeur Python Senior",
+        title="Développeur Python Senior",
         profile="Profil technique avec expertise Python",
         category=Category.A,
         localisation=Localisation(
@@ -127,7 +127,7 @@ def create_test_offer_for_integration(entity_id: int = 1) -> Offer:
         id=entity_id + 2,  # Start from ID 3 to avoid conflicts
         external_id=f"OFFER_{entity_id + 2:03d}",
         verse=Verse.FPE if entity_id == 1 else Verse.FPT,
-        titre=f"Développeur Python Senior {entity_id}",
+        title=f"Développeur Python Senior {entity_id}",
         profile=f"Profil technique avec expertise Python {entity_id}",
         category=Category.A if entity_id == 1 else Category.B,
         localisation=Localisation(
