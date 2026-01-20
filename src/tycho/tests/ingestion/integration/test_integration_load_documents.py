@@ -3,7 +3,7 @@
 import pytest
 import responses
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TransactionTestCase
+from faker import Faker
 from pydantic import HttpUrl
 from rest_framework.test import APITestCase
 
@@ -25,52 +25,62 @@ from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.ingres_factories import IngresCorpsApiResponseFactory
 
+fake = Faker()
 
-class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
-    """Integration test cases for LoadDocuments usecase."""
 
-    def setUp(self):
-        """Set up container dependencies."""
-        # Create shared container and config
-        self.shared_container = SharedContainer()
-        self.openai_gateway_config = OpenAIGatewayConfig(
-            openai_config=OpenAIConfig(
-                api_key="fake-api-key",
-                base_url=HttpUrl("https://fake-base-url.example.com"),
-                model="fake-model",
-            )
+@pytest.fixture(name="piste_gateway_config")
+def piste_gateway_config_fixture():
+    """Setup piste gateway config for usecase and tests."""
+    return PisteGatewayConfig(
+        piste_config=PisteConfig(
+            oauth_base_url=HttpUrl(fake.url()),
+            ingres_base_url=HttpUrl(fake.url()),
+            client_id=fake.uuid4(),
+            client_secret=fake.word(),
         )
-        self.shared_container.config.override(self.openai_gateway_config)
+    )
 
-        # Create ingestion container
-        self.container = IngestionContainer()
-        self.piste_gateway_config = PisteGatewayConfig(
-            piste_config=PisteConfig(
-                oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
-                ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
-                client_id="fake-client-id",
-                client_secret="fake-client-secret",  # noqa
-            )
+
+@pytest.fixture(name="corps_documents_usecase")
+def corps_documents_usecase_fixture(piste_gateway_config):
+    """Set up container dependencies for Corps LoadDocuments tests."""
+    # Create shared container and config
+    shared_container = SharedContainer()
+    openai_gateway_config = OpenAIGatewayConfig(
+        openai_config=OpenAIConfig(
+            api_key=fake.uuid4(),
+            base_url=HttpUrl(fake.url()),
+            model=fake.word(),
         )
-        self.container.config.override(self.piste_gateway_config)
-        self.container.shared_container.override(self.shared_container)
+    )
+    shared_container.config.override(openai_gateway_config)
 
-        logger_service = LoggerService()
-        self.container.logger_service.override(logger_service)
-        http_client = SyncHttpClient()
-        self.container.http_client.override(http_client)
+    # Create ingestion container
+    container = IngestionContainer()
+    container.config.override(piste_gateway_config)
+    container.shared_container.override(shared_container)
 
-        # Use container to create usecase with proper dependency injection
-        self.usecase = self.container.load_documents_usecase()
+    logger_service = LoggerService()
+    container.logger_service.override(logger_service)
+    http_client = SyncHttpClient()
+    container.http_client.override(http_client)
 
-    @pytest.mark.django_db
+    # Use container to create usecase with proper dependency injection
+    return container.load_documents_usecase()
+
+
+class TestIntegrationCorpsLoadDocumentsUseCase:
+    """Test LoadDocuments use case for Corps docs."""
+
     @responses.activate
-    def test_execute_returns_zero_when_no_documents(self):
+    def test_execute_returns_zero_when_no_documents(
+        self, db, corps_documents_usecase, piste_gateway_config
+    ):
         """Test execute returns 0 when repository is empty."""
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{self.piste_gateway_config.piste.oauth_base_url}api/oauth/token",
+            f"{piste_gateway_config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -79,7 +89,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint with empty response
         responses.add(
             responses.GET,
-            f"{self.piste_gateway_config.piste.ingres_base_url}/CORPS",
+            f"{piste_gateway_config.piste.ingres_base_url}/CORPS",
             json={"items": []},
             status=200,
             content_type="application/json",
@@ -89,13 +99,14 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
-        result = self.usecase.execute(input_data)
-        self.assertEqual(result["created"], 0)
-        self.assertEqual(result["updated"], 0)
+        result = corps_documents_usecase.execute(input_data)
+        assert result["created"] == 0
+        assert result["updated"] == 0
 
-    @pytest.mark.django_db
     @responses.activate
-    def test_execute_returns_correct_count_with_documents(self):
+    def test_execute_returns_correct_count_with_documents(
+        self, db, corps_documents_usecase, piste_gateway_config
+    ):
         """Test execute returns correct count when documents exist with mocked API."""
         api_response = IngresCorpsApiResponseFactory.build()
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
@@ -103,7 +114,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{self.piste_gateway_config.piste.oauth_base_url}api/oauth/token",
+            f"{piste_gateway_config.piste.oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -112,7 +123,7 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
         # Mock INGRES API endpoint
         responses.add(
             responses.GET,
-            f"{self.piste_gateway_config.piste.ingres_base_url}/CORPS",
+            f"{piste_gateway_config.piste.ingres_base_url}/CORPS",
             json={"items": api_data},
             status=200,
             content_type="application/json",
@@ -122,15 +133,15 @@ class TestIntegrationLoadDocumentsUsecase(TransactionTestCase):
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
-        result = self.usecase.execute(input_data)
-        self.assertEqual(result["created"], 4)
-        self.assertEqual(result["updated"], 0)
+        result = corps_documents_usecase.execute(input_data)
+        assert result["created"] == len(api_data)
+        assert result["updated"] == 0
 
         # Verify documents are persisted in database
         saved_documents = RawDocument.objects.filter(
             document_type=DocumentType.CORPS.value
         )
-        self.assertEqual(saved_documents.count(), 4)
+        assert saved_documents.count() == len(api_data)
 
 
 class TestConcoursUploadView(APITestCase):
