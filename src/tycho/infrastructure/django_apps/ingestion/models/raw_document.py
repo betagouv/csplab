@@ -34,7 +34,12 @@ class RawDocument(models.Model):
         verbose_name = "RawDocument"
         verbose_name_plural = "RawDocument"
         ordering = ["-created_at"]
-        unique_together = [("external_id", "document_type")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["external_id", "document_type"],
+                name="unique_external_id_document_type",
+            ),
+        ]
 
     def to_entity(self) -> Document:
         """Convert to core entity."""
