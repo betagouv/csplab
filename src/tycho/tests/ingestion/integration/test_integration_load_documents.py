@@ -143,6 +143,14 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         )
         assert saved_documents.count() == len(api_data)
 
+        # This test ensures that the id of the object stored in the database
+        # is managed by the database.
+        expected_documents_ids = [
+            (i + 1, d.identifiant) for i, d in enumerate(api_response.documents)
+        ]
+        saved_documents_ids = saved_documents.values_list("id", "external_id")
+        assert set(expected_documents_ids) == set(saved_documents_ids)
+
 
 class TestConcoursUploadView(APITestCase):
     """Integration tests for ConcoursUploadView."""
