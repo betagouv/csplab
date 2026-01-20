@@ -1,3 +1,468 @@
-.hello .world {
-  color: blue;
+/* JS DSFR detection utilities */
+html:not([data-fr-js=true]) .js-only,
+html[data-fr-js=true] .no-js-only {
+  display: none !important;
+}
+
+.csplab-text-blue-france {
+  color: var(--text-title-blue-france);
+}
+
+.csplab-text-info {
+  color: var(--text-default-info);
+}
+
+.csplab-space-y-1w,
+.csplab-space-y-2w,
+.csplab-space-y-3w {
+  display: flex;
+  flex-direction: column;
+}
+
+.csplab-space-y-1w > p,
+.csplab-space-y-1w > h1,
+.csplab-space-y-1w > h2,
+.csplab-space-y-1w > h3,
+.csplab-space-y-1w > h4,
+.csplab-space-y-1w > h5,
+.csplab-space-y-1w > h6,
+.csplab-space-y-2w > p,
+.csplab-space-y-2w > h1,
+.csplab-space-y-2w > h2,
+.csplab-space-y-2w > h3,
+.csplab-space-y-2w > h4,
+.csplab-space-y-2w > h5,
+.csplab-space-y-2w > h6,
+.csplab-space-y-3w > p,
+.csplab-space-y-3w > h1,
+.csplab-space-y-3w > h2,
+.csplab-space-y-3w > h3,
+.csplab-space-y-3w > h4,
+.csplab-space-y-3w > h5,
+.csplab-space-y-3w > h6 {
+  margin: 0;
+}
+
+.csplab-space-y-1w {
+  gap: 0.5rem;
+}
+
+.csplab-space-y-2w {
+  gap: 1rem;
+}
+
+.csplab-space-y-3w {
+  gap: 1.5rem;
+}
+
+.fr-alert {
+  background-color: var(--background-default-grey);
+}
+
+.fr-col > img {
+  max-width: 100%;
+  height: auto;
+}
+
+@media (min-width: 768px) {
+  .csplab-col-offset-md-0 {
+    margin-left: 0 !important;
+  }
+}
+.csplab-toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  max-width: 28rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: csplab-toast-slide-in 0.3s ease-out;
+}
+
+@media (max-width: 575px) {
+  .csplab-toast {
+    right: 0.5rem;
+    left: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+}
+@keyframes csplab-toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.csplab-dropzone {
+  position: relative;
+  border: 1px dashed var(--border-action-high-blue-france);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  background-color: var(--background-default-grey);
+  min-height: 10rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.csplab-upload-wrapper {
+  position: relative;
+}
+
+.csplab-upload-wrapper:has(input:focus-visible) .csplab-dropzone {
+  outline: 2px solid var(--border-action-high-blue-france);
+  outline-offset: 2px;
+}
+
+.csplab-upload-wrapper:has(input:active) .csplab-dropzone {
+  background-color: var(--background-default-grey-active);
+}
+
+.csplab-dropzone[hidden] {
+  display: none;
+}
+
+.csplab-dropzone:hover {
+  background-color: var(--background-default-grey-hover);
+}
+
+.csplab-dropzone[data-state=dragging] {
+  background-color: var(--background-default-grey-hover);
+  border-style: solid;
+}
+
+.csplab-dropzone__icon {
+  height: 2rem;
+  width: 2rem;
+  border-radius: 50%;
+  background-color: var(--background-action-high-blue-france);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-inverted-grey);
+}
+
+.csplab-dropzone__label {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+.csplab-dropzone__browse {
+  color: var(--text-action-high-blue-france);
+  text-decoration: underline var(--text-action-high-blue-france) 1px;
+  text-underline-offset: 0.15em;
+}
+
+.csplab-dropzone:hover .csplab-dropzone__browse {
+  text-decoration: underline var(--text-action-high-blue-france) 2px;
+}
+
+.csplab-file-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  background-color: var(--background-default-grey);
+  border: 1px solid var(--border-default-grey);
+}
+
+.csplab-file-card[hidden] {
+  display: none;
+}
+
+.csplab-file-card__content {
+  display: flex;
+  align-items: center;
+  gap: var(--fr-spacing-2w, 16px);
+  flex: 1;
+}
+
+.csplab-file-card__icon-badge {
+  background-color: var(--background-contrast-blue-france);
+  padding: 4px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.csplab-file-card__icon-badge .fr-icon {
+  color: var(--background-action-high-blue-france);
+}
+
+.csplab-file-card__info {
+  display: flex;
+  flex-direction: column;
+  font-size: 1rem;
+}
+
+.csplab-file-card__name {
+  font-weight: 500;
+}
+
+.csplab-file-card__size {
+  color: var(--text-action-high-blue-france);
+}
+
+.csplab-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e8def8;
+  border-top-color: #6750a4;
+  border-radius: 50%;
+  animation: csplab-spin 1s linear infinite;
+}
+
+@keyframes csplab-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Hero Section */
+.csplab-hero {
+  background: linear-gradient(135deg, #0b0b98 33%, #2b2bab 66%, #5757c5 100%);
+  /*
+    The conic gradient bellow from Figma does not translate well to CSS as is.
+    background: conic-gradient(from -66deg at 58.33% 134.44%, #000091 0deg, #ADADF9 360deg);
+  */
+}
+
+.csplab-hero__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.csplab-hero__tag {
+  background-color: var(--background-contrast-blue-france) !important;
+  color: var(--text-title-blue-france) !important;
+}
+
+.csplab-hero__title {
+  color: white;
+  margin: 0 !important;
+}
+
+.csplab-hero__main-cta {
+  background-color: var(--background-default-grey) !important;
+  color: var(--text-title-blue-france) !important;
+}
+
+.csplab-hero__main-cta:hover {
+  background-color: var(--background-default-grey-hover) !important;
+}
+
+.csplab-hero__main-cta:active {
+  background-color: var(--background-default-grey-active) !important;
+}
+
+.csplab-hero__illustration {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+}
+
+.csplab-hero__illustration img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  max-width: 400px;
+  max-height: 400px;
+  border-radius: 1rem;
+  background-color: var(--background-action-high-blue-france);
+}
+
+@media (min-width: 992px) {
+  .csplab-hero__illustration {
+    justify-content: center;
+    max-width: none;
+    max-height: none;
+  }
+}
+.csplab-hero__illustration-img {
+  position: relative;
+  z-index: 1;
+  /* max-width: 260px;
+  max-height: 260px; */
+}
+
+/* Features Section */
+.csplab-features__illustration {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 991px) {
+  .csplab-features__illustration {
+    display: none;
+  }
+}
+.csplab-features__list {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+@media (min-width: 992px) {
+  .csplab-features__list {
+    gap: 7.5rem;
+  }
+}
+.csplab-feature {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.csplab-feature__badge {
+  padding: 0.5rem 0.75rem !important;
+  background-color: var(--background-contrast-info) !important;
+  color: var(--text-default-info) !important;
+}
+
+/* About Section */
+.csplab-about__card {
+  background-color: var(--background-contrast-blue-france);
+  border-radius: 1.5rem;
+}
+
+.csplab-about__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.csplab-about__illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.csplab-cv-uploaded__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* .csplab-cv-uploaded__actions > button {
+    width: 100%;
+} */
+@media (min-width: 48rem) {
+  .csplab-cv-uploaded__actions {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+  }
+}
+/* Override display:flex when hidden attribute is present */
+.csplab-cv-uploaded__actions[hidden] {
+  display: none;
+}
+
+.csplab-processing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--5w, 40px);
+  padding-bottom: 20rem;
+}
+
+.csplab-processing__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--3w, 24px);
+  width: 100%;
+}
+
+.csplab-processing__title {
+  color: #000091;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .csplab-processing {
+    padding-bottom: var(--12w, 96px);
+  }
+}
+.csplab-processing__messages {
+  position: relative;
+  min-height: 1.5rem;
+  width: 100%;
+  text-align: center;
+}
+
+.csplab-processing__message {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+  animation: messageRotate 9s infinite;
+}
+
+.csplab-processing__message[data-message="1"] {
+  animation-delay: 0s;
+}
+
+.csplab-processing__message[data-message="2"] {
+  animation-delay: 3s;
+}
+
+.csplab-processing__message[data-message="3"] {
+  animation-delay: 6s;
+}
+
+@keyframes messageRotate {
+  0% {
+    opacity: 0;
+  }
+  3% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 1;
+  }
+  33% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.csplab-processing__illustration {
+  width: 128px;
+  height: 128px;
+}
+
+.csplab-processing__illustration img {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.corps-search {
+  margin-top: 1rem;
+}
+.corps-search #search-input-messages {
+  align-self: center;
 }
