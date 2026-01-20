@@ -6,6 +6,39 @@ from infrastructure.django_apps.ingestion.models import RawDocument
 from infrastructure.django_apps.shared.models import vectorized_document
 from infrastructure.django_apps.shared.models.concours import ConcoursModel
 from infrastructure.django_apps.shared.models.corps import CorpsModel
+from infrastructure.django_apps.shared.models.offer import OfferModel
+
+
+class OfferAdmin(admin.ModelAdmin):
+    """Admin interface for Offer model (read-only)."""
+
+    list_display = (
+        "id",
+        "external_id",
+        "verse",
+        "title",
+        "category",
+        "region",
+        "department",
+        "limit_date",
+        "created_at",
+        "updated_at",
+    )
+    list_filter = ("verse", "category", "region", "created_at", "updated_at")
+    search_fields = ("external_id", "title", "profile")
+    readonly_fields = (
+        "id",
+        "external_id",
+        "verse",
+        "title",
+        "profile",
+        "category",
+        "region",
+        "department",
+        "limit_date",
+        "created_at",
+        "updated_at",
+    )
 
 
 class RawDocumentAdmin(admin.ModelAdmin):
@@ -113,6 +146,7 @@ class VectorizedDocumentAdmin(admin.ModelAdmin):
 
 
 admin.site.register(RawDocument, RawDocumentAdmin)
+admin.site.register(OfferModel, OfferAdmin)
 admin.site.register(CorpsModel, CorpsAdmin)
 admin.site.register(ConcoursModel, ConcoursAdmin)
 admin.site.register(

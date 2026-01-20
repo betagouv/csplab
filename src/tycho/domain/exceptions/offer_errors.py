@@ -11,3 +11,11 @@ class InvalidLimitDateError(DomainError):
     def __init__(self, limit_date: datetime):
         """Initialize with invalid limit date."""
         super().__init__(f"Invalid limit date: {limit_date}")
+
+
+class OfferDoesNotExist(DomainError):
+    """Raised when an offer is not found."""
+
+    def __init__(self, offer_id: int):
+        """Initialize with offer ID that was not found."""
+        super().__init__(f"Offer with ID {offer_id} does not exist")

@@ -1,212 +1,232 @@
 """Integration tests for VectorizeDocuments usecase with external adapters."""
 
 import pytest
-from django.test import TransactionTestCase
-from pydantic import HttpUrl
 
-from domain.entities.corps import Corps
-from domain.value_objects.access_modality import AccessModality
-from domain.value_objects.category import Category
-from domain.value_objects.diploma import Diploma
-from domain.value_objects.label import Label
-from domain.value_objects.ministry import Ministry
-from infrastructure.di.ingestion.ingestion_container import IngestionContainer
-from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.shared.models import vectorized_document
-from infrastructure.external_gateways.configs.openai_config import (
-    OpenAIConfig,
-    OpenAIGatewayConfig,
+from tests.fixtures.vectorize_test_factories import (
+    INTEGRATION_ENTITIES_COUNT,
+    create_test_concours_for_integration,
+    create_test_corps_for_integration,
+    create_test_offer_for_integration,
 )
-from infrastructure.external_gateways.configs.piste_config import (
-    PisteConfig,
-    PisteGatewayConfig,
-)
-from infrastructure.gateways.shared.http_client import SyncHttpClient
-from infrastructure.gateways.shared.logger import LoggerService
-from infrastructure.repositories.shared import pgvector_repository as pgvector_repo
-from infrastructure.repositories.shared import (
-    postgres_corps_repository as postgres_corps_repo,
-)
-from tests.fixtures.fixture_loader import load_fixture
-from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 
-class TestIntegrationVectorizeDocumentsUsecase(TransactionTestCase):
-    """Integration test cases for VectorizeDocuments usecase with Django persistence."""
+@pytest.mark.parametrize("entity_type", ["corps", "concours", "offer"])
+@pytest.mark.django_db
+def test_vectorize_entity_integration(ingestion_integration_container, entity_type):
+    """Test vectorizing different entity types with Django persistence."""
+    usecase = ingestion_integration_container.vectorize_documents_usecase()
 
-    @classmethod
-    def setUpClass(cls):
-        """Load fixtures once for all tests."""
-        super().setUpClass()
-        cls.embedding_fixtures = load_fixture("embedding_fixtures.json")
-
-    def setUp(self):
-        """Set up container dependencies."""
-        # Create shared container and config
-        self.shared_container = SharedContainer()
-        self.openai_gateway_config = OpenAIGatewayConfig(
-            openai_config=OpenAIConfig(
-                api_key="fake-api-key",
-                base_url=HttpUrl("https://api.openai.com/v1"),
-                model="text-embedding-3-large",
-            )
+    # Create and save entity via repository
+    if entity_type == "corps":
+        entity = create_test_corps_for_integration(1)
+        repository = ingestion_integration_container.shared_container.corps_repository()
+        save_result = repository.upsert_batch([entity])
+    elif entity_type == "concours":
+        entity = create_test_concours_for_integration(1)
+        repository = (
+            ingestion_integration_container.shared_container.concours_repository()
         )
-        self.shared_container.config.override(self.openai_gateway_config)
-
-        # Create ingestion container
-        self.container = IngestionContainer()
-        self.piste_gateway_config = PisteGatewayConfig(
-            piste_config=PisteConfig(
-                oauth_base_url=HttpUrl("https://fake-piste-oauth.example.com"),
-                ingres_base_url=HttpUrl("https://fake-ingres-api.example.com/path"),
-                client_id="fake-client-id",
-                client_secret="fake-client-secret",  # noqa
-            )
+        save_result = repository.upsert_batch([entity])
+    else:  # offer
+        entity = create_test_offer_for_integration(1)
+        repository = (
+            ingestion_integration_container.shared_container.offers_repository()
         )
-        self.container.config.override(self.piste_gateway_config)
-        self.container.shared_container.override(self.shared_container)
+        save_result = repository.upsert_batch([entity])
 
-        logger_service = LoggerService()
-        self.container.logger_service.override(logger_service)
-        http_client = SyncHttpClient()
-        self.container.http_client.override(http_client)
+    if save_result["errors"]:
+        raise Exception(f"Failed to save {entity_type} entity: {save_result['errors']}")
 
-        postgres_corps_repository = postgres_corps_repo.PostgresCorpsRepository()
-        self.shared_container.corps_repository.override(postgres_corps_repository)
+    # Vectorize the entity
+    result = usecase.execute([entity])
 
-        pgvector_repository = pgvector_repo.PgVectorRepository()
-        self.shared_container.vector_repository.override(pgvector_repository)
+    assert result["processed"] == 1
+    assert result["vectorized"] == 1
+    assert result["errors"] == 0
+    assert len(result["error_details"]) == 0
 
-        # Override embedding generator with mock
-        mock_embedding_generator = MockEmbeddingGenerator(self.embedding_fixtures)
-        self.shared_container.embedding_generator.override(mock_embedding_generator)
+    # Verify vector was saved to database
+    saved_vectors = vectorized_document.VectorizedDocumentModel.objects.all()
+    assert saved_vectors.count() == 1
 
-        self.vectorize_documents_usecase = self.container.vectorize_documents_usecase()
+    vector = vectorized_document.VectorizedDocumentModel.objects.get(
+        document_id=entity.id
+    )
+    assert vector.embedding is not None
+    assert len(vector.embedding) > 0
+    assert vector.content is not None
+    assert vector.metadata is not None
 
-    def _create_corps_entities_and_save(self):
-        """Create Corps entities with proper value objects and save via repository."""
-        corps_repository = self.shared_container.corps_repository()
 
-        corps_1 = Corps(
-            id=3,
-            code="00003",
-            category=Category.A,
-            ministry=Ministry.MAA,
-            diploma=Diploma(5),
-            access_modalities=[
-                AccessModality.CONCOURS_EXTERNE,
-                AccessModality.CONCOURS_INTERNE,
-            ],
-            label=Label(
-                short_value="PROF LYCE PROF AGRI",
-                value="Professeurs de lycée professionnel agricole",
-            ),
+@pytest.mark.parametrize("entity_type", ["corps", "concours", "offer"])
+@pytest.mark.django_db
+def test_vectorize_multiple_entities_integration(
+    ingestion_integration_container, entity_type
+):
+    """Test vectorizing multiple entities of the same type with Django persistence."""
+    usecase = ingestion_integration_container.vectorize_documents_usecase()
+
+    # Create and save entities via repository
+    if entity_type == "corps":
+        entities = [
+            create_test_corps_for_integration(i)
+            for i in range(1, INTEGRATION_ENTITIES_COUNT + 1)
+        ]
+        repository = ingestion_integration_container.shared_container.corps_repository()
+    elif entity_type == "concours":
+        entities = [
+            create_test_concours_for_integration(i)
+            for i in range(1, INTEGRATION_ENTITIES_COUNT + 1)
+        ]
+        repository = (
+            ingestion_integration_container.shared_container.concours_repository()
+        )
+    else:  # offer
+        entities = [
+            create_test_offer_for_integration(i)
+            for i in range(1, INTEGRATION_ENTITIES_COUNT + 1)
+        ]
+        repository = (
+            ingestion_integration_container.shared_container.offers_repository()
         )
 
-        corps_2 = Corps(
-            id=4,
-            code="00004",
-            category=Category.A,
-            ministry=Ministry.MESRI,
-            diploma=Diploma(7),
-            access_modalities=[AccessModality.CONCOURS_EXTERNE],
-            label=Label(
-                short_value="DIRE ETUD EHESS",
-                value="Directeurs d'études de l'Ecole",
-            ),
+    save_result = repository.upsert_batch(entities)
+    if save_result["errors"]:
+        raise Exception(
+            f"Failed to save {entity_type} entities: {save_result['errors']}"
         )
 
-        result = corps_repository.upsert_batch([corps_1, corps_2])
+    # Vectorize the entities
+    result = usecase.execute(entities)
 
-        if result["errors"]:
-            raise Exception(f"Failed to save Corps entities: {result['errors']}")
+    assert result["processed"] == INTEGRATION_ENTITIES_COUNT
+    assert result["vectorized"] == INTEGRATION_ENTITIES_COUNT
+    assert result["errors"] == 0
+    assert len(result["error_details"]) == 0
 
-        return [corps_1, corps_2]
+    # Verify vectors were saved to database
+    saved_vectors = vectorized_document.VectorizedDocumentModel.objects.all()
+    assert saved_vectors.count() == INTEGRATION_ENTITIES_COUNT
 
-    @pytest.mark.django_db
-    def test_vectorize_corps(self):
-        """Test vectorizing Corps with real database and mocked embedding generator."""
-        corps_entities = self._create_corps_entities_and_save()
-
-        result = self.vectorize_documents_usecase.execute(corps_entities)
-
-        self.assertEqual(result["processed"], 2)
-        self.assertEqual(result["vectorized"], 2)
-        self.assertEqual(result["errors"], 0)
-        self.assertEqual(len(result["error_details"]), 0)
-
-        saved_vectors = vectorized_document.VectorizedDocumentModel.objects.all()
-        self.assertEqual(saved_vectors.count(), 2)
-
-        vector_1 = vectorized_document.VectorizedDocumentModel.objects.get(
-            document_id=3
+    for _, entity in enumerate(entities):
+        vector = vectorized_document.VectorizedDocumentModel.objects.get(
+            document_id=entity.id
         )
-        vector_2 = vectorized_document.VectorizedDocumentModel.objects.get(
-            document_id=4
+        assert vector.embedding is not None
+        assert len(vector.embedding) > 0
+        assert vector.content is not None
+        assert vector.metadata is not None
+
+
+@pytest.mark.django_db
+def test_vectorize_empty_list_integration(ingestion_integration_container):
+    """Test that empty entity list is handled correctly."""
+    usecase = ingestion_integration_container.vectorize_documents_usecase()
+
+    result = usecase.execute([])
+
+    assert result["processed"] == 0
+    assert result["vectorized"] == 0
+    assert result["errors"] == 0
+    assert len(result["error_details"]) == 0
+
+    saved_vectors = vectorized_document.VectorizedDocumentModel.objects.all()
+    assert saved_vectors.count() == 0
+
+
+@pytest.mark.django_db
+def test_vectorize_entity_updates_existing_document_integration(
+    ingestion_integration_container,
+):
+    """Test that vectorizing the same entity twice updates the existing document."""
+    usecase = ingestion_integration_container.vectorize_documents_usecase()
+
+    # Create and save entity
+    entity = create_test_corps_for_integration(1)
+    repository = ingestion_integration_container.shared_container.corps_repository()
+    save_result = repository.upsert_batch([entity])
+
+    if save_result["errors"]:
+        raise Exception(f"Failed to save Corps entity: {save_result['errors']}")
+
+    # First vectorization
+    result1 = usecase.execute([entity])
+
+    assert result1["processed"] == 1
+    assert result1["vectorized"] == 1
+    assert result1["errors"] == 0
+
+    saved_vectors = vectorized_document.VectorizedDocumentModel.objects.all()
+    assert saved_vectors.count() == 1
+
+    first_vector = vectorized_document.VectorizedDocumentModel.objects.get(
+        document_id=entity.id
+    )
+    original_created_at = first_vector.created_at
+    original_updated_at = first_vector.updated_at
+
+    # Second vectorization (should update)
+    result2 = usecase.execute([entity])
+
+    assert result2["processed"] == 1
+    assert result2["vectorized"] == 1
+    assert result2["errors"] == 0
+
+    saved_vectors = vectorized_document.VectorizedDocumentModel.objects.all()
+    assert saved_vectors.count() == 1
+
+    updated_vector = vectorized_document.VectorizedDocumentModel.objects.get(
+        document_id=entity.id
+    )
+
+    assert updated_vector.created_at == original_created_at
+    assert updated_vector.updated_at > original_updated_at
+
+    assert updated_vector.embedding is not None
+    assert len(updated_vector.embedding) > 0
+    assert "Professeurs de lycée professionnel agricole" in updated_vector.content
+
+
+@pytest.mark.django_db
+def test_vectorize_mixed_entities_integration(ingestion_integration_container):
+    """Test vectorizing mixed entity types with Django persistence."""
+    usecase = ingestion_integration_container.vectorize_documents_usecase()
+
+    # Create and save different entity types
+    corps_entity = create_test_corps_for_integration(1)
+    concours_entity = create_test_concours_for_integration(2)
+
+    # Save each entity via its repository
+    corps_repo = ingestion_integration_container.shared_container.corps_repository()
+    concours_repo = (
+        ingestion_integration_container.shared_container.concours_repository()
+    )
+
+    corps_result = corps_repo.upsert_batch([corps_entity])
+    concours_result = concours_repo.upsert_batch([concours_entity])
+
+    if corps_result["errors"] or concours_result["errors"]:
+        raise Exception("Failed to save entities")
+
+    # Vectorize all entities
+    entities = [corps_entity, concours_entity]
+    result = usecase.execute(entities)
+
+    assert result["processed"] == INTEGRATION_ENTITIES_COUNT
+    assert result["vectorized"] == INTEGRATION_ENTITIES_COUNT
+    assert result["errors"] == 0
+    assert len(result["error_details"]) == 0
+
+    # Verify all vectors were saved
+    saved_vectors = vectorized_document.VectorizedDocumentModel.objects.all()
+    assert saved_vectors.count() == INTEGRATION_ENTITIES_COUNT
+
+    for entity in entities:
+        vector = vectorized_document.VectorizedDocumentModel.objects.get(
+            document_id=entity.id
         )
-
-        self.assertIsNotNone(vector_1.embedding)
-        self.assertIsNotNone(vector_2.embedding)
-        self.assertGreater(len(vector_1.embedding), 0)
-        self.assertGreater(len(vector_2.embedding), 0)
-
-        self.assertIn("Professeurs de lycée professionnel agricole", vector_1.content)
-        self.assertIn("Directeurs d'études de l'Ecole", vector_2.content)
-
-        self.assertIsNotNone(vector_1.metadata)
-        self.assertIsNotNone(vector_2.metadata)
-
-    @pytest.mark.django_db
-    def test_vectorize_empty_corps_list(self):
-        """Test that empty Corps list is handled correctly."""
-        result = self.vectorize_documents_usecase.execute([])
-
-        self.assertEqual(result["processed"], 0)
-        self.assertEqual(result["vectorized"], 0)
-        self.assertEqual(result["errors"], 0)
-        self.assertEqual(len(result["error_details"]), 0)
-
-        saved_vectors = vectorized_document.VectorizedDocumentModel.objects.all()
-        self.assertEqual(saved_vectors.count(), 0)
-
-    @pytest.mark.django_db
-    def test_vectorize_corps_updates_existing_document(self):
-        """Test that vectorizing the same Corps twice updates the existing document."""
-        corps_entities = self._create_corps_entities_and_save()
-
-        result1 = self.vectorize_documents_usecase.execute([corps_entities[0]])
-
-        self.assertEqual(result1["processed"], 1)
-        self.assertEqual(result1["vectorized"], 1)
-        self.assertEqual(result1["errors"], 0)
-
-        saved_vectors = vectorized_document.VectorizedDocumentModel.objects.all()
-        self.assertEqual(saved_vectors.count(), 1)
-
-        first_vector = vectorized_document.VectorizedDocumentModel.objects.get(
-            document_id=3
-        )
-        original_created_at = first_vector.created_at
-        original_updated_at = first_vector.updated_at
-
-        result2 = self.vectorize_documents_usecase.execute([corps_entities[0]])
-
-        self.assertEqual(result2["processed"], 1)
-        self.assertEqual(result2["vectorized"], 1)
-        self.assertEqual(result2["errors"], 0)
-
-        saved_vectors = vectorized_document.VectorizedDocumentModel.objects.all()
-        self.assertEqual(saved_vectors.count(), 1)
-
-        updated_vector = vectorized_document.VectorizedDocumentModel.objects.get(
-            document_id=3
-        )
-
-        self.assertEqual(updated_vector.created_at, original_created_at)
-        self.assertGreater(updated_vector.updated_at, original_updated_at)
-
-        self.assertIsNotNone(updated_vector.embedding)
-        self.assertGreater(len(updated_vector.embedding), 0)
-        self.assertIn(
-            "Professeurs de lycée professionnel agricole", updated_vector.content
-        )
+        assert vector.embedding is not None
+        assert len(vector.embedding) > 0
+        assert vector.content is not None
+        assert vector.metadata is not None
