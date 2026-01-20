@@ -18,7 +18,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--type",
             required=True,
-            choices=["CORPS"],
+            choices=[DocumentType.CORPS.value, DocumentType.OFFERS.value],
             help="Type of documents to load",
         )
 
