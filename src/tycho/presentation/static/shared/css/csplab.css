@@ -6,23 +6,6 @@ html[data-fr-js="true"] .no-js-only {
   display: none !important;
 }
 
-/* DSFR patches and extensions */
-
-.fr-alert {
-  background-color: var(--background-default-grey);
-}
-
-.fr-col>img {
-    max-width: 100%;
-    height: auto;
-}
-
-@media (min-width: 768px) {
-  .csplab-col-offset-md-0 {
-    margin-left: 0 !important;
-  }
-}
-
 .csplab-space-y-1w,
 .csplab-space-y-2w,
 .csplab-space-y-3w {

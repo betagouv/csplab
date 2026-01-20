@@ -1,0 +1,14 @@
+.fr-alert {
+  background-color: var(--background-default-grey);
+}
+
+.fr-col>img {
+    max-width: 100%;
+    height: auto;
+}
+
+@media (min-width: 768px) {
+  .csplab-col-offset-md-0 {
+    margin-left: 0 !important;
+  }
+}
