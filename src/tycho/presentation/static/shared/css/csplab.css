@@ -1,1 +1,228 @@
 /** Global styles */
+
+/* JS DSFR detection utilities */
+html:not([data-fr-js="true"]) .js-only,
+html[data-fr-js="true"] .no-js-only {
+  display: none !important;
+}
+
+/* DSFR patches and extensions */
+
+.fr-alert {
+  background-color: var(--background-default-grey);
+}
+
+.fr-col>img {
+    max-width: 100%;
+    height: auto;
+}
+
+@media (min-width: 768px) {
+  .csplab-col-offset-md-0 {
+    margin-left: 0 !important;
+  }
+}
+
+.csplab-space-y-1w,
+.csplab-space-y-2w,
+.csplab-space-y-3w {
+  display: flex;
+  flex-direction: column;
+}
+
+.csplab-space-y-1w>p,
+.csplab-space-y-1w>h1,
+.csplab-space-y-1w>h2,
+.csplab-space-y-1w>h3,
+.csplab-space-y-1w>h4,
+.csplab-space-y-1w>h5,
+.csplab-space-y-1w>h6,
+.csplab-space-y-2w>p,
+.csplab-space-y-2w>h1,
+.csplab-space-y-2w>h2,
+.csplab-space-y-2w>h3,
+.csplab-space-y-2w>h4,
+.csplab-space-y-2w>h5,
+.csplab-space-y-2w>h6,
+.csplab-space-y-3w>p,
+.csplab-space-y-3w>h1,
+.csplab-space-y-3w>h2,
+.csplab-space-y-3w>h3,
+.csplab-space-y-3w>h4,
+.csplab-space-y-3w>h5,
+.csplab-space-y-3w>h6 {
+  margin: 0;
+}
+
+.csplab-space-y-1w {
+  gap: .5rem;
+}
+
+.csplab-space-y-2w {
+  gap: 1rem;
+}
+
+.csplab-space-y-3w {
+  gap: 1.5rem;
+}
+
+.csplab-text-blue-france {
+  color: var(--text-title-blue-france);
+}
+
+.csplab-text-info {
+  color: var(--text-default-info);
+}
+
+/* Toast alerts - positioned in top-right corner */
+
+.csplab-toast {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    max-width: 28rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: csplab-toast-slide-in 0.3s ease-out;
+}
+
+@media (max-width: 575px) {
+    .csplab-toast {
+        right: 0.5rem;
+        left: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+}
+
+@keyframes csplab-toast-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(1rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Dropzone component */
+
+.csplab-dropzone {
+    position: relative;
+    border: 1px dashed var(--border-action-high-blue-france);
+    border-radius: .5rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    background-color: var(--background-default-grey);
+    min-height: 10rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.csplab-upload-wrapper {
+    position: relative;
+}
+
+.csplab-upload-wrapper:has(input:focus-visible) .csplab-dropzone {
+    outline: 2px solid var(--border-action-high-blue-france);
+    outline-offset: 2px;
+}
+
+.csplab-upload-wrapper:has(input:active) .csplab-dropzone {
+    background-color: var(--background-default-grey-active);
+}
+
+.csplab-dropzone[hidden] {
+    display: none;
+}
+
+.csplab-dropzone:hover {
+  background-color: var(--background-default-grey-hover);
+}
+
+.csplab-dropzone[data-state="dragging"] {
+    background-color:  var(--background-default-grey-hover);
+    border-style: solid;
+}
+
+.csplab-dropzone__icon {
+    height: 2rem;
+    width: 2rem;
+    border-radius: 50%;
+    background-color: var(--background-action-high-blue-france);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-inverted-grey);
+}
+
+.csplab-dropzone__label {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+}
+
+.csplab-dropzone__browse {
+    color: var(--text-action-high-blue-france);
+    text-decoration: underline var(--text-action-high-blue-france) 1px;
+    text-underline-offset: .15em;
+}
+
+.csplab-dropzone:hover .csplab-dropzone__browse {
+  text-decoration: underline var(--text-action-high-blue-france) 2px;
+}
+
+/* File card component */
+
+.csplab-file-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-radius: .5rem;
+    background-color: var(--background-default-grey);
+    border: 1px solid var(--border-default-grey);
+}
+
+.csplab-file-card[hidden] {
+    display: none;
+}
+
+.csplab-file-card__content {
+    display: flex;
+    align-items: center;
+    gap: var(--fr-spacing-2w, 16px);
+    flex: 1;
+}
+
+.csplab-file-card__icon-badge {
+    background-color: var(--background-contrast-blue-france);
+    padding: 4px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.csplab-file-card__icon-badge .fr-icon {
+    color: var(--background-action-high-blue-france);
+}
+
+.csplab-file-card__info {
+    display: flex;
+    flex-direction: column;
+    font-size: 1rem;
+}
+
+.csplab-file-card__name {
+    font-weight: 500;
+}
+
+.csplab-file-card__size {
+    color: var(--text-action-high-blue-france);
+}

@@ -1,4 +1,4 @@
-"""Forms for candidate website."""
+"""Forms for corps search."""
 
 from django import forms
 

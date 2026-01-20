@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypedDict
+
+
+class BreadcrumbLink(TypedDict):
+    """Type definition for breadcrumb link."""
+
+    url: str
+    title: str
 
 
 class BreadcrumbMixin:
@@ -11,7 +18,7 @@ class BreadcrumbMixin:
     Must be used with Django class-based views that have get_context_data.
     """
 
-    breadcrumb_links: list[dict] = []
+    breadcrumb_links: list[BreadcrumbLink] = []
     breadcrumb_current: str = ""
 
     def get_breadcrumb_data(self) -> dict:
