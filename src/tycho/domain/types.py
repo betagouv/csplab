@@ -1,15 +1,14 @@
 """Common type definitions for the domain layer."""
 
-from typing import Dict, List, Union
+from typing import Union
 
-from typing_extensions import TypeAlias
-
-JsonDataType: TypeAlias = Union[
+# Using PEP 695 type alias syntax for Python 3.12+
+type JsonDataType = Union[
     None,
     int,
     float,
     str,
     bool,
-    List["JsonDataType"],
-    Dict[str, "JsonDataType"],
+    list["JsonDataType"],
+    dict[str, "JsonDataType"],
 ]

@@ -84,7 +84,7 @@ testpaths = [
 ]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py312"
 # Exclude a variety of commonly ignored directories.
 exclude = [
   "migrations",
@@ -120,6 +120,7 @@ select = [
 convention = "google"
 
 [tool.mypy]
+python_version = "3.12"
 ignore_missing_imports = true
 plugins = ["mypy_django_plugin.main"]
 exclude = [
