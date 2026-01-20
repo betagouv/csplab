@@ -20,8 +20,8 @@
 }
 
 .csplab-hero__tag {
-    background-color: var(--csplab-blue-light) !important;
-    color: var(--csplab-blue-france) !important;
+    background-color: var(--background-contrast-blue-france) !important;
+    color: var(--text-title-blue-france) !important;
 }
 
 .csplab-hero__title {
@@ -30,16 +30,16 @@
 }
 
 .csplab-hero__main-cta {
-    background-color: white !important;
-    color: var(--csplab-blue-france) !important;
+    background-color: var(--background-default-grey) !important;
+    color: var(--text-title-blue-france) !important;
 }
 
 .csplab-hero__main-cta:hover {
-    background-color: var(--csplab-blue-light) !important;
+    background-color: var(--background-default-grey-hover) !important;
 }
 
 .csplab-hero__main-cta:active {
-    background-color: var(--csplab-blue-alt) !important;
+    background-color: var(--background-default-grey-active) !important;
 }
 
 .csplab-hero__illustration {
@@ -58,7 +58,7 @@
     max-width: 400px;
     max-height: 400px;
     border-radius: 1rem;
-    background-color: var(--csplab-blue-france);
+    background-color: var(--background-action-high-blue-france);
 }
 
 @media (min-width: 992px) {
@@ -111,14 +111,14 @@
 
 .csplab-feature__badge {
     padding: 0.5rem 0.75rem !important;
-    background-color: var(--csplab-blue-alt) !important;
-    color: var(--csplab-action-info) !important;
+    background-color: var(--background-contrast-info) !important;
+    color: var(--text-default-info) !important;
 }
 
 /* About Section */
 
 .csplab-about__card {
-    background-color: var(--csplab-blue-alt);
+    background-color: var(--background-contrast-blue-france);
     border-radius: 1.5rem;
 }
 
