@@ -73,34 +73,3 @@ html[data-fr-js="true"] .no-js-only {
 .csplab-text-info {
   color: var(--text-default-info);
 }
-
-/* Toast alerts - positioned in top-right corner */
-
-.csplab-toast {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 1000;
-    max-width: 28rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    animation: csplab-toast-slide-in 0.3s ease-out;
-}
-
-@media (max-width: 575px) {
-    .csplab-toast {
-        right: 0.5rem;
-        left: 0.5rem;
-        max-width: calc(100% - 1rem);
-    }
-}
-
-@keyframes csplab-toast-slide-in {
-    from {
-        opacity: 0;
-        transform: translateX(1rem);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
