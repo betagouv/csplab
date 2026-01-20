@@ -51,3 +51,15 @@ class RawDocument(models.Model):
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
+
+    @classmethod
+    def from_entity(cls, document: Document) -> "RawDocument":
+        """Create Django model **instance** from Document entity."""
+        return cls(
+            id=document.id,
+            external_id=document.external_id,
+            raw_data=document.raw_data,
+            document_type=document.type.value if document.type else None,
+            created_at=document.created_at,
+            updated_at=document.updated_at,
+        )
