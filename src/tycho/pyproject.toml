@@ -22,7 +22,6 @@ dependencies = [
     "pypdf>=6.6.0,<6.7.0",
     "requests>=2.32.5,<2.33.0",
     "sentry-sdk[django]>=2.43.0,<3.0.0",
-    "uuid>=1.30",
 ]
 
 [build-system]
