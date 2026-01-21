@@ -1,0 +1,13 @@
+@use 'variables' as *;
+
+@mixin respond-to($breakpoint) {
+  @media (min-width: $breakpoint) {
+    @content;
+  }
+}
+
+@mixin respond-below($breakpoint) {
+  @media (max-width: calc($breakpoint - 1px)) {
+    @content;
+  }
+}
