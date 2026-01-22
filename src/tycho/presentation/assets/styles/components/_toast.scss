@@ -6,10 +6,8 @@
   max-width: 28rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   animation: csplab-toast-slide-in 0.3s ease-out;
-}
 
-@media (max-width: 575px) {
-  .csplab-toast {
+  @include lt-sm {
     right: 0.5rem;
     left: 0.5rem;
     max-width: calc(100% - 1rem);

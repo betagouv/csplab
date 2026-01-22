@@ -4,6 +4,10 @@
   align-items: center;
   gap: var(--5w, 40px);
   padding-bottom: 20rem;
+
+  @include lt-md {
+    padding-bottom: var(--12w, 96px);
+  }
 }
 
 .csplab-processing__content {
@@ -17,12 +21,6 @@
 .csplab-processing__title {
   color: #000091;
   text-align: center;
-}
-
-@media (max-width: 768px) {
-  .csplab-processing {
-    padding-bottom: var(--12w, 96px);
-  }
 }
 
 .csplab-processing__messages {
