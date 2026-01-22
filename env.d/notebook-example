@@ -13,3 +13,6 @@ OPIK_PROJECT_NAME=OCR-ALBERT-LLM-GPT5
 OPENROUTER_API_KEY=...
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 OPENROUTER_OCR_MODEL=openai/gpt-5.2
+TALENTSOFT_CLIENT_ID=talentsoft-client-id
+TALENTSOFT_CLIENT_SECRET=talentsoft-client-secret
+TALENTSOFT_BASE_URL=talentsoft-base-url
