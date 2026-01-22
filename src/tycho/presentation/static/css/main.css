@@ -4,6 +4,10 @@ html[data-fr-js=true] .no-js-only {
   display: none !important;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .csplab-text-blue-france {
   color: var(--text-title-blue-france);
 }
@@ -232,9 +236,9 @@ html[data-fr-js=true] .no-js-only {
 .csplab-hero {
   background: linear-gradient(135deg, #0b0b98 33%, #2b2bab 66%, #5757c5 100%);
   /*
-    The conic gradient bellow from Figma does not translate well to CSS as is.
-    background: conic-gradient(from -66deg at 58.33% 134.44%, #000091 0deg, #ADADF9 360deg);
-  */
+      The conic gradient bellow from Figma does not translate well to CSS as is.
+      background: conic-gradient(from -66deg at 58.33% 134.44%, #000091 0deg, #ADADF9 360deg);
+    */
 }
 
 .csplab-hero__content {
@@ -296,7 +300,7 @@ html[data-fr-js=true] .no-js-only {
   position: relative;
   z-index: 1;
   /* max-width: 260px;
-  max-height: 260px; */
+    max-height: 260px; */
 }
 
 /* Features Section */
