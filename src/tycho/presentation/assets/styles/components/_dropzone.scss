@@ -1,3 +1,5 @@
+@use "../abstracts" as *;
+
 .csplab-dropzone {
   position: relative;
   border: 1px dashed var(--border-action-high-blue-france);

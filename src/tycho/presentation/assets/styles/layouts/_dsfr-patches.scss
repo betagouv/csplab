@@ -1,3 +1,5 @@
+@use "../abstracts" as *;
+
 .fr-alert {
   background-color: var(--background-default-grey);
 }
