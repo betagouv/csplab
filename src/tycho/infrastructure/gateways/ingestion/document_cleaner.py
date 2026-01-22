@@ -12,6 +12,7 @@ from domain.services.document_cleaner_interface import IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from infrastructure.gateways.ingestion.concours_cleaner import ConcoursCleaner
 from infrastructure.gateways.ingestion.corps_cleaner import CorpsCleaner
+from infrastructure.gateways.ingestion.offers_cleaner import OffersCleaner
 
 
 class DocumentCleaner(IDocumentCleaner[IEntity]):
@@ -25,6 +26,7 @@ class DocumentCleaner(IDocumentCleaner[IEntity]):
         self._cleaners = {
             DocumentType.CORPS: CorpsCleaner(logger),
             DocumentType.CONCOURS: ConcoursCleaner(logger),
+            DocumentType.OFFERS: OffersCleaner(logger),
         }
 
     def clean(self, raw_documents: List[Document]) -> Sequence[IEntity]:

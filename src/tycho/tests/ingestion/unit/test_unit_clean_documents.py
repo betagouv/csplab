@@ -19,6 +19,7 @@ from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
 from tests.utils.in_memory_document_repository import InMemoryDocumentRepository
+from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
 
 REFERENCE_YEAR = 2024
 
@@ -44,6 +45,9 @@ class TestUnitCleanDocumentsUsecase(unittest.TestCase):
 
         in_memory_concours_repo = InMemoryConcoursRepository()
         container.concours_repository.override(in_memory_concours_repo)
+
+        in_memory_offers_repo = InMemoryOffersRepository()
+        container.offers_repository.override(in_memory_offers_repo)
 
         in_memory_document_repo = InMemoryDocumentRepository()
         container.document_persister.override(in_memory_document_repo)
