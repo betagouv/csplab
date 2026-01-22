@@ -38,7 +38,15 @@
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
-  "emmet.includeLanguages": {
-    "django-html": "html",
-  }
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.stylelint": "explicit"
+    }
+  },
+  "stylelint.enable": true,
+  "stylelint.validate": ["css", "scss"],
+  "stylelint.configFile": "${workspaceFolder}/.stylelintrc.json",
+  "prettier.enable": true
 }
