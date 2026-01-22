@@ -11,8 +11,3 @@
     gap: $sp-3w;
   }
 }
-
-/* Override display:flex when hidden attribute is present */
-.csplab-cv-uploaded__actions[hidden] {
-  display: none;
-}

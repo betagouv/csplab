@@ -1,77 +1,67 @@
 @use "../abstracts" as *;
 
-/* Hero Section */
-
 .csplab-hero {
   background: $hero-gradient;
-  /*
-      The conic gradient bellow from Figma does not translate well to CSS as is.
-      background: conic-gradient(from -66deg at 58.33% 134.44%, #000091 0deg, #ADADF9 360deg);
-    */
-}
 
-.csplab-hero__content {
-  display: flex;
-  flex-direction: column;
-  gap: $sp-5w;
-}
+  .csplab-hero__content {
+    display: flex;
+    flex-direction: column;
+    gap: $sp-5w;
+  }
 
-.csplab-hero__tag {
-  background-color: var(--background-contrast-blue-france) !important;
-  color: var(--text-title-blue-france) !important;
-}
+  .csplab-hero__tag {
+    background-color: var(--background-contrast-blue-france) !important;
+    color: var(--text-title-blue-france) !important;
+  }
 
-.csplab-hero__title {
-  color: white;
-  margin: 0 !important;
-}
+  .csplab-hero__title {
+    color: white;
+    margin: 0 !important;
+  }
 
-.csplab-hero__main-cta {
-  background-color: var(--background-default-grey) !important;
-  color: var(--text-title-blue-france) !important;
-}
+  .csplab-hero__main-cta {
+    background-color: var(--background-default-grey) !important;
+    color: var(--text-title-blue-france) !important;
 
-.csplab-hero__main-cta:hover {
-  background-color: var(--background-default-grey-hover) !important;
-}
+    &:hover {
+      background-color: var(--background-default-grey-hover) !important;
+    }
 
-.csplab-hero__main-cta:active {
-  background-color: var(--background-default-grey-active) !important;
-}
+    &:active {
+      background-color: var(--background-default-grey-active) !important;
+    }
+  }
 
-.csplab-hero__illustration {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  min-height: 300px;
+  .csplab-hero__illustration {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
 
-  @include lg {
-    justify-content: center;
-    max-width: none;
-    max-height: none;
+    @include lg {
+      justify-content: center;
+      max-width: none;
+      max-height: none;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      max-width: 400px;
+      max-height: 400px;
+      border-radius: $sp-2w;
+      background-color: var(--background-action-high-blue-france);
+    }
+  }
+
+  .csplab-hero__illustration-img {
+    position: relative;
+    z-index: 1;
   }
 }
-
-.csplab-hero__illustration img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  max-width: 400px;
-  max-height: 400px;
-  border-radius: $sp-2w;
-  background-color: var(--background-action-high-blue-france);
-}
-
-.csplab-hero__illustration-img {
-  position: relative;
-  z-index: 1;
-  /* max-width: 260px;
-    max-height: 260px; */
-}
-
-/* Features Section */
 
 .csplab-features__illustration {
   display: flex;
@@ -90,9 +80,7 @@
   gap: $sp-6w;
 
   @include lg {
-    .csplab-features__list {
-      gap: $sp-15w;
-    }
+    gap: $sp-15w;
   }
 }
 
@@ -100,15 +88,13 @@
   display: flex;
   flex-direction: column;
   gap: $sp-2w;
-}
 
-.csplab-feature__badge {
-  padding: $sp-1w $sp-3v !important;
-  background-color: var(--background-contrast-info) !important;
-  color: var(--text-default-info) !important;
+  .csplab-feature__badge {
+    padding: $sp-1w $sp-3v !important;
+    background-color: var(--background-contrast-info) !important;
+    color: var(--text-default-info) !important;
+  }
 }
-
-/* About Section */
 
 .csplab-about__card {
   background-color: var(--background-contrast-blue-france);
