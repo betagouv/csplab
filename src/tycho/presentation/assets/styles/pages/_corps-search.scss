@@ -1,7 +1,7 @@
 @use "../abstracts" as *;
 
 .corps-search {
-  margin-top: 1rem;
+  margin-top: $sp-2w;
 
   #search-input-messages {
     align-self: center;

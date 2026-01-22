@@ -3,15 +3,15 @@
 .csplab-dropzone {
   position: relative;
   border: 1px dashed var(--border-action-high-blue-france);
-  border-radius: 0.5rem;
-  padding: 2rem;
+  border-radius: $sp-1w;
+  padding: $sp-4w;
   text-align: center;
   cursor: pointer;
   background-color: var(--background-default-grey);
   min-height: 10rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: $sp-2w;
   align-items: center;
   justify-content: center;
 }
@@ -43,8 +43,8 @@
 }
 
 .csplab-dropzone__icon {
-  height: 2rem;
-  width: 2rem;
+  height: $sp-4w;
+  width: $sp-4w;
   border-radius: 50%;
   background-color: var(--background-action-high-blue-france);
   display: flex;

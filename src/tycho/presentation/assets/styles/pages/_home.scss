@@ -13,7 +13,7 @@
 .csplab-hero__content {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: $sp-5w;
 }
 
 .csplab-hero__tag {
@@ -60,7 +60,7 @@
   object-fit: contain;
   max-width: 400px;
   max-height: 400px;
-  border-radius: 1rem;
+  border-radius: $sp-2w;
   background-color: var(--background-action-high-blue-france);
 }
 
@@ -87,11 +87,11 @@
 .csplab-features__list {
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: $sp-6w;
 
   @include lg {
     .csplab-features__list {
-      gap: 7.5rem;
+      gap: $sp-15w;
     }
   }
 }
@@ -99,11 +99,11 @@
 .csplab-feature {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: $sp-2w;
 }
 
 .csplab-feature__badge {
-  padding: 0.5rem 0.75rem !important;
+  padding: $sp-1w $sp-3v !important;
   background-color: var(--background-contrast-info) !important;
   color: var(--text-default-info) !important;
 }
@@ -112,13 +112,13 @@
 
 .csplab-about__card {
   background-color: var(--background-contrast-blue-france);
-  border-radius: 1.5rem;
+  border-radius: $sp-3w;
 }
 
 .csplab-about__content {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: $sp-5w;
 }
 
 .csplab-about__illustration {

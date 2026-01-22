@@ -3,9 +3,9 @@
 .csplab-file-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
+  gap: $sp-2w;
+  padding: $sp-3w;
+  border-radius: $sp-1w;
   background-color: var(--background-default-grey);
   border: 1px solid var(--border-default-grey);
 }
@@ -17,7 +17,7 @@
 .csplab-file-card__content {
   display: flex;
   align-items: center;
-  gap: var(--fr-spacing-2w, 16px);
+  gap: $sp-2w;
   flex: 1;
 }
 

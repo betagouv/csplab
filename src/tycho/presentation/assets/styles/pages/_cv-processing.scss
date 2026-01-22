@@ -4,11 +4,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--5w, 40px);
+  gap: $sp-5w;
   padding-bottom: 20rem;
 
   @include lt-md {
-    padding-bottom: var(--12w, 96px);
+    padding-bottom: $sp-12w;
   }
 }
 
@@ -16,7 +16,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--3w, 24px);
+  gap: $sp-3w;
   width: 100%;
 }
 
@@ -27,7 +27,7 @@
 
 .csplab-processing__messages {
   position: relative;
-  min-height: 1.5rem;
+  min-height: $sp-3w;
   width: 100%;
   text-align: center;
 }
