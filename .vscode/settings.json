@@ -37,5 +37,8 @@
   "python.envFile": "${workspaceFolder}/env.d/tycho",
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
-  "files.trimFinalNewlines": true
+  "files.trimFinalNewlines": true,
+  "emmet.includeLanguages": {
+    "django-html": "html",
+  }
 }
