@@ -65,6 +65,7 @@ class IngestionContainer(containers.DeclarativeContainer):
         RepositoryFactory,
         corps_repository=corps_repository,
         concours_repository=concours_repository,
+        offers_repository=offers_repository,
     )
 
     document_cleaner: providers.Provider[IDocumentCleaner[IEntity]] = (
