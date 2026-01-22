@@ -6,7 +6,7 @@
   right: 1rem;
   z-index: 1000;
   max-width: 28rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: $shadow-elevated;
   animation: csplab-toast-slide-in 0.3s ease-out;
 
   @include lt-sm {

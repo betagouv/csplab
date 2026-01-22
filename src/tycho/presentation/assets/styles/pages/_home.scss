@@ -3,7 +3,7 @@
 /* Hero Section */
 
 .csplab-hero {
-  background: linear-gradient(135deg, #0b0b98 33%, #2b2bab 66%, #5757c5 100%);
+  background: $hero-gradient;
   /*
       The conic gradient bellow from Figma does not translate well to CSS as is.
       background: conic-gradient(from -66deg at 58.33% 134.44%, #000091 0deg, #ADADF9 360deg);
