@@ -9,7 +9,7 @@
     "no-duplicate-at-import-rules": true,
     "no-duplicate-selectors": true,
     "no-empty-source": true,
-    "no-invalid-double-slash-comments": true,
+    "no-invalid-double-slash-comments": null,
     "string-no-newline": true,
     "selector-class-pattern": null,
     "block-no-empty": null

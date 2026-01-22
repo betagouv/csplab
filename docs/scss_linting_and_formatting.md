@@ -22,8 +22,8 @@ Format on save, inline errors, auto-fix. Extensions handle their own Node.js run
 For CI or command-line usage without installing extensions:
 
 ```bash
-# Lint
-npx --yes stylelint "src/tycho/presentation/assets/**/*.scss"
+# Lint (requires postcss-scss for SCSS syntax support)
+npx --yes -p stylelint -p postcss-scss stylelint --custom-syntax postcss-scss "src/tycho/presentation/assets/**/*.scss"
 
 # Format
 npx --yes prettier --write "src/tycho/presentation/assets/**/*.scss"
