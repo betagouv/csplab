@@ -115,7 +115,7 @@ async def fetch_sample_offers(limit: int = 10) -> List[Dict[str, Any]]:
                         print("API indicates no more pages available")
                         break
 
-                    current_start += batch_size
+                    current_start += 1
 
                 except Exception as batch_error:
                     print(f"Error in batch starting at {current_start}: {batch_error}")
@@ -149,51 +149,112 @@ async def fetch_sample_offers(limit: int = 10) -> List[Dict[str, Any]]:
 sample_offers = await fetch_sample_offers(limit=60000)
 ```
 
+## Save offers as JSON
+
 ```python
-with open('data/fixtures_talentsoft.json', 'w') as file:
-    json.dump(sample_offers, file, indent=4)
-JSON(sample_offers)
+import json
+from pathlib import Path
+
+# Vérifications avant export
+print(f"📊 About to export {len(sample_offers)} offers")
+print(f"📋 Type of sample_offers: {type(sample_offers)}")
+
+if sample_offers:
+    print(f"✅ Sample offers is not empty")
+    print(f"🔍 First offer keys: {list(sample_offers[0].keys()) if sample_offers else 'No offers'}")
+
+    # Créer le dossier data s'il n'existe pas
+    data_dir = Path('data')
+    data_dir.mkdir(exist_ok=True)
+
+    # Export avec gestion d'erreurs
+    try:
+        with open('data/fixtures_talentsoft.json', 'w', encoding='utf-8') as file:
+            json.dump(sample_offers, file, indent=4, ensure_ascii=False)
+
+        print(f"✅ Successfully exported to fixtures_talentsoft.json")
+
+        # Vérifier que le fichier a été créé
+        json_file = Path('data/fixtures_talentsoft.json')
+        if json_file.exists():
+            file_size = json_file.stat().st_size
+            print(f"📁 File created: {file_size / (1024*1024):.1f} MB")
+        else:
+            print("❌ File was not created!")
+
+    except Exception as e:
+        print(f"❌ Export failed: {e}")
+
+else:
+    print("❌ sample_offers is empty! Check the API extraction.")
 ```
+
+## Load Data from Saved JSON File
+
+```python
+# Load data directly from saved JSON file
+import json
+import pandas as pd
+
+# Load the saved offers
+with open('data/fixtures_talentsoft.json', 'r') as file:
+    loaded_offers = json.load(file)
+
+print(f"Loaded {len(loaded_offers)} offers from JSON file")
+
+# Parse the loaded offers
+df_loaded = pd.DataFrame(loaded_offers)
+
+print(f"Created DataFrame with {len(df_loaded)} rows and {len(df_loaded.columns)} columns")
+print(f"Columns: {list(df_loaded.columns)}")
+
+# Display first few rows
+df_loaded.head()
+```
+
+## Explore for clean up and mapping to Offer Entity
 
 ```python
 def offer_parser(item):
     external_id = item['reference']
-    verse = None
-    if item['salaryRange'] and item['salaryRange']['clientCode']:
-        verse = item['salaryRange']['clientCode']
 
+    # Handle optional salaryRange field
+    verse = None
+    salary_range = item.get('salaryRange')
+    if salary_range and salary_range.get('clientCode'):
+        verse = salary_range['clientCode']
+
+    # Handle optional country field
     countries = None
-    if item['country']:
+    if item.get('country'):
         countries = [country['label'] for country in item['country']]
 
+    # Handle optional region field
     regions = None
-    if item['region']:
+    if item.get('region'):
         regions = [region['label'] for region in item['region']]
 
+    # Handle optional department field
     departments = None
-    if item['department']:
-        departments = [region['clientCode'] for region in item['department']]
+    if item.get('department'):
+        departments = [dept.get('clientCode') for dept in item['department']]
 
     return {
         'external_id': item['reference'],
         'verse': verse,
-        'title': item['title'],
-        'role': item['description1'],
-        'profile': item['description2'],
-        'organisation': item['organisationName'],
+        'title': item.get('title'),
+        'role': item.get('description1'),
+        'profile': item.get('description2'),
+        'organisation': item.get('organisationName'),
         'country': countries,
         'region': regions,
         'department': departments,
-        'offer_url': item['offerUrl'],
-        'publication_date': item['startPublicationDate'],
+        'offer_url': item.get('offerUrl'),
+        'publication_date': item.get('startPublicationDate'),
     }
 ```
 
 ```python
 offers = [offer_parser(item) for item in sample_offers]
 df = pd.DataFrame(offers)
-```
-
-```python
-df.head()
 ```
