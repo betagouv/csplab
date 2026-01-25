@@ -1,140 +1,128 @@
-"""Department value object."""
+"""French Department value object."""
 
-from enum import Enum
+from typing import ClassVar
+
+from pydantic import BaseModel, field_validator
 
 
-class Department(Enum):
-    """Enumeration of French departments."""
+class Department(BaseModel):
+    """French Department value object with validation."""
 
-    # Auvergne-Rhône-Alpes
-    AIN = "01"
-    ALLIER = "03"
-    ARDECHE = "07"
-    CANTAL = "15"
-    DROME = "26"
-    ISERE = "38"
-    LOIRE = "42"
-    HAUTE_LOIRE = "43"
-    PUY_DE_DOME = "63"
-    RHONE = "69"
-    SAVOIE = "73"
-    HAUTE_SAVOIE = "74"
+    code: str
 
-    # Bourgogne-Franche-Comté
-    COTE_DOR = "21"
-    DOUBS = "25"
-    JURA = "39"
-    NIEVRE = "58"
-    HAUTE_SAONE = "70"
-    SAONE_ET_LOIRE = "71"
-    YONNE = "89"
-    TERRITOIRE_DE_BELFORT = "90"
+    # Valid French department codes
+    VALID_CODES: ClassVar[set[str]] = {
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "31",
+        "32",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40",
+        "41",
+        "42",
+        "43",
+        "44",
+        "45",
+        "46",
+        "47",
+        "48",
+        "49",
+        "50",
+        "51",
+        "52",
+        "53",
+        "54",
+        "55",
+        "56",
+        "57",
+        "58",
+        "59",
+        "60",
+        "61",
+        "62",
+        "63",
+        "64",
+        "65",
+        "66",
+        "67",
+        "68",
+        "69",
+        "70",
+        "71",
+        "72",
+        "73",
+        "74",
+        "75",
+        "76",
+        "77",
+        "78",
+        "79",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "95",
+        "2A",
+        "2B",
+        "971",
+        "972",
+        "973",
+        "974",
+        "976",
+    }
 
-    # Bretagne
-    COTES_DARMOR = "22"
-    FINISTERE = "29"
-    ILLE_ET_VILAINE = "35"
-    MORBIHAN = "56"
+    @field_validator("code")
+    @classmethod
+    def validate_department_code(cls, v: str) -> str:
+        """Validate French department code."""
+        if v not in cls.VALID_CODES:
+            raise ValueError(f"Invalid French department code: {v}")
+        return v
 
-    # Centre-Val de Loire
-    CHER = "18"
-    EURE_ET_LOIR = "28"
-    INDRE = "36"
-    INDRE_ET_LOIRE = "37"
-    LOIR_ET_CHER = "41"
-    LOIRET = "45"
-
-    # Corse
-    CORSE_DU_SUD = "2A"
-    HAUTE_CORSE = "2B"
-
-    # Grand Est
-    ARDENNES = "08"
-    AUBE = "10"
-    MARNE = "51"
-    HAUTE_MARNE = "52"
-    MEURTHE_ET_MOSELLE = "54"
-    MEUSE = "55"
-    MOSELLE = "57"
-    BAS_RHIN = "67"
-    HAUT_RHIN = "68"
-    VOSGES = "88"
-
-    # Hauts-de-France
-    AISNE = "02"
-    NORD = "59"
-    OISE = "60"
-    PAS_DE_CALAIS = "62"
-    SOMME = "80"
-
-    # Île-de-France
-    PARIS = "75"
-    SEINE_ET_MARNE = "77"
-    YVELINES = "78"
-    ESSONNE = "91"
-    HAUTS_DE_SEINE = "92"
-    SEINE_SAINT_DENIS = "93"
-    VAL_DE_MARNE = "94"
-    VAL_DOISE = "95"
-
-    # Normandie
-    CALVADOS = "14"
-    EURE = "27"
-    MANCHE = "50"
-    ORNE = "61"
-    SEINE_MARITIME = "76"
-
-    # Nouvelle-Aquitaine
-    CHARENTE = "16"
-    CHARENTE_MARITIME = "17"
-    CORREZE = "19"
-    CREUSE = "23"
-    DORDOGNE = "24"
-    GIRONDE = "33"
-    LANDES = "40"
-    LOT_ET_GARONNE = "47"
-    PYRENEES_ATLANTIQUES = "64"
-    DEUX_SEVRES = "79"
-    VIENNE = "86"
-    HAUTE_VIENNE = "87"
-
-    # Occitanie
-    ARIEGE = "09"
-    AUDE = "11"
-    AVEYRON = "12"
-    GARD = "30"
-    HAUTE_GARONNE = "31"
-    GERS = "32"
-    HERAULT = "34"
-    LOT = "46"
-    LOZERE = "48"
-    HAUTES_PYRENEES = "65"
-    PYRENEES_ORIENTALES = "66"
-    TARN = "81"
-    TARN_ET_GARONNE = "82"
-
-    # Pays de la Loire
-    LOIRE_ATLANTIQUE = "44"
-    MAINE_ET_LOIRE = "49"
-    MAYENNE = "53"
-    SARTHE = "72"
-    VENDEE = "85"
-
-    # Provence-Alpes-Côte d'Azur
-    ALPES_DE_HAUTE_PROVENCE = "04"
-    HAUTES_ALPES = "05"
-    ALPES_MARITIMES = "06"
-    BOUCHES_DU_RHONE = "13"
-    VAR = "83"
-    VAUCLUSE = "84"
-
-    # Outre-mer
-    GUADELOUPE = "971"
-    MARTINIQUE = "972"
-    GUYANE = "973"
-    LA_REUNION = "974"
-    MAYOTTE = "976"
-
-    def __str__(self):
+    def __str__(self) -> str:
         """Return string representation."""
-        return self.value
+        return self.code

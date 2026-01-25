@@ -1,10 +1,14 @@
 """Offer entity for job offers storage."""
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional
+
+from pydantic import HttpUrl
 
 from domain.interfaces.entity_interface import IEntity
 from domain.value_objects.category import Category
+from domain.value_objects.contract_type import ContractType
 from domain.value_objects.limit_date import LimitDate
 from domain.value_objects.localisation import Localisation
 from domain.value_objects.verse import Verse
@@ -19,6 +23,11 @@ class Offer(IEntity):
     verse: Verse
     title: str
     profile: str
-    category: Category
+    mission: str
+    category: Optional[Category]
+    contract_type: Optional[ContractType]
+    organization: str
+    offer_url: Optional[HttpUrl]
     localisation: Optional[Localisation]
-    limit_date: Optional[LimitDate]
+    publication_date: datetime
+    beginning_date: Optional[LimitDate]

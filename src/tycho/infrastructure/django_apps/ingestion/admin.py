@@ -18,24 +18,38 @@ class OfferAdmin(admin.ModelAdmin):
         "verse",
         "title",
         "category",
+        "contract_type",
         "region",
         "department",
-        "limit_date",
+        "beginning_date",
         "created_at",
         "updated_at",
     )
-    list_filter = ("verse", "category", "region", "created_at", "updated_at")
-    search_fields = ("external_id", "title", "profile")
+    list_filter = (
+        "verse",
+        "category",
+        "contract_type",
+        "region",
+        "created_at",
+        "updated_at",
+    )
+    search_fields = ("external_id", "title", "profile", "mission", "organization")
     readonly_fields = (
         "id",
         "external_id",
         "verse",
         "title",
         "profile",
+        "mission",
         "category",
+        "contract_type",
+        "organization",
+        "offer_url",
+        "country",
         "region",
         "department",
-        "limit_date",
+        "publication_date",
+        "beginning_date",
         "created_at",
         "updated_at",
     )

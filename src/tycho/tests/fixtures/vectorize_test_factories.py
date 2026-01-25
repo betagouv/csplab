@@ -9,6 +9,7 @@ from domain.entities.offer import Offer
 from domain.interfaces.entity_interface import IEntity
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
+from domain.value_objects.country import Country
 from domain.value_objects.department import Department
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.label import Label
@@ -113,11 +114,18 @@ def create_test_offer(entity_id: int = 1) -> Offer:
         verse=Verse.FPE,
         title="Développeur Python Senior",
         profile="Profil technique avec expertise Python",
+        mission="Mission de développement",
         category=Category.A,
+        contract_type=None,
+        organization="Test Organization",
+        offer_url=None,
         localisation=Localisation(
-            region=Region.ILE_DE_FRANCE, department=Department.PARIS
+            country=Country("FRA"),
+            region=Region(code="11"),
+            department=Department(code="75"),
         ),
-        limit_date=LimitDate(datetime(2024, 12, 31)),
+        publication_date=datetime(2024, 1, 15),
+        beginning_date=LimitDate(datetime(2024, 12, 31)),
     )
 
 
@@ -129,14 +137,18 @@ def create_test_offer_for_integration(entity_id: int = 1) -> Offer:
         verse=Verse.FPE if entity_id == 1 else Verse.FPT,
         title=f"Développeur Python Senior {entity_id}",
         profile=f"Profil technique avec expertise Python {entity_id}",
+        mission=f"Mission de développement {entity_id}",
         category=Category.A if entity_id == 1 else Category.B,
+        contract_type=None,
+        organization=f"Test Organization {entity_id}",
+        offer_url=None,
         localisation=Localisation(
-            region=Region.ILE_DE_FRANCE
-            if entity_id == 1
-            else Region.AUVERGNE_RHONE_ALPES,
-            department=Department.PARIS if entity_id == 1 else Department.RHONE,
+            country=Country("FRA"),
+            region=Region(code="11" if entity_id == 1 else "84"),
+            department=Department(code="75" if entity_id == 1 else "69"),
         ),
-        limit_date=LimitDate(datetime(2024, 12, 31)),
+        publication_date=datetime(2024, 1, 15 + entity_id),
+        beginning_date=LimitDate(datetime(2024, 12, 31)),
     )
 
 
