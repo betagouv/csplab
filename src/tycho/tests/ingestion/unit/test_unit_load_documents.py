@@ -19,6 +19,57 @@ from infrastructure.exceptions.ingestion_exceptions import (
 )
 
 
+@pytest.fixture(name="corps_document")
+def corps_document_fixture():
+    """Create a single corps document for testing."""
+    return Document(
+        id=None,
+        external_id="test_corps_doc",
+        raw_data={"name": "Test Document"},
+        type=DocumentType.CORPS,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+
+
+@pytest.fixture(name="corps_documents")
+def corps_documents_fixture():
+    """Create multiple corps documents for batch testing."""
+    return [
+        Document(
+            id=None,
+            external_id="corps_1",
+            raw_data={"name": "Corps 1", "description": "First corps"},
+            type=DocumentType.CORPS,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        ),
+        Document(
+            id=None,
+            external_id="corps_2",
+            raw_data={"name": "Corps 2", "description": "Second corps"},
+            type=DocumentType.CORPS,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        ),
+    ]
+
+
+@pytest.fixture(name="concours_documents")
+def concours_documents_fixture():
+    """Create sample contest documents."""
+    return [
+        Document(
+            id=None,
+            external_id="exam_1",
+            raw_data={"name": "Exam 1"},
+            type=DocumentType.CONCOURS,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        ),
+    ]
+
+
 def create_test_documents(
     documents_ingestion_container,
     raw_data_list,
@@ -110,16 +161,18 @@ class TestDocumentsRepository:
         self, documents_repository, corps_documents, concours_documents
     ):
         """Test get_by_type returns only documents of the specified type."""
-        documents_repository.upsert_batch(corps_documents, DocumentType.CORPS.value)
-        documents_repository.upsert_batch(
-            concours_documents, DocumentType.CONCOURS.value
-        )
+        datas = [
+            (corps_documents, DocumentType.CORPS),
+            (concours_documents, DocumentType.CONCOURS),
+        ]
+        for documents, document_type in datas:
+            documents_repository.upsert_batch(documents, document_type.value)
 
-        corps_docs = documents_repository.fetch_by_type(DocumentType.CORPS)
-        assert len(corps_docs) == len(corps_documents)
-
-        for doc in corps_docs:
-            assert doc.type == DocumentType.CORPS
+        for documents, document_type in datas:
+            docs = documents_repository.fetch_by_type(document_type)
+            assert len(docs) == len(documents)
+            for doc in docs:
+                assert doc.type == document_type
 
     def test_upsert_batch_creates_new_document(
         self, documents_repository, corps_document
@@ -138,13 +191,18 @@ class TestDocumentsRepository:
         assert len(docs) == 1
         assert docs[0].raw_data == corps_document.raw_data
 
+    @pytest.mark.parametrize(
+        "documents_fixture,document_type",
+        [
+            ("corps_documents", DocumentType.CORPS),
+        ],
+    )
     def test_upsert_batch_returns_correct_counts(
-        self, documents_repository, corps_documents
+        self, documents_repository, documents_fixture, document_type, request
     ):
         """Test upsert_batch returns correct created/updated counts."""
-        result = documents_repository.upsert_batch(
-            corps_documents, DocumentType.CORPS.value
-        )
+        documents = request.getfixturevalue(documents_fixture)
+        result = documents_repository.upsert_batch(documents, document_type.value)
 
-        assert result["created"] == len(corps_documents)
+        assert result["created"] == len(documents)
         assert result["updated"] == 0
