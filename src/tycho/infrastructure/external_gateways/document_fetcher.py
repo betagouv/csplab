@@ -1,7 +1,7 @@
 """External document fetcher implementation."""
 
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 from domain.entities.document import Document, DocumentType
 from domain.repositories.document_repository_interface import IDocumentFetcher
@@ -35,13 +35,15 @@ class ExternalDocumentFetcher(IDocumentFetcher):
             # DocumentType.LAW_CORPS: self._fetch_legifrance_sdk,
         }
 
-    def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
+    def fetch_by_type(
+        self, document_type: DocumentType, start: int = 1
+    ) -> Tuple[List[Document], bool]:
         """Fetch documents from external source."""
         self.logger.info(f"Fetching documents of type {document_type}")
         source = self._source.get(document_type)
         if not source:
             raise ValueError(f"No fetch source for {document_type}")
-        raw_documents = source(document_type)
+        raw_documents, has_more = source(document_type, start)
         now = datetime.now()
         documents = []
         if document_type == DocumentType.CORPS:
@@ -60,9 +62,11 @@ class ExternalDocumentFetcher(IDocumentFetcher):
                 )
                 documents.append(document)
 
-        return documents
+        return documents, has_more
 
-    def _fetch_ingres_api(self, document_type: DocumentType) -> List[dict]:
+    def _fetch_ingres_api(
+        self, document_type: DocumentType, start: int = 1
+    ) -> Tuple[List[dict], bool]:
         document_type_map = {
             DocumentType.CORPS: "CORPS",
             DocumentType.GRADE: "GRADE",
@@ -78,4 +82,6 @@ class ExternalDocumentFetcher(IDocumentFetcher):
 
         raw_documents = response.json()["items"]
         self.logger.info(f"Found {len(raw_documents)} documents")
-        return raw_documents
+
+        has_more = False
+        return raw_documents, has_more

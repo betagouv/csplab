@@ -32,7 +32,7 @@ class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
     def execute(self, input_data: LoadDocumentsInput) -> IUpsertResult:
         """Execute the usecase to load and persist documents."""
         strategy = self.strategy_factory.create(input_data.operation_type)
-        documents = strategy.load_documents(**input_data.kwargs)
+        documents, has_more = strategy.load_documents(**input_data.kwargs)
 
         document_type = cast(DocumentType, input_data.kwargs.get("document_type"))
 

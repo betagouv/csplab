@@ -30,7 +30,10 @@ class CleanDocumentsUsecase:
 
     def execute(self, input_data: DocumentType) -> Dict[str, Any]:
         """Execute the usecase to clean documents and return processing results."""
-        raw_documents = self.document_repository.fetch_by_type(input_data)
+        start = 1
+        raw_documents, has_more = self.document_repository.fetch_by_type(
+            input_data, start
+        )
         self.logger.info(
             f"Fetched {len(raw_documents)} raw documents of type {input_data}"
         )

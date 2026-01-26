@@ -161,6 +161,7 @@ class TestDocumentsRepository:
         self, documents_repository, corps_documents, concours_documents
     ):
         """Test get_by_type returns only documents of the specified type."""
+        start = 1
         datas = [
             (corps_documents, DocumentType.CORPS),
             (concours_documents, DocumentType.CONCOURS),
@@ -169,7 +170,7 @@ class TestDocumentsRepository:
             documents_repository.upsert_batch(documents, document_type.value)
 
         for documents, document_type in datas:
-            docs = documents_repository.fetch_by_type(document_type)
+            docs, has_more = documents_repository.fetch_by_type(document_type, start)
             assert len(docs) == len(documents)
             for doc in docs:
                 assert doc.type == document_type
@@ -187,7 +188,8 @@ class TestDocumentsRepository:
         assert len(result["errors"]) == 0
 
         # Verify document was created
-        docs = documents_repository.fetch_by_type(DocumentType.CORPS)
+        start = 1
+        docs, has_more = documents_repository.fetch_by_type(DocumentType.CORPS, start)
         assert len(docs) == 1
         assert docs[0].raw_data == corps_document.raw_data
 
