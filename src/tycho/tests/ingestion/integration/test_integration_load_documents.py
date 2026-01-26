@@ -100,7 +100,7 @@ class TestIntegrationOfferLoadDocumentUseCase:
 
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
-            kwargs={"document_type": document_type},
+            kwargs={"document_type": DocumentType.OFFERS},
         )
         result = usecase.execute(input_data)
         assert result["created"] == count_new_offers
