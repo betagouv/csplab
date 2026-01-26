@@ -1,72 +1,17 @@
 """Integration tests for LoadDocuments usecase with external adapters."""
 
-import pytest
 import responses
 from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
-from pydantic import HttpUrl
 from rest_framework.test import APITestCase
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import DocumentType
-from infrastructure.di.ingestion.ingestion_container import IngestionContainer
-from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
-from infrastructure.external_gateways.configs.openai_config import (
-    OpenAIConfig,
-    OpenAIGatewayConfig,
-)
-from infrastructure.external_gateways.configs.piste_config import (
-    PisteConfig,
-    PisteGatewayConfig,
-)
-from infrastructure.gateways.shared.http_client import SyncHttpClient
-from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.ingres_factories import IngresCorpsApiResponseFactory
 
 fake = Faker()
-
-
-@pytest.fixture(name="piste_gateway_config")
-def piste_gateway_config_fixture():
-    """Setup piste gateway config for usecase and tests."""
-    return PisteGatewayConfig(
-        piste_config=PisteConfig(
-            oauth_base_url=HttpUrl(fake.url()),
-            ingres_base_url=HttpUrl(fake.url()),
-            client_id=fake.uuid4(),
-            client_secret=fake.word(),
-        )
-    )
-
-
-@pytest.fixture(name="corps_documents_usecase")
-def corps_documents_usecase_fixture(piste_gateway_config):
-    """Set up container dependencies for Corps LoadDocuments tests."""
-    # Create shared container and config
-    shared_container = SharedContainer()
-    openai_gateway_config = OpenAIGatewayConfig(
-        openai_config=OpenAIConfig(
-            api_key=fake.uuid4(),
-            base_url=HttpUrl(fake.url()),
-            model=fake.word(),
-        )
-    )
-    shared_container.config.override(openai_gateway_config)
-
-    # Create ingestion container
-    container = IngestionContainer()
-    container.config.override(piste_gateway_config)
-    container.shared_container.override(shared_container)
-
-    logger_service = LoggerService()
-    container.logger_service.override(logger_service)
-    http_client = SyncHttpClient()
-    container.http_client.override(http_client)
-
-    # Use container to create usecase with proper dependency injection
-    return container.load_documents_usecase()
 
 
 class TestIntegrationCorpsLoadDocumentsUseCase:
@@ -74,7 +19,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
 
     @responses.activate
     def test_execute_returns_zero_when_no_documents(
-        self, db, corps_documents_usecase, piste_gateway_config
+        self, db, documents_integration_usecase, piste_gateway_config
     ):
         """Test execute returns 0 when repository is empty."""
         # Mock OAuth token endpoint
@@ -99,13 +44,13 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
-        result = corps_documents_usecase.execute(input_data)
+        result = documents_integration_usecase.execute(input_data)
         assert result["created"] == 0
         assert result["updated"] == 0
 
     @responses.activate
     def test_execute_returns_correct_count_with_documents(
-        self, db, corps_documents_usecase, piste_gateway_config
+        self, db, documents_integration_usecase, piste_gateway_config
     ):
         """Test execute returns correct count when documents exist with mocked API."""
         api_response = IngresCorpsApiResponseFactory.build()
@@ -133,7 +78,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
-        result = corps_documents_usecase.execute(input_data)
+        result = documents_integration_usecase.execute(input_data)
         assert result["created"] == len(api_data)
         assert result["updated"] == 0
 
