@@ -30,6 +30,27 @@ class FetchFromIngresApiStrategy:
         return documents, has_more
 
 
+class FetchFromTalentsoftFrontApiStrategy:
+    """Adapter for fetching documents from Talentsoft Front external API."""
+
+    def __init__(self, document_fetcher: IDocumentFetcher):
+        """Initialize with document fetcher dependency."""
+        self.document_fetcher = document_fetcher
+
+    def load_documents(self, **kwargs) -> Tuple[List[Document], bool]:
+        """Load documents from external API by document type."""
+        document_type = kwargs.get("document_type")
+        start = kwargs.get("start", 1)
+        if not isinstance(document_type, DocumentType):
+            raise MissingOperationParameterError(
+                "document_type", LoadOperationType.FETCH_FROM_TALENTSOFT_FRONT_API.value
+            )
+
+        return self.document_fetcher.fetch_talentsoft_front_by_type(
+            document_type, start
+        )
+
+
 class UploadFromCsvStrategy:
     """Adapter for handling pre-validated CSV documents."""
 

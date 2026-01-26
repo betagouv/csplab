@@ -55,6 +55,35 @@ def corps_documents_fixture():
     ]
 
 
+@pytest.fixture(name="offer_documents")
+def offer_documents_fixture():
+    """Create multiple offer documents for batch testing."""
+    return [
+        Document(
+            id=None,
+            external_id="offer_1",
+            raw_data={"name": "Offer 1", "description": "First offer"},
+            type=DocumentType.OFFERS,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        ),
+        Document(
+            id=None,
+            external_id="offer_2",
+            raw_data={"name": "Offer 2", "description": "Second offer"},
+            type=DocumentType.OFFERS,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        ),
+    ]
+
+
+@pytest.fixture(name="raw_offer_documents")
+def raw_offer_documents_fixture(offer_documents):
+    """Return raw_data of offer_documents fixture."""
+    return [doc.raw_data for doc in offer_documents]
+
+
 @pytest.fixture(name="concours_documents")
 def concours_documents_fixture():
     """Create sample contest documents."""
@@ -101,6 +130,7 @@ class TestDocumentsUsecase:
         "operation_type,document_type",
         [
             (LoadOperationType.FETCH_FROM_INGRES_API, DocumentType.CORPS),
+            (LoadOperationType.FETCH_FROM_TALENTSOFT_FRONT_API, DocumentType.OFFERS),
         ],
     )
     def test_execute_returns_zero_when_no_documents(
@@ -115,22 +145,43 @@ class TestDocumentsUsecase:
         assert result["created"] == 0
         assert result["updated"] == 0
 
-    def test_execute_returns_correct_count_with_documents(
+    @pytest.mark.parametrize(
+        "raw_documents_fixture,operation_type,document_type",
+        [
+            (
+                "raw_corps_documents",
+                LoadOperationType.FETCH_FROM_INGRES_API,
+                DocumentType.CORPS,
+            ),
+            (
+                "raw_offer_documents",
+                LoadOperationType.FETCH_FROM_TALENTSOFT_FRONT_API,
+                DocumentType.OFFERS,
+            ),
+        ],
+    )
+    def test_execute_returns_correct_count_with_documents(  # noqa: PLR0913
         self,
         documents_usecase,
         documents_ingestion_container,
-        raw_corps_documents,
+        raw_documents_fixture,
+        operation_type,
+        document_type,
+        request,
     ):
         """Test execute returns correct count when documents exist."""
-        raw_data = copy.deepcopy(raw_corps_documents)
-        create_test_documents(documents_ingestion_container, raw_data)
+        raw_documents = request.getfixturevalue(raw_documents_fixture)
+        raw_data = copy.deepcopy(raw_documents)
+        create_test_documents(
+            documents_ingestion_container, raw_data, doc_type=document_type
+        )
 
         input_data = LoadDocumentsInput(
-            operation_type=LoadOperationType.FETCH_FROM_INGRES_API,
-            kwargs={"document_type": DocumentType.CORPS},
+            operation_type=operation_type,
+            kwargs={"document_type": document_type},
         )
         result = documents_usecase.execute(input_data)
-        assert result["updated"] == len(raw_corps_documents)
+        assert result["updated"] == len(raw_documents)
 
     def test_execute_returns_correct_count_with_documents_with_data_input(
         self,
@@ -149,15 +200,21 @@ class TestDocumentsUsecase:
         result = documents_usecase.execute(input_data)
         assert result["created"] == len(raw_corps_documents)
 
+    @pytest.mark.parametrize(
+        "operation_type",
+        [
+            (LoadOperationType.FETCH_FROM_INGRES_API),
+            (LoadOperationType.FETCH_FROM_TALENTSOFT_FRONT_API),
+        ],
+    )
     def test_missing_document_type_raises_missing_operation_parameter_error(
-        self, documents_usecase
+        self, documents_usecase, operation_type
     ):
         """Test that missing document_type in kwargs raises ApplicationError."""
         input_data = LoadDocumentsInput(
-            operation_type=LoadOperationType.FETCH_FROM_INGRES_API,
+            operation_type=operation_type,
             kwargs={},
         )
-
         with pytest.raises(MissingOperationParameterError):
             documents_usecase.execute(input_data)
 
@@ -166,12 +223,13 @@ class TestDocumentsRepository:
     """Test documents repository."""
 
     def test_get_by_type_returns_documents_of_correct_type_only(
-        self, documents_repository, corps_documents, concours_documents
+        self, documents_repository, corps_documents, concours_documents, offer_documents
     ):
         """Test get_by_type returns only documents of the specified type."""
         datas = [
             (corps_documents, DocumentType.CORPS),
             (concours_documents, DocumentType.CONCOURS),
+            (offer_documents, DocumentType.OFFERS),
         ]
         for documents, document_type in datas:
             documents_repository.upsert_batch(documents, document_type.value)
@@ -182,27 +240,35 @@ class TestDocumentsRepository:
             for doc in docs:
                 assert doc.type == document_type
 
+    @pytest.mark.parametrize(
+        "documents_fixture,document_type",
+        [
+            ("corps_documents", DocumentType.CORPS),
+            ("offer_documents", DocumentType.OFFERS),
+        ],
+    )
     def test_upsert_batch_creates_new_document(
-        self, documents_repository, corps_document
+        self, documents_repository, documents_fixture, document_type, request
     ):
         """Test upsert_batch creates a new document when it doesn't exist."""
-        result = documents_repository.upsert_batch(
-            [corps_document], DocumentType.CORPS.value
-        )
+        documents = request.getfixturevalue(documents_fixture)
+        result = documents_repository.upsert_batch(documents, document_type.value)
 
-        assert result["created"] == 1
+        assert result["created"] == len(documents)
         assert result["updated"] == 0
         assert len(result["errors"]) == 0
 
         # Verify document was created
-        docs = documents_repository.fetch_by_type(DocumentType.CORPS)
-        assert len(docs) == 1
-        assert docs[0].raw_data == corps_document.raw_data
+        docs = documents_repository.fetch_by_type(document_type)
+        assert len(docs) == len(documents)
+        for i in range(2):
+            assert docs[i].raw_data == documents[i].raw_data
 
     @pytest.mark.parametrize(
         "documents_fixture,document_type",
         [
             ("corps_documents", DocumentType.CORPS),
+            ("offer_documents", DocumentType.OFFERS),
         ],
     )
     def test_upsert_batch_returns_correct_counts(

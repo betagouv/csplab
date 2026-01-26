@@ -7,6 +7,7 @@ from domain.repositories.document_repository_interface import IDocumentFetcher
 from infrastructure.exceptions.ingestion_exceptions import InvalidLoadOperationError
 from infrastructure.gateways.ingestion.load_documents_strategies import (
     FetchFromIngresApiStrategy,
+    FetchFromTalentsoftFrontApiStrategy,
     UploadFromCsvStrategy,
 )
 
@@ -22,12 +23,15 @@ class LoadDocumentsStrategyFactory:
         self, operation_type: LoadOperationType
     ) -> Union[
         FetchFromIngresApiStrategy,
+        FetchFromTalentsoftFrontApiStrategy,
         UploadFromCsvStrategy,
     ]:
         """Create strategy based on operation type."""
         match operation_type:
             case LoadOperationType.FETCH_FROM_INGRES_API:
                 return FetchFromIngresApiStrategy(self.document_fetcher)
+            case LoadOperationType.FETCH_FROM_TALENTSOFT_FRONT_API:
+                return FetchFromTalentsoftFrontApiStrategy(self.document_fetcher)
             case LoadOperationType.UPLOAD_FROM_CSV:
                 return UploadFromCsvStrategy()
             case _:

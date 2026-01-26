@@ -1,6 +1,6 @@
 """Django document repository implementation."""
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from django.db import DatabaseError, transaction
 
@@ -19,6 +19,15 @@ class PostgresDocumentRepository(IDocumentRepository):
         """Fetch documents from Django database by type."""
         raw_documents = RawDocument.objects.filter(document_type=document_type.value)
         return [raw_doc.to_entity() for raw_doc in raw_documents]
+
+    def fetch_talentsoft_front_by_type(
+        self, document_type: DocumentType, start: int
+    ) -> Tuple[List[Document], bool]:
+        """Fetch documents from Django DB by type with pagination."""
+        # For PostgresDocumentRepository, we don't have external pagination
+        # so we return all documents and indicate no more pages
+        documents = self.fetch_by_type(document_type)
+        return documents, False
 
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
