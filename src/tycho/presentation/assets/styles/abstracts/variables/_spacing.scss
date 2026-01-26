@@ -1,0 +1,51 @@
+$sp-0: 0;
+$sp-0-5v: 0.125rem;
+$sp-1v: 0.25rem;
+$sp-1-5v: 0.375rem;
+$sp-1w: 0.5rem;
+$sp-3v: 0.75rem;
+$sp-2w: 1rem;
+$sp-5v: 1.25rem;
+$sp-3w: 1.5rem;
+$sp-7v: 1.75rem;
+$sp-4w: 2rem;
+$sp-9v: 2.25rem;
+$sp-5w: 2.5rem;
+$sp-6w: 3rem;
+$sp-7w: 3.5rem;
+$sp-8w: 4rem;
+$sp-9w: 4.5rem;
+$sp-10w: 5rem;
+$sp-11w: 5.5rem;
+$sp-12w: 6rem;
+$sp-13w: 6.5rem;
+$sp-14w: 7rem;
+$sp-15w: 7.5rem;
+$sp-16w: 8rem;
+
+$spacing-tokens: (
+  "0": $sp-0,
+  "0-5v": $sp-0-5v,
+  "1v": $sp-1v,
+  "1-5v": $sp-1-5v,
+  "1w": $sp-1w,
+  "3v": $sp-3v,
+  "2w": $sp-2w,
+  "5v": $sp-5v,
+  "3w": $sp-3w,
+  "7v": $sp-7v,
+  "4w": $sp-4w,
+  "9v": $sp-9v,
+  "5w": $sp-5w,
+  "6w": $sp-6w,
+  "7w": $sp-7w,
+  "8w": $sp-8w,
+  "9w": $sp-9w,
+  "10w": $sp-10w,
+  "11w": $sp-11w,
+  "12w": $sp-12w,
+  "13w": $sp-13w,
+  "14w": $sp-14w,
+  "15w": $sp-15w,
+  "16w": $sp-16w,
+);

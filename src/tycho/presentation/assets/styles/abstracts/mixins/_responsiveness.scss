@@ -1,0 +1,61 @@
+@use "../variables/breakpoints" as bp;
+
+@mixin respond-to($breakpoint) {
+  @media (min-width: $breakpoint) {
+    @content;
+  }
+}
+
+@mixin respond-below($breakpoint) {
+  @media (max-width: calc($breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin sm {
+  @include respond-to(bp.$sm) {
+    @content;
+  }
+}
+
+@mixin md {
+  @include respond-to(bp.$md) {
+    @content;
+  }
+}
+
+@mixin lg {
+  @include respond-to(bp.$lg) {
+    @content;
+  }
+}
+
+@mixin xl {
+  @include respond-to(bp.$xl) {
+    @content;
+  }
+}
+
+@mixin lt-sm {
+  @include respond-below(bp.$sm) {
+    @content;
+  }
+}
+
+@mixin lt-md {
+  @include respond-below(bp.$md) {
+    @content;
+  }
+}
+
+@mixin lt-lg {
+  @include respond-below(bp.$lg) {
+    @content;
+  }
+}
+
+@mixin lt-xl {
+  @include respond-below(bp.$xl) {
+    @content;
+  }
+}

@@ -1,59 +1,69 @@
+@use "../abstracts" as *;
+
 .csplab-processing {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--5w, 40px);
+  gap: $sp-5w;
   padding-bottom: 20rem;
-}
 
-.csplab-processing__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--3w, 24px);
-  width: 100%;
-}
+  @include lt-md {
+    padding-bottom: $sp-12w;
+  }
 
-.csplab-processing__title {
-  color: #000091;
-  text-align: center;
-}
+  .csplab-processing__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $sp-3w;
+    width: 100%;
+  }
 
-@media (max-width: 768px) {
-  .csplab-processing {
-    padding-bottom: var(--12w, 96px);
+  .csplab-processing__title {
+    color: var(--text-title-blue-france);
+    text-align: center;
+  }
+
+  .csplab-processing__messages {
+    position: relative;
+    min-height: $sp-3w;
+    width: 100%;
+    text-align: center;
+  }
+
+  .csplab-processing__message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0;
+    animation: csplab-message-rotate 9s infinite;
+
+    &[data-message="1"] {
+      animation-delay: 0s;
+    }
+
+    &[data-message="2"] {
+      animation-delay: 3s;
+    }
+
+    &[data-message="3"] {
+      animation-delay: 6s;
+    }
+  }
+
+  .csplab-processing__illustration {
+    width: 128px;
+    height: 128px;
+
+    img {
+      width: 100%;
+      height: 100%;
+    }
   }
 }
 
-.csplab-processing__messages {
-  position: relative;
-  min-height: 1.5rem;
-  width: 100%;
-  text-align: center;
-}
-
-.csplab-processing__message {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  opacity: 0;
-  animation: messageRotate 9s infinite;
-}
-
-.csplab-processing__message[data-message="1"] {
-  animation-delay: 0s;
-}
-
-.csplab-processing__message[data-message="2"] {
-  animation-delay: 3s;
-}
-
-.csplab-processing__message[data-message="3"] {
-  animation-delay: 6s;
-}
-
-@keyframes messageRotate {
+@keyframes csplab-message-rotate {
   0% {
     opacity: 0;
   }
@@ -68,21 +78,5 @@
   }
   100% {
     opacity: 0;
-  }
-}
-
-.csplab-processing__illustration {
-  width: 128px;
-  height: 128px;
-}
-
-.csplab-processing__illustration img {
-  width: 100%;
-  height: 100%;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
   }
 }

@@ -1,87 +1,75 @@
-/* Hero Section */
+@use "../abstracts" as *;
 
 .csplab-hero {
-  background: linear-gradient(135deg, #0b0b98 33%, #2b2bab 66%, #5757c5 100%);
-  /*
-      The conic gradient bellow from Figma does not translate well to CSS as is.
-      background: conic-gradient(from -66deg at 58.33% 134.44%, #000091 0deg, #ADADF9 360deg);
-    */
-}
+  background: $hero-gradient;
 
-.csplab-hero__content {
-  display: flex;
-  flex-direction: column;
-  gap: 2.5rem;
-}
+  .csplab-hero__content {
+    display: flex;
+    flex-direction: column;
+    gap: $sp-5w;
+  }
 
-.csplab-hero__tag {
-  background-color: var(--background-contrast-blue-france) !important;
-  color: var(--text-title-blue-france) !important;
-}
+  .csplab-hero__tag {
+    background-color: var(--background-contrast-blue-france);
+    color: var(--text-title-blue-france);
+  }
 
-.csplab-hero__title {
-  color: white;
-  margin: 0 !important;
-}
+  .csplab-hero__title {
+    color: white;
+    margin: 0;
+  }
 
-.csplab-hero__main-cta {
-  background-color: var(--background-default-grey) !important;
-  color: var(--text-title-blue-france) !important;
-}
+  .csplab-hero__main-cta {
+    background-color: var(--background-default-grey);
+    color: var(--text-title-blue-france);
 
-.csplab-hero__main-cta:hover {
-  background-color: var(--background-default-grey-hover) !important;
-}
+    &:hover {
+      background-color: var(--background-default-grey-hover);
+    }
 
-.csplab-hero__main-cta:active {
-  background-color: var(--background-default-grey-active) !important;
-}
+    &:active {
+      background-color: var(--background-default-grey-active);
+    }
+  }
 
-.csplab-hero__illustration {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  min-height: 300px;
-}
-
-.csplab-hero__illustration img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  max-width: 400px;
-  max-height: 400px;
-  border-radius: 1rem;
-  background-color: var(--background-action-high-blue-france);
-}
-
-@media (min-width: 992px) {
   .csplab-hero__illustration {
-    justify-content: center;
-    max-width: none;
-    max-height: none;
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+
+    @include lg {
+      justify-content: center;
+      max-width: none;
+      max-height: none;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      max-width: 400px;
+      max-height: 400px;
+      border-radius: $sp-2w;
+      background-color: var(--background-action-high-blue-france);
+    }
+  }
+
+  .csplab-hero__illustration-img {
+    position: relative;
+    z-index: 1;
   }
 }
-
-.csplab-hero__illustration-img {
-  position: relative;
-  z-index: 1;
-  /* max-width: 260px;
-    max-height: 260px; */
-}
-
-/* Features Section */
 
 .csplab-features__illustration {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-}
 
-@media (max-width: 991px) {
-  .csplab-features__illustration {
+  @include lt-lg {
     display: none;
   }
 }
@@ -89,38 +77,34 @@
 .csplab-features__list {
   display: flex;
   flex-direction: column;
-  gap: 3rem;
-}
+  gap: $sp-6w;
 
-@media (min-width: 992px) {
-  .csplab-features__list {
-    gap: 7.5rem;
+  @include lg {
+    gap: $sp-15w;
   }
 }
 
 .csplab-feature {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-}
+  gap: $sp-2w;
 
-.csplab-feature__badge {
-  padding: 0.5rem 0.75rem !important;
-  background-color: var(--background-contrast-info) !important;
-  color: var(--text-default-info) !important;
+  .csplab-feature__badge {
+    padding: $sp-1w $sp-3v !important;
+    background-color: var(--background-contrast-info) !important;
+    color: var(--text-default-info) !important;
+  }
 }
-
-/* About Section */
 
 .csplab-about__card {
   background-color: var(--background-contrast-blue-france);
-  border-radius: 1.5rem;
+  border-radius: $sp-3w;
 }
 
 .csplab-about__content {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: $sp-5w;
 }
 
 .csplab-about__illustration {

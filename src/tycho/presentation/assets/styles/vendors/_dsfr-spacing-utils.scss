@@ -1,0 +1,63 @@
+// Forked from: https://github.com/ShallowRed/dsfr-utils v0.1.1
+
+@use "sass:list";
+@use "../abstracts" as *;
+
+@mixin reset-children {
+  > * {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+$gap-selectors: ();
+$stack-selectors: ();
+
+@each $token, $value in $spacing-tokens {
+  $gap-selectors: list.append($gap-selectors, ".fr-gap-#{$token}", "comma");
+  $stack-selectors: list.append($stack-selectors, ".fr-stack-#{$token}", "comma");
+}
+
+@each $token, $value in $spacing-tokens {
+  .fr-gap-#{$token} {
+    gap: $value;
+  }
+}
+
+#{$gap-selectors} {
+  @include reset-children;
+}
+
+@each $bp-name, $bp-value in $breakpoints {
+  @media (min-width: $bp-value) {
+    @each $token, $value in $spacing-tokens {
+      .fr-gap-#{$bp-name}-#{$token} {
+        gap: $value;
+      }
+    }
+  }
+}
+
+#{$stack-selectors} {
+  @include reset-children;
+}
+
+@each $token, $value in $spacing-tokens {
+  .fr-stack-#{$token} {
+    > * + * {
+      margin-top: $value;
+    }
+  }
+}
+
+@each $bp-name, $bp-value in $breakpoints {
+  @media (min-width: $bp-value) {
+    @each $token, $value in $spacing-tokens {
+      .fr-stack-#{$bp-name}-#{$token} {
+        > * + * {
+          margin-top: $value;
+        }
+      }
+    }
+  }
+}

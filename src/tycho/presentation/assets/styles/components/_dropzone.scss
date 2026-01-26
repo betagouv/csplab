@@ -1,68 +1,66 @@
-.csplab-dropzone {
-  position: relative;
-  border: 1px dashed var(--border-action-high-blue-france);
-  border-radius: 0.5rem;
-  padding: 2rem;
-  text-align: center;
-  cursor: pointer;
-  background-color: var(--background-default-grey);
-  min-height: 10rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: center;
-  justify-content: center;
-}
+@use "../abstracts" as *;
 
 .csplab-upload-wrapper {
   position: relative;
-}
 
-.csplab-upload-wrapper:has(input:focus-visible) .csplab-dropzone {
-  outline: 2px solid var(--border-action-high-blue-france);
-  outline-offset: 2px;
-}
+  .csplab-dropzone {
+    position: relative;
+    border: 1px dashed var(--border-action-high-blue-france);
+    border-radius: $sp-1w;
+    padding: $sp-4w;
+    text-align: center;
+    cursor: pointer;
+    background-color: var(--background-default-grey);
+    min-height: 10rem;
+    display: flex;
+    flex-direction: column;
+    gap: $sp-2w;
+    align-items: center;
+    justify-content: center;
 
-.csplab-upload-wrapper:has(input:active) .csplab-dropzone {
-  background-color: var(--background-default-grey-active);
-}
+    &:hover {
+      background-color: var(--background-default-grey-hover);
+    }
 
-.csplab-dropzone[hidden] {
-  display: none;
-}
+    &[data-state="dragging"] {
+      background-color: var(--background-default-grey-hover);
+      border-style: solid;
+    }
 
-.csplab-dropzone:hover {
-  background-color: var(--background-default-grey-hover);
-}
+    &:hover .csplab-dropzone__browse {
+      text-decoration: underline var(--text-action-high-blue-france) 2px;
+    }
 
-.csplab-dropzone[data-state="dragging"] {
-  background-color: var(--background-default-grey-hover);
-  border-style: solid;
-}
+    .csplab-dropzone__icon {
+      height: $sp-4w;
+      width: $sp-4w;
+      border-radius: 50%;
+      background-color: var(--background-action-high-blue-france);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-inverted-grey);
+    }
 
-.csplab-dropzone__icon {
-  height: 2rem;
-  width: 2rem;
-  border-radius: 50%;
-  background-color: var(--background-action-high-blue-france);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-inverted-grey);
-}
+    .csplab-dropzone__label {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+    }
 
-.csplab-dropzone__label {
-  position: absolute;
-  inset: 0;
-  cursor: pointer;
-}
+    .csplab-dropzone__browse {
+      color: var(--text-action-high-blue-france);
+      text-decoration: underline var(--text-action-high-blue-france) 1px;
+      text-underline-offset: 0.15em;
+    }
+  }
 
-.csplab-dropzone__browse {
-  color: var(--text-action-high-blue-france);
-  text-decoration: underline var(--text-action-high-blue-france) 1px;
-  text-underline-offset: 0.15em;
-}
+  &:has(input:focus-visible) .csplab-dropzone {
+    outline: 2px solid var(--border-action-high-blue-france);
+    outline-offset: 2px;
+  }
 
-.csplab-dropzone:hover .csplab-dropzone__browse {
-  text-decoration: underline var(--text-action-high-blue-france) 2px;
+  &:has(input:active) .csplab-dropzone {
+    background-color: var(--background-default-grey-active);
+  }
 }

@@ -1,3 +1,5 @@
+@use "../abstracts" as *;
+
 .fr-alert {
   background-color: var(--background-default-grey);
 }
@@ -7,7 +9,7 @@
   height: auto;
 }
 
-@media (min-width: 768px) {
+@include md {
   .csplab-col-offset-md-0 {
     margin-left: 0 !important;
   }

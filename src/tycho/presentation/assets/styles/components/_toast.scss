@@ -1,25 +1,25 @@
+@use "../abstracts" as *;
+
 .csplab-toast {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
+  top: $sp-2w;
+  right: $sp-2w;
   z-index: 1000;
   max-width: 28rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: $shadow-elevated;
   animation: csplab-toast-slide-in 0.3s ease-out;
-}
 
-@media (max-width: 575px) {
-  .csplab-toast {
-    right: 0.5rem;
-    left: 0.5rem;
-    max-width: calc(100% - 1rem);
+  @include lt-sm {
+    right: $sp-1w;
+    left: $sp-1w;
+    max-width: calc(100% - $sp-2w);
   }
 }
 
 @keyframes csplab-toast-slide-in {
   from {
     opacity: 0;
-    transform: translateX(1rem);
+    transform: translateX($sp-2w);
   }
   to {
     opacity: 1;
