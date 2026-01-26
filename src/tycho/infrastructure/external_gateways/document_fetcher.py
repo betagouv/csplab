@@ -3,6 +3,8 @@
 from datetime import datetime
 from typing import List, Tuple, cast
 
+from asgiref.sync import async_to_sync
+
 from domain.entities.document import Document, DocumentType
 from domain.repositories.document_repository_interface import IDocumentFetcher
 from domain.services.http_client_interface import IHttpClient
@@ -30,6 +32,7 @@ class ExternalDocumentFetcher(IDocumentFetcher):
         self._source = {
             DocumentType.CORPS: self._fetch_ingres_api,
             DocumentType.GRADE: self._fetch_ingres_api,
+            DocumentType.OFFERS: self._fetch_talentsoft_api,
             # TODO
             # DocumentType.CONCOURS: self._fetch_from_csv,
             # DocumentType.LAW_CONCOURS: self._fetch_legifrance_sdk,
@@ -50,6 +53,11 @@ class ExternalDocumentFetcher(IDocumentFetcher):
         now = datetime.now()
 
         documents = []
+
+        if document_type == DocumentType.OFFERS:
+            # For OFFERS, raw_documents is already a list of Document objects
+            return cast(List[Document], raw_documents), has_more
+
         if document_type == DocumentType.CORPS:
             typed_raw_documents = cast(List[dict], raw_documents)
             validated_response = IngresCorpsApiResponse.from_list(typed_raw_documents)
@@ -88,3 +96,63 @@ class ExternalDocumentFetcher(IDocumentFetcher):
 
         has_more = False
         return cast(List[JsonDataType], raw_documents), has_more
+
+    async def _fetch_offers(self, start: int):
+        """Init talentsoft_front_client with async context."""
+        async with self.talentsoft_front_client:
+            return await self.talentsoft_front_client.get_offers(start=start)
+
+    def _fetch_talentsoft_api(
+        self, document_type: DocumentType, start: int = 1
+    ) -> Tuple[List[Document], bool]:
+        """Fetch documents from talensoft front external source."""
+        if document_type != DocumentType.OFFERS:
+            raise ValueError(
+                f"Talentsoft Front API: unsupported document type: {document_type}"
+            )
+
+        # TODO remove `async_to_sync` as soon as piste_client is _asynced_ !
+        # Convert async method to sync using Django's async_to_sync
+        # with proper context manager
+        sync_fetch_offers = async_to_sync(self._fetch_offers)
+
+        # Run async method in sync context
+        try:
+            raw_documents, has_more = sync_fetch_offers(start)
+        except Exception as e:
+            self.logger.error("Failed to fetch offers from Talentsoft: %s", e)
+            return [], False
+
+        if not isinstance(raw_documents, list):
+            self.logger.error("Expected list of documents, got %s", type(raw_documents))
+            return [], False
+
+        self.logger.info(
+            "Found %d offers from Talentsoft Front API", len(raw_documents)
+        )
+
+        now = datetime.now()
+        documents = []
+
+        for raw_doc in raw_documents:
+            reference = raw_doc.reference
+            if reference is None:
+                self.logger.warning("Skipping raw_doc without reference: %s", raw_doc)
+                continue
+
+            versant_code_obj = raw_doc.salaryRange
+            versant = versant_code_obj.clientCode if versant_code_obj else "UNK"
+
+            external_id = f"{versant}-{reference}"
+
+            document = Document(
+                id=0,  # Temporary ID, will be updated by persister
+                external_id=external_id,
+                raw_data=raw_doc.model_dump(),  # convert TalensoftOffer obj into dict
+                type=document_type,
+                created_at=now,
+                updated_at=now,
+            )
+            documents.append(document)
+
+        return documents, has_more

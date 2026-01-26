@@ -74,11 +74,12 @@ class PostgresDocumentRepository(IDocumentRepository):
                         updated_obj = RawDocument.from_entity(doc)
                         updated_obj.id = existing_obj.id
                         updated_obj.created_at = existing_obj.created_at
+                        updated_obj.raw_data = doc.raw_data
                         obj_to_update.append(updated_obj)
 
                     updated = RawDocument.objects.bulk_update(
                         obj_to_update,
-                        fields=["document_type", "raw_data"],
+                        fields=["document_type", "raw_data", "created_at"],
                     )
 
             return {"created": created, "updated": updated, "errors": []}

@@ -1,7 +1,7 @@
 """Utils for tests using external gateways."""
 
 from time import time
-from typing import Optional
+from typing import Any, Dict, Optional
 from unittest.mock import Mock
 
 from faker import Faker
@@ -9,8 +9,16 @@ from httpx import Response
 
 from domain.types import JsonDataType
 from infrastructure.external_gateways.dtos.talentsoft_dtos import CachedToken
+from tests.fixtures.fixture_loader import load_fixture
 
 fake = Faker()
+
+
+def _load_offer_fixture_data(doc_id: int) -> Dict[str, Any]:
+    """Load and return offer fixture data for given doc_id."""
+    offer_fixtures = load_fixture("offers_talentsoft_20260124.json")
+    fixture_index = (doc_id - 1) % len(offer_fixtures)
+    return offer_fixtures[fixture_index].copy()
 
 
 def cached_token(access_token: Optional[str] = None, expire_in: int = 3600):
@@ -25,14 +33,8 @@ def cached_token(access_token: Optional[str] = None, expire_in: int = 3600):
 
 def offers_response(count: int = 2, has_more: bool = False):
     """Create offers response."""
-    offers = [
-        {
-            "reference": fake.uuid4(),
-            "title": fake.job(),
-            "salaryRange": {"clientCode": fake.word()},
-        }
-        for i in range(count)
-    ]
+    offers = [_load_offer_fixture_data(i) for i in range(1, count + 1)]
+
     offers_response = {
         "data": offers,
         "_pagination": {
