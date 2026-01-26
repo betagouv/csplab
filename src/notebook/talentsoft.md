@@ -675,7 +675,7 @@ def offer_parser(item):
         'category': category,
         'contract_type': contract_type,
         'title': item.get('title'),
-        'role': item.get('description1'),
+        'mission': item.get('description1'),
         'profile': item.get('description2'),
         'organisation': item.get('organisationName'),
         'country': country,
