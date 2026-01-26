@@ -28,8 +28,7 @@ def test_execute_handles_empty_documents(
     clean_documents_usecase = ingestion_integration_container.clean_documents_usecase()
 
     # No documents in database
-    doc_type = DocumentType.CORPS if document_type == "corps" else DocumentType.CONCOURS
-    result = clean_documents_usecase.execute(doc_type)
+    result = clean_documents_usecase.execute(document_type)
 
     assert result["processed"] == 0
     assert result["cleaned"] == 0

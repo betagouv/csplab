@@ -7,11 +7,13 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from faker import Faker
 from httpx import Response
+from pydantic import HttpUrl
 
 from domain.types import JsonDataType
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dtos.talentsoft_dtos import CachedToken
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
+from tests.fixtures.fixture_loader import load_fixture
 
 fake = Faker()
 
@@ -23,7 +25,7 @@ def talentsoft_client_fixture():
     logger_service.get_logger.return_value = Mock()
 
     return TalentsoftFrontClient(
-        base_url=fake.url(),
+        base_url=HttpUrl(fake.url()),
         client_id=fake.uuid4(),
         client_secret=fake.uuid4(),
         logger_service=logger_service,
@@ -43,10 +45,10 @@ def cached_token(access_token: Optional[str] = None, expire_in: int = 3600):
 
 def offers_response(count: int = 2, has_more: bool = False):
     """Create offers response."""
-    offers = [{"id": fake.uuid4(), "title": fake.job()} for _ in range(count)]
+    offers = load_fixture("offers_talentsoft_20260124.json")[:count]
     offers_response = {
         "data": offers,
-        "pagination": {"count": count, "hasMore": has_more},
+        "_pagination": {"count": count, "hasMore": has_more},
     }
     return offers_response
 
@@ -155,8 +157,15 @@ class TestGetOffers:
             mock_get.return_value = mock_response
             offers, has_more = await talentsoft_client.get_offers()
 
-            assert offers == response_data["data"]
+            # Compare the number of offers and their references
+            assert len(offers) == len(response_data["data"])
             assert has_more == expected_has_more
+            # Verify that we get TalentsoftOffer objects with correct references
+            expected_references = [
+                offer["reference"] for offer in response_data["data"]
+            ]
+            actual_references = [offer.reference for offer in offers]
+            assert actual_references == expected_references
             mock_get.assert_called_once()
 
     # Edge cases
@@ -211,7 +220,14 @@ class TestGetOffers:
 
             offers, has_more = await talentsoft_client.get_offers()
 
-            assert offers == response_data["data"]
+            # Compare the number of offers and their references
+            assert len(offers) == len(response_data["data"])
+            # Verify that we get TalentsoftOffer objects with correct references
+            expected_references = [
+                offer["reference"] for offer in response_data["data"]
+            ]
+            actual_references = [offer.reference for offer in offers]
+            assert actual_references == expected_references
             assert mock_get.call_count == 2  # noqa - First failed, second succeeded
             mock_post.assert_called_once()  # Token refresh called
 

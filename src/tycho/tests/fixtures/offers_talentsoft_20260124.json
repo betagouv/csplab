@@ -1,0 +1,234 @@
+[
+  {
+    "reference": "2025-2092413",
+    "isTopOffer": false,
+    "title": "DDETSPP 41 - CHARGE DES RENSEIGNEMENTS DES USAGERS EN DROIT DU TRAVAIL",
+    "location": null,
+    "modificationDate": "2026-01-23T09:49:29.667",
+    "contractType": {
+      "code": 2349,
+      "clientCode": "NAT_TITULAIRE_CONTRACTUEL",
+      "label": "Emploi ouvert aux titulaires et aux contractuels",
+      "active": true,
+      "parentCode": 79,
+      "type": "contractType",
+      "parentType": "",
+      "hasChildren": false
+    },
+    "offerFamilyCategory": {
+      "code": 3783,
+      "clientCode": "ERUSA018",
+      "label": "Chargée / Chargé du renseignement en droit du travail, de l'emploi et de la formation professionnelle",
+      "active": true,
+      "parentCode": 3526,
+      "type": "offerProfile",
+      "parentType": "",
+      "hasChildren": false
+    },
+    "organisationName": "DREETS Centre Val de Loire",
+    "organisationDescription": "DREETS Centre Val de Loire",
+    "organisationLogoUrl": "https://place-ep-recrute.talent-soft.com/Handlers/Image.ashx?imagetype=logo&entityid=1215",
+    "contractTypeCountry": {
+      "code": 79,
+      "clientCode": "FRA",
+      "label": "France",
+      "active": true,
+      "parentCode": 22,
+      "type": "country",
+      "parentType": "",
+      "hasChildren": false
+    },
+    "description1": "Au sein d'un service situé dans les locaux de la cité administrative de Blois, le ou la chargé(e) des renseignements en droit du travail assurera plusieurs missions :\r\n\r\n- le renseignement des salariés de la région Centre-Val-de-Loire, avec priorité donnée aux salariés de Loir-et-Cher, sur la réglementation en droit du travail, de l'emploi et de la formation professionnelle : à l'oral (accueil physique et téléphonique) et à l’écrit (par courrier et courriel). \r\nOutre la réponse juridique, le ou la chargé(e) des renseignements en droit du travail s'inscrit dans l'organisation départementale de la DDETS-PP, pour pouvoir réorienter l'usager vers le bon service ou le bon partenaire institutionnel en fonction de ses besoins, et signaler toute situation nécessitant une intervention ou la mobilisation d'un accompagnement complémentaire. \r\nLa mission s'effectue en collaboration avec les autres chargé(e)s des renseignements en droit du travail de la région Centre-Val-de-Loire.\r\n\r\n- la préparation d'informations collectives auprès des publics les plus vulnérables (jeunes notamment) et/ou la réalisation de supports juridiques afin de divulguer le droit du travail \"hors les murs\", notamment dans le cadre des campagnes nationales de la Direction Générale du Travail\r\n\r\n- l'instruction et l'enregistrement des contrats d'apprentissage de droit public.",
+    "description2": "CONNAISSANCES\r\n• Savoir identifier les évolutions et les enjeux des différents environnements (institutionnel, économique, social)\r\n• S’inscrire dans son environnement institutionnel (DREETS, DDETS-PP, partenaires extérieurs)\r\n• Droit : maîtriser le cadre légal, réglementaire et conventionnel en matière de droit du travail,de l’emploi et de la formation professionnelle\r\n• Connaître les conditions d’intervention des agents des corps de contrôle de la DDETS-PP\r\nSAVOIR ETRE\r\n• Savoir travailler en équipe : travailler en équipe au sein du service et avec les autres services ; apporter les appuis nécessaires ; partager les informations / niveau maîtrise - requis\r\n\r\n• Être en relation avec les usagers : / niveau maîtrise – requis \r\nAvoir le sens du dialogue et de l’écoute\r\nAppliquer au quotidien les règles de déontologie spécifiques au poste\r\n\r\n• Savoir s’adapter et évoluer : être capable d’autonomie et d’initiative dans le cadre de l’organisation du service ; faire évoluer son organisation de travail avec l’évolution des missions ;\r\nSAVOIR FAIRE\r\n• Procédures et méthodes relatives au renseignement / niveau maîtrise - requis\r\nAssurer l’accueil de l’usager et comprendre son besoin, si nécessaire le reformuler\r\nSavoir lui expliquer et transmettre les informations en droit du travail, de l’emploi et de la formation professionnelle, le réorienter si besoin \r\nMaîtriser la réglementation et mettre à jour ses connaissances\r\n\r\n• Contrôler l’application d’une règle et la faire respecter / niveau maîtrise - requis\r\nAnalyser les situations et mesurer les enjeux et conséquences sur les actions engagées\r\n\r\n• Rédiger des documents / niveau maîtrise - requis\r\nRédiger des réponses aux usagers et assurer la sécurité juridique des écrits\r\nSupports de communication (powerpoint, fiches pratiques…)\r\n\r\nDébutants acceptés",
+    "description1Formatted": "<p>Au sein d'un service situé dans les locaux de la cité administrative de Blois, le ou la chargé(e) des renseignements en droit du travail assurera plusieurs missions :<br> <br>- le renseignement des salariés de la région Centre-Val-de-Loire, avec priorité donnée aux salariés de Loir-et-Cher, sur la réglementation en droit du travail, de l'emploi et de la formation professionnelle : à l'oral (accueil physique et téléphonique) et à l’écrit (par courrier et courriel). <br>Outre la réponse juridique, le ou la chargé(e) des renseignements en droit du travail s'inscrit dans l'organisation départementale de la DDETS-PP, pour pouvoir réorienter l'usager vers le bon service ou le bon partenaire institutionnel en fonction de ses besoins, et signaler toute situation nécessitant une intervention ou la mobilisation d'un accompagnement complémentaire. <br>La mission s'effectue en collaboration avec les autres chargé(e)s des renseignements en droit du travail de la région Centre-Val-de-Loire.<br> <br>- la préparation d'informations collectives auprès des publics les plus vulnérables (jeunes notamment) et/ou la réalisation de supports juridiques afin de divulguer le droit du travail \"hors les murs\", notamment dans le cadre des campagnes nationales de la Direction Générale du Travail<br> <br>- l'instruction et l'enregistrement des contrats d'apprentissage de droit public.</p>",
+    "description2Formatted": "<p><strong>CONNAISSANCES</strong></p><p>• Savoir identifier les évolutions et les enjeux des différents environnements (institutionnel, économique, social)<br>• S’inscrire dans son environnement institutionnel (DREETS, DDETS-PP, partenaires extérieurs)<br>• Droit : maîtriser le cadre légal, réglementaire et conventionnel en matière de droit du travail,de l’emploi et de la formation professionnelle<br>• Connaître les conditions d’intervention des agents des corps de contrôle de la DDETS-PP</p><p><strong>SAVOIR ETRE</strong></p><p>• Savoir travailler en équipe : travailler en équipe au sein du service et avec les autres services ; apporter les appuis nécessaires ; partager les informations / niveau maîtrise - requis<br> <br>• Être en relation avec les usagers : / niveau maîtrise – requis <br>Avoir le sens du dialogue et de l’écoute<br>Appliquer au quotidien les règles de déontologie spécifiques au poste<br> <br>• Savoir s’adapter et évoluer : être capable d’autonomie et d’initiative dans le cadre de l’organisation du service ; faire évoluer son organisation de travail avec l’évolution des missions ;</p><p><strong>SAVOIR FAIRE</strong></p><p>• Procédures et méthodes relatives au renseignement / niveau maîtrise - requis<br>Assurer l’accueil de l’usager et comprendre son besoin, si nécessaire le reformuler<br>Savoir lui expliquer et transmettre les informations en droit du travail, de l’emploi et de la formation professionnelle, le réorienter si besoin <br>Maîtriser la réglementation et mettre à jour ses connaissances<br> <br>• Contrôler l’application d’une règle et la faire respecter / niveau maîtrise - requis<br>Analyser les situations et mesurer les enjeux et conséquences sur les actions engagées<br> <br>• Rédiger des documents / niveau maîtrise - requis<br>Rédiger des réponses aux usagers et assurer la sécurité juridique des écrits<br>Supports de communication (powerpoint, fiches pratiques…)</p><p>&nbsp;</p><p>Débutants acceptés</p>",
+    "salaryRange": {
+      "code": 2456,
+      "clientCode": "Versant_FPE",
+      "label": "Fonction Publique de l'Etat",
+      "active": true,
+      "parentCode": null,
+      "type": "salaryRange",
+      "parentType": "",
+      "hasChildren": false
+    },
+    "geographicalLocation": [
+      {
+        "code": 22,
+        "clientCode": "_TS_CO_GeographicalArea_Europe",
+        "label": "Europe",
+        "active": true,
+        "parentCode": null,
+        "type": "offerGeographicalLocation",
+        "parentType": "",
+        "hasChildren": false
+      }
+    ],
+    "country": [
+      {
+        "code": 79,
+        "clientCode": "FRA",
+        "label": "France",
+        "active": true,
+        "parentCode": 22,
+        "type": "offerCountry",
+        "parentType": "",
+        "hasChildren": false
+      }
+    ],
+    "region": [
+      {
+        "code": 202,
+        "clientCode": "R24",
+        "label": "Centre - Val de Loire",
+        "active": true,
+        "parentCode": 79,
+        "type": "offerRegion",
+        "parentType": "",
+        "hasChildren": false
+      }
+    ],
+    "department": [
+      {
+        "code": 262,
+        "clientCode": "41",
+        "label": "Loir et Cher (41)",
+        "active": true,
+        "parentCode": 202,
+        "type": "offerDepartment",
+        "parentType": "",
+        "hasChildren": false
+      }
+    ],
+    "latitude": 47.903326,
+    "longitude": 1.908507,
+    "professionalCategory": {
+      "code": 1829,
+      "clientCode": "STATUT01",
+      "label": "Vacant",
+      "active": true,
+      "parentCode": null,
+      "type": "professionalCategory",
+      "parentType": "",
+      "hasChildren": false
+    },
+    "_links": [
+      {
+        "href": "https://place-ep-recrute.talent-soft.com/api/v2/offers/getoffer?reference=2025-2092413",
+        "rel": "detail"
+      }
+    ],
+    "offerUrl": "https://choisirleservicepublic.gouv.fr/offre-emploi/2025-2092413/?tracking=1&idOrigine=502",
+    "urlRedirectionEmployee": null,
+    "urlRedirectionApplicant": "dreets-cvl.mobilite@dreets.gouv.fr",
+    "startPublicationDate": "2025-10-29T09:26:24.737",
+    "beginningDate": "2026-05-01T00:00:00"
+  },
+  {
+    "reference": "MENJ-20-2026-35262",
+    "isTopOffer": false,
+    "title": "Enseignant(e) de lettres modernes - collège de  Neuilly en Thelle",
+    "location": null,
+    "modificationDate": "2026-01-23T09:47:47.257",
+    "contractType": {
+      "code": 2267,
+      "clientCode": "NAT_CONTRACTUELS",
+      "label": "Emploi ouvert uniquement aux contractuels",
+      "active": true,
+      "parentCode": 79,
+      "type": "contractType",
+      "parentType": "",
+      "hasChildren": false
+    },
+    "offerFamilyCategory": {
+      "code": 3916,
+      "clientCode": "ERENS006",
+      "label": "Enseignante / Enseignant",
+      "active": true,
+      "parentCode": 3513,
+      "type": "offerProfile",
+      "parentType": "",
+      "hasChildren": false
+    },
+    "organisationName": "Rectorat d'Amiens",
+    "organisationDescription": "Rectorat d'Amiens",
+    "organisationLogoUrl": "https://place-ep-recrute.talent-soft.com/Handlers/Image.ashx?imagetype=logo&entityid=672",
+    "contractTypeCountry": {
+      "code": 79,
+      "clientCode": "FRA",
+      "label": "France",
+      "active": true,
+      "parentCode": 22,
+      "type": "country",
+      "parentType": "",
+      "hasChildren": false
+    },
+    "description1": "Les professeurs et les personnels d’éducation concourent à la mission première de l'École qui est d’instruire et d’éduquer afin de conduire l’ensemble des élèves à la réussite scolaire. Ils préparent les élèves à l’exercice d’une citoyenneté pleine et entière. Ils transmettent et font partager à ce titre les valeurs de la République. Ils promeuvent l’esprit de responsabilité et la recherche du bien commun, en excluant toute discrimination.\r\n Les personnels ont un devoir de stricte neutralité politique et religieuse.\r\n\r\n Son activité principale :    \r\n-       Concevoir et mettre en œuvre des situations d’apprentissage ou d’enseignement dans le cadre des programmes nationaux\r\n-       Construire des connaissances disciplinaires dans les domaines de la discipline. \r\n-       Faire acquérir des compétences incluant des capacités, des attitudes et des savoir-faire (méthodologiques et techniques). \r\n-       Concevoir et mettre en œuvre des modalités d’évaluation des acquis des élèves.\r\n -       Assurer un suivi personnalisé des élèves en lien avec les familles.  \r\n- Contribuer au fonctionnement de l’établissement et au travail d’équipe.",
+    "description2": "ð Études de niveau universitaire ou supérieures complétées.\r\nð Vous maitrisez la langue française à l’écrit et à l’oral.\r\nð Bonne maîtrise de la langue française à l’écrit comme à l’oral.\r\nð Une formation en lettres classiques ou de l’expérience dans ce domaine est un atout\r\nð Vous êtes autonome, organisé et ouvert au dialogue.\r\nð Vous êtes capable de vous adapter à l’environnement d’un établissement scolaire et aux outils propres à son fonctionnement et à votre enseignement.\r\nð Vous avez un casier judiciaire vierge.",
+    "description1Formatted": "<p>Les professeurs et les personnels d’éducation concourent à la mission première de l&#39;École qui est d’instruire et d’éduquer afin de conduire l’ensemble des élèves à la réussite scolaire. Ils préparent les élèves à l’exercice d’une citoyenneté pleine et entière. Ils transmettent et font partager à ce titre les valeurs de la République. Ils promeuvent l’esprit de responsabilité et la recherche du bien commun, en excluant toute discrimination.</p><p> Les personnels ont un devoir de stricte neutralité politique et religieuse.</p><p> </p><p> Son activité principale :    </p><p>-       Concevoir et mettre en œuvre des situations d’apprentissage ou d’enseignement dans le cadre des programmes nationaux</p><p>-       Construire des connaissances disciplinaires dans les domaines de la discipline. </p><p>-       Faire acquérir des compétences incluant des capacités, des attitudes et des savoir-faire (méthodologiques et techniques). </p><p>-       Concevoir et mettre en œuvre des modalités d’évaluation des acquis des élèves.</p><p> -       Assurer un suivi personnalisé des élèves en lien avec les familles.  </p><p>- Contribuer au fonctionnement de l’établissement et au travail d’équipe.</p>",
+    "description2Formatted": "<p>ð Études de niveau universitaire ou supérieures complétées.</p><p>ð Vous maitrisez la langue française à l’écrit et à l’oral.</p><p>ð Bonne maîtrise de la langue française à l’écrit comme à l’oral.</p><p>ð Une formation en lettres classiques ou de l’expérience dans ce domaine est un atout</p><p>ð Vous êtes autonome, organisé et ouvert au dialogue.</p><p>ð Vous êtes capable de vous adapter à l’environnement d’un établissement scolaire et aux outils propres à son fonctionnement et à votre enseignement.</p><p>ð Vous avez un casier judiciaire vierge.</p>",
+    "salaryRange": null,
+    "geographicalLocation": [
+      {
+        "code": 22,
+        "clientCode": "_TS_CO_GeographicalArea_Europe",
+        "label": "Europe",
+        "active": true,
+        "parentCode": null,
+        "type": "offerGeographicalLocation",
+        "parentType": "",
+        "hasChildren": false
+      }
+    ],
+    "country": [
+      {
+        "code": 79,
+        "clientCode": "FRA",
+        "label": "France",
+        "active": true,
+        "parentCode": 22,
+        "type": "offerCountry",
+        "parentType": "",
+        "hasChildren": false
+      }
+    ],
+    "region": [
+      {
+        "code": 213,
+        "clientCode": "R32",
+        "label": "Hauts de France",
+        "active": true,
+        "parentCode": 79,
+        "type": "offerRegion",
+        "parentType": "",
+        "hasChildren": false
+      }
+    ],
+    "department": [
+      {
+        "code": 318,
+        "clientCode": "60",
+        "label": "Oise (60)",
+        "active": true,
+        "parentCode": 213,
+        "type": "offerDepartment",
+        "parentType": "",
+        "hasChildren": false
+      }
+    ],
+    "latitude": null,
+    "longitude": null,
+    "professionalCategory": null,
+    "_links": [
+      {
+        "href": "https://place-ep-recrute.talent-soft.com/api/v2/offers/getoffer?reference=MENJ-20-2026-35262",
+        "rel": "detail"
+      }
+    ],
+    "offerUrl": "https://choisirleservicepublic.gouv.fr/offre-emploi/MENJ-20-2026-35262/?tracking=1&idOrigine=502",
+    "urlRedirectionEmployee": null,
+    "urlRedirectionApplicant": "https://recrutement.education.gouv.fr/recrutement/offreemploi/a1DIV00000AtU9N",
+    "startPublicationDate": "2026-01-23T09:47:47.237",
+    "beginningDate": "2026-03-03T00:00:00"
+  }
+]

@@ -1,14 +1,15 @@
-"""Offers cleaner adapter."""
+"""Offers cleaner adapter with TalentSoft DTO validation."""
 
 from datetime import datetime
 from typing import List, Optional
 
 import polars as pl
-from pydantic import HttpUrl
+from pydantic import HttpUrl, ValidationError
 
 from domain.entities.document import Document, DocumentType
 from domain.entities.offer import Offer
 from domain.exceptions.document_error import InvalidDocumentTypeError
+from domain.exceptions.offer_errors import InvalidOfferDataFormatError
 from domain.services.document_cleaner_interface import IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from domain.value_objects.contract_type import ContractType
@@ -18,6 +19,9 @@ from domain.value_objects.limit_date import LimitDate
 from domain.value_objects.localisation import Localisation
 from domain.value_objects.region import Region
 from domain.value_objects.verse import Verse
+from infrastructure.external_gateways.dtos.talentsoft_dtos import (
+    TalentsoftOffer,
+)
 
 
 class OffersCleaner(IDocumentCleaner[Offer]):
@@ -36,144 +40,125 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             if document.type != DocumentType.OFFERS:
                 raise InvalidDocumentTypeError(document.type.value)
 
-        offers_data = []
+        validated_offers = []
         for document in raw_documents:
-            parsed_data = self._parse_offer_data(document.raw_data)
-            if parsed_data:
-                offers_data.append(parsed_data)
+            try:
+                # Strict Pydantic validation - will raise ValidationError if invalid
+                talentsoft_offer = self._validate_talentsoft_data(document.raw_data)
+                validated_offers.append(talentsoft_offer)
+            except ValidationError as e:
+                reference = document.raw_data.get("reference", "UNKNOWN")
+                self.logger.error(f"TalentSoft validation failed for offer {reference}")
+                # Fail fast - make the batch fail as requested
+                raise InvalidOfferDataFormatError(reference, str(e)) from e
 
-        if not offers_data:
+        if not validated_offers:
             return []
 
-        df = pl.DataFrame(offers_data)
+        # Apply business filters on validated data
+        df = pl.DataFrame([offer.model_dump() for offer in validated_offers])
         df_filtered = self._apply_filters(df)
 
-        return self._dataframe_to_offers(df_filtered)
+        return self._dataframe_to_offers(df_filtered, validated_offers)
 
-    def _parse_offer_data(self, raw_data: dict) -> Optional[dict]:
-        """Parse raw offer data into structured format."""
-        item = raw_data
-
-        # Handle optional salaryRange field for verse
-        verse = None
-        salary_range = item.get("salaryRange")
-        if salary_range and salary_range.get("clientCode"):
-            verse = salary_range["clientCode"]
-
-        # Contract type
-        contract_type = None
-        contract_type_object = item.get("contractType")
-        if contract_type_object and contract_type_object.get("clientCode"):
-            contract_type = contract_type_object["clientCode"]
-
-        # Category from offerFamilyCategory
-        category = None
-        offer_family_category = item.get("offerFamilyCategory")
-        if offer_family_category and offer_family_category.get("clientCode"):
-            category = offer_family_category["clientCode"]
-
-        # Handle optional country field
-        country = None
-        if item.get("country") and len(item["country"]) == 1:
-            country = item["country"][0]["clientCode"]
-
-        # Handle optional region field
-        region = None
-        if item.get("region") and len(item["region"]) == 1:
-            region = item["region"][0]["clientCode"]
-
-        # Handle optional department field
-        department = None
-        if item.get("department") and len(item["department"]) == 1:
-            department = item["department"][0]["clientCode"]
-
-        return {
-            "external_id": item["reference"],
-            "verse": verse,
-            "category": category,
-            "contract_type": contract_type,
-            "title": item.get("title"),
-            "mission": item.get("description1"),
-            "profile": item.get("description2"),
-            "organisation": item.get("organisationName"),
-            "country": country,
-            "region": region,
-            "department": department,
-            "offer_url": item.get("offerUrl"),
-            "publication_date": item.get("startPublicationDate"),
-            "beginning_date": item.get("beginningDate"),
-        }
+    def _validate_talentsoft_data(self, raw_data: dict) -> TalentsoftOffer:
+        """Validate raw data against TalentSoft schema using Pydantic."""
+        return TalentsoftOffer.model_validate(raw_data)
 
     def _apply_filters(self, df: pl.DataFrame) -> pl.DataFrame:
         """Apply filters to keep only valid offers."""
         # Filter out offers without required fields
-        required_fields = ["external_id", "title", "organisation", "publication_date"]
+        required_fields = [
+            "reference",
+            "title",
+            "organisationName",
+            "startPublicationDate",
+        ]
         for field in required_fields:
             df = df.filter(pl.col(field).is_not_null())
             df = df.filter(pl.col(field) != "")
 
         return df
 
-    def _dataframe_to_offers(self, df: pl.DataFrame) -> List[Offer]:
+    def _dataframe_to_offers(
+        self, df: pl.DataFrame, validated_offers: List[TalentsoftOffer]
+    ) -> List[Offer]:
         """Convert processed DataFrame to Offer entities."""
         if len(df) == 0:
             return []
 
+        # Create a mapping from reference to validated offer for efficient lookup
+        offer_map = {offer.reference: offer for offer in validated_offers}
+
         offers_list = []
-        for _, row in enumerate(df.to_dicts()):
-            verse = None
-            salary_range = row.get("salaryRange")
-            if salary_range and salary_range.get("clientCode"):
-                verse = salary_range["clientCode"]
+        for row_dict in df.to_dicts():
+            reference = row_dict["reference"]
+            talentsoft_offer = offer_map[reference]
 
-            contract_type = self._map_contract_type(row["contract_type"])
-
-            country = None
-            if row.get("country") and len(row["country"]) == 1:
-                country = row["country"][0]["clientCode"]
-
-            region = None
-            if row.get("region") and len(row["region"]) == 1:
-                region = row["region"][0]["clientCode"]
-
-            department = None
-            if row.get("department") and len(row["department"]) == 1:
-                department = row["department"][0]["clientCode"]
-
-            localisation = self._map_localisation(country, region, department)
-            offer_url = self._parse_url(row["offer_url"])
-            publication_date = self._parse_publication_date(row["publication_date"])
-            beginning_date = self._parse_beginning_date(row["beginning_date"])
-
-            offer_id = hash(row["external_id"]) % (10**9)  # todo: better id generation
-
-            offer = Offer(
-                id=offer_id,
-                external_id=row["external_id"],
-                verse=verse,
-                title=row["title"],
-                profile=row["profile"] or "",
-                mission=row["mission"] or "",
-                category=None,  # todo
-                contract_type=contract_type,
-                organization=row["organisation"],
-                offer_url=offer_url,
-                localisation=localisation,
-                publication_date=publication_date,
-                beginning_date=beginning_date,
-            )
+            # Map TalentSoft DTO to Offer entity
+            offer = self._map_talentsoft_to_offer(talentsoft_offer)
             offers_list.append(offer)
 
         return offers_list
+
+    def _map_talentsoft_to_offer(self, talentsoft_offer: TalentsoftOffer) -> Offer:
+        """Map a validated TalentSoft DTO to an Offer entity."""
+        # Extract verse from salaryRange if available
+        verse = self._map_verse(
+            talentsoft_offer.salaryRange.clientCode
+            if talentsoft_offer.salaryRange
+            else None
+        )
+
+        # Map contract type
+        contract_type = self._map_contract_type(
+            talentsoft_offer.contractType.clientCode
+            if talentsoft_offer.contractType
+            else None
+        )
+
+        # Map localisation from geographical arrays
+        localisation = self._map_localisation_from_arrays(
+            talentsoft_offer.country,
+            talentsoft_offer.region,
+            talentsoft_offer.department,
+        )
+
+        # Parse URLs and dates
+        offer_url = self._parse_url(talentsoft_offer.offerUrl)
+        publication_date = self._parse_publication_date(
+            talentsoft_offer.startPublicationDate
+        )
+        beginning_date = self._parse_beginning_date(talentsoft_offer.beginningDate)
+
+        # Generate consistent ID from reference
+        offer_id = hash(talentsoft_offer.reference) % (10**9)
+
+        return Offer(
+            id=offer_id,
+            external_id=talentsoft_offer.reference,
+            verse=verse,
+            title=talentsoft_offer.title,
+            profile=talentsoft_offer.description2 or "",
+            mission=talentsoft_offer.description1 or "",
+            category=None,  # TODO: Map from offerFamilyCategory if needed
+            contract_type=contract_type,
+            organization=talentsoft_offer.organisationName,
+            offer_url=offer_url,
+            localisation=localisation,
+            publication_date=publication_date,
+            beginning_date=beginning_date,
+        )
 
     def _map_verse(self, verse_str: Optional[str]) -> Verse:
         """Map verse string to Verse enum."""
         if not verse_str:
             return Verse.FPE  # Default value
 
-        if "FPT" in verse_str:
+        verse_upper = verse_str.upper()
+        if "FPT" in verse_upper:
             return Verse.FPT
-        elif "FPE" in verse_str:
+        elif "FPE" in verse_upper:
             return Verse.FPE
         else:
             return Verse.FPH
@@ -195,17 +180,28 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         else:
             return None
 
-    def _map_localisation(
-        self, country: Optional[str], region: Optional[str], department: Optional[str]
+    def _map_localisation_from_arrays(
+        self, countries: List, regions: List, departments: List
     ) -> Optional[Localisation]:
-        """Map location fields to Localisation value object."""
-        if not country or not region or not department:
+        """Map location arrays to Localisation value object."""
+        # Extract first element from each array if available
+        country_code = countries[0].clientCode if countries else None
+        region_code = regions[0].clientCode if regions else None
+        department_code = departments[0].clientCode if departments else None
+
+        if not country_code or not region_code or not department_code:
             return None
 
+        # Transform TalentSoft codes to INSEE codes
+        # Region codes: R24 -> 24
+        insee_region_code = (
+            region_code.lstrip("R") if region_code.startswith("R") else region_code
+        )
+
         return Localisation(
-            country=Country(country),
-            region=Region(code=region),
-            department=Department(code=department),
+            country=Country(country_code),
+            region=Region(code=insee_region_code),
+            department=Department(code=department_code),
         )
 
     def _parse_url(self, url_str: Optional[str]) -> Optional[HttpUrl]:
@@ -213,16 +209,16 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         if not url_str:
             return None
 
-        return HttpUrl(url_str)
-
-    def _parse_publication_date(self, date_str: Optional[str]) -> datetime:
-        """Parse publication date string to timezone-aware datetime."""
-        if not date_str:
-            return datetime.now()
-
         try:
-            return datetime.fromisoformat(date_str)
-        except (ValueError, TypeError):
+            return HttpUrl(url_str)
+        except Exception:
+            return None
+
+    def _parse_publication_date(self, date_str: str) -> datetime:
+        """Parse publication date string to timezone-aware datetime."""
+        try:
+            return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        except (ValueError, TypeError, AttributeError):
             return datetime.now()
 
     def _parse_beginning_date(self, date_str: Optional[str]) -> Optional[LimitDate]:
@@ -231,7 +227,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             return None
 
         try:
-            parsed_date = datetime.fromisoformat(date_str)
+            parsed_date = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
             return LimitDate(value=parsed_date)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, AttributeError):
             return None
