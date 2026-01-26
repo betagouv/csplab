@@ -10,25 +10,25 @@
   }
 
   .csplab-hero__tag {
-    background-color: var(--background-contrast-blue-france) !important;
-    color: var(--text-title-blue-france) !important;
+    background-color: var(--background-contrast-blue-france);
+    color: var(--text-title-blue-france);
   }
 
   .csplab-hero__title {
     color: white;
-    margin: 0 !important;
+    margin: 0;
   }
 
   .csplab-hero__main-cta {
-    background-color: var(--background-default-grey) !important;
-    color: var(--text-title-blue-france) !important;
+    background-color: var(--background-default-grey);
+    color: var(--text-title-blue-france);
 
     &:hover {
-      background-color: var(--background-default-grey-hover) !important;
+      background-color: var(--background-default-grey-hover);
     }
 
     &:active {
-      background-color: var(--background-default-grey-active) !important;
+      background-color: var(--background-default-grey-active);
     }
   }
 
