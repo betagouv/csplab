@@ -4,7 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-01-12
+## [0.1.1] - 2026-01-26
+
+### <!-- 1 --> Added
+
+- ✨(tycho:ingestion) define entities and value objects for offers
+- 🔧(project) share vscode config ([#55](https://github.com/betagouv/csplab/pull/55))
+- ✨ (tycho:candidate) add openai implementation for cv ocr ([#46](https://github.com/betagouv/csplab/pull/46))
+- (project) add djLint for Django template linting and formatting ([#101](https://github.com/betagouv/csplab/pull/101))
+- 🔧(tycho) configure Sass tooling ([#100](https://github.com/betagouv/csplab/pull/100))
+- ✨(tycho:ingestion) add offer repository ([#103](https://github.com/betagouv/csplab/pull/103))
+- Integrate candidate CV upload page ([#53](https://github.com/betagouv/csplab/pull/53))
+- ✨(tycho:candidate) integrate minimal CV processing page ([#102](https://github.com/betagouv/csplab/pull/102))
+- (tycho) Add talentsoft front office client to collect offers ([#95](https://github.com/betagouv/csplab/pull/95))
+- Editor front-tooling upgrade (prettier, stylelint) ([#121](https://github.com/betagouv/csplab/pull/121))
+
+### <!-- 2 --> Modified
+
+- 🔧(tooling) ignore docker-compose.override.yml for local port customization ([#80](https://github.com/betagouv/csplab/pull/80))
+- 109 Refactoriser le css existant en scss modulaire ([#115](https://github.com/betagouv/csplab/pull/115))
+- Setup and enforce proper SCSS coding styles ([#122](https://github.com/betagouv/csplab/pull/122))
+- ✨(tycho:ingestion) update offer entity and value objects ([#128](https://github.com/betagouv/csplab/pull/128))
+- ♻️(tycho:ingestion) refactor clean tests ([#130](https://github.com/betagouv/csplab/pull/130))
+
+### <!-- 3 --> Removed
+
+- 🔧(tycho:candidate) remove redundant search path from candidate URLs ([#92](https://github.com/betagouv/csplab/pull/92))
+
+### <!-- 4 --> Fixed
+
+- 🔧(tooling:mypy) update python version for mypy, update domain/types.py syntax ([#110](https://github.com/betagouv/csplab/pull/110))
+
+## [0.1.0] - 2026-01-13
 
 ### <!-- 1 --> Added
 
