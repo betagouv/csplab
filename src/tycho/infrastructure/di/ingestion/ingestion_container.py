@@ -14,7 +14,11 @@ from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from domain.services.document_cleaner_interface import IDocumentCleaner
-from infrastructure.external_gateways import document_fetcher, piste_client
+from infrastructure.external_gateways import (
+    document_fetcher,
+    piste_client,
+    talentsoft_client,
+)
 from infrastructure.gateways.ingestion import (
     load_documents_strategy_factory as load_strategy,
 )
@@ -45,9 +49,15 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger_service=logger_service,
     )
 
+    talentsoft_front_client = providers.Singleton(
+        talentsoft_client.TalentsoftFrontClient,
+        logger_service=logger_service,
+    )
+
     document_fetcher = providers.Singleton(
         document_fetcher.ExternalDocumentFetcher,
         piste_client=piste_client,
+        talentsoft_front_client=talentsoft_front_client,
         logger_service=logger_service,
     )
 

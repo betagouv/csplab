@@ -10,14 +10,21 @@ from domain.services.logger_interface import ILogger
 from infrastructure.external_gateways.dtos.ingres_corps_dtos import (
     IngresCorpsApiResponse,
 )
+from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
 
 
 class ExternalDocumentFetcher(IDocumentFetcher):
     """Fetches documents from external API sources."""
 
-    def __init__(self, piste_client: IHttpClient, logger_service: ILogger):
+    def __init__(
+        self,
+        piste_client: IHttpClient,
+        talentsoft_front_client: TalentsoftFrontClient,
+        logger_service: ILogger,
+    ):
         """Initialize with PISTE client, logger and source."""
         self.piste_client = piste_client
+        self.talentsoft_front_client = talentsoft_front_client
         self.logger = logger_service.get_logger("ExternalDocumentFetcher")
         self._source = {
             DocumentType.CORPS: self._fetch_ingres_api,
