@@ -1,48 +1,48 @@
 .csplab-file-card {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.5rem;
-    border-radius: .5rem;
-    background-color: var(--background-default-grey);
-    border: 1px solid var(--border-default-grey);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  background-color: var(--background-default-grey);
+  border: 1px solid var(--border-default-grey);
 }
 
 .csplab-file-card[hidden] {
-    display: none;
+  display: none;
 }
 
 .csplab-file-card__content {
-    display: flex;
-    align-items: center;
-    gap: var(--fr-spacing-2w, 16px);
-    flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--fr-spacing-2w, 16px);
+  flex: 1;
 }
 
 .csplab-file-card__icon-badge {
-    background-color: var(--background-contrast-blue-france);
-    padding: 4px;
-    border-radius: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+  background-color: var(--background-contrast-blue-france);
+  padding: 4px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .csplab-file-card__icon-badge .fr-icon {
-    color: var(--background-action-high-blue-france);
+  color: var(--background-action-high-blue-france);
 }
 
 .csplab-file-card__info {
-    display: flex;
-    flex-direction: column;
-    font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  font-size: 1rem;
 }
 
 .csplab-file-card__name {
-    font-weight: 500;
+  font-weight: 500;
 }
 
 .csplab-file-card__size {
-    color: var(--text-action-high-blue-france);
+  color: var(--text-action-high-blue-france);
 }
