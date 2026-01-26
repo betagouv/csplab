@@ -88,12 +88,13 @@ class TextExtractor(ITextExtractor):
         localisation_data = None
         if offer.localisation:
             localisation_data = {
-                "region": offer.localisation.region.value,
-                "department": offer.localisation.department.value,
+                "country": offer.localisation.country,
+                "region": offer.localisation.region.code,
+                "department": offer.localisation.department.code,
             }
 
         return {
-            "category": offer.category.value,
+            "category": offer.category.value if offer.category else None,
             "verse": offer.verse.value,
             "localisation": localisation_data,
         }

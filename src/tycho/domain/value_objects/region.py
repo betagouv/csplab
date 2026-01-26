@@ -1,30 +1,45 @@
-"""Region value object."""
+"""French Region value object."""
 
-from enum import Enum
+from typing import ClassVar
+
+from pydantic import BaseModel, field_validator
 
 
-class Region(Enum):
-    """Enumeration of French regions."""
+class Region(BaseModel):
+    """French Region value object with INSEE code validation."""
 
-    AUVERGNE_RHONE_ALPES = "Auvergne-Rhône-Alpes"
-    BOURGOGNE_FRANCHE_COMTE = "Bourgogne-Franche-Comté"
-    BRETAGNE = "Bretagne"
-    CENTRE_VAL_DE_LOIRE = "Centre-Val de Loire"
-    CORSE = "Corse"
-    GRAND_EST = "Grand Est"
-    HAUTS_DE_FRANCE = "Hauts-de-France"
-    ILE_DE_FRANCE = "Île-de-France"
-    NORMANDIE = "Normandie"
-    NOUVELLE_AQUITAINE = "Nouvelle-Aquitaine"
-    OCCITANIE = "Occitanie"
-    PAYS_DE_LA_LOIRE = "Pays de la Loire"
-    PROVENCE_ALPES_COTE_AZUR = "Provence-Alpes-Côte d'Azur"
-    GUADELOUPE = "Guadeloupe"
-    MARTINIQUE = "Martinique"
-    GUYANE = "Guyane"
-    LA_REUNION = "La Réunion"
-    MAYOTTE = "Mayotte"
+    code: str
 
-    def __str__(self):
+    # Valid French region INSEE codes
+    VALID_CODES: ClassVar[set[str]] = {
+        "11",  # Île-de-France
+        "24",  # Centre-Val de Loire
+        "27",  # Bourgogne-Franche-Comté
+        "28",  # Normandie
+        "32",  # Hauts-de-France
+        "44",  # Grand Est
+        "52",  # Pays de la Loire
+        "53",  # Bretagne
+        "75",  # Nouvelle-Aquitaine
+        "76",  # Occitanie
+        "84",  # Auvergne-Rhône-Alpes
+        "93",  # Provence-Alpes-Côte d'Azur
+        "94",  # Corse
+        "01",  # Guadeloupe
+        "02",  # Martinique
+        "03",  # Guyane
+        "04",  # La Réunion
+        "06",  # Mayotte
+    }
+
+    @field_validator("code")
+    @classmethod
+    def validate_region_code(cls, v: str) -> str:
+        """Validate French region INSEE code."""
+        if v not in cls.VALID_CODES:
+            raise ValueError(f"Invalid French region INSEE code: {v}")
+        return v
+
+    def __str__(self) -> str:
         """Return string representation."""
-        return self.value
+        return self.code

@@ -81,25 +81,33 @@ class PostgresOffersRepository(IOffersRepository):
                             "verse",
                             "title",
                             "profile",
+                            "mission",
                             "category",
+                            "contract_type",
+                            "organization",
+                            "offer_url",
+                            "country",
                             "region",
                             "department",
-                            "limit_date",
+                            "publication_date",
+                            "beginning_date",
                         ],
                     )
                     updated = len(models_to_update)
 
             return {"created": created, "updated": updated, "errors": []}
 
-        except Exception:
-            db_error = DatabaseError("Erreur lors de l'upsert batch des offres")
+        except Exception as e:
+            db_error = DatabaseError(
+                f"Erreur lors de l'upsert batch des offres: {str(e)}"
+            )
             return {
                 "created": 0,
                 "updated": 0,
                 "errors": [
                     {
                         "entity_id": None,
-                        "error": "Database error during bulk upsert",
+                        "error": f"Database error during bulk upsert: {str(e)}",
                         "exception": db_error,
                     }
                 ],

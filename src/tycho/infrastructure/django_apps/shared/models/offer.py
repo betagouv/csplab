@@ -1,9 +1,12 @@
 """Django model for Offer entity."""
 
 from django.db import models
+from pydantic import HttpUrl
 
 from domain.entities.offer import Offer
 from domain.value_objects.category import Category
+from domain.value_objects.contract_type import ContractType
+from domain.value_objects.country import Country
 from domain.value_objects.department import Department
 from domain.value_objects.limit_date import LimitDate
 from domain.value_objects.localisation import Localisation
@@ -16,19 +19,38 @@ class OfferModel(models.Model):
 
     objects: models.Manager = models.Manager()
 
+    # Contract type choices from ContractType enum
+    CONTRACT_TYPE_CHOICES = [(ct.value, ct.name) for ct in ContractType]
+
+    # Category choices from Category enum
+    CATEGORY_CHOICES = [(cat.value, cat.name) for cat in Category]
+
+    # Verse choices from Verse enum
+    VERSE_CHOICES = [(v.value, v.name) for v in Verse]
+
     id = models.AutoField(primary_key=True)
     external_id = models.CharField(max_length=100, unique=True)
-    verse = models.CharField(max_length=20)
+    verse = models.CharField(max_length=20, choices=VERSE_CHOICES)
     title = models.CharField(max_length=500)
     profile = models.TextField()
-    category = models.CharField(max_length=20)
+    mission = models.TextField()
+    category = models.CharField(
+        max_length=20, choices=CATEGORY_CHOICES, null=True, blank=True
+    )
+    contract_type = models.CharField(
+        max_length=25, choices=CONTRACT_TYPE_CHOICES, null=True, blank=True
+    )
+    organization = models.CharField(max_length=500)
+    offer_url = models.URLField(null=True, blank=True)
 
     # Localisation fields stored separately
-    region = models.CharField(max_length=100, null=True, blank=True)
-    department = models.CharField(max_length=100, null=True, blank=True)
+    country = models.CharField(max_length=3, null=True, blank=True)
+    region = models.CharField(max_length=2, null=True, blank=True)
+    department = models.CharField(max_length=3, null=True, blank=True)
 
-    # LimitDate as DateTimeField
-    limit_date = models.DateTimeField(null=True, blank=True)
+    # Date fields
+    publication_date = models.DateTimeField()
+    beginning_date = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -47,13 +69,20 @@ class OfferModel(models.Model):
         """Convert OfferModel instance to Offer entity."""
         # Build localisation if both region and department are present
         localisation = None
-        if self.region and self.department:
+        if self.region and self.department and self.country:
             localisation = Localisation(
-                region=Region(self.region), department=Department(self.department)
+                country=Country(self.country),
+                region=Region(code=self.region),
+                department=Department(code=self.department),
             )
 
-        # Build limit_date if present
-        limit_date = LimitDate(self.limit_date) if self.limit_date else None
+        beginning_date = LimitDate(self.beginning_date) if self.beginning_date else None
+
+        category = Category(self.category) if self.category else None
+
+        contract_type = ContractType(self.contract_type) if self.contract_type else None
+
+        offer_url = HttpUrl(self.offer_url) if self.offer_url else None
 
         return Offer(
             id=self.id,
@@ -61,25 +90,41 @@ class OfferModel(models.Model):
             verse=Verse(self.verse),
             title=self.title,
             profile=self.profile,
-            category=Category(self.category),
+            mission=self.mission,
+            category=category,
+            contract_type=contract_type,
+            organization=self.organization,
+            offer_url=offer_url,
             localisation=localisation,
-            limit_date=limit_date,
+            publication_date=self.publication_date,
+            beginning_date=beginning_date,
         )
 
     @classmethod
     def from_entity(cls, offer: Offer) -> "OfferModel":
         """Create OfferModel instance from Offer entity."""
         # Extract localisation fields
+        country = None
         region = None
         department = None
         if offer.localisation:
-            region = offer.localisation.region.value
-            department = offer.localisation.department.value
+            country = str(offer.localisation.country)  # Use ISO-3 code (e.g., "FRA")
+            region = offer.localisation.region.code
+            department = offer.localisation.department.code
 
-        # Extract limit_date
-        limit_date = None
-        if offer.limit_date:
-            limit_date = offer.limit_date.value
+        # Extract beginning_date
+        beginning_date = None
+        if offer.beginning_date:
+            beginning_date = offer.beginning_date.value
+
+        # Extract category
+        category = offer.category.value if offer.category else None
+
+        # Extract contract_type
+        contract_type = offer.contract_type.value if offer.contract_type else None
+
+        # Extract offer_url
+        offer_url = str(offer.offer_url) if offer.offer_url else None
 
         return cls(
             id=offer.id,
@@ -87,10 +132,16 @@ class OfferModel(models.Model):
             verse=offer.verse.value,
             title=offer.title,
             profile=offer.profile,
-            category=offer.category.value,
+            mission=offer.mission,
+            category=category,
+            contract_type=contract_type,
+            organization=offer.organization,
+            offer_url=offer_url,
+            country=country,
             region=region,
             department=department,
-            limit_date=limit_date,
+            publication_date=offer.publication_date,
+            beginning_date=beginning_date,
         )
 
     def __str__(self) -> str:
