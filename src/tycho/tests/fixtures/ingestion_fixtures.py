@@ -4,6 +4,9 @@ import pytest
 
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.repositories.ingestion.postgres_document_repository import (
+    PostgresDocumentRepository,
+)
 from infrastructure.repositories.shared.pgvector_repository import PgVectorRepository
 from infrastructure.repositories.shared.postgres_concours_repository import (
     PostgresConcoursRepository,
@@ -36,6 +39,9 @@ def _create_ingestion_container(in_memory: bool = True):
 
     if in_memory:
         # Use in-memory repositories for unit tests
+        in_memory_document_repo = InMemoryDocumentRepository()
+        container.document_persister.override(in_memory_document_repo)
+
         in_memory_corps_repo = InMemoryCorpsRepository()
         container.shared_container.corps_repository.override(in_memory_corps_repo)
 
@@ -45,13 +51,13 @@ def _create_ingestion_container(in_memory: bool = True):
         in_memory_offers_repo = InMemoryOffersRepository()
         container.shared_container.offers_repository.override(in_memory_offers_repo)
 
-        in_memory_document_repo = InMemoryDocumentRepository()
-        container.document_persister.override(in_memory_document_repo)
-
         in_memory_vector_repo = InMemoryVectorRepository()
         container.vector_repository.override(in_memory_vector_repo)
     else:
         # Use Django persistence for integration tests
+        postgres_document_repo = PostgresDocumentRepository()
+        container.document_persister.override(postgres_document_repo)
+
         postgres_corps_repo = PostgresCorpsRepository()
         container.shared_container.corps_repository.override(postgres_corps_repo)
 
