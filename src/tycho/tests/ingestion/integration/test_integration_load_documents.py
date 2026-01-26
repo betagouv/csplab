@@ -66,17 +66,20 @@ class TestIntegrationOfferLoadDocumentUseCase:
         assert result["created"] == count
         assert result["updated"] == 0
 
-    def test_execute_returns_correct_counts_with_existing_documents(
+    def test_execute_returns_correct_counts_with_iterations(
         self, db, httpx_mock, ingestion_integration_container
     ):
         """Test execute returns correct count based on parameter."""
         document_type = DocumentType.OFFERS
+        count_existing_offers = 4
+        count_new_offers = 3
         usecase = ingestion_integration_container.load_documents_usecase()
 
-        raw_offers = offers_response()
+        raw_offers = offers_response(count=count_existing_offers, has_more=True)
         create_offer_documents(
             ingestion_integration_container, document_type, raw_offers
         )
+        new_raw_offers = offers_response(count=count_new_offers, has_more=False)
 
         client = ingestion_integration_container.talentsoft_front_client()
         client.cached_token = cached_token()
@@ -88,13 +91,20 @@ class TestIntegrationOfferLoadDocumentUseCase:
             status_code=200,
         )
 
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=2",
+            json=new_raw_offers,
+            status_code=200,
+        )
+
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={"document_type": document_type},
         )
         result = usecase.execute(input_data)
-        assert result["created"] == 0
-        assert result["updated"] == len(raw_offers)
+        assert result["created"] == count_new_offers
+        assert result["updated"] == count_existing_offers
 
     @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     def test_execute_returns_zero_when_api_fails(

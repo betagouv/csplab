@@ -18,7 +18,10 @@ def _load_offer_fixture_data(doc_id: int) -> Dict[str, Any]:
     """Load and return offer fixture data for given doc_id."""
     offer_fixtures = load_fixture("offers_talentsoft_20260124.json")
     fixture_index = (doc_id - 1) % len(offer_fixtures)
-    return offer_fixtures[fixture_index].copy()
+
+    offer = offer_fixtures[fixture_index].copy()
+    offer["reference"] = fake.uuid4()
+    return offer
 
 
 def cached_token(access_token: Optional[str] = None, expire_in: int = 3600):
