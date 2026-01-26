@@ -46,7 +46,14 @@ def offers_response(count: int = 2, has_more: bool = False):
     offers = [{"id": fake.uuid4(), "title": fake.job()} for _ in range(count)]
     offers_response = {
         "data": offers,
-        "pagination": {"count": count, "hasMore": has_more},
+        "_pagination": {
+            "start": 1,
+            "count": count,
+            "total": count + (10 if has_more else 0),
+            "resultsPerPage": count,
+            "hasMore": has_more,
+            "lastPage": 1 if not has_more else 2,
+        },
     }
     return offers_response
 

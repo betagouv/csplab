@@ -165,7 +165,6 @@ class TalentsoftFrontClient(AsyncHttpClient):
                 f"Invalid response structure: {e}", api_name="Talentsoft Front API"
             ) from e
 
-        typed_pagination = cast(Dict[str, Any], pagination)  # mypy
-        has_more = bool(typed_pagination.get("hasMore", False))
+        has_more = pagination.hasMore
 
         return offers, has_more
