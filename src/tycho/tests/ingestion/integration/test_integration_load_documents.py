@@ -41,7 +41,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         )
 
         input_data = LoadDocumentsInput(
-            operation_type=LoadOperationType.FETCH_FROM_API,
+            operation_type=LoadOperationType.FETCH_FROM_INGRES_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
         result = documents_integration_usecase.execute(input_data)
@@ -75,7 +75,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         )
 
         input_data = LoadDocumentsInput(
-            operation_type=LoadOperationType.FETCH_FROM_API,
+            operation_type=LoadOperationType.FETCH_FROM_INGRES_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
         result = documents_integration_usecase.execute(input_data)

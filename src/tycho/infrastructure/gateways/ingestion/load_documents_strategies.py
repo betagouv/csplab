@@ -10,8 +10,8 @@ from infrastructure.exceptions.ingestion_exceptions import (
 )
 
 
-class FetchFromApiStrategy:
-    """Adapter for fetching documents from external API."""
+class FetchFromIngresApiStrategy:
+    """Adapter for fetching documents from Ingres external API."""
 
     def __init__(self, document_fetcher: IDocumentFetcher):
         """Initialize with document fetcher dependency."""
@@ -22,7 +22,7 @@ class FetchFromApiStrategy:
         document_type = kwargs.get("document_type")
         if not isinstance(document_type, DocumentType):
             raise MissingOperationParameterError(
-                "document_type", LoadOperationType.FETCH_FROM_API.value
+                "document_type", LoadOperationType.FETCH_FROM_INGRES_API.value
             )
 
         return self.document_fetcher.fetch_by_type(document_type)

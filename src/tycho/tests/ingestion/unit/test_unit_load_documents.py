@@ -46,11 +46,19 @@ def create_test_documents(
 class TestDocumentsUsecase:
     """Test documents usecase."""
 
-    def test_execute_returns_zero_when_no_documents(self, documents_usecase):
+    @pytest.mark.parametrize(
+        "operation_type,document_type",
+        [
+            (LoadOperationType.FETCH_FROM_INGRES_API, DocumentType.CORPS),
+        ],
+    )
+    def test_execute_returns_zero_when_no_documents(
+        self, documents_usecase, operation_type, document_type
+    ):
         """Test execute returns 0 when documents_repository is empty."""
         input_data = LoadDocumentsInput(
-            operation_type=LoadOperationType.FETCH_FROM_API,
-            kwargs={"document_type": DocumentType.CORPS},
+            operation_type=operation_type,
+            kwargs={"document_type": document_type},
         )
         result = documents_usecase.execute(input_data)
         assert result["created"] == 0
@@ -67,7 +75,7 @@ class TestDocumentsUsecase:
         create_test_documents(documents_ingestion_container, raw_data)
 
         input_data = LoadDocumentsInput(
-            operation_type=LoadOperationType.FETCH_FROM_API,
+            operation_type=LoadOperationType.FETCH_FROM_INGRES_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
         result = documents_usecase.execute(input_data)
@@ -95,7 +103,7 @@ class TestDocumentsUsecase:
     ):
         """Test that missing document_type in kwargs raises ApplicationError."""
         input_data = LoadDocumentsInput(
-            operation_type=LoadOperationType.FETCH_FROM_API,
+            operation_type=LoadOperationType.FETCH_FROM_INGRES_API,
             kwargs={},
         )
 

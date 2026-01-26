@@ -7,6 +7,10 @@ from application.ingestion.interfaces.load_operation_type import LoadOperationTy
 from domain.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 
+OPERATION_TYPE_MAPPING = {
+    DocumentType.CORPS: LoadOperationType.FETCH_FROM_INGRES_API,
+}
+
 
 class Command(BaseCommand):
     """Load documents by type using LoadDocumentsUsecase."""
@@ -30,8 +34,12 @@ class Command(BaseCommand):
             usecase = container.load_documents_usecase()
 
             self.stdout.write(f"Loading documents of type: {document_type.value}")
+            operation_type = OPERATION_TYPE_MAPPING.get(
+                document_type, LoadOperationType.FETCH_FROM_INGRES_API
+            )
+
             input_data = LoadDocumentsInput(
-                operation_type=LoadOperationType.FETCH_FROM_API,
+                operation_type=operation_type,
                 kwargs={"document_type": document_type},
             )
             result = usecase.execute(input_data)
