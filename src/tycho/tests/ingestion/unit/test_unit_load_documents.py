@@ -18,6 +18,7 @@ from infrastructure.exceptions.ingestion_exceptions import (
     MissingOperationParameterError,
 )
 
+
 @pytest.fixture(name="corps_document")
 def corps_document_fixture():
     """Create a single corps document for testing."""
@@ -213,3 +214,31 @@ class TestDocumentsRepository:
 
         assert result["created"] == len(documents)
         assert result["updated"] == 0
+
+
+class TestLoadDocumentsStrategy:
+    """Test Load Documents Strategy."""
+
+    @pytest.mark.parametrize(
+        "operation_type,input_kwargs",
+        [
+            (
+                LoadOperationType.FETCH_FROM_INGRES_API,
+                {"document_type": DocumentType.CORPS},
+            ),
+            (LoadOperationType.UPLOAD_FROM_CSV, {"documents": []}),
+        ],
+    )
+    def test_has_more_is_false(
+        self, documents_ingestion_container, operation_type, input_kwargs
+    ):
+        """Test that load_documents returns has_more as False."""
+        # Get the strategy factory from the container
+        strategy_factory = (
+            documents_ingestion_container.load_documents_strategy_factory()
+        )
+        strategy = strategy_factory.create(operation_type)
+
+        # Execute the strategy
+        _, has_more = strategy.load_documents(**input_kwargs)
+        assert has_more is False
