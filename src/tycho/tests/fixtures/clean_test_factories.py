@@ -46,6 +46,7 @@ def _load_offer_fixture_data(doc_id: int) -> Dict[str, Any]:
     fixture_index = (doc_id - 1) % len(offer_fixtures)
     return offer_fixtures[fixture_index].copy()
 
+
 def create_test_corps_document(doc_id: int = 1) -> Document:
     """Create a test CORPS document using real fixture data."""
     raw_data = _load_corps_fixture_data(doc_id)
