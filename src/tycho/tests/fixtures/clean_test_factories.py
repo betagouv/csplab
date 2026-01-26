@@ -40,6 +40,13 @@ def _load_concours_fixture_data(doc_id: int) -> Dict[str, Any]:
     return concours_fixtures[fixture_index].copy()
 
 
+def _load_offer_fixture_data(doc_id: int) -> Dict[str, Any]:
+    """Load and return offer fixture data for given doc_id."""
+    offer_fixtures = load_fixture("offers_talentsoft_20260124.json")
+    fixture_index = (doc_id - 1) % len(offer_fixtures)
+    return offer_fixtures[fixture_index].copy()
+
+
 def create_test_corps_document(doc_id: int = 1) -> Document:
     """Create a test CORPS document using real fixture data."""
     raw_data = _load_corps_fixture_data(doc_id)
@@ -90,7 +97,62 @@ def create_test_concours_document_invalid_status(doc_id: int = 1) -> Document:
 def create_test_concours_document_old_year(doc_id: int = 1) -> Document:
     """Create a test CONCOURS document with old year using fixture data."""
     raw_data = _load_concours_fixture_data(doc_id)
-    raw_data["Année de référence"] = REFERENCE_YEAR  # Old year
+    raw_data["Année de référence"] = REFERENCE_YEAR
     return _create_base_document(
         DocumentType.CONCOURS, doc_id, f"concours_old_fixture_{doc_id}", raw_data
+    )
+
+
+def create_test_offer_document(doc_id: int = 1) -> Document:
+    """Create a test OFFER document using real TalentSoft fixture data."""
+    offer_data = _load_offer_fixture_data(doc_id)
+
+    # Ensure unique reference for each document to avoid conflicts
+    original_reference = offer_data["reference"]
+    offer_data["reference"] = f"{original_reference}-{doc_id}"
+
+    # Use the offer data directly (not wrapped in API response)
+    return _create_base_document(
+        DocumentType.OFFERS, doc_id, f"offer_fixture_{doc_id}", offer_data
+    )
+
+
+def create_test_offer_document_missing_required(doc_id: int = 1) -> Document:
+    """Create a test OFFERS document with missing required fields."""
+    offer_data = _load_offer_fixture_data(doc_id)
+
+    # Remove required fields to test validation
+    del offer_data["title"]  # Missing required field
+    offer_data["organisationName"] = ""  # Empty required field
+
+    return _create_base_document(
+        DocumentType.OFFERS, doc_id, f"offer_missing_required_{doc_id}", offer_data
+    )
+
+
+def create_test_offer_document_invalid_types(doc_id: int = 1) -> Document:
+    """Create a test OFFERS document with invalid field types."""
+    offer_data = _load_offer_fixture_data(doc_id)
+
+    # Invalid types to test validation
+    offer_data["isTopOffer"] = "not_a_boolean"  # Should be boolean
+    offer_data["offerFamilyCategory"]["code"] = "not_an_int"  # Should be int
+    if offer_data.get("latitude"):
+        offer_data["latitude"] = "not_a_float"  # Should be float
+
+    return _create_base_document(
+        DocumentType.OFFERS, doc_id, f"offer_invalid_types_{doc_id}", offer_data
+    )
+
+
+def create_test_offer_document_invalid_structure(doc_id: int = 1) -> Document:
+    """Create a test OFFERS document with invalid structure."""
+    # Invalid structure - missing required fields completely
+    raw_data = {
+        "invalid_field": "invalid_value",
+        "missing_reference": True,
+    }
+
+    return _create_base_document(
+        DocumentType.OFFERS, doc_id, f"offer_invalid_structure_{doc_id}", raw_data
     )

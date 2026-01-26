@@ -3,16 +3,16 @@
 import asyncio
 from http import HTTPStatus
 from time import time
-from typing import Any, Dict, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from pydantic import HttpUrl, ValidationError
 
 from domain.services.async_http_client_interface import IAsyncHttpResponse
 from domain.services.logger_interface import ILogger
-from domain.types import JsonDataType
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
+    TalentsoftOffer,
     TalentsoftOffersResponse,
     TalentsoftTokenResponse,
 )
@@ -149,7 +149,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
 
     async def get_offers(
         self, count: int = 1000, start: int = 1
-    ) -> Tuple[JsonDataType, bool]:
+    ) -> Tuple[List[TalentsoftOffer], bool]:
         """Fetch job offers from Talentsoft API Front."""
         url = f"{self.base_url}{OFFERS_ENDPOINT}"
         params = {"count": count, "start": start}

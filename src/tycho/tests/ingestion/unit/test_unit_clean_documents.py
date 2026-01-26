@@ -22,12 +22,15 @@ from tests.fixtures.clean_test_factories import (
     create_test_corps_document,
     create_test_corps_document_fpt,
     create_test_corps_document_minarm,
+    create_test_offer_document,
 )
 
 REFERENCE_YEAR = 2024
 
 
-@pytest.mark.parametrize("document_type", [DocumentType.CORPS, DocumentType.CONCOURS])
+@pytest.mark.parametrize(
+    "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
+)
 def test_clean_documents_success(ingestion_container, document_type):
     """Test cleaning different document types successfully."""
     usecase = ingestion_container.clean_documents_usecase()
@@ -35,8 +38,10 @@ def test_clean_documents_success(ingestion_container, document_type):
     # Create test document based on type
     if document_type == DocumentType.CORPS:
         document = create_test_corps_document()
-    else:  # concours
+    elif document_type == DocumentType.CONCOURS:
         document = create_test_concours_document()
+    else:  # offers
+        document = create_test_offer_document()
 
     # Add document to repository
     repository = ingestion_container.document_persister()
@@ -51,7 +56,9 @@ def test_clean_documents_success(ingestion_container, document_type):
     assert result["errors"] == 0
 
 
-@pytest.mark.parametrize("document_type", [DocumentType.CORPS, DocumentType.CONCOURS])
+@pytest.mark.parametrize(
+    "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
+)
 def test_clean_multiple_documents_success(ingestion_container, document_type):
     """Test cleaning multiple documents of the same type."""
     usecase = ingestion_container.clean_documents_usecase()
@@ -62,9 +69,14 @@ def test_clean_multiple_documents_success(ingestion_container, document_type):
             create_test_corps_document(i)
             for i in range(1, MULTIPLE_DOCUMENTS_COUNT + 1)
         ]
-    else:  # concours
+    elif document_type == DocumentType.CONCOURS:
         documents = [
             create_test_concours_document(i)
+            for i in range(1, MULTIPLE_DOCUMENTS_COUNT + 1)
+        ]
+    else:  # offers
+        documents = [
+            create_test_offer_document(i)
             for i in range(1, MULTIPLE_DOCUMENTS_COUNT + 1)
         ]
 
