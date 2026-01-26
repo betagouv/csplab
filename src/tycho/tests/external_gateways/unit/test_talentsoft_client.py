@@ -11,8 +11,12 @@ from pydantic import HttpUrl
 
 from domain.types import JsonDataType
 from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.external_gateways.configs.talentsoft_config import (
+    TalentsoftGatewayConfig,
+)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import CachedToken
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
+from tests.external_gateways.utils import cached_token, mocked_response, offers_response
 from tests.fixtures.fixture_loader import load_fixture
 
 fake = Faker()
@@ -24,10 +28,14 @@ def talentsoft_client_fixture():
     logger_service = Mock()
     logger_service.get_logger.return_value = Mock()
 
-    return TalentsoftFrontClient(
+    config = TalentsoftGatewayConfig(
         base_url=HttpUrl(fake.url()),
         client_id=fake.uuid4(),
         client_secret=fake.uuid4(),
+    )
+
+    return TalentsoftFrontClient(
+        config=config,
         logger_service=logger_service,
         timeout=30,
     )

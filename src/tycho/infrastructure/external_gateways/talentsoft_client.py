@@ -5,11 +5,14 @@ from http import HTTPStatus
 from time import time
 from typing import Any, Dict, List, Optional, Tuple, cast
 
-from pydantic import HttpUrl, ValidationError
+from pydantic import ValidationError
 
 from domain.services.async_http_client_interface import IAsyncHttpResponse
 from domain.services.logger_interface import ILogger
 from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.external_gateways.configs.talentsoft_config import (
+    TalentsoftGatewayConfig,
+)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
     TalentsoftOffer,
@@ -27,9 +30,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
 
     def __init__(
         self,
-        base_url: HttpUrl,
-        client_id: str,
-        client_secret: str,
+        config: TalentsoftGatewayConfig,
         logger_service: ILogger,
         **kwargs,
     ):
@@ -38,9 +39,9 @@ class TalentsoftFrontClient(AsyncHttpClient):
         max_retries = kwargs.get("max_retries", 2)
 
         super().__init__(timeout=timeout)
-        self.base_url = base_url
-        self.client_id = client_id
-        self.client_secret = client_secret
+        self.base_url = config.base_url
+        self.client_id = config.client_id
+        self.client_secret = config.client_secret
         self.max_retries = max_retries
         self.cached_token: Optional[CachedToken] = None
         self.logger = logger_service.get_logger("TalentsoftClient")
