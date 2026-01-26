@@ -46,7 +46,6 @@ def _load_offer_fixture_data(doc_id: int) -> Dict[str, Any]:
     fixture_index = (doc_id - 1) % len(offer_fixtures)
     return offer_fixtures[fixture_index].copy()
 
-
 def create_test_corps_document(doc_id: int = 1) -> Document:
     """Create a test CORPS document using real fixture data."""
     raw_data = _load_corps_fixture_data(doc_id)
@@ -155,4 +154,8 @@ def create_test_offer_document_invalid_structure(doc_id: int = 1) -> Document:
 
     return _create_base_document(
         DocumentType.OFFERS, doc_id, f"offer_invalid_structure_{doc_id}", raw_data
+    )
+    raw_data["Année de référence"] = REFERENCE_YEAR  # Old year
+    return _create_base_document(
+        DocumentType.CONCOURS, doc_id, f"concours_old_fixture_{doc_id}", raw_data
     )
