@@ -1,7 +1,9 @@
 """LoadDocuments usecase."""
 
-from application.exceptions import ApplicationError
+from typing import cast
+
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
+from domain.entities.document import DocumentType
 from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
@@ -32,10 +34,7 @@ class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
         strategy = self.strategy_factory.create(input_data.operation_type)
         documents = strategy.load_documents(**input_data.kwargs)
 
-        # Extract document_type from kwargs
-        document_type = input_data.kwargs.get("document_type")
-        if not document_type:
-            raise ApplicationError("document_type is required in input kwargs")
+        document_type = cast(DocumentType, input_data.kwargs.get("document_type"))
 
         result = self.document_repository.upsert_batch(documents, document_type)
         return result

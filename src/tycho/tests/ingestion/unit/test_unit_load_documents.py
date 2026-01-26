@@ -9,9 +9,14 @@ IMPORTANT: Dependency Injection Override Timing
 import copy
 from datetime import datetime
 
+import pytest
+
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import Document, DocumentType
+from infrastructure.exceptions.ingestion_exceptions import (
+    MissingOperationParameterError,
+)
 
 
 def create_test_documents(
@@ -84,6 +89,18 @@ class TestDocumentsUsecase:
         )
         result = documents_usecase.execute(input_data)
         assert result["created"] == len(raw_corps_documents)
+
+    def test_missing_document_type_raises_missing_operation_parameter_error(
+        self, documents_usecase
+    ):
+        """Test that missing document_type in kwargs raises ApplicationError."""
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={},
+        )
+
+        with pytest.raises(MissingOperationParameterError):
+            documents_usecase.execute(input_data)
 
 
 class TestDocumentsRepository:
