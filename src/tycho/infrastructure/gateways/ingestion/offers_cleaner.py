@@ -3,7 +3,6 @@
 from datetime import datetime
 from typing import List, Optional
 
-import polars as pl
 from pydantic import HttpUrl, ValidationError
 
 from domain.entities.document import Document, DocumentType
@@ -33,71 +32,36 @@ class OffersCleaner(IDocumentCleaner[Offer]):
 
     def clean(self, raw_documents: List[Document]) -> List[Offer]:
         """Clean raw documents and return Offers entities."""
-        if not raw_documents:
-            return []
-
         for document in raw_documents:
             if document.type != DocumentType.OFFERS:
-                raise InvalidDocumentTypeError(document.type.value)
+                raise InvalidDocumentTypeError(document.type.value)  # todo: test
 
         validated_offers = []
         for document in raw_documents:
             try:
-                # Strict Pydantic validation - will raise ValidationError if invalid
-                talentsoft_offer = self._validate_talentsoft_data(document.raw_data)
+                talentsoft_offer = TalentsoftOffer.model_validate(document.raw_data)
+
                 validated_offers.append(talentsoft_offer)
-            except ValidationError as e:
+            except ValidationError as e:  # todo: test
                 reference = document.raw_data.get("reference", "UNKNOWN")
                 self.logger.error(f"TalentSoft validation failed for offer {reference}")
-                # Fail fast - make the batch fail as requested
                 raise InvalidOfferDataFormatError(reference, str(e)) from e
 
         if not validated_offers:
-            return []
-
-        # Apply business filters on validated data
-        df = pl.DataFrame([offer.model_dump() for offer in validated_offers])
-        df_filtered = self._apply_filters(df)
-
-        return self._dataframe_to_offers(df_filtered, validated_offers)
-
-    def _validate_talentsoft_data(self, raw_data: dict) -> TalentsoftOffer:
-        """Validate raw data against TalentSoft schema using Pydantic."""
-        return TalentsoftOffer.model_validate(raw_data)
-
-    def _apply_filters(self, df: pl.DataFrame) -> pl.DataFrame:
-        """Apply filters to keep only valid offers."""
-        # Filter out offers without required fields
-        required_fields = [
-            "reference",
-            "title",
-            "organisationName",
-            "startPublicationDate",
-        ]
-        for field in required_fields:
-            df = df.filter(pl.col(field).is_not_null())
-            df = df.filter(pl.col(field) != "")
-
-        return df
-
-    def _dataframe_to_offers(
-        self, df: pl.DataFrame, validated_offers: List[TalentsoftOffer]
-    ) -> List[Offer]:
-        """Convert processed DataFrame to Offer entities."""
-        if len(df) == 0:
-            return []
-
-        # Create a mapping from reference to validated offer for efficient lookup
-        offer_map = {offer.reference: offer for offer in validated_offers}
+            return []  # todo: test
 
         offers_list = []
-        for row_dict in df.to_dicts():
-            reference = row_dict["reference"]
-            talentsoft_offer = offer_map[reference]
-
-            # Map TalentSoft DTO to Offer entity
-            offer = self._map_talentsoft_to_offer(talentsoft_offer)
-            offers_list.append(offer)
+        for talentsoft_offer in validated_offers:
+            try:
+                offer = self._map_talentsoft_to_offer(talentsoft_offer)
+                offers_list.append(offer)
+            except (ValueError, ValidationError) as e:
+                self.logger.error(
+                    f"Value object validation failed for offer"
+                    f"{talentsoft_offer.reference}: {e}"
+                )
+                # Continue sans ajouter cette offre à la liste
+                continue
 
         return offers_list
 
@@ -157,28 +121,28 @@ class OffersCleaner(IDocumentCleaner[Offer]):
 
         verse_upper = verse_str.upper()
         if "FPT" in verse_upper:
-            return Verse.FPT
-        elif "FPE" in verse_upper:
-            return Verse.FPE
+            return Verse.FPT  # todo: test
+        elif "FPH" in verse_upper:
+            return Verse.FPH  # todo: test
         else:
-            return Verse.FPH
+            return Verse.FPE
 
     def _map_contract_type(
         self, contract_type_str: Optional[str]
     ) -> Optional[ContractType]:
         """Map contract type string to ContractType enum."""
         if not contract_type_str:
-            return None
+            return None  # todo: test
 
         contract_upper = contract_type_str.upper()
         if "TITULAIRE" in contract_upper:
             return ContractType.TITULAIRE_CONTRACTUEL
         elif "CONTRACTUEL" in contract_upper:
             return ContractType.CONTRACTUELS
-        elif "TERRITORIAL" in contract_upper:
+        elif "TERRITORIAL" in contract_upper:  # todo: test
             return ContractType.TERRITORIAL
         else:
-            return None
+            return None  # todo: test
 
     def _map_localisation_from_arrays(
         self, countries: List, regions: List, departments: List
@@ -190,7 +154,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         department_code = departments[0].clientCode if departments else None
 
         if not country_code or not region_code or not department_code:
-            return None
+            return None  # todo: test
 
         # Transform TalentSoft codes to INSEE codes
         # Region codes: R24 -> 24
@@ -207,27 +171,27 @@ class OffersCleaner(IDocumentCleaner[Offer]):
     def _parse_url(self, url_str: Optional[str]) -> Optional[HttpUrl]:
         """Parse URL string to HttpUrl."""
         if not url_str:
-            return None
+            return None  # todo: test
 
         try:
             return HttpUrl(url_str)
         except Exception:
-            return None
+            return None  # todo: test
 
     def _parse_publication_date(self, date_str: str) -> datetime:
         """Parse publication date string to timezone-aware datetime."""
         try:
             return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-        except (ValueError, TypeError, AttributeError):
+        except (ValueError, TypeError, AttributeError):  # todo: test
             return datetime.now()
 
     def _parse_beginning_date(self, date_str: Optional[str]) -> Optional[LimitDate]:
         """Parse beginning date string to LimitDate."""
         if not date_str:
-            return None
+            return None  # todo: test
 
         try:
             parsed_date = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
             return LimitDate(value=parsed_date)
         except (ValueError, TypeError, AttributeError):
-            return None
+            return None  # todo: test

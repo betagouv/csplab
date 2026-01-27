@@ -89,11 +89,16 @@ class CleanDocumentsUsecase:
                     f"Failed to save entity {error['entity_id']}: {error['error']}"
                 )
 
+        # Calculate total errors: cleaning errors + save errors
+        cleaning_errors = len(raw_documents) - len(cleaned_entities)
+        save_errors = len(save_result["errors"])
+        total_errors = cleaning_errors + save_errors
+
         return {
             "processed": len(raw_documents),
             "cleaned": len(cleaned_entities),
             "created": save_result["created"],
             "updated": save_result["updated"],
-            "errors": len(save_result["errors"]),
+            "errors": total_errors,
             "error_details": save_result["errors"],
         }

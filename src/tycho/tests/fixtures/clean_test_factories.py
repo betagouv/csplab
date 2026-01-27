@@ -7,8 +7,8 @@ from domain.entities.document import Document, DocumentType
 from tests.fixtures.fixture_loader import load_fixture
 
 # Test constants
-MULTIPLE_DOCUMENTS_COUNT = 3
-MIXED_DOCUMENTS_CLEANED = 2
+THREE_DOCUMENTS_COUNT = 3
+TWO_DOCUMENTS_COUNT = 2
 REFERENCE_YEAR = 2024
 
 
