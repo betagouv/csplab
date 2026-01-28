@@ -53,7 +53,7 @@ def test_clean_multiple_documents_success(ingestion_container, document_type):
         ]
     # Add documents to repository
     repository = ingestion_container.document_persister()
-    repository.upsert_batch(documents)
+    repository.upsert_batch(documents, document_type)
 
     result = usecase.execute(document_type)
 
@@ -118,7 +118,8 @@ def test_clean_corps_filters_invalid_documents(ingestion_container):
             valid_document,
             fpt_document,
             minarm_document,
-        ]
+        ],
+        DocumentType.CORPS,
     )
     result = usecase.execute(DocumentType.CORPS)
 
@@ -144,7 +145,8 @@ def test_clean_concours_filters_invalid_documents(ingestion_container):
             valid_document,
             invalid_status_document,
             old_document,
-        ]
+        ],
+        DocumentType.CONCOURS,
     )
     result = usecase.execute(DocumentType.CONCOURS)
 
@@ -253,7 +255,8 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
             valid_unknown_contract,
             invalid_ref,
             invalid_department,
-        ]
+        ],
+        DocumentType.OFFERS,
     )
     result = usecase.execute(DocumentType.OFFERS)
 
