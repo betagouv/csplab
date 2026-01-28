@@ -77,17 +77,9 @@ class CleanDocumentsUsecase:
                     cast(List[Offer], cleaned_entities)
                 )
             else:
-                raise InvalidDocumentTypeError(input_data.value)
-
+                raise InvalidDocumentTypeError(input_data.value)  # todo test
             self.logger.info(f"Saved entities: {save_result}")
-
-            if save_result["errors"]:
-                for error in save_result["errors"]:
-                    self.logger.error(
-                        f"Failed to save entity {error['entity_id']}: {error['error']}"
-                    )
         else:
-            # No entities to save
             save_result = {"created": 0, "updated": 0, "errors": []}
 
         # Calculate errors differently for OFFERS vs CORPS/CONCOURS

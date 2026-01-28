@@ -1,8 +1,9 @@
 """In-memory implementation of IConcoursRepository for testing purposes."""
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from domain.entities.concours import Concours
+from domain.exceptions.concours_errors import ConcoursDoesNotExist
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.document_repository_interface import (
     IUpsertError,
@@ -47,9 +48,11 @@ class InMemoryConcoursRepository(IConcoursRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_id(self, concours_id: int) -> Optional[Concours]:
+    def find_by_id(self, concours_id: int) -> Concours:
         """Find a Concours by its ID."""
-        return self._concours.get(concours_id)
+        if concours_id not in self._concours:
+            raise ConcoursDoesNotExist(concours_id)
+        return self._concours[concours_id]
 
     def get_all(self) -> List[Concours]:
         """Get all Concours entities."""

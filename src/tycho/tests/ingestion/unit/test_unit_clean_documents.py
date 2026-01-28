@@ -25,6 +25,11 @@ from tests.fixtures.clean_test_factories import (
     create_test_offer_document,
 )
 
+# Test constants for offers edge cases
+OFFERS_TOTAL_DOCUMENTS = 6
+OFFERS_VALID_DOCUMENTS = 4
+OFFERS_ERROR_DOCUMENTS = 2
+
 
 @pytest.mark.parametrize(
     "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
@@ -154,14 +159,86 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
     """Test that invalid offers data is properly filtered out."""
     usecase = ingestion_container.clean_documents_usecase()
 
-    valid_document = create_test_offer_document(1)
-    invalid_data = copy.deepcopy(valid_document.raw_data)
-    invalid_data["reference"] = "offer_invalid_2"
-    invalid_data["department"][0]["clientCode"] = "999"
-    invalid_document = Document(
+    # Valid FPE with multiple edge cases combined
+    valid_fpe_data = copy.deepcopy(create_test_offer_document(1).raw_data)
+    valid_fpe_data["reference"] = "fpe_edge_cases"
+    valid_fpe_data["salaryRange"] = None  # Test no verse
+    valid_fpe_data["contractType"] = None  # Test null contract
+    valid_fpe_data["beginningDate"] = None  # Test missing beginning date
+    valid_fpe = Document(
+        id=1,
+        external_id="fpe_edge_cases",
+        raw_data=valid_fpe_data,
+        type=DocumentType.OFFERS,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+
+    # Valid FPT with TERRITORIAL contract and edge cases
+    valid_fpt_data = copy.deepcopy(create_test_offer_document(1).raw_data)
+    valid_fpt_data["reference"] = "fpt_territorial"
+    valid_fpt_data["salaryRange"]["clientCode"] = "Versant_FPT"
+    valid_fpt_data["contractType"]["clientCode"] = "NAT_TERRITORIAL"
+    valid_fpt_data["country"] = []  # Test missing localisation
+    valid_fpt_data["region"] = []
+    valid_fpt_data["department"] = []
+    valid_fpt = Document(
         id=2,
-        external_id=invalid_data["reference"],
-        raw_data=invalid_data,
+        external_id="fpt_territorial",
+        raw_data=valid_fpt_data,
+        type=DocumentType.OFFERS,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+
+    # Valid FPH with CONTRACTUELS and URL/date edge cases
+    valid_fph_data = copy.deepcopy(create_test_offer_document(3).raw_data)
+    valid_fph_data["reference"] = "fph_contractuels"
+    valid_fph_data["salaryRange"]["clientCode"] = "Versant_FPH"
+    valid_fph_data["contractType"]["clientCode"] = "NAT_CONTRACTUELS"
+    valid_fph_data["offerUrl"] = "invalid://url with spaces"  # Test invalid URL
+    valid_fph_data["beginningDate"] = "invalid-date-format"  # Test invalid date
+    valid_fph = Document(
+        id=3,
+        external_id="fph_contractuels",
+        raw_data=valid_fph_data,
+        type=DocumentType.OFFERS,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+
+    # Valid document with unknown contract type
+    unknown_contract_data = copy.deepcopy(create_test_offer_document(1).raw_data)
+    unknown_contract_data["reference"] = "unknown_contract"
+    unknown_contract_data["contractType"]["clientCode"] = (
+        "UNKNOWN_TYPE"  # Test unknown contract type
+    )
+    valid_unknown_contract = Document(
+        id=4,
+        external_id="unknown_contract",
+        raw_data=unknown_contract_data,
+        type=DocumentType.OFFERS,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+
+    # Invalid documents
+    invalid_ref = Document(
+        id=5,
+        external_id="invalid_ref",
+        raw_data={"reference": "", "department": [{"clientCode": "18"}]},
+        type=DocumentType.OFFERS,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+
+    invalid_dep_data = copy.deepcopy(create_test_offer_document(6).raw_data)
+    invalid_dep_data["reference"] = "invalid_dep"
+    invalid_dep_data["department"][0]["clientCode"] = "999"
+    invalid_department = Document(
+        id=6,
+        external_id="invalid_dep",
+        raw_data=invalid_dep_data,
         type=DocumentType.OFFERS,
         created_at=datetime.now(),
         updated_at=datetime.now(),
@@ -170,13 +247,18 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
     repository = ingestion_container.document_persister()
     repository.upsert_batch(
         [
-            invalid_document,
+            valid_fpe,
+            valid_fpt,
+            valid_fph,
+            valid_unknown_contract,
+            invalid_ref,
+            invalid_department,
         ]
     )
     result = usecase.execute(DocumentType.OFFERS)
 
-    assert result["processed"] == 1
-    assert result["cleaned"] == 0
-    assert result["created"] == 0
+    assert result["processed"] == OFFERS_TOTAL_DOCUMENTS
+    assert result["cleaned"] == OFFERS_VALID_DOCUMENTS
+    assert result["created"] == OFFERS_VALID_DOCUMENTS
     assert result["updated"] == 0
-    assert result["errors"] == 1
+    assert result["errors"] == OFFERS_ERROR_DOCUMENTS
