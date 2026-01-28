@@ -19,3 +19,13 @@ class OfferDoesNotExist(DomainError):
     def __init__(self, offer_id: int):
         """Initialize with offer ID that was not found."""
         super().__init__(f"Offer with ID {offer_id} does not exist")
+
+
+class InvalidOfferDataFormatError(DomainError):
+    """Raised when raw offer data does not match expected TalentSoft format."""
+
+    def __init__(self, offer_reference: str, validation_details: str):
+        """Initialize with offer reference and validation error details."""
+        super().__init__(
+            f"Raw offer data for '{offer_reference}' is invalid: {validation_details}"
+        )

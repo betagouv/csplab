@@ -1,8 +1,9 @@
 """In-memory Corps repository implementation for testing."""
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from domain.entities.corps import Corps
+from domain.exceptions.corps_errors import CorpsDoesNotExist
 from domain.repositories.corps_repository_interface import ICorpsRepository
 from domain.repositories.document_repository_interface import (
     IUpsertError,
@@ -44,12 +45,14 @@ class InMemoryCorpsRepository(ICorpsRepository):
             "errors": errors,
         }
 
-    def find_by_id(self, corps_id: int) -> Optional[Corps]:
+    def find_by_id(self, corps_id: int) -> Corps:
         """Find a Corps by its ID."""
-        return self._storage.get(corps_id)
+        if corps_id not in self._storage:
+            raise CorpsDoesNotExist(corps_id)
+        return self._storage[corps_id]
 
     def get_all(self) -> List[Corps]:
-        """Gell all Corps entities."""
+        """Get all Corps entities."""
         return list(self._storage.values())
 
     def clear(self) -> None:

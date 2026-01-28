@@ -2,102 +2,105 @@
 
 from typing import Dict, List
 
+from django.db import DatabaseError, transaction
+
 from domain.entities.offer import Offer
 from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from domain.repositories.offers_repository_interface import IOffersRepository
+from domain.services.logger_interface import ILogger
 from infrastructure.django_apps.shared.models.offer import OfferModel
-from infrastructure.exceptions.exceptions import DatabaseError
 
 
 class PostgresOffersRepository(IOffersRepository):
     """Django ORM implementation of IOffersRepository."""
 
+    def __init__(self, logger: ILogger):
+        """Initialize with logger."""
+        self.logger = logger.get_logger(
+            "INGESTION::REPOSITORY::PostgresOffersRepository"
+        )
+
     def upsert_batch(self, offers_list: List[Offer]) -> IUpsertResult:
         """Insert or update multiple Offer entities and return operation results."""
-        if not offers_list:
-            return {"created": 0, "updated": 0, "errors": []}
-
         try:
-            # Get existing external_ids in one query
-            existing_external_ids = set(
-                OfferModel.objects.filter(
-                    external_id__in=[offer.external_id for offer in offers_list]
-                ).values_list("external_id", flat=True)
-            )
-
-            # Partition offers into new and existing
-            partitioned: Dict[str, List[Offer]] = {"new": [], "existing": []}
-            for offer in offers_list:
-                if offer.external_id in existing_external_ids:
-                    partitioned["existing"].append(offer)
-                else:
-                    partitioned["new"].append(offer)
-
-            created = 0
-            updated = 0
-
-            # Bulk create new offers
-            if partitioned["new"]:
-                new_models = [
-                    OfferModel.from_entity(offer) for offer in partitioned["new"]
-                ]
-                OfferModel.objects.bulk_create(new_models, ignore_conflicts=True)
-                created = len(new_models)
-
-            # Bulk update existing offers
-            if partitioned["existing"]:
-                # Get existing models to update
+            with transaction.atomic():
+                # Get existing models with select_for_update to prevent race conditions
                 existing_models = list(
                     OfferModel.objects.filter(
-                        external_id__in=[
-                            offer.external_id for offer in partitioned["existing"]
-                        ]
-                    )
+                        external_id__in=[offer.external_id for offer in offers_list]
+                    ).select_for_update(of=("self",))
                 )
 
-                # Create mapping for efficient lookup
                 existing_models_map = {
                     model.external_id: model for model in existing_models
                 }
+                existing_external_ids = set(existing_models_map.keys())
 
-                # Update models using from_entity
-                models_to_update = []
-                for offer in partitioned["existing"]:
-                    if offer.external_id in existing_models_map:
-                        existing_model = existing_models_map[offer.external_id]
-                        updated_model = OfferModel.from_entity(offer)
-                        # Keep the existing ID and timestamps
-                        updated_model.id = existing_model.id
-                        updated_model.created_at = existing_model.created_at
-                        models_to_update.append(updated_model)
+                # Partition offers into new and existing
+                partitioned: Dict[str, List[Offer]] = {"new": [], "existing": []}
+                for offer in offers_list:
+                    if offer.external_id in existing_external_ids:
+                        partitioned["existing"].append(offer)
+                    else:
+                        partitioned["new"].append(offer)
 
-                if models_to_update:
-                    OfferModel.objects.bulk_update(
-                        models_to_update,
-                        fields=[
-                            "verse",
-                            "title",
-                            "profile",
-                            "mission",
-                            "category",
-                            "contract_type",
-                            "organization",
-                            "offer_url",
-                            "country",
-                            "region",
-                            "department",
-                            "publication_date",
-                            "beginning_date",
-                        ],
+                created = 0
+                updated = 0
+
+                # Bulk create new offers (let PostgreSQL generate IDs)
+                if partitioned["new"]:
+                    new_models = []
+                    for offer in partitioned["new"]:
+                        # Create model without ID - let PostgreSQL auto-generate
+                        model = OfferModel.from_entity(offer)
+                        model.id = None
+                        new_models.append(model)
+
+                    # Use bulk_create with update_fields to get the generated IDs back
+                    created_models = OfferModel.objects.bulk_create(
+                        new_models, ignore_conflicts=True
                     )
-                    updated = len(models_to_update)
+                    created = len(created_models)
+
+                # Bulk update existing offers
+                if partitioned["existing"]:
+                    models_to_update = []
+                    for offer in partitioned["existing"]:
+                        if offer.external_id in existing_models_map:
+                            existing_model = existing_models_map[offer.external_id]
+                            updated_model = OfferModel.from_entity(offer)
+                            # Keep the existing PostgreSQL ID and timestamps
+                            updated_model.id = existing_model.id
+                            updated_model.created_at = existing_model.created_at
+                            models_to_update.append(updated_model)
+
+                    if models_to_update:
+                        updated = OfferModel.objects.bulk_update(
+                            models_to_update,
+                            fields=[
+                                "verse",
+                                "title",
+                                "profile",
+                                "mission",
+                                "category",
+                                "contract_type",
+                                "organization",
+                                "offer_url",
+                                "country",
+                                "region",
+                                "department",
+                                "publication_date",
+                                "beginning_date",
+                            ],
+                        )
 
             return {"created": created, "updated": updated, "errors": []}
 
         except Exception as e:
+            self.logger.error(f"Database error during bulk upsert: {str(e)}")
             db_error = DatabaseError(
                 f"Erreur lors de l'upsert batch des offres: {str(e)}"
             )
@@ -120,3 +123,8 @@ class PostgresOffersRepository(IOffersRepository):
             return offer_model.to_entity()
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(offer_id) from e
+
+    def get_all(self) -> List[Offer]:
+        """Get all Offer entities."""
+        offer_models = OfferModel.objects.all()
+        return [model.to_entity() for model in offer_models]

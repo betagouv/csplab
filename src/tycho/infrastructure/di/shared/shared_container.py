@@ -17,17 +17,21 @@ class SharedContainer(containers.DeclarativeContainer):
     """Container for shared infrastructure services."""
 
     config: providers.Dependency = providers.Dependency()
+    logger_service: providers.Dependency = providers.Dependency()
 
     corps_repository = providers.Singleton(
-        postgres_corps_repository.PostgresCorpsRepository
+        postgres_corps_repository.PostgresCorpsRepository,
+        logger=logger_service,
     )
 
     concours_repository = providers.Singleton(
-        postgres_concours_repository.PostgresConcoursRepository
+        postgres_concours_repository.PostgresConcoursRepository,
+        logger=logger_service,
     )
 
     offers_repository = providers.Singleton(
-        postgres_offers_repository.PostgresOffersRepository
+        postgres_offers_repository.PostgresOffersRepository,
+        logger=logger_service,
     )
 
     embedding_generator = providers.Singleton(
