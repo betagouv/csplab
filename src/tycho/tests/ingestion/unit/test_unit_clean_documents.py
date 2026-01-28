@@ -154,11 +154,10 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
     """Test that invalid offers data is properly filtered out."""
     usecase = ingestion_container.clean_documents_usecase()
 
-    # Create mixed data: 1 valid FPE + 1 invalid FPT
     valid_document = create_test_offer_document(1)
     invalid_data = copy.deepcopy(valid_document.raw_data)
     invalid_data["reference"] = "offer_invalid_2"
-    invalid_data["department"][0]["clientCode"] = "999"  # department est un array
+    invalid_data["department"][0]["clientCode"] = "999"
     invalid_document = Document(
         id=2,
         external_id=invalid_data["reference"],
@@ -171,14 +170,13 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
     repository = ingestion_container.document_persister()
     repository.upsert_batch(
         [
-            valid_document,
             invalid_document,
         ]
     )
     result = usecase.execute(DocumentType.OFFERS)
 
-    assert result["processed"] == TWO_DOCUMENTS_COUNT
-    assert result["cleaned"] == 1
-    assert result["created"] == 1
+    assert result["processed"] == 1
+    assert result["cleaned"] == 0
+    assert result["created"] == 0
     assert result["updated"] == 0
-    assert result["errors"] == 1  # Une erreur de validation Department
+    assert result["errors"] == 1

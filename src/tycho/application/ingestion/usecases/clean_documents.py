@@ -42,57 +42,67 @@ class CleanDocumentsUsecase:
             f"Fetched {len(raw_documents)} raw documents of type {input_data}"
         )
 
-        cleaned_entities = self.document_cleaner.clean(raw_documents)
+        cleaning_result = self.document_cleaner.clean(raw_documents)
+        cleaned_entities = cleaning_result.entities
+        cleaning_errors = cleaning_result.cleaning_errors
+
         self.logger.info(
             f"Cleaned {len(cleaned_entities)} entities from "
             f"{len(raw_documents)} raw documents"
         )
 
-        if not cleaned_entities:
-            return {
-                "processed": len(raw_documents),
-                "cleaned": 0,
-                "created": 0,
-                "updated": 0,
-                "errors": 0,
-            }
-
-        if input_data == DocumentType.CORPS:
-            corps_repository = cast(
-                ICorpsRepository, self.repository_factory.get_repository(input_data)
-            )
-            save_result = corps_repository.upsert_batch(
-                cast(List[Corps], cleaned_entities)
-            )
-        elif input_data == DocumentType.CONCOURS:
-            concours_repository = cast(
-                IConcoursRepository, self.repository_factory.get_repository(input_data)
-            )
-            save_result = concours_repository.upsert_batch(
-                cast(List[Concours], cleaned_entities)
-            )
-        elif input_data == DocumentType.OFFERS:
-            offer_repository = cast(
-                IOffersRepository, self.repository_factory.get_repository(input_data)
-            )
-            save_result = offer_repository.upsert_batch(
-                cast(List[Offer], cleaned_entities)
-            )
-        else:
-            raise InvalidDocumentTypeError(input_data.value)
-
-        self.logger.info(f"Saved entities: {save_result}")
-
-        if save_result["errors"]:
-            for error in save_result["errors"]:
-                self.logger.error(
-                    f"Failed to save entity {error['entity_id']}: {error['error']}"
+        # Save entities if any were cleaned
+        if cleaned_entities:
+            if input_data == DocumentType.CORPS:
+                corps_repository = cast(
+                    ICorpsRepository, self.repository_factory.get_repository(input_data)
                 )
+                save_result = corps_repository.upsert_batch(
+                    cast(List[Corps], cleaned_entities)
+                )
+            elif input_data == DocumentType.CONCOURS:
+                concours_repository = cast(
+                    IConcoursRepository,
+                    self.repository_factory.get_repository(input_data),
+                )
+                save_result = concours_repository.upsert_batch(
+                    cast(List[Concours], cleaned_entities)
+                )
+            elif input_data == DocumentType.OFFERS:
+                offer_repository = cast(
+                    IOffersRepository,
+                    self.repository_factory.get_repository(input_data),
+                )
+                save_result = offer_repository.upsert_batch(
+                    cast(List[Offer], cleaned_entities)
+                )
+            else:
+                raise InvalidDocumentTypeError(input_data.value)
 
-        # Calculate total errors: cleaning errors + save errors
-        cleaning_errors = len(raw_documents) - len(cleaned_entities)
-        save_errors = len(save_result["errors"])
-        total_errors = cleaning_errors + save_errors
+            self.logger.info(f"Saved entities: {save_result}")
+
+            if save_result["errors"]:
+                for error in save_result["errors"]:
+                    self.logger.error(
+                        f"Failed to save entity {error['entity_id']}: {error['error']}"
+                    )
+        else:
+            # No entities to save
+            save_result = {"created": 0, "updated": 0, "errors": []}
+
+        # Calculate errors differently for OFFERS vs CORPS/CONCOURS
+        if input_data == DocumentType.OFFERS:
+            # For OFFERS: use cleaning_errors from cleaner + save errors
+            all_errors = cleaning_errors + cast(
+                List[Dict[str, str]], save_result["errors"]
+            )
+            total_errors = len(all_errors)
+        else:
+            # For CORPS/CONCOURS: filtered documents = errors
+            cleaning_error_count = len(raw_documents) - len(cleaned_entities)
+            save_errors = len(save_result["errors"])
+            total_errors = cleaning_error_count + save_errors
+            all_errors = cast(List[Dict[str, str]], save_result["errors"])
 
         return {
             "processed": len(raw_documents),
@@ -100,5 +110,5 @@ class CleanDocumentsUsecase:
             "created": save_result["created"],
             "updated": save_result["updated"],
             "errors": total_errors,
-            "error_details": save_result["errors"],
+            "error_details": all_errors,
         }
