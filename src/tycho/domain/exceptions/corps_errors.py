@@ -9,6 +9,15 @@ class CorpsError(DomainError):
     pass
 
 
+class CorpsDoesNotExist(CorpsError):
+    """Raised when a Corps with the given ID does not exist."""
+
+    def __init__(self, corps_id: int):
+        """Initialize with the corps ID."""
+        super().__init__(f"Corps with ID {corps_id} does not exist")
+        self.corps_id = corps_id
+
+
 class InvalidDiplomaLevelError(CorpsError):
     """Raised when an invalid diploma level is provided."""
 

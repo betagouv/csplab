@@ -42,14 +42,11 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             try:
                 talentsoft_offer = TalentsoftOffer.model_validate(document.raw_data)
                 validated_offers.append(talentsoft_offer)
-            except ValidationError as e:  # todo: test
+            except ValidationError as e:
                 reference = document.raw_data.get("reference", "UNKNOWN")
                 error_msg = f"TalentSoft validation failed for offer {reference}: {e}"
                 self.logger.error(error_msg)
                 cleaning_errors.append({"entity_id": reference, "error": e})
-
-        if not validated_offers:
-            return CleaningResult(entities=[], cleaning_errors=cleaning_errors)
 
         offers_list = []
         for talentsoft_offer in validated_offers:
@@ -116,16 +113,15 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             beginning_date=beginning_date,
         )
 
-    def _map_verse(self, verse_str: Optional[str]) -> Verse:
+    def _map_verse(self, verse_str: Optional[str]) -> Optional[Verse]:
         """Map verse string to Verse enum."""
         if not verse_str:
-            return Verse.FPE  # Default value
-
+            return None
         verse_upper = verse_str.upper()
         if "FPT" in verse_upper:
-            return Verse.FPT  # todo: test
+            return Verse.FPT
         elif "FPH" in verse_upper:
-            return Verse.FPH  # todo: test
+            return Verse.FPH
         else:
             return Verse.FPE
 
@@ -134,17 +130,17 @@ class OffersCleaner(IDocumentCleaner[Offer]):
     ) -> Optional[ContractType]:
         """Map contract type string to ContractType enum."""
         if not contract_type_str:
-            return None  # todo: test
+            return None
 
         contract_upper = contract_type_str.upper()
         if "TITULAIRE" in contract_upper:
             return ContractType.TITULAIRE_CONTRACTUEL
         elif "CONTRACTUEL" in contract_upper:
             return ContractType.CONTRACTUELS
-        elif "TERRITORIAL" in contract_upper:  # todo: test
+        elif "TERRITORIAL" in contract_upper:
             return ContractType.TERRITORIAL
-        else:
-            return None  # todo: test
+
+        return None  # Unknown contract type
 
     def _map_localisation_from_arrays(
         self, countries: List, regions: List, departments: List
@@ -170,11 +166,8 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             department=Department(code=department_code),
         )
 
-    def _parse_url(self, url_str: Optional[str]) -> Optional[HttpUrl]:
+    def _parse_url(self, url_str: str) -> Optional[HttpUrl]:
         """Parse URL string to HttpUrl."""
-        if not url_str:
-            return None  # todo: test
-
         try:
             return HttpUrl(url_str)
         except Exception:
@@ -182,10 +175,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
 
     def _parse_publication_date(self, date_str: str) -> datetime:
         """Parse publication date string to timezone-aware datetime."""
-        try:
-            return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-        except (ValueError, TypeError, AttributeError):  # todo: test
-            return datetime.now()
+        return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
 
     def _parse_beginning_date(self, date_str: Optional[str]) -> Optional[LimitDate]:
         """Parse beginning date string to LimitDate."""
