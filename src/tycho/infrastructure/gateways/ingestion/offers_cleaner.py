@@ -8,8 +8,7 @@ from pydantic import HttpUrl, ValidationError
 from domain.entities.document import Document, DocumentType
 from domain.entities.offer import Offer
 from domain.exceptions.document_error import InvalidDocumentTypeError
-from domain.exceptions.offer_errors import InvalidOfferDataFormatError
-from domain.services.document_cleaner_interface import IDocumentCleaner
+from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from domain.value_objects.contract_type import ContractType
 from domain.value_objects.country import Country
@@ -30,25 +29,27 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         """Initialize with logger dependency."""
         self.logger = logger.get_logger("OffersCleaner::clean")
 
-    def clean(self, raw_documents: List[Document]) -> List[Offer]:
-        """Clean raw documents and return Offers entities."""
+    def clean(self, raw_documents: List[Document]) -> CleaningResult[Offer]:
+        """Clean raw documents and return cleaning result with entities and errors."""
         for document in raw_documents:
             if document.type != DocumentType.OFFERS:
                 raise InvalidDocumentTypeError(document.type.value)  # todo: test
 
         validated_offers = []
+        cleaning_errors = []
+
         for document in raw_documents:
             try:
                 talentsoft_offer = TalentsoftOffer.model_validate(document.raw_data)
-
                 validated_offers.append(talentsoft_offer)
             except ValidationError as e:  # todo: test
                 reference = document.raw_data.get("reference", "UNKNOWN")
-                self.logger.error(f"TalentSoft validation failed for offer {reference}")
-                raise InvalidOfferDataFormatError(reference, str(e)) from e
+                error_msg = f"TalentSoft validation failed for offer {reference}: {e}"
+                self.logger.error(error_msg)
+                cleaning_errors.append({"entity_id": reference, "error": e})
 
         if not validated_offers:
-            return []  # todo: test
+            return CleaningResult(entities=[], cleaning_errors=cleaning_errors)
 
         offers_list = []
         for talentsoft_offer in validated_offers:
@@ -56,14 +57,15 @@ class OffersCleaner(IDocumentCleaner[Offer]):
                 offer = self._map_talentsoft_to_offer(talentsoft_offer)
                 offers_list.append(offer)
             except (ValueError, ValidationError) as e:
-                self.logger.error(
-                    f"Value object validation failed for offer"
-                    f"{talentsoft_offer.reference}: {e}"
+                error_msg = (
+                    f"Validation failed for offer{talentsoft_offer.reference}: {e}"
                 )
-                # Continue sans ajouter cette offre à la liste
-                continue
+                self.logger.error(error_msg)
+                cleaning_errors.append(
+                    {"entity_id": talentsoft_offer.reference, "error": str(e)}
+                )
 
-        return offers_list
+        return CleaningResult(entities=offers_list, cleaning_errors=cleaning_errors)
 
     def _map_talentsoft_to_offer(self, talentsoft_offer: TalentsoftOffer) -> Offer:
         """Map a validated TalentSoft DTO to an Offer entity."""
