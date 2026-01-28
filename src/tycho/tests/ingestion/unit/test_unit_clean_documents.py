@@ -24,6 +24,8 @@ from tests.fixtures.clean_test_factories import (
     create_test_corps_document_minarm,
 )
 
+REFERENCE_YEAR = 2024
+
 
 @pytest.mark.parametrize("document_type", [DocumentType.CORPS, DocumentType.CONCOURS])
 def test_clean_documents_success(ingestion_container, document_type):
@@ -38,7 +40,7 @@ def test_clean_documents_success(ingestion_container, document_type):
 
     # Add document to repository
     repository = ingestion_container.document_persister()
-    repository.upsert_batch([document])
+    repository.upsert_batch([document], document_type)
 
     result = usecase.execute(document_type)
 
@@ -68,7 +70,7 @@ def test_clean_multiple_documents_success(ingestion_container, document_type):
 
     # Add documents to repository
     repository = ingestion_container.document_persister()
-    repository.upsert_batch(documents)
+    repository.upsert_batch(documents, document_type)
 
     result = usecase.execute(document_type)
 
@@ -101,7 +103,7 @@ def test_clean_corps_documents_filters_non_fpe_data(ingestion_container):
     invalid_document = create_test_corps_document_fpt(2)
 
     repository = ingestion_container.document_persister()
-    repository.upsert_batch([valid_document, invalid_document])
+    repository.upsert_batch([valid_document, invalid_document], DocumentType.CORPS)
 
     result = usecase.execute(DocumentType.CORPS)
 
@@ -121,7 +123,7 @@ def test_clean_corps_documents_filters_minarm_ministry(ingestion_container):
     minarm_document = create_test_corps_document_minarm(2)
 
     repository = ingestion_container.document_persister()
-    repository.upsert_batch([valid_document, minarm_document])
+    repository.upsert_batch([valid_document, minarm_document], DocumentType.CORPS)
 
     result = usecase.execute(DocumentType.CORPS)
 
@@ -141,7 +143,7 @@ def test_clean_concours_documents_filters_invalid_status(ingestion_container):
     invalid_document = create_test_concours_document_invalid_status(2)
 
     repository = ingestion_container.document_persister()
-    repository.upsert_batch([valid_document, invalid_document])
+    repository.upsert_batch([valid_document, invalid_document], DocumentType.CONCOURS)
 
     result = usecase.execute(DocumentType.CONCOURS)
 
@@ -161,7 +163,7 @@ def test_clean_concours_documents_filters_old_year(ingestion_container):
     old_document = create_test_concours_document_old_year(2)
 
     repository = ingestion_container.document_persister()
-    repository.upsert_batch([valid_document, old_document])
+    repository.upsert_batch([valid_document, old_document], DocumentType.CONCOURS)
 
     result = usecase.execute(DocumentType.CONCOURS)
 
@@ -179,7 +181,7 @@ def test_clean_documents_error_handling_save_errors(ingestion_container):
     # Create test document
     document = create_test_corps_document()
     repository = ingestion_container.document_persister()
-    repository.upsert_batch([document])
+    repository.upsert_batch([document], DocumentType.CORPS)
 
     # Mock the corps repository to return errors
     mock_repository = Mock()
@@ -211,7 +213,7 @@ def test_clean_documents_mixed_success_and_errors(ingestion_container):
     # Create test documents
     documents = [create_test_corps_document(i) for i in range(1, 3)]
     repository = ingestion_container.document_persister()
-    repository.upsert_batch(documents)
+    repository.upsert_batch(documents, DocumentType.CORPS)
 
     # Mock the corps repository to return mixed results
     mock_repository = Mock()
@@ -250,7 +252,7 @@ def test_execute_raises_error_for_unsupported_document_type(ingestion_container)
     )
 
     repository = ingestion_container.document_persister()
-    repository.upsert_batch([grade_document])
+    repository.upsert_batch([grade_document], DocumentType.GRADE)
 
     usecase = ingestion_container.clean_documents_usecase()
 

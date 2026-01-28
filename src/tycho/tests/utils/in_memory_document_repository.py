@@ -23,7 +23,9 @@ class InMemoryDocumentRepository(IDocumentRepository):
         """Get documents by type."""
         return [doc for doc in self._documents if doc.type == document_type]
 
-    def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
+    def upsert_batch(
+        self, documents: List[Document], document_type: DocumentType
+    ) -> IUpsertResult:
         """Insert or update multiple documents."""
         created = 0
         updated = 0

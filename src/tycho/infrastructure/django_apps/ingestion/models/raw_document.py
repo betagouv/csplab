@@ -34,7 +34,12 @@ class RawDocument(models.Model):
         verbose_name = "RawDocument"
         verbose_name_plural = "RawDocument"
         ordering = ["-created_at"]
-        unique_together = [("external_id", "document_type")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["external_id", "document_type"],
+                name="unique_external_id_document_type",
+            ),
+        ]
 
     def to_entity(self) -> Document:
         """Convert to core entity."""
@@ -45,4 +50,16 @@ class RawDocument(models.Model):
             type=DocumentType(self.document_type),  # String -> Enum
             created_at=self.created_at,
             updated_at=self.updated_at,
+        )
+
+    @classmethod
+    def from_entity(cls, document: Document) -> "RawDocument":
+        """Create Django model **instance** from Document entity."""
+        return cls(
+            id=document.id,
+            external_id=document.external_id,
+            raw_data=document.raw_data,
+            document_type=document.type.value if document.type else None,
+            created_at=document.created_at,
+            updated_at=document.updated_at,
         )

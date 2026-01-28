@@ -139,7 +139,10 @@ class ConcoursUploadView(APIView):
             usecase = container.load_documents_usecase()
             input_data = LoadDocumentsInput(
                 operation_type=LoadOperationType.UPLOAD_FROM_CSV,
-                kwargs={"documents": valid_documents},
+                kwargs={
+                    "documents": valid_documents,
+                    "document_type": DocumentType.CONCOURS,
+                },
             )
             result = usecase.execute(input_data)
 

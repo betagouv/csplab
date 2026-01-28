@@ -32,7 +32,9 @@ class IUpsertResult(TypedDict):
 class IDocumentPersister(Protocol):
     """Interface for persisting documents to local storage."""
 
-    def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
+    def upsert_batch(
+        self, documents: List[Document], document_type: DocumentType
+    ) -> IUpsertResult:
         """Insert or update multiple documents."""
         ...
 
@@ -44,7 +46,9 @@ class IDocumentRepository(Protocol):
         """Fetch documents by type."""
         ...
 
-    def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
+    def upsert_batch(
+        self, documents: List[Document], document_type: DocumentType
+    ) -> IUpsertResult:
         """Insert or update multiple documents."""
         ...
 
@@ -61,6 +65,8 @@ class CompositeDocumentRepository(IDocumentRepository):
         """Fetch documents by type using external fetcher."""
         return self.fetcher.fetch_by_type(document_type)
 
-    def upsert_batch(self, documents: List[Document]) -> IUpsertResult:
+    def upsert_batch(
+        self, documents: List[Document], document_type: DocumentType
+    ) -> IUpsertResult:
         """Insert or update multiple documents using persister."""
-        return self.persister.upsert_batch(documents)
+        return self.persister.upsert_batch(documents, document_type)

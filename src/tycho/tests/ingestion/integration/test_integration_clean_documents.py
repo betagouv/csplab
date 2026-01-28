@@ -61,7 +61,7 @@ def test_execute_updates_existing_entities(
     else:
         document = create_test_concours_document(1)
 
-    document_repository.upsert_batch([document])
+    document_repository.upsert_batch([document], document_type)
 
     # First execution - create entity
     result1 = clean_documents_usecase.execute(document_type)
@@ -91,9 +91,10 @@ def test_execute_filters_non_fpe_data(ingestion_integration_container):
     valid_document = create_test_corps_document(1)
     invalid_document = create_test_corps_document_fpt(2)
 
-    document_repository.upsert_batch([valid_document, invalid_document])
+    document_type = DocumentType.CORPS
+    document_repository.upsert_batch([valid_document, invalid_document], document_type)
 
-    result = clean_documents_usecase.execute(DocumentType.CORPS)
+    result = clean_documents_usecase.execute(document_type)
 
     # Verify statistics - only FPE documents should be cleaned and saved
     assert result["processed"] == DOCUMENTS_COUNT
@@ -115,10 +116,11 @@ def test_execute_retrieves_saved_corps_by_id(ingestion_integration_container):
 
     # Create raw document in database
     document = create_test_corps_document(1)
-    document_repository.upsert_batch([document])
+    document_type = DocumentType.CORPS
+    document_repository.upsert_batch([document], document_type)
 
     # Execute CleanDocuments usecase
-    result = clean_documents_usecase.execute(DocumentType.CORPS)
+    result = clean_documents_usecase.execute(document_type)
     assert result["created"] == 1
 
     # Verify saved corps can be retrieved by ID
@@ -147,11 +149,13 @@ def test_execute_handles_filtering_edge_cases(ingestion_integration_container):
     non_civil_servant_document = create_test_corps_document_fpt(2)
     minarm_document = create_test_corps_document_minarm(3)
 
+    document_type = DocumentType.CORPS
     document_repository.upsert_batch(
-        [valid_document, non_civil_servant_document, minarm_document]
+        [valid_document, non_civil_servant_document, minarm_document],
+        document_type,
     )
 
-    result = clean_documents_usecase.execute(DocumentType.CORPS)
+    result = clean_documents_usecase.execute(document_type)
 
     assert result["processed"] == MIXED_DOCUMENTS_COUNT
     assert result["cleaned"] == 1
@@ -202,9 +206,10 @@ def test_execute_creates_concours_successfully(ingestion_integration_container):
         create_test_concours_document(2),
     ]
 
-    document_repository.upsert_batch(valid_documents)
+    document_type = DocumentType.CONCOURS
+    document_repository.upsert_batch(valid_documents, document_type)
 
-    result = clean_documents_usecase.execute(DocumentType.CONCOURS)
+    result = clean_documents_usecase.execute(document_type)
     saved_concours = ConcoursModel.objects.all()
 
     assert result["processed"] == DOCUMENTS_COUNT
@@ -227,9 +232,10 @@ def test_execute_filters_invalid_concours_status(ingestion_integration_container
     invalid_document = create_test_concours_document_invalid_status(2)
 
     test_documents = [valid_document, invalid_document]
-    document_repository.upsert_batch(test_documents)
+    document_type = DocumentType.CONCOURS
+    document_repository.upsert_batch(test_documents, document_type)
 
-    result = clean_documents_usecase.execute(DocumentType.CONCOURS)
+    result = clean_documents_usecase.execute(document_type)
 
     # Only valid status should be processed
     assert result["processed"] == DOCUMENTS_COUNT
@@ -251,9 +257,10 @@ def test_execute_filters_old_year_concours(ingestion_integration_container):
     old_document = create_test_concours_document_old_year(2)
 
     test_documents = [new_document, old_document]
-    document_repository.upsert_batch(test_documents)
+    document_type = DocumentType.CONCOURS
+    document_repository.upsert_batch(test_documents, document_type)
 
-    result = clean_documents_usecase.execute(DocumentType.CONCOURS)
+    result = clean_documents_usecase.execute(document_type)
 
     assert result["processed"] == DOCUMENTS_COUNT
     assert result["cleaned"] == 1
@@ -278,9 +285,10 @@ def test_execute_filters_concours_missing_required_fields(
     invalid_document.raw_data["N° NOR"] = None  # Missing required field
 
     test_documents = [valid_document, invalid_document]
-    document_repository.upsert_batch(test_documents)
+    document_type = DocumentType.CONCOURS
+    document_repository.upsert_batch(test_documents, document_type)
 
-    result = clean_documents_usecase.execute(DocumentType.CONCOURS)
+    result = clean_documents_usecase.execute(document_type)
 
     assert result["processed"] == DOCUMENTS_COUNT
     assert result["cleaned"] == 1
