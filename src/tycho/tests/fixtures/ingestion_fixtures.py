@@ -145,7 +145,7 @@ def openai_gateway_config_fixture():
 def talentsoft_front_client_fixture(logger_service):
     """Setup talentsoft front client for usecase and tests."""
     return TalentsoftFrontClient(
-        base_url=HttpUrl(fake.url()),
+        base_url=str(HttpUrl(fake.url())).rstrip("/"),
         client_id=fake.uuid4(),
         client_secret=fake.word,
         logger_service=logger_service,
