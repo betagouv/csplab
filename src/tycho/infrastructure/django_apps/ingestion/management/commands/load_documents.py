@@ -1,9 +1,8 @@
 """Django management command to load documents by type."""
 
-from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
-from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from django.core.management.base import BaseCommand, CommandError
 
+from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from domain.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 
@@ -11,7 +10,7 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 class Command(BaseCommand):
     """Load documents by type using LoadDocumentsUsecase."""
 
-    help = "Load documents by type (CORPS, CONCOURS, etc.)"
+    help = "Load documents by type (CORPS, OFFERS, etc.)"
 
     def add_arguments(self, parser):
         """Add command arguments."""
@@ -30,10 +29,8 @@ class Command(BaseCommand):
             usecase = container.load_documents_usecase()
 
             self.stdout.write(f"Loading documents of type: {document_type.value}")
-            input_data = LoadDocumentsInput(
-                operation_type=LoadOperationType.FETCH_FROM_API,
-                kwargs={"document_type": document_type},
-            )
+
+            input_data = LoadDocumentsInput(document_type=document_type)
             result = usecase.execute(input_data)
 
             self.stdout.write(

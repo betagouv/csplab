@@ -3,6 +3,8 @@
 from datetime import datetime
 from typing import List, cast
 
+from asgiref.sync import async_to_sync
+
 from domain.entities.document import Document, DocumentType
 from domain.repositories.document_repository_interface import IDocumentFetcher
 from domain.services.http_client_interface import IHttpClient
@@ -25,7 +27,7 @@ class ExternalDocumentFetcher(IDocumentFetcher):
     ):
         """Initialize with PISTE client, Talensoft client, logger and source."""
         self.piste_client = piste_client
-        self.talentsoft_client = talentsoft_client
+        self.talentsoft_front_client = talentsoft_client
         self.logger = logger_service.get_logger("ExternalDocumentFetcher")
         self._source = {
             DocumentType.CORPS: self._fetch_ingres_api,
@@ -36,9 +38,11 @@ class ExternalDocumentFetcher(IDocumentFetcher):
     def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
         """Fetch documents from external source."""
         self.logger.info(f"Fetching documents of type {document_type}")
+
         source = self._source.get(document_type)
         if not source:
             raise ValueError(f"No fetch source for {document_type}")
+
         raw_documents = source(document_type)
         now = datetime.now()
         documents = []
@@ -59,21 +63,8 @@ class ExternalDocumentFetcher(IDocumentFetcher):
                 documents.append(document)
 
         elif document_type == DocumentType.OFFERS:
-            # Transform Talensoft offers data
-            typed_raw_documents = cast(List[dict], raw_documents)
-            for idx, offer_data in enumerate(typed_raw_documents):
-                offer_dict = cast(dict, offer_data)
-                # Use offer ID as external_id if available, otherwise use index
-                external_id = str(offer_dict.get("id", f"offer_{idx}"))
-                document = Document(
-                    id=0,  # Temporary ID, will be set by persister
-                    external_id=external_id,
-                    raw_data=offer_dict,
-                    type=document_type,
-                    created_at=now,
-                    updated_at=now,
-                )
-                documents.append(document)
+            # For OFFERS, raw_documents is already a list of Document objects
+            return cast(List[Document], raw_documents)
 
         return documents
 
@@ -95,29 +86,85 @@ class ExternalDocumentFetcher(IDocumentFetcher):
         self.logger.info(f"Found {len(raw_documents)} documents")
         return cast(List[JsonDataType], raw_documents)
 
-    async def _fetch_talensoft_api(
-        self, document_type: DocumentType
-    ) -> List[JsonDataType]:
-        """Fetch offers from Talensoft API."""
+    async def _fetch_offers(self, start: int):
+        """Init talentsoft_front_client with async context."""
+        async with self.talentsoft_front_client:
+            return await self.talentsoft_front_client.get_offers(start=start)
+
+    def _fetch_talensoft_api(self, document_type: DocumentType) -> List[Document]:
+        """Fetch offers from Talensoft API and return Document objects."""
         if document_type != DocumentType.OFFERS:
             raise ValueError(f"Talensoft: unsupported document type: {document_type}")
 
-        all_offers: List[JsonDataType] = []
-        start = 1
-        count = 1000
+        # Convert async method to sync using Django's async_to_sync
+        sync_fetch_offers = async_to_sync(self._fetch_offers)
 
+        all_documents = []
+        current_start = 1
+        now = datetime.now()
+
+        # Pagination loop to get all offers
         while True:
-            offers_data, has_more = await self.talentsoft_client.get_offers(
-                count=count, start=start
-            )
-            # offers_data is JsonDataType but we know it's a list from Talensoft API
-            if isinstance(offers_data, list):
-                all_offers.extend(offers_data)
-
-            if not has_more:
+            try:
+                raw_documents, has_more = sync_fetch_offers(start=current_start)
+            except Exception as e:
+                self.logger.error("Failed to fetch offers from Talentsoft: %s", e)
                 break
 
-            start += count
+            # Ensure raw_documents is a list before using len()
+            if not isinstance(raw_documents, list):
+                self.logger.error(
+                    "Expected list of documents, got %s", type(raw_documents)
+                )
+                break
 
-        self.logger.info(f"Found {len(all_offers)} offers from Talensoft")
-        return all_offers
+            if not raw_documents:
+                self.logger.info("No more offers available")
+                break
+
+            self.logger.info(
+                "Found %d offers from Talentsoft Front API (page starting at %d)",
+                len(raw_documents),
+                current_start,
+            )
+
+            # Process current batch
+            for raw_doc in raw_documents:
+                if not isinstance(raw_doc, dict):
+                    self.logger.warning("Skipping non-dict document: %s", type(raw_doc))
+                    continue
+
+                reference = raw_doc.get("reference", None)
+                if reference is None:
+                    self.logger.warning(
+                        "Skipping raw_doc without reference: %s", raw_doc
+                    )
+                    continue
+
+                versant_dict = raw_doc.get("salaryRange", {})
+                if isinstance(versant_dict, dict):
+                    versant = versant_dict.get("clientCode", "UNK")
+                else:
+                    versant = "UNK"
+
+                external_id = f"{versant}-{reference}"
+
+                document = Document(
+                    id=0,  # Temporary ID, will be updated by persister
+                    external_id=external_id,
+                    raw_data=raw_doc,
+                    type=document_type,
+                    created_at=now,  # Temporary timestamp, will be updated by persister
+                    updated_at=now,  # Temporary timestamp, will be updated by persister
+                )
+                all_documents.append(document)
+
+            # Check if we should continue
+            if not has_more:
+                self.logger.info("API indicates no more pages available")
+                break
+
+            current_start += 1
+
+        self.logger.info(f"Total offers fetched: {len(all_documents)}")
+        return all_documents

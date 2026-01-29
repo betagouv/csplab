@@ -1,9 +1,6 @@
 """LoadDocuments usecase."""
 
-from typing import List, Optional
-
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
-from domain.entities.document import Document, DocumentType
 from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
@@ -29,14 +26,14 @@ class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
             "INGESTION::APPLICATION::LoadDocumentsUsecase::execute"
         )
 
-    def execute(
-        self,
-        document_type: DocumentType,
-        documents: Optional[List[Document]] = None,
-    ) -> IUpsertResult:
+    def execute(self, input_data: LoadDocumentsInput) -> IUpsertResult:
         """Execute the usecase to load and persist documents."""
-        strategy = self.strategy_factory.create(document_type, documents)
-        loaded_documents = strategy.load_documents(document_type)
+        strategy = self.strategy_factory.create(
+            input_data.document_type, input_data.documents
+        )
+        loaded_documents = strategy.load_documents(input_data.document_type)
 
-        result = self.document_repository.upsert_batch(loaded_documents, document_type)
+        result = self.document_repository.upsert_batch(
+            loaded_documents, input_data.document_type
+        )
         return result

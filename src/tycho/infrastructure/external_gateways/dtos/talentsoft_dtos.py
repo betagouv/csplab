@@ -3,7 +3,7 @@
 from time import time
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from domain.types import JsonDataType
 
@@ -31,8 +31,19 @@ class CachedToken(BaseModel):
         return (self.expires_at_epoch - leeway_seconds) > time()
 
 
+class TalentsoftPagination(BaseModel):
+    """Pagination information from Talentsoft API."""
+
+    start: int
+    count: int
+    total: int
+    resultsPerPage: int
+    hasMore: bool
+    lastPage: int
+
+
 class TalentsoftOffersResponse(BaseModel):
     """Offers response content."""
 
     data: JsonDataType
-    pagination: JsonDataType
+    pagination: TalentsoftPagination = Field(alias="_pagination")

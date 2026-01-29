@@ -13,7 +13,9 @@ from infrastructure.external_gateways.configs.openai_config import (
 )
 from infrastructure.external_gateways.configs.piste_config import (
     PisteConfig,
-    PisteGatewayConfig,
+)
+from infrastructure.external_gateways.configs.talentsoft_config import (
+    TalentsoftConfig,
 )
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -32,14 +34,32 @@ def create_ingestion_container() -> IngestionContainer:
     shared_container.config.override(openai_gateway_config)
 
     container = IngestionContainer()
+
+    # PISTE configuration
     piste_config = PisteConfig(
         oauth_base_url=cast(HttpUrl, env.str("TYCHO_PISTE_OAUTH_BASE_URL")),
         ingres_base_url=cast(HttpUrl, env.str("TYCHO_INGRES_BASE_URL")),
         client_id=cast(str, env.str("TYCHO_INGRES_CLIENT_ID")),
         client_secret=cast(str, env.str("TYCHO_INGRES_CLIENT_SECRET")),
     )
-    piste_gateway_config = PisteGatewayConfig(piste_config)
-    container.config.override(piste_gateway_config)
+
+    # Talensoft configuration
+    talentsoft_config = TalentsoftConfig(
+        base_url=cast(HttpUrl, env.str("TYCHO_TALENTSOFT_BASE_URL")),
+        client_id=cast(str, env.str("TYCHO_TALENTSOFT_CLIENT_ID")),
+        client_secret=cast(str, env.str("TYCHO_TALENTSOFT_CLIENT_SECRET")),
+    )
+
+    # Create a proper configuration class with both piste and talentsoft
+    class CombinedConfig:
+        def __init__(
+            self, piste_config: PisteConfig, talentsoft_config: TalentsoftConfig
+        ):
+            self.piste = piste_config
+            self.talentsoft = talentsoft_config
+
+    combined_config = CombinedConfig(piste_config, talentsoft_config)
+    container.config.override(combined_config)
 
     logger_service = LoggerService("ingestion")
     container.logger_service.override(logger_service)

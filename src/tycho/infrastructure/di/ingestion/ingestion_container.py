@@ -1,6 +1,5 @@
 """Ingestion dependency injection container."""
 
-from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from dependency_injector import containers, providers
 
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
@@ -11,10 +10,10 @@ from domain.interfaces.entity_interface import IEntity
 from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.document_repository_interface import (
     CompositeDocumentRepository,
-    IUpsertResult,
 )
 from domain.services.document_cleaner_interface import IDocumentCleaner
 from infrastructure.external_gateways import document_fetcher, piste_client
+from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
 from infrastructure.gateways.ingestion import (
     load_documents_strategy_factory as load_strategy,
 )
@@ -45,9 +44,20 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger_service=logger_service,
     )
 
+    talentsoft_client = providers.Singleton(
+        TalentsoftFrontClient,
+        base_url=providers.Callable(lambda cfg: cfg.talentsoft.base_url, config),
+        client_id=providers.Callable(lambda cfg: cfg.talentsoft.client_id, config),
+        client_secret=providers.Callable(
+            lambda cfg: cfg.talentsoft.client_secret, config
+        ),
+        logger_service=logger_service,
+    )
+
     document_fetcher = providers.Singleton(
         document_fetcher.ExternalDocumentFetcher,
         piste_client=piste_client,
+        talentsoft_client=talentsoft_client,
         logger_service=logger_service,
     )
 
@@ -83,9 +93,7 @@ class IngestionContainer(containers.DeclarativeContainer):
         document_fetcher=document_fetcher,
     )
 
-    load_documents_usecase: providers.Provider[
-        IUseCase[LoadDocumentsInput, IUpsertResult]
-    ] = providers.Factory(
+    load_documents_usecase = providers.Factory(
         LoadDocumentsUsecase,
         strategy_factory=load_documents_strategy_factory,
         document_repository=document_repository,

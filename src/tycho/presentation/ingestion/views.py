@@ -10,7 +10,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
-from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.ingestion.schemas import ConcoursRowSchema
@@ -96,7 +95,7 @@ class ConcoursUploadView(APIView):
                         continue
 
                     document = Document(
-                        id=None,
+                        id=0,  # Temporary ID, will be set by persister
                         external_id=nor_value,
                         raw_data=raw_data,
                         type=DocumentType.CONCOURS,
@@ -138,11 +137,7 @@ class ConcoursUploadView(APIView):
             )
             usecase = container.load_documents_usecase()
             input_data = LoadDocumentsInput(
-                operation_type=LoadOperationType.UPLOAD_FROM_CSV,
-                kwargs={
-                    "documents": valid_documents,
-                    "document_type": DocumentType.CONCOURS,
-                },
+                document_type=DocumentType.CONCOURS, documents=valid_documents
             )
             result = usecase.execute(input_data)
 
