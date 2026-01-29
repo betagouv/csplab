@@ -1,8 +1,8 @@
 """Load documents strategy factory."""
 
-from typing import Union
+from typing import List, Optional, Union
 
-from application.ingestion.interfaces.load_operation_type import LoadOperationType
+from domain.entities.document import Document, DocumentType
 from domain.repositories.document_repository_interface import IDocumentFetcher
 from infrastructure.exceptions.ingestion_exceptions import InvalidLoadOperationError
 from infrastructure.gateways.ingestion.load_documents_strategies import (
@@ -19,13 +19,15 @@ class LoadDocumentsStrategyFactory:
         self.document_fetcher = document_fetcher
 
     def create(
-        self, operation_type: LoadOperationType
+        self, document_type: DocumentType, documents: Optional[List[Document]] = None
     ) -> Union[FetchFromApiStrategy, UploadFromCsvStrategy]:
-        """Create strategy based on operation type."""
-        match operation_type:
-            case LoadOperationType.FETCH_FROM_API:
+        """Create strategy based on document type."""
+        match document_type:
+            case DocumentType.CONCOURS:
+                return UploadFromCsvStrategy(documents)
+            case DocumentType.CORPS | DocumentType.GRADE | DocumentType.OFFERS:
                 return FetchFromApiStrategy(self.document_fetcher)
-            case LoadOperationType.UPLOAD_FROM_CSV:
-                return UploadFromCsvStrategy()
             case _:
-                raise InvalidLoadOperationError(str(operation_type))
+                raise InvalidLoadOperationError(
+                    f"Unsupported document type: {document_type}"
+                )

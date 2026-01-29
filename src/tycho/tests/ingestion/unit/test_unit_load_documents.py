@@ -10,9 +10,9 @@ import copy
 from datetime import datetime
 
 import pytest
-
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
+
 from domain.entities.document import Document, DocumentType
 from infrastructure.exceptions.ingestion_exceptions import (
     MissingOperationParameterError,

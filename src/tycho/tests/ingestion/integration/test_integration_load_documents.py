@@ -1,12 +1,12 @@
 """Integration tests for LoadDocuments usecase with external adapters."""
 
 import responses
+from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
+from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
 from rest_framework.test import APITestCase
 
-from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
-from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from tests.factories.ingres_factories import IngresCorpsApiResponseFactory

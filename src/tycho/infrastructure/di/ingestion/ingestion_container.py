@@ -1,8 +1,8 @@
 """Ingestion dependency injection container."""
 
+from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from dependency_injector import containers, providers
 
-from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase

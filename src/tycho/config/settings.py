@@ -17,9 +17,6 @@ env = environ.Env(
     TYCHO_SENTRY_DSN=(str, ""),
     TYCHO_SENTRY_TRACES_SAMPLE_RATE=(float, 1.0),
     TYCHO_SENTRY_PROFILES_SAMPLE_RATE=(float, 1.0),
-    TYCHO_TALENTSOFT_CLIENT_ID=(str, ""),
-    TYCHO_TALENTSOFT_CLIENT_SECRET=(str, ""),
-    TYCHO_TALENTSOFT_BASE_URL=(str, ""),
 )
 env.prefix = "TYCHO_"
 
