@@ -1,7 +1,7 @@
 """In-memory implementation of document repository for testing."""
 
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 from domain.entities.document import Document, DocumentType
 from domain.repositories.document_repository_interface import (
@@ -22,6 +22,15 @@ class InMemoryDocumentRepository(IDocumentRepository):
     def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
         """Get documents by type."""
         return [doc for doc in self._documents if doc.type == document_type]
+
+    def fetch_talentsoft_front_by_type(
+        self, document_type: DocumentType, start: int
+    ) -> Tuple[List[Document], bool]:
+        """Get documents by type from talentsoft front (in-memory implementation)."""
+        # The start parameter is ignored in this mock implementation
+        documents = [doc for doc in self._documents if doc.type == document_type]
+        has_more = False  # In-memory implementation never has more pages
+        return documents, has_more
 
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType

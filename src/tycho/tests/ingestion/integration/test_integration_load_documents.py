@@ -1,5 +1,8 @@
 """Integration tests for LoadDocuments usecase with external adapters."""
 
+from datetime import datetime
+
+import pytest
 import responses
 from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
@@ -7,11 +10,148 @@ from rest_framework.test import APITestCase
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from domain.entities.document import DocumentType
+from domain.entities.document import Document, DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
+from tests.external_gateways.utils import cached_token, offers_response
 from tests.factories.ingres_factories import IngresCorpsApiResponseFactory
 
 fake = Faker()
+
+
+def create_tests_offers(container, document_type, raw_offers):
+    """Insert RawDocument from json offers."""
+    documents = [
+        Document(
+            id=None,
+            external_id=f"{raw_data['salaryRange']['clientCode']}-{raw_data['reference']}",
+            raw_data=raw_data,
+            type=document_type,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        )
+        for raw_data in raw_offers["data"]
+    ]
+    repository = container.document_persister()
+    repository.upsert_batch(documents, document_type)
+
+
+class TestIntegrationOfferLoadDocumentUseCase:
+    """Test LoadDocuments use case for Offer docs."""
+
+    @pytest.mark.parametrize("count", [0, 2])
+    def test_execute_returns_correct_counts(
+        self, db, httpx_mock, ingestion_integration_container, count
+    ):
+        """Test execute returns correct count based on parameter."""
+        usecase = ingestion_integration_container.load_documents_usecase()
+        client = ingestion_integration_container.talentsoft_front_client()
+        client.cached_token = cached_token()
+
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
+            json=offers_response(count=count),
+            status_code=200,
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_TALENTSOFT_FRONT_API,
+            kwargs={"document_type": DocumentType.OFFERS},
+        )
+        result = usecase.execute(input_data)
+        assert result["created"] == count
+        assert result["updated"] == 0
+
+    def test_execute_returns_correct_counts_with_iterations(
+        self, db, httpx_mock, ingestion_integration_container
+    ):
+        """Test execute returns correct count based on parameter."""
+        document_type = DocumentType.OFFERS
+        count_existing_offers = 4
+        count_new_offers = 3
+        usecase = ingestion_integration_container.load_documents_usecase()
+
+        raw_offers = offers_response(count=count_existing_offers, has_more=True)
+        create_tests_offers(ingestion_integration_container, document_type, raw_offers)
+        new_raw_offers = offers_response(count=count_new_offers, has_more=False)
+
+        client = ingestion_integration_container.talentsoft_front_client()
+        client.cached_token = cached_token()
+
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
+            json=raw_offers,
+            status_code=200,
+        )
+
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=2",
+            json=new_raw_offers,
+            status_code=200,
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_TALENTSOFT_FRONT_API,
+            kwargs={"document_type": DocumentType.OFFERS},
+        )
+        result = usecase.execute(input_data)
+        assert result["created"] == count_new_offers
+        assert result["updated"] == count_existing_offers
+
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
+    def test_execute_returns_zero_when_api_fails(
+        self, db, httpx_mock, ingestion_integration_container
+    ):
+        """Test execute returns 0 when API call fails."""
+        usecase = ingestion_integration_container.load_documents_usecase()
+        client = ingestion_integration_container.talentsoft_front_client()
+        client.cached_token = cached_token()
+
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
+            status_code=500,
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_TALENTSOFT_FRONT_API,
+            kwargs={"document_type": DocumentType.OFFERS},
+        )
+        result = usecase.execute(input_data)
+        assert result["created"] == 0
+        assert result["updated"] == 0
+
+    @pytest.mark.parametrize(
+        "data", ["not_a_list", ["not_a_list_of_dict"], [{"missing_reference_key": 1}]]
+    )
+    def test_execute_returns_zero_when_api_response_is_malformed(
+        self, db, httpx_mock, ingestion_integration_container, data
+    ):
+        """Test execute returns 0 when API response is malformed."""
+        usecase = ingestion_integration_container.load_documents_usecase()
+
+        raw_offers = offers_response()
+        raw_offers["data"] = data
+
+        client = ingestion_integration_container.talentsoft_front_client()
+        client.cached_token = cached_token()
+
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
+            json=raw_offers,
+            status_code=200,
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_TALENTSOFT_FRONT_API,
+            kwargs={"document_type": DocumentType.OFFERS},
+        )
+        result = usecase.execute(input_data)
+        assert result["created"] == 0
+        assert result["updated"] == 0
 
 
 class TestIntegrationCorpsLoadDocumentsUseCase:
@@ -41,7 +181,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         )
 
         input_data = LoadDocumentsInput(
-            operation_type=LoadOperationType.FETCH_FROM_API,
+            operation_type=LoadOperationType.FETCH_FROM_INGRES_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
         result = documents_integration_usecase.execute(input_data)
@@ -75,7 +215,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         )
 
         input_data = LoadDocumentsInput(
-            operation_type=LoadOperationType.FETCH_FROM_API,
+            operation_type=LoadOperationType.FETCH_FROM_INGRES_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
         result = documents_integration_usecase.execute(input_data)

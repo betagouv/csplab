@@ -1,17 +1,13 @@
 """Unit tests for TalentsoftClient."""
 
-from time import time
-from typing import Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from faker import Faker
-from httpx import Response
 
-from domain.types import JsonDataType
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.dtos.talentsoft_dtos import CachedToken
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
+from tests.external_gateways.utils import cached_token, mocked_response, offers_response
 
 fake = Faker()
 
@@ -29,35 +25,6 @@ def talentsoft_client_fixture():
         logger_service=logger_service,
         timeout=30,
     )
-
-
-def cached_token(access_token: Optional[str] = None, expire_in: int = 3600):
-    """Create a cached token."""
-    return CachedToken(
-        access_token=fake.uuid4() if access_token is None else access_token,
-        token_type=fake.word().capitalize(),
-        expires_at_epoch=time() + expire_in,
-        refresh_token=fake.uuid4(),
-    )
-
-
-def offers_response(count: int = 2, has_more: bool = False):
-    """Create offers response."""
-    offers = [{"id": fake.uuid4(), "title": fake.job()} for _ in range(count)]
-    offers_response = {
-        "data": offers,
-        "pagination": {"count": count, "hasMore": has_more},
-    }
-    return offers_response
-
-
-def mocked_response(status_code: int = 200, return_value: JsonDataType = None):
-    """Create a mocked response."""
-    response = Mock(spec=Response)
-    response.status_code = status_code
-    response.json.return_value = return_value
-    response.raise_for_status = Mock(return_value=None)
-    return response
 
 
 class TestGetAccessToken:

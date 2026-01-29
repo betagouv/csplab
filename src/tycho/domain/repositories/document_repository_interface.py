@@ -1,6 +1,6 @@
 """Document repository interface and composite implementation."""
 
-from typing import Any, List, Protocol, TypedDict
+from typing import Any, List, Protocol, Tuple, TypedDict
 
 from domain.entities.document import Document, DocumentType
 
@@ -10,6 +10,12 @@ class IDocumentFetcher(Protocol):
 
     def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
         """Fetch documents from external source by type."""
+        ...
+
+    def fetch_talentsoft_front_by_type(
+        self, document_type: DocumentType, start: int
+    ) -> Tuple[List[Document], bool]:
+        """Fetch documents from external talentsoft front source by type."""
         ...
 
 
@@ -46,6 +52,12 @@ class IDocumentRepository(Protocol):
         """Fetch documents by type."""
         ...
 
+    def fetch_talentsoft_front_by_type(
+        self, document_type: DocumentType, start: int
+    ) -> Tuple[List[Document], bool]:
+        """Fetch documents by type from talentsoft front."""
+        ...
+
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
     ) -> IUpsertResult:
@@ -64,6 +76,12 @@ class CompositeDocumentRepository(IDocumentRepository):
     def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
         """Fetch documents by type using external fetcher."""
         return self.fetcher.fetch_by_type(document_type)
+
+    def fetch_talentsoft_front_by_type(
+        self, document_type: DocumentType, start: int
+    ) -> Tuple[List[Document], bool]:
+        """Fetch documents by type from talentsoft front using external fetcher."""
+        return self.fetcher.fetch_talentsoft_front_by_type(document_type, start)
 
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
