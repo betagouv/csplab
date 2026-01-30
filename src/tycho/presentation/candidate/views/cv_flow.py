@@ -49,3 +49,14 @@ class CVProcessingView(BreadcrumbMixin, TemplateView):
     """View for CV confirmation/processing page."""
 
     template_name = "candidate/cv_processing.html"
+
+
+class CVResultsView(BreadcrumbMixin, TemplateView):
+    """View for CV analysis results page.
+
+    Displays career opportunities matching the analyzed CV.
+    """
+
+    template_name = "candidate/cv_results.html"
+    breadcrumb_current = "Résultat de l'analyse du CV"
+    breadcrumb_links: list[BreadcrumbLink] = []

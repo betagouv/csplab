@@ -3,7 +3,11 @@
 from django.urls import path
 
 from presentation.candidate.views.corps_search import CorpsSearchView
-from presentation.candidate.views.cv_flow import CVProcessingView, CVUploadView
+from presentation.candidate.views.cv_flow import (
+    CVProcessingView,
+    CVResultsView,
+    CVUploadView,
+)
 
 app_name = "candidate"
 
@@ -14,5 +18,10 @@ urlpatterns = [
         "cv/<uuid:cv_uuid>/processing/",
         CVProcessingView.as_view(),
         name="cv_processing",
+    ),
+    path(
+        "cv/<uuid:cv_uuid>/results/",
+        CVResultsView.as_view(),
+        name="cv_results",
     ),
 ]

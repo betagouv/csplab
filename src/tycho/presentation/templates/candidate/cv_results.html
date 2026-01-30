@@ -1,0 +1,11 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags i18n %}
+{% block page_title %}
+    Résultat de l'analyse du CV
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <div class="fr-container fr-py-5w">
+        <h1 class="csplab-text-blue-france">Vos opportunités professionnelles</h1>
+    </div>
+{% endblock main %}
