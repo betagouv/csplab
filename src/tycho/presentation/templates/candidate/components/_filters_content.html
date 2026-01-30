@@ -1,0 +1,16 @@
+{% load dsfr_tags %}
+<div class="fr-p-3w fr-background-alt--grey">
+    <h2 class="fr-h6">Filtres</h2>
+    <form id="filters-form">
+        {% dsfr_select id="filter-location" label="Localisation" default=location_default options=location_options %}
+        {% dsfr_select id="filter-category" label="Catégorie" default=category_default options=category_options %}
+        <fieldset class="fr-fieldset fr-mt-3w">
+            <legend class="fr-fieldset__legend fr-text--regular">Versants de la fonction publique</legend>
+            <div class="fr-fieldset__content fr-mt-1w">
+                {% for versant in versants %}
+                    {% dsfr_tag label=versant.label extra_classes="fr-tag--sm fr-mb-1w fr-mr-1w" %}
+                {% endfor %}
+            </div>
+        </fieldset>
+    </form>
+</div>

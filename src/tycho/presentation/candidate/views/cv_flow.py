@@ -60,3 +60,35 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
     template_name = "candidate/cv_results.html"
     breadcrumb_current = "Résultat de l'analyse du CV"
     breadcrumb_links: list[BreadcrumbLink] = []
+
+    def get_context_data(self, **kwargs: object) -> dict[str, object]:
+        """Add mock data for results display."""
+        context = super().get_context_data(**kwargs)
+        context["cv_name"] = "CV Adelle Mortelle.pdf"
+        context["results"] = []
+        context["results_count"] = len(context["results"])
+        context["location_options"] = [
+            {"value": "paris", "text": "Paris"},
+            {"value": "lyon", "text": "Lyon"},
+            {"value": "marseille", "text": "Marseille"},
+            {"value": "bordeaux", "text": "Bordeaux"},
+        ]
+        context["location_default"] = {
+            "disabled": True,
+            "text": "Sélectionner une localisation",
+        }
+        context["category_options"] = [
+            {"value": "a", "text": "Catégorie A"},
+            {"value": "b", "text": "Catégorie B"},
+            {"value": "c", "text": "Catégorie C"},
+        ]
+        context["category_default"] = {
+            "disabled": True,
+            "text": "Sélectionner une catégorie",
+        }
+        context["versants"] = [
+            {"label": "Fonction publique d'État"},
+            {"label": "Fonction publique Territoriale"},
+            {"label": "Fonction publique Hospitalière"},
+        ]
+        return context
