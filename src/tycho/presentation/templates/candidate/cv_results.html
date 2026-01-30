@@ -6,6 +6,48 @@
 {% block main %}
     <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
     <div class="fr-container fr-py-5w">
-        <h1 class="csplab-text-blue-france">Vos opportunités professionnelles</h1>
+        <!-- Header -->
+        <div class="fr-grid-row fr-grid-row--gutters fr-mb-5w">
+            <div class="fr-col-12 fr-col-md-8">
+                <h1 class="csplab-text-blue-france">Vos opportunités professionnelles</h1>
+                {% dsfr_tag label=cv_name %}
+            </div>
+        </div>
+        <!-- Main content -->
+        <div class="fr-grid-row fr-grid-row--gutters">
+            <!-- Filters sidebar (desktop) -->
+            <aside class="fr-col-12 fr-col-md-4 fr-hidden fr-unhidden-md"
+                   id="filters-sidebar">
+                {% include "candidate/components/_filters_content.html" %}
+            </aside>
+            <!-- Filters accordion (mobile) -->
+            <div class="fr-col-12 fr-hidden-md fr-mb-3w">
+                <section class="fr-accordion">
+                    <h3 class="fr-accordion__title">
+                        <button type="button"
+                                class="fr-accordion__btn"
+                                aria-expanded="false"
+                                aria-controls="filters-mobile-content">Filtrer les résultats</button>
+                    </h3>
+                    <div class="fr-collapse" id="filters-mobile-content">{% include "candidate/components/_filters_content.html" %}</div>
+                </section>
+            </div>
+            <!-- Results zone -->
+            <div class="fr-col-12 fr-col-md-8" id="results-zone">
+                <div class="fr-mb-3w">
+                    <span class="fr-h4 csplab-text-blue-france">
+                        {{ results_count|default:0 }} résultat{{ results_count|pluralize:"s" }}
+                    </span>
+                    {% if results_count %}<span class="fr-ml-2w">Triés par pertinence</span>{% endif %}
+                </div>
+                <div id="results-list">
+                    {% if results %}
+                        {% for result in results %}<p>{{ result.title }}</p>{% endfor %}
+                    {% else %}
+                        <p class="fr-text--sm fr-text--disabled">Aucun résultat pour le moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock main %}
