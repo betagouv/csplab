@@ -61,18 +61,18 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
     breadcrumb_current = "Résultat de l'analyse du CV"
     breadcrumb_links: list[BreadcrumbLink] = []
 
-    def get_context_data(self, **kwargs: object) -> dict[str, object]:
-        """Add mock data for results display."""
-        context = super().get_context_data(**kwargs)
-        context["cv_name"] = "CV Adelle Mortelle.pdf"
-        context["results"] = [
+    def _get_mock_results(self) -> list[dict[str, str]]:
+        """Return mock results data."""
+        return [
             {
                 "type": "offer",
                 "title": "Chef de projet transformation numérique",
-                "description": "Pilotage de projets de modernisation des \
-                  systèmes d'information.",
+                "description": "Pilotage de projets de modernisation des "
+                "systèmes d'information.",
                 "location": "Paris",
+                "location_value": "paris",
                 "category": "Catégorie A",
+                "category_value": "a",
                 "versant": "État",
                 "job_type": "Ingénieur des systèmes d'information",
                 "url": "#",
@@ -80,10 +80,11 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             {
                 "type": "concours",
                 "title": "Concours d'attaché d'administration de l'État",
-                "description": "Recrutement d'attachés pour les ministères économiques \
-                    et financiers.",
+                "description": "Recrutement d'attachés pour les ministères "
+                "économiques et financiers.",
                 "concours_type": "Externe",
                 "category": "Catégorie A",
+                "category_value": "a",
                 "versant": "État",
                 "job_type": "Attaché d'administration",
                 "url": "#",
@@ -93,14 +94,50 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
                 "title": "Responsable des ressources humaines",
                 "description": "Gestion des carrières et accompagnement des agents.",
                 "location": "Lyon",
+                "location_value": "lyon",
                 "category": "Catégorie A",
+                "category_value": "a",
                 "versant": "Territoriale",
                 "job_type": "Attaché territorial",
                 "url": "#",
             },
+            {
+                "type": "offer",
+                "title": "Technicien informatique",
+                "description": "Support et maintenance des systèmes.",
+                "location": "Paris",
+                "location_value": "paris",
+                "category": "Catégorie B",
+                "category_value": "b",
+                "versant": "État",
+                "job_type": "Technicien",
+                "url": "#",
+            },
         ]
+
+    def _filter_results(self, results: list[dict[str, str]]) -> list[dict[str, str]]:
+        """Filter results based on GET parameters."""
+        location = self.request.GET.get("filter-location")
+        category = self.request.GET.get("filter-category")
+
+        filtered = results
+        if location:
+            filtered = [r for r in filtered if r.get("location_value") == location]
+        if category:
+            filtered = [r for r in filtered if r.get("category_value") == category]
+
+        return filtered
+
+    def get_context_data(self, **kwargs: object) -> dict[str, object]:
+        """Add mock data for results display."""
+        context = super().get_context_data(**kwargs)
+        context["cv_name"] = "CV Adelle Mortelle.pdf"
+
+        all_results = self._get_mock_results()
+        context["results"] = self._filter_results(all_results)
         context["results_count"] = len(context["results"])
         context["location_options"] = [
+            {"value": "", "text": "Toutes les localisations"},
             {"value": "paris", "text": "Paris"},
             {"value": "lyon", "text": "Lyon"},
             {"value": "marseille", "text": "Marseille"},
@@ -111,6 +148,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             "text": "Sélectionner une localisation",
         }
         context["category_options"] = [
+            {"value": "", "text": "Toutes les catégories"},
             {"value": "a", "text": "Catégorie A"},
             {"value": "b", "text": "Catégorie B"},
             {"value": "c", "text": "Catégorie C"},
@@ -124,4 +162,12 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             {"label": "Fonction publique Territoriale"},
             {"label": "Fonction publique Hospitalière"},
         ]
+        context["cv_uuid"] = self.kwargs.get("cv_uuid")
+        context["results_target_id"] = "results-zone"
         return context
+
+    def get_template_names(self) -> list[str]:
+        """Return partial template for htmx requests."""
+        if self.request.headers.get("HX-Request"):
+            return ["candidate/components/_results_list.html"]
+        return [self.template_name]

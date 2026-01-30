@@ -1,4 +1,4 @@
-{% load static dsfr_tags %}
+{% load static dsfr_tags django_htmx %}
 <!DOCTYPE html>
 <html lang="{% block lang %}fr{% endblock lang %}"
       class="no-js"
@@ -53,6 +53,7 @@
             {% dsfr_theme_modale %}
         {% endblock theme_modale %}
         {% dsfr_js nonce=request.csp_nonce %}
+        {% htmx_script %}
         {% block page_js %}
         {% endblock page_js %}
     </body>
