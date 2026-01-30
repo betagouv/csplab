@@ -169,13 +169,13 @@ def _create_ingestion_container(
         postgres_document_repo = PostgresDocumentRepository()
         container.document_persister.override(postgres_document_repo)
 
-        postgres_corps_repo = PostgresCorpsRepository()
+        postgres_corps_repo = PostgresCorpsRepository(logger_service)
         container.shared_container.corps_repository.override(postgres_corps_repo)
 
-        postgres_concours_repo = PostgresConcoursRepository()
+        postgres_concours_repo = PostgresConcoursRepository(logger_service)
         container.shared_container.concours_repository.override(postgres_concours_repo)
 
-        postgres_offers_repo = PostgresOffersRepository()
+        postgres_offers_repo = PostgresOffersRepository(logger_service)
         container.shared_container.offers_repository.override(postgres_offers_repo)
 
         pgvector_repo = PgVectorRepository()

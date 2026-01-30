@@ -1,6 +1,6 @@
 """Concours repository interface definitions."""
 
-from typing import List, Optional, Protocol
+from typing import List, Protocol
 
 from domain.entities.concours import Concours
 from domain.repositories.document_repository_interface import IUpsertResult
@@ -13,7 +13,7 @@ class IConcoursRepository(Protocol):
         """Insert or update multiple Concours entities and return operation results."""
         ...
 
-    def find_by_id(self, concours_id: int) -> Optional[Concours]:
+    def find_by_id(self, concours_id: int) -> Concours:
         """Find a Concours by its ID."""
         ...
 

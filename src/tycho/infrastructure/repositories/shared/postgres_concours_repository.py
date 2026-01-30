@@ -1,18 +1,26 @@
 """Django implementation of IConcoursRepository."""
 
-from typing import List, Optional
+from typing import List
 
 from domain.entities.concours import Concours
+from domain.exceptions.concours_errors import ConcoursDoesNotExist
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.document_repository_interface import (
     IUpsertError,
     IUpsertResult,
 )
+from domain.services.logger_interface import ILogger
 from infrastructure.django_apps.shared.models.concours import ConcoursModel
 
 
 class PostgresConcoursRepository(IConcoursRepository):
     """Django ORM implementation of IConcoursRepository."""
+
+    def __init__(self, logger: ILogger):
+        """Initialize with logger."""
+        self.logger = logger.get_logger(
+            "INGESTION::REPOSITORY::PostgresConcoursRepository"
+        )
 
     def upsert_batch(self, concours_list: List[Concours]) -> IUpsertResult:
         """Insert or update multiple Concours entities and return operation results."""
@@ -45,6 +53,9 @@ class PostgresConcoursRepository(IConcoursRepository):
                     updated += 1
 
             except Exception as e:
+                self.logger.error(
+                    f"Failed to save Concours entity {entity.id}: {str(e)}"
+                )
                 error_detail: IUpsertError = {
                     "entity_id": entity.id,
                     "error": str(e),
@@ -54,13 +65,13 @@ class PostgresConcoursRepository(IConcoursRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_id(self, concours_id: int) -> Optional[Concours]:
+    def find_by_id(self, concours_id: int) -> Concours:
         """Find a Concours by its ID."""
         try:
             concours_model = ConcoursModel.objects.get(id=concours_id)
             return concours_model.to_entity()
-        except ConcoursModel.DoesNotExist:
-            return None
+        except ConcoursModel.DoesNotExist as e:
+            raise ConcoursDoesNotExist(concours_id) from e
 
     def get_all(self) -> List[Concours]:
         """Get all Concours entities."""

@@ -52,7 +52,12 @@ def shared_container_fixture():
     )
     container.config.override(openai_gateway_config)
 
-    postgres_corps_repository = postgres_corps_repo.PostgresCorpsRepository()
+    logger_service = LoggerService()
+    container.logger_service.override(logger_service)
+
+    postgres_corps_repository = postgres_corps_repo.PostgresCorpsRepository(
+        logger_service
+    )
     container.corps_repository.override(postgres_corps_repository)
 
     pgvector_repository = pgvector_repo.PgVectorRepository()

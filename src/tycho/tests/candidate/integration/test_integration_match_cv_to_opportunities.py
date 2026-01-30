@@ -59,7 +59,13 @@ class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):
         self.container.shared_container.override(self.shared_container)
 
         # Override with Django repositories
-        postgres_concours_repository = pg_concours_repo.PostgresConcoursRepository()
+        logger_service = LoggerService()
+        self.container.logger_service.override(logger_service)
+        self.shared_container.logger_service.override(logger_service)
+
+        postgres_concours_repository = pg_concours_repo.PostgresConcoursRepository(
+            logger_service
+        )
         self.shared_container.concours_repository.override(postgres_concours_repository)
 
         pgvector_repository = pgvector_repo.PgVectorRepository()
@@ -72,9 +78,6 @@ class TestIntegrationMatchCVToOpportunitiesUsecase(TransactionTestCase):
 
         mock_embedding_generator = MockEmbeddingGenerator(self.embedding_fixtures)
         self.shared_container.embedding_generator.override(mock_embedding_generator)
-
-        logger_service = LoggerService()
-        self.container.logger_service.override(logger_service)
 
         self.match_cv_to_opportunities_usecase = (
             self.container.match_cv_to_opportunities_usecase()

@@ -1,18 +1,26 @@
 """Django Corps repository implementation."""
 
-from typing import List, Optional
+from typing import List
 
 from domain.entities.corps import Corps
+from domain.exceptions.corps_errors import CorpsDoesNotExist
 from domain.repositories.corps_repository_interface import ICorpsRepository
 from domain.repositories.document_repository_interface import (
     IUpsertError,
     IUpsertResult,
 )
+from domain.services.logger_interface import ILogger
 from infrastructure.django_apps.shared.models.corps import CorpsModel
 
 
 class PostgresCorpsRepository(ICorpsRepository):
     """Django ORM implementation of Corps repository."""
+
+    def __init__(self, logger: ILogger):
+        """Initialize with logger."""
+        self.logger = logger.get_logger(
+            "INGESTION::REPOSITORY::PostgresCorpsRepository"
+        )
 
     def upsert_batch(self, corps: List[Corps]) -> IUpsertResult:
         """Insert or update multiple Corps entities and return operation results."""
@@ -43,6 +51,7 @@ class PostgresCorpsRepository(ICorpsRepository):
                 else:
                     updated += 1
             except Exception as e:
+                self.logger.error(f"Failed to save Corps entity {entity.id}: {str(e)}")
                 error_detail: IUpsertError = {
                     "entity_id": entity.id,
                     "error": str(e),
@@ -56,13 +65,13 @@ class PostgresCorpsRepository(ICorpsRepository):
             "errors": errors,
         }
 
-    def find_by_id(self, corps_id: int) -> Optional[Corps]:
+    def find_by_id(self, corps_id: int) -> Corps:
         """Find a Corps by its ID."""
         try:
             corps_model = CorpsModel.objects.get(id=corps_id)
             return corps_model.to_entity()
-        except CorpsModel.DoesNotExist:
-            return None
+        except CorpsModel.DoesNotExist as e:
+            raise CorpsDoesNotExist(corps_id) from e
 
     def get_all(self) -> List[Corps]:
         """Get all Corps entities."""

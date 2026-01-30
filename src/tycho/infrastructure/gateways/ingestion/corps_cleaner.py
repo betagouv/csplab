@@ -11,7 +11,7 @@ from domain.exceptions.corps_errors import (
     InvalidDiplomaLevelError,
 )
 from domain.exceptions.document_error import InvalidDocumentTypeError
-from domain.services.document_cleaner_interface import IDocumentCleaner
+from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
@@ -34,8 +34,8 @@ class CorpsCleaner(IDocumentCleaner[Corps]):
         """Initialize with logger dependency."""
         self.logger = logger.get_logger("CorpsCleaner::clean")
 
-    def clean(self, raw_documents: List[Document]) -> List[Corps]:
-        """Clean raw documents and return Corps entities."""
+    def clean(self, raw_documents: List[Document]) -> CleaningResult[Corps]:
+        """Clean raw documents and return cleaning result with entities and errors."""
         for document in raw_documents:
             if document.type != DocumentType.CORPS:
                 raise InvalidDocumentTypeError(document.type.value)
@@ -46,11 +46,15 @@ class CorpsCleaner(IDocumentCleaner[Corps]):
             if parsed_data:
                 corps_data.append(parsed_data)
 
+        if not corps_data:
+            return CleaningResult(entities=[], cleaning_errors=[])
+
         df = pl.DataFrame(corps_data)
 
         df_filtered = self._apply_filters(df)
 
-        return self._dataframe_to_corps(df_filtered)
+        corps_list = self._dataframe_to_corps(df_filtered)
+        return CleaningResult(entities=corps_list, cleaning_errors=[])
 
     def _parse_corps_data(self, raw_data: dict) -> Optional[dict]:
         """Parse raw corps data into structured format."""

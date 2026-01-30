@@ -30,7 +30,9 @@ class OfferModel(models.Model):
 
     id = models.AutoField(primary_key=True)
     external_id = models.CharField(max_length=100, unique=True)
-    verse = models.CharField(max_length=20, choices=VERSE_CHOICES)
+    verse = models.CharField(
+        max_length=20, choices=VERSE_CHOICES, null=True, blank=True
+    )
     title = models.CharField(max_length=500)
     profile = models.TextField()
     mission = models.TextField()
@@ -129,7 +131,7 @@ class OfferModel(models.Model):
         return cls(
             id=offer.id,
             external_id=offer.external_id,
-            verse=offer.verse.value,
+            verse=offer.verse.value if offer.verse else None,
             title=offer.title,
             profile=offer.profile,
             mission=offer.mission,
