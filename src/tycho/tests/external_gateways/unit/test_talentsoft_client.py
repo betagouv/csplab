@@ -161,10 +161,10 @@ class TestGetOffers:
             assert len(offers) == len(response_data["data"])
             assert has_more == expected_has_more
             # Verify that we get TalentsoftOffer objects with correct references
-            expected_references = [
+            expected_references = {
                 offer["reference"] for offer in response_data["data"]
-            ]
-            actual_references = [offer.reference for offer in offers]
+            }
+            actual_references = {offer.reference for offer in offers}
             assert actual_references == expected_references
             mock_get.assert_called_once()
 
@@ -223,10 +223,10 @@ class TestGetOffers:
             # Compare the number of offers and their references
             assert len(offers) == len(response_data["data"])
             # Verify that we get TalentsoftOffer objects with correct references
-            expected_references = [
+            expected_references = {
                 offer["reference"] for offer in response_data["data"]
-            ]
-            actual_references = [offer.reference for offer in offers]
+            }
+            actual_references = {offer.reference for offer in offers}
             assert actual_references == expected_references
             assert mock_get.call_count == 2  # noqa - First failed, second succeeded
             mock_post.assert_called_once()  # Token refresh called

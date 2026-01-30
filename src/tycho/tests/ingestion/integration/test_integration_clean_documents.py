@@ -1,14 +1,12 @@
 """Integration tests for CleanDocuments usecase with external adapters."""
 
 import pytest
+from django.apps import apps
 
 from domain.entities.document import DocumentType
 from domain.exceptions.concours_errors import ConcoursDoesNotExist
 from domain.exceptions.corps_errors import CorpsDoesNotExist
 from domain.exceptions.offer_errors import OfferDoesNotExist
-from infrastructure.django_apps.shared.models.concours import ConcoursModel
-from infrastructure.django_apps.shared.models.corps import CorpsModel
-from infrastructure.django_apps.shared.models.offer import OfferModel
 from tests.fixtures.clean_test_factories import (
     create_test_concours_document,
     create_test_corps_document,
@@ -19,6 +17,18 @@ from tests.fixtures.vectorize_test_factories import create_test_offer_for_integr
 # Test constants
 DOCUMENTS_COUNT = 2
 MIXED_DOCUMENTS_COUNT = 3
+
+DOCUMENT_TYPE_MODEL_MAP = {
+    DocumentType.CORPS: "CorpsModel",
+    DocumentType.CONCOURS: "ConcoursModel",
+    DocumentType.OFFERS: "OfferModel",
+}
+
+DOCUMENT_FACTORY_MAP = {
+    DocumentType.CORPS: create_test_corps_document,
+    DocumentType.CONCOURS: create_test_concours_document,
+    DocumentType.OFFERS: create_test_offer_document,
+}
 
 
 @pytest.mark.parametrize(
@@ -41,13 +51,8 @@ def test_execute_handles_empty_documents(
     assert result["errors"] == 0
 
     # Verify no entities are saved
-    if document_type == DocumentType.CORPS:
-        saved_entities = CorpsModel.objects.all()
-    elif document_type == DocumentType.CONCOURS:
-        saved_entities = ConcoursModel.objects.all()
-    else:
-        saved_entities = OfferModel.objects.all()
-    assert saved_entities.count() == 0
+    model_class = apps.get_model("shared", DOCUMENT_TYPE_MODEL_MAP[document_type])
+    assert model_class.objects.count() == 0
 
 
 @pytest.mark.parametrize(
@@ -63,12 +68,7 @@ def test_execute_updates_existing_entities(
     # Create raw document in database using repository
     document_repository = ingestion_integration_container.document_persister()
 
-    if document_type == DocumentType.CORPS:
-        document = create_test_corps_document(1)
-    elif document_type == DocumentType.CONCOURS:
-        document = create_test_concours_document(1)
-    else:
-        document = create_test_offer_document(1)
+    document = DOCUMENT_FACTORY_MAP[document_type](1)
 
     document_repository.upsert_batch([document], document_type)
 
@@ -83,12 +83,9 @@ def test_execute_updates_existing_entities(
     assert result2["updated"] == 1
 
     # Verify only one entity exists
-    if document_type == DocumentType.CORPS:
-        saved_entities = CorpsModel.objects.all()
-    elif document_type == DocumentType.CONCOURS:
-        saved_entities = ConcoursModel.objects.all()
-    else:
-        saved_entities = OfferModel.objects.all()
+    model_class = apps.get_model("shared", DOCUMENT_TYPE_MODEL_MAP[document_type])
+    saved_entities = model_class.objects.all()
+
     assert len(saved_entities) == 1
 
 
