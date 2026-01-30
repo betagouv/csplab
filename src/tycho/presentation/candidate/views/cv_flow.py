@@ -65,7 +65,40 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         """Add mock data for results display."""
         context = super().get_context_data(**kwargs)
         context["cv_name"] = "CV Adelle Mortelle.pdf"
-        context["results"] = []
+        context["results"] = [
+            {
+                "type": "offer",
+                "title": "Chef de projet transformation numérique",
+                "description": "Pilotage de projets de modernisation des \
+                  systèmes d'information.",
+                "location": "Paris",
+                "category": "Catégorie A",
+                "versant": "État",
+                "job_type": "Ingénieur des systèmes d'information",
+                "url": "#",
+            },
+            {
+                "type": "concours",
+                "title": "Concours d'attaché d'administration de l'État",
+                "description": "Recrutement d'attachés pour les ministères économiques \
+                    et financiers.",
+                "concours_type": "Externe",
+                "category": "Catégorie A",
+                "versant": "État",
+                "job_type": "Attaché d'administration",
+                "url": "#",
+            },
+            {
+                "type": "offer",
+                "title": "Responsable des ressources humaines",
+                "description": "Gestion des carrières et accompagnement des agents.",
+                "location": "Lyon",
+                "category": "Catégorie A",
+                "versant": "Territoriale",
+                "job_type": "Attaché territorial",
+                "url": "#",
+            },
+        ]
         context["results_count"] = len(context["results"])
         context["location_options"] = [
             {"value": "paris", "text": "Paris"},

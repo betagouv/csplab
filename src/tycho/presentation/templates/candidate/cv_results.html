@@ -33,21 +33,7 @@
                 </section>
             </div>
             <!-- Results zone -->
-            <div class="fr-col-12 fr-col-md-8" id="results-zone">
-                <div class="fr-mb-3w">
-                    <span class="fr-h4 csplab-text-blue-france">
-                        {{ results_count|default:0 }} résultat{{ results_count|pluralize:"s" }}
-                    </span>
-                    {% if results_count %}<span class="fr-ml-2w">Triés par pertinence</span>{% endif %}
-                </div>
-                <div id="results-list">
-                    {% if results %}
-                        {% for result in results %}<p>{{ result.title }}</p>{% endfor %}
-                    {% else %}
-                        <p class="fr-text--sm fr-text--disabled">Aucun résultat pour le moment.</p>
-                    {% endif %}
-                </div>
-            </div>
+            <div class="fr-col-12 fr-col-md-8" id="results-zone">{% include "candidate/components/_results_list.html" %}</div>
         </div>
     </div>
 {% endblock main %}
