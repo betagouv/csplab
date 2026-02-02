@@ -11,6 +11,7 @@ from domain.repositories.async_cv_metadata_repository_interface import (
 from domain.services.logger_interface import ILogger
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
 from domain.services.query_builder_interface import IQueryBuilder
+from domain.value_objects.cv_processing_status import CVStatus
 
 
 class ProcessUploadedCVUsecase:
@@ -82,12 +83,15 @@ class ProcessUploadedCVUsecase:
 
         self._logger.info("Search query built successfully")
 
+        now = datetime.now()
         cv_metadata = CVMetadata(
             id=uuid4(),
             filename=filename,
+            status=CVStatus.COMPLETED,
+            created_at=now,
+            updated_at=now,
             extracted_text=extracted_text_dict,
             search_query=search_query,
-            created_at=datetime.now(),
         )
 
         # Use native async repository method - no more sync_to_async wrapper!

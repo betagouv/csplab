@@ -59,6 +59,12 @@ class MatchCVToOpportunitiesUsecase:
         if not cv_metadata:
             raise CVNotFoundError(cv_id)  # should not happen
 
+        if not cv_metadata.search_query:
+            self._logger.warning(
+                f"CV {cv_id} has no search query, returning empty results"
+            )
+            return []
+
         query_embedding = self._embedding_generator.generate_embedding(
             cv_metadata.search_query
         )
