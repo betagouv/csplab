@@ -1,12 +1,13 @@
 """External document fetcher implementation."""
 
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Tuple, cast
 
 from domain.entities.document import Document, DocumentType
 from domain.repositories.document_repository_interface import IDocumentFetcher
 from domain.services.http_client_interface import IHttpClient
 from domain.services.logger_interface import ILogger
+from domain.types import JsonDataType
 from infrastructure.external_gateways.dtos.ingres_corps_dtos import (
     IngresCorpsApiResponse,
 )
@@ -40,25 +41,27 @@ class ExternalDocumentFetcher(IDocumentFetcher):
     ) -> Tuple[List[Document], bool]:
         """Fetch documents from external source."""
         self.logger.info(f"Fetching documents of type {document_type}")
+
         source = self._source.get(document_type)
         if not source:
             raise ValueError(f"No fetch source for {document_type}")
+
         raw_documents, has_more = source(document_type, start)
         now = datetime.now()
+
         documents = []
         if document_type == DocumentType.CORPS:
-            # Use Pydantic validation for INGRES data
-            validated_response = IngresCorpsApiResponse.from_list(raw_documents)
+            typed_raw_documents = cast(List[dict], raw_documents)
+            validated_response = IngresCorpsApiResponse.from_list(typed_raw_documents)
+
             for validated_doc in validated_response.documents:
                 document = Document(
                     id=int(validated_doc.identifiant),
-                    external_id=str(
-                        validated_doc.identifiant
-                    ),  # Use identifiant as external_id for CORPS
+                    external_id=str(validated_doc.identifiant),
                     raw_data=validated_doc.model_dump(),
                     type=document_type,
-                    created_at=now,  # Temporary timestamp, will be updated by persister
-                    updated_at=now,  # Temporary timestamp, will be updated by persister
+                    created_at=now,
+                    updated_at=now,
                 )
                 documents.append(document)
 
@@ -66,7 +69,7 @@ class ExternalDocumentFetcher(IDocumentFetcher):
 
     def _fetch_ingres_api(
         self, document_type: DocumentType, start: int = 1
-    ) -> Tuple[List[dict], bool]:
+    ) -> Tuple[List[JsonDataType], bool]:
         document_type_map = {
             DocumentType.CORPS: "CORPS",
             DocumentType.GRADE: "GRADE",
@@ -84,4 +87,4 @@ class ExternalDocumentFetcher(IDocumentFetcher):
         self.logger.info(f"Found {len(raw_documents)} documents")
 
         has_more = False
-        return raw_documents, has_more
+        return cast(List[JsonDataType], raw_documents), has_more
