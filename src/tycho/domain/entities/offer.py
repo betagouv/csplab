@@ -20,7 +20,7 @@ class Offer(IEntity):
 
     id: int
     external_id: str
-    verse: Verse
+    verse: Optional[Verse]
     title: str
     profile: str
     mission: str

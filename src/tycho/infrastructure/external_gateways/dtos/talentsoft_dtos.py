@@ -1,9 +1,9 @@
 """Pydantic models for FO Talentsoft API endpoints."""
 
 from time import time
-from typing import Optional
+from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from domain.types import JsonDataType
 
@@ -31,8 +31,76 @@ class CachedToken(BaseModel):
         return (self.expires_at_epoch - leeway_seconds) > time()
 
 
-class TalentsoftOffersResponse(BaseModel):
-    """Offers response content."""
+class TalentsoftCodedObject(BaseModel):
+    """Base class for all TalentSoft coded objects."""
 
-    data: JsonDataType
-    pagination: JsonDataType
+    code: int
+    clientCode: str
+    label: str
+    active: bool
+    parentCode: Optional[int] = None
+    type: str
+    parentType: str = ""
+    hasChildren: bool = False
+
+
+class TalentsoftLink(BaseModel):
+    """TalentSoft _links object."""
+
+    href: str
+    rel: str
+
+
+class TalentsoftOffer(BaseModel):
+    """Complete TalentSoft offer DTO with strict validation."""
+
+    # Mandatory fields
+    reference: str
+    isTopOffer: bool
+    title: str
+    organisationName: str
+    organisationDescription: str
+    organisationLogoUrl: str
+    modificationDate: str
+    startPublicationDate: str
+    offerUrl: str
+
+    # Mandatory coded objects
+    offerFamilyCategory: TalentsoftCodedObject
+    contractTypeCountry: TalentsoftCodedObject
+
+    # Mandatory arrays (can be empty)
+    geographicalLocation: List[TalentsoftCodedObject] = []
+    country: List[TalentsoftCodedObject] = []
+    region: List[TalentsoftCodedObject] = []
+    department: List[TalentsoftCodedObject] = []
+    _links: List[TalentsoftLink] = []
+
+    # Optional text fields
+    location: Optional[str] = None
+    description1: Optional[str] = None
+    description2: Optional[str] = None
+    description1Formatted: Optional[str] = None
+    description2Formatted: Optional[str] = None
+    beginningDate: Optional[str] = None
+    contractDuration: Optional[str] = None
+
+    # Optional coded objects
+    contractType: Optional[TalentsoftCodedObject] = None
+    salaryRange: Optional[TalentsoftCodedObject] = None
+    professionalCategory: Optional[TalentsoftCodedObject] = None
+
+    # Optional coordinates
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+    # Optional redirect URLs
+    urlRedirectionEmployee: Optional[str] = None
+    urlRedirectionApplicant: Optional[str] = None
+
+
+class TalentsoftOffersResponse(BaseModel):
+    """TalentSoft offers API response with typed data."""
+
+    data: List[TalentsoftOffer]
+    pagination: JsonDataType = Field(alias="_pagination")

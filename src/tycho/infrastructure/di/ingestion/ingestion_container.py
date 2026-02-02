@@ -33,6 +33,9 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     shared_container = providers.DependenciesContainer()
 
+    # Wire the logger_service to the shared_container
+    shared_container.logger_service.override(logger_service)
+
     corps_repository = shared_container.corps_repository
     concours_repository = shared_container.concours_repository
     offers_repository = shared_container.offers_repository
@@ -65,6 +68,7 @@ class IngestionContainer(containers.DeclarativeContainer):
         RepositoryFactory,
         corps_repository=corps_repository,
         concours_repository=concours_repository,
+        offers_repository=offers_repository,
     )
 
     document_cleaner: providers.Provider[IDocumentCleaner[IEntity]] = (

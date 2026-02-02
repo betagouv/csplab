@@ -10,7 +10,7 @@ from domain.entities.concours import Concours
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.corps_errors import InvalidMinistryError
 from domain.exceptions.document_error import InvalidDocumentTypeError
-from domain.services.document_cleaner_interface import IDocumentCleaner
+from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
@@ -49,14 +49,14 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
         """Initialize with logger dependency."""
         self.logger = logger.get_logger("ConcoursCleaner::clean")
 
-    def clean(self, raw_documents: List[Document]) -> List[Concours]:
-        """Clean raw documents and return Concours entities."""
+    def clean(self, raw_documents: List[Document]) -> CleaningResult[Concours]:
+        """Clean raw documents and return cleaning result with entities and errors."""
         for document in raw_documents:
             if document.type != DocumentType.CONCOURS:
                 raise InvalidDocumentTypeError(document.type.value)
 
         if not raw_documents:
-            return []
+            return CleaningResult(entities=[], cleaning_errors=[])
 
         concours_data = []
         for document in raw_documents:
@@ -65,14 +65,14 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
                 concours_data.append(parsed_data)
 
         if not concours_data:
-            return []
+            return CleaningResult(entities=[], cleaning_errors=[])
 
         df = pl.DataFrame(concours_data, infer_schema_length=None)
         df_filtered = self._apply_filters(df)
         df_processed = self._process_concours_data(df_filtered)
         concours_list = self._dataframe_to_concours(df_processed)
 
-        return concours_list
+        return CleaningResult(entities=concours_list, cleaning_errors=[])
 
     def _parse_concours_data(self, raw_data: dict) -> Optional[dict]:
         """Parse raw concours data into structured format."""

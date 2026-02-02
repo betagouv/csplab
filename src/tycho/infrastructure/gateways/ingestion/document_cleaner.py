@@ -1,6 +1,6 @@
 """Document cleaner factory."""
 
-from typing import List, Sequence
+from typing import List
 
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import (
@@ -8,10 +8,11 @@ from domain.exceptions.document_error import (
     UnsupportedDocumentTypeError,
 )
 from domain.interfaces.entity_interface import IEntity
-from domain.services.document_cleaner_interface import IDocumentCleaner
+from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from infrastructure.gateways.ingestion.concours_cleaner import ConcoursCleaner
 from infrastructure.gateways.ingestion.corps_cleaner import CorpsCleaner
+from infrastructure.gateways.ingestion.offers_cleaner import OffersCleaner
 
 
 class DocumentCleaner(IDocumentCleaner[IEntity]):
@@ -25,12 +26,13 @@ class DocumentCleaner(IDocumentCleaner[IEntity]):
         self._cleaners = {
             DocumentType.CORPS: CorpsCleaner(logger),
             DocumentType.CONCOURS: ConcoursCleaner(logger),
+            DocumentType.OFFERS: OffersCleaner(logger),
         }
 
-    def clean(self, raw_documents: List[Document]) -> Sequence[IEntity]:
+    def clean(self, raw_documents: List[Document]) -> CleaningResult[IEntity]:
         """Clean documents using the appropriate cleaner based on document type."""
         if not raw_documents:
-            return []
+            return CleaningResult(entities=[], cleaning_errors=[])
 
         document_types = {doc.type for doc in raw_documents}
         if len(document_types) > 1:
