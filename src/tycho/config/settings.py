@@ -1,5 +1,6 @@
 """Django settings for tycho project."""
 
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.postgres",
     "rest_framework",
+    "rest_framework_simplejwt",
     "django_htmx",
     "dsfr",
     "infrastructure.django_apps.shared",
@@ -194,7 +196,15 @@ LOGGING = {
 
 # Django REST Framework
 REST_FRAMEWORK = {
-    "EXCEPTION_HANDLER": "config.exception_handler.custom_exception_handler"
+    "EXCEPTION_HANDLER": "config.exception_handler.custom_exception_handler",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
 # Sentry
