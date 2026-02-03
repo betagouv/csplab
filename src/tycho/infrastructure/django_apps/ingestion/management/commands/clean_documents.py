@@ -16,7 +16,11 @@ class Command(BaseCommand):
         parser.add_argument(
             "--type",
             required=True,
-            choices=["CORPS", "CONCOURS"],
+            choices=[
+                DocumentType.CORPS.value,
+                DocumentType.CONCOURS.value,
+                DocumentType.OFFERS.value,
+            ],
             help="Type of documents to clean",
         )
 
