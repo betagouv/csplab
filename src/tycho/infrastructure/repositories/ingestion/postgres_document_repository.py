@@ -1,6 +1,6 @@
 """Django document repository implementation."""
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from django.db import DatabaseError, transaction
 
@@ -15,10 +15,13 @@ from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 class PostgresDocumentRepository(IDocumentRepository):
     """Complete document repository using Django ORM."""
 
-    def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
+    def fetch_by_type(
+        self, document_type: DocumentType, start: int
+    ) -> Tuple[List[Document], bool]:
         """Fetch documents from Django database by type."""
         raw_documents = RawDocument.objects.filter(document_type=document_type.value)
-        return [raw_doc.to_entity() for raw_doc in raw_documents]
+        has_more = False
+        return [raw_doc.to_entity() for raw_doc in raw_documents], has_more
 
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
@@ -71,11 +74,12 @@ class PostgresDocumentRepository(IDocumentRepository):
                         updated_obj = RawDocument.from_entity(doc)
                         updated_obj.id = existing_obj.id
                         updated_obj.created_at = existing_obj.created_at
+                        updated_obj.raw_data = doc.raw_data
                         obj_to_update.append(updated_obj)
 
                     updated = RawDocument.objects.bulk_update(
                         obj_to_update,
-                        fields=["document_type", "raw_data"],
+                        fields=["document_type", "raw_data", "created_at"],
                     )
 
             return {"created": created, "updated": updated, "errors": []}

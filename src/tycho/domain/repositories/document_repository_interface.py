@@ -1,6 +1,6 @@
 """Document repository interface and composite implementation."""
 
-from typing import Any, List, Protocol, TypedDict
+from typing import Any, List, Protocol, Tuple, TypedDict
 
 from domain.entities.document import Document, DocumentType
 
@@ -8,7 +8,9 @@ from domain.entities.document import Document, DocumentType
 class IDocumentFetcher(Protocol):
     """Interface for fetching documents from external sources."""
 
-    def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
+    def fetch_by_type(
+        self, document_type: DocumentType, start: int
+    ) -> Tuple[List[Document], bool]:
         """Fetch documents from external source by type."""
         ...
 
@@ -42,7 +44,9 @@ class IDocumentPersister(Protocol):
 class IDocumentRepository(Protocol):
     """Interface for document repository operations."""
 
-    def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
+    def fetch_by_type(
+        self, document_type: DocumentType, start: int
+    ) -> Tuple[List[Document], bool]:
         """Fetch documents by type."""
         ...
 
@@ -61,9 +65,11 @@ class CompositeDocumentRepository(IDocumentRepository):
         self.fetcher = fetcher
         self.persister = persister
 
-    def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
+    def fetch_by_type(
+        self, document_type: DocumentType, start: int
+    ) -> Tuple[List[Document], bool]:
         """Fetch documents by type using external fetcher."""
-        return self.fetcher.fetch_by_type(document_type)
+        return self.fetcher.fetch_by_type(document_type, start)
 
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType

@@ -1,19 +1,17 @@
 """Unit tests for TalentsoftClient."""
 
-from time import time
-from typing import Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from faker import Faker
-from httpx import Response
 from pydantic import HttpUrl
 
-from domain.types import JsonDataType
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.dtos.talentsoft_dtos import CachedToken
+from infrastructure.external_gateways.configs.talentsoft_config import (
+    TalentsoftGatewayConfig,
+)
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
-from tests.fixtures.fixture_loader import load_fixture
+from tests.external_gateways.utils import cached_token, mocked_response, offers_response
 
 fake = Faker()
 
@@ -24,42 +22,17 @@ def talentsoft_client_fixture():
     logger_service = Mock()
     logger_service.get_logger.return_value = Mock()
 
-    return TalentsoftFrontClient(
+    config = TalentsoftGatewayConfig(
         base_url=HttpUrl(fake.url()),
         client_id=fake.uuid4(),
         client_secret=fake.uuid4(),
+    )
+
+    return TalentsoftFrontClient(
+        config=config,
         logger_service=logger_service,
         timeout=30,
     )
-
-
-def cached_token(access_token: Optional[str] = None, expire_in: int = 3600):
-    """Create a cached token."""
-    return CachedToken(
-        access_token=fake.uuid4() if access_token is None else access_token,
-        token_type=fake.word().capitalize(),
-        expires_at_epoch=time() + expire_in,
-        refresh_token=fake.uuid4(),
-    )
-
-
-def offers_response(count: int = 2, has_more: bool = False):
-    """Create offers response."""
-    offers = load_fixture("offers_talentsoft_20260124.json")[:count]
-    offers_response = {
-        "data": offers,
-        "_pagination": {"count": count, "hasMore": has_more},
-    }
-    return offers_response
-
-
-def mocked_response(status_code: int = 200, return_value: JsonDataType = None):
-    """Create a mocked response."""
-    response = Mock(spec=Response)
-    response.status_code = status_code
-    response.json.return_value = return_value
-    response.raise_for_status = Mock(return_value=None)
-    return response
 
 
 class TestGetAccessToken:
@@ -141,32 +114,6 @@ class TestGetAccessToken:
 
 class TestGetOffers:
     """Tests for get_offers method."""
-
-    # direct infrastructure testing to be removed when `load_documents_usecase`
-    # will be implemented
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize("expected_has_more", [True, False])
-    async def test_get_offers(self, talentsoft_client, expected_has_more):
-        """Test successful get_offers call returns offers and pagination info."""
-        response_data = offers_response(has_more=expected_has_more)
-        mock_response = mocked_response(return_value=response_data)
-
-        talentsoft_client.cached_token = cached_token()
-
-        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = mock_response
-            offers, has_more = await talentsoft_client.get_offers()
-
-            # Compare the number of offers and their references
-            assert len(offers) == len(response_data["data"])
-            assert has_more == expected_has_more
-            # Verify that we get TalentsoftOffer objects with correct references
-            expected_references = {
-                offer["reference"] for offer in response_data["data"]
-            }
-            actual_references = {offer.reference for offer in offers}
-            assert actual_references == expected_references
-            mock_get.assert_called_once()
 
     # Edge cases
     @pytest.mark.asyncio
