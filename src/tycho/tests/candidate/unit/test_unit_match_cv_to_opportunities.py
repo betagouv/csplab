@@ -11,6 +11,7 @@ from domain.entities.vectorized_document import VectorizedDocument
 from domain.exceptions.cv_errors import CVNotFoundError
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
+from domain.value_objects.cv_processing_status import CVStatus
 from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
 from infrastructure.di.candidate.candidate_container import CandidateContainer
@@ -59,12 +60,15 @@ class TestUnitMatchCVToOpportunitiesUsecase(unittest.TestCase):
         # Create test CV metadata
         cv_id = uuid4()
         search_query = list(self.embedding_fixtures.values())[0]["long_label"]
+        now = datetime.now()
         cv_metadata = CVMetadata(
             id=cv_id,
             filename="test_cv.pdf",
+            status=CVStatus.COMPLETED,
+            created_at=now,
+            updated_at=now,
             extracted_text={"experiences": ["Developer"]},
             search_query=search_query,
-            created_at=datetime.now(),
         )
         postgres_cv_metadata_repository.save(cv_metadata)
 
@@ -178,12 +182,15 @@ class TestUnitMatchCVToOpportunitiesUsecase(unittest.TestCase):
 
         # Create CV metadata but no concours
         cv_id = uuid4()
+        now = datetime.now()
         cv_metadata = CVMetadata(
             id=cv_id,
             filename="empty_test_cv.pdf",
+            status=CVStatus.COMPLETED,
+            created_at=now,
+            updated_at=now,
             extracted_text={"skills": [], "experiences": []},
             search_query="non-matching query",
-            created_at=datetime.now(),
         )
         postgres_cv_metadata_repository.save(cv_metadata)
 
