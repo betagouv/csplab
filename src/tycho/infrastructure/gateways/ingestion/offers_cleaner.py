@@ -58,9 +58,14 @@ class OffersCleaner(IDocumentCleaner[Offer]):
                     f"Validation failed for offer{talentsoft_offer.reference}: {e}"
                 )
                 self.logger.error(error_msg)
+                ts_verse = (
+                    talentsoft_offer.salaryRange.clientCode
+                    if talentsoft_offer.salaryRange
+                    else "UNK"
+                )
                 cleaning_errors.append(
                     {
-                        "entity_id": f"{talentsoft_offer.reference}",
+                        "entity_id": f"{ts_verse}-{talentsoft_offer.reference}",
                         "error": str(e),
                     }
                 )
@@ -73,7 +78,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         ts_verse = (
             talentsoft_offer.salaryRange.clientCode
             if talentsoft_offer.salaryRange
-            else None
+            else "UNK"
         )
         verse = self._map_verse(ts_verse)
         # Map contract type
