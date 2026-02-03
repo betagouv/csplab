@@ -26,7 +26,9 @@ def create_ingestion_container() -> IngestionContainer:
     """Create an isolated container for each request to avoid concurrency issues."""
     env = environ.Env()
 
+    logger_service = LoggerService("ingestion")
     shared_container = SharedContainer()
+    shared_container.logger_service.override(logger_service)
     openai_config = OpenAIConfig(
         api_key=cast(str, env.str("TYCHO_OPENROUTER_API_KEY")),
         base_url=cast(HttpUrl, env.str("TYCHO_OPENROUTER_BASE_URL")),
@@ -45,7 +47,6 @@ def create_ingestion_container() -> IngestionContainer:
     piste_gateway_config = PisteGatewayConfig(piste_config)
     container.config.override(piste_gateway_config)
 
-    logger_service = LoggerService("ingestion")
     container.logger_service.override(logger_service)
 
     talentsoft_gateway_config = TalentsoftGatewayConfig(
