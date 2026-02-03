@@ -30,6 +30,8 @@ class Region(BaseModel):
         "03",  # Guyane
         "04",  # La Réunion
         "06",  # Mayotte
+        "DOM",  # Overseas regions placeholder
+        "TOM",  # Overseas territories placeholder
     }
 
     @field_validator("code")
