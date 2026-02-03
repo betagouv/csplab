@@ -112,7 +112,13 @@ class Department(BaseModel):
         "972",
         "973",
         "974",
+        "975",  # Saint-Pierre-et-Miquelon
         "976",
+        "986",  # Wallis-et-Futuna
+        "987",  # Polynésie française
+        "988",  # Nouvelle-Calédonie
+        "SPM",  # Saint-Pierre-et-Miquelon (code alternatif)
+        "WLF",  # Wallis-et-Futuna (code alternatif)
     }
 
     @field_validator("code")

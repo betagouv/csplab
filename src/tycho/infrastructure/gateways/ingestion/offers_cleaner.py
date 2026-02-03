@@ -58,8 +58,16 @@ class OffersCleaner(IDocumentCleaner[Offer]):
                     f"Validation failed for offer{talentsoft_offer.reference}: {e}"
                 )
                 self.logger.error(error_msg)
+                ts_verse = (
+                    talentsoft_offer.salaryRange.clientCode
+                    if talentsoft_offer.salaryRange
+                    else "UNK"
+                )
                 cleaning_errors.append(
-                    {"entity_id": talentsoft_offer.reference, "error": str(e)}
+                    {
+                        "entity_id": f"{ts_verse}-{talentsoft_offer.reference}",
+                        "error": str(e),
+                    }
                 )
 
         return CleaningResult(entities=offers_list, cleaning_errors=cleaning_errors)
@@ -67,12 +75,12 @@ class OffersCleaner(IDocumentCleaner[Offer]):
     def _map_talentsoft_to_offer(self, talentsoft_offer: TalentsoftOffer) -> Offer:
         """Map a validated TalentSoft DTO to an Offer entity."""
         # Extract verse from salaryRange if available
-        verse = self._map_verse(
+        ts_verse = (
             talentsoft_offer.salaryRange.clientCode
             if talentsoft_offer.salaryRange
-            else None
+            else "UNK"
         )
-
+        verse = self._map_verse(ts_verse)
         # Map contract type
         contract_type = self._map_contract_type(
             talentsoft_offer.contractType.clientCode
@@ -99,7 +107,9 @@ class OffersCleaner(IDocumentCleaner[Offer]):
 
         return Offer(
             id=offer_id,
-            external_id=talentsoft_offer.reference,
+            external_id=f"{ts_verse}-{talentsoft_offer.reference}"
+            if ts_verse
+            else talentsoft_offer.reference,
             verse=verse,
             title=talentsoft_offer.title,
             profile=talentsoft_offer.description2 or "",
@@ -155,15 +165,25 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             return None  # todo: test
 
         # Transform TalentSoft codes to INSEE codes
-        # Region codes: R24 -> 24
-        insee_region_code = (
-            region_code.lstrip("R") if region_code.startswith("R") else region_code
-        )
+        # Region codes: R24 -> 24, _TS_CO_Region_DOM -> DOM, _TS_CO_Region_TOM -> TOM
+        if region_code.startswith("_TS_CO_Region_"):
+            insee_region_code = region_code.replace("_TS_CO_Region_", "")
+        elif region_code.startswith("R"):
+            insee_region_code = region_code.lstrip("R")
+        else:
+            insee_region_code = region_code
+
+        # Transform TalentSoft department codes to INSEE codes
+        # Department codes: _TS_CO_Department_NouvelleCaldonie988 -> 988
+        if department_code.startswith("_TS_CO_Department_NouvelleCaldonie988"):
+            insee_department_code = "988"
+        else:
+            insee_department_code = department_code
 
         return Localisation(
             country=Country(country_code),
             region=Region(code=insee_region_code),
-            department=Department(code=department_code),
+            department=Department(code=insee_department_code),
         )
 
     def _parse_url(self, url_str: str) -> Optional[HttpUrl]:
