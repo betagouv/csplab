@@ -5,8 +5,6 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from domain.types import JsonDataType
-
 
 class TalentsoftTokenResponse(BaseModel):
     """Raw token response content."""
@@ -99,8 +97,19 @@ class TalentsoftOffer(BaseModel):
     urlRedirectionApplicant: Optional[str] = None
 
 
+class TalentsoftPagination(BaseModel):
+    """Pagination information from Talentsoft API."""
+
+    start: int
+    count: int
+    total: int
+    resultsPerPage: int
+    hasMore: bool
+    lastPage: int
+
+
 class TalentsoftOffersResponse(BaseModel):
     """TalentSoft offers API response with typed data."""
 
     data: List[TalentsoftOffer]
-    pagination: JsonDataType = Field(alias="_pagination")
+    pagination: TalentsoftPagination = Field(alias="_pagination")

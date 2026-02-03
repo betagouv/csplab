@@ -1,7 +1,7 @@
 """In-memory implementation of document repository for testing."""
 
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 from domain.entities.document import Document, DocumentType
 from domain.repositories.document_repository_interface import (
@@ -19,9 +19,12 @@ class InMemoryDocumentRepository(IDocumentRepository):
         self._documents: List[Document] = []
         self._next_id = 1
 
-    def fetch_by_type(self, document_type: DocumentType) -> List[Document]:
+    def fetch_by_type(
+        self, document_type: DocumentType, start: int
+    ) -> Tuple[List[Document], bool]:
         """Get documents by type."""
-        return [doc for doc in self._documents if doc.type == document_type]
+        has_more = False
+        return [doc for doc in self._documents if doc.type == document_type], has_more
 
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType

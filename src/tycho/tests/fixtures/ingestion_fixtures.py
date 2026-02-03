@@ -16,6 +16,10 @@ from infrastructure.external_gateways.configs.piste_config import (
     PisteConfig,
     PisteGatewayConfig,
 )
+from infrastructure.external_gateways.configs.talentsoft_config import (
+    TalentsoftGatewayConfig,
+)
+from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
 from infrastructure.gateways.ingestion import load_documents_strategy_factory
 from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
@@ -41,6 +45,13 @@ from tests.utils.in_memory_vector_repository import InMemoryVectorRepository
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 fake = Faker()
+
+
+@pytest.fixture(name="logger_service")
+def logger_service_fixture():
+    """Setup logger service for tests."""
+    return LoggerService()
+
 
 # DATAS
 
@@ -130,12 +141,30 @@ def openai_gateway_config_fixture():
     )
 
 
+# CLIENTS
+
+
+@pytest.fixture(name="talentsoft_front_client")
+def talentsoft_front_client_fixture(logger_service):
+    """Setup talentsoft front client for usecase and tests."""
+    config = TalentsoftGatewayConfig(
+        base_url=HttpUrl(fake.url()),
+        client_id=fake.uuid4(),
+        client_secret=fake.word(),
+    )
+    return TalentsoftFrontClient(
+        config=config,
+        logger_service=logger_service,
+    )
+
+
 # CONTAINERS
 
 
 def _create_ingestion_container(
     piste_gateway_config: PisteGatewayConfig,
     openai_gateway_config: OpenAIGatewayConfig,
+    talentsoft_front_client: TalentsoftFrontClient,
     in_memory: bool = True,
 ):
     """Factory function to create ingestion containers with specified configuration."""
@@ -187,14 +216,21 @@ def _create_ingestion_container(
         http_client = SyncHttpClient()
         container.http_client.override(http_client)
 
+        container.talentsoft_front_client.override(talentsoft_front_client)
+
     return container
 
 
 @pytest.fixture(name="ingestion_container")
-def ingestion_container_fixture(piste_gateway_config, openai_gateway_config):
+def ingestion_container_fixture(
+    piste_gateway_config, openai_gateway_config, talentsoft_front_client
+):
     """Set up ingestion container with in-memory repositories for unit tests."""
     return _create_ingestion_container(
-        piste_gateway_config, openai_gateway_config, in_memory=True
+        piste_gateway_config,
+        openai_gateway_config,
+        talentsoft_front_client,
+        in_memory=True,
     )
 
 
@@ -216,11 +252,16 @@ def documents_ingestion_container_fixture(ingestion_container):
 
 @pytest.fixture(name="ingestion_integration_container")
 def ingestion_integration_container_fixture(
-    piste_gateway_config, openai_gateway_config
+    piste_gateway_config,
+    openai_gateway_config,
+    talentsoft_front_client,
 ):
     """Set up ingestion container with Django persistence for integration tests."""
     return _create_ingestion_container(
-        piste_gateway_config, openai_gateway_config, in_memory=False
+        piste_gateway_config,
+        openai_gateway_config,
+        talentsoft_front_client,
+        in_memory=False,
     )
 
 

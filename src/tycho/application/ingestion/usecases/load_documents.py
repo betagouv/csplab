@@ -32,9 +32,22 @@ class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
     def execute(self, input_data: LoadDocumentsInput) -> IUpsertResult:
         """Execute the usecase to load and persist documents."""
         strategy = self.strategy_factory.create(input_data.operation_type)
-        documents = strategy.load_documents(**input_data.kwargs)
-
         document_type = cast(DocumentType, input_data.kwargs.get("document_type"))
+        has_more = True
+        batch_result: IUpsertResult = {"created": 0, "updated": 0, "errors": []}
 
-        result = self.document_repository.upsert_batch(documents, document_type)
-        return result
+        if "start" not in input_data.kwargs.keys():
+            input_data.kwargs["start"] = 1
+
+        while has_more:
+            documents, has_more = strategy.load_documents(**input_data.kwargs)
+            result = self.document_repository.upsert_batch(documents, document_type)
+
+            batch_result["created"] += result["created"]
+            batch_result["updated"] += result["updated"]
+            batch_result["errors"].extend(result["errors"])
+
+            if has_more:
+                input_data.kwargs["start"] += 1
+
+        return batch_result

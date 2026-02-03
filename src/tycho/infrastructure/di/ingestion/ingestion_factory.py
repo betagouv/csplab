@@ -3,6 +3,7 @@
 from typing import cast
 
 import environ
+from django.conf import settings
 from pydantic import HttpUrl
 
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
@@ -14,6 +15,9 @@ from infrastructure.external_gateways.configs.openai_config import (
 from infrastructure.external_gateways.configs.piste_config import (
     PisteConfig,
     PisteGatewayConfig,
+)
+from infrastructure.external_gateways.configs.talentsoft_config import (
+    TalentsoftGatewayConfig,
 )
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -43,6 +47,13 @@ def create_ingestion_container() -> IngestionContainer:
 
     logger_service = LoggerService("ingestion")
     container.logger_service.override(logger_service)
+
+    talentsoft_gateway_config = TalentsoftGatewayConfig(
+        base_url=HttpUrl(settings.TALENTSOFT_BASE_URL),
+        client_id=settings.TALENTSOFT_CLIENT_ID,
+        client_secret=settings.TALENTSOFT_CLIENT_SECRET,
+    )
+    container.talentsoft_gateway_config.override(talentsoft_gateway_config)
 
     container.shared_container.override(shared_container)
 
