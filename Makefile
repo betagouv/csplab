@@ -205,8 +205,8 @@ test: \
 .PHONY: test
 
 test-tycho: ## test tycho python sources
-	@echo 'test:tychostarted…'
-	$(TYCHO_UV) pytest --numprocesses=logical --create-db
+	@echo 'test:tycho started…'
+	$(TYCHO_UV) pytest --numprocesses=logical --create-db $(ARGS)
 .PHONY: test-tycho
 
 ## MANAGE docker services
