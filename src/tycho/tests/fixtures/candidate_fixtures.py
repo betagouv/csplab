@@ -1,8 +1,13 @@
 """Shared fixtures for candidate tests."""
 
+from uuid import UUID
+
 import pytest
+from django.utils import timezone
 from pydantic import HttpUrl
 
+from domain.entities.cv_metadata import CVMetadata
+from domain.value_objects.cv_processing_status import CVStatus
 from domain.value_objects.pdf_extractor_type import PDFExtractorType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.external_gateways.configs.albert_config import AlbertConfig
@@ -103,3 +108,17 @@ def openai_integration_container_fixture(pdf_extractor_configs):
 def pdf_content_fixture():
     """Valid PDF content for testing."""
     return create_minimal_valid_pdf()
+
+
+@pytest.fixture(name="cv_metadata_initial")
+def cv_metadata_initial_fixture():
+    """Initial CV metadata for testing."""
+    cv_id = UUID("123e4567-e89b-12d3-a456-426614174000")
+    now = timezone.now()
+    return CVMetadata(
+        id=cv_id,
+        filename="test_cv.pdf",
+        status=CVStatus.PENDING,
+        created_at=now,
+        updated_at=now,
+    ), cv_id

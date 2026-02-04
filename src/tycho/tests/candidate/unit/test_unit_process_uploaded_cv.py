@@ -1,49 +1,118 @@
 """Unit test cases for ProcessUploadedCVUsecase."""
 
+import json
+from uuid import UUID
+
 import pytest
 
-from domain.exceptions.cv_errors import InvalidPDFError
+from domain.entities.cv_metadata import CVMetadata
+from domain.exceptions.cv_errors import CVNotFoundError, TextExtractionError
+from domain.value_objects.cv_processing_status import CVStatus
+from tests.utils.mock_api_response_factory import MockApiResponseFactory
 
 
 @pytest.mark.parametrize(
-    "container_name", ["albert_candidate_container", "openai_candidate_container"]
+    "container_name",
+    ["albert_candidate_container", "openai_candidate_container"],
 )
-@pytest.mark.asyncio
-async def test_execute_with_invalid_pdf_raises_invalid_pdf_error(
-    request, container_name
+async def test_execute_with_valid_pdf_updates_cv_metadatas(
+    httpx_mock, request, pdf_content, container_name, cv_metadata_initial
 ):
-    """Test that invalid PDF content raises InvalidPDFError."""
+    """Test that valid PDF is processed and saved to real database."""
     container = request.getfixturevalue(container_name)
+    extractor_type = "albert" if "albert" in container_name else "openai"
 
-    pdf_content = b"This is not a PDF file"
-    filename = "invalid.pdf"
+    mock_response = MockApiResponseFactory.create_ocr_api_response(
+        experiences=[("Software Engineer", "Tech Corp")],
+        skills=["Python", "Django"],
+        description="5 years in Python development",
+    )
+
+    # Configuration spécifique selon l'extracteur
+    if extractor_type == "albert":
+        api_url = "https://albert.api.etalab.gouv.fr/v1/ocr-beta"
+        response_json = mock_response
+    else:  # openai
+        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        response_json = {
+            "choices": [{"message": {"content": json.dumps(mock_response)}}]
+        }
+
+    httpx_mock.add_response(
+        method="POST",
+        url=api_url,
+        json=response_json,
+        status_code=200,
+    )
+    # Unpack fixture data
+    initial_cv, cv_id = cv_metadata_initial
+
+    # Prepopulate the repository
+    repo = container.async_cv_metadata_repository()
+    await repo.save(initial_cv)
 
     usecase = container.process_uploaded_cv_usecase()
 
-    with pytest.raises(InvalidPDFError) as exc_info:
-        await usecase.execute(filename, pdf_content)
-
-    assert exc_info.value.filename == filename
-    cv_repo = container.async_cv_metadata_repository()
-    assert cv_repo.count() == 0
+    result = await usecase.execute(cv_id, pdf_content)
+    assert isinstance(result, CVMetadata)
+    assert result.status == CVStatus.COMPLETED
 
 
 @pytest.mark.parametrize(
-    "container_name", ["albert_candidate_container", "openai_candidate_container"]
+    "container_name",
+    ["albert_candidate_container", "openai_candidate_container"],
 )
-@pytest.mark.asyncio
-async def test_execute_with_empty_pdf_raises_invalid_pdf_error(request, container_name):
-    """Test that empty PDF content raises InvalidPDFError."""
+async def test_execute_cv_metadatas_not_found(request, pdf_content, container_name):
+    """Test that CVNotFoundError is raised when CV metadata doesn't exist."""
     container = request.getfixturevalue(container_name)
+    cv_id = UUID("00000000-0000-0000-0000-000000000000")  # UUID that doesn't exist
 
-    pdf_content = b""
-    filename = "empty.pdf"
+    usecase = container.process_uploaded_cv_usecase()
+    with pytest.raises(CVNotFoundError):
+        await usecase.execute(cv_id, pdf_content)
+
+
+@pytest.mark.parametrize(
+    "container_name",
+    ["albert_candidate_container", "openai_candidate_container"],
+)
+async def test_execute_ocr_error(
+    httpx_mock, request, pdf_content, container_name, cv_metadata_initial
+):
+    """Test that valid PDF is processed and saved to real database."""
+    container = request.getfixturevalue(container_name)
+    extractor_type = "albert" if "albert" in container_name else "openai"
+
+    mock_response = MockApiResponseFactory.create_ocr_api_response(
+        experiences=[],
+        skills=[],
+        description="",
+    )
+
+    # Configuration spécifique selon l'extracteur
+    if extractor_type == "albert":
+        api_url = "https://albert.api.etalab.gouv.fr/v1/ocr-beta"
+        response_json = mock_response
+    else:  # openai
+        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        response_json = {
+            "choices": [{"message": {"content": json.dumps(mock_response)}}]
+        }
+
+    httpx_mock.add_response(
+        method="POST",
+        url=api_url,
+        json=response_json,
+        status_code=200,
+    )
+    # Unpack fixture data
+    initial_cv, cv_id = cv_metadata_initial
+
+    # Prepopulate the repository
+    repo = container.async_cv_metadata_repository()
+    await repo.save(initial_cv)
 
     usecase = container.process_uploaded_cv_usecase()
 
-    with pytest.raises(InvalidPDFError) as exc_info:
-        await usecase.execute(filename, pdf_content)
-
-    assert exc_info.value.filename == filename
-    cv_repo = container.async_cv_metadata_repository()
-    assert cv_repo.count() == 0
+    with pytest.raises(TextExtractionError):
+        await usecase.execute(cv_id, pdf_content)

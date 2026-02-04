@@ -1,24 +1,24 @@
 """Integration tests for ProcessUploadedCVUsecase with Django persistence."""
 
 import json
-from datetime import datetime
 from uuid import UUID
 
 import pytest
 
 from domain.entities.cv_metadata import CVMetadata
-from domain.exceptions.cv_errors import TextExtractionError
-from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
+from domain.exceptions.cv_errors import CVNotFoundError
+from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 
 
 @pytest.mark.parametrize(
-    "container_name", ["albert_integration_container", "openai_integration_container"]
+    "container_name",
+    ["albert_integration_container", "openai_integration_container"],
 )
 @pytest.mark.django_db
-async def test_execute_with_valid_pdf_saves_to_database(
-    httpx_mock, request, pdf_content, container_name
+async def test_execute_with_valid_pdf_updates_cv_metadatas(
+    httpx_mock, request, pdf_content, container_name, cv_metadata_initial
 ):
     """Test that valid PDF is processed and saved to real database."""
     container = request.getfixturevalue(container_name)
@@ -46,35 +46,43 @@ async def test_execute_with_valid_pdf_saves_to_database(
         json=response_json,
         status_code=200,
     )
+    # Unpack fixture data
+    initial_cv, cv_id = cv_metadata_initial
+
+    # Prepopulate the repository
+    repo = container.async_cv_metadata_repository()
+    await repo.save(initial_cv)
 
     usecase = container.process_uploaded_cv_usecase()
-    filename = f"{extractor_type}_integration_test_cv.pdf"
-    result = await usecase.execute(filename, pdf_content)
 
-    assert isinstance(result, str)
-    cv_id = UUID(result)
+    result = await usecase.execute(cv_id, pdf_content)
+    assert isinstance(result, CVMetadata)
+    assert result.status == CVStatus.COMPLETED
 
-    cv_model = await CVMetadataModel.objects.aget(id=cv_id)
-    assert cv_model.filename == filename
-    assert cv_model.extracted_text == mock_response
-    assert "software engineer" in cv_model.search_query
-    assert isinstance(cv_model.created_at, datetime)
 
-    cv_entity = cv_model.to_entity()
-    assert isinstance(cv_entity, CVMetadata)
-    assert cv_entity.id == cv_id
-    assert cv_entity.filename == filename
-    assert cv_entity.extracted_text == mock_response
+@pytest.mark.parametrize(
+    "container_name",
+    ["albert_integration_container", "openai_integration_container"],
+)
+@pytest.mark.django_db
+async def test_execute_cv_metadatas_not_found(request, pdf_content, container_name):
+    """Test that CVNotFoundError is raised when CV metadata doesn't exist."""
+    container = request.getfixturevalue(container_name)
+    cv_id = UUID("00000000-0000-0000-0000-000000000000")  # UUID that doesn't exist
+
+    usecase = container.process_uploaded_cv_usecase()
+    with pytest.raises(CVNotFoundError):
+        await usecase.execute(cv_id, pdf_content)
 
 
 @pytest.mark.parametrize(
     "container_name", ["albert_integration_container", "openai_integration_container"]
 )
 @pytest.mark.django_db
-async def test_execute_with_api_failure_does_not_save_to_database(
-    httpx_mock, request, pdf_content, container_name
+async def test_execute_with_api_failure_saves_failed_status_to_database(
+    httpx_mock, request, pdf_content, container_name, cv_metadata_initial
 ):
-    """Test that API failure raises error and doesn't save to database."""
+    """Test that API failure raises error and saves CV with FAILED status to DB."""
     container = request.getfixturevalue(container_name)
     extractor_type = "albert" if "albert" in container_name else "openai"
 
@@ -95,53 +103,20 @@ async def test_execute_with_api_failure_does_not_save_to_database(
             status_code=500,
         )
 
-    filename = f"{extractor_type}_test.pdf"
-    initial_count = await CVMetadataModel.objects.acount()
+    # Unpack fixture data
+    initial_cv, cv_id = cv_metadata_initial
+
+    # Prepopulate the repository with PENDING status
+    repo = container.async_cv_metadata_repository()
+    await repo.save(initial_cv)
+
+    usecase = container.process_uploaded_cv_usecase()
 
     with pytest.raises(ExternalApiError):
-        usecase = container.process_uploaded_cv_usecase()
-        await usecase.execute(filename, pdf_content)
+        await usecase.execute(cv_id, pdf_content)
 
-    final_count = await CVMetadataModel.objects.acount()
-    assert initial_count == final_count
-
-
-@pytest.mark.parametrize(
-    "container_name", ["albert_integration_container", "openai_integration_container"]
-)
-@pytest.mark.django_db
-async def test_execute_with_empty_experiences_does_not_save_to_database(
-    httpx_mock, request, pdf_content, container_name
-):
-    """Test that empty experiences raises error and doesn't save to database."""
-    container = request.getfixturevalue(container_name)
-    extractor_type = "albert" if "albert" in container_name else "openai"
-
-    mock_response = MockApiResponseFactory.create_empty_response()
-
-    # Configuration spécifique selon l'extracteur
-    if extractor_type == "albert":
-        api_url = "https://albert.api.etalab.gouv.fr/v1/ocr-beta"
-        response_json = mock_response
-    else:  # openai
-        api_url = "https://openrouter.ai/api/v1/chat/completions"
-        response_json = {
-            "choices": [{"message": {"content": json.dumps(mock_response)}}]
-        }
-
-    httpx_mock.add_response(
-        method="POST",
-        url=api_url,
-        json=response_json,
-        status_code=200,
-    )
-
-    filename = f"empty_experiences_{extractor_type}.pdf"
-    initial_count = await CVMetadataModel.objects.acount()
-
-    with pytest.raises(TextExtractionError):
-        usecase = container.process_uploaded_cv_usecase()
-        await usecase.execute(filename, pdf_content)
-
-    final_count = await CVMetadataModel.objects.acount()
-    assert initial_count == final_count
+    # Verify that CV metadata was saved with FAILED status
+    updated_cv = await repo.find_by_id(cv_id)
+    assert updated_cv is not None
+    assert updated_cv.status == CVStatus.FAILED
+    assert updated_cv.updated_at > initial_cv.updated_at
