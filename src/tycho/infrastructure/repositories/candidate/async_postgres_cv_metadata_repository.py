@@ -6,6 +6,7 @@ from uuid import UUID
 from django.core.exceptions import ObjectDoesNotExist
 
 from domain.entities.cv_metadata import CVMetadata
+from domain.exceptions.cv_errors import CVNotFoundError
 from domain.repositories.async_cv_metadata_repository_interface import (
     IAsyncCVMetadataRepository,
 )
@@ -46,8 +47,8 @@ class AsyncPostgresCVMetadataRepository(IAsyncCVMetadataRepository):
         try:
             model = await CVMetadataModel.objects.aget(id=cv_id)
             return model.to_entity()
-        except ObjectDoesNotExist:
-            return None
+        except ObjectDoesNotExist as e:
+            raise CVNotFoundError(str(cv_id)) from e
 
     def count(self) -> int:
         """Count total CV metadata records.

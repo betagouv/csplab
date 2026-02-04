@@ -62,12 +62,23 @@ class ProcessUploadedCVUsecase:
             self._logger.error(f"CV metadata not found for ID: {cv_id}")
             raise CVNotFoundError(str(cv_id))
 
-        extracted_text = await self._pdf_text_extractor.extract_text(pdf_content)
+        extracted_text = None
+        try:
+            extracted_text = await self._pdf_text_extractor.extract_text(pdf_content)
+        except Exception as e:
+            self._logger.error(f"Text extraction failed: {str(e)}")
+            cv_metadata.status = CVStatus.FAILED
+            cv_metadata.updated_at = datetime.now()
+            await self._async_cv_metadata_repository.save(cv_metadata)
+            raise e
 
         if not extracted_text or (
             not extracted_text.experiences and not extracted_text.skills
         ):
             self._logger.error("No structured content found in PDF")
+            cv_metadata.status = CVStatus.FAILED
+            cv_metadata.updated_at = datetime.now()
+            await self._async_cv_metadata_repository.save(cv_metadata)
             raise TextExtractionError(
                 cv_metadata.filename, "No structured content found in PDF"
             )
@@ -77,8 +88,6 @@ class ProcessUploadedCVUsecase:
             f"{len(extracted_text.experiences)}"
             f"skills: {len(extracted_text.skills)}"
         )
-
-        # Convert CVExtractionResult to dict for query builder compatibility
         extracted_text_dict = extracted_text.model_dump()
         search_query = self._query_builder.build_query(extracted_text_dict)
 

@@ -6,6 +6,7 @@ from uuid import UUID
 from django.core.exceptions import ObjectDoesNotExist
 
 from domain.entities.cv_metadata import CVMetadata
+from domain.exceptions.cv_errors import CVNotFoundError
 from domain.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
 )
@@ -46,5 +47,5 @@ class PostgresCVMetadataRepository(ICVMetadataRepository):
         try:
             model = CVMetadataModel.objects.get(id=cv_id)
             return model.to_entity()
-        except ObjectDoesNotExist:
-            return None
+        except ObjectDoesNotExist as e:
+            raise CVNotFoundError(str(cv_id)) from e

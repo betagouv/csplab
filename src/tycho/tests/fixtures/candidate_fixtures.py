@@ -1,9 +1,9 @@
 """Shared fixtures for candidate tests."""
 
-from datetime import datetime
 from uuid import UUID
 
 import pytest
+from django.utils import timezone
 from pydantic import HttpUrl
 
 from domain.entities.cv_metadata import CVMetadata
@@ -114,10 +114,11 @@ def pdf_content_fixture():
 def cv_metadata_initial_fixture():
     """Initial CV metadata for testing."""
     cv_id = UUID("123e4567-e89b-12d3-a456-426614174000")
+    now = timezone.now()
     return CVMetadata(
         id=cv_id,
         filename="test_cv.pdf",
         status=CVStatus.PENDING,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=now,
+        updated_at=now,
     ), cv_id
