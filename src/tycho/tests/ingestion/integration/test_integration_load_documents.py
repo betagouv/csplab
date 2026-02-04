@@ -4,9 +4,11 @@ from datetime import datetime
 
 import pytest
 import responses
+from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
@@ -241,6 +243,20 @@ class TestConcoursUploadView(APITestCase):
     def setUp(self):
         """Set up test environment."""
         self.concours_upload_url = "/ingestion/concours/upload/"
+        # Create a test user for authenticated tests
+        self.user = User.objects.create_user(
+            username=fake.name(), email=fake.email(), password=fake.password()
+        )
+
+    def _get_jwt_token(self, user):
+        """Generate JWT token for the given user."""
+        refresh = RefreshToken.for_user(user)
+        return str(refresh.access_token)
+
+    def _authenticate_client(self, user):
+        """Authenticate the test client with JWT token."""
+        token = self._get_jwt_token(user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
     def _create_valid_csv_content(self):
         """Create valid CSV content for testing."""
@@ -266,8 +282,21 @@ class TestConcoursUploadView(APITestCase):
             filename, content.encode("utf-8"), content_type="text/csv"
         )
 
+    def test_unauthenticated_access_returns_401(self):
+        """Test that unauthenticated requests return 401."""
+        # Ensure client is not authenticated
+        self.client.logout()
+
+        valid_csv = self._create_csv_file(self._create_valid_csv_content())
+        response = self.client.post(
+            self.concours_upload_url, {"file": valid_csv}, format="multipart"
+        )
+
+        self.assertEqual(response.status_code, 401)
+
     def test_no_file_provided(self):
         """Test error when no file is provided."""
+        self._authenticate_client(self.user)
         response = self.client.post(self.concours_upload_url, {}, format="multipart")
 
         self.assertEqual(response.status_code, 400)
@@ -275,6 +304,7 @@ class TestConcoursUploadView(APITestCase):
 
     def test_invalid_file_format(self):
         """Test error when file is not CSV."""
+        self._authenticate_client(self.user)
         txt_file = SimpleUploadedFile(
             "test.txt", b"not a csv file", content_type="text/plain"
         )
@@ -288,6 +318,7 @@ class TestConcoursUploadView(APITestCase):
 
     def test_validation_errors(self):
         """Test handling of validation errors in CSV data."""
+        self._authenticate_client(self.user)
         invalid_csv = self._create_csv_file(self._create_invalid_csv_content())
 
         response = self.client.post(
@@ -301,6 +332,7 @@ class TestConcoursUploadView(APITestCase):
 
     def test_success_response(self):
         """Test successful CSV upload and processing."""
+        self._authenticate_client(self.user)
         valid_csv = self._create_csv_file(self._create_valid_csv_content())
 
         response = self.client.post(
