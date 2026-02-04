@@ -3,6 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
+from domain.entities.cv_metadata import CVMetadata
 from domain.exceptions.cv_errors import CVNotFoundError, TextExtractionError
 from domain.repositories.async_cv_metadata_repository_interface import (
     IAsyncCVMetadataRepository,
@@ -38,7 +39,7 @@ class ProcessUploadedCVUsecase:
             "CANDIDATE::APPLICATION::ProcessUploadedCVUsecase::execute"
         )
 
-    async def execute(self, cv_id: UUID, pdf_content: bytes) -> str:
+    async def execute(self, cv_id: UUID, pdf_content: bytes) -> CVMetadata:
         """Execute the processing of uploaded CV.
 
         Args:
@@ -92,4 +93,4 @@ class ProcessUploadedCVUsecase:
         # Save updated CV metadata
         saved_cv = await self._async_cv_metadata_repository.save(cv_metadata)
         self._logger.info(f"CV metadata updated with status: {saved_cv.status}")
-        return str(saved_cv.id)
+        return saved_cv

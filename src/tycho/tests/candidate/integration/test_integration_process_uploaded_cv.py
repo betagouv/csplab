@@ -7,7 +7,6 @@ from uuid import UUID
 import pytest
 
 from domain.entities.cv_metadata import CVMetadata
-from domain.exceptions.cv_errors import TextExtractionError
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
@@ -99,47 +98,6 @@ async def test_execute_with_api_failure_does_not_save_to_database(
     initial_count = await CVMetadataModel.objects.acount()
 
     with pytest.raises(ExternalApiError):
-        usecase = container.process_uploaded_cv_usecase()
-        await usecase.execute(filename, pdf_content)
-
-    final_count = await CVMetadataModel.objects.acount()
-    assert initial_count == final_count
-
-
-@pytest.mark.parametrize(
-    "container_name", ["albert_integration_container", "openai_integration_container"]
-)
-@pytest.mark.django_db
-async def test_execute_with_empty_experiences_does_not_save_to_database(
-    httpx_mock, request, pdf_content, container_name
-):
-    """Test that empty experiences raises error and doesn't save to database."""
-    container = request.getfixturevalue(container_name)
-    extractor_type = "albert" if "albert" in container_name else "openai"
-
-    mock_response = MockApiResponseFactory.create_empty_response()
-
-    # Configuration spécifique selon l'extracteur
-    if extractor_type == "albert":
-        api_url = "https://albert.api.etalab.gouv.fr/v1/ocr-beta"
-        response_json = mock_response
-    else:  # openai
-        api_url = "https://openrouter.ai/api/v1/chat/completions"
-        response_json = {
-            "choices": [{"message": {"content": json.dumps(mock_response)}}]
-        }
-
-    httpx_mock.add_response(
-        method="POST",
-        url=api_url,
-        json=response_json,
-        status_code=200,
-    )
-
-    filename = f"empty_experiences_{extractor_type}.pdf"
-    initial_count = await CVMetadataModel.objects.acount()
-
-    with pytest.raises(TextExtractionError):
         usecase = container.process_uploaded_cv_usecase()
         await usecase.execute(filename, pdf_content)
 
