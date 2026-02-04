@@ -1,1 +1,1 @@
-"""Tycho project."""
+"""Tycho project settings."""
