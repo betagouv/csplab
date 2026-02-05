@@ -37,6 +37,7 @@ class CVUploadView(BreadcrumbMixin, FormView):
             cv_file.size,
         )
         messages.success(self.request, "Votre CV a été validé avec succès !")
+        # todo redirect cv_processing
         return super().form_valid(form)
 
     def form_invalid(self, form: CVUploadForm) -> HttpResponse:

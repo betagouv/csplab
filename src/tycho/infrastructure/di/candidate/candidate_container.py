@@ -2,6 +2,9 @@
 
 from dependency_injector import containers, providers
 
+from application.candidate.usecases.initialize_cv_metadata import (
+    InitializeCVMetadataUsecase,
+)
 from application.candidate.usecases.match_cv_to_opportunities import (
     MatchCVToOpportunitiesUsecase,
 )
@@ -63,6 +66,11 @@ class CandidateContainer(containers.DeclarativeContainer):
         embedding_generator=embedding_generator,
         corps_repository=corps_repository,
         logger=logger_service,
+    )
+
+    initialize_cv_metadata_usecase = providers.Factory(
+        InitializeCVMetadataUsecase,
+        cv_metadata_repository=postgres_cv_metadata_repository,
     )
 
     process_uploaded_cv_usecase = providers.Factory(

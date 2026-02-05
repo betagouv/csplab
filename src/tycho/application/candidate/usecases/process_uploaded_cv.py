@@ -39,28 +39,27 @@ class ProcessUploadedCVUsecase:
             "CANDIDATE::APPLICATION::ProcessUploadedCVUsecase::execute"
         )
 
-    async def execute(self, cv_id: UUID, pdf_content: bytes) -> CVMetadata:
+    async def execute(self, cv_uuid: UUID, pdf_content: bytes) -> CVMetadata:
         """Execute the processing of uploaded CV.
 
         Args:
-            cv_id: UUID of the existing CV metadata
+            cv_uuid: UUID of the existing CV metadata
             pdf_content: PDF file content as bytes
 
         Returns:
-            CV ID as string
+            Updated CV metadata with processing results
 
         Raises:
+            CVNotFoundError: If CV metadata not found
             TextExtractionError: If text extraction fails
-            QueryBuildingError: If query building fails
-            CVMetadataSaveError: If CV metadata save fails
         """
-        self._logger.info(f"Starting CV processing for UUID: {cv_id}")
+        self._logger.info(f"Starting CV processing for UUID: {cv_uuid}")
 
         # Retrieve existing CV metadata
-        cv_metadata = await self._async_cv_metadata_repository.find_by_id(cv_id)
+        cv_metadata = await self._async_cv_metadata_repository.find_by_id(cv_uuid)
         if not cv_metadata:
-            self._logger.error(f"CV metadata not found for ID: {cv_id}")
-            raise CVNotFoundError(str(cv_id))
+            self._logger.error(f"CV metadata not found for UUID: {cv_uuid}")
+            raise CVNotFoundError(str(cv_uuid))
 
         extracted_text = None
         try:
