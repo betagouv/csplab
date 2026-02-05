@@ -1,13 +1,21 @@
 """Shared fixtures for candidate tests."""
 
+from datetime import datetime
 from uuid import UUID
 
 import pytest
 from django.utils import timezone
 from pydantic import HttpUrl
 
+from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
+from domain.entities.document import DocumentType
+from domain.entities.vectorized_document import VectorizedDocument
+from domain.value_objects.access_modality import AccessModality
+from domain.value_objects.category import Category
 from domain.value_objects.cv_processing_status import CVStatus
+from domain.value_objects.ministry import Ministry
+from domain.value_objects.nor import NOR
 from domain.value_objects.pdf_extractor_type import PDFExtractorType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.external_gateways.configs.albert_config import AlbertConfig
@@ -122,3 +130,74 @@ def cv_metadata_initial_fixture():
         created_at=now,
         updated_at=now,
     ), cv_id
+
+
+@pytest.fixture
+def cv_metadata_completed(cv_metadata_initial):
+    """CV metadata with COMPLETED status and search query."""
+    cv_metadata, cv_id = cv_metadata_initial
+    cv_metadata.status = CVStatus.COMPLETED
+    cv_metadata.search_query = "Python developer with Django experience"
+    cv_metadata.extracted_text = {
+        "experiences": ["Software Engineer"],
+        "skills": ["Python", "Django"],
+    }
+    return cv_metadata, cv_id
+
+
+@pytest.fixture
+def cv_metadata_failed(cv_metadata_initial):
+    """CV metadata with FAILED status."""
+    cv_metadata, cv_id = cv_metadata_initial
+    cv_metadata.status = CVStatus.FAILED
+    return cv_metadata, cv_id
+
+
+@pytest.fixture
+def concours():
+    """Create test concours data."""
+    return [
+        Concours(
+            id=1,
+            nor_original=NOR("MENA2400001A"),
+            nor_list=[NOR("MENA2400001A")],
+            category=Category.A,
+            ministry=Ministry.MAA,
+            access_modality=[AccessModality.CONCOURS_EXTERNE],
+            corps="Ingénieur des systèmes d'information",
+            grade="Ingénieur principal",
+            written_exam_date=datetime.now(),
+            open_position_number=10,
+        ),
+        Concours(
+            id=2,
+            nor_original=NOR("AGRI2400002B"),
+            nor_list=[NOR("AGRI2400002B")],
+            category=Category.A,
+            ministry=Ministry.MAA,
+            access_modality=[AccessModality.CONCOURS_EXTERNE],
+            corps="Attaché d'administration",
+            grade="Attaché principal",
+            written_exam_date=datetime.now(),
+            open_position_number=5,
+        ),
+    ]
+
+
+@pytest.fixture
+def vectorized_documents(concours):
+    """Create test vectorized documents for concours."""
+    documents = []
+    for c in concours:
+        vectorized_doc = VectorizedDocument(
+            id=c.id,
+            document_id=c.id,
+            document_type=DocumentType.CONCOURS,
+            content=f"{c.corps} {c.grade}",
+            embedding=[0.1] * 3072,  # Mock embedding
+            metadata={"source": "test"},
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        )
+        documents.append(vectorized_doc)
+    return documents

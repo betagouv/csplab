@@ -5,6 +5,7 @@ from typing import List, Tuple
 from uuid import UUID
 
 from domain.entities.concours import Concours
+from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
 from domain.exceptions.cv_errors import (
     CVNotFoundError,
@@ -75,22 +76,16 @@ class MatchCVToOpportunitiesUsecase:
             f"wait_for_completion={wait_for_completion}, timeout={timeout}"
         )
 
-        if wait_for_completion:
-            self._wait_for_cv_completion(cv_id, timeout)
-
         cv_metadata = self._postgres_cv_metadata_repository.find_by_id(UUID(cv_id))
         if not cv_metadata:
             raise CVNotFoundError(cv_id)
 
-        # Check if processing failed
-        if cv_metadata.status == CVStatus.FAILED:
-            raise CVProcessingFailedError(cv_id, "CV processing failed")
+        if wait_for_completion:
+            self._wait_for_cv_completion(cv_metadata, timeout)
 
-        if not cv_metadata.search_query:
-            self._logger.warning(
-                f"CV {cv_id} has no search query, returning empty results"
-            )
-            return []
+        # Check if processing failed
+        if cv_metadata.status == CVStatus.FAILED or not cv_metadata.search_query:
+            raise CVProcessingFailedError(str(cv_metadata.id), "CV processing failed")
 
         query_embedding = self._embedding_generator.generate_embedding(
             cv_metadata.search_query
@@ -108,22 +103,17 @@ class MatchCVToOpportunitiesUsecase:
                 f"Searching for concours with ID: {result.document.document_id}"
             )
             concours = self._concours_repository.find_by_id(result.document.document_id)
-            if concours:
-                self._logger.info(f"Found concours with ID: {concours.id}")
-                concours_list.append((concours, result.score))
-            else:
-                self._logger.warning(
-                    f"Concours with ID {result.document.document_id} not found"
-                )
+            self._logger.info(f"Found concours with ID: {concours.id}")
+            concours_list.append((concours, result.score))
 
         self._logger.info(f"Returning {len(concours_list)} concours")
         return concours_list
 
-    def _wait_for_cv_completion(self, cv_id: str, timeout: int) -> None:
+    def _wait_for_cv_completion(self, cv_metadata: CVMetadata, timeout: int) -> None:
         """Wait for CV processing to complete.
 
         Args:
-            cv_id: The CV identifier
+            cv_metadata: The CV metadata object
             timeout: Maximum time to wait (seconds)
 
         Raises:
@@ -133,25 +123,25 @@ class MatchCVToOpportunitiesUsecase:
         start_time = time.time()
         poll_interval = 3  # Poll every second
 
-        self._logger.info(f"Waiting for CV {cv_id} completion (timeout: {timeout}s)")
+        self._logger.info(
+            f"Waiting for CV {cv_metadata.id} completion (timeout: {timeout}s)"
+        )
 
         while time.time() - start_time < timeout:
-            cv_metadata = self._postgres_cv_metadata_repository.find_by_id(UUID(cv_id))
-            if not cv_metadata:
-                raise CVNotFoundError(cv_id)
-
             if cv_metadata.status == CVStatus.COMPLETED:
-                self._logger.info(f"CV {cv_id} processing completed")
+                self._logger.info(f"CV {cv_metadata.id} processing completed")
                 return
 
             if cv_metadata.status == CVStatus.FAILED:
-                raise CVProcessingFailedError(cv_id, "CV processing failed")
+                raise CVProcessingFailedError(
+                    str(cv_metadata.id), "CV processing failed"
+                )
 
             self._logger.debug(
-                f"CV {cv_id} still processing (status: {cv_metadata.status}), "
+                f"CV {cv_metadata.id} still processing (status: {cv_metadata.status}), "
                 f"waiting {poll_interval}s..."
             )
             time.sleep(poll_interval)
 
         # Timeout reached
-        raise CVProcessingTimeoutError(cv_id, timeout)
+        raise CVProcessingTimeoutError(str(cv_metadata.id), timeout)
