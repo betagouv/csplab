@@ -94,6 +94,25 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         self.opportunities = status_data.get("opportunities", [])
         return super().dispatch(request, *args, **kwargs)
 
+    def get(self, request, *args, **kwargs):
+        """Handle GET request with FAILED status check."""
+        status_data = self._get_cv_processing_status()
+        status = status_data.get("status")
+
+        if status == CVStatus.FAILED:
+            messages.error(
+                request,
+                "Une erreur est survenue lors du traitement de votre CV. "
+                "Veuillez réessayer.",
+            )
+            if request.headers.get("HX-Request"):
+                response = HttpResponse()
+                response["HX-Redirect"] = reverse_lazy("candidate:cv_upload")
+                return response
+            return redirect("candidate:cv_upload")
+
+        return super().get(request, *args, **kwargs)
+
     def _get_cv_processing_status(self) -> dict[str, object]:
         """Get CV processing status from repository.
 
