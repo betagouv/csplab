@@ -96,6 +96,9 @@ jobs:
       TYCHO_ALBERT_OCR_DPI: 200
       TYCHO_OPIK_API_KEY: opik-api-key
       TYCHO_TALENTSOFT_BASE_URL: https://fake-talentsoft.example.com
+      TYCHO_OPENROUTER_OCR_MODEL: openai/gpt-5.2
+      TYCHO_OCR_TYPE: ALBERT
+
     steps:
       - uses: actions/checkout@v5
       - name: Install uv
