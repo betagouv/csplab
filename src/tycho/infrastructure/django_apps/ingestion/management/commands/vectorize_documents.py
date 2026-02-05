@@ -16,7 +16,10 @@ class Command(BaseCommand):
         parser.add_argument(
             "--type",
             required=True,
-            choices=["CORPS", "CONCOURS"],
+            choices=[
+                DocumentType.CORPS.value,
+                DocumentType.CONCOURS.value,
+            ],
             help="Type of documents to vectorize",
         )
         parser.add_argument(
