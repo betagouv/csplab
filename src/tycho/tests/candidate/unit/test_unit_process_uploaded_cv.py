@@ -79,7 +79,7 @@ async def test_execute_cv_metadatas_not_found(request, pdf_content, container_na
 async def test_execute_ocr_error(
     httpx_mock, request, pdf_content, container_name, cv_metadata_initial
 ):
-    """Test that valid PDF is processed and saved to real database."""
+    """Test that API failure raises error and saves CV with FAILED status to DB."""
     container = request.getfixturevalue(container_name)
     extractor_type = "albert" if "albert" in container_name else "openai"
 

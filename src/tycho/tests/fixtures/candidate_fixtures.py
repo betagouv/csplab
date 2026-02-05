@@ -113,7 +113,7 @@ def pdf_content_fixture():
 @pytest.fixture(name="cv_metadata_initial")
 def cv_metadata_initial_fixture():
     """Initial CV metadata for testing."""
-    cv_id = UUID("123e4567-e89b-12d3-a456-426614174000")
+    cv_id = UUID("00000000-0000-0000-0000-000000000001")
     now = timezone.now()
     return CVMetadata(
         id=cv_id,

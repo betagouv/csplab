@@ -1,6 +1,8 @@
 """Integration tests for CV upload view."""
 
 from http import HTTPStatus
+from unittest.mock import patch
+from uuid import uuid4
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -26,13 +28,35 @@ def test_cv_upload_page_loads_correctly(client, db):
 
 
 @pytest.mark.parametrize("filename", ["cv.pdf", "CV.PDF"])
-def test_cv_upload_valid_pdf_shows_success_message(client, db, filename):
+@patch("presentation.candidate.views.cv_flow.create_candidate_container")
+def test_cv_upload_valid_pdf_shows_success_message(
+    mock_container, client, db, filename
+):
     """Valid PDF uploads redirect and show success message."""
+    # Mock the usecases
+    mock_uuid = str(uuid4())
+    mock_initialize_usecase = (
+        mock_container.return_value.initialize_cv_metadata_usecase.return_value
+    )
+    mock_initialize_usecase.execute.return_value = mock_uuid
+
+    # Mock async usecase to return a coroutine
+    async def mock_async_execute(cv_uuid, cv_content):
+        return None
+
+    mock_process_usecase = (
+        mock_container.return_value.process_uploaded_cv_usecase.return_value
+    )
+    mock_process_usecase.execute = mock_async_execute
+
     pdf = SimpleUploadedFile(filename, create_minimal_valid_pdf(), "application/pdf")
     response = client.post(
         reverse("candidate:cv_upload"), {"cv_file": pdf}, follow=True
     )
-    assertContains(response, "validé avec succès")
+
+    # Check redirect to cv_results with correct URL pattern
+    assert response.redirect_chain[-1][0] == f"/candidate/cv/{mock_uuid}/results/"
+    assertContains(response, "en cours de traitement")
 
 
 def test_cv_upload_empty_submission_shows_error(client, db):
