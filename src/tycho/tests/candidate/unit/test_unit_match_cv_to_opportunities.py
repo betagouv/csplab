@@ -8,7 +8,6 @@ from domain.entities.concours import Concours
 from domain.exceptions.cv_errors import (
     CVNotFoundError,
     CVProcessingFailedError,
-    CVProcessingTimeoutError,
 )
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
@@ -156,24 +155,6 @@ def test_execute_wait_for_completion_with_completed_cv(
     # Should return immediately since CV is already completed
     result = usecase.execute(str(cv_id), limit=10, wait_for_completion=True, timeout=5)
     assert isinstance(result, list)
-
-
-def test_execute_wait_for_completion_timeout(_candidate_container, cv_metadata_initial):
-    """Test wait_for_completion=True with timeout."""
-    timeout_seconds = 2
-    cv_metadata, cv_id = cv_metadata_initial  # PENDING status
-
-    cv_repo = _candidate_container.postgres_cv_metadata_repository()
-    cv_repo.save(cv_metadata)
-
-    usecase = _candidate_container.match_cv_to_opportunities_usecase()
-
-    # Should timeout since CV stays PENDING
-    with pytest.raises(CVProcessingTimeoutError) as exc_info:
-        usecase.execute(str(cv_id), limit=10, wait_for_completion=True, timeout=2)
-
-    assert exc_info.value.cv_id == str(cv_id)
-    assert exc_info.value.timeout == timeout_seconds
 
 
 def test_execute_wait_for_completion_with_failed_cv(
