@@ -5,12 +5,16 @@ from uuid import UUID
 
 from domain.entities.concours import Concours
 from domain.entities.document import DocumentType
-from domain.exceptions.cv_errors import CVNotFoundError
+from domain.exceptions.cv_errors import (
+    CVNotFoundError,
+    CVProcessingFailedError,
+)
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
 from domain.services.logger_interface import ILogger
+from domain.value_objects.cv_processing_status import CVStatus
 
 
 class MatchCVToOpportunitiesUsecase:
@@ -41,29 +45,41 @@ class MatchCVToOpportunitiesUsecase:
             "CANDIDATE::APPLICATION::MatchOpportunitiesToCVUsecase::execute"
         )
 
-    def execute(self, cv_id: str, limit: int = 10) -> List[Tuple[Concours, float]]:
+    def execute(
+        self,
+        cv_id: str,
+        limit: int = 5,
+        wait_for_completion: bool = False,
+        timeout: int = 40,
+    ) -> List[Tuple[Concours, float]]:
         """Execute the matching of opportunities to CV based on semantic similarity.
 
         Args:
             cv_id: The CV identifier
             limit: Maximum number of results to return
+            wait_for_completion: If True, wait for CV processing to complete
+            timeout: Maximum time to wait for completion (seconds)
 
         Returns:
             List of tuples (Concours, relevance_score) ordered by relevance
+
+        Raises:
+            CVNotFoundError: If CV metadata is not found
+            CVProcessingTimeoutError: If waiting for completion times out
+            CVProcessingFailedError: If CV processing failed
         """
         self._logger.info(
-            f"Starting opportunity matching for cv_id='{cv_id}', limit={limit}"
+            f"Starting opportunity matching for cv_id='{cv_id}', limit={limit}, "
+            f"wait_for_completion={wait_for_completion}, timeout={timeout}"
         )
 
         cv_metadata = self._postgres_cv_metadata_repository.find_by_id(UUID(cv_id))
         if not cv_metadata:
-            raise CVNotFoundError(cv_id)  # should not happen
+            raise CVNotFoundError(cv_id)
 
-        if not cv_metadata.search_query:
-            self._logger.warning(
-                f"CV {cv_id} has no search query, returning empty results"
-            )
-            return []
+        # Check if processing failed
+        if cv_metadata.status == CVStatus.FAILED or not cv_metadata.search_query:
+            raise CVProcessingFailedError(str(cv_metadata.id), "CV processing failed")
 
         query_embedding = self._embedding_generator.generate_embedding(
             cv_metadata.search_query
@@ -81,13 +97,8 @@ class MatchCVToOpportunitiesUsecase:
                 f"Searching for concours with ID: {result.document.document_id}"
             )
             concours = self._concours_repository.find_by_id(result.document.document_id)
-            if concours:
-                self._logger.info(f"Found concours with ID: {concours.id}")
-                concours_list.append((concours, result.score))
-            else:
-                self._logger.warning(
-                    f"Concours with ID {result.document.document_id} not found"
-                )
+            self._logger.info(f"Found concours with ID: {concours.id}")
+            concours_list.append((concours, result.score))
 
         self._logger.info(f"Returning {len(concours_list)} concours")
         return concours_list
