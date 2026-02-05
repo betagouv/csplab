@@ -218,7 +218,10 @@ def test_cv_processing_flow_pending_to_completed(
     assertTemplateUsed(response_poll, "candidate/components/_processing_content.html")
     assertContains(response_poll, 'hx-trigger="load delay:2s"')
 
-    mock_get_status.return_value = {"status": CVStatus.COMPLETED, "opportunities": []}
+    mock_get_status.return_value = {
+        "status": CVStatus.COMPLETED,
+        "opportunities": [{"title": "Test opportunity"}],
+    }
     response_completed = client.get(url, HTTP_HX_REQUEST="true")
     assert response_completed.status_code == HTTPStatus.OK
     assertTemplateUsed(response_completed, "candidate/components/_results_content.html")

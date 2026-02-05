@@ -111,6 +111,17 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
                 return response
             return redirect("candidate:cv_upload")
 
+        opportunities = status_data.get("opportunities", [])
+        if status == CVStatus.COMPLETED and not opportunities:
+            cv_uuid = self.kwargs.get("cv_uuid")
+            if request.headers.get("HX-Request"):
+                response = HttpResponse()
+                response["HX-Redirect"] = reverse_lazy(
+                    "candidate:cv_no_results", kwargs={"cv_uuid": cv_uuid}
+                )
+                return response
+            return redirect("candidate:cv_no_results", cv_uuid=cv_uuid)
+
         return super().get(request, *args, **kwargs)
 
     def _get_cv_processing_status(self) -> dict[str, object]:
