@@ -106,5 +106,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version-file: "./src/tycho/.python-version"
+      - name: Install Playwright browsers
+        run: uv run playwright install --with-deps chromium
       - name: Test with pytest
         run: uv run pytest .
