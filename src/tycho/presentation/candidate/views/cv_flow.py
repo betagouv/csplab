@@ -1,19 +1,21 @@
 """CV upload flow views."""
 
-import logging
+import asyncio
+import threading
+from uuid import UUID
 
 from django.contrib import messages
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
 
+from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.forms.cv_flow import CVUploadForm
 from presentation.candidate.mixins import (
     BreadcrumbLink,
     BreadcrumbMixin,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class CVUploadView(BreadcrumbMixin, FormView):
@@ -28,21 +30,42 @@ class CVUploadView(BreadcrumbMixin, FormView):
     breadcrumb_links: list[BreadcrumbLink] = []
     success_url = reverse_lazy("candidate:cv_upload")  # TODO: change to next step URL
 
+    def __init__(self, *args, **kwargs):
+        """Initialize view with dependency injection."""
+        super().__init__(*args, **kwargs)
+        self.container = create_candidate_container()
+        self.logger = self.container.logger_service().get_logger(
+            "CANDIDATE::INFRASTRUCTURE::CVUploadView"
+        )
+
     def form_valid(self, form: CVUploadForm) -> HttpResponse:
         """Handle valid form submission."""
         cv_file = form.cleaned_data["cv_file"]
-        logger.info(
+        self.logger.info(
             "CV upload validated: filename=%s, size=%d",
             cv_file.name,
             cv_file.size,
         )
-        messages.success(self.request, "Votre CV a été validé avec succès !")
-        # todo redirect cv_processing
-        return super().form_valid(form)
+
+        # Initialize CV metadata
+        initialize_cv_metadata_usecase = self.container.initialize_cv_metadata_usecase()
+        cv_uuid = initialize_cv_metadata_usecase.execute(cv_file.name)
+
+        # Launch async CV processing
+        process_uploaded_cv_usecase = self.container.process_uploaded_cv_usecase()
+        thread = threading.Thread(
+            target=lambda: asyncio.run(
+                process_uploaded_cv_usecase.execute(UUID(cv_uuid), cv_file.read())
+            )
+        )
+        thread.start()
+
+        messages.success(self.request, "Votre CV est en cours de traitement !")
+        return redirect("candidate:cv_results", cv_uuid=cv_uuid)
 
     def form_invalid(self, form: CVUploadForm) -> HttpResponse:
         """Handle invalid form submission."""
-        logger.warning("Form validation failed: %s", dict(form.errors))
+        self.logger.warning("Form validation failed: %s", dict(form.errors))
         return super().form_invalid(form)
 
 
@@ -171,4 +194,4 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         """Return partial template for htmx requests."""
         if self.request.headers.get("HX-Request"):
             return ["candidate/components/_results_list.html"]
-        return [self.template_name]
+        return [self.template_name] if self.template_name else []
