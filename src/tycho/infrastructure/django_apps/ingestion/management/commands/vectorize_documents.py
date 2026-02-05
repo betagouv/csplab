@@ -19,6 +19,7 @@ class Command(BaseCommand):
             choices=[
                 DocumentType.CORPS.value,
                 DocumentType.CONCOURS.value,
+                DocumentType.OFFERS.value,
             ],
             help="Type of documents to vectorize",
         )
