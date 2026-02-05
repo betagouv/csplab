@@ -1,16 +1,22 @@
 """Use case for matching opportunities (concours) to CV based on semantic similarity."""
 
+import time
 from typing import List, Tuple
 from uuid import UUID
 
 from domain.entities.concours import Concours
 from domain.entities.document import DocumentType
-from domain.exceptions.cv_errors import CVNotFoundError
+from domain.exceptions.cv_errors import (
+    CVNotFoundError,
+    CVProcessingFailedError,
+    CVProcessingTimeoutError,
+)
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
 from domain.services.logger_interface import ILogger
+from domain.value_objects.cv_processing_status import CVStatus
 
 
 class MatchCVToOpportunitiesUsecase:
@@ -41,23 +47,44 @@ class MatchCVToOpportunitiesUsecase:
             "CANDIDATE::APPLICATION::MatchOpportunitiesToCVUsecase::execute"
         )
 
-    def execute(self, cv_id: str, limit: int = 10) -> List[Tuple[Concours, float]]:
+    def execute(
+        self,
+        cv_id: str,
+        limit: int = 5,
+        wait_for_completion: bool = False,
+        timeout: int = 40,
+    ) -> List[Tuple[Concours, float]]:
         """Execute the matching of opportunities to CV based on semantic similarity.
 
         Args:
             cv_id: The CV identifier
             limit: Maximum number of results to return
+            wait_for_completion: If True, wait for CV processing to complete
+            timeout: Maximum time to wait for completion (seconds)
 
         Returns:
             List of tuples (Concours, relevance_score) ordered by relevance
+
+        Raises:
+            CVNotFoundError: If CV metadata is not found
+            CVProcessingTimeoutError: If waiting for completion times out
+            CVProcessingFailedError: If CV processing failed
         """
         self._logger.info(
-            f"Starting opportunity matching for cv_id='{cv_id}', limit={limit}"
+            f"Starting opportunity matching for cv_id='{cv_id}', limit={limit}, "
+            f"wait_for_completion={wait_for_completion}, timeout={timeout}"
         )
+
+        if wait_for_completion:
+            self._wait_for_cv_completion(cv_id, timeout)
 
         cv_metadata = self._postgres_cv_metadata_repository.find_by_id(UUID(cv_id))
         if not cv_metadata:
-            raise CVNotFoundError(cv_id)  # should not happen
+            raise CVNotFoundError(cv_id)
+
+        # Check if processing failed
+        if cv_metadata.status == CVStatus.FAILED:
+            raise CVProcessingFailedError(cv_id, "CV processing failed")
 
         if not cv_metadata.search_query:
             self._logger.warning(
@@ -91,3 +118,40 @@ class MatchCVToOpportunitiesUsecase:
 
         self._logger.info(f"Returning {len(concours_list)} concours")
         return concours_list
+
+    def _wait_for_cv_completion(self, cv_id: str, timeout: int) -> None:
+        """Wait for CV processing to complete.
+
+        Args:
+            cv_id: The CV identifier
+            timeout: Maximum time to wait (seconds)
+
+        Raises:
+            CVProcessingTimeoutError: If timeout is reached
+            CVProcessingFailedError: If processing failed
+        """
+        start_time = time.time()
+        poll_interval = 3  # Poll every second
+
+        self._logger.info(f"Waiting for CV {cv_id} completion (timeout: {timeout}s)")
+
+        while time.time() - start_time < timeout:
+            cv_metadata = self._postgres_cv_metadata_repository.find_by_id(UUID(cv_id))
+            if not cv_metadata:
+                raise CVNotFoundError(cv_id)
+
+            if cv_metadata.status == CVStatus.COMPLETED:
+                self._logger.info(f"CV {cv_id} processing completed")
+                return
+
+            if cv_metadata.status == CVStatus.FAILED:
+                raise CVProcessingFailedError(cv_id, "CV processing failed")
+
+            self._logger.debug(
+                f"CV {cv_id} still processing (status: {cv_metadata.status}), "
+                f"waiting {poll_interval}s..."
+            )
+            time.sleep(poll_interval)
+
+        # Timeout reached
+        raise CVProcessingTimeoutError(cv_id, timeout)

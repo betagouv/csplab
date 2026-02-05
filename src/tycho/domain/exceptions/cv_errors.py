@@ -76,3 +76,33 @@ class CVNotFoundError(CVError):
         """
         self.cv_id = cv_id
         super().__init__(f"CV metadata not found for ID: {cv_id}")
+
+
+class CVProcessingTimeoutError(CVError):
+    """Error raised when CV processing times out."""
+
+    def __init__(self, cv_id: str, timeout: int):
+        """Initialize CVProcessingTimeoutError.
+
+        Args:
+            cv_id: ID of the CV that timed out
+            timeout: Timeout duration in seconds
+        """
+        self.cv_id = cv_id
+        self.timeout = timeout
+        super().__init__(f"CV processing timed out for ID: {cv_id} after {timeout}s")
+
+
+class CVProcessingFailedError(CVError):
+    """Error raised when CV processing fails."""
+
+    def __init__(self, cv_id: str, reason: str = "Processing failed"):
+        """Initialize CVProcessingFailedError.
+
+        Args:
+            cv_id: ID of the CV that failed processing
+            reason: Specific reason why processing failed
+        """
+        self.cv_id = cv_id
+        self.reason = reason
+        super().__init__(f"CV processing failed for ID: {cv_id}: {reason}")
