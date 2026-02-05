@@ -61,7 +61,6 @@ class CVUploadView(BreadcrumbMixin, FormView):
         )
         thread.start()
 
-        messages.success(self.request, "Votre CV est en cours de traitement !")
         return redirect("candidate:cv_results", cv_uuid=cv_uuid)
 
     def form_invalid(self, form: CVUploadForm) -> HttpResponse:
