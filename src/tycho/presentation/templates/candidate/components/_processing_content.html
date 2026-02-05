@@ -1,0 +1,28 @@
+{% load static %}
+<div hx-get="{% url 'candidate:cv_results' cv_uuid %}"
+     hx-trigger="load delay:2s"
+     hx-swap="outerHTML">
+    <div class="fr-container">
+        <div class="csplab-processing fr-pt-5w fr-px-2w fr-pt-md-9w fr-px-md-15w">
+            <div class="csplab-processing__content">
+                <div class="csplab-spinner" aria-hidden="true"></div>
+                <h1 class="fr-m-0 fr-text--center csplab-processing__title">Analyse de votre CV en cours...</h1>
+                <div class="csplab-processing__messages">
+                    <p class="fr-text--md fr-text--center fr-mb-0 csplab-processing__message"
+                       data-message="1">Bientôt le verdict : découvrez les opportunités qui vous ressemblent</p>
+                    <p class="fr-text--md fr-text--center fr-mb-0 csplab-processing__message"
+                       data-message="2">Vos données sont strictement confidentielles, et nullement partagées</p>
+                    <p class="fr-text--md fr-text--center fr-mb-0 csplab-processing__message"
+                       data-message="3">Promis c'est bientôt prêt !</p>
+                </div>
+            </div>
+            <div class="csplab-processing__illustration">
+                <img width="128"
+                     height="128"
+                     src="{% static 'candidate/images/microscope.svg' %}"
+                     alt=""
+                     aria-hidden="true">
+            </div>
+        </div>
+    </div>
+</div>
