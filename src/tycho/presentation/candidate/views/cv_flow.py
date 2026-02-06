@@ -137,14 +137,13 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         """Route to appropriate template based on status and HTMX context."""
         is_htmx = self.request.headers.get("HX-Request")
         hx_target = self.request.headers.get("HX-Target")
-        opportunities = None
-        if status == CVStatus.PENDING:
+        if self.status == CVStatus.PENDING:
             return (
                 ["candidate/components/_processing_content.html"]
                 if is_htmx
                 else ["candidate/cv_processing.html"]
             )
-        elif status == CVStatus.COMPLETED and not opportunities:
+        elif self.status == CVStatus.COMPLETED and not self.opportunities:
             return (
                 ["candidate/components/_no_results_content.html"]
                 if is_htmx
