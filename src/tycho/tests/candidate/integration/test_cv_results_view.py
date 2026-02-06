@@ -6,7 +6,12 @@ from uuid import uuid4
 
 import pytest
 from django.urls import reverse
-from pytest_django.asserts import assertContains, assertNotContains, assertTemplateUsed
+from pytest_django.asserts import (
+    assertContains,
+    assertNotContains,
+    assertRedirects,
+    assertTemplateUsed,
+)
 
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
@@ -298,10 +303,10 @@ def test_cv_results_failed_status_redirects_with_error_message(client, db):
         follow=True,
     )
 
-    assert response.status_code == HTTPStatus.OK
-    assert response.redirect_chain[0] == (
+    assertRedirects(
+        response,
         reverse("candidate:cv_upload"),
-        HTTPStatus.FOUND,
+        target_status_code=HTTPStatus.OK,
     )
     assertContains(
         response,
@@ -309,20 +314,11 @@ def test_cv_results_failed_status_redirects_with_error_message(client, db):
     )
 
 
-@pytest.mark.parametrize(
-    "status_config",
-    [
-        (CVStatus.FAILED, [], lambda cv_uuid: reverse("candidate:cv_upload")),
-    ],
-)
 @patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
-def test_cv_results_htmx_request_sets_redirect_header(
-    mock_get_status, client, db, status_config
-):
+def test_cv_results_htmx_request_sets_redirect_header(mock_get_status, client, db):
     """HTMX request with FAILED status sets HX-Redirect header."""
-    status, opportunities, url_builder = status_config
     cv_uuid = uuid4()
-    mock_get_status.return_value = {"status": status, "opportunities": opportunities}
+    mock_get_status.return_value = {"status": CVStatus.FAILED, "opportunities": []}
 
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}),
@@ -331,7 +327,7 @@ def test_cv_results_htmx_request_sets_redirect_header(
 
     assert response.status_code == HTTPStatus.OK
     assert "HX-Redirect" in response
-    assert response["HX-Redirect"] == url_builder(cv_uuid)
+    assert response["HX-Redirect"] == reverse("candidate:cv_upload")
 
 
 @patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
