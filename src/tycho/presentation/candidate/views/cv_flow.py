@@ -94,10 +94,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         """Handle GET request with FAILED status check."""
-        status_data = self._get_cv_processing_status()
-        status = status_data.get("status")
-
-        if status == CVStatus.FAILED:
+        if self.status == CVStatus.FAILED:
             messages.error(
                 request,
                 "Une erreur est survenue lors du traitement de votre CV. "
