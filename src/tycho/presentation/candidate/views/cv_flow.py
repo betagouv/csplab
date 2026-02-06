@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
 
+from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.forms.cv_flow import CVUploadForm
 from presentation.candidate.mixins import (
@@ -69,21 +70,68 @@ class CVUploadView(BreadcrumbMixin, FormView):
         return super().form_invalid(form)
 
 
-class CVProcessingView(BreadcrumbMixin, TemplateView):
-    """View for CV confirmation/processing page."""
-
-    template_name = "candidate/cv_processing.html"
-
-
 class CVResultsView(BreadcrumbMixin, TemplateView):
-    """View for CV analysis results page.
+    """CV analysis results with HTMX polling support."""
 
-    Displays career opportunities matching the analyzed CV.
-    """
-
-    template_name = "candidate/cv_results.html"
+    template_name: str = "candidate/cv_results.html"
     breadcrumb_current = "Résultat de l'analyse du CV"
     breadcrumb_links: list[BreadcrumbLink] = []
+
+    def __init__(self, *args, **kwargs):
+        """Initialize view with dependency injection."""
+        super().__init__(*args, **kwargs)
+        self.container = create_candidate_container()
+        self.logger = self.container.logger_service().get_logger(
+            "CANDIDATE::INFRASTRUCTURE::CVResultsView"
+        )
+        self.status = None
+        self.opportunities = None
+
+    def dispatch(self, request, *args, **kwargs):
+        """Initialize status and opportunities once per request."""
+        status_data = self._get_cv_processing_status()
+        self.status = status_data.get("status")
+        self.opportunities = status_data.get("opportunities", [])
+        return super().dispatch(request, *args, **kwargs)
+
+    def _get_cv_processing_status(self) -> dict[str, object]:
+        """Get CV processing status from repository.
+
+        TODO: Replace with MatchCVToOpportunitiesUsecase(wait_for_completion=True)
+        """
+        cv_uuid = self.kwargs.get("cv_uuid")
+        cv_metadata_repository = self.container.postgres_cv_metadata_repository()
+
+        try:
+            cv_metadata = cv_metadata_repository.find_by_id(cv_uuid)
+            status = cv_metadata.status if cv_metadata else CVStatus.PENDING
+        except Exception:
+            status = CVStatus.PENDING
+
+        result: dict[str, object] = {"status": status, "opportunities": []}
+
+        # For demo: show mock results for any completed/failed status
+        if status != CVStatus.PENDING:
+            result["opportunities"] = self._get_mock_results()
+
+        return result
+
+    def get_template_names(self) -> list[str]:
+        """Route to appropriate template based on status and HTMX context."""
+        is_htmx = self.request.headers.get("HX-Request")
+
+        if self.status == CVStatus.PENDING:
+            if is_htmx:
+                return ["candidate/components/_processing_content.html"]
+            return ["candidate/cv_processing.html"]
+
+        if is_htmx:
+            hx_target = self.request.headers.get("HX-Target")
+            if hx_target == "results-zone":
+                return ["candidate/components/_results_list.html"]
+            return ["candidate/components/_results_content.html"]
+
+        return [self.template_name]
 
     def _get_mock_results(self) -> list[dict[str, str]]:
         """Return mock results data."""
@@ -155,11 +203,19 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
     def get_context_data(self, **kwargs: object) -> dict[str, object]:
         """Add mock data for results display."""
         context = super().get_context_data(**kwargs)
+
+        context["cv_uuid"] = self.kwargs.get("cv_uuid")
+
+        if self.status == CVStatus.PENDING:
+            return context
+
         context["cv_name"] = "CV Adelle Mortelle.pdf"
 
-        all_results = self._get_mock_results()
-        context["results"] = self._filter_results(all_results)
-        context["results_count"] = len(context["results"])
+        # TODO We may want to use a template tag to count opportunities to display,
+        # and get context lighter.
+        if isinstance(self.opportunities, list):
+            context["results"] = self._filter_results(self.opportunities)
+            context["results_count"] = len(context["results"])
         context["location_options"] = [
             {"value": "", "text": "Toutes les localisations"},
             {"value": "paris", "text": "Paris"},
@@ -186,12 +242,5 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             {"label": "Fonction publique Territoriale"},
             {"label": "Fonction publique Hospitalière"},
         ]
-        context["cv_uuid"] = self.kwargs.get("cv_uuid")
         context["results_target_id"] = "results-zone"
         return context
-
-    def get_template_names(self) -> list[str]:
-        """Return partial template for htmx requests."""
-        if self.request.headers.get("HX-Request"):
-            return ["candidate/components/_results_list.html"]
-        return [self.template_name] if self.template_name else []

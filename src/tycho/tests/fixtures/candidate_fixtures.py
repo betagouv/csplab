@@ -18,12 +18,14 @@ from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
 from domain.value_objects.pdf_extractor_type import PDFExtractorType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
+from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.external_gateways.configs.albert_config import AlbertConfig
 from infrastructure.external_gateways.configs.openai_config import OpenAIConfig
 from infrastructure.external_gateways.configs.pdf_extractor_config import (
     PDFExtractorConfig,
 )
 from infrastructure.gateways.shared.logger import LoggerService
+from tests.factories.cv_metadata_factory import CVMetadataFactory
 from tests.utils.async_in_memory_cv_metadata_repository import (
     AsyncInMemoryCVMetadataRepository,
 )
@@ -201,3 +203,11 @@ def vectorized_documents(concours):
         )
         documents.append(vectorized_doc)
     return documents
+
+
+@pytest.fixture
+def db_cv_uuid(status: CVStatus = CVStatus.COMPLETED) -> UUID:
+    """Create a CV with given status in database and return its UUID."""
+    cv_metadata = CVMetadataFactory.build(status=status)
+    CVMetadataModel.from_entity(cv_metadata).save()
+    return cv_metadata.id
