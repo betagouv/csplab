@@ -110,7 +110,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             )
             if request.headers.get("HX-Request"):
                 response = HttpResponse()
-                response["HX-Redirect"] = reverse_lazy("candidate:cv_upload")
+                response["HX-Redirect"] = str(reverse_lazy("candidate:cv_upload"))
                 return response
             return redirect("candidate:cv_upload")
 
