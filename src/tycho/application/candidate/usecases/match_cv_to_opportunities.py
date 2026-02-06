@@ -1,12 +1,11 @@
 """Use case for matching opportunities (concours) to CV based on semantic similarity."""
 
 from typing import List, Tuple
-from uuid import UUID
 
 from domain.entities.concours import Concours
+from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
 from domain.exceptions.cv_errors import (
-    CVNotFoundError,
     CVProcessingFailedError,
 )
 from domain.repositories.concours_repository_interface import IConcoursRepository
@@ -47,18 +46,14 @@ class MatchCVToOpportunitiesUsecase:
 
     def execute(
         self,
-        cv_id: str,
+        cv_metadata: CVMetadata,
         limit: int = 5,
-        wait_for_completion: bool = False,
-        timeout: int = 40,
     ) -> List[Tuple[Concours, float]]:
         """Execute the matching of opportunities to CV based on semantic similarity.
 
         Args:
-            cv_id: The CV identifier
+            cv_metadata: The CV metadata object
             limit: Maximum number of results to return
-            wait_for_completion: If True, wait for CV processing to complete
-            timeout: Maximum time to wait for completion (seconds)
 
         Returns:
             List of tuples (Concours, relevance_score) ordered by relevance
@@ -69,13 +64,9 @@ class MatchCVToOpportunitiesUsecase:
             CVProcessingFailedError: If CV processing failed
         """
         self._logger.info(
-            f"Starting opportunity matching for cv_id='{cv_id}', limit={limit}, "
-            f"wait_for_completion={wait_for_completion}, timeout={timeout}"
+            f"Starting opportunity matching for cv_uuid='{cv_metadata.id}',"
+            f"limit={limit}"
         )
-
-        cv_metadata = self._postgres_cv_metadata_repository.find_by_id(UUID(cv_id))
-        if not cv_metadata:
-            raise CVNotFoundError(cv_id)
 
         # Check if processing failed
         if cv_metadata.status == CVStatus.FAILED or not cv_metadata.search_query:
@@ -90,7 +81,6 @@ class MatchCVToOpportunitiesUsecase:
             limit=limit,
             filters={"document_type": DocumentType.CONCOURS.value},
         )
-
         concours_list = []
         for result in similarity_results:
             self._logger.info(

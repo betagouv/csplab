@@ -14,6 +14,7 @@ from django.views.generic import FormView, TemplateView
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.forms.cv_flow import CVUploadForm
+from presentation.candidate.mappers.concours_mapper import ConcoursToTemplateMapper
 from presentation.candidate.mixins import (
     BreadcrumbLink,
     BreadcrumbMixin,
@@ -117,24 +118,34 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
     def _get_cv_processing_status(self) -> dict[str, object]:
-        """Get CV processing status from repository.
-
-        TODO: Replace with MatchCVToOpportunitiesUsecase(wait_for_completion=True)
-        """
+        """Get CV processing status from repository."""
         cv_uuid = self.kwargs.get("cv_uuid")
-        cv_metadata_repository = self.container.postgres_cv_metadata_repository()
+        self.logger.info("Getting CV processing status for cv_uuid=%s", cv_uuid)
 
+        cv_metadata_repository = self.container.postgres_cv_metadata_repository()
+        opportunities = None
         try:
             cv_metadata = cv_metadata_repository.find_by_id(cv_uuid)
+
             status = cv_metadata.status if cv_metadata else CVStatus.PENDING
+
+            if cv_metadata and status == CVStatus.COMPLETED:
+                match_cv_to_opportunities = (
+                    self.container.match_cv_to_opportunities_usecase()
+                )
+                raw_opportunities = match_cv_to_opportunities.execute(
+                    cv_metadata=cv_metadata,
+                    limit=10,
+                )
+                # Transform Concours entities to template format
+                opportunities = [
+                    ConcoursToTemplateMapper.map(concours)
+                    for concours, _ in raw_opportunities
+                ]
         except Exception:
-            status = CVStatus.PENDING
+            status = CVStatus.FAILED
 
-        result: dict[str, object] = {"status": status, "opportunities": []}
-
-        # For demo: show mock results for any completed/failed status
-        if status != CVStatus.PENDING:
-            result["opportunities"] = self._get_mock_results()
+        result: dict[str, object] = {"status": status, "opportunities": opportunities}
 
         return result
 
@@ -163,60 +174,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
 
         # Default template for completed status with results
         return ["candidate/cv_results.html"]
-
-    def _get_mock_results(self) -> list[dict[str, str]]:
-        """Return mock results data."""
-        return [
-            {
-                "type": "offer",
-                "title": "Chef de projet transformation numérique",
-                "description": "Pilotage de projets de modernisation des "
-                "systèmes d'information.",
-                "location": "Paris",
-                "location_value": "paris",
-                "category": "Catégorie A",
-                "category_value": "a",
-                "versant": "État",
-                "job_type": "Ingénieur des systèmes d'information",
-                "url": "#",
-            },
-            {
-                "type": "concours",
-                "title": "Concours d'attaché d'administration de l'État",
-                "description": "Recrutement d'attachés pour les ministères "
-                "économiques et financiers.",
-                "concours_type": "Externe",
-                "category": "Catégorie A",
-                "category_value": "a",
-                "versant": "État",
-                "job_type": "Attaché d'administration",
-                "url": "#",
-            },
-            {
-                "type": "offer",
-                "title": "Responsable des ressources humaines",
-                "description": "Gestion des carrières et accompagnement des agents.",
-                "location": "Lyon",
-                "location_value": "lyon",
-                "category": "Catégorie A",
-                "category_value": "a",
-                "versant": "Territoriale",
-                "job_type": "Attaché territorial",
-                "url": "#",
-            },
-            {
-                "type": "offer",
-                "title": "Technicien informatique",
-                "description": "Support et maintenance des systèmes.",
-                "location": "Paris",
-                "location_value": "paris",
-                "category": "Catégorie B",
-                "category_value": "b",
-                "versant": "État",
-                "job_type": "Technicien",
-                "url": "#",
-            },
-        ]
 
     def _filter_results(self, results: list[dict[str, str]]) -> list[dict[str, str]]:
         """Filter results based on GET parameters."""
