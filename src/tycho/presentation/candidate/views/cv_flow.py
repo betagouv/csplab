@@ -4,6 +4,7 @@ import asyncio
 import threading
 from uuid import UUID
 
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -93,7 +94,14 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        """Handle GET request with FAILED status check."""
+        """Handle GET request with status-based routing."""
+        is_htmx = request.headers.get("HX-Request")
+
+        if self.status == CVStatus.PENDING and is_htmx:
+            response = HttpResponse(status=204)
+            response["HX-Reswap"] = "none"
+            return response
+
         if self.status == CVStatus.FAILED:
             messages.error(
                 request,
@@ -102,7 +110,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             )
             if request.headers.get("HX-Request"):
                 response = HttpResponse()
-                response["HX-Redirect"] = reverse_lazy("candidate:cv_upload")
+                response["HX-Redirect"] = str(reverse_lazy("candidate:cv_upload"))
                 return response
             return redirect("candidate:cv_upload")
 
@@ -228,6 +236,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         context["cv_uuid"] = self.kwargs.get("cv_uuid")
+        context["poll_interval"] = settings.CV_PROCESSING_POLL_INTERVAL
 
         if self.status == CVStatus.PENDING:
             return context

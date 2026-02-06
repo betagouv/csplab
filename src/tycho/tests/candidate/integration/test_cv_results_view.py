@@ -5,6 +5,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+from django.conf import settings
 from django.urls import reverse
 from pytest_django.asserts import (
     assertContains,
@@ -143,7 +144,7 @@ def test_cv_results_htmx_no_match_displays_empty_state(client, db, db_cv_uuid):
             "expected_content": [
                 "Analyse de votre CV en cours...",
                 "hx-get",
-                'hx-trigger="load delay:2s"',
+                'hx-trigger="every',
             ],
             "unexpected_content": [],
         },
@@ -153,9 +154,9 @@ def test_cv_results_htmx_no_match_displays_empty_state(client, db, db_cv_uuid):
             "expected_template": "candidate/components/_processing_content.html",
             "expected_content": [
                 "Analyse de votre CV en cours...",
-                'hx-trigger="load delay:2s"',
             ],
             "unexpected_content": ["<html", "<!DOCTYPE"],
+            "expected_status": HTTPStatus.NO_CONTENT,
         },
         {
             "status": CVStatus.COMPLETED,
@@ -197,12 +198,19 @@ def test_cv_results_view_renders_correct_template_based_on_status(
         reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}), **headers
     )
 
-    assert response.status_code == HTTPStatus.OK
-    assertTemplateUsed(response, test_case["expected_template"])
-    for content in test_case["expected_content"]:
-        assertContains(response, content)
-    for content in test_case["unexpected_content"]:
-        assertNotContains(response, content)
+    expected_status = test_case.get("expected_status", HTTPStatus.OK)
+    assert response.status_code == expected_status
+
+    if expected_status == HTTPStatus.OK:
+        assertTemplateUsed(response, test_case["expected_template"])
+        for content in test_case["expected_content"]:
+            assertContains(response, content)
+        for content in test_case["unexpected_content"]:
+            assertNotContains(response, content)
+    elif expected_status == HTTPStatus.NO_CONTENT:
+        # For 204 responses, check headers instead of content
+        assert "HX-Reswap" in response
+        assert response["HX-Reswap"] == "none"
 
 
 @patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
@@ -216,12 +224,14 @@ def test_cv_processing_flow_pending_to_completed(
     response_initial = client.get(url)
     assert response_initial.status_code == HTTPStatus.OK
     assertTemplateUsed(response_initial, "candidate/cv_processing.html")
-    assertContains(response_initial, 'hx-trigger="load delay:2s"')
+    assertContains(
+        response_initial,
+        f'hx-trigger="every {settings.CV_PROCESSING_POLL_INTERVAL}s"',
+    )
 
     response_poll = client.get(url, HTTP_HX_REQUEST="true")
-    assert response_poll.status_code == HTTPStatus.OK
-    assertTemplateUsed(response_poll, "candidate/components/_processing_content.html")
-    assertContains(response_poll, 'hx-trigger="load delay:2s"')
+    assert response_poll.status_code == HTTPStatus.NO_CONTENT
+    assert response_poll["HX-Reswap"] == "none"
 
     mock_get_status.return_value = {
         "status": CVStatus.COMPLETED,
@@ -231,7 +241,7 @@ def test_cv_processing_flow_pending_to_completed(
     assert response_completed.status_code == HTTPStatus.OK
     assertTemplateUsed(response_completed, "candidate/components/_results_content.html")
     assertContains(response_completed, "Vos opportunités professionnelles")
-    assertNotContains(response_completed, 'hx-trigger="load')
+    assertNotContains(response_completed, 'hx-trigger="every')
 
 
 def test_cv_results_with_pending_cv_in_database_shows_processing(client, db):
@@ -246,7 +256,9 @@ def test_cv_results_with_pending_cv_in_database_shows_processing(client, db):
     assert response.status_code == HTTPStatus.OK
     assertTemplateUsed(response, "candidate/cv_processing.html")
     assertContains(response, "Analyse de votre CV en cours...")
-    assertContains(response, 'hx-trigger="load delay:2s"')
+    assertContains(
+        response, f'hx-trigger="every {settings.CV_PROCESSING_POLL_INTERVAL}s"'
+    )
 
 
 def test_cv_results_with_completed_cv_in_database_shows_results(client, db):
@@ -271,10 +283,8 @@ def test_cv_results_htmx_poll_pending_to_completed_transition(client, db):
     url = reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id})
 
     response_pending = client.get(url, HTTP_HX_REQUEST="true")
-    assertTemplateUsed(
-        response_pending, "candidate/components/_processing_content.html"
-    )
-    assertContains(response_pending, 'hx-trigger="load delay:2s"')
+    assert response_pending.status_code == HTTPStatus.NO_CONTENT
+    assert response_pending["HX-Reswap"] == "none"
 
     model.status = CVStatus.COMPLETED.value
     model.save()
@@ -282,7 +292,7 @@ def test_cv_results_htmx_poll_pending_to_completed_transition(client, db):
     response_completed = client.get(url, HTTP_HX_REQUEST="true")
     assertTemplateUsed(response_completed, "candidate/components/_results_content.html")
     assertContains(response_completed, "Vos opportunités professionnelles")
-    assertNotContains(response_completed, 'hx-trigger="load')
+    assertNotContains(response_completed, 'hx-trigger="every')
 
 
 def test_cv_results_nonexistent_cv_shows_pending(client, db):

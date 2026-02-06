@@ -154,6 +154,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Maximum CV size in cv upload flow
 CV_MAX_SIZE_MB = 5
 
+# Polling interval for CV processing status (in seconds)
+CV_PROCESSING_POLL_INTERVAL = 2
+
 # Logging configuration
 LOG_LEVEL = "DEBUG" if DEBUG else "ERROR"
 
