@@ -192,60 +192,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         # Default template for completed status with results
         return ["candidate/cv_results.html"]
 
-    def _get_mock_results(self) -> list[dict[str, str]]:
-        """Return mock results data."""
-        return [
-            {
-                "type": "offer",
-                "title": "Chef de projet transformation numérique",
-                "description": "Pilotage de projets de modernisation des "
-                "systèmes d'information.",
-                "location": "Paris",
-                "location_value": "paris",
-                "category": "Catégorie A",
-                "category_value": "a",
-                "versant": "État",
-                "job_type": "Ingénieur des systèmes d'information",
-                "url": "#",
-            },
-            {
-                "type": "concours",
-                "title": "Concours d'attaché d'administration de l'État",
-                "description": "Recrutement d'attachés pour les ministères "
-                "économiques et financiers.",
-                "concours_type": "Externe",
-                "category": "Catégorie A",
-                "category_value": "a",
-                "versant": "État",
-                "job_type": "Attaché d'administration",
-                "url": "#",
-            },
-            {
-                "type": "offer",
-                "title": "Responsable des ressources humaines",
-                "description": "Gestion des carrières et accompagnement des agents.",
-                "location": "Lyon",
-                "location_value": "lyon",
-                "category": "Catégorie A",
-                "category_value": "a",
-                "versant": "Territoriale",
-                "job_type": "Attaché territorial",
-                "url": "#",
-            },
-            {
-                "type": "offer",
-                "title": "Technicien informatique",
-                "description": "Support et maintenance des systèmes.",
-                "location": "Paris",
-                "location_value": "paris",
-                "category": "Catégorie B",
-                "category_value": "b",
-                "versant": "État",
-                "job_type": "Technicien",
-                "url": "#",
-            },
-        ]
-
     def _filter_results(self, results: list[dict[str, str]]) -> list[dict[str, str]]:
         """Filter results based on GET parameters."""
         location = self.request.GET.get("filter-location")
