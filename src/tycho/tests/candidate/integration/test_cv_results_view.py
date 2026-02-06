@@ -313,20 +313,13 @@ def test_cv_results_failed_status_redirects_with_error_message(client, db):
     "status_config",
     [
         (CVStatus.FAILED, [], lambda cv_uuid: reverse("candidate:cv_upload")),
-        (
-            CVStatus.COMPLETED,
-            [],
-            lambda cv_uuid: reverse(
-                "candidate:cv_no_results", kwargs={"cv_uuid": cv_uuid}
-            ),
-        ),
     ],
 )
 @patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
 def test_cv_results_htmx_request_sets_redirect_header(
     mock_get_status, client, db, status_config
 ):
-    """HTMX request with FAILED or empty COMPLETED status sets HX-Redirect header."""
+    """HTMX request with FAILED status sets HX-Redirect header."""
     status, opportunities, url_builder = status_config
     cv_uuid = uuid4()
     mock_get_status.return_value = {"status": status, "opportunities": opportunities}
@@ -342,24 +335,24 @@ def test_cv_results_htmx_request_sets_redirect_header(
 
 
 @patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
-def test_cv_results_routes_to_no_results_when_empty(mock_get_status, client, db):
-    """CV with COMPLETED status and empty opportunities redirects to no-results page."""
+def test_cv_results_shows_no_results_when_empty(mock_get_status, client, db):
+    """CV with COMPLETED status and empty opportunities shows no-results template."""
     cv_uuid = uuid4()
     mock_get_status.return_value = {"status": CVStatus.COMPLETED, "opportunities": []}
 
     response = client.get(reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}))
 
-    assert response.status_code == HTTPStatus.FOUND
-    assert response.url == reverse(
-        "candidate:cv_no_results", kwargs={"cv_uuid": cv_uuid}
-    )
+    assert response.status_code == HTTPStatus.OK
+    assertTemplateUsed(response, "candidate/cv_results.html")
+    assertContains(response, "0 résultats")
+    assertContains(response, "Aucun résultat pour le moment")
 
 
 @patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
-def test_cv_results_htmx_empty_opportunities_sets_redirect_header(
+def test_cv_results_htmx_empty_opportunities_shows_no_results(
     mock_get_status, client, db
 ):
-    """HTMX request with empty opportunities sets HX-Redirect header."""
+    """HTMX request with empty opportunities shows no-results template."""
     cv_uuid = uuid4()
     mock_get_status.return_value = {"status": CVStatus.COMPLETED, "opportunities": []}
 
@@ -369,7 +362,5 @@ def test_cv_results_htmx_empty_opportunities_sets_redirect_header(
     )
 
     assert response.status_code == HTTPStatus.OK
-    assert "HX-Redirect" in response
-    assert response["HX-Redirect"] == reverse(
-        "candidate:cv_no_results", kwargs={"cv_uuid": cv_uuid}
-    )
+    assertTemplateUsed(response, "candidate/components/_no_results_content.html")
+    assertContains(response, "Aucun résultat trouvé")
