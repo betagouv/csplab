@@ -16,7 +16,11 @@ class Command(BaseCommand):
         parser.add_argument(
             "--type",
             required=True,
-            choices=["CORPS", "CONCOURS"],
+            choices=[
+                DocumentType.CORPS.value,
+                DocumentType.CONCOURS.value,
+                DocumentType.OFFERS.value,
+            ],
             help="Type of documents to vectorize",
         )
         parser.add_argument(
@@ -42,12 +46,14 @@ class Command(BaseCommand):
                 self.stdout.write(
                     f"Fetching {limit} entities of type: {document_type.value}"
                 )
-                entities = repository.get_all()[:limit] if repository.get_all() else []
             else:
                 self.stdout.write(
                     f"Fetching all entities of type: {document_type.value}"
                 )
-                entities = repository.get_all()
+
+            entities = repository.get_all()
+            if entities and limit:
+                entities = entities[:limit]
 
             if not entities:
                 self.stdout.write(
