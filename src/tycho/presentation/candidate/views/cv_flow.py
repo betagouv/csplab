@@ -84,6 +84,15 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         self.logger = self.container.logger_service().get_logger(
             "CANDIDATE::INFRASTRUCTURE::CVResultsView"
         )
+        self.status = None
+        self.opportunities = None
+
+    def dispatch(self, request, *args, **kwargs):
+        """Initialize status and opportunities once per request."""
+        status_data = self._get_cv_processing_status()
+        self.status = status_data.get("status")
+        self.opportunities = status_data.get("opportunities", [])
+        return super().dispatch(request, *args, **kwargs)
 
     def _get_cv_processing_status(self) -> dict[str, object]:
         """Get CV processing status from repository.
@@ -109,11 +118,9 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
 
     def get_template_names(self) -> list[str]:
         """Route to appropriate template based on status and HTMX context."""
-        status_data = self._get_cv_processing_status()
-        status = status_data.get("status")
         is_htmx = self.request.headers.get("HX-Request")
 
-        if status == CVStatus.PENDING:
+        if self.status == CVStatus.PENDING:
             if is_htmx:
                 return ["candidate/components/_processing_content.html"]
             return ["candidate/cv_processing.html"]
@@ -196,19 +203,18 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
     def get_context_data(self, **kwargs: object) -> dict[str, object]:
         """Add mock data for results display."""
         context = super().get_context_data(**kwargs)
-        status_data = self._get_cv_processing_status()
-        status = status_data.get("status")
 
         context["cv_uuid"] = self.kwargs.get("cv_uuid")
 
-        if status == CVStatus.PENDING:
+        if self.status == CVStatus.PENDING:
             return context
 
         context["cv_name"] = "CV Adelle Mortelle.pdf"
 
-        all_results = status_data.get("opportunities", [])
-        if isinstance(all_results, list):
-            context["results"] = self._filter_results(all_results)
+        # TODO We may want to use a template tag to count opportunities to display,
+        # and get context lighter.
+        if isinstance(self.opportunities, list):
+            context["results"] = self._filter_results(self.opportunities)
             context["results_count"] = len(context["results"])
         context["location_options"] = [
             {"value": "", "text": "Toutes les localisations"},
