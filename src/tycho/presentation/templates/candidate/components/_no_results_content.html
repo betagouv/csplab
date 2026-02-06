@@ -1,0 +1,15 @@
+{% load static dsfr_tags %}
+<div>
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <div class="fr-container">
+        <div class="fr-grid-row fr-grid-row--gutters fr-pt-6w fr-pb-15w">
+            <div class="fr-col-12 fr-col-md-8 fr-col-offset-md-2">
+                <h1 class="csplab-text-blue-france">Aucun résultat trouvé</h1>
+                {% dsfr_alert title="Information" type="info" content="Malheureusement, nous n'avons trouvé aucune opportunité correspondant à votre profil pour le moment. Nous vous invitons à réessayer ultérieurement car de nouvelles offres sont régulièrement ajoutées." %}
+                <div class="fr-pt-4w">
+                    <a href="{% url 'candidate:cv_upload' %}" class="fr-btn">Retour à l'analyse de profil</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -110,17 +110,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
                 return response
             return redirect("candidate:cv_upload")
 
-        opportunities = status_data.get("opportunities", [])
-        if status == CVStatus.COMPLETED and not opportunities:
-            cv_uuid = self.kwargs.get("cv_uuid")
-            if request.headers.get("HX-Request"):
-                response = HttpResponse()
-                response["HX-Redirect"] = reverse_lazy(
-                    "candidate:cv_no_results", kwargs={"cv_uuid": cv_uuid}
-                )
-                return response
-            return redirect("candidate:cv_no_results", cv_uuid=cv_uuid)
-
         return super().get(request, *args, **kwargs)
 
     def _get_cv_processing_status(self) -> dict[str, object]:
@@ -148,19 +137,14 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
     def get_template_names(self) -> list[str]:
         """Route to appropriate template based on status and HTMX context."""
         is_htmx = self.request.headers.get("HX-Request")
+        hx_target = self.request.headers.get("HX-Target")
 
         if self.status == CVStatus.PENDING:
             if is_htmx:
                 return ["candidate/components/_processing_content.html"]
             return ["candidate/cv_processing.html"]
 
-        if is_htmx:
-            hx_target = self.request.headers.get("HX-Target")
-            if hx_target == "results-zone":
-                return ["candidate/components/_results_list.html"]
-            return ["candidate/components/_results_content.html"]
-
-        return [self.template_name]
+        return template
 
     def _get_mock_results(self) -> list[dict[str, str]]:
         """Return mock results data."""
