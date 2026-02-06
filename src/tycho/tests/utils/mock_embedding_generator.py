@@ -47,4 +47,6 @@ class MockEmbeddingGenerator(IEmbeddingGenerator):
             return self._text_to_embedding[text]
 
         # Fallback
-        return [0.0] * 3072
+        # we do not want all zeros array which make semantic_search
+        # returns array of nan
+        return [1e-8] * 3072

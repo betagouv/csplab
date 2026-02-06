@@ -26,6 +26,9 @@ from infrastructure.external_gateways.configs.pdf_extractor_config import (
 )
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.cv_metadata_factory import CVMetadataFactory
+from tests.fixtures.vectorize_test_factories import (
+    create_test_offer,
+)
 from tests.utils.async_in_memory_cv_metadata_repository import (
     AsyncInMemoryCVMetadataRepository,
 )
@@ -203,6 +206,30 @@ def vectorized_concours_documents_fixture(concours):
         )
         documents.append(vectorized_doc)
     return documents
+
+
+@pytest.fixture(name="offers")
+def offers_fixture():
+    """Create test offers datas."""
+    return [create_test_offer(i) for i in range(4, 7)]
+
+
+@pytest.fixture(name="vectorized_offers_documents")
+def vectorized_offers_documents_fixture(offers):
+    """Create test vectorized documents for offers."""
+    return [
+        VectorizedDocument(
+            id=c.id,
+            document_id=c.id,
+            document_type=DocumentType.OFFERS,
+            content=f"{c.external_id} {c.title}",
+            embedding=[0.2] * 3072,  # Mock embedding
+            metadata={"source": "test"},
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        )
+        for c in offers
+    ]
 
 
 @pytest.fixture(name="db_cv_uuid")

@@ -11,9 +11,15 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
 
+from domain.entities.concours import Concours
+from domain.entities.offer import Offer
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.forms.cv_flow import CVUploadForm
+from presentation.candidate.mappers import (
+    ConcoursToTemplateMapper,
+    OfferToTemplateMapper,
+)
 from presentation.candidate.mixins import (
     BreadcrumbLink,
     BreadcrumbMixin,
@@ -85,12 +91,14 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         )
         self.status = None
         self.opportunities = None
+        self.filename = None
 
     def dispatch(self, request, *args, **kwargs):
         """Initialize status and opportunities once per request."""
         status_data = self._get_cv_processing_status()
         self.status = status_data.get("status")
         self.opportunities = status_data.get("opportunities", [])
+        self.filename = status_data.get("filename")
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -122,18 +130,39 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         self.logger.info("Getting CV processing status for cv_uuid=%s", cv_uuid)
 
         cv_metadata_repository = self.container.postgres_cv_metadata_repository()
-
+        opportunities = []
+        filename = None
         try:
             cv_metadata = cv_metadata_repository.find_by_id(cv_uuid)
+
             status = cv_metadata.status if cv_metadata else CVStatus.PENDING
+            filename = cv_metadata.filename
+
+            if cv_metadata and status == CVStatus.COMPLETED:
+                match_cv_to_opportunities = (
+                    self.container.match_cv_to_opportunities_usecase()
+                )
+                raw_opportunities = match_cv_to_opportunities.execute(
+                    cv_metadata=cv_metadata,
+                    limit=10,
+                )
+
+                for opportunity in raw_opportunities:
+                    if isinstance(opportunity[0], Concours):
+                        opportunities.append(
+                            ConcoursToTemplateMapper.map(opportunity[0])
+                        )
+                    elif isinstance(opportunity[0], Offer):
+                        opportunities.append(OfferToTemplateMapper.map(opportunity[0]))
+
         except Exception:
-            status = CVStatus.PENDING
+            status = CVStatus.FAILED
 
-        result: dict[str, object] = {"status": status, "opportunities": []}
-
-        # For demo: show mock results for any completed/failed status
-        if status != CVStatus.PENDING:
-            result["opportunities"] = self._get_mock_results()
+        result: dict[str, object] = {
+            "status": status,
+            "opportunities": opportunities,
+            "filename": filename,
+        }
 
         return result
 
@@ -240,7 +269,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         if self.status == CVStatus.PENDING:
             return context
 
-        context["cv_name"] = "CV Adelle Mortelle.pdf"
+        context["cv_name"] = self.filename
 
         # TODO We may want to use a template tag to count opportunities to display,
         # and get context lighter.

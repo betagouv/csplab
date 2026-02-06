@@ -44,17 +44,26 @@ def test_cv_results_invalid_uuid_returns_404(client, db):
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_cv_results_htmx_request_returns_partial(client, db, db_cv_uuid):
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_htmx_request_returns_partial(
+    mock_execute, client, db, db_cv_uuid, concours
+):
     """HTMX request returns partial template with results only."""
+    # Mock the usecase to return mock results with proper format
+    mock_execute.return_value = [(concours[0], 0.9)]
+
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}),
         HTTP_HX_REQUEST="true",
     )
     assert response.status_code == HTTPStatus.OK
-    assertTemplateUsed(response, "candidate/components/_results_list.html")
-    assertContains(response, "résultat")
+    assertTemplateUsed(response, "candidate/components/_results_content.html")
+    assertContains(response, "opportunités")
 
 
+# TODO - add vectorized offers in test
 @pytest.mark.parametrize(
     "filter_test_case",
     [
@@ -106,10 +115,37 @@ def test_cv_results_htmx_request_returns_partial(client, db, db_cv_uuid):
         },
     ],
 )
+@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
 def test_cv_results_htmx_filter_returns_filtered_results(
-    client, db, filter_test_case, db_cv_uuid
+    mock_get_status, client, db, filter_test_case, db_cv_uuid
 ):
     """HTMX filter request returns only matching results."""
+    # Mock opportunities data that matches the filter expectations
+    mock_opportunities = [
+        {
+            "title": "Chef de projet transformation numérique",
+            "location_value": "paris",
+            "category_value": "a",
+            "type": "concours",
+        },
+        {
+            "title": "Responsable des ressources humaines",
+            "location_value": "lyon",
+            "category_value": "a",
+            "type": "concours",
+        },
+        {
+            "title": "Technicien informatique",
+            "location_value": "marseille",
+            "category_value": "b",
+            "type": "concours",
+        },
+    ]
+    mock_get_status.return_value = {
+        "status": CVStatus.COMPLETED,
+        "opportunities": mock_opportunities,
+    }
+
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}),
         filter_test_case["filters"],
@@ -123,14 +159,38 @@ def test_cv_results_htmx_filter_returns_filtered_results(
         assertNotContains(response, title)
 
 
-def test_cv_results_htmx_no_match_displays_empty_state(client, db, db_cv_uuid):
+@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+def test_cv_results_htmx_no_match_displays_empty_state(
+    mock_get_status, client, db, db_cv_uuid
+):
     """HTMX filter with no matches shows zero results message."""
+    # Mock opportunities data that won't match the bordeaux filter
+    mock_opportunities = [
+        {
+            "title": "Chef de projet transformation numérique",
+            "location_value": "paris",
+            "category_value": "a",
+            "type": "concours",
+        },
+        {
+            "title": "Responsable des ressources humaines",
+            "location_value": "lyon",
+            "category_value": "a",
+            "type": "concours",
+        },
+    ]
+    mock_get_status.return_value = {
+        "status": CVStatus.COMPLETED,
+        "opportunities": mock_opportunities,
+    }
+
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}),
         {"filter-location": "bordeaux"},
         HTTP_HX_REQUEST="true",
     )
     assert response.status_code == HTTPStatus.OK
+    assertTemplateUsed(response, "candidate/components/_results_list.html")
     assertContains(response, "0 résultat")
 
 
@@ -261,8 +321,14 @@ def test_cv_results_with_pending_cv_in_database_shows_processing(client, db):
     )
 
 
-def test_cv_results_with_completed_cv_in_database_shows_results(client, db):
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_with_completed_cv_in_database_shows_results(
+    mock_execute, client, db, concours
+):
     """Real CV with COMPLETED status in DB shows results template."""
+    mock_execute.return_value = [(concours[0], 0.9)]
     cv_metadata = CVMetadataFactory.build(status=CVStatus.COMPLETED)
     CVMetadataModel.from_entity(cv_metadata).save()
 
@@ -275,8 +341,14 @@ def test_cv_results_with_completed_cv_in_database_shows_results(client, db):
     assertContains(response, "Vos opportunités professionnelles")
 
 
-def test_cv_results_htmx_poll_pending_to_completed_transition(client, db):
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_htmx_poll_pending_to_completed_transition(
+    mock_execute, client, db, concours
+):
     """HTMX polling detects status change from PENDING to COMPLETED in DB."""
+    mock_execute.return_value = [(concours[0], 0.9)]
     cv_metadata = CVMetadataFactory.build(status=CVStatus.PENDING)
     model = CVMetadataModel.from_entity(cv_metadata)
     model.save()
@@ -295,12 +367,21 @@ def test_cv_results_htmx_poll_pending_to_completed_transition(client, db):
     assertNotContains(response_completed, 'hx-trigger="every')
 
 
-def test_cv_results_nonexistent_cv_shows_pending(client, db):
-    """CV not found in DB defaults to PENDING status (processing view)."""
-    response = client.get(reverse("candidate:cv_results", kwargs={"cv_uuid": uuid4()}))
+def test_cv_results_nonexistent_cv_redirects_to_upload(client, db):
+    """CV not found in DB redirects to upload view due to container creation failure."""
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": uuid4()}), follow=True
+    )
 
     assert response.status_code == HTTPStatus.OK
-    assertTemplateUsed(response, "candidate/cv_processing.html")
+    assert response.redirect_chain[0] == (
+        reverse("candidate:cv_upload"),
+        HTTPStatus.FOUND,
+    )
+    assertContains(
+        response,
+        "Une erreur est survenue lors du traitement de votre CV. Veuillez réessayer.",
+    )
 
 
 def test_cv_results_failed_status_redirects_with_error_message(client, db):
