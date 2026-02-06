@@ -261,8 +261,14 @@ def test_cv_results_with_pending_cv_in_database_shows_processing(client, db):
     )
 
 
-def test_cv_results_with_completed_cv_in_database_shows_results(client, db):
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_with_completed_cv_in_database_shows_results(
+    mock_execute, client, db, concours
+):
     """Real CV with COMPLETED status in DB shows results template."""
+    mock_execute.return_value = [(concours[0], 0.9)]
     cv_metadata = CVMetadataFactory.build(status=CVStatus.COMPLETED)
     CVMetadataModel.from_entity(cv_metadata).save()
 
@@ -275,8 +281,14 @@ def test_cv_results_with_completed_cv_in_database_shows_results(client, db):
     assertContains(response, "Vos opportunités professionnelles")
 
 
-def test_cv_results_htmx_poll_pending_to_completed_transition(client, db):
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_htmx_poll_pending_to_completed_transition(
+    mock_execute, client, db, concours
+):
     """HTMX polling detects status change from PENDING to COMPLETED in DB."""
+    mock_execute.return_value = [(concours[0], 0.9)]
     cv_metadata = CVMetadataFactory.build(status=CVStatus.PENDING)
     model = CVMetadataModel.from_entity(cv_metadata)
     model.save()
@@ -295,12 +307,21 @@ def test_cv_results_htmx_poll_pending_to_completed_transition(client, db):
     assertNotContains(response_completed, 'hx-trigger="every')
 
 
-def test_cv_results_nonexistent_cv_shows_pending(client, db):
-    """CV not found in DB defaults to PENDING status (processing view)."""
-    response = client.get(reverse("candidate:cv_results", kwargs={"cv_uuid": uuid4()}))
+def test_cv_results_nonexistent_cv_redirects_to_upload(client, db):
+    """CV not found in DB redirects to upload view due to container creation failure."""
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": uuid4()}), follow=True
+    )
 
     assert response.status_code == HTTPStatus.OK
-    assertTemplateUsed(response, "candidate/cv_processing.html")
+    assert response.redirect_chain[0] == (
+        reverse("candidate:cv_upload"),
+        HTTPStatus.FOUND,
+    )
+    assertContains(
+        response,
+        "Une erreur est survenue lors du traitement de votre CV. Veuillez réessayer.",
+    )
 
 
 def test_cv_results_failed_status_redirects_with_error_message(client, db):
