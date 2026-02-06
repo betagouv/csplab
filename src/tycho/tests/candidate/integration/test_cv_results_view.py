@@ -6,7 +6,12 @@ from uuid import uuid4
 
 import pytest
 from django.urls import reverse
-from pytest_django.asserts import assertContains, assertNotContains, assertTemplateUsed
+from pytest_django.asserts import (
+    assertContains,
+    assertNotContains,
+    assertRedirects,
+    assertTemplateUsed,
+)
 
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
@@ -218,7 +223,10 @@ def test_cv_processing_flow_pending_to_completed(
     assertTemplateUsed(response_poll, "candidate/components/_processing_content.html")
     assertContains(response_poll, 'hx-trigger="load delay:2s"')
 
-    mock_get_status.return_value = {"status": CVStatus.COMPLETED, "opportunities": []}
+    mock_get_status.return_value = {
+        "status": CVStatus.COMPLETED,
+        "opportunities": [{"title": "Test opportunity"}],
+    }
     response_completed = client.get(url, HTTP_HX_REQUEST="true")
     assert response_completed.status_code == HTTPStatus.OK
     assertTemplateUsed(response_completed, "candidate/components/_results_content.html")
@@ -283,3 +291,72 @@ def test_cv_results_nonexistent_cv_shows_pending(client, db):
 
     assert response.status_code == HTTPStatus.OK
     assertTemplateUsed(response, "candidate/cv_processing.html")
+
+
+def test_cv_results_failed_status_redirects_with_error_message(client, db):
+    """CV with FAILED status redirects to cv-upload with French error message."""
+    cv_metadata = CVMetadataFactory.build(status=CVStatus.FAILED)
+    CVMetadataModel.from_entity(cv_metadata).save()
+
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}),
+        follow=True,
+    )
+
+    assertRedirects(
+        response,
+        reverse("candidate:cv_upload"),
+        target_status_code=HTTPStatus.OK,
+    )
+    assertContains(
+        response,
+        "Une erreur est survenue lors du traitement de votre CV. Veuillez réessayer.",
+    )
+
+
+@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+def test_cv_results_htmx_request_sets_redirect_header(mock_get_status, client, db):
+    """HTMX request with FAILED status sets HX-Redirect header."""
+    cv_uuid = uuid4()
+    mock_get_status.return_value = {"status": CVStatus.FAILED, "opportunities": []}
+
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}),
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert "HX-Redirect" in response
+    assert response["HX-Redirect"] == reverse("candidate:cv_upload")
+
+
+@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+def test_cv_results_shows_no_results_when_empty(mock_get_status, client, db):
+    """CV with COMPLETED status and empty opportunities shows no-results template."""
+    cv_uuid = uuid4()
+    mock_get_status.return_value = {"status": CVStatus.COMPLETED, "opportunities": []}
+
+    response = client.get(reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}))
+
+    assert response.status_code == HTTPStatus.OK
+    assertTemplateUsed(response, "candidate/cv_results.html")
+    assertContains(response, "0 résultats")
+    assertContains(response, "Aucun résultat pour le moment")
+
+
+@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+def test_cv_results_htmx_empty_opportunities_shows_no_results(
+    mock_get_status, client, db
+):
+    """HTMX request with empty opportunities shows no-results template."""
+    cv_uuid = uuid4()
+    mock_get_status.return_value = {"status": CVStatus.COMPLETED, "opportunities": []}
+
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}),
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assertTemplateUsed(response, "candidate/components/_no_results_content.html")
+    assertContains(response, "Aucun résultat trouvé")

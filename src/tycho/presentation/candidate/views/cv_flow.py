@@ -61,7 +61,6 @@ class CVUploadView(BreadcrumbMixin, FormView):
         )
         thread.start()
 
-        messages.success(self.request, "Votre CV est en cours de traitement !")
         return redirect("candidate:cv_results", cv_uuid=cv_uuid)
 
     def form_invalid(self, form: CVUploadForm) -> HttpResponse:
@@ -73,7 +72,6 @@ class CVUploadView(BreadcrumbMixin, FormView):
 class CVResultsView(BreadcrumbMixin, TemplateView):
     """CV analysis results with HTMX polling support."""
 
-    template_name: str = "candidate/cv_results.html"
     breadcrumb_current = "Résultat de l'analyse du CV"
     breadcrumb_links: list[BreadcrumbLink] = []
 
@@ -93,6 +91,22 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         self.status = status_data.get("status")
         self.opportunities = status_data.get("opportunities", [])
         return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        """Handle GET request with FAILED status check."""
+        if self.status == CVStatus.FAILED:
+            messages.error(
+                request,
+                "Une erreur est survenue lors du traitement de votre CV. "
+                "Veuillez réessayer.",
+            )
+            if request.headers.get("HX-Request"):
+                response = HttpResponse()
+                response["HX-Redirect"] = reverse_lazy("candidate:cv_upload")
+                return response
+            return redirect("candidate:cv_upload")
+
+        return super().get(request, *args, **kwargs)
 
     def _get_cv_processing_status(self) -> dict[str, object]:
         """Get CV processing status from repository.
@@ -119,19 +133,28 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
     def get_template_names(self) -> list[str]:
         """Route to appropriate template based on status and HTMX context."""
         is_htmx = self.request.headers.get("HX-Request")
-
+        hx_target = self.request.headers.get("HX-Target")
         if self.status == CVStatus.PENDING:
-            if is_htmx:
-                return ["candidate/components/_processing_content.html"]
-            return ["candidate/cv_processing.html"]
+            return (
+                ["candidate/components/_processing_content.html"]
+                if is_htmx
+                else ["candidate/cv_processing.html"]
+            )
+        elif self.status == CVStatus.COMPLETED and not self.opportunities:
+            return (
+                ["candidate/components/_no_results_content.html"]
+                if is_htmx
+                else ["candidate/cv_results.html"]
+            )
+        elif is_htmx:
+            return (
+                ["candidate/components/_results_list.html"]
+                if hx_target == "results-zone"
+                else ["candidate/components/_results_content.html"]
+            )
 
-        if is_htmx:
-            hx_target = self.request.headers.get("HX-Target")
-            if hx_target == "results-zone":
-                return ["candidate/components/_results_list.html"]
-            return ["candidate/components/_results_content.html"]
-
-        return [self.template_name]
+        # Default template for completed status with results
+        return ["candidate/cv_results.html"]
 
     def _get_mock_results(self) -> list[dict[str, str]]:
         """Return mock results data."""

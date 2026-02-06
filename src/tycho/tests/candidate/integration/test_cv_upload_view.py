@@ -29,10 +29,8 @@ def test_cv_upload_page_loads_correctly(client, db):
 
 @pytest.mark.parametrize("filename", ["cv.pdf", "CV.PDF"])
 @patch("presentation.candidate.views.cv_flow.create_candidate_container")
-def test_cv_upload_valid_pdf_shows_success_message(
-    mock_container, client, db, filename
-):
-    """Valid PDF uploads redirect and show success message."""
+def test_cv_upload_valid_pdf_redirects_to_results(mock_container, client, db, filename):
+    """Valid PDF uploads redirect to cv_results view."""
     # Mock the usecases
     mock_uuid = str(uuid4())
     mock_initialize_usecase = (
@@ -56,7 +54,6 @@ def test_cv_upload_valid_pdf_shows_success_message(
 
     # Check redirect to cv_results with correct URL pattern
     assert response.redirect_chain[-1][0] == f"/candidate/cv/{mock_uuid}/results/"
-    assertContains(response, "en cours de traitement")
 
 
 def test_cv_upload_empty_submission_shows_error(client, db):
