@@ -4,6 +4,7 @@ import asyncio
 import threading
 from uuid import UUID
 
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -235,6 +236,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         context["cv_uuid"] = self.kwargs.get("cv_uuid")
+        context["poll_interval"] = settings.CV_PROCESSING_POLL_INTERVAL
 
         if self.status == CVStatus.PENDING:
             return context

@@ -1,6 +1,6 @@
 {% load static %}
 <div hx-get="{% url 'candidate:cv_results' cv_uuid %}"
-     hx-trigger="load delay:2s"
+     hx-trigger="every {{ poll_interval }}s"
      hx-swap="outerHTML">
     <div class="fr-container">
         <div class="csplab-processing fr-pt-5w fr-px-2w fr-pt-md-9w fr-px-md-15w">
