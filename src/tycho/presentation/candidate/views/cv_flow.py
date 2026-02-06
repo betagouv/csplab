@@ -93,7 +93,14 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        """Handle GET request with FAILED status check."""
+        """Handle GET request with status-based routing."""
+        is_htmx = request.headers.get("HX-Request")
+
+        if self.status == CVStatus.PENDING and is_htmx:
+            response = HttpResponse(status=204)
+            response["HX-Reswap"] = "none"
+            return response
+
         if self.status == CVStatus.FAILED:
             messages.error(
                 request,

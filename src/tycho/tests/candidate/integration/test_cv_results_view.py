@@ -153,9 +153,9 @@ def test_cv_results_htmx_no_match_displays_empty_state(client, db, db_cv_uuid):
             "expected_template": "candidate/components/_processing_content.html",
             "expected_content": [
                 "Analyse de votre CV en cours...",
-                'hx-trigger="load delay:2s"',
             ],
             "unexpected_content": ["<html", "<!DOCTYPE"],
+            "expected_status": HTTPStatus.NO_CONTENT,
         },
         {
             "status": CVStatus.COMPLETED,
@@ -197,12 +197,19 @@ def test_cv_results_view_renders_correct_template_based_on_status(
         reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}), **headers
     )
 
-    assert response.status_code == HTTPStatus.OK
-    assertTemplateUsed(response, test_case["expected_template"])
-    for content in test_case["expected_content"]:
-        assertContains(response, content)
-    for content in test_case["unexpected_content"]:
-        assertNotContains(response, content)
+    expected_status = test_case.get("expected_status", HTTPStatus.OK)
+    assert response.status_code == expected_status
+
+    if expected_status == HTTPStatus.OK:
+        assertTemplateUsed(response, test_case["expected_template"])
+        for content in test_case["expected_content"]:
+            assertContains(response, content)
+        for content in test_case["unexpected_content"]:
+            assertNotContains(response, content)
+    elif expected_status == HTTPStatus.NO_CONTENT:
+        # For 204 responses, check headers instead of content
+        assert "HX-Reswap" in response
+        assert response["HX-Reswap"] == "none"
 
 
 @patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
@@ -219,9 +226,8 @@ def test_cv_processing_flow_pending_to_completed(
     assertContains(response_initial, 'hx-trigger="load delay:2s"')
 
     response_poll = client.get(url, HTTP_HX_REQUEST="true")
-    assert response_poll.status_code == HTTPStatus.OK
-    assertTemplateUsed(response_poll, "candidate/components/_processing_content.html")
-    assertContains(response_poll, 'hx-trigger="load delay:2s"')
+    assert response_poll.status_code == HTTPStatus.NO_CONTENT
+    assert response_poll["HX-Reswap"] == "none"
 
     mock_get_status.return_value = {
         "status": CVStatus.COMPLETED,
@@ -271,10 +277,8 @@ def test_cv_results_htmx_poll_pending_to_completed_transition(client, db):
     url = reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id})
 
     response_pending = client.get(url, HTTP_HX_REQUEST="true")
-    assertTemplateUsed(
-        response_pending, "candidate/components/_processing_content.html"
-    )
-    assertContains(response_pending, 'hx-trigger="load delay:2s"')
+    assert response_pending.status_code == HTTPStatus.NO_CONTENT
+    assert response_pending["HX-Reswap"] == "none"
 
     model.status = CVStatus.COMPLETED.value
     model.save()
