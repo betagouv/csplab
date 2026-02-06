@@ -117,24 +117,29 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
     def _get_cv_processing_status(self) -> dict[str, object]:
-        """Get CV processing status from repository.
-
-        TODO: Replace with MatchCVToOpportunitiesUsecase(wait_for_completion=True)
-        """
+        """Get CV processing status from repository."""
         cv_uuid = self.kwargs.get("cv_uuid")
-        cv_metadata_repository = self.container.postgres_cv_metadata_repository()
+        self.logger.info("Getting CV processing status for cv_uuid=%s", cv_uuid)
 
+        cv_metadata_repository = self.container.postgres_cv_metadata_repository()
+        opportunities = None
         try:
             cv_metadata = cv_metadata_repository.find_by_id(cv_uuid)
+
             status = cv_metadata.status if cv_metadata else CVStatus.PENDING
+
+            if cv_metadata and status == CVStatus.COMPLETED:
+                match_cv_to_opportunities = (
+                    self.container.match_cv_to_opportunities_usecase()
+                )
+                opportunities = match_cv_to_opportunities.execute(
+                    cv_metadata=cv_metadata,
+                    limit=10,
+                )
         except Exception:
-            status = CVStatus.PENDING
+            status = CVStatus.FAILED
 
-        result: dict[str, object] = {"status": status, "opportunities": []}
-
-        # For demo: show mock results for any completed/failed status
-        if status != CVStatus.PENDING:
-            result["opportunities"] = self._get_mock_results()
+        result: dict[str, object] = {"status": status, "opportunities": opportunities}
 
         return result
 

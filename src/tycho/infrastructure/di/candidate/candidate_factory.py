@@ -78,6 +78,7 @@ def create_candidate_container() -> CandidateContainer:
 
     logger_service = LoggerService("candidate")
     container.logger_service.override(logger_service)
+    shared_container.logger_service.override(logger_service)
 
     container.shared_container.override(shared_container)
 
