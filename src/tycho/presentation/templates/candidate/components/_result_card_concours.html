@@ -10,7 +10,9 @@
             <div class="fr-mt-2w">
                 <ul class="fr-tags-group">
                     {% if concours.concours_type %}
-                        <li>{% dsfr_tag label=concours.concours_type extra_classes="fr-tag--sm" %}</li>
+                        {% for tag in concours.concours_type %}
+                            <li>{% dsfr_tag label=tag extra_classes="fr-tag--sm" %}</li>
+                        {% endfor %}
                     {% endif %}
                     {% if concours.category %}
                         <li>{% dsfr_tag label=concours.category extra_classes="fr-tag--sm" %}</li>

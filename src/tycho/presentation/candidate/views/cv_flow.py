@@ -14,6 +14,7 @@ from django.views.generic import FormView, TemplateView
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.forms.cv_flow import CVUploadForm
+from presentation.candidate.mappers.concours_mapper import ConcoursToTemplateMapper
 from presentation.candidate.mixins import (
     BreadcrumbLink,
     BreadcrumbMixin,
@@ -132,10 +133,15 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
                 match_cv_to_opportunities = (
                     self.container.match_cv_to_opportunities_usecase()
                 )
-                opportunities = match_cv_to_opportunities.execute(
+                raw_opportunities = match_cv_to_opportunities.execute(
                     cv_metadata=cv_metadata,
                     limit=10,
                 )
+                # Transform Concours entities to template format
+                opportunities = [
+                    ConcoursToTemplateMapper.map(concours)
+                    for concours, _ in raw_opportunities
+                ]
         except Exception:
             status = CVStatus.FAILED
 
