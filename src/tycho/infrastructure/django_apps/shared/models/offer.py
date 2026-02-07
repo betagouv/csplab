@@ -47,7 +47,7 @@ class OfferModel(models.Model):
 
     # Localisation fields stored separately
     country = models.CharField(max_length=3, null=True, blank=True)
-    region = models.CharField(max_length=2, null=True, blank=True)
+    region = models.CharField(max_length=3, null=True, blank=True)
     department = models.CharField(max_length=3, null=True, blank=True)
 
     # Date fields
@@ -86,10 +86,12 @@ class OfferModel(models.Model):
 
         offer_url = HttpUrl(self.offer_url) if self.offer_url else None
 
+        verse = Verse(self.verse) if self.verse else None
+
         return Offer(
             id=self.id,
             external_id=self.external_id,
-            verse=Verse(self.verse),
+            verse=verse,
             title=self.title,
             profile=self.profile,
             mission=self.mission,
