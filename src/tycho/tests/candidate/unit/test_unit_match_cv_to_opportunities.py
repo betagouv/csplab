@@ -26,6 +26,10 @@ def _candidate_container():
 
     shared_container = SharedContainer()
 
+    # Setup logger service for both containers
+    logger_service = LoggerService()
+    shared_container.logger_service.override(logger_service)
+
     concours_repo = InMemoryConcoursRepository()
     shared_container.concours_repository.override(concours_repo)
 
@@ -38,7 +42,6 @@ def _candidate_container():
 
     container.shared_container.override(shared_container)
 
-    logger_service = LoggerService()
     container.logger_service.override(logger_service)
 
     cv_repo = InMemoryCVMetadataRepository()
