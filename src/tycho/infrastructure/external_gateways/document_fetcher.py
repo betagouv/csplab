@@ -40,7 +40,7 @@ class ExternalDocumentFetcher(IDocumentFetcher):
         }
 
     def fetch_by_type(
-        self, document_type: DocumentType, start: int = 1
+        self, document_type: DocumentType, start: int = 1, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         """Fetch documents from external source."""
         self.logger.info(f"Fetching documents of type {document_type}")

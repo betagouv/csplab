@@ -9,7 +9,7 @@ class IDocumentFetcher(Protocol):
     """Interface for fetching documents from external sources."""
 
     def fetch_by_type(
-        self, document_type: DocumentType, start: int
+        self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         """Fetch documents from external source by type."""
         ...
@@ -45,7 +45,7 @@ class IDocumentRepository(Protocol):
     """Interface for document repository operations."""
 
     def fetch_by_type(
-        self, document_type: DocumentType, start: int
+        self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         """Fetch documents by type."""
         ...
@@ -66,10 +66,10 @@ class CompositeDocumentRepository(IDocumentRepository):
         self.persister = persister
 
     def fetch_by_type(
-        self, document_type: DocumentType, start: int
+        self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         """Fetch documents by type using external fetcher."""
-        return self.fetcher.fetch_by_type(document_type, start)
+        return self.fetcher.fetch_by_type(document_type, start, batch_size)
 
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
