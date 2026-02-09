@@ -16,12 +16,19 @@ class PostgresDocumentRepository(IDocumentRepository):
     """Complete document repository using Django ORM."""
 
     def fetch_by_type(
-        self, document_type: DocumentType, start: int
+        self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
-        """Fetch documents from Django database by type."""
-        raw_documents = RawDocument.objects.filter(document_type=document_type.value)
-        has_more = False
-        return [raw_doc.to_entity() for raw_doc in raw_documents], has_more
+        """Fetch documents from Django database by type with pagination."""
+        offset = start * batch_size
+
+        if start < 0 or batch_size <= 0:
+            raise ValueError("Invalid start or batch_size values")
+
+        qs = RawDocument.objects.filter(document_type=document_type.value)
+        raw_documents_to_return = list(qs.order_by("id")[offset : offset + batch_size])
+        has_more = qs.count() > offset + batch_size
+
+        return [raw_doc.to_entity() for raw_doc in raw_documents_to_return], has_more
 
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType

@@ -20,7 +20,7 @@ class InMemoryDocumentRepository(IDocumentRepository):
         self._next_id = 1
 
     def fetch_by_type(
-        self, document_type: DocumentType, start: int
+        self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         """Get documents by type."""
         has_more = False
