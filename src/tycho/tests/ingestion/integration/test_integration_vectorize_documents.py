@@ -1,16 +1,24 @@
 """Integration tests for VectorizeDocuments usecase with external adapters."""
 
 import pytest
+from faker import Faker
 
+from domain.entities.document import DocumentType
+from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.django_apps.shared.models.vectorized_document import (
     VectorizedDocumentModel,
 )
+from tests.factories.concours_factory import ConcoursFactory
+from tests.factories.corps_factory import CorpsFactory
+from tests.factories.offer_factory import OfferFactory
 from tests.fixtures.vectorize_test_factories import (
     INTEGRATION_ENTITIES_COUNT,
     create_test_concours_for_integration,
     create_test_corps_for_integration,
     create_test_offer_for_integration,
 )
+
+fake = Faker()
 
 
 @pytest.mark.parametrize("entity_type", ["corps", "concours", "offer"])
@@ -209,3 +217,24 @@ def test_vectorize_mixed_entities_integration(db, ingestion_integration_containe
         assert len(vector.embedding) > 0
         assert vector.content is not None
         assert vector.metadata is not None
+
+
+def test_store_embeddings_filters_on_id_and_type(db, ingestion_integration_container):
+    """Test store_embeddings filter on id and doc_type in Django persistence."""
+    usecase = ingestion_integration_container.vectorize_documents_usecase()
+
+    entities = []
+    for factory in [CorpsFactory, OfferFactory, ConcoursFactory]:
+        obj = factory.create()
+        obj.id = 99999
+        if isinstance(obj, OfferModel):
+            obj.external_id = fake.uuid4()
+        obj.save()
+        entities.append(obj.to_entity())
+
+    # execute twice
+    usecase.execute(entities)
+    assert VectorizedDocumentModel.objects.count() == len(entities)
+
+    usecase.execute(entities)
+    assert VectorizedDocumentModel.objects.count() == len(entities)
