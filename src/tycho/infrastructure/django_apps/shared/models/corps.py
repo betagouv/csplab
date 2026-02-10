@@ -15,9 +15,9 @@ class CorpsModel(models.Model):
 
     objects: models.Manager = models.Manager()
 
-    id = models.IntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     code = models.CharField(max_length=50)
-    category = models.CharField(max_length=10, null=True, blank=True)
+    category = models.CharField(max_length=20, null=True, blank=True)
     ministry = models.CharField(max_length=100)
     diploma_level = models.IntegerField(null=True, blank=True)
     short_label = models.CharField(max_length=200)
