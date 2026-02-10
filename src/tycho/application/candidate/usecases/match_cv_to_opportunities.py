@@ -1,14 +1,11 @@
 """Use case for matching opportunities (concours) to CV based on semantic similarity."""
 
 from typing import List, Tuple
-from uuid import UUID
 
 from domain.entities.concours import Concours
+from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
-from domain.exceptions.cv_errors import (
-    CVNotFoundError,
-    CVProcessingFailedError,
-)
+from domain.exceptions.cv_errors import CVProcessingFailedError
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from domain.repositories.vector_repository_interface import IVectorRepository
@@ -28,15 +25,7 @@ class MatchCVToOpportunitiesUsecase:
         concours_repository: IConcoursRepository,
         logger: ILogger,
     ):
-        """Initialize the use case with required dependencies.
-
-        Args:
-            postgres_cv_metadata_repository: Repository for CV metadata
-            embedding_generator: Service for generating embeddings
-            vector_repository: Repository for vector operations
-            concours_repository: Repository for Concours entities
-            logger: Logger for tracing operations
-        """
+        """Initialize the use case with required dependencies."""
         self._postgres_cv_metadata_repository = postgres_cv_metadata_repository
         self._embedding_generator = embedding_generator
         self._vector_repository = vector_repository
@@ -47,37 +36,15 @@ class MatchCVToOpportunitiesUsecase:
 
     def execute(
         self,
-        cv_id: str,
+        cv_metadata: CVMetadata,
         limit: int = 5,
-        wait_for_completion: bool = False,
-        timeout: int = 40,
     ) -> List[Tuple[Concours, float]]:
-        """Execute the matching of opportunities to CV based on semantic similarity.
-
-        Args:
-            cv_id: The CV identifier
-            limit: Maximum number of results to return
-            wait_for_completion: If True, wait for CV processing to complete
-            timeout: Maximum time to wait for completion (seconds)
-
-        Returns:
-            List of tuples (Concours, relevance_score) ordered by relevance
-
-        Raises:
-            CVNotFoundError: If CV metadata is not found
-            CVProcessingTimeoutError: If waiting for completion times out
-            CVProcessingFailedError: If CV processing failed
-        """
+        """Execute the matching of opportunities to CV based on semantic similarity."""
         self._logger.info(
-            f"Starting opportunity matching for cv_id='{cv_id}', limit={limit}, "
-            f"wait_for_completion={wait_for_completion}, timeout={timeout}"
+            f"Starting opportunity matching for cv_uuid='{cv_metadata.id}',"
+            f"limit={limit}"
         )
 
-        cv_metadata = self._postgres_cv_metadata_repository.find_by_id(UUID(cv_id))
-        if not cv_metadata:
-            raise CVNotFoundError(cv_id)
-
-        # Check if processing failed
         if cv_metadata.status == CVStatus.FAILED or not cv_metadata.search_query:
             raise CVProcessingFailedError(str(cv_metadata.id), "CV processing failed")
 

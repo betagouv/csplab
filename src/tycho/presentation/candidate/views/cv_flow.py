@@ -117,11 +117,10 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
     def _get_cv_processing_status(self) -> dict[str, object]:
-        """Get CV processing status from repository.
-
-        TODO: Replace with MatchCVToOpportunitiesUsecase(wait_for_completion=True)
-        """
+        """Get CV processing status from repository."""
         cv_uuid = self.kwargs.get("cv_uuid")
+        self.logger.info("Getting CV processing status for cv_uuid=%s", cv_uuid)
+
         cv_metadata_repository = self.container.postgres_cv_metadata_repository()
 
         try:
