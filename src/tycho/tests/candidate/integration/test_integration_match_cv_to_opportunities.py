@@ -45,7 +45,7 @@ def test_execute_with_valid_cv_returns_concours(
     _integration_candidate_container,
     cv_metadata_completed,
     concours,
-    vectorized_documents,
+    vectorized_concours_documents,
 ):
     """Test that valid CV ID returns Concours with scores using real DB."""
     cv_metadata, cv_id = cv_metadata_completed
@@ -62,7 +62,7 @@ def test_execute_with_valid_cv_returns_concours(
 
     # Populate vector data in real DB
     vector_repo = _integration_candidate_container.shared_container.vector_repository()
-    for vectorized_doc in vectorized_documents:
+    for vectorized_doc in vectorized_concours_documents:
         vector_repo.store_embedding(vectorized_doc)
 
     usecase = _integration_candidate_container.match_cv_to_opportunities_usecase()

@@ -134,8 +134,8 @@ def cv_metadata_initial_fixture():
     ), cv_id
 
 
-@pytest.fixture
-def cv_metadata_completed(cv_metadata_initial):
+@pytest.fixture(name="cv_metadata_completed")
+def cv_metadata_completed_fixture(cv_metadata_initial):
     """CV metadata with COMPLETED status and search query."""
     cv_metadata, cv_id = cv_metadata_initial
     cv_metadata.status = CVStatus.COMPLETED
@@ -147,16 +147,16 @@ def cv_metadata_completed(cv_metadata_initial):
     return cv_metadata, cv_id
 
 
-@pytest.fixture
-def cv_metadata_failed(cv_metadata_initial):
+@pytest.fixture(name="cv_metadata_failed")
+def cv_metadata_failed_fixture(cv_metadata_initial):
     """CV metadata with FAILED status."""
     cv_metadata, cv_id = cv_metadata_initial
     cv_metadata.status = CVStatus.FAILED
     return cv_metadata, cv_id
 
 
-@pytest.fixture
-def concours():
+@pytest.fixture(name="concours")
+def concours_fixture():
     """Create test concours data."""
     return [
         Concours(
@@ -186,8 +186,8 @@ def concours():
     ]
 
 
-@pytest.fixture
-def vectorized_documents(concours):
+@pytest.fixture(name="vectorized_concours_documents")
+def vectorized_concours_documents_fixture(concours):
     """Create test vectorized documents for concours."""
     documents = []
     for c in concours:
@@ -205,8 +205,8 @@ def vectorized_documents(concours):
     return documents
 
 
-@pytest.fixture
-def db_cv_uuid(status: CVStatus = CVStatus.COMPLETED) -> UUID:
+@pytest.fixture(name="db_cv_uuid")
+def db_cv_uuid_fixture(status: CVStatus = CVStatus.COMPLETED) -> UUID:
     """Create a CV with given status in database and return its UUID."""
     cv_metadata = CVMetadataFactory.build(status=status)
     CVMetadataModel.from_entity(cv_metadata).save()
