@@ -1,0 +1,13 @@
+@use "../abstracts/" as *;
+
+.fr-shadow--raised {
+  @include shadow--raised;
+}
+
+.fr-shadow--overlap {
+  @include shadow--overlap;
+}
+
+.fr-shadow--lifted {
+  @include shadow--lifted;
+}
