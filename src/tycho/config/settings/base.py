@@ -67,6 +67,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -87,8 +88,9 @@ TEMPLATES = [
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
-                "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.request",
+                "django.template.context_processors.static",
                 "django.contrib.messages.context_processors.messages",
                 "dsfr.context_processors.site_config",
             ],
@@ -130,14 +132,22 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 
 # Static files (CSS, JavaScript, Images)
 
-STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR.parent / "static"
+# let whitenoise manage checksum integrity
+DSFR_USE_INTEGRITY_CHECKSUMS = False
+
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "static_collected"
+
+STORAGES = {
+    "staticfiles": {
+        # TODO - reactivate Manifest
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Static files directory inside the package presentation app
 STATIC_DIR = BASE_DIR / "presentation" / "static"
-STATICFILES_DIRS = [
-    STATIC_DIR,
-]
+STATICFILES_DIRS = (STATIC_DIR,)
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

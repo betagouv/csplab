@@ -2,6 +2,12 @@
 
 from config.settings.base import *  # noqa E402 F403
 
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
 # Override settings for testing
 PISTE_OAUTH_BASE_URL = "https://fake-piste-oauth.example.com"
 
