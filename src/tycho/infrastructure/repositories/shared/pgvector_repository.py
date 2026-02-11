@@ -88,28 +88,3 @@ class PgVectorRepository(IVectorRepository):
             )
             for model in results
         ]
-
-    # def similarity_search(
-    #     self,
-    #     document_id: int,
-    #     threshold: float = 0.8,
-    #     limit: int = 10,
-    #     similarity_type: Optional[SimilarityType] = None,
-    # ) -> List[VectorizedDocument]:
-    #     """Find documents similar to a specific document."""
-    #     if similarity_type is None:
-    #         similarity_type = SimilarityType()
-
-    #     try:
-    #         reference_doc = vectorized_document.VectorizedDocumentModel.objects.get(
-    #             document_id=document_id
-    #         )
-    #     except vectorized_document.VectorizedDocumentModel.DoesNotExist:
-    #         return []
-
-    #     # Use the reference document's embedding for similarity search
-    #     return self.semantic_search(
-    #         query_embedding=list(reference_doc.embedding),
-    #         limit=limit + 1,  # +1 to exclude the reference document itself
-    #         similarity_type=similarity_type,
-    #     )[1:]
