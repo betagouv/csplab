@@ -11,9 +11,15 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
 
+from domain.entities.concours import Concours
+from domain.entities.offer import Offer
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.forms.cv_flow import CVUploadForm
+from presentation.candidate.mappers import (
+    ConcoursToTemplateMapper,
+    OfferToTemplateMapper,
+)
 from presentation.candidate.mixins import (
     BreadcrumbLink,
     BreadcrumbMixin,
@@ -85,12 +91,14 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         )
         self.status = None
         self.opportunities = None
+        self.filename = None
 
     def dispatch(self, request, *args, **kwargs):
         """Initialize status and opportunities once per request."""
         status_data = self._get_cv_processing_status()
         self.status = status_data.get("status")
         self.opportunities = status_data.get("opportunities", [])
+        self.filename = status_data.get("filename")
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -117,24 +125,44 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
     def _get_cv_processing_status(self) -> dict[str, object]:
-        """Get CV processing status from repository.
-
-        TODO: Replace with MatchCVToOpportunitiesUsecase(wait_for_completion=True)
-        """
+        """Get CV processing status from repository."""
         cv_uuid = self.kwargs.get("cv_uuid")
-        cv_metadata_repository = self.container.postgres_cv_metadata_repository()
+        self.logger.info("Getting CV processing status for cv_uuid=%s", cv_uuid)
 
+        cv_metadata_repository = self.container.postgres_cv_metadata_repository()
+        opportunities = []
+        filename = None
         try:
             cv_metadata = cv_metadata_repository.find_by_id(cv_uuid)
+
             status = cv_metadata.status if cv_metadata else CVStatus.PENDING
+            filename = cv_metadata.filename
+
+            if cv_metadata and status == CVStatus.COMPLETED:
+                match_cv_to_opportunities = (
+                    self.container.match_cv_to_opportunities_usecase()
+                )
+                raw_opportunities = match_cv_to_opportunities.execute(
+                    cv_metadata=cv_metadata,
+                    limit=10,
+                )
+
+                for opportunity in raw_opportunities:
+                    if isinstance(opportunity[0], Concours):
+                        opportunities.append(
+                            ConcoursToTemplateMapper.map(opportunity[0])
+                        )
+                    elif isinstance(opportunity[0], Offer):
+                        opportunities.append(OfferToTemplateMapper.map(opportunity[0]))
+
         except Exception:
-            status = CVStatus.PENDING
+            status = CVStatus.FAILED
 
-        result: dict[str, object] = {"status": status, "opportunities": []}
-
-        # For demo: show mock results for any completed/failed status
-        if status != CVStatus.PENDING:
-            result["opportunities"] = self._get_mock_results()
+        result: dict[str, object] = {
+            "status": status,
+            "opportunities": opportunities,
+            "filename": filename,
+        }
 
         return result
 
@@ -164,60 +192,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         # Default template for completed status with results
         return ["candidate/cv_results.html"]
 
-    def _get_mock_results(self) -> list[dict[str, str]]:
-        """Return mock results data."""
-        return [
-            {
-                "type": "offer",
-                "title": "Chef de projet transformation numérique",
-                "description": "Pilotage de projets de modernisation des "
-                "systèmes d'information.",
-                "location": "Paris",
-                "location_value": "paris",
-                "category": "Catégorie A",
-                "category_value": "a",
-                "versant": "État",
-                "job_type": "Ingénieur des systèmes d'information",
-                "url": "#",
-            },
-            {
-                "type": "concours",
-                "title": "Concours d'attaché d'administration de l'État",
-                "description": "Recrutement d'attachés pour les ministères "
-                "économiques et financiers.",
-                "concours_type": "Externe",
-                "category": "Catégorie A",
-                "category_value": "a",
-                "versant": "État",
-                "job_type": "Attaché d'administration",
-                "url": "#",
-            },
-            {
-                "type": "offer",
-                "title": "Responsable des ressources humaines",
-                "description": "Gestion des carrières et accompagnement des agents.",
-                "location": "Lyon",
-                "location_value": "lyon",
-                "category": "Catégorie A",
-                "category_value": "a",
-                "versant": "Territoriale",
-                "job_type": "Attaché territorial",
-                "url": "#",
-            },
-            {
-                "type": "offer",
-                "title": "Technicien informatique",
-                "description": "Support et maintenance des systèmes.",
-                "location": "Paris",
-                "location_value": "paris",
-                "category": "Catégorie B",
-                "category_value": "b",
-                "versant": "État",
-                "job_type": "Technicien",
-                "url": "#",
-            },
-        ]
-
     def _filter_results(self, results: list[dict[str, str]]) -> list[dict[str, str]]:
         """Filter results based on GET parameters."""
         location = self.request.GET.get("filter-location")
@@ -241,7 +215,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         if self.status == CVStatus.PENDING:
             return context
 
-        context["cv_name"] = "CV Adelle Mortelle.pdf"
+        context["cv_name"] = self.filename
 
         # TODO We may want to use a template tag to count opportunities to display,
         # and get context lighter.
