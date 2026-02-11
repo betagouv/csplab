@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class VectorizedDocumentModel(models.Model):
     """Django model for vectorized documents with pgvector support."""
 
-    document_id = models.IntegerField(unique=True, db_index=True)
+    document_id = models.IntegerField(db_index=True)
     document_type = models.CharField(
         max_length=20,
         choices=[(dt.value, dt.value) for dt in DocumentType],
@@ -35,6 +35,15 @@ class VectorizedDocumentModel(models.Model):
         """Model metadata."""
 
         db_table = "vectorized_documents"
+        verbose_name = "VectorizedDocument"
+        verbose_name_plural = "VectorizedDocuments"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["id", "document_type"],
+                name="unique_id_document_type",
+            ),
+        ]
 
     def __str__(self):
         """String representation."""

@@ -97,7 +97,7 @@ def test_cv_upload_empty_submission_shows_error(client, db):
         ),
     ],
 )
-def test_cv_upload_invalid_files_are_rejected(  # noqa: PLR0913
+def test_cv_upload_invalid_files_are_rejected(
     client,
     db,
     filename,
