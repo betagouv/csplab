@@ -5,7 +5,7 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
-    types: [ opened, synchronize, reopened, edited ]
+    types: [opened, synchronize, reopened, edited]
     paths:
       - "src/tycho/**"
 
@@ -41,6 +41,7 @@ jobs:
     env:
       TYCHO_SECRET_KEY: the_secret_key
       TYCHO_DATABASE_URL: psql://tycho:pass@localhost:5432/tycho
+      DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
       - uses: actions/checkout@v5
       - name: Install uv
@@ -66,7 +67,7 @@ jobs:
       postgresql:
         image: pgvector/pgvector:pg16
         env:
-          POSTGRES_DB: test-tycho
+          POSTGRES_DB: tycho
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: pass
           TEST: true
@@ -82,23 +83,8 @@ jobs:
         working-directory: ./src/tycho
     env:
       TYCHO_SECRET_KEY: the_secret_key
-      TYCHO_DATABASE_URL: psql://postgres:pass@localhost:5432/test-tycho
-      TYCHO_PISTE_OAUTH_BASE_URL: https://fake-piste-oauth.example.com
-      TYCHO_INGRES_BASE_URL: https://fake-ingres-api.example.com/path
-      TYCHO_INGRES_CLIENT_ID: fake-client-id
-      TYCHO_INGRES_CLIENT_SECRET: fake-client-secret
-      TYCHO_OPENROUTER_API_KEY: fake-api-key
-      TYCHO_OPENROUTER_BASE_URL: https://api.openai.com/v1
-      TYCHO_OPENROUTER_EMBEDDING_MODEL: text-embedding-3-large
-      TYCHO_ALBERT_API_BASE_URL: https://albert.api.etalab.gouv.fr
-      TYCHO_ALBERT_API_KEY: albert-api-key
-      TYCHO_ALBERT_OCR_MODEL: albert-large
-      TYCHO_ALBERT_OCR_DPI: 200
-      TYCHO_OPIK_API_KEY: opik-api-key
-      TYCHO_TALENTSOFT_BASE_URL: https://fake-talentsoft.example.com
-      TYCHO_OPENROUTER_OCR_MODEL: openai/gpt-5.2
-      TYCHO_OCR_TYPE: ALBERT
-
+      TYCHO_DATABASE_URL: psql://postgres:pass@localhost:5432/tycho
+      DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
       - uses: actions/checkout@v5
       - name: Install uv
