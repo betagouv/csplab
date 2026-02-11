@@ -1,0 +1,11 @@
+@mixin shadow--raised {
+  filter: drop-shadow(var(--raised-shadow));
+}
+
+@mixin shadow--overlap {
+  filter: drop-shadow(var(--overlap-shadow));
+}
+
+@mixin shadow--lifted {
+  filter: drop-shadow(var(--lifted-shadow));
+}

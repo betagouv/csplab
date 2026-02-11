@@ -8,99 +8,142 @@
     <section class="csplab-hero">
         <div class="fr-container">
             <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle fr-py-9w">
-                <div class="fr-col-12 fr-col-lg-7">
-                    <div class="csplab-hero__content">
-                        {% dsfr_tag label="Service officiel de l'État" extra_classes="csplab-hero__tag" %}
-                        <h1 class="fr-display--md csplab-hero__title">
-                            Un outil qui fait le lien entre vos compétences et les métiers du service public.
-                        </h1>
+                <div class="fr-col-12 fr-col-md-8">
+                    <div class="fr-stack-5w">
+                        <h1 class="csplab-hero__title">Découvrez les opportunités de choisir le service public qui vous correspondent</h1>
                         <ul class="fr-btns-group fr-btns-group--lg fr-btns-group--inline-lg">
                             <li>
-                                <!-- TODO:  Here is the type of links we could check for existence using a pytest snapshot -->
-                                <a class="fr-btn fr-btn--lg csplab-hero__main-cta"
-                                   href="{% url 'candidate:cv_upload' %}">Découvrir mes opportunités</a>
+                                <a class="fr-btn fr-btn--lg" href="{% url 'candidate:cv_upload' %}">Analyser mon CV</a>
                             </li>
                         </ul>
                     </div>
                 </div>
-                <div class="fr-col-12 fr-col-lg-4 fr-col-offset-lg-1">
-                    <div class="csplab-hero__illustration">
-                        <img src="{% static 'candidate/images/333.Inspection 2.svg' %}"
-                             alt=""
-                             height="800"
-                             width="800"
-                             class="csplab-hero__illustration-img"
-                             aria-hidden="true">
-                    </div>
+                <div class="fr-col-6 fr-col-md-4">
+                    <img alt=""
+                         class="fr-responsive-img"
+                         height="348"
+                         width="384"
+                         aria-hidden="true"
+                         src="{% static 'candidate/images/illustrations-csp/scene-16.svg' %}" />
                 </div>
             </div>
         </div>
     </section>
     <!-- Features Section -->
-    <section class="csplab-features">
+    <section class="fr-background-alt--blue-france fr-py-10w">
         <div class="fr-container">
-            <div class="fr-grid-row fr-grid-row--gutters fr-py-9w fr-py-md-15w">
-                <div class="fr-col-12 fr-col-lg-3 csplab-features__illustration">
-                    <img src="{% static 'candidate/images/csplab-vertical-circles.svg' %}"
-                         width="282"
-                         height="700"
-                         alt=""
-                         aria-hidden="true">
+            <!-- Row 1: DÉCOUVRIR -->
+            <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle fr-py-3w fr-py-md-5w">
+                <div class="fr-col-12 fr-col-sm-6 fr-col-md-2">
+                    <img alt=""
+                         class="fr-responsive-img fr-shadow--lifted"
+                         height="348"
+                         width="384"
+                         aria-hidden="true"
+                         src="{% static 'candidate/images/service-previews/concours-card-1.png' %}" />
                 </div>
-                <div class="fr-col-12 fr-col-lg-8 fr-col-offset-lg-1 csplab-features__list">
-                    <div class="csplab-feature">
-                        {% dsfr_badge label="Découvrir" extra_classes="csplab-feature__badge" %}
-                        <h2 class="fr-h1 fr-m-0">Une expérience de recherche sans compromis.</h2>
-                        <p class="fr-text--xl fr-m-0">
-                            CSPLab propose une expérience de recherche d'opportunités inédite.
-                            Retrouvez toutes les modalités d'entrée dans la fonction publique :
-                            offres et concours sur une seule interface.
+                <div class="fr-col-12 fr-col-sm-6 fr-col-md-2 fr-hidden fr-unhidden-sm">
+                    <img alt=""
+                         class="fr-responsive-img fr-shadow--lifted"
+                         height="348"
+                         width="384"
+                         aria-hidden="true"
+                         src="{% static 'candidate/images/service-previews/concours-card-2.png' %}" />
+                </div>
+                <div class="fr-col-12 fr-col-offset-md-1 fr-col-md-7">
+                    <div class="fr-stack-2w">
+                        {% dsfr_badge label="DÉCOUVRIR" extra_classes="csplab-feature__badge" %}
+                        <h2 class="fr-h1">Toutes les voies d'accès à la fonction publique.</h2>
+                        <p class="fr-text--xl">
+                            CSPLab vous propose de découvrir de nouvelles opportunités de carrière dans la fonction publique quelque soit les modalités d'entrée. Offres d'emploi et concours sur une seule interface.
                         </p>
+                        <ul class="fr-btns-group fr-btns-group--lg fr-btns-group--inline-lg">
+                            <li>
+                                <a class="fr-btn fr-mt-2w" href="{% url 'candidate:cv_upload' %}">Découvrir toutes les opportunités</a>
+                            </li>
+                        </ul>
                     </div>
-                    <div class="csplab-feature">
-                        {% dsfr_badge label="Faciliter" extra_classes="csplab-feature__badge" %}
-                        <h2 class="fr-h1 fr-m-0">Un accès simplifié aux opportunités du service public.</h2>
-                        <p class="fr-text--xl fr-m-0">
-                            CSPLab optimise la recherche d'emploi dans la fonction publique.
-                            Notre outil analyse vos compétences et les compare à une base de données
-                            complète afin de vous proposer des opportunités ciblées.
+                </div>
+            </div>
+            <!-- Row 2: FACILITER -->
+            <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle fr-py-3w fr-py-md-5w">
+                <div class="fr-col-12 fr-col-md-7">
+                    <div class="fr-stack-2w">
+                        {% dsfr_badge label="FACILITER" extra_classes="csplab-feature__badge" %}
+                        <h2 class="fr-h1">Des recommandations en un clic à partir de votre CV.</h2>
+                        <p class="fr-text--xl">
+                            En partageant votre CV sur notre interface sécurisée, notre outil facilite votre recherche. Vous n'aurez plus qu'à affiner les résultats avec les critères qui comptent pour vous.
                         </p>
+                        <ul class="fr-btns-group fr-btns-group--lg fr-btns-group--inline-lg">
+                            <li>
+                                <a class="fr-btn fr-mt-2w" href="{% url 'candidate:cv_upload' %}">Analyser mon CV</a>
+                            </li>
+                        </ul>
                     </div>
-                    <div class="csplab-feature">
-                        {% dsfr_badge label="Personnaliser" extra_classes="csplab-feature__badge" %}
-                        <h2 class="fr-h1 fr-m-0">Des résultats à votre image.</h2>
-                        <p class="fr-text--xl fr-m-0">CSPLab fait des recommandations basées sur votre parcours et vos compétences.</p>
+                </div>
+                <div class="fr-col-12 fr-col-offset-md-1 fr-col-md-3">
+                    <img alt=""
+                         class="fr-responsive-img"
+                         height="348"
+                         width="384"
+                         aria-hidden="true"
+                         src="{% static 'candidate/images/illustrations-csp/recherche-emploi.svg' %}" />
+                </div>
+            </div>
+            <!-- Row 3: PERSONNALISER -->
+            <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle fr-py-3w fr-py-md-5w">
+                <div class="fr-col-12 fr-col-md-5">
+                    <img alt=""
+                         class="fr-responsive-img fr-shadow--lifted"
+                         height="348"
+                         width="384"
+                         aria-hidden="true"
+                         src="{% static 'candidate/images/service-previews/screenshot-cv-results.png' %}" />
+                </div>
+                <div class="fr-col-12 fr-col-offset-md-1 fr-col-md-6">
+                    <div class="fr-stack-2w">
+                        {% dsfr_badge label="PERSONNALISER" extra_classes="csplab-feature__badge" %}
+                        <h2 class="fr-h1">Des opportunités qui vous correspondent.</h2>
+                        <p class="fr-text--xl">
+                            Votre CV dit tout de vos compétences et de votre parcours professionnel. Notre outil s'occupe de vous proposer les opportunités qui correspondent le plus à votre profil.
+                        </p>
+                        <ul class="fr-btns-group fr-btns-group--lg fr-btns-group--inline-lg">
+                            <li>
+                                <a class="fr-btn fr-mt-2w" href="{% url 'candidate:cv_upload' %}">Voir les opportunités faites pour moi</a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
     </section>
     <!-- About Section -->
-    <section class="csplab-about">
-        <div class="fr-container fr-py-5w">
-            <div class="csplab-about__card fr-px-4w fr-py-5w fr-py-md-9w fr-px-2w fr-px-md-15w">
-                <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
-                    <div class="fr-col-12 fr-col-lg-8 csplab-about__content">
-                        <div>
-                            <h2 class="fr-h1 fr-mb-1w">C'est quoi CSPLab ?</h2>
-                            <p class="fr-text--xl fr-m-0">
-                                CSPLab est un laboratoire d'innovation qui a pour objectif de tester de nouvelles expériences utilisateurs.
+    <section class="fr-py-10w">
+        <div class="fr-container">
+            <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
+                <div class="fr-col-12 fr-col-md-7">
+                    <div class="csplab-about__card fr-p-3w fr-p-md-5w fr-stack-5w">
+                        <div class="fr-stack-1w">
+                            <h3>C'est quoi CSPLab ?</h3>
+                            <p class="fr-text--xl">
+                                CSPLab est un laboratoire d'innovation, né du partenariat noué entre la DINUM et la DGAFP, et dont la vocation est de réfléchir et contribuer au devenir de la plateforme Choisir le service public.
                             </p>
                         </div>
-                        <div>
-                            <h2 class="fr-h1 fr-mb-1w">Quelle est la mission de CSPLab ?</h2>
-                            <p class="fr-text--xl fr-m-0">
-                                Aider les candidats à comprendre et à trouver plus facilement leur voie dans le service public (emplois et concours de la fonction publique) en tenant compte de leurs compétences, ressentis et motivations profondes.
+                        <div class="fr-stack-1w">
+                            <h3>Quelle est la mission de CSPLab ?</h3>
+                            <p class="fr-text--xl">
+                                En créant des solutions co-construites avec les publics aspirant à choisir le service public et les professionnels et acteurs du recrutement dans la fonction publique, nous assistons les candidat(e)s potentiel(le)s à explorer, mieux comprendre et trouver plus aisément leur voie au sein du service public. Notre approche s'inscrit dans une logique d'innovation visant à renforcer l'attractivité de la fonction publique.
                             </p>
                         </div>
                     </div>
-                    <div class="fr-col-12 fr-col-lg-4 csplab-about__illustration">
-                        <img src="{% static 'candidate/images/299.Algorithm.svg' %}"
-                             width="240"
-                             height="240"
-                             alt=""
-                             aria-hidden="true">
-                    </div>
+                </div>
+                <div class="fr-col-12 fr-col-offset-md-1 fr-col-md-4">
+                    <img alt=""
+                         class="fr-responsive-img"
+                         height="348"
+                         width="384"
+                         aria-hidden="true"
+                         src="{% static 'candidate/images/illustrations-csp/scene-4.svg' %}" />
                 </div>
             </div>
         </div>

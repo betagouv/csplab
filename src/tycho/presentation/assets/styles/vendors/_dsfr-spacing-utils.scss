@@ -10,6 +10,13 @@
   }
 }
 
+@mixin reset-children-y {
+  > * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
 $gap-selectors: ();
 $stack-selectors: ();
 
@@ -39,7 +46,7 @@ $stack-selectors: ();
 }
 
 #{$stack-selectors} {
-  @include reset-children;
+  @include reset-children-y;
 }
 
 @each $token, $value in $spacing-tokens {
