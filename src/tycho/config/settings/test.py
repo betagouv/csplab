@@ -8,7 +8,7 @@ STORAGES = {
     },
 }
 
-# Override settings for testing
+# Override third-party API endpoints
 PISTE_OAUTH_BASE_URL = "https://fake-piste-oauth.example.com"
 
 INGRES_BASE_URL = "https://fake-ingres-api.example.com/path"

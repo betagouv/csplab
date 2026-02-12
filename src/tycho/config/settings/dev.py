@@ -8,7 +8,7 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.0.1", "0.0.0.0"]  # noqa S10
 
 # placeholder for dev logger setup
 
-# Debug Toolbar Prerequisites
+# Debug Toolbar Settings
 INTERNAL_IPS = ["127.0.0.1"]
 
 INSTALLED_APPS.extend(  # noqa: F405
