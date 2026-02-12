@@ -1,6 +1,6 @@
 """Django settings for tycho project in dev mode."""
 
-from config.settings.test import *  # noqa: F403
+from config.settings.base import *  # noqa: F403
 
 DEBUG = True
 
@@ -8,7 +8,7 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.0.1", "0.0.0.0"]  # noqa S10
 
 # placeholder for dev logger setup
 
-# Debug Toolbar Prerequisites
+# Debug Toolbar Settings
 INTERNAL_IPS = ["127.0.0.1"]
 
 INSTALLED_APPS.extend(  # noqa: F405
@@ -27,4 +27,11 @@ DEBUG_TOOLBAR_CONFIG = {
         "debug_toolbar.panels.profiling.ProfilingPanel",
     ],
     "SHOW_TEMPLATE_CONTEXT": True,
+}
+
+# Use simple static files storage for development (no compression/manifest)
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
 }
