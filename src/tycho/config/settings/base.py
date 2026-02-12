@@ -195,6 +195,11 @@ LOGGING = {
             "level": LOG_LEVEL,
             "propagate": False,
         },
+        "tycho": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
     },
 }
 
