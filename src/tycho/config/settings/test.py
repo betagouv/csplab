@@ -15,11 +15,11 @@ INGRES_BASE_URL = "https://fake-ingres-api.example.com/path"
 INGRES_CLIENT_ID = "fake-client-id"
 INGRES_CLIENT_SECRET = "fake-client-secret"  # noqa S105
 
-OPENROUTER_BASE_URL = "https://api.openai.com/v1"
+OPENROUTER_BASE_URL = "https://fake-openai.example.com/v1"
 OPENROUTER_API_KEY = "test-api-key"
 
-ALBERT_API_BASE_URL = "https://albert.api.etalab.gouv.fr"
-ALBERT_API_KEY = "test-albert-key"
+ALBERT_API_BASE_URL = "https://fake-albert.example.com"
+ALBERT_API_KEY = "test-api-key"
 
 TALENTSOFT_BASE_URL = "https://fake-talentsoft.example.com"
 TALENTSOFT_CLIENT_ID = "fake-client-id"
