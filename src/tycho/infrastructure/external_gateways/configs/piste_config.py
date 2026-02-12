@@ -1,9 +1,6 @@
 """Configuration for ingestion app."""
 
-import environ
 from pydantic import BaseModel, HttpUrl
-
-env = environ.Env()
 
 
 class PisteConfig(BaseModel):
