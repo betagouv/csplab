@@ -8,4 +8,23 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.0.1", "0.0.0.0"]  # noqa S10
 
 # placeholder for dev logger setup
 
-# placeholder for django debug toolbar setup
+# Debug Toolbar Prerequisites
+INTERNAL_IPS = ["127.0.0.1"]
+
+INSTALLED_APPS.extend(  # noqa: F405
+    [
+        "debug_toolbar",
+    ]
+)
+
+MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]  # noqa F405
+
+DEBUG_TOOLBAR_CONFIG = {
+    # https://django-debug-toolbar.readthedocs.io/en/latest/panels.html#panels
+    "DISABLE_PANELS": [
+        "debug_toolbar.panels.redirects.RedirectsPanel",
+        # ProfilingPanel makes the django admin extremely slow...
+        "debug_toolbar.panels.profiling.ProfilingPanel",
+    ],
+    "SHOW_TEMPLATE_CONTEXT": True,
+}
