@@ -19,33 +19,36 @@ version = "0.1.0"
 message_template = "{{change_type}}({{scope}}) {{subject}}{% if body %}\n\n{{body}}{% endif %}{% if footer %}\n\n{{footer}}{% endif %}"
 example = "✨(auth) add support for HTTP basic auth"
 schema = "<emoji>(<scope>) <subject>"
-schema_pattern = "^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💄|🎉|✅|🔒️|🔐|🔖|🚨|🚧|💚|⬇️|⬆️|📌|👷|📈|♻️|➕|➖|🔧|🔨|🌐|✏️|💩|⏪️|🔀|📦️|👽️|🚚|📄|💥|🍱|♿️|💡|🍻|💬|🗃️|🔊|🔇|👥|🚸|🏗️|📱|🤡|🥚|🙈|📸|⚗️|🔍️|🏷️|🌱|🚩|🥅|💫|🗑️|🛂|🩹|🧐|⚰️|🧪|👔|🩺|🧱|🧑‍💻|💸|🧵|🦺|✈️)\\([a-z0-9:-]+\\) [a-z].{1,50}"
+schema_pattern = "^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💎|🎉|✅|🔒️|🚧|💚|⬇️|⬆️|👷|♻️|🔧|🏗️|🤸|🧩|🖼️)\\([a-z0-9:-]+\\) [a-zA-Z:-].{1,50}"
 
 [[tool.commitizen.customize.questions]]
 type = "list"
 name = "change_type"
 message = "Select the type of change:"
 choices = [
-    {value = "✨", name = "✨ sparkles: introduce new features"},
-    {value = "🐛", name = "🐛 bug: fix a bug"},
-    {value = "📝", name = "📝 memo: add or update documentation"},
-    {value = "🎨", name = "🎨 art: improve structure / format of the code"},
-    {value = "♻️", name = "♻️ recycle: refactor code"},
-    {value = "⚡️", name = "⚡️ zap: improve performance"},
-    {value = "✅", name = "✅ white_check_mark: add, update, or pass tests"},
-    {value = "🔧", name = "🔧 wrench: add or update configuration files"},
-    {value = "🚀", name = "🚀 rocket: deploy stuff"},
-    {value = "🔥", name = "🔥 fire: remove code or files"},
-    {value = "🚧", name = "🚧 construction: work in progress"},
-    {value = "💚", name = "💚 green_heart: fix CI build"},
-    {value = "⬆️", name = "⬆️ arrow_up: upgrade dependencies"},
-    {value = "⬇️", name = "⬇️ arrow_down: downgrade dependencies"},
-    {value = "🎉", name = "🎉 tada: begin a project"},
-    {value = "🚑️", name = "🚑️ ambulance: critical hotfix"},
-    {value = "🔒️", name = "🔒️ lock: fix security or privacy issues"},
-    {value = "🏗️", name = "🏗️ building_construction: make architectural changes"},
-    {value = "👷", name = "👷 construction_worker: add or update CI build system"},
-    {value = "💄", name = "💄 lipstick: add or update the UI and style files"},
+    {value = "✨", name = "✨ introduce new features"},
+    {value = "🐛", name = "🐛 fix a bug"},
+    {value = "📝", name = "📝 add/update documentation"},
+    {value = "🎨", name = "🎨 improve structure / format of the code"},
+    {value = "♻️", name = "♻️ refactor code"},
+    {value = "⚡️", name = "⚡️ improve performance"},
+    {value = "✅", name = "✅ add/update/pass tests"},
+    {value = "🔧", name = "🔧 add/update configuration files"},
+    {value = "🚀", name = "🚀 deploy stuff"},
+    {value = "🔥", name = "🔥 remove code or files"},
+    {value = "🚧", name = "🚧 work in progress"},
+    {value = "💚", name = "💚 fix CI build"},
+    {value = "⬆️", name = "⬆️ upgrade dependencies"},
+    {value = "⬇️", name = "⬇️ downgrade dependencies"},
+    {value = "🎉", name = "🎉 begin a project"},
+    {value = "🚑️", name = "🚑️ critical hotfix"},
+    {value = "🔒️", name = "🔒️ fix security or privacy issues"},
+    {value = "🏗️", name = "🏗️ make architectural changes"},
+    {value = "👷", name = "👷 add/update CI build system"},
+    {value = "💎", name = "💎 add/update the UI and style files"},
+    {value = "🤸", name = "🤸 add/update a11y stuffs"},
+    {value = "🧩", name = "🧩 add/update templates"},
+    {value = "🖼️", name = "🖼️ add/update assets"}
 ]
 
 [[tool.commitizen.customize.questions]]
