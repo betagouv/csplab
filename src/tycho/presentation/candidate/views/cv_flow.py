@@ -24,6 +24,7 @@ from presentation.candidate.mixins import (
     BreadcrumbLink,
     BreadcrumbMixin,
 )
+from presentation.candidate.mock_opportunities import MOCK_OPPORTUNITIES
 
 
 class CVUploadView(BreadcrumbMixin, FormView):
@@ -61,11 +62,28 @@ class CVUploadView(BreadcrumbMixin, FormView):
 
         # Launch async CV processing
         process_uploaded_cv_usecase = self.container.process_uploaded_cv_usecase()
-        thread = threading.Thread(
-            target=lambda: asyncio.run(
-                process_uploaded_cv_usecase.execute(UUID(cv_uuid), cv_file.read())
-            )
-        )
+
+        def process_cv_async():
+            """Wrapper to catch and log exceptions in background thread."""
+            try:
+                self.logger.info(
+                    "Starting background CV processing for cv_uuid=%s", cv_uuid
+                )
+                asyncio.run(
+                    process_uploaded_cv_usecase.execute(UUID(cv_uuid), cv_file.read())
+                )
+                self.logger.info(
+                    "Background CV processing completed for cv_uuid=%s", cv_uuid
+                )
+            except Exception as e:
+                self.logger.error(
+                    "Background CV processing failed for cv_uuid=%s: %s",
+                    cv_uuid,
+                    str(e),
+                    exc_info=True,
+                )
+
+        thread = threading.Thread(target=process_cv_async)
         thread.start()
 
         return redirect("candidate:cv_results", cv_uuid=cv_uuid)
@@ -132,6 +150,8 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         cv_metadata_repository = self.container.postgres_cv_metadata_repository()
         opportunities = []
         filename = None
+        status = CVStatus.PENDING
+
         try:
             cv_metadata = cv_metadata_repository.find_by_id(cv_uuid)
 
@@ -139,23 +159,51 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             filename = cv_metadata.filename
 
             if cv_metadata and status == CVStatus.COMPLETED:
-                match_cv_to_opportunities = (
-                    self.container.match_cv_to_opportunities_usecase()
-                )
-                raw_opportunities = match_cv_to_opportunities.execute(
-                    cv_metadata=cv_metadata,
-                    limit=10,
-                )
+                try:
+                    match_cv_to_opportunities = (
+                        self.container.match_cv_to_opportunities_usecase()
+                    )
+                    raw_opportunities = match_cv_to_opportunities.execute(
+                        cv_metadata=cv_metadata,
+                    )
+                    self.logger.info(
+                        "Found %d raw opportunities for cv_uuid=%s",
+                        len(raw_opportunities),
+                        cv_uuid,
+                    )
 
-                for opportunity in raw_opportunities:
-                    if isinstance(opportunity[0], Concours):
-                        opportunities.append(
-                            ConcoursToTemplateMapper.map(opportunity[0])
-                        )
-                    elif isinstance(opportunity[0], Offer):
-                        opportunities.append(OfferToTemplateMapper.map(opportunity[0]))
+                    for opportunity in raw_opportunities:
+                        if isinstance(opportunity[0], Concours):
+                            opportunities.append(
+                                ConcoursToTemplateMapper.map(opportunity[0])
+                            )
+                        elif isinstance(opportunity[0], Offer):
+                            opportunities.append(
+                                OfferToTemplateMapper.map(opportunity[0])
+                            )
+                except Exception as e:
+                    self.logger.error(
+                        "Error during opportunity matching for cv_uuid=%s: %s",
+                        cv_uuid,
+                        str(e),
+                        exc_info=True,
+                    )
+                    status = CVStatus.FAILED
 
-        except Exception:
+                if not opportunities and settings.DEBUG:
+                    self.logger.info(
+                        "DEBUG mode: using mock opportunities for cv_uuid=%s",
+                        cv_uuid,
+                    )
+                    opportunities = list(MOCK_OPPORTUNITIES)
+
+        except Exception as e:
+            self.logger.error(
+                "Error getting CV processing status for cv_uuid=%s: %s",
+                cv_uuid,
+                str(e),
+                exc_info=True,
+            )
             status = CVStatus.FAILED
 
         result: dict[str, object] = {
