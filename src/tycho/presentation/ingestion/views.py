@@ -46,9 +46,7 @@ class ConcoursUploadView(APIView):
     def post(self, request):
         """Handle CSV file upload and process concours data."""
         container = create_ingestion_container()
-        logger = container.logger_service().get_logger(
-            "INGESTION::INFRASTRUCTURE::ConcoursUploadView"
-        )
+        logger = container.logger_service()
 
         file_name = (
             request.FILES.get("file", {}).name if "file" in request.FILES else "no file"
