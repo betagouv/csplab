@@ -169,28 +169,31 @@ LOGGING = {
             "format": "{levelname} {asctime} [{name}] {message}",
             "style": "{",
         },
-        "simple": {
-            "format": "{levelname} {message}",
-            "style": "{",
-        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
-        "exception_console": {
-            "class": "logging.StreamHandler",
-            "formatter": "simple",
-        },
     },
     "loggers": {
-        "ingestion": {
-            "handlers": ["exception_console"],
+        "django": {
+            "handlers": ["console"],
+            "level": "WARNING",
+        },
+        # setup for loggers using logger.get_logger( "INGESTION::APPLICATION::XXX")
+        "tycho": {
+            "handlers": ["console"],
             "level": LOG_LEVEL,
             "propagate": False,
         },
+        # setup for loggers using self.container.logger_service()
         "candidate": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "ingestion": {
             "handlers": ["console"],
             "level": LOG_LEVEL,
             "propagate": False,
