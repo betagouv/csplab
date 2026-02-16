@@ -1,7 +1,6 @@
 """Shared factory functions and constants for vectorize documents tests."""
 
 from datetime import datetime
-from uuid import uuid4
 
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
@@ -42,7 +41,6 @@ class UnsupportedEntity(IEntity):
 def create_test_corps(entity_id: int = 1) -> Corps:
     """Create a test Corps entity for unit tests."""
     return Corps(
-        id=entity_id,
         code=f"CODE{entity_id}",
         category=Category.A,
         ministry=Ministry.MAA,
@@ -55,7 +53,6 @@ def create_test_corps(entity_id: int = 1) -> Corps:
 def create_test_corps_for_integration(entity_id: int = 1) -> Corps:
     """Create a test Corps entity for integration tests."""
     return Corps(
-        id=entity_id + 2,  # Start from ID 3 to avoid conflicts
         code=f"0000{entity_id + 2}",
         category=Category.A,
         ministry=Ministry.MAA if entity_id == 1 else Ministry.MESRI,
@@ -163,5 +160,4 @@ def create_test_document(
         type=doc_type,
         created_at=datetime.now(),
         updated_at=datetime.now(),
-        id=uuid4(),  # Generate UUID automatically
     )

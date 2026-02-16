@@ -1,6 +1,7 @@
 """In-memory Corps repository implementation for testing."""
 
 from typing import Dict, List
+from uuid import UUID
 
 from domain.entities.corps import Corps
 from domain.exceptions.corps_errors import CorpsDoesNotExist
@@ -16,7 +17,7 @@ class InMemoryCorpsRepository(ICorpsRepository):
 
     def __init__(self) -> None:
         """Initialize with empty storage."""
-        self._storage: Dict[int, Corps] = {}
+        self._storage: Dict[UUID, Corps] = {}
 
     def upsert_batch(self, corps: List[Corps]) -> IUpsertResult:
         """Insert or update multiple Corps entities and return operation results."""
@@ -45,11 +46,18 @@ class InMemoryCorpsRepository(ICorpsRepository):
             "errors": errors,
         }
 
-    def find_by_id(self, corps_id: int) -> Corps:
+    def find_by_id(self, corps_id: UUID) -> Corps:
         """Find a Corps by its ID."""
         if corps_id not in self._storage:
             raise CorpsDoesNotExist(corps_id)
         return self._storage[corps_id]
+
+    def find_by_code(self, code: str) -> Corps:
+        """Find a Corps by its code."""
+        for corps in self._storage.values():
+            if corps.code == code:
+                return corps
+        raise CorpsDoesNotExist(code)
 
     def get_all(self) -> List[Corps]:
         """Get all Corps entities."""

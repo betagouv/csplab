@@ -1,6 +1,7 @@
 """Django Corps repository implementation."""
 
 from typing import List
+from uuid import UUID
 
 from domain.entities.corps import Corps
 from domain.exceptions.corps_errors import CorpsDoesNotExist
@@ -17,7 +18,7 @@ class PostgresCorpsRepository(ICorpsRepository):
     """Django ORM implementation of Corps repository."""
 
     def __init__(self, logger: ILogger):
-        """Initialize with logger."""
+        """Initialize repository with logger."""
         self.logger = logger.get_logger(
             "INGESTION::REPOSITORY::PostgresCorpsRepository"
         )
@@ -30,8 +31,8 @@ class PostgresCorpsRepository(ICorpsRepository):
 
         for entity in corps:
             try:
-                corps_model, created_flag = CorpsModel.objects.update_or_create(
-                    id=entity.id,
+                _, created_flag = CorpsModel.objects.update_or_create(
+                    id=entity.id,  # Use ID as the lookup key
                     defaults={
                         "code": entity.code,
                         "category": entity.category.value if entity.category else None,
@@ -46,10 +47,12 @@ class PostgresCorpsRepository(ICorpsRepository):
                         ],
                     },
                 )
+
                 if created_flag:
                     created += 1
                 else:
                     updated += 1
+
             except Exception as e:
                 self.logger.error(f"Failed to save Corps entity {entity.id}: {str(e)}")
                 error_detail: IUpsertError = {
@@ -59,19 +62,23 @@ class PostgresCorpsRepository(ICorpsRepository):
                 }
                 errors.append(error_detail)
 
-        return {
-            "created": created,
-            "updated": updated,
-            "errors": errors,
-        }
+        return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_id(self, corps_id: int) -> Corps:
+    def find_by_id(self, corps_id: UUID) -> Corps:
         """Find a Corps by its ID."""
         try:
             corps_model = CorpsModel.objects.get(id=corps_id)
             return corps_model.to_entity()
         except CorpsModel.DoesNotExist as e:
             raise CorpsDoesNotExist(corps_id) from e
+
+    def find_by_code(self, code: str) -> Corps:
+        """Find a Corps by its code."""
+        try:
+            corps_model = CorpsModel.objects.get(code=code)
+            return corps_model.to_entity()
+        except CorpsModel.DoesNotExist as e:
+            raise CorpsDoesNotExist(code) from e
 
     def get_all(self) -> List[Corps]:
         """Get all Corps entities."""
