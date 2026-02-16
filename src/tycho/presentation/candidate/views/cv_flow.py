@@ -42,9 +42,7 @@ class CVUploadView(BreadcrumbMixin, FormView):
         """Initialize view with dependency injection."""
         super().__init__(*args, **kwargs)
         self.container = create_candidate_container()
-        self.logger = self.container.logger_service().get_logger(
-            "CANDIDATE::INFRASTRUCTURE::CVUploadView"
-        )
+        self.logger = self.container.logger_service()
 
     def form_valid(self, form: CVUploadForm) -> HttpResponse:
         """Handle valid form submission."""
@@ -86,9 +84,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         """Initialize view with dependency injection."""
         super().__init__(*args, **kwargs)
         self.container = create_candidate_container()
-        self.logger = self.container.logger_service().get_logger(
-            "CANDIDATE::INFRASTRUCTURE::CVResultsView"
-        )
+        self.logger = self.container.logger_service()
         self.status = None
         self.opportunities = None
         self.filename = None
