@@ -27,7 +27,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
 
     def __init__(self, logger: ILogger):
         """Initialize with logger dependency."""
-        self.logger = logger.get_logger("OffersCleaner::clean")
+        self.logger = logger
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[Offer]:
         """Clean raw documents and return cleaning result with entities and errors."""
