@@ -23,7 +23,7 @@ class PisteClient(SyncHttpClient):
         """Initialize with HTTP client."""
         super().__init__(timeout=timeout)
         self.config = config
-        self.logger = logger_service.get_logger("INFRASTRUCTURE")
+        self.logger = logger_service
         self.access_token = None
         self.expires_at = 0
         self.logger.info("Initializing PisteClient")

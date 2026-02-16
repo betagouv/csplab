@@ -44,7 +44,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
         self.client_secret = config.client_secret
         self.max_retries = max_retries
         self.cached_token: Optional[CachedToken] = None
-        self.logger = logger_service.get_logger("TalentsoftClient")
+        self.logger = logger_service
         self._token_lock = asyncio.Lock()
 
     async def _fetch_new_token(self) -> str:
@@ -65,7 +65,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
             response.raise_for_status()
             payload = response.json()
         except Exception as exc:
-            self.logger.exception("Failed to fetch token from Talentsoft API Front")
+            self.logger.error("Failed to fetch token from Talentsoft API Front")
             raise ExternalApiError(
                 message=f"Token request failed: {exc}", api_name="Talentsoft Front API"
             ) from exc
@@ -130,7 +130,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
 
             except Exception as exc:
                 if attempt == self.max_retries:
-                    self.logger.exception(
+                    self.logger.error(
                         "Failed to get response from Talentsoft API Front: %s", url
                     )
                     raise ExternalApiError(
