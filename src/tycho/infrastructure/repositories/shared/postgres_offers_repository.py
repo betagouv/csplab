@@ -19,9 +19,7 @@ class PostgresOffersRepository(IOffersRepository):
 
     def __init__(self, logger: ILogger):
         """Initialize with logger."""
-        self.logger = logger.get_logger(
-            "INGESTION::REPOSITORY::PostgresOffersRepository"
-        )
+        self.logger = logger
 
     def upsert_batch(self, offers_list: List[Offer]) -> IUpsertResult:
         """Insert or update multiple Offer entities and return operation results."""

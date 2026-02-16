@@ -18,9 +18,7 @@ class PostgresConcoursRepository(IConcoursRepository):
 
     def __init__(self, logger: ILogger):
         """Initialize with logger."""
-        self.logger = logger.get_logger(
-            "INGESTION::REPOSITORY::PostgresConcoursRepository"
-        )
+        self.logger = logger
 
     def upsert_batch(self, concours_list: List[Concours]) -> IUpsertResult:
         """Insert or update multiple Concours entities and return operation results."""
