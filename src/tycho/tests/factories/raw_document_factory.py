@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from domain.entities.document import DocumentType
+from domain.entities.document import Document, DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 
 
@@ -29,12 +29,15 @@ class RawDocumentFactory:
                 "description": f"Test document of type {document_type.value}",
             }
 
-        raw_document = RawDocument(
+        document_entity = Document(
             external_id=external_id,
-            document_type=document_type.value,
             raw_data=raw_data,
+            type=document_type,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
         )
 
+        raw_document = RawDocument.from_entity(document_entity)
         raw_document.save()
 
         return raw_document

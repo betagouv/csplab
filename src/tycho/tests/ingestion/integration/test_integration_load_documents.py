@@ -29,7 +29,6 @@ def create_offer_documents(container, document_type, raw_offers):
         external_id = f"{versant}-{raw_data['reference']}"
         documents.append(
             Document(
-                id=None,
                 external_id=external_id,
                 raw_data=raw_data,
                 type=document_type,

@@ -73,7 +73,7 @@ class MatchCVToOpportunitiesUsecase:
             self._logger.info(
                 f"Searching for concours with ID: {result.document.document_id}"
             )
-            concours = self._concours_repository.find_by_id(result.document.document_id)
+            concours = self._concours_repository.find_by_id(result.document.document_id)  # type: ignore  # TODO: will be UUID soon
             self._logger.info(f"Found concours with ID: {concours.id}")
             opportunities.append((concours, result.score))
 
@@ -81,7 +81,7 @@ class MatchCVToOpportunitiesUsecase:
             self._logger.info(
                 f"Searching for offer with ID: {result.document.document_id}"
             )
-            offer = self._offers_repository.find_by_id(result.document.document_id)
+            offer = self._offers_repository.find_by_id(result.document.document_id)  # type: ignore  # TODO: will be UUID soon
             self._logger.info(f"Found offer with ID: {offer.id}")
             opportunities.append((offer, result.score))
 

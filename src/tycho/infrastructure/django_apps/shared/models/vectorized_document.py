@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class VectorizedDocumentModel(models.Model):
     """Django model for vectorized documents with pgvector support."""
 
-    document_id = models.IntegerField(db_index=True)
+    document_id = models.UUIDField(db_index=True)
     document_type = models.CharField(
         max_length=20,
         choices=[(dt.value, dt.value) for dt in DocumentType],
@@ -66,7 +66,7 @@ class VectorizedDocumentModel(models.Model):
     def from_entity(cls, entity: VectorizedDocument) -> "VectorizedDocumentModel":
         """Create Django model from domain entity."""
         return cls(
-            id=entity.id if entity.id else None,
+            id=entity.id,
             document_id=entity.document_id,
             document_type=entity.document_type.value,
             content=entity.content,

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ingestion', '0005_alter_rawdocument_id'),
+        ('ingestion', '0004_delete_legifranceconcours'),
     ]
 
     operations = [
