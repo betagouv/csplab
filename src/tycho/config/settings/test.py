@@ -24,3 +24,5 @@ ALBERT_API_KEY = "test-api-key"
 TALENTSOFT_BASE_URL = "https://fake-talentsoft.example.com"
 TALENTSOFT_CLIENT_ID = "fake-client-id"
 TALENTSOFT_CLIENT_SECRET = "fake-client-secret"  # noqa S105
+
+SENTRY_DNS = "example.com"

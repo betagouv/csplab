@@ -4,9 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
-import sentry_sdk
 from django.utils.translation import gettext_lazy as _
-from sentry_sdk.integrations.django import DjangoIntegration
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -216,23 +214,15 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
-# Sentry
-sentry_sdk.init(
-    dsn=env.str("SENTRY_DSN"),
-    integrations=[DjangoIntegration()],
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    # We recommend adjusting this value in production.
-    traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE"),
-    # To set a uniform sample rate
-    # Set profiles_sample_rate to 1.0 to profile 100%
-    # of sampled transactions.
-    # We recommend adjusting this value in production
-    profiles_sample_rate=env.float("SENTRY_PROFILES_SAMPLE_RATE"),
-    # If you wish to associate users to errors (assuming you are using
-    # django.contrib.auth) you may enable sending PII data.
-    send_default_pii=True,
-)
+_sentry_dsn = env.str("SENTRY_DSN")
+if _sentry_dsn:
+    from ._sentry import sentry_init
+
+    sentry_init(
+        dsn=_sentry_dsn,
+        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE"),
+        profiles_sample_rate=env.float("SENTRY_PROFILES_SAMPLE_RATE"),
+    )
 
 # API endpoints
 PISTE_OAUTH_BASE_URL = env.str("PISTE_OAUTH_BASE_URL")
