@@ -27,9 +27,7 @@ class CleanDocumentsUsecase:
         self.document_repository = document_repository
         self.document_cleaner = document_cleaner
         self.repository_factory = repository_factory
-        self.logger = logger.get_logger(
-            "INGESTION::APPLICATION::CleanDocumentsUsecase::execute"
-        )
+        self.logger = logger
 
     def execute(self, input_data: DocumentType) -> Dict[str, Any]:
         """Execute the usecase to clean documents and return processing results."""

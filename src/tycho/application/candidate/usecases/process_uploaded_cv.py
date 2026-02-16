@@ -35,9 +35,7 @@ class ProcessUploadedCVUsecase:
         self._pdf_text_extractor = pdf_text_extractor
         self._query_builder = query_builder
         self._async_cv_metadata_repository = async_cv_metadata_repository
-        self._logger = logger.get_logger(
-            "CANDIDATE::APPLICATION::ProcessUploadedCVUsecase::execute"
-        )
+        self._logger = logger
 
     async def execute(self, cv_uuid: UUID, pdf_content: bytes) -> CVMetadata:
         """Execute the processing of uploaded CV.

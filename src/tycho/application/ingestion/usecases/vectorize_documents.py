@@ -30,9 +30,7 @@ class VectorizeDocumentsUsecase:
         self.vector_repository = vector_repository
         self.text_extractor = text_extractor
         self.embedding_generator = embedding_generator
-        self.logger = logger.get_logger(
-            "INGESTION::APPLICATION::VectorizeDocumentsUsecase::execute"
-        )
+        self.logger = logger
 
     def execute(self, sources: List[Union[Document, IEntity]]) -> Dict[str, Any]:
         """Execute the usecase to vectorize documents or entities."""

@@ -25,9 +25,7 @@ class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
         """Initialize with dependencies."""
         self.strategy_factory = strategy_factory
         self.document_repository = document_repository
-        self.logger = logger.get_logger(
-            "INGESTION::APPLICATION::LoadDocumentsUsecase::execute"
-        )
+        self.logger = logger
 
     def execute(self, input_data: LoadDocumentsInput) -> IUpsertResult:
         """Execute the usecase to load and persist documents."""
