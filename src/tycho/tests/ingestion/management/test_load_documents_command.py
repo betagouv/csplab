@@ -31,17 +31,6 @@ def mock_container_factory(mock_usecase):
         yield mock_factory
 
 
-@pytest.fixture
-def mock_logger():
-    """Create a mock logger."""
-    with patch(
-        "infrastructure.django_apps.ingestion.management.commands.load_documents.logging.getLogger"
-    ) as mock_get_logger:
-        mock_logger_instance = Mock()
-        mock_get_logger.return_value = mock_logger_instance
-        yield mock_logger_instance
-
-
 class TestLoadDocumentsCommand:
     """Test cases for load_documents management command."""
 
@@ -66,7 +55,6 @@ class TestLoadDocumentsCommand:
         self,
         mock_container_factory,
         mock_usecase,
-        mock_logger,
         document_type,
     ):
         """Test that command calls usecase with correct parameters."""
@@ -79,11 +67,12 @@ class TestLoadDocumentsCommand:
         assert call_args.operation_type == LoadOperationType.FETCH_FROM_API
         assert call_args.kwargs["document_type"] == DocumentType(document_type)
 
+        mock_logger = mock_container_factory.return_value.logger_service.return_value
         mock_logger.info.assert_any_call(f"Loading documents of type: {document_type}")
         mock_logger.info.assert_any_call("✅ Load completed: 5 created, 2 updated")
 
     def test_command_displays_warnings_for_errors(
-        self, mock_container_factory, mock_usecase, mock_logger
+        self, mock_container_factory, mock_usecase
     ):
         """Test that command displays warnings when errors occur."""
         mock_usecase.execute.return_value = {
@@ -94,6 +83,7 @@ class TestLoadDocumentsCommand:
 
         call_command("load_documents", "--type", DocumentType.OFFERS.value)
 
+        mock_logger = mock_container_factory.return_value.logger_service.return_value
         mock_logger.warning.assert_called_once_with("⚠️  2 errors occurred")
 
     def test_command_raises_command_error_on_exception(
@@ -107,12 +97,11 @@ class TestLoadDocumentsCommand:
         ):
             call_command("load_documents", "--type", DocumentType.CORPS.value)
 
-    def test_command_handles_zero_results(
-        self, mock_container_factory, mock_usecase, mock_logger
-    ):
+    def test_command_handles_zero_results(self, mock_container_factory, mock_usecase):
         """Test command output when no documents are processed."""
         mock_usecase.execute.return_value = {"created": 0, "updated": 0, "errors": []}
 
         call_command("load_documents", "--type", DocumentType.OFFERS.value)
 
+        mock_logger = mock_container_factory.return_value.logger_service.return_value
         mock_logger.info.assert_any_call("✅ Load completed: 0 created, 0 updated")

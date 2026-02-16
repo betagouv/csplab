@@ -40,6 +40,9 @@ class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
             input_data.kwargs["start"] = 1
 
         while has_more:
+            self.logger.info(
+                "LoadDocuments, fetching page %d", input_data.kwargs["start"]
+            )
             documents, has_more = strategy.load_documents(**input_data.kwargs)
             result = self.document_repository.upsert_batch(documents, document_type)
 
