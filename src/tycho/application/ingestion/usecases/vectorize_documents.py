@@ -76,7 +76,7 @@ class VectorizeDocumentsUsecase:
             document_id = source.id
             document_type = source.type
         elif isinstance(source, Corps):
-            document_id = source.id  # type: ignore  # TODO: Corps will use UUID soon
+            document_id = source.id
             document_type = DocumentType.CORPS
         elif isinstance(source, Concours):
             document_id = source.id  # type: ignore  # TODO: Concours will use UUID soon

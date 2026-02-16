@@ -87,6 +87,7 @@ class IngestionContainer(containers.DeclarativeContainer):
         providers.Singleton(
             DocumentCleaner,
             logger=logger_service,
+            corps_repository=corps_repository,
         )
     )
 

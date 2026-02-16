@@ -1,5 +1,7 @@
 """Domain errors for entity Corps."""
 
+from uuid import UUID
+
 from domain.exceptions.domain_errors import DomainError
 
 
@@ -12,10 +14,10 @@ class CorpsError(DomainError):
 class CorpsDoesNotExist(CorpsError):
     """Raised when a Corps with the given ID does not exist."""
 
-    def __init__(self, corps_id: int):
+    def __init__(self, id: UUID | str):
         """Initialize with the corps ID."""
-        super().__init__(f"Corps with ID {corps_id} does not exist")
-        self.corps_id = corps_id
+        super().__init__(f"Corps with ID {id} does not exist")
+        self.id = id
 
 
 class InvalidDiplomaLevelError(CorpsError):

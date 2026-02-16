@@ -16,9 +16,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CorpsModel',
             fields=[
-                ('id', models.IntegerField(primary_key=True, serialize=False)),
+                ('id', models.UUIDField(primary_key=True, serialize=False)),
                 ('code', models.CharField(max_length=50)),
-                ('category', models.CharField(blank=True, max_length=10, null=True)),
+                ('category', models.CharField(blank=True, max_length=20, null=True)),
                 ('ministry', models.CharField(max_length=100)),
                 ('diploma_level', models.IntegerField(blank=True, null=True)),
                 ('short_label', models.CharField(max_length=200)),
@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
             name='ConcoursModel',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('corps_id', models.IntegerField()),
+                ('corps_id', models.UUIDField()),
                 ('nor_original', models.CharField(max_length=50)),
                 ('nor_list', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=50), blank=True, default=list, size=None)),
                 ('category', models.CharField(max_length=20)),
