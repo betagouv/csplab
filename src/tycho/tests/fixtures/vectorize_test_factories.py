@@ -1,6 +1,7 @@
 """Shared factory functions and constants for vectorize documents tests."""
 
 from datetime import datetime
+from uuid import uuid4
 
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
@@ -157,10 +158,10 @@ def create_test_document(
 ) -> Document:
     """Create a test Document entity."""
     return Document(
-        id=entity_id,
         external_id=f"test_doc_{entity_id}",
         raw_data={"content": f"Test document content {entity_id}"},
         type=doc_type,
         created_at=datetime.now(),
         updated_at=datetime.now(),
+        id=uuid4(),  # Generate UUID automatically
     )

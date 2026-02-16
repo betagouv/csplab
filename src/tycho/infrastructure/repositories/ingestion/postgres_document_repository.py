@@ -62,12 +62,7 @@ class PostgresDocumentRepository(IDocumentRepository):
 
                 if partitioned["new"]:
                     new_documents = [
-                        RawDocument(
-                            external_id=doc.external_id,
-                            raw_data=doc.raw_data,
-                            document_type=doc.type.value,
-                        )
-                        for doc in partitioned["new"]
+                        RawDocument.from_entity(doc) for doc in partitioned["new"]
                     ]
                     RawDocument.objects.bulk_create(
                         new_documents, ignore_conflicts=True

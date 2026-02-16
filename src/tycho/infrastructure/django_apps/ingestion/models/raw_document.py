@@ -8,7 +8,7 @@ from domain.entities.document import Document, DocumentType
 class RawDocument(models.Model):
     """Model for storing raw ingres employement body."""
 
-    id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True)
     external_id = models.CharField(
         "Identifiant externe",
         max_length=255,

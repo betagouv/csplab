@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from typing import Any, Dict
+from uuid import uuid4
 
 from domain.entities.document import Document, DocumentType
 from tests.fixtures.fixture_loader import load_fixture
@@ -17,12 +18,12 @@ def _create_base_document(
 ) -> Document:
     """Helper to create a Document instance with common fields."""
     return Document(
-        id=doc_id,
         external_id=external_id,
         raw_data=raw_data,
         type=doc_type,
         created_at=datetime.now(),
         updated_at=datetime.now(),
+        id=uuid4(),  # Generate UUID automatically
     )
 
 
