@@ -76,7 +76,7 @@ omit = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-v --cov-report term-missing --cov=application --cov=domain --cov=infrastructure --cov=presentation"
+addopts = "--cov-report term-missing --cov=application --cov=domain --cov=infrastructure --cov=presentation"
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 asyncio_mode = "auto"
 python_files = [
