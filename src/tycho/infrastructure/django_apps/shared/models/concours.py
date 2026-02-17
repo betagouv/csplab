@@ -15,7 +15,7 @@ class ConcoursModel(models.Model):
 
     objects: models.Manager = models.Manager()
 
-    id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True)
     corps = models.CharField(max_length=200, default="")
     grade = models.CharField(max_length=200, default="", blank=True)
     nor_original = models.CharField(max_length=50)

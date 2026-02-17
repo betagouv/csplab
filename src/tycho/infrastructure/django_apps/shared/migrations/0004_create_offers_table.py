@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("shared", "0003_alter_concoursmodel_grade"),
+        ("shared", "0001_initial"),
     ]
 
     operations = [

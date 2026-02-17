@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from domain.entities.concours import Concours
 from domain.entities.document import Document, DocumentType
+from domain.exceptions.concours_errors import ConcoursDoesNotExist
 from domain.exceptions.corps_errors import InvalidMinistryError
 from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
@@ -45,9 +46,10 @@ ACCESS_MODALITY_MAPPING = {
 class ConcoursCleaner(IDocumentCleaner[Concours]):
     """Adapter for cleaning raw documents of type CONCOURS into Concours entities."""
 
-    def __init__(self, logger: ILogger):
-        """Initialize with logger dependency."""
+    def __init__(self, logger: ILogger, concours_repository):
+        """Initialize with logger and concours repository dependencies."""
         self.logger = logger.get_logger("ConcoursCleaner::clean")
+        self.concours_repository = concours_repository
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[Concours]:
         """Clean raw documents and return cleaning result with entities and errors."""
@@ -219,23 +221,34 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
 
             open_position_number = int(row.get("Nb postes total", 0) or 0)
 
-            # Generate unique ID based on NOR hash to avoid collisions
-            concours_id = hash(row["concours_id"]) % (
-                10**9
-            )  # Keep it positive and reasonable
-
-            concours = Concours(
-                id=concours_id,
-                nor_original=nor_original,
-                nor_list=nor_list,
-                category=category,
-                ministry=ministry,
-                access_modality=access_modalities,
-                corps=row["Corps"],
-                grade=row.get("Grade") or "",
-                written_exam_date=written_exam_date,
-                open_position_number=open_position_number,
-            )
+            # Check if Concours with this NOR already exists
+            existing_concours = None
+            try:
+                existing_concours = self.concours_repository.find_by_nor(nor_original)
+                concours = Concours(
+                    nor_original=nor_original,
+                    nor_list=nor_list,
+                    category=category,
+                    ministry=ministry,
+                    access_modality=access_modalities,
+                    corps=row["Corps"],
+                    grade=row.get("Grade") or "",
+                    written_exam_date=written_exam_date,
+                    open_position_number=open_position_number,
+                    id=existing_concours.id,  # Reuse existing UUID
+                )
+            except ConcoursDoesNotExist:
+                concours = Concours(
+                    nor_original=nor_original,
+                    nor_list=nor_list,
+                    category=category,
+                    ministry=ministry,
+                    access_modality=access_modalities,
+                    corps=row["Corps"],
+                    grade=row.get("Grade") or "",
+                    written_exam_date=written_exam_date,
+                    open_position_number=open_position_number,
+                )
             concours_list.append(concours)
             counter += 1  # Increment counter for next concours
 

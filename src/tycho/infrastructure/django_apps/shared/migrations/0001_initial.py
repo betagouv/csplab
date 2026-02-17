@@ -52,8 +52,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ConcoursModel',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('corps_id', models.UUIDField()),
+                ('id', models.UUIDField(primary_key=True, serialize=False)),
+                ('corps', models.CharField(max_length=200)),
+                ('grade', models.CharField(blank=True, max_length=200, null=True)),
                 ('nor_original', models.CharField(max_length=50)),
                 ('nor_list', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=50), blank=True, default=list, size=None)),
                 ('category', models.CharField(max_length=20)),
@@ -68,7 +69,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Concours',
                 'verbose_name_plural': 'Concours',
                 'db_table': 'concours',
-                'indexes': [models.Index(fields=['corps_id'], name='concours_corps_i_871a7f_idx'), models.Index(fields=['nor_original'], name='concours_nor_ori_fd92de_idx')],
+                'indexes': [models.Index(fields=['nor_original'], name='concours_nor_ori_fd92de_idx')],
             },
         ),
     ]

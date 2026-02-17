@@ -8,6 +8,7 @@ from domain.exceptions.document_error import (
     UnsupportedDocumentTypeError,
 )
 from domain.interfaces.entity_interface import IEntity
+from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.corps_repository_interface import ICorpsRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
@@ -22,11 +23,16 @@ class DocumentCleaner(IDocumentCleaner[IEntity]):
     Implements IDocumentCleaner[IEntity] protocol.
     """
 
-    def __init__(self, logger: ILogger, corps_repository: ICorpsRepository):
+    def __init__(
+        self,
+        logger: ILogger,
+        corps_repository: ICorpsRepository,
+        concours_repository: IConcoursRepository,
+    ):
         """Initialize the factory with available cleaners."""
         self._cleaners = {
             DocumentType.CORPS: CorpsCleaner(logger, corps_repository),
-            DocumentType.CONCOURS: ConcoursCleaner(logger),
+            DocumentType.CONCOURS: ConcoursCleaner(logger, concours_repository),
             DocumentType.OFFERS: OffersCleaner(logger),
         }
 

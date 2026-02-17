@@ -65,13 +65,21 @@ class PostgresConcoursRepository(IConcoursRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_id(self, concours_id: int) -> Concours:
+    def find_by_id(self, concours_id) -> Concours:
         """Find a Concours by its ID."""
         try:
             concours_model = ConcoursModel.objects.get(id=concours_id)
             return concours_model.to_entity()
         except ConcoursModel.DoesNotExist as e:
-            raise ConcoursDoesNotExist(concours_id) from e
+            raise ConcoursDoesNotExist(str(concours_id)) from e
+
+    def find_by_nor(self, nor) -> Concours:
+        """Find a Concours by its NOR."""
+        try:
+            concours_model = ConcoursModel.objects.get(nor_original=nor.value)
+            return concours_model.to_entity()
+        except ConcoursModel.DoesNotExist as e:
+            raise ConcoursDoesNotExist(str(nor)) from e
 
     def get_all(self) -> List[Concours]:
         """Get all Concours entities."""
