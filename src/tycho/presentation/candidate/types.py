@@ -3,15 +3,22 @@
 from typing import TypedDict
 
 
+class FilterOption(TypedDict):
+    """Typed structure for filter dropdown options."""
+
+    value: str
+    text: str
+
+
 class _BaseCard(TypedDict):
     """Shared fields for all result cards."""
 
     opportunity_type: str
     title: str
     description: str
-    category: str
+    category_display: str
     category_value: str
-    versant: str
+    versant_display: str
     versant_value: str
     url: str
 

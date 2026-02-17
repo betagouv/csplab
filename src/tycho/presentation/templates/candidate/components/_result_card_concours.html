@@ -14,11 +14,12 @@
                             <li>{% dsfr_tag label=tag extra_classes="fr-tag--sm" %}</li>
                         {% endfor %}
                     {% endif %}
-                    {% if concours.category %}
-                        <li>{% dsfr_tag label=concours.category extra_classes="fr-tag--sm" %}</li>
+                    <li>{% dsfr_tag label=concours.opportunity_type_display extra_classes="fr-icon-edit-line fr-tag--icon-left" %}</li>
+                    {% if concours.versant_display %}
+                        <li>{% dsfr_tag label=concours.versant_display extra_classes="fr-icon-government-line fr-tag--icon-left" %}</li>
                     {% endif %}
-                    {% if concours.versant %}
-                        <li>{% dsfr_tag label=concours.versant extra_classes="fr-tag--sm" %}</li>
+                    {% if concours.category_display %}
+                        <li>{% dsfr_tag label=concours.category_display extra_classes="fr-icon-award-line fr-tag--icon-left" %}</li>
                     {% endif %}
                 </ul>
             </div>

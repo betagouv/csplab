@@ -8,14 +8,14 @@
             <p class="fr-card__desc">{{ offer.description|default:""|truncatewords:30 }}</p>
             <div class="fr-card__start">
                 <ul class="fr-tags-group">
-                    {% if offer.location %}
-                        <li>{% dsfr_tag label=offer.location extra_classes="fr-tag--sm" %}</li>
+                    {% if offer.opportunity_type_display %}
+                        <li>{% dsfr_tag label=offer.opportunity_type_display extra_classes="fr-icon-briefcase-line fr-tag--icon-left" %}</li>
                     {% endif %}
-                    {% if offer.category %}
-                        <li>{% dsfr_tag label=offer.category extra_classes="fr-tag--sm" %}</li>
+                    {% if offer.versant_display %}
+                        <li>{% dsfr_tag label=offer.versant_display extra_classes="fr-icon-government-line fr-tag--icon-left" %}</li>
                     {% endif %}
-                    {% if offer.versant %}
-                        <li>{% dsfr_tag label=offer.versant extra_classes="fr-tag--sm" %}</li>
+                    {% if offer.category_display %}
+                        <li>{% dsfr_tag label=offer.category_display extra_classes="fr-icon-award-line fr-tag--icon-left" %}</li>
                     {% endif %}
                 </ul>
             </div>

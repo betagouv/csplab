@@ -16,6 +16,13 @@ from domain.entities.cv_metadata import CVMetadata
 from domain.entities.offer import Offer
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
+from presentation.candidate.filter_config import (
+    OPPORTUNITY_TYPES,
+    get_category_all_filter_values,
+    get_category_filter_options,
+    get_verse_all_filter_values,
+    get_verse_filter_options,
+)
 from presentation.candidate.forms.cv_flow import CVUploadForm
 from presentation.candidate.mappers import (
     ConcoursToTemplateMapper,
@@ -25,6 +32,7 @@ from presentation.candidate.mixins import (
     BreadcrumbLink,
     BreadcrumbMixin,
 )
+from presentation.candidate.types import OpportunityCard
 
 
 class CVUploadView(BreadcrumbMixin, FormView):
@@ -192,13 +200,22 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
     def _filter_results(self, results: list[OpportunityCard]) -> list[OpportunityCard]:
         """Filter results based on GET parameters."""
         location = self.request.GET.get("filter-location")
-        category = self.request.GET.get("filter-category")
 
         filtered = results
+
         if location:
             filtered = [r for r in filtered if r.get("location_value") == location]
-        if category:
-            filtered = [r for r in filtered if r.get("category_value") == category]
+
+        multi_value_filters: list[tuple[str, set[str], str]] = [
+            ("filter-category", get_category_all_filter_values(), "category_value"),
+            ("filter-versant", get_verse_all_filter_values(), "versant_value"),
+            ("filter-opportunity_type", set(OPPORTUNITY_TYPES), "opportunity_type"),
+        ]
+
+        for param_name, all_values, field_key in multi_value_filters:
+            selected = set(self.request.GET.getlist(param_name)) - {""}
+            if selected and not all_values.issubset(selected):
+                filtered = [r for r in filtered if r.get(field_key) in selected]
 
         return filtered
 
@@ -230,20 +247,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             "disabled": True,
             "text": "Sélectionner une localisation",
         }
-        context["category_options"] = [
-            {"value": "", "text": "Toutes les catégories"},
-            {"value": "a", "text": "Catégorie A"},
-            {"value": "b", "text": "Catégorie B"},
-            {"value": "c", "text": "Catégorie C"},
-        ]
-        context["category_default"] = {
-            "disabled": True,
-            "text": "Sélectionner une catégorie",
-        }
-        context["versants"] = [
-            {"label": "Fonction publique d'État"},
-            {"label": "Fonction publique Territoriale"},
-            {"label": "Fonction publique Hospitalière"},
-        ]
+        context["category_options"] = get_category_filter_options()
+        context["verse_options"] = get_verse_filter_options()
         context["results_target_id"] = "results-zone"
         return context
