@@ -20,6 +20,7 @@ from presentation.candidate.filter_config import (
     OPPORTUNITY_TYPES,
     get_category_all_filter_values,
     get_category_filter_options,
+    get_location_filter_options,
     get_verse_all_filter_values,
     get_verse_filter_options,
 )
@@ -199,10 +200,9 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
 
     def _filter_results(self, results: list[OpportunityCard]) -> list[OpportunityCard]:
         """Filter results based on GET parameters."""
-        location = self.request.GET.get("filter-location")
-
         filtered = results
 
+        location = self.request.GET.get("filter-location")
         if location:
             filtered = [r for r in filtered if r.get("location_value") == location]
 
@@ -236,17 +236,14 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         if isinstance(self.opportunities, list):
             context["results"] = self._filter_results(self.opportunities)
             context["results_count"] = len(context["results"])
-        context["location_options"] = [
-            {"value": "", "text": "Toutes les localisations"},
-            {"value": "paris", "text": "Paris"},
-            {"value": "lyon", "text": "Lyon"},
-            {"value": "marseille", "text": "Marseille"},
-            {"value": "bordeaux", "text": "Bordeaux"},
+
+        opportunities = (
+            self.opportunities if isinstance(self.opportunities, list) else []
+        )
+        locations = [
+            (r.get("location_value", ""), r.get("location", "")) for r in opportunities
         ]
-        context["location_default"] = {
-            "disabled": True,
-            "text": "Sélectionner une localisation",
-        }
+        context["location_options"] = get_location_filter_options(locations)
         context["category_options"] = get_category_filter_options()
         context["verse_options"] = get_verse_filter_options()
         context["results_target_id"] = "results-zone"

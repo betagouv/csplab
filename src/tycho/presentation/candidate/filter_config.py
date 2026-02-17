@@ -1,6 +1,7 @@
 """Filter configuration for candidate search results."""
 
 from domain.value_objects.category import Category
+from domain.value_objects.localisation import Localisation
 from domain.value_objects.verse import Verse
 from presentation.candidate.formatters import (
     CATEGORY_DISPLAY,
@@ -25,6 +26,13 @@ def format_category_value(category: Category | None) -> str:
     if not category:
         return ""
     return CATEGORY_FILTER_VALUE.get(category, "")
+
+
+def format_location_value(localisation: Localisation | None) -> str:
+    """Format localisation value for filtering (department code)."""
+    if not localisation:
+        return ""
+    return str(localisation.department)
 
 
 def get_category_filter_options() -> list[FilterOption]:
@@ -59,3 +67,20 @@ def get_verse_filter_options() -> list[FilterOption]:
 def get_verse_all_filter_values() -> set[str]:
     """All possible verse filter values (for 'select all' logic)."""
     return {member.value for member in Verse}
+
+
+def get_location_filter_options(
+    locations: list[tuple[str, str]],
+) -> list[FilterOption]:
+    """Build location filter options from (value, display) pairs."""
+    options: list[FilterOption] = [
+        FilterOption(value="", text="Toutes les localisations"),
+    ]
+    seen: set[str] = set()
+    for value, display in locations:
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        options.append(FilterOption(value=value, text=display))
+    options[1:] = sorted(options[1:], key=lambda o: o["text"])
+    return options

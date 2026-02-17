@@ -5,10 +5,12 @@ from domain.entities.offer import Offer
 from domain.value_objects.verse import Verse
 from presentation.candidate.filter_config import (
     format_category_value,
+    format_location_value,
 )
 from presentation.candidate.formatters import (
     format_category_display,
     format_contract_type_display,
+    format_location_display,
     format_verse_display,
 )
 from presentation.candidate.types import ConcoursCard, OfferCard
@@ -45,20 +47,12 @@ class OfferToTemplateMapper:
             "opportunity_type": "offer",
             "title": offer.title,
             "description": offer.mission,
-            "location": OfferToTemplateMapper._format_location_display(
-                offer.localisation
-            ),
             "category_display": format_category_display(offer.category),
             "category_value": format_category_value(offer.category),
             "versant_display": format_verse_display(offer.verse),
             "versant_value": offer.verse.value if offer.verse else "",
+            "location": format_location_display(offer.localisation),
+            "location_value": format_location_value(offer.localisation),
             "contract_type_display": format_contract_type_display(offer.contract_type),
             "url": str(offer.offer_url) if offer.offer_url else "#",
         }
-
-    @staticmethod
-    def _format_location_display(localisation) -> str:
-        """Format localisation for display."""
-        if not localisation:
-            return ""
-        return f"{localisation.region}, {localisation.department}"

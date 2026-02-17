@@ -2,6 +2,7 @@
 
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
+from domain.value_objects.localisation import Localisation
 from domain.value_objects.verse import Verse
 
 CATEGORY_DISPLAY: dict[Category, str] = {
@@ -44,3 +45,10 @@ def format_contract_type_display(contract_type: ContractType | None) -> str:
     if not contract_type:
         return ""
     return CONTRACT_TYPE_DISPLAY.get(contract_type, str(contract_type))
+
+
+def format_location_display(localisation: Localisation | None) -> str:
+    """Format localisation for display."""
+    if not localisation:
+        return ""
+    return localisation.department.name

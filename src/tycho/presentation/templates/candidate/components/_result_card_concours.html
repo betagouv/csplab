@@ -23,6 +23,11 @@
                     {% endif %}
                 </ul>
             </div>
+            {% if concours.location %}
+                <div class="fr-card__end">
+                    <p class="fr-card__detail fr-icon-map-pin-2-line">{{ concours.location }}</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </article>
