@@ -118,8 +118,7 @@ def corps_data_fixture(shared_container, embeddings):
     for i, corps in enumerate(corps_list):
         _, fixture_data = fixture_items[i]
         vectorized_doc = VectorizedDocument(
-            id=i + 1,  # Temporary ID, will be assigned by database
-            document_id=corps.id,
+            entity_id=corps.id,
             document_type=DocumentType.CORPS,
             content=fixture_data["long_label"],
             embedding=fixture_data["embedding"],

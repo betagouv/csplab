@@ -11,7 +11,7 @@ class VectorizedDocumentModel(models.Model):
     """Django model for vectorized documents with pgvector support."""
 
     id = models.UUIDField(primary_key=True)
-    document_id = models.UUIDField(db_index=True)
+    entity_id = models.UUIDField(db_index=True)
     document_type = models.CharField(
         max_length=20,
         choices=[(dt.value, dt.value) for dt in DocumentType],
@@ -39,13 +39,13 @@ class VectorizedDocumentModel(models.Model):
 
     def __str__(self):
         """String representation."""
-        return f"VectorizedDocument(id={self.id}, document_id={self.document_id})"
+        return f"VectorizedDocument(id={self.id}, entity_id={self.entity_id})"
 
     def to_entity(self) -> VectorizedDocument:
         """Convert Django model to domain entity."""
         return VectorizedDocument(
             id=self.id,
-            document_id=self.document_id,
+            entity_id=self.entity_id,
             document_type=DocumentType(self.document_type),
             content=self.content,
             embedding=list(self.embedding),
@@ -59,7 +59,7 @@ class VectorizedDocumentModel(models.Model):
         """Create Django model from domain entity."""
         return cls(
             id=entity.id,
-            document_id=entity.document_id,
+            entity_id=entity.entity_id,
             document_type=entity.document_type.value,
             content=entity.content,
             embedding=entity.embedding,

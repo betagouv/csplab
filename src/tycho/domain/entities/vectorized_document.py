@@ -13,7 +13,7 @@ from domain.interfaces.entity_interface import IEntity
 class VectorizedDocument(IEntity):
     """VectorizedDocument entity representing a document with its semantic embedding."""
 
-    document_id: UUID
+    entity_id: UUID
     document_type: DocumentType
     content: str
     embedding: List[float]

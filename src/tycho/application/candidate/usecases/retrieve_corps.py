@@ -60,7 +60,7 @@ class RetrieveCorpsUsecase:
 
         corps_list = []
         for result in similarity_results:
-            corps = self._corps_repository.find_by_id(result.document.document_id)  # type: ignore  # TODO: will be UUID soon
+            corps = self._corps_repository.find_by_id(result.document.entity_id)
             if corps:
                 self._logger.info(
                     f"Corps {corps.id} ({corps.label.value}): score={result.score:.4f}"
