@@ -52,10 +52,10 @@ class ConcoursToTemplateMapper(_BaseMapper):
     def map(concours: Concours) -> dict[str, str | list[str]]:
         """Transform a Concours entity to template format."""
         return {
-            "type": "concours",
+            "opportunity_type": "concours",
             "title": concours.corps,
             "description": concours.grade,
-            "concours_type": [str(m) for m in concours.access_modality]
+            "access_modalities": [str(m) for m in concours.access_modality]
             if concours.access_modality
             else [],
             "category": ConcoursToTemplateMapper._format_category_display(
@@ -65,7 +65,6 @@ class ConcoursToTemplateMapper(_BaseMapper):
                 concours.category
             ),
             "versant": ConcoursToTemplateMapper._format_verse(Verse.FPE),
-            "job_type": "",
             "url": "#",
         }
 
@@ -77,7 +76,7 @@ class OfferToTemplateMapper(_BaseMapper):
     def map(offer: Offer) -> dict[str, str | list[str]]:
         """Transform an Offer entity to template format."""
         return {
-            "type": "offer",
+            "opportunity_type": "offer",
             "title": offer.title,
             "description": offer.mission,
             "location": OfferToTemplateMapper._format_location_display(
@@ -85,7 +84,7 @@ class OfferToTemplateMapper(_BaseMapper):
             ),
             "category": OfferToTemplateMapper._format_category_display(offer.category),
             "versant": OfferToTemplateMapper._format_verse(offer.verse),
-            "job_type": OfferToTemplateMapper._format_contract_type(
+            "contract_type_display": OfferToTemplateMapper._format_contract_type(
                 offer.contract_type
             ),
             "url": str(offer.offer_url) if offer.offer_url else "#",

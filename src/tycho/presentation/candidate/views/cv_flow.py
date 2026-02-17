@@ -127,7 +127,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         self.logger.info("Getting CV processing status for cv_uuid=%s", cv_uuid)
 
         cv_metadata_repository = self.container.postgres_cv_metadata_repository()
-        opportunities = []
+        opportunities: list[OpportunityCard] = []
         filename = None
         try:
             cv_metadata: CVMetadata = cv_metadata_repository.find_by_id(cv_uuid)
@@ -189,7 +189,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         # Default template for completed status with results
         return ["candidate/cv_results.html"]
 
-    def _filter_results(self, results: list[dict[str, str]]) -> list[dict[str, str]]:
+    def _filter_results(self, results: list[OpportunityCard]) -> list[OpportunityCard]:
         """Filter results based on GET parameters."""
         location = self.request.GET.get("filter-location")
         category = self.request.GET.get("filter-category")

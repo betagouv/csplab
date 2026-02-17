@@ -20,7 +20,9 @@
                 </ul>
             </div>
             <div class="fr-card__end">
-                {% if offer.job_type %}<p class="fr-card__detail fr-icon-briefcase-line">{{ offer.job_type }}</p>{% endif %}
+                {% if offer.contract_type_display %}
+                    <p class="fr-card__detail fr-icon-briefcase-line">{{ offer.contract_type_display }}</p>
+                {% endif %}
             </div>
         </div>
     </div>
