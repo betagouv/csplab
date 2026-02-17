@@ -4,6 +4,7 @@ import random
 import string
 from datetime import datetime
 from typing import List, Optional
+from uuid import uuid4
 
 from faker import Faker
 from faker.providers import BaseProvider
@@ -71,6 +72,7 @@ class ConcoursFactory:
             open_position_number = 10
 
         concours = ConcoursModel(
+            id=uuid4(),
             corps=corps,
             grade=grade,
             nor_original=nor_original,

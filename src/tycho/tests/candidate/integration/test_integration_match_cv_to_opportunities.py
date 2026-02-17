@@ -43,9 +43,8 @@ def _integration_candidate_container():
     return container
 
 
-# TODO, refactor as soon as PK of obj are uuid
 def generate_vectorized_documents(documents):
-    """Generate vectorized docs using db id."""
+    """Generate vectorized docs using entity UUID."""
     return [
         VectorizedDocument(
             entity_id=obj.id,
@@ -58,7 +57,7 @@ def generate_vectorized_documents(documents):
             created_at=datetime.now(),
             updated_at=datetime.now(),
         )
-        for id, obj in enumerate(documents)
+        for obj in documents
     ]
 
 
@@ -82,14 +81,10 @@ def test_execute_with_valid_cv_returns_opportunities(
     )
     concours_repo.upsert_batch(concours)
 
-    # TODO, refactor as soon as PK of obj are uuid
-    for offer in offers:
-        offer.id = None
-
     offers_repo = _integration_candidate_container.shared_container.offers_repository()
     offers_repo.upsert_batch(offers)
 
-    # TODO, refactor as soon as PK of obj are uuid
+    # Generate vectorized documents using entity UUIDs
     vectorized_documents = generate_vectorized_documents(
         concours_repo.get_all() + offers_repo.get_all()
     )
@@ -107,6 +102,6 @@ def test_execute_with_valid_cv_returns_opportunities(
 
     assert sum(isinstance(obj, Concours) for obj, _ in result) == len(concours)
     assert sum(isinstance(obj, Offer) for obj, _ in result) == len(offers)
-    # TODO - reactivate these assertions
+    # TODO - reactivate these assertions
     # assert all(0.0 <= score <= 1.0 for _, score in result)
     # assert all(isinstance(score, float) for _, score in result)

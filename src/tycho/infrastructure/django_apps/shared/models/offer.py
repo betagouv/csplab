@@ -28,7 +28,7 @@ class OfferModel(models.Model):
     # Verse choices from Verse enum
     VERSE_CHOICES = [(v.value, v.name) for v in Verse]
 
-    id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True)
     external_id = models.CharField(max_length=100, unique=True)
     verse = models.CharField(
         max_length=20, choices=VERSE_CHOICES, null=True, blank=True

@@ -226,10 +226,9 @@ def test_store_embeddings_filters_on_id_and_type(db, ingestion_integration_conta
     entities = []
     for factory in [CorpsFactory, OfferFactory, ConcoursFactory]:
         obj = factory.create()
-        obj.id = 99999
         if isinstance(obj, OfferModel):
             obj.external_id = fake.uuid4()
-        obj.save()
+            obj.save()
         entities.append(obj.to_entity())
 
     # execute twice
