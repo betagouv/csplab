@@ -19,11 +19,11 @@
                     {% endif %}
                 </ul>
             </div>
-            <div class="fr-card__end">
-                {% if offer.contract_type_display %}
-                    <p class="fr-card__detail fr-icon-briefcase-line">{{ offer.contract_type_display }}</p>
-                {% endif %}
-            </div>
+            {% if offer.location %}
+                <div class="fr-card__end">
+                    <p class="fr-card__detail fr-icon-map-pin-2-line">{{ offer.location }}</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </article>
