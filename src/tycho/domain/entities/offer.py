@@ -1,8 +1,9 @@
 """Offer entity for job offers storage."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
+from uuid import UUID, uuid4
 
 from pydantic import HttpUrl
 
@@ -18,7 +19,6 @@ from domain.value_objects.verse import Verse
 class Offer(IEntity):
     """Offer entity."""
 
-    id: int
     external_id: str
     verse: Optional[Verse]
     title: str
@@ -31,3 +31,4 @@ class Offer(IEntity):
     localisation: Optional[Localisation]
     publication_date: datetime
     beginning_date: Optional[LimitDate]
+    id: UUID = field(default_factory=uuid4)

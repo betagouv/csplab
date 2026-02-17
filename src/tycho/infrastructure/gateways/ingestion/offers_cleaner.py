@@ -102,11 +102,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         )
         beginning_date = self._parse_beginning_date(talentsoft_offer.beginningDate)
 
-        # Generate consistent ID from reference
-        offer_id = hash(talentsoft_offer.reference) % (10**9)
-
         return Offer(
-            id=offer_id,
             external_id=f"{ts_verse}-{talentsoft_offer.reference}"
             if ts_verse
             else talentsoft_offer.reference,

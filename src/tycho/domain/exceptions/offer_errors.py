@@ -1,6 +1,7 @@
 """Domain errors for entity Offers."""
 
 from datetime import datetime
+from uuid import UUID
 
 from domain.exceptions.domain_errors import DomainError
 
@@ -16,7 +17,7 @@ class InvalidLimitDateError(DomainError):
 class OfferDoesNotExist(DomainError):
     """Raised when an offer is not found."""
 
-    def __init__(self, offer_id: int):
+    def __init__(self, offer_id: UUID | str):
         """Initialize with offer ID that was not found."""
         super().__init__(f"Offer with ID {offer_id} does not exist")
 

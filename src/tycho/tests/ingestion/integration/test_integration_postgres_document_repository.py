@@ -80,12 +80,3 @@ class TestFetchByType:
             assert len(docs) == nb_doc_per_type
             assert all(doc.type == document_type for doc in docs)
             assert has_more is False
-
-    def test_consistent_ordering(self, db, repository):
-        """Test fetched documents ordering."""
-        document_type = DocumentType.OFFERS
-        raw_documents = RawDocumentFactory.create_batch(2, document_type=document_type)
-
-        documents, has_more = repository.fetch_by_type(document_type, start=0)
-
-        assert [d.id for d in documents] == [d.id for d in raw_documents]

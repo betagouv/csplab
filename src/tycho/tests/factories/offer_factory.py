@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 from typing import Optional
+from uuid import uuid4
 
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
@@ -49,6 +50,7 @@ class OfferFactory:
             publication_date = datetime.now(timezone.utc)
 
         offer = OfferModel(
+            id=uuid4(),
             external_id=external_id,
             verse=verse.value if verse else None,
             title=title,

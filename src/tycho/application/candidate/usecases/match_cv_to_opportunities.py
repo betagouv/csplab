@@ -79,7 +79,7 @@ class MatchCVToOpportunitiesUsecase:
             self._logger.info(
                 f"Searching for offer with ID: {result.document.entity_id}"
             )
-            offer = self._offers_repository.find_by_id(result.document.entity_id)  # type: ignore  # TODO: will be UUID soon
+            offer = self._offers_repository.find_by_id(result.document.entity_id)
             self._logger.info(f"Found offer with ID: {offer.id}")
             opportunities.append((offer, result.score))
 

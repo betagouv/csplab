@@ -105,7 +105,6 @@ def create_test_concours_for_integration(entity_id: int = 1) -> Concours:
 def create_test_offer(entity_id: int = 1) -> Offer:
     """Create a test Offer entity for unit tests."""
     return Offer(
-        id=entity_id,
         external_id=f"OFFER_{entity_id:03d}",
         verse=Verse.FPE,
         title="Développeur Python Senior",
@@ -128,7 +127,6 @@ def create_test_offer(entity_id: int = 1) -> Offer:
 def create_test_offer_for_integration(entity_id: int = 1) -> Offer:
     """Create a test Offer entity for integration tests."""
     return Offer(
-        id=entity_id + 2,  # Start from ID 3 to avoid conflicts
         external_id=f"OFFER_{entity_id + 2:03d}",
         verse=Verse.FPE if entity_id == 1 else Verse.FPT,
         title=f"Développeur Python Senior {entity_id}",

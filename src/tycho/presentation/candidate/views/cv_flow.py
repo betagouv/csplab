@@ -12,6 +12,7 @@ from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
 
 from domain.entities.concours import Concours
+from domain.entities.cv_metadata import CVMetadata
 from domain.entities.offer import Offer
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
@@ -129,7 +130,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         opportunities = []
         filename = None
         try:
-            cv_metadata = cv_metadata_repository.find_by_id(cv_uuid)
+            cv_metadata: CVMetadata = cv_metadata_repository.find_by_id(cv_uuid)
 
             status = cv_metadata.status if cv_metadata else CVStatus.PENDING
             filename = cv_metadata.filename
