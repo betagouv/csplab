@@ -194,7 +194,7 @@ def vectorized_concours_documents_fixture(concours):
     for c in concours:
         vectorized_doc = VectorizedDocument(
             id=c.id,
-            document_id=c.id,
+            entity_id=c.id,
             document_type=DocumentType.CONCOURS,
             content=f"{c.corps} {c.grade}",
             embedding=[0.1] * 3072,  # Mock embedding
@@ -218,7 +218,7 @@ def vectorized_offers_documents_fixture(offers):
     return [
         VectorizedDocument(
             id=c.id,
-            document_id=c.id,
+            entity_id=c.id,
             document_type=DocumentType.OFFERS,
             content=f"{c.external_id} {c.title}",
             embedding=[0.2] * 3072,  # Mock embedding

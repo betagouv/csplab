@@ -48,8 +48,7 @@ def generate_vectorized_documents(documents):
     """Generate vectorized docs using db id."""
     return [
         VectorizedDocument(
-            id=id + 1,  # TODO, refactor as soon as PK is uuid
-            document_id=obj.id,
+            entity_id=obj.id,
             document_type=DocumentType.CONCOURS
             if isinstance(obj, Concours)
             else DocumentType.OFFERS,

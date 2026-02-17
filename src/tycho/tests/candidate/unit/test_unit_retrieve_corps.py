@@ -65,8 +65,7 @@ class TestUnitRetrieveCorpsUsecase(unittest.TestCase):
         for corps in corps_list:
             fixture_data = self.embedding_fixtures[str(corps.id)]
             vectorized_doc = VectorizedDocument(
-                id=corps.id,
-                document_id=corps.id,  # Links to corps.id
+                entity_id=corps.id,  # Links to corps.id
                 document_type=DocumentType.CORPS,
                 content=fixture_data["long_label"],
                 embedding=fixture_data["embedding"],

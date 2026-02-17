@@ -24,7 +24,7 @@ class PgVectorRepository(IVectorRepository):
         model = vectorized_document.VectorizedDocumentModel.from_entity(vectorized_doc)
 
         existing = vectorized_document.VectorizedDocumentModel.objects.filter(
-            document_id=vectorized_doc.document_id, document_type=model.document_type
+            entity_id=vectorized_doc.entity_id, document_type=model.document_type
         ).first()
 
         if existing:
