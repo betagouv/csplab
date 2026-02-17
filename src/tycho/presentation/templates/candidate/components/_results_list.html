@@ -8,9 +8,9 @@
 <div id="results-list">
     {% if results %}
         {% for result in results %}
-            {% if result.type == "offer" %}
+            {% if result.opportunity_type == "offer" %}
                 {% include "candidate/components/_result_card_offer.html" with offer=result %}
-            {% elif result.type == "concours" %}
+            {% elif result.opportunity_type == "concours" %}
                 {% include "candidate/components/_result_card_concours.html" with concours=result %}
             {% endif %}
         {% endfor %}

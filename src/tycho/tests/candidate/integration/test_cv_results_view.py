@@ -126,19 +126,19 @@ def test_cv_results_htmx_filter_returns_filtered_results(
             "title": "Chef de projet transformation numérique",
             "location_value": "paris",
             "category_value": "a",
-            "type": "concours",
+            "opportunity_type": "concours",
         },
         {
             "title": "Responsable des ressources humaines",
             "location_value": "lyon",
             "category_value": "a",
-            "type": "concours",
+            "opportunity_type": "concours",
         },
         {
             "title": "Technicien informatique",
             "location_value": "marseille",
             "category_value": "b",
-            "type": "concours",
+            "opportunity_type": "concours",
         },
     ]
     mock_get_status.return_value = {
@@ -170,13 +170,13 @@ def test_cv_results_htmx_no_match_displays_empty_state(
             "title": "Chef de projet transformation numérique",
             "location_value": "paris",
             "category_value": "a",
-            "type": "concours",
+            "opportunity_type": "concours",
         },
         {
             "title": "Responsable des ressources humaines",
             "location_value": "lyon",
             "category_value": "a",
-            "type": "concours",
+            "opportunity_type": "concours",
         },
     ]
     mock_get_status.return_value = {

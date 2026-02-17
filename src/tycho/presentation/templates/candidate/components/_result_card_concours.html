@@ -9,8 +9,8 @@
             <p class="fr-card__desc">{{ concours.description|default:""|truncatewords:30 }}</p>
             <div class="fr-mt-2w">
                 <ul class="fr-tags-group">
-                    {% if concours.concours_type %}
-                        {% for tag in concours.concours_type %}
+                    {% if concours.access_modalities %}
+                        {% for tag in concours.access_modalities %}
                             <li>{% dsfr_tag label=tag extra_classes="fr-tag--sm" %}</li>
                         {% endfor %}
                     {% endif %}
@@ -21,9 +21,6 @@
                         <li>{% dsfr_tag label=concours.versant extra_classes="fr-tag--sm" %}</li>
                     {% endif %}
                 </ul>
-            </div>
-            <div class="fr-card__end">
-                {% if concours.job_type %}<p class="fr-card__detail fr-icon-briefcase-line">{{ concours.job_type }}</p>{% endif %}
             </div>
         </div>
     </div>
