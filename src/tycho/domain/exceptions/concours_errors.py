@@ -10,12 +10,12 @@ class ConcoursError(DomainError):
 
 
 class ConcoursDoesNotExist(ConcoursError):
-    """Raised when a Concours with the given ID does not exist."""
+    """Raised when a Concours with the given ID or NOR does not exist."""
 
-    def __init__(self, concours_id: int):
-        """Initialize with the concours ID."""
-        super().__init__(f"Concours with ID {concours_id} does not exist")
-        self.concours_id = concours_id
+    def __init__(self, identifier: str):
+        """Initialize with the concours identifier."""
+        super().__init__(f"Concours with identifier {identifier} does not exist")
+        self.identifier = identifier
 
 
 class InvalidNorError(ConcoursError):

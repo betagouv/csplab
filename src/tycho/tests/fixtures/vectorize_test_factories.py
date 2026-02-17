@@ -75,7 +75,6 @@ def create_test_corps_for_integration(entity_id: int = 1) -> Corps:
 def create_test_concours(entity_id: int = 1) -> Concours:
     """Create a test Concours entity for unit tests."""
     return Concours(
-        id=entity_id,
         nor_original=NOR("AGRS2400001A"),
         nor_list=[NOR("AGRS2400001A")],
         category=Category.A,
@@ -91,7 +90,6 @@ def create_test_concours(entity_id: int = 1) -> Concours:
 def create_test_concours_for_integration(entity_id: int = 1) -> Concours:
     """Create a test Concours entity for integration tests."""
     return Concours(
-        id=entity_id + 2,  # Start from ID 3 to avoid conflicts
         nor_original=NOR(f"AGRS240000{entity_id}A"),
         nor_list=[NOR(f"AGRS240000{entity_id}A")],
         category=Category.A,

@@ -88,6 +88,7 @@ class IngestionContainer(containers.DeclarativeContainer):
             DocumentCleaner,
             logger=logger_service,
             corps_repository=corps_repository,
+            concours_repository=concours_repository,
         )
     )
 

@@ -163,7 +163,6 @@ def concours_fixture():
     """Create test concours data."""
     return [
         Concours(
-            id=1,
             nor_original=NOR("MENA2400001A"),
             nor_list=[NOR("MENA2400001A")],
             category=Category.A,
@@ -175,7 +174,6 @@ def concours_fixture():
             open_position_number=10,
         ),
         Concours(
-            id=2,
             nor_original=NOR("AGRI2400002B"),
             nor_list=[NOR("AGRI2400002B")],
             category=Category.A,
