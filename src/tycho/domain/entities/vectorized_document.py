@@ -1,9 +1,9 @@
 """VectorizedDocument entity for semantic search operations."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from domain.entities.document import DocumentType
 from domain.interfaces.entity_interface import IEntity
@@ -13,7 +13,6 @@ from domain.interfaces.entity_interface import IEntity
 class VectorizedDocument(IEntity):
     """VectorizedDocument entity representing a document with its semantic embedding."""
 
-    id: int
     document_id: UUID
     document_type: DocumentType
     content: str
@@ -21,3 +20,4 @@ class VectorizedDocument(IEntity):
     metadata: Dict[str, Any]
     created_at: datetime
     updated_at: datetime
+    id: UUID = field(default_factory=uuid4)

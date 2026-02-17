@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='VectorizedDocumentModel',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.UUIDField(primary_key=True, serialize=False)),
                 ('document_id', models.UUIDField(db_index=True)),
                 ('document_type', models.CharField(choices=[('CORPS', 'CORPS'), ('GRADE', 'GRADE'), ('CONCOURS', 'CONCOURS'), ('CONCOURS_LAW', 'CONCOURS_LAW'), ('CONCOURS_LAW_DETAILS', 'CONCOURS_LAW_DETAILS')], db_index=True, max_length=20)),
                 ('content', models.TextField()),

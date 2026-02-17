@@ -79,7 +79,7 @@ class VectorizeDocumentsUsecase:
             document_id = source.id
             document_type = DocumentType.CORPS
         elif isinstance(source, Concours):
-            document_id = source.id  # type: ignore  # TODO: Concours will use UUID soon
+            document_id = source.id
             document_type = DocumentType.CONCOURS
         elif isinstance(source, Offer):
             document_id = source.id  # type: ignore  # TODO: Offer will use UUID soon
@@ -92,7 +92,6 @@ class VectorizeDocumentsUsecase:
             raise ValueError("Document ID cannot be None for vectorization")
 
         vectorized_doc = VectorizedDocument(
-            id=0,  # Will be set by the repository
             document_id=document_id,
             document_type=document_type,
             content=content,
