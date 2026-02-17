@@ -1,20 +1,16 @@
 """VectorizedDocument Django model for pgvector storage."""
 
-from typing import TYPE_CHECKING
-
 from django.db import models
 from pgvector.django import VectorField
 
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
 
-if TYPE_CHECKING:
-    from django.db.models.manager import Manager
-
 
 class VectorizedDocumentModel(models.Model):
     """Django model for vectorized documents with pgvector support."""
 
+    id = models.UUIDField(primary_key=True)
     document_id = models.UUIDField(db_index=True)
     document_type = models.CharField(
         max_length=20,
@@ -26,10 +22,6 @@ class VectorizedDocumentModel(models.Model):
     metadata = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    if TYPE_CHECKING:
-        id: int
-        objects: "Manager[VectorizedDocumentModel]"
 
     class Meta:
         """Model metadata."""

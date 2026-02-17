@@ -3,6 +3,7 @@
 import math
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 from domain.entities.vectorized_document import VectorizedDocument
 from domain.repositories.vector_repository_interface import IVectorRepository
@@ -18,8 +19,7 @@ class InMemoryVectorRepository(IVectorRepository):
 
     def __init__(self):
         """Initialize with empty storage."""
-        self._documents: Dict[int, VectorizedDocument] = {}
-        self._next_id = 1
+        self._documents: Dict[UUID, VectorizedDocument] = {}
 
     def store_embedding(self, vectorized_doc: VectorizedDocument):
         """Store a vectorized document in memory."""
@@ -45,9 +45,8 @@ class InMemoryVectorRepository(IVectorRepository):
             self._documents[existing.id] = updated_doc
             return updated_doc
         else:
-            # Create new record
+            # Create new record - VectorizedDocument generates its own UUID
             new_doc = VectorizedDocument(
-                id=self._next_id,
                 document_id=vectorized_doc.document_id,
                 document_type=vectorized_doc.document_type,
                 content=vectorized_doc.content,
@@ -56,8 +55,7 @@ class InMemoryVectorRepository(IVectorRepository):
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             )
-            self._documents[self._next_id] = new_doc
-            self._next_id += 1
+            self._documents[new_doc.id] = new_doc
             return new_doc
 
     def semantic_search(
@@ -103,7 +101,7 @@ class InMemoryVectorRepository(IVectorRepository):
 
     def similarity_search(
         self,
-        document_id: int,
+        document_id: UUID,
         threshold: float = 0.8,
         limit: int = 10,
         similarity_type: Optional[SimilarityType] = None,
