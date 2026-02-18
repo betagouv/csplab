@@ -52,7 +52,6 @@ class PgVectorRepository(IVectorRepository):
         if similarity_type is None:
             similarity_type = SimilarityType()
 
-        ## TODO : filter queryset if document_type is given
         queryset = VectorizedDocumentModel.objects.all()
 
         if filters:
