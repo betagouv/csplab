@@ -22,13 +22,3 @@ class IVectorRepository(Protocol):
     ) -> List[SimilarityResult]:
         """Search for documents semantically similar to the query embedding."""
         ...
-
-    # def similarity_search(
-    #     self,
-    #     document_id: int,
-    #     threshold: float = 0.8,
-    #     limit: int = 10,
-    #     similarity_type: Optional[SimilarityType] = None,
-    # ) -> List[VectorizedDocument]:
-    #     """Find documents similar to a specific document."""
-    #     ...
