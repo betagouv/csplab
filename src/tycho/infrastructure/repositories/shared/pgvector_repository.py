@@ -13,7 +13,9 @@ from domain.value_objects.similarity_type import (
     SimilarityResult,
     SimilarityType,
 )
-from infrastructure.django_apps.shared.models import vectorized_document
+from infrastructure.django_apps.shared.models.vectorized_document import (
+    VectorizedDocumentModel,
+)
 
 
 class PgVectorRepository(IVectorRepository):
@@ -21,9 +23,9 @@ class PgVectorRepository(IVectorRepository):
 
     def store_embedding(self, vectorized_doc: VectorizedDocument) -> VectorizedDocument:
         """Store a vectorized document with its embedding."""
-        model = vectorized_document.VectorizedDocumentModel.from_entity(vectorized_doc)
+        model = VectorizedDocumentModel.from_entity(vectorized_doc)
 
-        existing = vectorized_document.VectorizedDocumentModel.objects.filter(
+        existing = VectorizedDocumentModel.objects.filter(
             entity_id=vectorized_doc.entity_id, document_type=model.document_type
         ).first()
 
@@ -51,12 +53,12 @@ class PgVectorRepository(IVectorRepository):
             similarity_type = SimilarityType()
 
         ## TODO : filter queryset if document_type is given
-        queryset = vectorized_document.VectorizedDocumentModel.objects.all()
+        queryset = VectorizedDocumentModel.objects.all()
 
         if filters:
             for key, value in filters.items():
                 # Check if it's a direct model field (like document_type)
-                if hasattr(vectorized_document.VectorizedDocumentModel, key):
+                if hasattr(VectorizedDocumentModel, key):
                     if isinstance(value, list):
                         queryset = queryset.filter(**{f"{key}__in": value})
                     else:
