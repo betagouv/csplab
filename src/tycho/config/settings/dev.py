@@ -35,3 +35,5 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
+SENTRY_DNS = "example.com"
