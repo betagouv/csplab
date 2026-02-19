@@ -1,27 +1,27 @@
 {% load dsfr_tags %}
 <div class="fr-card fr-p-3w csplab-results__filters">
     <h6 class="fr-h6">Filtrer les résultats</h6>
-    <form id="filters-form"
+    <form id="{{ filter_prefix|default:'' }}filters-form"
           hx-get="{% url 'candidate:cv_results' cv_uuid %}"
           hx-target="#{{ results_target_id|default:'results-zone' }}"
           hx-swap="innerHTML"
           hx-trigger="change">
         {# LOCALISATION #}
         <div class="fr-select-group">
-            <label class="fr-label" for="filter-location">
+            <label class="fr-label" for="{{ filter_prefix|default:'' }}filter-location">
                 <span class="fr-icon-map-pin-2-line fr-icon--sm fr-mr-1w"
                       aria-hidden="true"></span>
                 Localisation
             </label>
-            <select class="fr-select" id="filter-location" name="filter-location">
+            <select class="fr-select" id="{{ filter_prefix|default:'' }}filter-location" name="filter-location">
                 {% for option in location_options %}<option value="{{ option.value }}">{{ option.text }}</option>{% endfor %}
             </select>
         </div>
         <hr class="fr-hr fr-mb-2w">
         {# VOIE D'ACCÈS #}
         <fieldset class="fr-fieldset fr-px-3v fr-stack-3v"
-                  aria-labelledby="filter-voie-legend">
-            <legend class="fr-label fr-px-0" id="filter-voie-legend">
+                  aria-labelledby="{{ filter_prefix|default:'' }}filter-voie-legend">
+            <legend class="fr-label fr-px-0" id="{{ filter_prefix|default:'' }}filter-voie-legend">
                 <span class="fr-icon-briefcase-line fr-icon--sm fr-mr-1w"
                       aria-hidden="true"></span>
                 Voie d'accès
@@ -29,20 +29,24 @@
             <div class="fr-fieldset__content">
                 <ul class="fr-tags-group">
                     <li>
-                        <input type="checkbox"
-                               id="filter-type-offer"
-                               name="filter-opportunity_type"
-                               value="offer"
-                               class="fr-sr-only">
-                        <label class="fr-tag csplab-filter-tag" for="filter-type-offer">Offre d'emploi</label>
+                        <label class="fr-tag csplab-filter-tag">
+                            <input type="checkbox"
+                                   id="{{ filter_prefix|default:'' }}filter-type-offer"
+                                   name="filter-opportunity_type"
+                                   value="offer"
+                                   class="fr-sr-only">
+                            Offre d'emploi
+                        </label>
                     </li>
                     <li>
-                        <input type="checkbox"
-                               id="filter-type-concours"
-                               name="filter-opportunity_type"
-                               value="concours"
-                               class="fr-sr-only">
-                        <label class="fr-tag csplab-filter-tag" for="filter-type-concours">Concours</label>
+                        <label class="fr-tag csplab-filter-tag">
+                            <input type="checkbox"
+                                   id="{{ filter_prefix|default:'' }}filter-type-concours"
+                                   name="filter-opportunity_type"
+                                   value="concours"
+                                   class="fr-sr-only">
+                            Concours
+                        </label>
                     </li>
                 </ul>
             </div>
@@ -50,8 +54,8 @@
         <hr class="fr-hr fr-mb-2w">
         {# VERSANT #}
         <fieldset class="fr-fieldset fr-px-3v fr-stack-3v"
-                  aria-labelledby="filter-versant-legend">
-            <legend class="fr-label fr-px-0" id="filter-versant-legend">
+                  aria-labelledby="{{ filter_prefix|default:'' }}filter-versant-legend">
+            <legend class="fr-label fr-px-0" id="{{ filter_prefix|default:'' }}filter-versant-legend">
                 <span class="fr-icon-government-line fr-icon--sm fr-mr-1w"
                       aria-hidden="true"></span>
                 Versant de la fonction publique
@@ -60,13 +64,14 @@
                 <ul class="fr-tags-group">
                     {% for versant in verse_options %}
                         <li>
-                            <input type="checkbox"
-                                   id="filter-versant-{{ forloop.counter }}"
-                                   name="filter-versant"
-                                   value="{{ versant.value }}"
-                                   class="fr-sr-only">
-                            <label class="fr-tag csplab-filter-tag"
-                                   for="filter-versant-{{ forloop.counter }}">{{ versant.text }}</label>
+                            <label class="fr-tag csplab-filter-tag">
+                                <input type="checkbox"
+                                       id="{{ filter_prefix|default:'' }}filter-versant-{{ forloop.counter }}"
+                                       name="filter-versant"
+                                       value="{{ versant.value }}"
+                                       class="fr-sr-only">
+                                {{ versant.text }}
+                            </label>
                         </li>
                     {% endfor %}
                 </ul>
@@ -75,8 +80,8 @@
         <hr class="fr-hr fr-mb-2w">
         {# CATÉGORIE #}
         <fieldset class="fr-fieldset fr-px-3v fr-stack-3v"
-                  aria-labelledby="filter-category-legend">
-            <legend class="fr-label fr-px-0" id="filter-category-legend">
+                  aria-labelledby="{{ filter_prefix|default:'' }}filter-category-legend">
+            <legend class="fr-label fr-px-0" id="{{ filter_prefix|default:'' }}filter-category-legend">
                 <span class="fr-icon-award-line fr-icon--sm fr-mr-1w" aria-hidden="true"></span>
                 Catégorie
             </legend>
@@ -85,13 +90,14 @@
                     {% for category in category_options %}
                         {% if category.value %}
                             <li>
-                                <input type="checkbox"
-                                       id="filter-category-{{ category.value }}"
-                                       name="filter-category"
-                                       value="{{ category.value }}"
-                                       class="fr-sr-only">
-                                <label class="fr-tag csplab-filter-tag"
-                                       for="filter-category-{{ category.value }}">{{ category.text }}</label>
+                                <label class="fr-tag csplab-filter-tag">
+                                    <input type="checkbox"
+                                           id="{{ filter_prefix|default:'' }}filter-category-{{ category.value }}"
+                                           name="filter-category"
+                                           value="{{ category.value }}"
+                                           class="fr-sr-only">
+                                    {{ category.text }}
+                                </label>
                             </li>
                         {% endif %}
                     {% endfor %}

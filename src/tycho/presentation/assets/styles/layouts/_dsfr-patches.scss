@@ -40,7 +40,7 @@ hr {
   }
 
   // Checked/pressed: dark blue bg + white text (matching DSFR pressed tag)
-  input.fr-sr-only:checked + & {
+  &:has(input.fr-sr-only:checked) {
     background-color: var(--background-action-high-blue-france);
     color: var(--text-inverted-blue-france);
 
@@ -49,7 +49,7 @@ hr {
     }
   }
 
-  input.fr-sr-only:focus-visible + & {
+  &:has(input.fr-sr-only:focus-visible) {
     outline: 2px solid var(--border-action-high-blue-france);
     outline-offset: 2px;
   }
