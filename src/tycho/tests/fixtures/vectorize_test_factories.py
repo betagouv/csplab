@@ -121,6 +121,8 @@ def create_test_offer(entity_id: int = 1) -> Offer:
         ),
         publication_date=datetime(2024, 1, 15),
         beginning_date=LimitDate(datetime(2024, 12, 31)),
+        processed_at=None,
+        archived_at=None,
     )
 
 
@@ -143,6 +145,8 @@ def create_test_offer_for_integration(entity_id: int = 1) -> Offer:
         ),
         publication_date=datetime(2024, 1, 15 + entity_id),
         beginning_date=LimitDate(datetime(2024, 12, 31)),
+        processed_at=None,
+        archived_at=None,
     )
 
 
