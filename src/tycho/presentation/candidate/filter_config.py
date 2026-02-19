@@ -2,6 +2,7 @@
 
 from domain.value_objects.category import Category
 from domain.value_objects.localisation import Localisation
+from domain.value_objects.opportunity_type import OpportunityType
 from domain.value_objects.verse import Verse
 from presentation.candidate.formatters import (
     CATEGORY_DISPLAY,
@@ -18,7 +19,7 @@ CATEGORY_FILTER_VALUE: dict[Category, str] = {
     Category.C: "c",
 }
 
-OPPORTUNITY_TYPES: frozenset[str] = frozenset({"offer", "concours"})
+OPPORTUNITY_TYPES: frozenset[str] = frozenset(OpportunityType)
 
 
 def format_category_value(category: Category | None) -> str:

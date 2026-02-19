@@ -18,6 +18,11 @@ VERSE_DISPLAY: dict[Verse, str] = {
     Verse.FPH: "Fonction publique Hospitalière",
 }
 
+OPPORTUNITY_TYPE_DISPLAY: dict[str, str] = {
+    "offer": "Offre",
+    "concours": "Concours",
+}
+
 
 def format_category_display(category: Category | None) -> str:
     """Format category for display (e.g., 'Catégorie A')."""
@@ -45,6 +50,13 @@ def format_contract_type_display(contract_type: ContractType | None) -> str:
     if not contract_type:
         return ""
     return CONTRACT_TYPE_DISPLAY.get(contract_type, str(contract_type))
+
+
+def format_opportunity_type_display(opportunity_type: str | None) -> str:
+    """Format opportunity type for display."""
+    if not opportunity_type:
+        return ""
+    return OPPORTUNITY_TYPE_DISPLAY.get(opportunity_type, str(opportunity_type))
 
 
 def format_location_display(localisation: Localisation | None) -> str:

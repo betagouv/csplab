@@ -15,6 +15,7 @@ from pytest_django.asserts import (
 )
 
 from domain.value_objects.cv_processing_status import CVStatus
+from domain.value_objects.opportunity_type import OpportunityType
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from tests.factories.cv_metadata_factory import CVMetadataFactory
 
@@ -126,19 +127,19 @@ def test_cv_results_htmx_filter_returns_filtered_results(
             "title": "Chef de projet transformation numérique",
             "location_value": "75",
             "category_value": "a",
-            "opportunity_type": "concours",
+            "opportunity_type": OpportunityType.CONCOURS,
         },
         {
             "title": "Responsable des ressources humaines",
             "location_value": "69",
             "category_value": "a",
-            "opportunity_type": "concours",
+            "opportunity_type": OpportunityType.CONCOURS,
         },
         {
             "title": "Technicien informatique",
             "location_value": "13",
             "category_value": "b",
-            "opportunity_type": "concours",
+            "opportunity_type": OpportunityType.CONCOURS,
         },
     ]
     mock_get_status.return_value = {
@@ -170,13 +171,13 @@ def test_cv_results_htmx_no_match_displays_empty_state(
             "title": "Chef de projet transformation numérique",
             "location_value": "75",
             "category_value": "a",
-            "opportunity_type": "concours",
+            "opportunity_type": OpportunityType.CONCOURS,
         },
         {
             "title": "Responsable des ressources humaines",
             "location_value": "69",
             "category_value": "a",
-            "opportunity_type": "concours",
+            "opportunity_type": OpportunityType.CONCOURS,
         },
     ]
     mock_get_status.return_value = {

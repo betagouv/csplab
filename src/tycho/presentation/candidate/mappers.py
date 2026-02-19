@@ -2,6 +2,7 @@
 
 from domain.entities.concours import Concours
 from domain.entities.offer import Offer
+from domain.value_objects.opportunity_type import OpportunityType
 from domain.value_objects.verse import Verse
 from presentation.candidate.filter_config import (
     format_category_value,
@@ -11,6 +12,7 @@ from presentation.candidate.formatters import (
     format_category_display,
     format_contract_type_display,
     format_location_display,
+    format_opportunity_type_display,
     format_verse_display,
 )
 from presentation.candidate.types import ConcoursCard, OfferCard
@@ -23,7 +25,10 @@ class ConcoursToTemplateMapper:
     def map(concours: Concours) -> ConcoursCard:
         """Transform a Concours entity to template format."""
         return {
-            "opportunity_type": "concours",
+            "opportunity_type": OpportunityType.CONCOURS,
+            "opportunity_type_display": format_opportunity_type_display(
+                OpportunityType.CONCOURS
+            ),
             "title": concours.corps,
             "description": concours.grade,
             "access_modalities": [str(m) for m in concours.access_modality]
@@ -44,7 +49,10 @@ class OfferToTemplateMapper:
     def map(offer: Offer) -> OfferCard:
         """Transform an Offer entity to template format."""
         return {
-            "opportunity_type": "offer",
+            "opportunity_type": OpportunityType.OFFER,
+            "opportunity_type_display": format_opportunity_type_display(
+                OpportunityType.OFFER
+            ),
             "title": offer.title,
             "description": offer.mission,
             "category_display": format_category_display(offer.category),
