@@ -220,34 +220,23 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
 
             open_position_number = int(row.get("Nb postes total", 0) or 0)
 
+            concours = Concours(
+                nor_original=nor_original,
+                nor_list=nor_list,
+                category=category,
+                ministry=ministry,
+                access_modality=access_modalities,
+                corps=row["Corps"],
+                grade=row.get("Grade") or "",
+                written_exam_date=written_exam_date,
+                open_position_number=open_position_number,
+            )
             # Check if Concours with this NOR already exists
-            existing_concours = None
             try:
                 existing_concours = self.concours_repository.find_by_nor(nor_original)
-                concours = Concours(
-                    nor_original=nor_original,
-                    nor_list=nor_list,
-                    category=category,
-                    ministry=ministry,
-                    access_modality=access_modalities,
-                    corps=row["Corps"],
-                    grade=row.get("Grade") or "",
-                    written_exam_date=written_exam_date,
-                    open_position_number=open_position_number,
-                    id=existing_concours.id,  # Reuse existing UUID
-                )
+                concours.id = existing_concours.id
             except ConcoursDoesNotExist:
-                concours = Concours(
-                    nor_original=nor_original,
-                    nor_list=nor_list,
-                    category=category,
-                    ministry=ministry,
-                    access_modality=access_modalities,
-                    corps=row["Corps"],
-                    grade=row.get("Grade") or "",
-                    written_exam_date=written_exam_date,
-                    open_position_number=open_position_number,
-                )
+                self.logger.info(f"Creating new Concours with NOR {nor_original.value}")
             concours_list.append(concours)
             counter += 1  # Increment counter for next concours
 

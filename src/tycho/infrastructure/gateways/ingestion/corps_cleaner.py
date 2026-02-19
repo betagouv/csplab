@@ -171,33 +171,24 @@ class CorpsCleaner(IDocumentCleaner[Corps]):
             diploma = self._map_diploma(row["diploma"])
             access_modalities = self._map_access_modalities(row["access_mod"])
 
+            corps = Corps(
+                code=row["id"],
+                category=category,
+                ministry=ministry,
+                diploma=diploma,
+                access_modalities=access_modalities,
+                label=Label(
+                    short_value=row["short_label"],
+                    value=row["long_label"],
+                ),
+            )
             # Check if Corps with this code already exists
             try:
                 existing_corps = self.corps_repository.find_by_code(row["id"])
-                corps = Corps(
-                    id=existing_corps.id,
-                    code=row["id"],
-                    category=category,
-                    ministry=ministry,
-                    diploma=diploma,
-                    access_modalities=access_modalities,
-                    label=Label(
-                        short_value=row["short_label"],
-                        value=row["long_label"],
-                    ),
-                )
+                corps.id = existing_corps.id
             except CorpsDoesNotExist:
-                corps = Corps(
-                    code=row["id"],
-                    category=category,
-                    ministry=ministry,
-                    diploma=diploma,
-                    access_modalities=access_modalities,
-                    label=Label(
-                        short_value=row["short_label"],
-                        value=row["long_label"],
-                    ),
-                )
+                self.logger.info(f"Creating new Corps with code {row['id']}")
+
             corps_list.append(corps)
 
         return corps_list
