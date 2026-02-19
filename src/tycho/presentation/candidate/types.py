@@ -14,6 +14,7 @@ class _BaseCard(TypedDict):
     """Shared fields for all result cards."""
 
     opportunity_type: str
+    opportunity_type_display: str
     title: str
     description: str
     category_display: str

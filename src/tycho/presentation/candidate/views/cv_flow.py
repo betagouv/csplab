@@ -15,6 +15,7 @@ from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.offer import Offer
 from domain.value_objects.cv_processing_status import CVStatus
+from domain.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.filter_config import (
     OPPORTUNITY_TYPES,
@@ -246,5 +247,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         context["location_options"] = get_location_filter_options(locations)
         context["category_options"] = get_category_filter_options()
         context["verse_options"] = get_verse_filter_options()
+        context["opportunity_type_offer"] = OpportunityType.OFFER
+        context["opportunity_type_concours"] = OpportunityType.CONCOURS
         context["results_target_id"] = "results-zone"
         return context

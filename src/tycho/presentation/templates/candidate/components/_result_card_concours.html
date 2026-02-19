@@ -9,12 +9,9 @@
             <p class="fr-card__desc">{{ concours.description|default:""|truncatewords:30 }}</p>
             <div class="fr-mt-2w">
                 <ul class="fr-tags-group">
-                    {% if concours.access_modalities %}
-                        {% for tag in concours.access_modalities %}
-                            <li>{% dsfr_tag label=tag extra_classes="fr-tag--sm" %}</li>
-                        {% endfor %}
+                    {% if offer.opportunity_type_display %}
+                        <li>{% dsfr_tag label=offer.opportunity_type_display extra_classes="fr-icon-briefcase-line fr-tag--icon-left" %}</li>
                     {% endif %}
-                    <li>{% dsfr_tag label=concours.opportunity_type_display extra_classes="fr-icon-edit-line fr-tag--icon-left" %}</li>
                     {% if concours.versant_display %}
                         <li>{% dsfr_tag label=concours.versant_display extra_classes="fr-icon-government-line fr-tag--icon-left" %}</li>
                     {% endif %}
