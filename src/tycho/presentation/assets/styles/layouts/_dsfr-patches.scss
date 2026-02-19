@@ -23,3 +23,34 @@
 hr {
   padding: 1px !important;
 }
+
+// Activable filter tags: checkbox + label pattern (no JS)
+// Replicates DSFR's button.fr-tag[aria-pressed] styles on label elements
+.csplab-filter-tag {
+  cursor: pointer;
+
+  // Unchecked: pressable look (light blue bg + dark blue text)
+  &.fr-tag {
+    background-color: var(--background-action-low-blue-france);
+    color: var(--text-action-high-blue-france);
+
+    &:hover {
+      background-color: var(--background-action-low-blue-france-hover);
+    }
+  }
+
+  // Checked/pressed: dark blue bg + white text (matching DSFR pressed tag)
+  input.fr-sr-only:checked + & {
+    background-color: var(--background-action-high-blue-france);
+    color: var(--text-inverted-blue-france);
+
+    &:hover {
+      background-color: var(--background-action-high-blue-france-hover);
+    }
+  }
+
+  input.fr-sr-only:focus-visible + & {
+    outline: 2px solid var(--border-action-high-blue-france);
+    outline-offset: 2px;
+  }
+}
