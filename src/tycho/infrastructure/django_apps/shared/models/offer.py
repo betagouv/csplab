@@ -53,6 +53,8 @@ class OfferModel(models.Model):
     # Date fields
     publication_date = models.DateTimeField()
     beginning_date = models.DateTimeField(null=True, blank=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -102,6 +104,8 @@ class OfferModel(models.Model):
             localisation=localisation,
             publication_date=self.publication_date,
             beginning_date=beginning_date,
+            processed_at=self.processed_at,
+            archived_at=self.archived_at,
         )
 
     @classmethod
@@ -146,6 +150,8 @@ class OfferModel(models.Model):
             department=department,
             publication_date=offer.publication_date,
             beginning_date=beginning_date,
+            processed_at=offer.processed_at,
+            archived_at=offer.archived_at,
         )
 
     def __str__(self) -> str:

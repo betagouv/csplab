@@ -1,6 +1,6 @@
 """Use case for initializing CV metadata with pending status."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from domain.entities.cv_metadata import CVMetadata
@@ -28,7 +28,7 @@ class InitializeCVMetadataUsecase:
         Returns:
             CV ID as string
         """
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         cv_metadata = CVMetadata(
             id=uuid4(),
             filename=filename,

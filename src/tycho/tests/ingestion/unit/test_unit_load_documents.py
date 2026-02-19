@@ -7,7 +7,7 @@ IMPORTANT: Dependency Injection Override Timing
 """
 
 import copy
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -24,12 +24,11 @@ from infrastructure.exceptions.ingestion_exceptions import (
 def corps_document_fixture():
     """Create a single corps document for testing."""
     return Document(
-        id=None,
         external_id="test_corps_doc",
         raw_data={"name": "Test Document"},
         type=DocumentType.CORPS,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
 
@@ -38,20 +37,18 @@ def corps_documents_fixture():
     """Create multiple corps documents for batch testing."""
     return [
         Document(
-            id=None,
             external_id="corps_1",
             raw_data={"name": "Corps 1", "description": "First corps"},
             type=DocumentType.CORPS,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         ),
         Document(
-            id=None,
             external_id="corps_2",
             raw_data={"name": "Corps 2", "description": "Second corps"},
             type=DocumentType.CORPS,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         ),
     ]
 
@@ -61,20 +58,18 @@ def offer_documents_fixture():
     """Create multiple offer documents for batch testing."""
     return [
         Document(
-            id=None,
             external_id="offer_1",
             raw_data={"name": "Offer 1", "description": "First offer"},
             type=DocumentType.OFFERS,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         ),
         Document(
-            id=None,
             external_id="offer_2",
             raw_data={"name": "Offer 2", "description": "Second offer"},
             type=DocumentType.OFFERS,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         ),
     ]
 
@@ -90,12 +85,11 @@ def concours_documents_fixture():
     """Create sample contest documents."""
     return [
         Document(
-            id=None,
             external_id="exam_1",
             raw_data={"name": "Exam 1"},
             type=DocumentType.CONCOURS,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         ),
     ]
 
@@ -116,12 +110,11 @@ def create_test_documents(
 
     documents = [
         Document(
-            id=None,
             external_id=f"test_doc_{i}",
             raw_data={"test": "data", "index": i},
             type=doc_type,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
         for i, _raw_data in enumerate(raw_data_list)
     ]
@@ -223,7 +216,7 @@ class TestDocumentsUsecase:
             kwargs={"documents": documents, "document_type": DocumentType.CORPS},
         )
         result = documents_usecase.execute(input_data)
-        assert result["created"] == len(raw_corps_documents)
+        assert result["updated"] == len(raw_corps_documents)
 
     def test_missing_document_type_raises_missing_operation_parameter_error(
         self, documents_usecase

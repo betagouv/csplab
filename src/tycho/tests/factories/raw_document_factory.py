@@ -1,6 +1,6 @@
 """Factory for generating test RawDocument instances."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from domain.entities.document import Document, DocumentType
@@ -19,9 +19,9 @@ class RawDocumentFactory:
         """Create a RawDocument instance."""
         if external_id is None:
             external_id = (
-                f"test_{document_type.value.lower()}_{datetime.now().timestamp()}"
+                f"test_{document_type.value.lower()}_"
+                f"{datetime.now(timezone.utc).timestamp()}"
             )
-
         if raw_data is None:
             raw_data = {
                 "id": external_id,
@@ -33,8 +33,9 @@ class RawDocumentFactory:
             external_id=external_id,
             raw_data=raw_data,
             type=document_type,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+            processed_at=None,
         )
 
         raw_document = RawDocument.from_entity(document_entity)

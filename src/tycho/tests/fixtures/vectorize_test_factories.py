@@ -1,6 +1,6 @@
 """Shared factory functions and constants for vectorize documents tests."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
@@ -47,6 +47,8 @@ def create_test_corps(entity_id: int = 1) -> Corps:
         diploma=Diploma(5),
         access_modalities=[AccessModality.CONCOURS_EXTERNE],
         label=Label(short_value="Test Corps", value="Test Corps Label"),
+        processed_at=None,
+        archived_at=None,
     )
 
 
@@ -69,6 +71,8 @@ def create_test_corps_for_integration(entity_id: int = 1) -> Corps:
             if entity_id == 1
             else "Directeurs d'études de l'Ecole",
         ),
+        processed_at=None,
+        archived_at=None,
     )
 
 
@@ -84,6 +88,8 @@ def create_test_concours(entity_id: int = 1) -> Concours:
         grade="Test Grade",
         written_exam_date=None,
         open_position_number=10,
+        processed_at=None,
+        archived_at=None,
     )
 
 
@@ -99,6 +105,8 @@ def create_test_concours_for_integration(entity_id: int = 1) -> Concours:
         grade=f"Test Grade {entity_id}",
         written_exam_date=None,
         open_position_number=10 + entity_id,
+        processed_at=None,
+        archived_at=None,
     )
 
 
@@ -119,8 +127,10 @@ def create_test_offer(entity_id: int = 1) -> Offer:
             region=Region(code="11"),
             department=Department(code="75"),
         ),
-        publication_date=datetime(2024, 1, 15),
-        beginning_date=LimitDate(datetime(2024, 12, 31)),
+        publication_date=datetime(2024, 1, 15, tzinfo=timezone.utc),
+        beginning_date=LimitDate(datetime(2024, 12, 31, tzinfo=timezone.utc)),
+        processed_at=None,
+        archived_at=None,
     )
 
 
@@ -141,8 +151,10 @@ def create_test_offer_for_integration(entity_id: int = 1) -> Offer:
             region=Region(code="11" if entity_id == 1 else "84"),
             department=Department(code="75" if entity_id == 1 else "69"),
         ),
-        publication_date=datetime(2024, 1, 15 + entity_id),
-        beginning_date=LimitDate(datetime(2024, 12, 31)),
+        publication_date=datetime(2024, 1, 15 + entity_id, tzinfo=timezone.utc),
+        beginning_date=LimitDate(datetime(2024, 12, 31, tzinfo=timezone.utc)),
+        processed_at=None,
+        archived_at=None,
     )
 
 
@@ -154,6 +166,6 @@ def create_test_document(
         external_id=f"test_doc_{entity_id}",
         raw_data={"content": f"Test document content {entity_id}"},
         type=doc_type,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )

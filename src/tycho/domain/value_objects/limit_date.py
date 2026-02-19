@@ -1,7 +1,7 @@
 """LimitDate value object."""
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
 from domain.exceptions.offer_errors import InvalidLimitDateError
 
@@ -19,4 +19,4 @@ class LimitDate:
 
     def is_expired(self) -> bool:
         """Check if the deadline has passed."""
-        return datetime.now() > self.value
+        return datetime.now(timezone.utc) > self.value

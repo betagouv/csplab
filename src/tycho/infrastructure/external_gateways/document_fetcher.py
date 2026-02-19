@@ -1,6 +1,6 @@
 """External document fetcher implementation."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Tuple, cast
 
 from asgiref.sync import async_to_sync
@@ -50,7 +50,7 @@ class ExternalDocumentFetcher(IDocumentFetcher):
             raise ValueError(f"No fetch source for {document_type}")
 
         raw_documents, has_more = source(document_type, start)
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
 
         documents = []
 
@@ -131,7 +131,7 @@ class ExternalDocumentFetcher(IDocumentFetcher):
             "Found %d offers from Talentsoft Front API", len(raw_documents)
         )
 
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         documents = []
 
         for raw_doc in raw_documents:

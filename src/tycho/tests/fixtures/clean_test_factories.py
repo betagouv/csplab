@@ -1,6 +1,6 @@
 """Shared factory functions and constants for clean documents tests."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 from uuid import uuid4
 
@@ -21,8 +21,8 @@ def _create_base_document(
         external_id=external_id,
         raw_data=raw_data,
         type=doc_type,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
         id=uuid4(),  # Generate UUID automatically
     )
 

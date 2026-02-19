@@ -1,6 +1,6 @@
 """Use case for processing uploaded CV files."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from domain.entities.cv_metadata import CVMetadata
@@ -65,7 +65,7 @@ class ProcessUploadedCVUsecase:
         except Exception as e:
             self._logger.error(f"Text extraction failed: {str(e)}")
             cv_metadata.status = CVStatus.FAILED
-            cv_metadata.updated_at = datetime.now()
+            cv_metadata.updated_at = datetime.now(timezone.utc)
             await self._async_cv_metadata_repository.save(cv_metadata)
             raise e
 
@@ -74,7 +74,7 @@ class ProcessUploadedCVUsecase:
         ):
             self._logger.error("No structured content found in PDF")
             cv_metadata.status = CVStatus.FAILED
-            cv_metadata.updated_at = datetime.now()
+            cv_metadata.updated_at = datetime.now(timezone.utc)
             await self._async_cv_metadata_repository.save(cv_metadata)
             raise TextExtractionError(
                 cv_metadata.filename, "No structured content found in PDF"
@@ -94,7 +94,7 @@ class ProcessUploadedCVUsecase:
         cv_metadata.extracted_text = extracted_text_dict
         cv_metadata.search_query = search_query
         cv_metadata.status = CVStatus.COMPLETED
-        cv_metadata.updated_at = datetime.now()
+        cv_metadata.updated_at = datetime.now(timezone.utc)
 
         # Save updated CV metadata
         saved_cv = await self._async_cv_metadata_repository.save(cv_metadata)

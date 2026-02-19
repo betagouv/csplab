@@ -33,4 +33,6 @@ class Document(IEntity):
     type: DocumentType
     created_at: datetime
     updated_at: datetime
+    processed_at: Optional[datetime] = None
+    error_msg: Optional[str] = None
     id: UUID = field(default_factory=uuid4)

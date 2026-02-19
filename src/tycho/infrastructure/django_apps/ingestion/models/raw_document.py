@@ -27,6 +27,8 @@ class RawDocument(models.Model):
     raw_data = models.JSONField("RawDocument")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    error_msg = models.TextField(null=True, blank=True)
 
     class Meta:
         """Meta configuration for RawDocument model."""
@@ -50,6 +52,8 @@ class RawDocument(models.Model):
             type=DocumentType(self.document_type),  # String -> Enum
             created_at=self.created_at,
             updated_at=self.updated_at,
+            processed_at=self.processed_at,
+            error_msg=self.error_msg,
         )
 
     @classmethod
@@ -62,4 +66,6 @@ class RawDocument(models.Model):
             document_type=document.type.value if document.type else None,
             created_at=document.created_at,
             updated_at=document.updated_at,
+            processed_at=document.processed_at,
+            error_msg=document.error_msg,
         )
