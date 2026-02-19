@@ -8,6 +8,7 @@ from pydantic import HttpUrl, ValidationError
 from domain.entities.document import Document, DocumentType
 from domain.entities.offer import Offer
 from domain.exceptions.document_error import InvalidDocumentTypeError
+from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from domain.value_objects.contract_type import ContractType
@@ -102,7 +103,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         )
         beginning_date = self._parse_beginning_date(talentsoft_offer.beginningDate)
 
-        return Offer(
+        offer = Offer(
             external_id=f"{ts_verse}-{talentsoft_offer.reference}"
             if ts_verse
             else talentsoft_offer.reference,
@@ -118,6 +119,15 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             publication_date=publication_date,
             beginning_date=beginning_date,
         )
+        try:
+            existing_offer = self.offers_repository.find_by_external_id(
+                offer.external_id
+            )
+            offer.id = existing_offer.id  # Preserve existing ID for updates
+        except OfferDoesNotExist:
+            self.logger.info(f"Creating new Offer with external_id {offer.external_id}")
+
+        return offer
 
     def _map_verse(self, verse_str: Optional[str]) -> Optional[Verse]:
         """Map verse string to Verse enum."""

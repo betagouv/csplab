@@ -10,6 +10,7 @@ from domain.exceptions.document_error import (
 from domain.interfaces.entity_interface import IEntity
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.corps_repository_interface import ICorpsRepository
+from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from infrastructure.gateways.ingestion.concours_cleaner import ConcoursCleaner
@@ -28,12 +29,13 @@ class DocumentCleaner(IDocumentCleaner[IEntity]):
         logger: ILogger,
         corps_repository: ICorpsRepository,
         concours_repository: IConcoursRepository,
+        offers_repository: IOffersRepository,
     ):
         """Initialize the factory with available cleaners."""
         self._cleaners = {
             DocumentType.CORPS: CorpsCleaner(logger, corps_repository),
             DocumentType.CONCOURS: ConcoursCleaner(logger, concours_repository),
-            DocumentType.OFFERS: OffersCleaner(logger),
+            DocumentType.OFFERS: OffersCleaner(logger, offers_repository),
         }
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[IEntity]:

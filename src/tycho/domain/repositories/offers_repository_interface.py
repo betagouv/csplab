@@ -17,3 +17,7 @@ class IOffersRepository(Protocol):
     def find_by_id(self, offer_id: UUID) -> Offer:
         """Find a Offer by its ID."""
         ...
+
+    def find_by_external_id(self, external_id: str) -> Offer:
+        """Find an Offer by its external ID (Talentsoft ID)."""
+        ...
