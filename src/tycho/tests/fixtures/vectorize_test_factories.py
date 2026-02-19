@@ -1,6 +1,6 @@
 """Shared factory functions and constants for vectorize documents tests."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
@@ -127,8 +127,8 @@ def create_test_offer(entity_id: int = 1) -> Offer:
             region=Region(code="11"),
             department=Department(code="75"),
         ),
-        publication_date=datetime(2024, 1, 15),
-        beginning_date=LimitDate(datetime(2024, 12, 31)),
+        publication_date=datetime(2024, 1, 15, tzinfo=timezone.utc),
+        beginning_date=LimitDate(datetime(2024, 12, 31, tzinfo=timezone.utc)),
         processed_at=None,
         archived_at=None,
     )
@@ -151,8 +151,8 @@ def create_test_offer_for_integration(entity_id: int = 1) -> Offer:
             region=Region(code="11" if entity_id == 1 else "84"),
             department=Department(code="75" if entity_id == 1 else "69"),
         ),
-        publication_date=datetime(2024, 1, 15 + entity_id),
-        beginning_date=LimitDate(datetime(2024, 12, 31)),
+        publication_date=datetime(2024, 1, 15 + entity_id, tzinfo=timezone.utc),
+        beginning_date=LimitDate(datetime(2024, 12, 31, tzinfo=timezone.utc)),
         processed_at=None,
         archived_at=None,
     )
@@ -166,6 +166,6 @@ def create_test_document(
         external_id=f"test_doc_{entity_id}",
         raw_data={"content": f"Test document content {entity_id}"},
         type=doc_type,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )

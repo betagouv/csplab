@@ -7,7 +7,7 @@ IMPORTANT: Dependency Injection Override Timing
 """
 
 import copy
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -84,12 +84,11 @@ def test_execute_raises_error_for_unsupported_document_type(ingestion_container)
     """Test that UnsupportedDocumentTypeError is raised for unsupported types."""
     # Create a GRADE document (unsupported)
     grade_document = Document(
-        id=1,
         external_id="grade_test_1",
         raw_data={"test": "data"},
         type=DocumentType.GRADE,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
     repository = ingestion_container.document_persister()
@@ -168,12 +167,11 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
     valid_fpe_data["contractType"] = None  # Test null contract
     valid_fpe_data["beginningDate"] = None  # Test missing beginning date
     valid_fpe = Document(
-        id=1,
         external_id="fpe_edge_cases",
         raw_data=valid_fpe_data,
         type=DocumentType.OFFERS,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
     # Valid FPT with TERRITORIAL contract and edge cases
@@ -185,12 +183,11 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
     valid_fpt_data["region"] = []
     valid_fpt_data["department"] = []
     valid_fpt = Document(
-        id=2,
         external_id="fpt_territorial",
         raw_data=valid_fpt_data,
         type=DocumentType.OFFERS,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
     # Valid FPH with CONTRACTUELS and URL/date edge cases
@@ -201,12 +198,11 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
     valid_fph_data["offerUrl"] = "invalid://url with spaces"  # Test invalid URL
     valid_fph_data["beginningDate"] = "invalid-date-format"  # Test invalid date
     valid_fph = Document(
-        id=3,
         external_id="fph_contractuels",
         raw_data=valid_fph_data,
         type=DocumentType.OFFERS,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
     # Valid document with unknown contract type
@@ -216,34 +212,31 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
         "UNKNOWN_TYPE"  # Test unknown contract type
     )
     valid_unknown_contract = Document(
-        id=4,
         external_id="unknown_contract",
         raw_data=unknown_contract_data,
         type=DocumentType.OFFERS,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
     # Invalid documents
     invalid_ref = Document(
-        id=5,
         external_id="invalid_ref",
         raw_data={"reference": "", "department": [{"clientCode": "18"}]},
         type=DocumentType.OFFERS,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
     invalid_dep_data = copy.deepcopy(create_test_offer_document(6).raw_data)
     invalid_dep_data["reference"] = "invalid_dep"
     invalid_dep_data["department"][0]["clientCode"] = "999"
     invalid_department = Document(
-        id=6,
         external_id="invalid_dep",
         raw_data=invalid_dep_data,
         type=DocumentType.OFFERS,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
     repository = ingestion_container.document_persister()

@@ -1,6 +1,6 @@
 """Tests for LimitDate value object."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -9,7 +9,7 @@ from domain.value_objects.limit_date import LimitDate
 
 def test_limit_date_creation_with_valid_datetime():
     """Test LimitDate creation with valid datetime."""
-    date = datetime.now()
+    date = datetime.now(timezone.utc)
     limit_date = LimitDate(date)
 
     assert limit_date.value == date
@@ -36,4 +36,4 @@ def test_limit_date_is_frozen():
     limit_date = LimitDate(date)
 
     with pytest.raises(AttributeError):
-        limit_date.value = datetime.now()
+        limit_date.value = datetime.now(timezone.utc)

@@ -1,6 +1,6 @@
 """In-memory implementation of document repository for testing."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Tuple
 
 from domain.entities.document import Document, DocumentType
@@ -46,7 +46,7 @@ class InMemoryDocumentRepository(IDocumentRepository):
                             raw_data=document.raw_data,
                             type=document.type,
                             created_at=existing_doc.created_at,
-                            updated_at=datetime.now(),
+                            updated_at=datetime.now(timezone.utc),
                         )
                         self._documents[i] = updated_doc
                         updated += 1
@@ -65,8 +65,8 @@ class InMemoryDocumentRepository(IDocumentRepository):
                         external_id=document.external_id,
                         raw_data=document.raw_data,
                         type=document.type,
-                        created_at=datetime.now(),
-                        updated_at=datetime.now(),
+                        created_at=datetime.now(timezone.utc),
+                        updated_at=datetime.now(timezone.utc),
                     )
                     self._documents.append(new_doc)
                     created += 1

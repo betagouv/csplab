@@ -1,10 +1,9 @@
 """Shared fixtures for candidate tests."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 import pytest
-from django.utils import timezone
 from pydantic import HttpUrl
 
 from domain.entities.concours import Concours
@@ -127,7 +126,7 @@ def pdf_content_fixture():
 def cv_metadata_initial_fixture():
     """Initial CV metadata for testing."""
     cv_id = UUID("00000000-0000-0000-0000-000000000001")
-    now = timezone.now()
+    now = datetime.now(timezone.utc)
     return CVMetadata(
         id=cv_id,
         filename="test_cv.pdf",
@@ -170,7 +169,7 @@ def concours_fixture():
             access_modality=[AccessModality.CONCOURS_EXTERNE],
             corps="Ingénieur des systèmes d'information",
             grade="Ingénieur principal",
-            written_exam_date=datetime.now(),
+            written_exam_date=datetime.now(timezone.utc),
             open_position_number=10,
         ),
         Concours(
@@ -181,7 +180,7 @@ def concours_fixture():
             access_modality=[AccessModality.CONCOURS_EXTERNE],
             corps="Attaché d'administration",
             grade="Attaché principal",
-            written_exam_date=datetime.now(),
+            written_exam_date=datetime.now(timezone.utc),
             open_position_number=5,
         ),
     ]
@@ -199,8 +198,8 @@ def vectorized_concours_documents_fixture(concours):
             content=f"{c.corps} {c.grade}",
             embedding=[0.1] * 3072,  # Mock embedding
             metadata={"source": "test"},
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
         documents.append(vectorized_doc)
     return documents
@@ -223,8 +222,8 @@ def vectorized_offers_documents_fixture(offers):
             content=f"{c.external_id} {c.title}",
             embedding=[0.2] * 3072,  # Mock embedding
             metadata={"source": "test"},
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
         for c in offers
     ]
