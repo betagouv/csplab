@@ -216,7 +216,7 @@ class TestDocumentsUsecase:
             kwargs={"documents": documents, "document_type": DocumentType.CORPS},
         )
         result = documents_usecase.execute(input_data)
-        assert result["created"] == len(raw_corps_documents)
+        assert result["updated"] == len(raw_corps_documents)
 
     def test_missing_document_type_raises_missing_operation_parameter_error(
         self, documents_usecase
