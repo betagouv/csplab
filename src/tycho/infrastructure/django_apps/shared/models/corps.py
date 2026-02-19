@@ -23,6 +23,8 @@ class CorpsModel(models.Model):
     short_label = models.CharField(max_length=200)
     long_label = models.TextField()
     access_modalities = models.JSONField(default=list)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -56,6 +58,8 @@ class CorpsModel(models.Model):
             diploma=diploma,
             access_modalities=access_modalities,
             label=label,
+            processed_at=self.processed_at,
+            archived_at=self.archived_at,
         )
 
     @classmethod
@@ -70,6 +74,8 @@ class CorpsModel(models.Model):
             short_label=corps.label.short_value,
             long_label=corps.label.value,
             access_modalities=[modality.value for modality in corps.access_modalities],
+            processed_at=corps.processed_at,
+            archived_at=corps.archived_at,
         )
 
     def __str__(self) -> str:

@@ -1,7 +1,8 @@
 """Corps entity for clean corps storage."""
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from datetime import datetime
+from typing import Optional
 from uuid import UUID, uuid4
 
 from domain.interfaces.entity_interface import IEntity
@@ -20,6 +21,8 @@ class Corps(IEntity):
     category: Optional[Category]
     ministry: Ministry
     diploma: Optional[Diploma]
-    access_modalities: List[AccessModality]
+    access_modalities: list[AccessModality]
     label: Label
+    processed_at: Optional[datetime] = None
+    archived_at: Optional[datetime] = None
     id: UUID = field(default_factory=uuid4)

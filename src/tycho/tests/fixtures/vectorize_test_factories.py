@@ -47,6 +47,8 @@ def create_test_corps(entity_id: int = 1) -> Corps:
         diploma=Diploma(5),
         access_modalities=[AccessModality.CONCOURS_EXTERNE],
         label=Label(short_value="Test Corps", value="Test Corps Label"),
+        processed_at=None,
+        archived_at=None,
     )
 
 
@@ -69,6 +71,8 @@ def create_test_corps_for_integration(entity_id: int = 1) -> Corps:
             if entity_id == 1
             else "Directeurs d'études de l'Ecole",
         ),
+        processed_at=None,
+        archived_at=None,
     )
 
 
