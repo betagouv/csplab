@@ -34,9 +34,7 @@ class MatchCVToOpportunitiesUsecase:
         self._vector_repository = vector_repository
         self._concours_repository = concours_repository
         self._offers_repository = offers_repository
-        self._logger = logger.get_logger(
-            "CANDIDATE::APPLICATION::MatchOpportunitiesToCVUsecase::execute"
-        )
+        self._logger = logger
 
     def execute(
         self,

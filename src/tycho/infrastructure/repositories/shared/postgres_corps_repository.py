@@ -18,9 +18,7 @@ class PostgresCorpsRepository(ICorpsRepository):
 
     def __init__(self, logger: ILogger):
         """Initialize with logger."""
-        self.logger = logger.get_logger(
-            "INGESTION::REPOSITORY::PostgresCorpsRepository"
-        )
+        self.logger = logger
 
     def upsert_batch(self, corps: List[Corps]) -> IUpsertResult:
         """Insert or update multiple Corps entities and return operation results."""

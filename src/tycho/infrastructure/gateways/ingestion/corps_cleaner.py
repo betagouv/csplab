@@ -32,7 +32,7 @@ class CorpsCleaner(IDocumentCleaner[Corps]):
 
     def __init__(self, logger: ILogger):
         """Initialize with logger dependency."""
-        self.logger = logger.get_logger("CorpsCleaner::clean")
+        self.logger = logger
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[Corps]:
         """Clean raw documents and return cleaning result with entities and errors."""
