@@ -35,6 +35,7 @@ class RawDocumentFactory:
             type=document_type,
             created_at=datetime.now(),
             updated_at=datetime.now(),
+            processed_at=None,
         )
 
         raw_document = RawDocument.from_entity(document_entity)
