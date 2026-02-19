@@ -27,6 +27,8 @@ class ConcoursModel(models.Model):
     )
     written_exam_date = models.DateTimeField(null=True, blank=True)
     open_position_number = models.IntegerField(default=0)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -56,6 +58,8 @@ class ConcoursModel(models.Model):
             ],
             written_exam_date=self.written_exam_date,
             open_position_number=self.open_position_number,
+            processed_at=self.processed_at,
+            archived_at=self.archived_at,
         )
 
     @classmethod
@@ -72,6 +76,8 @@ class ConcoursModel(models.Model):
             access_modality=[modality.value for modality in concours.access_modality],
             written_exam_date=concours.written_exam_date,
             open_position_number=concours.open_position_number,
+            processed_at=concours.processed_at,
+            archived_at=concours.archived_at,
         )
 
     def __str__(self) -> str:

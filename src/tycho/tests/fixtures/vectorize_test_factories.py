@@ -84,6 +84,8 @@ def create_test_concours(entity_id: int = 1) -> Concours:
         grade="Test Grade",
         written_exam_date=None,
         open_position_number=10,
+        processed_at=None,
+        archived_at=None,
     )
 
 
@@ -99,6 +101,8 @@ def create_test_concours_for_integration(entity_id: int = 1) -> Concours:
         grade=f"Test Grade {entity_id}",
         written_exam_date=None,
         open_position_number=10 + entity_id,
+        processed_at=None,
+        archived_at=None,
     )
 
 
