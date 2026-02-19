@@ -1,21 +1,36 @@
-{% load dsfr_tags %}
-<div>
+{% load static dsfr_tags %}
+<div class="fr-pb-5w fr-background-alt--blue-france ">
     <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
     <div class="fr-container fr-py-5w">
         <!-- Header -->
-        <div class="fr-grid-row fr-grid-row--gutters fr-mb-5w">
-            <div class="fr-col-12 fr-col-md-8">
-                <h1 class="csplab-text-blue-france">Vos opportunités professionnelles</h1>
-                {% dsfr_tag label=cv_name %}
+        <header class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle fr-mb-5w">
+            <div class="fr-col-12 fr-col-md-10">
+                <hgroup class="fr-stack-2w">
+                    <h1 class="fr-h2">Vos opportunités professionnelles</h1>
+                    <p class="fr-text--lg fr-text-mention--grey">
+                        Identifiées à partir du fichier <span class="fr-text-default--grey">« {{ cv_name }} »</span>
+                    </p>
+                </hgroup>
             </div>
-        </div>
+            <div class="fr-col-12 fr-col-md-2 fr-pl-6w">
+                <img class="fr-responsive-img fr-hidden fr-unhidden-md"
+                     width="128"
+                     height="128"
+                     src="{% static 'candidate/images/illustrations-csp/parcours-professionnels-1.svg' %}"
+                     alt=""
+                     aria-hidden="true">
+            </div>
+        </header>
         <!-- Main content -->
         <div class="fr-grid-row fr-grid-row--gutters">
             <!-- Filters sidebar (desktop) -->
-            <aside class="fr-col-12 fr-col-md-4 fr-hidden fr-unhidden-md"
-                   id="filters-sidebar">
-                {% include "candidate/components/_filters_content.html" %}
-            </aside>
+            <div class="fr-col-12 fr-col-md-4 csplab-relative">
+                <div class="fr-pt-4w fr-mt-n4w csplab-sticky">
+                    <aside class="fr-hidden fr-unhidden-md" id="filters-sidebar">
+                        {% include "candidate/components/_filters_content.html" %}
+                    </aside>
+                </div>
+            </div>
             <!-- Filters accordion (mobile) -->
             <div class="fr-col-12 fr-hidden-md fr-mb-3w">
                 <section class="fr-accordion">
@@ -29,7 +44,9 @@
                 </section>
             </div>
             <!-- Results zone -->
-            <div class="fr-col-12 fr-col-md-8" id="results-zone">{% include "candidate/components/_results_list.html" %}</div>
+            <div class="fr-col-12 fr-col-md-8 fr-pl-md-4w" id="results-zone">
+                {% include "candidate/components/_results_list.html" %}
+            </div>
         </div>
     </div>
 </div>

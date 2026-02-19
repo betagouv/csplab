@@ -1,11 +1,10 @@
 {% load dsfr_tags %}
-<article class="fr-card fr-card--horizontal fr-mb-3w">
+<article class="fr-card fr-enlarge-link fr-card--horizontal">
     <div class="fr-card__body">
         <div class="fr-card__content">
             <h3 class="fr-card__title">
-                <a href="{{ offer.url|default:'#' }}">{{ offer.title }}</a>
+                <a href="{{ offer.url }}" class="fr-card__link">{{ offer.title }}</a>
             </h3>
-            <p class="fr-card__desc">{{ offer.description|default:""|truncatewords:30 }}</p>
             <div class="fr-card__start">
                 <ul class="fr-tags-group">
                     {% if offer.opportunity_type_display %}

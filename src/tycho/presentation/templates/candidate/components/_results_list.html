@@ -1,20 +1,20 @@
 {% load i18n %}
-<div class="fr-mb-3w">
-    <span class="fr-h4 csplab-text-blue-france">
-        {{ results_count|default:0 }} résultat{{ results_count|pluralize:"s" }}
-    </span>
-    {% if results_count %}<span class="fr-ml-2w">Triés par pertinence</span>{% endif %}
-</div>
-<div id="results-list">
-    {% if results %}
-        {% for result in results %}
-            {% if result.opportunity_type == opportunity_type_offer %}
-                {% include "candidate/components/_result_card_offer.html" with offer=result %}
-            {% elif result.opportunity_type == opportunity_type_concours %}
-                {% include "candidate/components/_result_card_concours.html" with concours=result %}
-            {% endif %}
-        {% endfor %}
-    {% else %}
-        <p class="fr-text--sm fr-text--disabled">Aucun résultat pour le moment.</p>
-    {% endif %}
+<div class="fr-stack-3w">
+    <p class="fr-text--lg">
+        <span class="fr-text--bold">{{ results_count|default:0 }} résultat{{ results_count|pluralize:"s" }}</span>
+        {% if results_count %}<span class="fr-text-mention--grey fr-ml-1w">triés par pertinence</span>{% endif %}
+    </p>
+    <div id="results-list" class="fr-stack-3w">
+        {% if results %}
+            {% for result in results %}
+                {% if result.opportunity_type == opportunity_type_offer %}
+                    {% include "candidate/components/_result_card_offer.html" with offer=result %}
+                {% elif result.opportunity_type == opportunity_type_concours %}
+                    {% include "candidate/components/_result_card_concours.html" with concours=result %}
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p class="fr-text--sm fr-text--disabled">Aucun résultat pour le moment.</p>
+        {% endif %}
+    </div>
 </div>

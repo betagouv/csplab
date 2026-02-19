@@ -1,13 +1,11 @@
 {% load dsfr_tags %}
-<article class="fr-card fr-card--horizontal fr-mb-3w">
+<article class="fr-card fr-enlarge-link fr-card--horizontal">
     <div class="fr-card__body">
         <div class="fr-card__content">
-            <div class="fr-card__start">{% dsfr_badge label="CONCOURS" extra_classes="fr-badge--info fr-badge--sm" %}</div>
             <h3 class="fr-card__title">
-                <a href="{{ concours.url|default:'#' }}">{{ concours.title }}</a>
+                <a href="{{ concours.url }}" class="fr-card__link">{{ concours.title }}</a>
             </h3>
-            <p class="fr-card__desc">{{ concours.description|default:""|truncatewords:30 }}</p>
-            <div class="fr-mt-2w">
+            <div class="fr-card__start">
                 <ul class="fr-tags-group">
                     {% if offer.opportunity_type_display %}
                         <li>{% dsfr_tag label=offer.opportunity_type_display extra_classes="fr-icon-briefcase-line fr-tag--icon-left" %}</li>
