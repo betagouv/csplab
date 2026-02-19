@@ -65,7 +65,7 @@ class ProcessUploadedCVUsecase:
         except Exception as e:
             self._logger.error(f"Text extraction failed: {str(e)}")
             cv_metadata.status = CVStatus.FAILED
-            cv_metadata.updated_at = datetime.now()
+            cv_metadata.updated_at = datetime.now(timezone.utc)
             await self._async_cv_metadata_repository.save(cv_metadata)
             raise e
 
