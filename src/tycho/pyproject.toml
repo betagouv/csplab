@@ -100,7 +100,6 @@ exclude = [
 select = [
     "B",  # flake8-bugbear
     "C4",  # flake8-comprehensions
-    "D",  # pydocstyle
     "E",  # pycodestyle error
     "F",  # Pyflakes
     "I",  # Isort
