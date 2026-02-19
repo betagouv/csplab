@@ -12,6 +12,7 @@ from domain.exceptions.corps_errors import (
     InvalidDiplomaLevelError,
 )
 from domain.exceptions.document_error import InvalidDocumentTypeError
+from domain.repositories.corps_repository_interface import ICorpsRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from domain.value_objects.access_modality import AccessModality
@@ -31,9 +32,10 @@ MAX_DECRETS_BY_CORPS = 20
 class CorpsCleaner(IDocumentCleaner[Corps]):
     """Adapter for cleaning raw documents of type CORPS into Corps entities."""
 
-    def __init__(self, logger: ILogger):
-        """Initialize with logger dependency."""
+    def __init__(self, logger: ILogger, corps_repository: ICorpsRepository):
+        """Initialize with logger and corps repository dependencies."""
         self.logger = logger
+        self.corps_repository = corps_repository
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[Corps]:
         """Clean raw documents and return cleaning result with entities and errors."""

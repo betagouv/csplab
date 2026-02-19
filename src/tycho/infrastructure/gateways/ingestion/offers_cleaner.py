@@ -9,6 +9,7 @@ from domain.entities.document import Document, DocumentType
 from domain.entities.offer import Offer
 from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.exceptions.offer_errors import OfferDoesNotExist
+from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from domain.value_objects.contract_type import ContractType
@@ -26,9 +27,10 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
 class OffersCleaner(IDocumentCleaner[Offer]):
     """Adapter for cleaning raw documents of type OFFERS into Offers entities."""
 
-    def __init__(self, logger: ILogger):
-        """Initialize with logger dependency."""
+    def __init__(self, logger: ILogger, offers_repository: IOffersRepository):
+        """Initialize with logger and offers repository dependencies."""
         self.logger = logger
+        self.offers_repository = offers_repository
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[Offer]:
         """Clean raw documents and return cleaning result with entities and errors."""

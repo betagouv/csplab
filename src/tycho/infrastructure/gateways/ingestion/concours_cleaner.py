@@ -11,6 +11,7 @@ from domain.entities.document import Document, DocumentType
 from domain.exceptions.concours_errors import ConcoursDoesNotExist
 from domain.exceptions.corps_errors import InvalidMinistryError
 from domain.exceptions.document_error import InvalidDocumentTypeError
+from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from domain.value_objects.access_modality import AccessModality
@@ -46,9 +47,10 @@ ACCESS_MODALITY_MAPPING = {
 class ConcoursCleaner(IDocumentCleaner[Concours]):
     """Adapter for cleaning raw documents of type CONCOURS into Concours entities."""
 
-    def __init__(self, logger: ILogger):
-        """Initialize with logger dependency."""
+    def __init__(self, logger: ILogger, concours_repository: IConcoursRepository):
+        """Initialize with logger and concours repository dependencies."""
         self.logger = logger
+        self.concours_repository = concours_repository
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[Concours]:
         """Clean raw documents and return cleaning result with entities and errors."""
