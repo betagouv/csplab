@@ -80,3 +80,19 @@ class TestFetchByType:
             assert len(docs) == nb_doc_per_type
             assert all(doc.type == document_type for doc in docs)
             assert has_more is False
+
+    def test_fetch_by_type_returns_documents_in_id_order(self, db, repository):
+        """Test that documents are returned in ID order (insertion order)."""
+        document_type = DocumentType.OFFERS
+        expected_document_count = 2
+
+        # Create documents with specific external_ids in sequence
+        RawDocumentFactory.create(document_type=document_type, external_id="uuid-1")
+        RawDocumentFactory.create(document_type=document_type, external_id="uuid-2")
+
+        documents, _ = repository.fetch_by_type(document_type, start=0, batch_size=10)
+
+        # Should be ordered by database ID (insertion order)
+        assert len(documents) == expected_document_count
+        assert documents[0].external_id == "uuid-1"
+        assert documents[1].external_id == "uuid-2"

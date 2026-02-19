@@ -25,7 +25,9 @@ class PostgresDocumentRepository(IDocumentRepository):
             raise ValueError("Invalid start or batch_size values")
 
         qs = RawDocument.objects.filter(document_type=document_type.value)
-        raw_documents_to_return = list(qs.order_by("id")[offset : offset + batch_size])
+        raw_documents_to_return = list(
+            qs.order_by("created_at")[offset : offset + batch_size]
+        )
         has_more = qs.count() > offset + batch_size
 
         return [raw_doc.to_entity() for raw_doc in raw_documents_to_return], has_more
