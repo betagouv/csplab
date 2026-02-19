@@ -96,7 +96,6 @@ def corps_data_fixture(shared_container, embeddings):
     corps_list = []
     for corps_id, fixture_data in list(embeddings.items())[:EXPECTED_TEST_CORPS_COUNT]:
         corps = Corps(
-            id=int(corps_id),
             code=f"CODE{corps_id}",
             category=Category.A,
             ministry=Ministry.MAA,
@@ -113,11 +112,13 @@ def corps_data_fixture(shared_container, embeddings):
     if result["errors"]:
         raise Exception(f"Failed to save Corps entities: {result['errors']}")
 
-    for corps in corps_list:
-        fixture_data = embeddings[str(corps.id)]
+    # Create a mapping from corps to fixture data based on order
+    fixture_items = list(embeddings.items())[:EXPECTED_TEST_CORPS_COUNT]
+
+    for i, corps in enumerate(corps_list):
+        _, fixture_data = fixture_items[i]
         vectorized_doc = VectorizedDocument(
-            id=None,  # Let database assign ID
-            document_id=corps.id,
+            entity_id=corps.id,
             document_type=DocumentType.CORPS,
             content=fixture_data["long_label"],
             embedding=fixture_data["embedding"],

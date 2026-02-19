@@ -73,27 +73,26 @@ class VectorizeDocumentsUsecase:
         embedding = self.embedding_generator.generate_embedding(content)
 
         if isinstance(source, Document):
-            document_id = source.id
+            entity_id = source.id
             document_type = source.type
         elif isinstance(source, Corps):
-            document_id = source.id
+            entity_id = source.id
             document_type = DocumentType.CORPS
         elif isinstance(source, Concours):
-            document_id = source.id
+            entity_id = source.id
             document_type = DocumentType.CONCOURS
         elif isinstance(source, Offer):
-            document_id = source.id
+            entity_id = source.id  # type: ignore  # TODO: Offer still uses int ID
             document_type = DocumentType.OFFERS
         else:
             raise UnsupportedDocumentTypeError(type(source).__name__)
 
-        # Ensure document_id is not None for VectorizedDocument
-        if document_id is None:
-            raise ValueError("Document ID cannot be None for vectorization")
+        # Ensure entity_id is not None for VectorizedDocument
+        if entity_id is None:
+            raise ValueError("Entity ID cannot be None for vectorization")
 
         vectorized_doc = VectorizedDocument(
-            id=0,  # Will be set by the repository
-            document_id=document_id,
+            entity_id=entity_id,
             document_type=document_type,
             content=content,
             embedding=embedding,

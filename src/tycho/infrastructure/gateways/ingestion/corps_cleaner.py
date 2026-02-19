@@ -7,10 +7,12 @@ import polars as pl
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.corps_errors import (
+    CorpsDoesNotExist,
     InvalidAccessModalityError,
     InvalidDiplomaLevelError,
 )
 from domain.exceptions.document_error import InvalidDocumentTypeError
+from domain.repositories.corps_repository_interface import ICorpsRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from domain.value_objects.access_modality import AccessModality
@@ -30,9 +32,10 @@ MAX_DECRETS_BY_CORPS = 20
 class CorpsCleaner(IDocumentCleaner[Corps]):
     """Adapter for cleaning raw documents of type CORPS into Corps entities."""
 
-    def __init__(self, logger: ILogger):
-        """Initialize with logger dependency."""
+    def __init__(self, logger: ILogger, corps_repository: ICorpsRepository):
+        """Initialize with logger and corps repository dependencies."""
         self.logger = logger
+        self.corps_repository = corps_repository
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[Corps]:
         """Clean raw documents and return cleaning result with entities and errors."""
@@ -108,7 +111,9 @@ class CorpsCleaner(IDocumentCleaner[Corps]):
         law_ids = []
         law_desc = []
         law_nature = []
-        if item["definitionsHistoriques"]["textesAssocies"]:
+        if item.get("definitionsHistoriques") and item["definitionsHistoriques"].get(
+            "textesAssocies"
+        ):
             law_ids = [
                 text["numeroTexte"]
                 for text in item["definitionsHistoriques"]["textesAssocies"]
@@ -169,8 +174,7 @@ class CorpsCleaner(IDocumentCleaner[Corps]):
             access_modalities = self._map_access_modalities(row["access_mod"])
 
             corps = Corps(
-                id=int(row["id"]),
-                code=row["id"],  # Using id as code for now
+                code=row["id"],
                 category=category,
                 ministry=ministry,
                 diploma=diploma,
@@ -180,6 +184,13 @@ class CorpsCleaner(IDocumentCleaner[Corps]):
                     value=row["long_label"],
                 ),
             )
+            # Check if Corps with this code already exists
+            try:
+                existing_corps = self.corps_repository.find_by_code(row["id"])
+                corps.id = existing_corps.id
+            except CorpsDoesNotExist:
+                self.logger.info(f"Creating new Corps with code {row['id']}")
+
             corps_list.append(corps)
 
         return corps_list

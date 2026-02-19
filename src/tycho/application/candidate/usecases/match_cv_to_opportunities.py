@@ -69,17 +69,17 @@ class MatchCVToOpportunitiesUsecase:
 
         for result in concours_similarity_results:
             self._logger.info(
-                f"Searching for concours with ID: {result.document.document_id}"
+                f"Searching for concours with ID: {result.document.entity_id}"
             )
-            concours = self._concours_repository.find_by_id(result.document.document_id)
+            concours = self._concours_repository.find_by_id(result.document.entity_id)
             self._logger.info(f"Found concours with ID: {concours.id}")
             opportunities.append((concours, result.score))
 
         for result in offers_similarity_results:
             self._logger.info(
-                f"Searching for offer with ID: {result.document.document_id}"
+                f"Searching for offer with ID: {result.document.entity_id}"
             )
-            offer = self._offers_repository.find_by_id(result.document.document_id)
+            offer = self._offers_repository.find_by_id(result.document.entity_id)
             self._logger.info(f"Found offer with ID: {offer.id}")
             opportunities.append((offer, result.score))
 

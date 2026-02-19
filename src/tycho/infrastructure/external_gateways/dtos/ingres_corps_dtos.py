@@ -238,7 +238,7 @@ class IngresCorpsDocument(BaseModel):
     identifiant: str
     corpsOuPseudoCorps: CorpsOuPseudoCorps
     evenementsSurCode: EvenementsSurCode
-    definitionsHistoriques: DefinitionsHistoriques
+    definitionsHistoriques: Optional[DefinitionsHistoriques] = None
 
 
 class IngresCorpsApiResponse(BaseModel):

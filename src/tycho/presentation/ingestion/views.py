@@ -94,7 +94,6 @@ class ConcoursUploadView(APIView):
                         continue
 
                     document = Document(
-                        id=None,
                         external_id=nor_value,
                         raw_data=raw_data,
                         type=DocumentType.CONCOURS,

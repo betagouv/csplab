@@ -59,7 +59,7 @@ def test_vectorize_entity_integration(db, ingestion_integration_container, entit
     saved_vectors = VectorizedDocumentModel.objects.all()
     assert saved_vectors.count() == 1
 
-    vector = VectorizedDocumentModel.objects.get(document_id=entity.id)
+    vector = VectorizedDocumentModel.objects.get(entity_id=entity.id)
     assert vector.embedding is not None
     assert len(vector.embedding) > 0
     assert vector.content is not None
@@ -116,7 +116,7 @@ def test_vectorize_multiple_entities_integration(
     assert saved_vectors.count() == INTEGRATION_ENTITIES_COUNT
 
     for _, entity in enumerate(entities):
-        vector = VectorizedDocumentModel.objects.get(document_id=entity.id)
+        vector = VectorizedDocumentModel.objects.get(entity_id=entity.id)
         assert vector.embedding is not None
         assert len(vector.embedding) > 0
         assert vector.content is not None
@@ -163,7 +163,7 @@ def test_vectorize_entity_updates_existing_document_integration(
     saved_vectors = VectorizedDocumentModel.objects.all()
     assert saved_vectors.count() == 1
 
-    first_vector = VectorizedDocumentModel.objects.get(document_id=entity.id)
+    first_vector = VectorizedDocumentModel.objects.get(entity_id=entity.id)
     original_created_at = first_vector.created_at
     original_updated_at = first_vector.updated_at
 
@@ -177,7 +177,7 @@ def test_vectorize_entity_updates_existing_document_integration(
     saved_vectors = VectorizedDocumentModel.objects.all()
     assert saved_vectors.count() == 1
 
-    updated_vector = VectorizedDocumentModel.objects.get(document_id=entity.id)
+    updated_vector = VectorizedDocumentModel.objects.get(entity_id=entity.id)
 
     assert updated_vector.created_at == original_created_at
     assert updated_vector.updated_at > original_updated_at
@@ -211,7 +211,7 @@ def test_vectorize_mixed_entities_integration(db, ingestion_integration_containe
         (offer_entity.id, DocumentType.OFFERS),
     ]:
         vector = VectorizedDocumentModel.objects.get(
-            document_id=document_id, document_type=document_type
+            entity_id=document_id, document_type=document_type
         )
         assert vector.embedding is not None
         assert len(vector.embedding) > 0
@@ -226,10 +226,9 @@ def test_store_embeddings_filters_on_id_and_type(db, ingestion_integration_conta
     entities = []
     for factory in [CorpsFactory, OfferFactory, ConcoursFactory]:
         obj = factory.create()
-        obj.id = 99999
         if isinstance(obj, OfferModel):
             obj.external_id = fake.uuid4()
-        obj.save()
+            obj.save()
         entities.append(obj.to_entity())
 
     # execute twice

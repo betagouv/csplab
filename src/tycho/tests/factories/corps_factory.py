@@ -5,7 +5,10 @@ from typing import List, Optional
 
 from faker import Faker
 
+from domain.entities.corps import Corps
+from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
+from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
 from infrastructure.django_apps.shared.models.corps import CorpsModel
 
@@ -44,16 +47,19 @@ class CorpsFactory:
         if access_modalities is None:
             access_modalities = []
 
-        corps = CorpsModel(
+        entity = Corps(
             code=code,
-            category=str(category),
-            ministry=ministry,
-            diploma_level=diploma_level,
-            short_label=short_label,
-            long_label=long_label,
-            access_modalities=access_modalities,
+            category=Category(category) if isinstance(category, str) else category,
+            ministry=Ministry(ministry) if isinstance(ministry, str) else ministry,
+            diploma=None,  # Will be set if diploma_level provided
+            access_modalities=[AccessModality(mod) for mod in access_modalities]
+            if access_modalities
+            else [],
+            label=Label(short_value=short_label, value=long_label),
         )
 
+        # Create Django model from entity (preserves UUID)
+        corps = CorpsModel.from_entity(entity)
         corps.save()
 
         return corps

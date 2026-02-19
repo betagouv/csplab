@@ -1,6 +1,7 @@
 """Corps repository interface definitions."""
 
 from typing import List, Protocol
+from uuid import UUID
 
 from domain.entities.corps import Corps
 from domain.repositories.document_repository_interface import IUpsertResult
@@ -13,8 +14,12 @@ class ICorpsRepository(Protocol):
         """Insert or update multiple Corps entities and return operation results."""
         ...
 
-    def find_by_id(self, corps_id: int) -> Corps:
+    def find_by_id(self, corps_id: UUID) -> Corps:
         """Find a Corps by its ID."""
+        ...
+
+    def find_by_code(self, code: str) -> Corps:
+        """Find a Corps by its code."""
         ...
 
     def get_all(self) -> List[Corps]:

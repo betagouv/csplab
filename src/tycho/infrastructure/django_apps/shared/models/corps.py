@@ -15,7 +15,7 @@ class CorpsModel(models.Model):
 
     objects: models.Manager = models.Manager()
 
-    id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True)
     code = models.CharField(max_length=50)
     category = models.CharField(max_length=20, null=True, blank=True)
     ministry = models.CharField(max_length=100)

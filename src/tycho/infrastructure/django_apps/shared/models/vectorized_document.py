@@ -1,21 +1,17 @@
 """VectorizedDocument Django model for pgvector storage."""
 
-from typing import TYPE_CHECKING
-
 from django.db import models
 from pgvector.django import VectorField
 
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
 
-if TYPE_CHECKING:
-    from django.db.models.manager import Manager
-
 
 class VectorizedDocumentModel(models.Model):
     """Django model for vectorized documents with pgvector support."""
 
-    document_id = models.IntegerField(db_index=True)
+    id = models.UUIDField(primary_key=True)
+    entity_id = models.UUIDField(db_index=True)
     document_type = models.CharField(
         max_length=20,
         choices=[(dt.value, dt.value) for dt in DocumentType],
@@ -26,10 +22,6 @@ class VectorizedDocumentModel(models.Model):
     metadata = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    if TYPE_CHECKING:
-        id: int
-        objects: "Manager[VectorizedDocumentModel]"
 
     class Meta:
         """Model metadata."""
@@ -47,13 +39,13 @@ class VectorizedDocumentModel(models.Model):
 
     def __str__(self):
         """String representation."""
-        return f"VectorizedDocument(id={self.id}, document_id={self.document_id})"
+        return f"VectorizedDocument(id={self.id}, entity_id={self.entity_id})"
 
     def to_entity(self) -> VectorizedDocument:
         """Convert Django model to domain entity."""
         return VectorizedDocument(
             id=self.id,
-            document_id=self.document_id,
+            entity_id=self.entity_id,
             document_type=DocumentType(self.document_type),
             content=self.content,
             embedding=list(self.embedding),
@@ -66,8 +58,8 @@ class VectorizedDocumentModel(models.Model):
     def from_entity(cls, entity: VectorizedDocument) -> "VectorizedDocumentModel":
         """Create Django model from domain entity."""
         return cls(
-            id=entity.id if entity.id else None,
-            document_id=entity.document_id,
+            id=entity.id,
+            entity_id=entity.entity_id,
             document_type=entity.document_type.value,
             content=entity.content,
             embedding=entity.embedding,

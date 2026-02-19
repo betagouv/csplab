@@ -3,6 +3,7 @@
 import math
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 from domain.entities.vectorized_document import VectorizedDocument
 from domain.repositories.vector_repository_interface import IVectorRepository
@@ -18,15 +19,14 @@ class InMemoryVectorRepository(IVectorRepository):
 
     def __init__(self):
         """Initialize with empty storage."""
-        self._documents: Dict[int, VectorizedDocument] = {}
-        self._next_id = 1
+        self._documents: Dict[UUID, VectorizedDocument] = {}
 
     def store_embedding(self, vectorized_doc: VectorizedDocument):
         """Store a vectorized document in memory."""
-        # Handle upsert based on document_id
+        # Handle upsert based on entity_id
         existing = None
         for doc in self._documents.values():
-            if doc.document_id == vectorized_doc.document_id:
+            if doc.entity_id == vectorized_doc.entity_id:
                 existing = doc
                 break
 
@@ -34,7 +34,7 @@ class InMemoryVectorRepository(IVectorRepository):
             # Update existing record
             updated_doc = VectorizedDocument(
                 id=existing.id,
-                document_id=vectorized_doc.document_id,
+                entity_id=vectorized_doc.entity_id,
                 document_type=vectorized_doc.document_type,
                 content=vectorized_doc.content,
                 embedding=vectorized_doc.embedding,
@@ -45,10 +45,9 @@ class InMemoryVectorRepository(IVectorRepository):
             self._documents[existing.id] = updated_doc
             return updated_doc
         else:
-            # Create new record
+            # Create new record - VectorizedDocument generates its own UUID
             new_doc = VectorizedDocument(
-                id=self._next_id,
-                document_id=vectorized_doc.document_id,
+                entity_id=vectorized_doc.entity_id,
                 document_type=vectorized_doc.document_type,
                 content=vectorized_doc.content,
                 embedding=vectorized_doc.embedding,
@@ -56,8 +55,7 @@ class InMemoryVectorRepository(IVectorRepository):
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             )
-            self._documents[self._next_id] = new_doc
-            self._next_id += 1
+            self._documents[new_doc.id] = new_doc
             return new_doc
 
     def semantic_search(
@@ -103,18 +101,18 @@ class InMemoryVectorRepository(IVectorRepository):
 
     def similarity_search(
         self,
-        document_id: int,
+        entity_id: UUID,
         threshold: float = 0.8,
         limit: int = 10,
         similarity_type: Optional[SimilarityType] = None,
     ) -> List[SimilarityResult]:
-        """Find documents similar to a specific document."""
+        """Find documents similar to a specific entity."""
         if similarity_type is None:
             similarity_type = SimilarityType()
 
         reference_doc = None
         for doc in self._documents.values():
-            if doc.document_id == document_id:
+            if doc.entity_id == entity_id:
                 reference_doc = doc
                 break
 
@@ -127,9 +125,9 @@ class InMemoryVectorRepository(IVectorRepository):
             similarity_type=similarity_type,
         )
 
-        return [
-            result for result in results if result.document.document_id != document_id
-        ][:limit]
+        return [result for result in results if result.document.entity_id != entity_id][
+            :limit
+        ]
 
     def _filter_documents(
         self, documents: List[VectorizedDocument], filters: Dict[str, Any]

@@ -41,7 +41,6 @@ class UnsupportedEntity(IEntity):
 def create_test_corps(entity_id: int = 1) -> Corps:
     """Create a test Corps entity for unit tests."""
     return Corps(
-        id=entity_id,
         code=f"CODE{entity_id}",
         category=Category.A,
         ministry=Ministry.MAA,
@@ -54,7 +53,6 @@ def create_test_corps(entity_id: int = 1) -> Corps:
 def create_test_corps_for_integration(entity_id: int = 1) -> Corps:
     """Create a test Corps entity for integration tests."""
     return Corps(
-        id=entity_id + 2,  # Start from ID 3 to avoid conflicts
         code=f"0000{entity_id + 2}",
         category=Category.A,
         ministry=Ministry.MAA if entity_id == 1 else Ministry.MESRI,
@@ -77,7 +75,6 @@ def create_test_corps_for_integration(entity_id: int = 1) -> Corps:
 def create_test_concours(entity_id: int = 1) -> Concours:
     """Create a test Concours entity for unit tests."""
     return Concours(
-        id=entity_id,
         nor_original=NOR("AGRS2400001A"),
         nor_list=[NOR("AGRS2400001A")],
         category=Category.A,
@@ -93,7 +90,6 @@ def create_test_concours(entity_id: int = 1) -> Concours:
 def create_test_concours_for_integration(entity_id: int = 1) -> Concours:
     """Create a test Concours entity for integration tests."""
     return Concours(
-        id=entity_id + 2,  # Start from ID 3 to avoid conflicts
         nor_original=NOR(f"AGRS240000{entity_id}A"),
         nor_list=[NOR(f"AGRS240000{entity_id}A")],
         category=Category.A,
@@ -109,7 +105,6 @@ def create_test_concours_for_integration(entity_id: int = 1) -> Concours:
 def create_test_offer(entity_id: int = 1) -> Offer:
     """Create a test Offer entity for unit tests."""
     return Offer(
-        id=entity_id,
         external_id=f"OFFER_{entity_id:03d}",
         verse=Verse.FPE,
         title="Développeur Python Senior",
@@ -132,7 +127,6 @@ def create_test_offer(entity_id: int = 1) -> Offer:
 def create_test_offer_for_integration(entity_id: int = 1) -> Offer:
     """Create a test Offer entity for integration tests."""
     return Offer(
-        id=entity_id + 2,  # Start from ID 3 to avoid conflicts
         external_id=f"OFFER_{entity_id + 2:03d}",
         verse=Verse.FPE if entity_id == 1 else Verse.FPT,
         title=f"Développeur Python Senior {entity_id}",
@@ -157,7 +151,6 @@ def create_test_document(
 ) -> Document:
     """Create a test Document entity."""
     return Document(
-        id=entity_id,
         external_id=f"test_doc_{entity_id}",
         raw_data={"content": f"Test document content {entity_id}"},
         type=doc_type,

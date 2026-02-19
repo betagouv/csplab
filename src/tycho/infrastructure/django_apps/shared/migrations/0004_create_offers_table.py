@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("shared", "0003_alter_concoursmodel_grade"),
+        ("shared", "0001_initial"),
     ]
 
     operations = [
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="OfferModel",
             fields=[
-                ("id", models.AutoField(primary_key=True, serialize=False)),
+                ("id", models.UUIDField(primary_key=True, serialize=False)),
                 ("external_id", models.CharField(max_length=100, unique=True)),
                 ("verse", models.CharField(max_length=20)),
                 ("titre", models.CharField(max_length=500)),

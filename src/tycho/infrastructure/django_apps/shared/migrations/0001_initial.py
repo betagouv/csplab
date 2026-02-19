@@ -16,9 +16,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CorpsModel',
             fields=[
-                ('id', models.IntegerField(primary_key=True, serialize=False)),
+                ('id', models.UUIDField(primary_key=True, serialize=False)),
                 ('code', models.CharField(max_length=50)),
-                ('category', models.CharField(blank=True, max_length=10, null=True)),
+                ('category', models.CharField(blank=True, max_length=20, null=True)),
                 ('ministry', models.CharField(max_length=100)),
                 ('diploma_level', models.IntegerField(blank=True, null=True)),
                 ('short_label', models.CharField(max_length=200)),
@@ -36,8 +36,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='VectorizedDocumentModel',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('document_id', models.IntegerField(db_index=True, unique=True)),
+                ('id', models.UUIDField(primary_key=True, serialize=False)),
+                ('entity_id', models.UUIDField(db_index=True)),
                 ('document_type', models.CharField(choices=[('CORPS', 'CORPS'), ('GRADE', 'GRADE'), ('CONCOURS', 'CONCOURS'), ('CONCOURS_LAW', 'CONCOURS_LAW'), ('CONCOURS_LAW_DETAILS', 'CONCOURS_LAW_DETAILS')], db_index=True, max_length=20)),
                 ('content', models.TextField()),
                 ('embedding', pgvector.django.vector.VectorField(dimensions=3072)),
@@ -52,8 +52,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ConcoursModel',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('corps_id', models.IntegerField()),
+                ('id', models.UUIDField(primary_key=True, serialize=False)),
+                ('corps', models.CharField(max_length=200)),
+                ('grade', models.CharField(blank=True, max_length=200, null=True)),
                 ('nor_original', models.CharField(max_length=50)),
                 ('nor_list', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=50), blank=True, default=list, size=None)),
                 ('category', models.CharField(max_length=20)),
@@ -68,7 +69,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Concours',
                 'verbose_name_plural': 'Concours',
                 'db_table': 'concours',
-                'indexes': [models.Index(fields=['corps_id'], name='concours_corps_i_871a7f_idx'), models.Index(fields=['nor_original'], name='concours_nor_ori_fd92de_idx')],
+                'indexes': [models.Index(fields=['nor_original'], name='concours_nor_ori_fd92de_idx')],
             },
         ),
     ]

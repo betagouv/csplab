@@ -1,8 +1,9 @@
-"""Corps entity for clean corps storage."""
+"""Concours entity for clean concours storage."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional
+from uuid import UUID, uuid4
 
 from domain.interfaces.entity_interface import IEntity
 from domain.value_objects.access_modality import AccessModality
@@ -15,7 +16,6 @@ from domain.value_objects.nor import NOR
 class Concours(IEntity):
     """Concours entity."""
 
-    id: int
     nor_original: NOR
     nor_list: List[NOR]
     category: Category
@@ -28,3 +28,4 @@ class Concours(IEntity):
     written_exam_date: Optional[datetime]
     # registration_url: Optional[str]
     open_position_number: int
+    id: UUID = field(default_factory=uuid4)

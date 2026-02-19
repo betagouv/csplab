@@ -114,18 +114,18 @@ class VectorizedDocumentAdmin(admin.ModelAdmin):
 
     list_display = (
         "id",
-        "document_id",
+        "entity_id",
         "document_type",
         "content",
         "created_at",
         "updated_at",
     )
     list_filter = ("document_type", "created_at", "updated_at")
-    search_fields = ("document_id", "content")
+    search_fields = ("entity_id", "content")
     exclude = ["embedding"]
     readonly_fields = (
         "id",
-        "document_id",
+        "entity_id",
         "document_type",
         "content",
         "embedding_html",
