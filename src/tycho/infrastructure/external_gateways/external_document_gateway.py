@@ -1,4 +1,4 @@
-"""External document fetcher implementation."""
+"""External document gateway implementation."""
 
 from datetime import datetime, timezone
 from typing import List, Tuple, cast
@@ -6,7 +6,7 @@ from typing import List, Tuple, cast
 from asgiref.sync import async_to_sync
 
 from domain.entities.document import Document, DocumentType
-from domain.repositories.document_repository_interface import IDocumentFetcher
+from domain.gateways.document_gateway_interface import IDocumentGateway
 from domain.services.http_client_interface import IHttpClient
 from domain.services.logger_interface import ILogger
 from domain.types import JsonDataType
@@ -16,7 +16,7 @@ from infrastructure.external_gateways.dtos.ingres_corps_dtos import (
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
 
 
-class ExternalDocumentFetcher(IDocumentFetcher):
+class ExternalDocumentGateway(IDocumentGateway):
     """Fetches documents from external API sources."""
 
     def __init__(

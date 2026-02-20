@@ -15,7 +15,7 @@ from domain.repositories.document_repository_interface import (
 )
 from domain.services.document_cleaner_interface import IDocumentCleaner
 from infrastructure.external_gateways import (
-    document_fetcher,
+    external_document_gateway,
     piste_client,
     talentsoft_client,
 )
@@ -59,8 +59,8 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger_service=logger_service,
     )
 
-    document_fetcher = providers.Singleton(
-        document_fetcher.ExternalDocumentFetcher,
+    document_gateway = providers.Singleton(
+        external_document_gateway.ExternalDocumentGateway,
         piste_client=piste_client,
         talentsoft_front_client=talentsoft_front_client,
         logger_service=logger_service,
@@ -72,7 +72,7 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     document_repository = providers.Singleton(
         CompositeDocumentRepository,
-        fetcher=document_fetcher,
+        fetcher=document_gateway,
         persister=document_persister,
     )
 
@@ -99,7 +99,7 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     load_documents_strategy_factory = providers.Singleton(
         load_strategy.LoadDocumentsStrategyFactory,
-        document_fetcher=document_fetcher,
+        document_gateway=document_gateway,
     )
 
     load_documents_usecase: providers.Provider[

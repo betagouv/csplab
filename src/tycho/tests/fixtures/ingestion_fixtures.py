@@ -237,9 +237,9 @@ def documents_ingestion_container_fixture(ingestion_container):
     in_memory_document_repo = InMemoryDocumentRepository()
     ingestion_container.document_repository.override(in_memory_document_repo)
 
-    # Create real factory with the same in-memory repository as document_fetcher
+    # Create real factory with the same in-memory repository as document_gateway
     test_factory = load_documents_strategy_factory.LoadDocumentsStrategyFactory(
-        document_fetcher=in_memory_document_repo
+        document_gateway=in_memory_document_repo
     )
     ingestion_container.load_documents_strategy_factory.override(test_factory)
 
