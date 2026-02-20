@@ -43,7 +43,7 @@ class CleanDocumentsUsecase:
         }
 
         while has_more:
-            raw_documents, has_more = self.document_repository.fetch_by_type(
+            raw_documents, has_more = self.document_repository.find_by_type(
                 input_data, start
             )
             self.logger.info(

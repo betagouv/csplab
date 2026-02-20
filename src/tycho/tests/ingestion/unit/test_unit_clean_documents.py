@@ -52,7 +52,7 @@ def test_clean_multiple_documents_success(ingestion_container, document_type):
             create_test_offer_document(i) for i in range(1, THREE_DOCUMENTS_COUNT + 1)
         ]
     # Add documents to repository
-    repository = ingestion_container.document_persister()
+    repository = ingestion_container.document_repository()
     repository.upsert_batch(documents, document_type)
 
     result = usecase.execute(document_type)
@@ -91,7 +91,7 @@ def test_execute_raises_error_for_unsupported_document_type(ingestion_container)
         updated_at=datetime.now(timezone.utc),
     )
 
-    repository = ingestion_container.document_persister()
+    repository = ingestion_container.document_repository()
     repository.upsert_batch([grade_document], DocumentType.GRADE)
 
     usecase = ingestion_container.clean_documents_usecase()
@@ -111,7 +111,7 @@ def test_clean_corps_filters_invalid_documents(ingestion_container):
     fpt_document = create_test_corps_document_fpt(8)
     minarm_document = create_test_corps_document_minarm(9)
 
-    repository = ingestion_container.document_persister()
+    repository = ingestion_container.document_repository()
     repository.upsert_batch(
         [
             valid_document,
@@ -138,7 +138,7 @@ def test_clean_concours_filters_invalid_documents(ingestion_container):
     invalid_status_document = create_test_concours_document_invalid_status(4)
     old_document = create_test_concours_document_old_year(5)
 
-    repository = ingestion_container.document_persister()
+    repository = ingestion_container.document_repository()
     repository.upsert_batch(
         [
             valid_document,
@@ -239,7 +239,7 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
         updated_at=datetime.now(timezone.utc),
     )
 
-    repository = ingestion_container.document_persister()
+    repository = ingestion_container.document_repository()
     repository.upsert_batch(
         [
             valid_fpe,

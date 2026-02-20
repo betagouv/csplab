@@ -15,8 +15,8 @@ def repository():
     return PostgresDocumentRepository()
 
 
-class TestFetchByType:
-    """Test fetch_by_type method with real database."""
+class TestFindByType:
+    """Test find_by_type method with real database."""
 
     @pytest.mark.parametrize(
         "start,batch_size",
@@ -29,13 +29,13 @@ class TestFetchByType:
     def test_invalid_parameters(self, db, repository, start, batch_size):
         """Test that invalid parameters raise ValueError."""
         with pytest.raises(ValueError, match="Invalid start or batch_size values"):
-            repository.fetch_by_type(
+            repository.find_by_type(
                 DocumentType.OFFERS, start=start, batch_size=batch_size
             )
 
     def test_empty_results(self, db, repository):
         """Test fetching when no documents exist."""
-        documents, has_more = repository.fetch_by_type(
+        documents, has_more = repository.find_by_type(
             DocumentType.OFFERS, start=0, batch_size=10
         )
 
@@ -58,7 +58,7 @@ class TestFetchByType:
         document_type = DocumentType.OFFERS
         RawDocumentFactory.create_batch(total_docs, document_type)
 
-        documents, has_more = repository.fetch_by_type(
+        documents, has_more = repository.find_by_type(
             document_type, start=start, batch_size=batch_size
         )
 
@@ -74,7 +74,7 @@ class TestFetchByType:
             )
 
         for document_type in DocumentType:
-            docs, has_more = repository.fetch_by_type(
+            docs, has_more = repository.find_by_type(
                 document_type, start=0, batch_size=batch_size
             )
             assert len(docs) == nb_doc_per_type
@@ -90,7 +90,7 @@ class TestFetchByType:
         RawDocumentFactory.create(document_type=document_type, external_id="uuid-1")
         RawDocumentFactory.create(document_type=document_type, external_id="uuid-2")
 
-        documents, _ = repository.fetch_by_type(document_type, start=0, batch_size=10)
+        documents, _ = repository.find_by_type(document_type, start=0, batch_size=10)
 
         # Should be ordered by database ID (insertion order)
         assert len(documents) == expected_document_count

@@ -20,7 +20,6 @@ from infrastructure.external_gateways.configs.talentsoft_config import (
     TalentsoftGatewayConfig,
 )
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
-from infrastructure.gateways.ingestion import load_documents_strategy_factory
 from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.ingestion.postgres_document_repository import (
@@ -173,10 +172,19 @@ def _create_ingestion_container(
     mock_embedding_generator = MockEmbeddingGenerator(embedding_fixtures)
     container.shared_container.embedding_generator.override(mock_embedding_generator)
 
+    # Always set configurations for both unit and integration tests
+    container.config.override(piste_gateway_config)
+    container.shared_container.config.override(openai_gateway_config)
+
+    http_client = SyncHttpClient()
+    container.http_client.override(http_client)
+
+    container.talentsoft_front_client.override(talentsoft_front_client)
+
     if in_memory:
         # Use in-memory repositories for unit tests
         in_memory_document_repo = InMemoryDocumentRepository()
-        container.document_persister.override(in_memory_document_repo)
+        container.document_repository.override(in_memory_document_repo)
 
         in_memory_corps_repo = InMemoryCorpsRepository()
         container.shared_container.corps_repository.override(in_memory_corps_repo)
@@ -192,7 +200,7 @@ def _create_ingestion_container(
     else:
         # Use Django persistence for integration tests
         postgres_document_repo = PostgresDocumentRepository()
-        container.document_persister.override(postgres_document_repo)
+        container.document_repository.override(postgres_document_repo)
 
         postgres_corps_repo = PostgresCorpsRepository(logger_service)
         container.shared_container.corps_repository.override(postgres_corps_repo)
@@ -205,14 +213,6 @@ def _create_ingestion_container(
 
         pgvector_repo = PgVectorRepository()
         container.vector_repository.override(pgvector_repo)
-
-        container.config.override(piste_gateway_config)
-        container.shared_container.config.override(openai_gateway_config)
-
-        http_client = SyncHttpClient()
-        container.http_client.override(http_client)
-
-        container.talentsoft_front_client.override(talentsoft_front_client)
 
     return container
 
@@ -231,19 +231,17 @@ def ingestion_container_fixture(
 
 
 @pytest.fixture(name="documents_ingestion_container")
-def documents_ingestion_container_fixture(ingestion_container):
+def documents_ingestion_container_fixture(
+    piste_gateway_config, openai_gateway_config, talentsoft_front_client
+):
     """Set up documents ingestion container for unit tests."""
-    # Override with in-memory repository for unit tests
-    in_memory_document_repo = InMemoryDocumentRepository()
-    ingestion_container.document_repository.override(in_memory_document_repo)
-
-    # Create real factory with the same in-memory repository as document_gateway
-    test_factory = load_documents_strategy_factory.LoadDocumentsStrategyFactory(
-        document_gateway=in_memory_document_repo
+    # Use the same factory as integration tests but with in-memory repos
+    return _create_ingestion_container(
+        piste_gateway_config,
+        openai_gateway_config,
+        talentsoft_front_client,
+        in_memory=True,
     )
-    ingestion_container.load_documents_strategy_factory.override(test_factory)
-
-    return ingestion_container
 
 
 @pytest.fixture(name="ingestion_integration_container")

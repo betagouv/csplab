@@ -8,9 +8,9 @@ IMPORTANT: Dependency Injection Override Timing
 
 import copy
 from datetime import datetime, timezone
-from unittest.mock import patch
 
 import pytest
+import responses
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
@@ -18,6 +18,8 @@ from domain.entities.document import Document, DocumentType
 from infrastructure.exceptions.ingestion_exceptions import (
     MissingOperationParameterError,
 )
+from tests.external_gateways.utils import cached_token, offers_response
+from tests.factories.ingres_factories import IngresCorpsApiResponseFactory
 
 
 @pytest.fixture(name="corps_document")
@@ -123,11 +125,32 @@ def create_test_documents(
     return documents
 
 
-class TestDocumentsUsecase:
-    """Test documents usecase."""
+class TestCorpsDocumentsUsecase:
+    """Test documents usecase for CORPS documents."""
 
-    def test_execute_returns_zero_when_no_documents(self, documents_usecase):
+    @responses.activate
+    def test_execute_returns_zero_when_no_documents(
+        self, documents_usecase, piste_gateway_config
+    ):
         """Test execute returns 0 when documents_repository is empty."""
+        # Mock OAuth token endpoint
+        responses.add(
+            responses.POST,
+            f"{piste_gateway_config.piste.oauth_base_url}api/oauth/token",
+            json={"access_token": "fake_token", "expires_in": 3600},
+            status=200,
+            content_type="application/json",
+        )
+
+        # Mock INGRES API endpoint with empty response
+        responses.add(
+            responses.GET,
+            f"{piste_gateway_config.piste.ingres_base_url}/CORPS",
+            json={"items": []},
+            status=200,
+            content_type="application/json",
+        )
+
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={"document_type": DocumentType.CORPS},
@@ -136,79 +159,184 @@ class TestDocumentsUsecase:
         assert result["created"] == 0
         assert result["updated"] == 0
 
-    @pytest.mark.parametrize(
-        "documents_fixture,document_type",
-        [
-            ("corps_documents", DocumentType.CORPS),
-            ("offer_documents", DocumentType.OFFERS),
-        ],
-    )
+    @responses.activate
     def test_execute_creates_new_documents_when_none_exist(
         self,
         documents_usecase,
         documents_ingestion_container,
-        documents_fixture,
-        document_type,
-        request,
+        piste_gateway_config,
     ):
         """Test execute creates new documents when none exist in the system."""
-        documents = request.getfixturevalue(documents_fixture)
+        api_response = IngresCorpsApiResponseFactory.build()
+        api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
 
-        strategy = documents_ingestion_container.load_documents_strategy_factory()
-        document_fetcher = strategy.document_fetcher
+        # Mock OAuth token endpoint
+        responses.add(
+            responses.POST,
+            f"{piste_gateway_config.piste.oauth_base_url}api/oauth/token",
+            json={"access_token": "fake_token", "expires_in": 3600},
+            status=200,
+            content_type="application/json",
+        )
 
-        with patch.object(
-            document_fetcher,
-            "fetch_by_type",
-            return_value=(documents, False),
-        ):
-            input_data = LoadDocumentsInput(
-                operation_type=LoadOperationType.FETCH_FROM_API,
-                kwargs={"document_type": document_type},
-            )
-            result = documents_usecase.execute(input_data)
-
-        assert result["created"] == len(documents)
-        assert result["updated"] == 0
-
-    @pytest.mark.parametrize(
-        "raw_documents_fixture,document_type",
-        [
-            ("raw_corps_documents", DocumentType.CORPS),
-            ("raw_offer_documents", DocumentType.OFFERS),
-        ],
-    )
-    def test_execute_updates_documents_when_exist(
-        self,
-        documents_usecase,
-        documents_ingestion_container,
-        raw_documents_fixture,
-        document_type,
-        request,
-    ):
-        """Test execute updates existing documents."""
-        raw_documents = request.getfixturevalue(raw_documents_fixture)
-        raw_data = copy.deepcopy(raw_documents)
-        create_test_documents(
-            documents_ingestion_container, raw_data, doc_type=document_type
+        # Mock INGRES API endpoint
+        responses.add(
+            responses.GET,
+            f"{piste_gateway_config.piste.ingres_base_url}/CORPS",
+            json={"items": api_data},
+            status=200,
+            content_type="application/json",
         )
 
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
-            kwargs={"document_type": document_type},
+            kwargs={"document_type": DocumentType.CORPS},
+        )
+        result = documents_usecase.execute(input_data)
+
+        assert result["created"] == len(api_data)
+        assert result["updated"] == 0
+
+    @responses.activate
+    def test_execute_updates_documents_when_exist(
+        self,
+        documents_usecase,
+        documents_ingestion_container,
+        raw_concours_documents,
+        piste_gateway_config,
+    ):
+        """Test execute updates existing documents."""
+        raw_data = copy.deepcopy(raw_concours_documents)
+        create_test_documents(
+            documents_ingestion_container, raw_data, doc_type=DocumentType.CORPS
+        )
+
+        api_response = IngresCorpsApiResponseFactory.build()
+        api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
+
+        # Mock OAuth token endpoint
+        responses.add(
+            responses.POST,
+            f"{piste_gateway_config.piste.oauth_base_url}api/oauth/token",
+            json={"access_token": "fake_token", "expires_in": 3600},
+            status=200,
+            content_type="application/json",
+        )
+
+        # Mock INGRES API endpoint
+        responses.add(
+            responses.GET,
+            f"{piste_gateway_config.piste.ingres_base_url}/CORPS",
+            json={"items": api_data},
+            status=200,
+            content_type="application/json",
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.CORPS},
+        )
+        result = documents_usecase.execute(input_data)
+        assert result["created"] == len(api_data)
+        assert result["updated"] == 0
+
+
+class TestOffersDocumentsUsecase:
+    """Test documents usecase for OFFERS documents."""
+
+    def test_execute_returns_zero_when_no_documents(
+        self, documents_usecase, documents_ingestion_container, httpx_mock
+    ):
+        """Test execute returns 0 when documents_repository is empty."""
+        client = documents_ingestion_container.talentsoft_front_client()
+        client.cached_token = cached_token()
+
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
+            json=offers_response(count=0),
+            status_code=200,
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.OFFERS},
         )
         result = documents_usecase.execute(input_data)
         assert result["created"] == 0
-        assert result["updated"] == len(raw_documents)
+        assert result["updated"] == 0
+
+    def test_execute_creates_new_documents_when_none_exist(
+        self,
+        documents_usecase,
+        documents_ingestion_container,
+        httpx_mock,
+    ):
+        """Test execute creates new documents when none exist in the system."""
+        count = 2
+        client = documents_ingestion_container.talentsoft_front_client()
+        client.cached_token = cached_token()
+
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
+            json=offers_response(count=count),
+            status_code=200,
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.OFFERS},
+        )
+        result = documents_usecase.execute(input_data)
+
+        assert result["created"] == count
+        assert result["updated"] == 0
+
+    def test_execute_updates_documents_when_exist(
+        self,
+        documents_usecase,
+        documents_ingestion_container,
+        raw_offer_documents,
+        httpx_mock,
+    ):
+        """Test execute updates existing documents."""
+        raw_data = copy.deepcopy(raw_offer_documents)
+        create_test_documents(
+            documents_ingestion_container, raw_data, doc_type=DocumentType.OFFERS
+        )
+
+        count = 2
+        client = documents_ingestion_container.talentsoft_front_client()
+        client.cached_token = cached_token()
+
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
+            json=offers_response(count=count),
+            status_code=200,
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.OFFERS},
+        )
+        result = documents_usecase.execute(input_data)
+        assert result["created"] == count
+        assert result["updated"] == 0
+
+
+class TestGeneralDocumentsUsecase:
+    """Test general documents usecase functionality."""
 
     def test_execute_returns_correct_count_with_documents_with_data_input(
         self,
         documents_usecase,
         documents_ingestion_container,
-        raw_corps_documents,
+        raw_concours_documents,
     ):
         """Test execute returns correct count when documents exist with CSV upload."""
-        raw_data = copy.deepcopy(raw_corps_documents)
+        raw_data = copy.deepcopy(raw_concours_documents)
         documents = create_test_documents(documents_ingestion_container, raw_data)
 
         input_data = LoadDocumentsInput(
@@ -216,7 +344,7 @@ class TestDocumentsUsecase:
             kwargs={"documents": documents, "document_type": DocumentType.CORPS},
         )
         result = documents_usecase.execute(input_data)
-        assert result["updated"] == len(raw_corps_documents)
+        assert result["updated"] == len(raw_concours_documents)
 
     def test_missing_document_type_raises_missing_operation_parameter_error(
         self, documents_usecase
