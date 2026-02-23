@@ -100,7 +100,7 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
 
         except json.JSONDecodeError as e:
             raise ExternalApiError(
-                "Failed to parse JSON response."
+                "Failed to parse JSON response. "
                 f"Erreur: {e.msg} at line {e.lineno} column {e.colno}"
             ) from e
         except ValidationError as e:
