@@ -1,5 +1,3 @@
-"""Integration tests for VectorizeDocuments usecase with external adapters."""
-
 import pytest
 from faker import Faker
 
@@ -23,7 +21,6 @@ fake = Faker()
 
 @pytest.mark.parametrize("entity_type", ["corps", "concours", "offer"])
 def test_vectorize_entity_integration(db, ingestion_integration_container, entity_type):
-    """Test vectorizing different entity types with Django persistence."""
     usecase = ingestion_integration_container.vectorize_documents_usecase()
 
     # Create and save entity via repository
@@ -70,7 +67,6 @@ def test_vectorize_entity_integration(db, ingestion_integration_container, entit
 def test_vectorize_multiple_entities_integration(
     db, ingestion_integration_container, entity_type
 ):
-    """Test vectorizing multiple entities of the same type with Django persistence."""
     usecase = ingestion_integration_container.vectorize_documents_usecase()
 
     # Create and save entities via repository
@@ -124,7 +120,6 @@ def test_vectorize_multiple_entities_integration(
 
 
 def test_vectorize_empty_list_integration(db, ingestion_integration_container):
-    """Test that empty entity list is handled correctly."""
     usecase = ingestion_integration_container.vectorize_documents_usecase()
 
     result = usecase.execute([])
@@ -142,7 +137,6 @@ def test_vectorize_entity_updates_existing_document_integration(
     db,
     ingestion_integration_container,
 ):
-    """Test that vectorizing the same entity twice updates the existing document."""
     usecase = ingestion_integration_container.vectorize_documents_usecase()
 
     # Create and save entity
@@ -188,7 +182,6 @@ def test_vectorize_entity_updates_existing_document_integration(
 
 
 def test_vectorize_mixed_entities_integration(db, ingestion_integration_container):
-    """Test vectorizing mixed entity types with Django persistence."""
     usecase = ingestion_integration_container.vectorize_documents_usecase()
 
     corps_entity = CorpsFactory.create().to_entity()

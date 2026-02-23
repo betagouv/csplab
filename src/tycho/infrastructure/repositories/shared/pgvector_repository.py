@@ -1,5 +1,3 @@
-"""PgVector repository implementation for vector operations."""
-
 from typing import Any, Dict, List, Optional
 
 from django.db.models import Q
@@ -18,8 +16,6 @@ from infrastructure.django_apps.shared.models.vectorized_document import (
 
 
 class PgVectorRepository(IVectorRepository):
-    """Repository for vector operations using PostgreSQL with pgvector extension."""
-
     def store_embedding(self, vectorized_doc: VectorizedDocument) -> VectorizedDocument:
         """Store a vectorized document with its embedding."""
         model = VectorizedDocumentModel.from_entity(vectorized_doc)
@@ -46,7 +42,6 @@ class PgVectorRepository(IVectorRepository):
         filters: Optional[Dict[str, Any]] = None,
         similarity_type: Optional[SimilarityType] = None,
     ) -> List[SimilarityResult]:
-        """Search for documents semantically similar to the query embedding."""
         if similarity_type is None:
             similarity_type = SimilarityType()
 

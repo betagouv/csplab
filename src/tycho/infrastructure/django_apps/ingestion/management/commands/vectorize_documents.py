@@ -1,5 +1,3 @@
-"""Django management command to vectorize documents by type."""
-
 from django.core.management.base import BaseCommand, CommandError
 
 from domain.entities.document import DocumentType
@@ -7,12 +5,9 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 
 
 class Command(BaseCommand):
-    """Vectorize documents by type using VectorizeDocumentsUsecase."""
-
     help = "Vectorize documents by type (CORPS, CONCOURS)"
 
     def add_arguments(self, parser):
-        """Add command arguments."""
         parser.add_argument(
             "--type",
             required=True,
@@ -31,7 +26,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Execute the command."""
         try:
             document_type = DocumentType(options["type"])
             container = create_ingestion_container()

@@ -1,5 +1,3 @@
-"""Factory for generating test Offer instances."""
-
 from datetime import datetime, timezone
 from typing import Optional
 from uuid import uuid4
@@ -11,8 +9,6 @@ from infrastructure.django_apps.shared.models.offer import OfferModel
 
 
 class OfferFactory:
-    """Factory for creating Offer test instances."""
-
     @staticmethod
     def create(
         external_id: Optional[str] = None,
@@ -30,7 +26,6 @@ class OfferFactory:
         region: Optional[str] = None,
         department: Optional[str] = None,
     ) -> OfferModel:
-        """Create an OfferModel instance."""
         if external_id is None:
             external_id = f"test_offer_{datetime.now(timezone.utc).timestamp()}"
 

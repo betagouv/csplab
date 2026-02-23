@@ -1,5 +1,3 @@
-"""Django implementation of IOffersRepository."""
-
 from typing import Dict, List
 from uuid import UUID
 
@@ -16,14 +14,10 @@ from infrastructure.django_apps.shared.models.offer import OfferModel
 
 
 class PostgresOffersRepository(IOffersRepository):
-    """Django ORM implementation of IOffersRepository."""
-
     def __init__(self, logger: ILogger):
-        """Initialize with logger."""
         self.logger = logger
 
     def upsert_batch(self, offers_list: List[Offer]) -> IUpsertResult:
-        """Insert or update multiple Offer entities and return operation results."""
         try:
             with transaction.atomic():
                 # Get existing models with select_for_update to prevent race conditions
@@ -115,7 +109,6 @@ class PostgresOffersRepository(IOffersRepository):
             }
 
     def find_by_id(self, offer_id: UUID) -> Offer:
-        """Find an Offer by its ID."""
         try:
             offer_model = OfferModel.objects.get(id=offer_id)
             return offer_model.to_entity()
@@ -123,7 +116,6 @@ class PostgresOffersRepository(IOffersRepository):
             raise OfferDoesNotExist(offer_id) from e
 
     def find_by_external_id(self, external_id: str) -> Offer:
-        """Find an Offer by its external ID (Talentsoft ID)."""
         try:
             offer_model = OfferModel.objects.get(external_id=external_id)
             return offer_model.to_entity()
@@ -131,6 +123,5 @@ class PostgresOffersRepository(IOffersRepository):
             raise OfferDoesNotExist(external_id) from e
 
     def get_all(self) -> List[Offer]:
-        """Get all Offer entities."""
         offer_models = OfferModel.objects.all()
         return [model.to_entity() for model in offer_models]
