@@ -134,7 +134,12 @@ async def test_execute_ocr_error(
     ["openai_candidate_container"],
 )
 async def test_execute_json_decode_error_with_details(
-    httpx_mock, request, pdf_content, container_name, cv_metadata_initial
+    httpx_mock,
+    request,
+    pdf_content,
+    container_name,
+    cv_metadata_initial,
+    test_app_config,
 ):
     """Test that JSONDecodeError includes detailed error information."""
     container = request.getfixturevalue(container_name)
@@ -144,7 +149,7 @@ async def test_execute_json_decode_error_with_details(
 
     httpx_mock.add_response(
         method="POST",
-        url="https://openrouter.ai/api/v1/chat/completions",
+        url=f"{test_app_config.openrouter_base_url}/chat/completions",
         json={"choices": [{"message": {"content": invalid_json_response}}]},
         status_code=200,
     )
