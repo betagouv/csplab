@@ -17,7 +17,12 @@ from tests.utils.mock_api_response_factory import MockApiResponseFactory
     ["albert_candidate_container", "openai_candidate_container"],
 )
 async def test_execute_with_valid_pdf_updates_cv_metadatas(
-    httpx_mock, request, pdf_content, container_name, cv_metadata_initial
+    httpx_mock,
+    request,
+    pdf_content,
+    container_name,
+    cv_metadata_initial,
+    test_app_config,
 ):
     """Test that valid PDF is processed and saved to real database."""
     container = request.getfixturevalue(container_name)
@@ -31,10 +36,10 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
 
     # Configuration spécifique selon l'extracteur
     if extractor_type == "albert":
-        api_url = "https://albert.api.etalab.gouv.fr/v1/ocr-beta"
+        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
         response_json = mock_response
     else:  # openai
-        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
         response_json = {
             "choices": [{"message": {"content": json.dumps(mock_response)}}]
         }
@@ -78,7 +83,12 @@ async def test_execute_cv_metadatas_not_found(request, pdf_content, container_na
     ["albert_candidate_container", "openai_candidate_container"],
 )
 async def test_execute_ocr_error(
-    httpx_mock, request, pdf_content, container_name, cv_metadata_initial
+    httpx_mock,
+    request,
+    pdf_content,
+    container_name,
+    cv_metadata_initial,
+    test_app_config,
 ):
     """Test that API failure raises error and saves CV with FAILED status to DB."""
     container = request.getfixturevalue(container_name)
@@ -92,10 +102,10 @@ async def test_execute_ocr_error(
 
     # Configuration spécifique selon l'extracteur
     if extractor_type == "albert":
-        api_url = "https://albert.api.etalab.gouv.fr/v1/ocr-beta"
+        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
         response_json = mock_response
     else:  # openai
-        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
         response_json = {
             "choices": [{"message": {"content": json.dumps(mock_response)}}]
         }
@@ -124,7 +134,12 @@ async def test_execute_ocr_error(
     ["openai_candidate_container"],
 )
 async def test_execute_json_decode_error_with_details(
-    httpx_mock, request, pdf_content, container_name, cv_metadata_initial
+    httpx_mock,
+    request,
+    pdf_content,
+    container_name,
+    cv_metadata_initial,
+    test_app_config,
 ):
     """Test that JSONDecodeError includes detailed error information."""
     container = request.getfixturevalue(container_name)
@@ -134,7 +149,7 @@ async def test_execute_json_decode_error_with_details(
 
     httpx_mock.add_response(
         method="POST",
-        url="https://openrouter.ai/api/v1/chat/completions",
+        url=f"{test_app_config.openrouter_base_url}/chat/completions",
         json={"choices": [{"message": {"content": invalid_json_response}}]},
         status_code=200,
     )

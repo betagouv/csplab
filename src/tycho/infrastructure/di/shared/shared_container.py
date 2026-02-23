@@ -16,7 +16,7 @@ from infrastructure.repositories.shared import (
 class SharedContainer(containers.DeclarativeContainer):
     """Container for shared infrastructure services."""
 
-    config: providers.Dependency = providers.Dependency()
+    app_config: providers.Dependency = providers.Dependency()
     logger_service: providers.Dependency = providers.Dependency()
 
     corps_repository = providers.Singleton(
@@ -36,7 +36,7 @@ class SharedContainer(containers.DeclarativeContainer):
 
     embedding_generator = providers.Singleton(
         OpenAIEmbeddingGenerator,
-        config=providers.Callable(lambda cfg: cfg.openai, config),
+        config=providers.Callable(lambda cfg: cfg.openai, app_config),
     )
 
     vector_repository = providers.Singleton(pgvector_repository.PgVectorRepository)

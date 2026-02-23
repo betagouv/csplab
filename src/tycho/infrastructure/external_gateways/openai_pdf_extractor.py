@@ -9,10 +9,10 @@ import pypdf
 from openai import AsyncOpenAI
 from pydantic import ValidationError
 
+from config.app_config import OpenAIConfig
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
 from domain.value_objects.cv_extraction_types import CVExtractionResult
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.configs.openai_config import OpenAIConfig
 from infrastructure.external_gateways.constants.ocr_cv_prompts import (
     CV_EXTRACTION_PROMPT,
 )
@@ -72,7 +72,7 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
 
             # Call OpenAI API
             raw_response = await self.client.chat.completions.create(
-                model=self.config.model,
+                model=self.config.ocr_model,
                 messages=[{"role": "user", "content": content}],  # type: ignore
                 max_tokens=2000,
                 temperature=0.1,

@@ -130,13 +130,13 @@ class TestCorpsDocumentsUsecase:
 
     @responses.activate
     def test_execute_returns_zero_when_no_documents(
-        self, documents_usecase, piste_gateway_config
+        self, documents_usecase, test_app_config
     ):
         """Test execute returns 0 when documents_repository is empty."""
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{piste_gateway_config.piste.oauth_base_url}api/oauth/token",
+            f"{test_app_config.piste_oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -145,7 +145,7 @@ class TestCorpsDocumentsUsecase:
         # Mock INGRES API endpoint with empty response
         responses.add(
             responses.GET,
-            f"{piste_gateway_config.piste.ingres_base_url}/CORPS",
+            f"{test_app_config.ingres_base_url}/CORPS",
             json={"items": []},
             status=200,
             content_type="application/json",
@@ -164,7 +164,7 @@ class TestCorpsDocumentsUsecase:
         self,
         documents_usecase,
         documents_ingestion_container,
-        piste_gateway_config,
+        test_app_config,
     ):
         """Test execute creates new documents when none exist in the system."""
         api_response = IngresCorpsApiResponseFactory.build()
@@ -173,7 +173,7 @@ class TestCorpsDocumentsUsecase:
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{piste_gateway_config.piste.oauth_base_url}api/oauth/token",
+            f"{test_app_config.piste_oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -182,7 +182,7 @@ class TestCorpsDocumentsUsecase:
         # Mock INGRES API endpoint
         responses.add(
             responses.GET,
-            f"{piste_gateway_config.piste.ingres_base_url}/CORPS",
+            f"{test_app_config.ingres_base_url}/CORPS",
             json={"items": api_data},
             status=200,
             content_type="application/json",
@@ -203,7 +203,7 @@ class TestCorpsDocumentsUsecase:
         documents_usecase,
         documents_ingestion_container,
         raw_concours_documents,
-        piste_gateway_config,
+        test_app_config,
     ):
         """Test execute updates existing documents."""
         raw_data = copy.deepcopy(raw_concours_documents)
@@ -217,7 +217,7 @@ class TestCorpsDocumentsUsecase:
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{piste_gateway_config.piste.oauth_base_url}api/oauth/token",
+            f"{test_app_config.piste_oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -226,7 +226,7 @@ class TestCorpsDocumentsUsecase:
         # Mock INGRES API endpoint
         responses.add(
             responses.GET,
-            f"{piste_gateway_config.piste.ingres_base_url}/CORPS",
+            f"{test_app_config.ingres_base_url}/CORPS",
             json={"items": api_data},
             status=200,
             content_type="application/json",

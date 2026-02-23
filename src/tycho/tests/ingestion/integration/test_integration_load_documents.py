@@ -166,13 +166,13 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
 
     @responses.activate
     def test_execute_returns_zero_when_no_documents(
-        self, db, documents_integration_usecase, piste_gateway_config
+        self, db, documents_integration_usecase, test_app_config
     ):
         """Test execute returns 0 when repository is empty."""
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{piste_gateway_config.piste.oauth_base_url}api/oauth/token",
+            f"{test_app_config.piste_oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -181,7 +181,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         # Mock INGRES API endpoint with empty response
         responses.add(
             responses.GET,
-            f"{piste_gateway_config.piste.ingres_base_url}/CORPS",
+            f"{test_app_config.ingres_base_url}/CORPS",
             json={"items": []},
             status=200,
             content_type="application/json",
@@ -197,7 +197,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
 
     @responses.activate
     def test_execute_returns_correct_count_with_documents(
-        self, db, documents_integration_usecase, piste_gateway_config
+        self, db, documents_integration_usecase, test_app_config
     ):
         """Test execute returns correct count when documents exist with mocked API."""
         api_response = IngresCorpsApiResponseFactory.build()
@@ -206,7 +206,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
-            f"{piste_gateway_config.piste.oauth_base_url}api/oauth/token",
+            f"{test_app_config.piste_oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
             status=200,
             content_type="application/json",
@@ -215,7 +215,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         # Mock INGRES API endpoint
         responses.add(
             responses.GET,
-            f"{piste_gateway_config.piste.ingres_base_url}/CORPS",
+            f"{test_app_config.ingres_base_url}/CORPS",
             json={"items": api_data},
             status=200,
             content_type="application/json",
