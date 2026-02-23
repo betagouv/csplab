@@ -3,8 +3,9 @@
 from datetime import datetime, timezone
 
 import pytest
-from pydantic import HttpUrl
+from faker import Faker
 
+from config.app_config import AppConfig
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
@@ -15,10 +16,6 @@ from domain.value_objects.label import Label
 from domain.value_objects.ministry import Ministry
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.external_gateways.configs.openai_config import (
-    OpenAIConfig,
-    OpenAIGatewayConfig,
-)
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared import pgvector_repository as pgvector_repo
 from infrastructure.repositories.shared import (
@@ -26,6 +23,8 @@ from infrastructure.repositories.shared import (
 )
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
+
+fake = Faker()
 
 # Test constants
 EXPECTED_TEST_CORPS_COUNT = 2
@@ -43,14 +42,8 @@ def shared_container_fixture():
     """Set up shared container."""
     container = SharedContainer()
 
-    openai_gateway_config = OpenAIGatewayConfig(
-        openai_config=OpenAIConfig(
-            api_key="fake-api-key",
-            base_url=HttpUrl("https://api.openai.com/v1"),
-            model="text-embedding-3-large",
-        )
-    )
-    container.config.override(openai_gateway_config)
+    test_app_config = AppConfig.from_django_settings()
+    container.app_config.override(test_app_config)
 
     logger_service = LoggerService()
     container.logger_service.override(logger_service)

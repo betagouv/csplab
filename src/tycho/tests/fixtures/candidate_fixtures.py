@@ -4,8 +4,9 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 import pytest
-from pydantic import HttpUrl
+from faker import Faker
 
+from config.app_config import AppConfig
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
@@ -15,14 +16,8 @@ from domain.value_objects.category import Category
 from domain.value_objects.cv_processing_status import CVStatus
 from domain.value_objects.ministry import Ministry
 from domain.value_objects.nor import NOR
-from domain.value_objects.pdf_extractor_type import PDFExtractorType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
-from infrastructure.external_gateways.configs.albert_config import AlbertConfig
-from infrastructure.external_gateways.configs.openai_config import OpenAIConfig
-from infrastructure.external_gateways.configs.pdf_extractor_config import (
-    PDFExtractorConfig,
-)
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.cv_metadata_factory import CVMetadataFactory
 from tests.fixtures.vectorize_test_factories import (
@@ -34,30 +29,16 @@ from tests.utils.async_in_memory_cv_metadata_repository import (
 from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepository
 from tests.utils.pdf_test_utils import create_minimal_valid_pdf
 
-
-@pytest.fixture(name="pdf_extractor_configs", scope="session")
-def pdf_extractor_configs_fixture():
-    """PDF extractor configurations."""
-    albert_config = AlbertConfig(
-        api_base_url=HttpUrl("https://albert.api.etalab.gouv.fr"),
-        api_key="test-albert-key",
-        model_name="albert-large",
-        dpi=200,
-    )
-    openai_config = OpenAIConfig(
-        api_key="test-api-key",
-        model="gpt-4o",
-        base_url=HttpUrl("https://openrouter.ai/api/v1"),
-    )
-    return {
-        "albert": albert_config,
-        "openai": openai_config,
-    }
+fake = Faker()
 
 
-def _create_candidate_container(
-    pdf_extractor_configs, pdf_extractor_type: PDFExtractorType, in_memory: bool
-):
+@pytest.fixture(name="test_app_config", scope="session")
+def test_app_config_fixture():
+    """Test app configuration."""
+    return AppConfig.from_django_settings()
+
+
+def _create_candidate_container(app_config: AppConfig, in_memory: bool):
     """Factory function to create candidate containers with specified configuration."""
     container = CandidateContainer()
 
@@ -73,47 +54,39 @@ def _create_candidate_container(
         in_memory_cv_repo = InMemoryCVMetadataRepository()
         container.postgres_cv_metadata_repository.override(in_memory_cv_repo)
 
-    # Configure PDF extractor
-    pdf_config = PDFExtractorConfig(
-        pdf_extractor_type=pdf_extractor_type,
-        albert_config=pdf_extractor_configs["albert"],
-        openai_config=pdf_extractor_configs["openai"],
-    )
-    container.config.override(pdf_config)
+    # Configure with AppConfig
+    container.app_config.override(app_config)
+    container.shared_container.app_config.override(app_config)
 
     return container
 
 
 @pytest.fixture(name="albert_candidate_container")
-def albert_candidate_container_fixture(pdf_extractor_configs):
+def albert_candidate_container_fixture(test_app_config):
     """Set up candidate container with Albert extractor and in-memory repository."""
-    return _create_candidate_container(
-        pdf_extractor_configs, PDFExtractorType.ALBERT, in_memory=True
-    )
+    albert_config = test_app_config.model_copy(update={"ocr_type": "ALBERT"})
+    return _create_candidate_container(albert_config, in_memory=True)
 
 
 @pytest.fixture(name="openai_candidate_container")
-def openai_candidate_container_fixture(pdf_extractor_configs):
+def openai_candidate_container_fixture(test_app_config):
     """Set up candidate container with OpenAI extractor and in-memory repository."""
-    return _create_candidate_container(
-        pdf_extractor_configs, PDFExtractorType.OPENAI, in_memory=True
-    )
+    openai_config = test_app_config.model_copy(update={"ocr_type": "OPENAI"})
+    return _create_candidate_container(openai_config, in_memory=True)
 
 
 @pytest.fixture(name="albert_integration_container")
-def albert_integration_container_fixture(pdf_extractor_configs):
+def albert_integration_container_fixture(test_app_config):
     """Set up integration container with Albert extractor and Django persistence."""
-    return _create_candidate_container(
-        pdf_extractor_configs, PDFExtractorType.ALBERT, in_memory=False
-    )
+    albert_config = test_app_config.model_copy(update={"ocr_type": "ALBERT"})
+    return _create_candidate_container(albert_config, in_memory=False)
 
 
 @pytest.fixture(name="openai_integration_container")
-def openai_integration_container_fixture(pdf_extractor_configs):
+def openai_integration_container_fixture(test_app_config):
     """Set up integration container with OpenAI extractor and Django persistence."""
-    return _create_candidate_container(
-        pdf_extractor_configs, PDFExtractorType.OPENAI, in_memory=False
-    )
+    openai_config = test_app_config.model_copy(update={"ocr_type": "OPENAI"})
+    return _create_candidate_container(openai_config, in_memory=False)
 
 
 @pytest.fixture(name="pdf_content")

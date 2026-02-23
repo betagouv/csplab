@@ -18,7 +18,12 @@ from tests.utils.mock_api_response_factory import MockApiResponseFactory
 )
 @pytest.mark.django_db
 async def test_execute_with_valid_pdf_updates_cv_metadatas(
-    httpx_mock, request, pdf_content, container_name, cv_metadata_initial
+    httpx_mock,
+    request,
+    pdf_content,
+    container_name,
+    cv_metadata_initial,
+    test_app_config,
 ):
     """Test that valid PDF is processed and saved to real database."""
     container = request.getfixturevalue(container_name)
@@ -32,10 +37,10 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
 
     # Configuration spécifique selon l'extracteur
     if extractor_type == "albert":
-        api_url = "https://albert.api.etalab.gouv.fr/v1/ocr-beta"
+        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
         response_json = mock_response
     else:  # openai
-        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
         response_json = {
             "choices": [{"message": {"content": json.dumps(mock_response)}}]
         }
@@ -80,7 +85,12 @@ async def test_execute_cv_metadatas_not_found(request, pdf_content, container_na
 )
 @pytest.mark.django_db
 async def test_execute_with_api_failure_saves_failed_status_to_database(
-    httpx_mock, request, pdf_content, container_name, cv_metadata_initial
+    httpx_mock,
+    request,
+    pdf_content,
+    container_name,
+    cv_metadata_initial,
+    test_app_config,
 ):
     """Test that API failure raises error and saves CV with FAILED status to DB."""
     container = request.getfixturevalue(container_name)
@@ -88,10 +98,10 @@ async def test_execute_with_api_failure_saves_failed_status_to_database(
 
     # Configuration spécifique selon l'extracteur
     if extractor_type == "albert":
-        api_url = "https://albert.api.etalab.gouv.fr/v1/ocr-beta"
+        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
         retry_count = 1
     else:  # openai
-        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
         retry_count = 3
 
     # Mock multiple potential retry attempts

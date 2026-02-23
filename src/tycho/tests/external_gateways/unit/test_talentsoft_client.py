@@ -6,10 +6,8 @@ import pytest
 from faker import Faker
 from pydantic import HttpUrl
 
+from config.app_config import TalentsoftConfig
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.configs.talentsoft_config import (
-    TalentsoftGatewayConfig,
-)
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
 from tests.external_gateways.utils import cached_token, mocked_response, offers_response
 
@@ -22,7 +20,7 @@ def talentsoft_client_fixture():
     logger_service = Mock()
     logger_service.get_logger.return_value = Mock()
 
-    config = TalentsoftGatewayConfig(
+    config = TalentsoftConfig(
         base_url=HttpUrl(fake.url()),
         client_id=fake.uuid4(),
         client_secret=fake.uuid4(),
