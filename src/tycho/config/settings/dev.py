@@ -4,7 +4,7 @@ from config.settings.base import *  # noqa: F403
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.0.1", "0.0.0.0"]  # noqa S104
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.0.1", "0.0.0.0", "csplab.test"]  # noqa S104
 
 # placeholder for dev logger setup
 
