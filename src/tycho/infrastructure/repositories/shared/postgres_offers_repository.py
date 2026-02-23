@@ -2,6 +2,7 @@ from typing import Dict, List
 from uuid import UUID
 
 from django.db import DatabaseError, transaction
+from django.db.models import F, Q
 
 from domain.entities.offer import Offer
 from domain.exceptions.offer_errors import OfferDoesNotExist
@@ -125,3 +126,20 @@ class PostgresOffersRepository(IOffersRepository):
     def get_all(self) -> List[Offer]:
         offer_models = OfferModel.objects.all()
         return [model.to_entity() for model in offer_models]
+
+    @transaction.atomic
+    def get_pending_processing(self, limit: int = 1000) -> List[Offer]:
+        qs = (
+            OfferModel.objects.filter(archived_at__isnull=True, processing=False)
+            .filter(Q(processed_at__isnull=True) | Q(updated_at__gt=F("processed_at")))
+            .select_for_update(of=("self",), skip_locked=True)[:limit]
+        )
+
+        for obj in qs:
+            obj.processing = True
+        try:
+            OfferModel.objects.bulk_update(qs, ["processing"])
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+        return [model.to_entity() for model in qs]
