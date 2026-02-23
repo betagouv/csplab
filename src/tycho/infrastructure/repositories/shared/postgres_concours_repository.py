@@ -1,5 +1,3 @@
-"""Django implementation of IConcoursRepository."""
-
 from typing import List
 
 from domain.entities.concours import Concours
@@ -14,14 +12,10 @@ from infrastructure.django_apps.shared.models.concours import ConcoursModel
 
 
 class PostgresConcoursRepository(IConcoursRepository):
-    """Django ORM implementation of IConcoursRepository."""
-
     def __init__(self, logger: ILogger):
-        """Initialize with logger."""
         self.logger = logger
 
     def upsert_batch(self, concours_list: List[Concours]) -> IUpsertResult:
-        """Insert or update multiple Concours entities and return operation results."""
         created = 0
         updated = 0
         errors: List[IUpsertError] = []
@@ -64,7 +58,6 @@ class PostgresConcoursRepository(IConcoursRepository):
         return {"created": created, "updated": updated, "errors": errors}
 
     def find_by_id(self, concours_id) -> Concours:
-        """Find a Concours by its ID."""
         try:
             concours_model = ConcoursModel.objects.get(id=concours_id)
             return concours_model.to_entity()
@@ -72,7 +65,6 @@ class PostgresConcoursRepository(IConcoursRepository):
             raise ConcoursDoesNotExist(str(concours_id)) from e
 
     def find_by_nor(self, nor) -> Concours:
-        """Find a Concours by its NOR."""
         try:
             concours_model = ConcoursModel.objects.get(nor_original=nor.value)
             return concours_model.to_entity()
@@ -80,6 +72,5 @@ class PostgresConcoursRepository(IConcoursRepository):
             raise ConcoursDoesNotExist(str(nor)) from e
 
     def get_all(self) -> List[Concours]:
-        """Get all Concours entities."""
         concours_models = ConcoursModel.objects.all()
         return [model.to_entity() for model in concours_models]

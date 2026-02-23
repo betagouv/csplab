@@ -1,5 +1,3 @@
-"""Factory for generating test Concours instances."""
-
 import random
 import string
 from datetime import datetime
@@ -15,10 +13,7 @@ from infrastructure.django_apps.shared.models.concours import ConcoursModel
 
 
 class NorProvider(BaseProvider):
-    """Nor Provider class."""
-
     def nor(self):
-        """Random nor generator."""
         letters = string.ascii_uppercase
         return (
             "".join(random.choice(letters) for _ in range(4))
@@ -32,8 +27,6 @@ fake.add_provider(NorProvider)
 
 
 class ConcoursFactory:
-    """Factory for creating Concours test instances."""
-
     @staticmethod
     def create(
         corps: Optional[str] = None,
@@ -46,7 +39,6 @@ class ConcoursFactory:
         written_exam_date: Optional[datetime] = None,
         open_position_number: Optional[int] = None,
     ) -> ConcoursModel:
-        """Create a ConcoursModel instance."""
         if corps is None:
             corps = "Test Corps"
 

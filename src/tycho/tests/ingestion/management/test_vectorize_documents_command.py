@@ -13,7 +13,6 @@ VECTORIZE_LIMIT = 5
 
 @pytest.fixture
 def mock_usecase():
-    """Create a mock usecase with default return values."""
     mock = Mock()
     mock.execute.return_value = {
         "processed": 10,
@@ -26,7 +25,6 @@ def mock_usecase():
 
 @pytest.fixture
 def mock_repository():
-    """Create a mock repository with default return values."""
     mock = Mock()
     mock.get_all.return_value = [Mock() for _ in range(10)]
     return mock
@@ -34,7 +32,6 @@ def mock_repository():
 
 @pytest.fixture
 def mock_repository_factory(mock_repository):
-    """Create a mock repository factory."""
     mock = Mock()
     mock.get_repository.return_value = mock_repository
     return mock
@@ -42,7 +39,6 @@ def mock_repository_factory(mock_repository):
 
 @pytest.fixture
 def mock_container_factory(mock_usecase, mock_repository_factory):
-    """Create a mock container factory that returns the mock container."""
     mock_container = Mock()
     mock_container.vectorize_documents_usecase.return_value = mock_usecase
     mock_container.repository_factory.return_value = mock_repository_factory
@@ -55,15 +51,11 @@ def mock_container_factory(mock_usecase, mock_repository_factory):
 
 
 class TestVectorizeDocumentsCommand:
-    """Test cases for vectorize_documents management command."""
-
     def test_command_requires_type_argument(self):
-        """Test that command fails without --type argument."""
         with pytest.raises(CommandError):
             call_command("vectorize_documents")
 
     def test_command_rejects_invalid_type(self):
-        """Test that command fails with invalid document type."""
         with pytest.raises(CommandError):
             call_command("vectorize_documents", "--type", "INVALID_TYPE")
 
@@ -82,7 +74,6 @@ class TestVectorizeDocumentsCommand:
         mock_repository_factory,
         document_type,
     ):
-        """Test that command accepts all valid document types including OFFERS."""
         call_command("vectorize_documents", "--type", document_type)
 
         mock_container_factory.assert_called_once()
@@ -98,7 +89,6 @@ class TestVectorizeDocumentsCommand:
         mock_repository,
         capsys,
     ):
-        """Test that command respects the --limit parameter."""
         call_command(
             "vectorize_documents",
             "--type",
@@ -124,7 +114,6 @@ class TestVectorizeDocumentsCommand:
         mock_repository,
         capsys,
     ):
-        """Test that command handles empty repository gracefully."""
         mock_repository.get_all.return_value = []
 
         call_command("vectorize_documents", "--type", DocumentType.OFFERS.value)
@@ -140,7 +129,6 @@ class TestVectorizeDocumentsCommand:
         mock_usecase,
         capsys,
     ):
-        """Test that command displays detailed error information."""
         mock_usecase.execute.return_value = {
             "processed": 5,
             "vectorized": 3,
@@ -173,7 +161,6 @@ class TestVectorizeDocumentsCommand:
         mock_container_factory,
         mock_usecase,
     ):
-        """Test that command raises CommandError when usecase fails."""
         mock_usecase.execute.side_effect = Exception("Database connection failed")
 
         with pytest.raises(
