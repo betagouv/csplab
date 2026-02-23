@@ -62,3 +62,6 @@ class InMemoryConcoursRepository(IConcoursRepository):
     def clear(self) -> None:
         """Clear all stored concours (for testing)."""
         self._concours.clear()
+
+    def get_pending_processing(self, limit: int = 1000) -> List[Concours]:
+        return []

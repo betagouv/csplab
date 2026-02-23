@@ -70,3 +70,6 @@ class InMemoryOffersRepository(IOffersRepository):
         """Clear all stored offers (for testing)."""
         self._offers.clear()
         self._external_id_index.clear()
+
+    def get_pending_processing(self, limit: int = 1000) -> List[Offer]:
+        return []

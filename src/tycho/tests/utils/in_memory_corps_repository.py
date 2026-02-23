@@ -66,3 +66,6 @@ class InMemoryCorpsRepository(ICorpsRepository):
     def clear(self) -> None:
         """Clear all stored entities (for testing)."""
         self._storage.clear()
+
+    def get_pending_processing(self, limit: int = 1000) -> List[Corps]:
+        return []

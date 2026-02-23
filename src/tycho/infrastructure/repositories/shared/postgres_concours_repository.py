@@ -1,5 +1,8 @@
 from typing import List
 
+from django.db import DatabaseError, transaction
+from django.db.models import F, Q
+
 from domain.entities.concours import Concours
 from domain.exceptions.concours_errors import ConcoursDoesNotExist
 from domain.repositories.concours_repository_interface import IConcoursRepository
@@ -74,3 +77,19 @@ class PostgresConcoursRepository(IConcoursRepository):
     def get_all(self) -> List[Concours]:
         concours_models = ConcoursModel.objects.all()
         return [model.to_entity() for model in concours_models]
+
+    @transaction.atomic
+    def get_pending_processing(self, limit: int = 1000) -> List[Concours]:
+        qs = (
+            ConcoursModel.objects.filter(archived_at__isnull=True, processing=False)
+            .filter(Q(processed_at__isnull=True) | Q(updated_at__gt=F("processed_at")))
+            .select_for_update(of=("self",), skip_locked=True)[:limit]
+        )
+        for obj in qs:
+            obj.processing = True
+        try:
+            ConcoursModel.objects.bulk_update(qs, ["processing"])
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+        return [model.to_entity() for model in qs]
