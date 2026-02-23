@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-02-23
+
+### <!-- 0 --> Breaking Changes
+
+- ♻️(ingestion) replace entities id with uuid ([#201](https://github.com/betagouv/csplab/pull/201))
+
+### <!-- 1 --> Added
+
+- 🔧(tooling) add django debug toolbar in dev settings ([#186](https://github.com/betagouv/csplab/pull/186))
+- 🔧(tooling) update sentry config ([#192](https://github.com/betagouv/csplab/pull/192))
+- ✨(ingestion) add fields to optimize ingestion by batch ([#208](https://github.com/betagouv/csplab/pull/208))
+- ✨(candidate) add details if json parsing error ([#217](https://github.com/betagouv/csplab/pull/217))
+
+### <!-- 2 --> Modified
+
+- ♻️(admin) refactor admins, set fields read-only ([#184](https://github.com/betagouv/csplab/pull/184))
+- 🔧(tooling) let use custom third parties endpoint in dev mode, and set explicit fake value for override test vars ([#188](https://github.com/betagouv/csplab/pull/188))
+- 🔧(tooling) catch the messages sent to the loggers into the console ([#194](https://github.com/betagouv/csplab/pull/194))
+- ♻️(ingestion) split compositedocumentrepository into document repository and document gateway ([#212](https://github.com/betagouv/csplab/pull/212))
+- ♻️(tycho) simplify config for envs ([#215](https://github.com/betagouv/csplab/pull/215))
+
+### <!-- 4 --> Fixed
+
+- 💚(tooling) disable PR-title-format on push ([#207](https://github.com/betagouv/csplab/pull/207))
+
 ## [0.1.2] - 2026-02-11
 
 ### <!-- 1 --> Added
