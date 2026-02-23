@@ -99,7 +99,10 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
             return CVExtractionResult.model_validate(result_dict)
 
         except json.JSONDecodeError as e:
-            raise ExternalApiError("Failed to parse JSON response") from e
+            raise ExternalApiError(
+                "Failed to parse JSON response."
+                f"Erreur: {e.msg} at line {e.lineno} column {e.colno}"
+            ) from e
         except ValidationError as e:
             raise ExternalApiError(f"Invalid response structure: {e}") from e
         except Exception as e:

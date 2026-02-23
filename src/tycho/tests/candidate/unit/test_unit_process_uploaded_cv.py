@@ -8,6 +8,7 @@ import pytest
 from domain.entities.cv_metadata import CVMetadata
 from domain.exceptions.cv_errors import CVNotFoundError, TextExtractionError
 from domain.value_objects.cv_processing_status import CVStatus
+from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 
 
@@ -116,3 +117,40 @@ async def test_execute_ocr_error(
 
     with pytest.raises(TextExtractionError):
         await usecase.execute(cv_id, pdf_content)
+
+
+@pytest.mark.parametrize(
+    "container_name",
+    ["openai_candidate_container"],
+)
+async def test_execute_json_decode_error_with_details(
+    httpx_mock, request, pdf_content, container_name, cv_metadata_initial
+):
+    """Test that JSONDecodeError includes detailed error information."""
+    container = request.getfixturevalue(container_name)
+
+    # Mock invalid JSON response
+    invalid_json_response = '{"experiences": [invalid json here'
+
+    httpx_mock.add_response(
+        method="POST",
+        url="https://openrouter.ai/api/v1/chat/completions",
+        json={"choices": [{"message": {"content": invalid_json_response}}]},
+        status_code=200,
+    )
+
+    # Unpack fixture data
+    initial_cv, cv_id = cv_metadata_initial
+
+    # Prepopulate the repository
+    repo = container.async_cv_metadata_repository()
+    await repo.save(initial_cv)
+
+    usecase = container.process_uploaded_cv_usecase()
+
+    with pytest.raises(ExternalApiError) as exc_info:
+        await usecase.execute(cv_id, pdf_content)
+
+    # Verify the error message contains detailed JSON parsing information
+    error_message = str(exc_info.value)
+    assert "Failed to parse JSON response. Erreur: " in error_message
