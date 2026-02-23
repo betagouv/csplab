@@ -3,7 +3,7 @@
 from typing import Union
 
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from domain.repositories.document_repository_interface import IDocumentFetcher
+from domain.gateways.document_gateway_interface import IDocumentGateway
 from infrastructure.exceptions.ingestion_exceptions import InvalidLoadOperationError
 from infrastructure.gateways.ingestion.load_documents_strategies import (
     FetchFromApiStrategy,
@@ -14,9 +14,9 @@ from infrastructure.gateways.ingestion.load_documents_strategies import (
 class LoadDocumentsStrategyFactory:
     """Factory for creating load documents strategies."""
 
-    def __init__(self, document_fetcher: IDocumentFetcher):
+    def __init__(self, document_gateway: IDocumentGateway):
         """Initialize with dependencies."""
-        self.document_fetcher = document_fetcher
+        self.document_fetcher = document_gateway
 
     def create(
         self, operation_type: LoadOperationType

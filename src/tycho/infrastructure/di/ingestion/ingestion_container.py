@@ -10,12 +10,11 @@ from domain.entities.document import DocumentType
 from domain.interfaces.entity_interface import IEntity
 from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.document_repository_interface import (
-    CompositeDocumentRepository,
     IUpsertResult,
 )
 from domain.services.document_cleaner_interface import IDocumentCleaner
 from infrastructure.external_gateways import (
-    document_fetcher,
+    external_document_gateway,
     piste_client,
     talentsoft_client,
 )
@@ -59,21 +58,15 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger_service=logger_service,
     )
 
-    document_fetcher = providers.Singleton(
-        document_fetcher.ExternalDocumentFetcher,
+    document_gateway = providers.Singleton(
+        external_document_gateway.ExternalDocumentGateway,
         piste_client=piste_client,
         talentsoft_front_client=talentsoft_front_client,
         logger_service=logger_service,
     )
 
-    document_persister = providers.Singleton(
-        postgres_document_repository.PostgresDocumentRepository,
-    )
-
     document_repository = providers.Singleton(
-        CompositeDocumentRepository,
-        fetcher=document_fetcher,
-        persister=document_persister,
+        postgres_document_repository.PostgresDocumentRepository,
     )
 
     repository_factory = providers.Singleton(
@@ -99,7 +92,7 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     load_documents_strategy_factory = providers.Singleton(
         load_strategy.LoadDocumentsStrategyFactory,
-        document_fetcher=document_fetcher,
+        document_gateway=document_gateway,
     )
 
     load_documents_usecase: providers.Provider[
@@ -114,7 +107,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     clean_documents_usecase: providers.Provider[IUseCase[DocumentType, dict]] = (
         providers.Factory(
             CleanDocumentsUsecase,
-            document_repository=document_persister,
+            document_repository=document_repository,
             document_cleaner=document_cleaner,
             repository_factory=repository_factory,
             logger=logger_service,

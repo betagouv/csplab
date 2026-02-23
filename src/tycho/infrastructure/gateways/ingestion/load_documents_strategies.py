@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import Document, DocumentType
-from domain.repositories.document_repository_interface import IDocumentFetcher
+from domain.gateways.document_gateway_interface import IDocumentGateway
 from infrastructure.exceptions.ingestion_exceptions import (
     MissingOperationParameterError,
 )
@@ -13,9 +13,9 @@ from infrastructure.exceptions.ingestion_exceptions import (
 class FetchFromApiStrategy:
     """Adapter for fetching documents from external API."""
 
-    def __init__(self, document_fetcher: IDocumentFetcher):
-        """Initialize with document fetcher dependency."""
-        self.document_fetcher = document_fetcher
+    def __init__(self, document_gateway: IDocumentGateway):
+        """Initialize with document gateway dependency."""
+        self.document_gateway = document_gateway
 
     def load_documents(self, **kwargs) -> Tuple[List[Document], bool]:
         """Load documents from external API by document type."""
@@ -27,7 +27,7 @@ class FetchFromApiStrategy:
                 "document_type", LoadOperationType.FETCH_FROM_API.value
             )
 
-        documents, has_more = self.document_fetcher.fetch_by_type(document_type, start)
+        documents, has_more = self.document_gateway.fetch_by_type(document_type, start)
         return documents, has_more
 
 

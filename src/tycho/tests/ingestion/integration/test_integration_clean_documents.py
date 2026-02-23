@@ -66,7 +66,7 @@ def test_execute_updates_existing_entities(
     clean_documents_usecase = ingestion_integration_container.clean_documents_usecase()
 
     # Create raw document in database using repository
-    document_repository = ingestion_integration_container.document_persister()
+    document_repository = ingestion_integration_container.document_repository()
 
     document = DOCUMENT_FACTORY_MAP[document_type](1)
 

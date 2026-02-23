@@ -15,10 +15,9 @@ from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 class PostgresDocumentRepository(IDocumentRepository):
     """Complete document repository using Django ORM."""
 
-    def fetch_by_type(
+    def find_by_type(
         self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
-        """Fetch documents from Django database by type with pagination."""
         offset = start * batch_size
 
         if start < 0 or batch_size <= 0:
@@ -35,7 +34,6 @@ class PostgresDocumentRepository(IDocumentRepository):
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
     ) -> IUpsertResult:
-        """Insert or update multiple RawDocuments entities."""
         if not documents:
             return {"created": 0, "updated": 0, "errors": []}
 

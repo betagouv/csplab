@@ -36,7 +36,7 @@ def create_offer_documents(container, document_type, raw_offers):
                 updated_at=datetime.now(),
             )
         )
-    repository = container.document_persister()
+    repository = container.document_repository()
     repository.upsert_batch(documents, document_type)
 
 
