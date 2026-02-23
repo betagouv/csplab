@@ -5,11 +5,11 @@ from typing import Any, Dict
 
 from pydantic import ValidationError
 
+from config.app_config import AlbertConfig
 from domain.services.async_http_client_interface import IAsyncHttpClient
 from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
 from domain.value_objects.cv_extraction_types import CVExtractionResult
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.configs.albert_config import AlbertConfig
 from infrastructure.external_gateways.constants.ocr_cv_prompts import (
     CV_EXTRACTION_PROMPT,
 )
@@ -39,8 +39,8 @@ class AlbertPDFExtractor(IPDFTextExtractor):
         headers = {"Authorization": f"Bearer {self.config.api_key}"}
         files = {"file": ("document.pdf", pdf_content, "application/pdf")}
         data = {
-            "model": self.config.model_name,
-            "dpi": str(self.config.dpi),
+            "model": self.config.ocr_model,
+            "dpi": str(self.config.ocr_dpi),
             "prompt": CV_EXTRACTION_PROMPT,
         }
 

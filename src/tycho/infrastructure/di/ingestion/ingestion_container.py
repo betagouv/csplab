@@ -31,9 +31,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     """Ingestion services container."""
 
     logger_service: providers.Dependency = providers.Dependency()
-    http_client: providers.Dependency = providers.Dependency()
-    config: providers.Dependency = providers.Dependency()
-    talentsoft_gateway_config: providers.Dependency = providers.Dependency()
+    app_config: providers.Dependency = providers.Dependency()
 
     shared_container = providers.DependenciesContainer()
 
@@ -48,13 +46,13 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     piste_client = providers.Singleton(
         piste_client.PisteClient,
-        config=providers.Callable(lambda cfg: cfg.piste, config),
+        config=providers.Callable(lambda cfg: cfg.piste, app_config),
         logger_service=logger_service,
     )
 
     talentsoft_front_client = providers.Singleton(
         talentsoft_client.TalentsoftFrontClient,
-        config=talentsoft_gateway_config,
+        config=providers.Callable(lambda cfg: cfg.talentsoft, app_config),
         logger_service=logger_service,
     )
 

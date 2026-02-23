@@ -10,6 +10,7 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.retrieve_corps import RetrieveCorpsUsecase
+from domain.value_objects.pdf_extractor_type import PDFExtractorType
 from infrastructure.external_gateways.albert_pdf_extractor import AlbertPDFExtractor
 from infrastructure.external_gateways.openai_pdf_extractor import OpenAIPDFExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
@@ -22,21 +23,26 @@ from infrastructure.repositories.candidate.postgres_cv_metadata_repository impor
 )
 
 
-def _create_pdf_extractor(config, http_client):
+def _create_pdf_extractor(app_config, http_client):
     """Create PDF extractor based on configuration using a more readable approach."""
     extractors = {
-        "albert": lambda cfg: AlbertPDFExtractor(
+        PDFExtractorType.ALBERT: lambda cfg: AlbertPDFExtractor(
             config=cfg.albert, http_client=http_client
         ),
-        "openai": lambda cfg: OpenAIPDFExtractor(config=cfg.openai),
+        PDFExtractorType.OPENAI: lambda cfg: OpenAIPDFExtractor(config=cfg.openai),
     }
-    return extractors[config.pdf_extractor_type.value](config)
+    pdf_extractor_type = (
+        PDFExtractorType.ALBERT
+        if app_config.ocr_type == "ALBERT"
+        else PDFExtractorType.OPENAI
+    )
+    return extractors[pdf_extractor_type](app_config)
 
 
 class CandidateContainer(containers.DeclarativeContainer):
     """Candidate services container."""
 
-    config: providers.Dependency = providers.Dependency()
+    app_config: providers.Dependency = providers.Dependency()
     logger_service: providers.Dependency = providers.Dependency()
 
     shared_container = providers.DependenciesContainer()
@@ -52,7 +58,7 @@ class CandidateContainer(containers.DeclarativeContainer):
 
     pdf_text_extractor = providers.Callable(
         lambda cfg, http_client: _create_pdf_extractor(cfg, http_client),
-        config,
+        app_config,
         async_http_client,
     )
     query_builder = providers.Factory(QueryBuilder)

@@ -4,9 +4,9 @@ from typing import List
 
 from openai import OpenAI
 
+from config.app_config import OpenAIConfig
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.configs.openai_config import OpenAIConfig
 
 
 class OpenAIEmbeddingGenerator(IEmbeddingGenerator):
@@ -24,7 +24,7 @@ class OpenAIEmbeddingGenerator(IEmbeddingGenerator):
 
         try:
             response = self.client.embeddings.create(
-                model=self.config.model, input=text, encoding_format="float"
+                model=self.config.embedding_model, input=text, encoding_format="float"
             )
             return response.data[0].embedding
         except Exception as e:

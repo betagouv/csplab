@@ -4,23 +4,11 @@ from datetime import datetime, timezone
 
 import pytest
 from faker import Faker
-from pydantic import HttpUrl
 
+from config.app_config import AppConfig
 from domain.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
-from infrastructure.external_gateways.configs.openai_config import (
-    OpenAIConfig,
-    OpenAIGatewayConfig,
-)
-from infrastructure.external_gateways.configs.piste_config import (
-    PisteConfig,
-    PisteGatewayConfig,
-)
-from infrastructure.external_gateways.configs.talentsoft_config import (
-    TalentsoftGatewayConfig,
-)
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
-from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.ingestion.postgres_document_repository import (
     PostgresDocumentRepository,
@@ -111,44 +99,20 @@ def concours_documents_fixture():
 # CONFIGS
 
 
-@pytest.fixture(name="piste_gateway_config")
-def piste_gateway_config_fixture():
-    """Setup piste gateway config for usecase and tests."""
-    return PisteGatewayConfig(
-        piste_config=PisteConfig(
-            oauth_base_url=HttpUrl(fake.url()),
-            ingres_base_url=HttpUrl(fake.url()),
-            client_id=fake.uuid4(),
-            client_secret=fake.word(),
-        )
-    )
-
-
-@pytest.fixture(name="openai_gateway_config")
-def openai_gateway_config_fixture():
-    """Setup openai gateway config for testing usecase."""
-    return OpenAIGatewayConfig(
-        openai_config=OpenAIConfig(
-            api_key=fake.uuid4(),
-            base_url=HttpUrl(fake.url()),
-            model=fake.word(),
-        )
-    )
+@pytest.fixture(name="test_app_config")
+def test_app_config_fixture():
+    """Setup test app config for usecase and tests."""
+    return AppConfig.from_django_settings()
 
 
 # CLIENTS
 
 
 @pytest.fixture(name="talentsoft_front_client")
-def talentsoft_front_client_fixture(logger_service):
+def talentsoft_front_client_fixture(logger_service, test_app_config):
     """Setup talentsoft front client for usecase and tests."""
-    config = TalentsoftGatewayConfig(
-        base_url=HttpUrl(fake.url()),
-        client_id=fake.uuid4(),
-        client_secret=fake.word(),
-    )
     return TalentsoftFrontClient(
-        config=config,
+        config=test_app_config.talentsoft,
         logger_service=logger_service,
     )
 
@@ -157,8 +121,7 @@ def talentsoft_front_client_fixture(logger_service):
 
 
 def _create_ingestion_container(
-    piste_gateway_config: PisteGatewayConfig,
-    openai_gateway_config: OpenAIGatewayConfig,
+    app_config: AppConfig,
     talentsoft_front_client: TalentsoftFrontClient,
     in_memory: bool = True,
 ):
@@ -173,11 +136,8 @@ def _create_ingestion_container(
     container.shared_container.embedding_generator.override(mock_embedding_generator)
 
     # Always set configurations for both unit and integration tests
-    container.config.override(piste_gateway_config)
-    container.shared_container.config.override(openai_gateway_config)
-
-    http_client = SyncHttpClient()
-    container.http_client.override(http_client)
+    container.app_config.override(app_config)
+    container.shared_container.app_config.override(app_config)
 
     container.talentsoft_front_client.override(talentsoft_front_client)
 
@@ -218,27 +178,21 @@ def _create_ingestion_container(
 
 
 @pytest.fixture(name="ingestion_container")
-def ingestion_container_fixture(
-    piste_gateway_config, openai_gateway_config, talentsoft_front_client
-):
+def ingestion_container_fixture(test_app_config, talentsoft_front_client):
     """Set up ingestion container with in-memory repositories for unit tests."""
     return _create_ingestion_container(
-        piste_gateway_config,
-        openai_gateway_config,
+        test_app_config,
         talentsoft_front_client,
         in_memory=True,
     )
 
 
 @pytest.fixture(name="documents_ingestion_container")
-def documents_ingestion_container_fixture(
-    piste_gateway_config, openai_gateway_config, talentsoft_front_client
-):
+def documents_ingestion_container_fixture(test_app_config, talentsoft_front_client):
     """Set up documents ingestion container for unit tests."""
     # Use the same factory as integration tests but with in-memory repos
     return _create_ingestion_container(
-        piste_gateway_config,
-        openai_gateway_config,
+        test_app_config,
         talentsoft_front_client,
         in_memory=True,
     )
@@ -246,14 +200,12 @@ def documents_ingestion_container_fixture(
 
 @pytest.fixture(name="ingestion_integration_container")
 def ingestion_integration_container_fixture(
-    piste_gateway_config,
-    openai_gateway_config,
+    test_app_config,
     talentsoft_front_client,
 ):
     """Set up ingestion container with Django persistence for integration tests."""
     return _create_ingestion_container(
-        piste_gateway_config,
-        openai_gateway_config,
+        test_app_config,
         talentsoft_front_client,
         in_memory=False,
     )

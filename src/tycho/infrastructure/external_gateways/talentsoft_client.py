@@ -7,12 +7,10 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 
 from pydantic import ValidationError
 
+from config.app_config import TalentsoftConfig
 from domain.services.async_http_client_interface import IAsyncHttpResponse
 from domain.services.logger_interface import ILogger
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.configs.talentsoft_config import (
-    TalentsoftGatewayConfig,
-)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
     TalentsoftOffer,
@@ -30,7 +28,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
 
     def __init__(
         self,
-        config: TalentsoftGatewayConfig,
+        config: TalentsoftConfig,
         logger_service: ILogger,
         **kwargs,
     ):
@@ -39,7 +37,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
         max_retries = kwargs.get("max_retries", 2)
 
         super().__init__(timeout=timeout)
-        self.base_url = config.base_url
+        self.base_url = str(config.base_url)
         self.client_id = config.client_id
         self.client_secret = config.client_secret
         self.max_retries = max_retries
