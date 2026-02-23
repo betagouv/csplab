@@ -101,7 +101,6 @@ def concours_documents_fixture():
 
 @pytest.fixture(name="test_app_config")
 def test_app_config_fixture():
-    """Setup test app config for usecase and tests."""
     return AppConfig.from_django_settings()
 
 

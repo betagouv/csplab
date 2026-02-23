@@ -34,7 +34,6 @@ fake = Faker()
 
 @pytest.fixture(name="test_app_config", scope="session")
 def test_app_config_fixture():
-    """Test app configuration."""
     return AppConfig.from_django_settings()
 
 
