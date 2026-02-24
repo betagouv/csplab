@@ -1,6 +1,4 @@
-$spinner-track-color: #e8def8;
-$spinner-active-color: #6750a4;
-
-$hero-gradient: linear-gradient(135deg, #0b0b98 33%, #2b2bab 66%, #5757c5 100%);
+$spinner-track-color: var(--background-action-low-blue-france);
+$spinner-active-color: var(--background-action-high-blue-france);
 
 $shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.15);
