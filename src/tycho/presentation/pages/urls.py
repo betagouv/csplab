@@ -5,6 +5,7 @@ from django.urls import path
 from presentation.pages.views import (
     AccessibilityView,
     HomeView,
+    LegalNoticesView,
     PrivacyView,
     TermsView,
 )
@@ -16,4 +17,5 @@ urlpatterns = [
     path("conditions-generales", TermsView.as_view(), name="terms"),
     path("accessibilite", AccessibilityView.as_view(), name="accessibility"),
     path("confidentialite", PrivacyView.as_view(), name="privacy"),
+    path("mentions-legales", LegalNoticesView.as_view(), name="legal_notices"),
 ]
