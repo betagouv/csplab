@@ -19,3 +19,9 @@ class AccessibilityView(TemplateView):
     """Accessibility statement page."""
 
     template_name = "pages/accessibility.html"
+
+
+class PrivacyView(TemplateView):
+    """Privacy policy page."""
+
+    template_name = "pages/privacy.html"
