@@ -15,6 +15,7 @@ from pytest_django.asserts import (
 )
 
 from domain.value_objects.cv_processing_status import CVStatus
+from domain.value_objects.opportunity_type import OpportunityType
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from tests.factories.cv_metadata_factory import CVMetadataFactory
 
@@ -68,12 +69,12 @@ def test_cv_results_htmx_request_returns_partial(
     "filter_test_case",
     [
         {
-            "filters": {"filter-location": "paris"},
+            "filters": {"filter-location": "75"},
             "expected_titles": ["Chef de projet transformation numérique"],
             "excluded_titles": ["Responsable des ressources humaines"],
         },
         {
-            "filters": {"filter-location": "lyon"},
+            "filters": {"filter-location": "69"},
             "expected_titles": ["Responsable des ressources humaines"],
             "excluded_titles": ["Chef de projet transformation numérique"],
         },
@@ -83,7 +84,7 @@ def test_cv_results_htmx_request_returns_partial(
             "excluded_titles": ["Chef de projet transformation numérique"],
         },
         {
-            "filters": {"filter-location": "paris", "filter-category": "a"},
+            "filters": {"filter-location": "75", "filter-category": "a"},
             "expected_titles": ["Chef de projet transformation numérique"],
             "excluded_titles": [
                 "Technicien informatique",
@@ -91,7 +92,7 @@ def test_cv_results_htmx_request_returns_partial(
             ],
         },
         {
-            "filters": {"filter-location": "bordeaux"},
+            "filters": {"filter-location": "33"},
             "expected_titles": [],
             "excluded_titles": ["Chef de projet transformation numérique"],
         },
@@ -124,21 +125,21 @@ def test_cv_results_htmx_filter_returns_filtered_results(
     mock_opportunities = [
         {
             "title": "Chef de projet transformation numérique",
-            "location_value": "paris",
+            "location_value": "75",
             "category_value": "a",
-            "type": "concours",
+            "opportunity_type": OpportunityType.CONCOURS,
         },
         {
             "title": "Responsable des ressources humaines",
-            "location_value": "lyon",
+            "location_value": "69",
             "category_value": "a",
-            "type": "concours",
+            "opportunity_type": OpportunityType.CONCOURS,
         },
         {
             "title": "Technicien informatique",
-            "location_value": "marseille",
+            "location_value": "13",
             "category_value": "b",
-            "type": "concours",
+            "opportunity_type": OpportunityType.CONCOURS,
         },
     ]
     mock_get_status.return_value = {
@@ -164,19 +165,19 @@ def test_cv_results_htmx_no_match_displays_empty_state(
     mock_get_status, client, db, db_cv_uuid
 ):
     """HTMX filter with no matches shows zero results message."""
-    # Mock opportunities data that won't match the bordeaux filter
+    # Mock opportunities data that won't match the Gironde (33) filter
     mock_opportunities = [
         {
             "title": "Chef de projet transformation numérique",
-            "location_value": "paris",
+            "location_value": "75",
             "category_value": "a",
-            "type": "concours",
+            "opportunity_type": OpportunityType.CONCOURS,
         },
         {
             "title": "Responsable des ressources humaines",
-            "location_value": "lyon",
+            "location_value": "69",
             "category_value": "a",
-            "type": "concours",
+            "opportunity_type": OpportunityType.CONCOURS,
         },
     ]
     mock_get_status.return_value = {
@@ -186,7 +187,7 @@ def test_cv_results_htmx_no_match_displays_empty_state(
 
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}),
-        {"filter-location": "bordeaux"},
+        {"filter-location": "33"},
         HTTP_HX_REQUEST="true",
     )
     assert response.status_code == HTTPStatus.OK

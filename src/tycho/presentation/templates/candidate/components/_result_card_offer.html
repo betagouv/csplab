@@ -1,27 +1,28 @@
 {% load dsfr_tags %}
-<article class="fr-card fr-card--horizontal fr-mb-3w">
+<article class="fr-card fr-enlarge-link fr-card--horizontal">
     <div class="fr-card__body">
         <div class="fr-card__content">
             <h3 class="fr-card__title">
-                <a href="{{ offer.url|default:'#' }}">{{ offer.title }}</a>
+                <a href="{{ offer.url }}" class="fr-card__link">{{ offer.title }}</a>
             </h3>
-            <p class="fr-card__desc">{{ offer.description|default:""|truncatewords:30 }}</p>
             <div class="fr-card__start">
                 <ul class="fr-tags-group">
-                    {% if offer.location %}
-                        <li>{% dsfr_tag label=offer.location extra_classes="fr-tag--sm" %}</li>
+                    {% if offer.opportunity_type_display %}
+                        <li>{% dsfr_tag label=offer.opportunity_type_display extra_classes="fr-icon-briefcase-line fr-tag--icon-left" %}</li>
                     {% endif %}
-                    {% if offer.category %}
-                        <li>{% dsfr_tag label=offer.category extra_classes="fr-tag--sm" %}</li>
+                    {% if offer.versant_display %}
+                        <li>{% dsfr_tag label=offer.versant_display extra_classes="fr-icon-government-line fr-tag--icon-left" %}</li>
                     {% endif %}
-                    {% if offer.versant %}
-                        <li>{% dsfr_tag label=offer.versant extra_classes="fr-tag--sm" %}</li>
+                    {% if offer.category_display %}
+                        <li>{% dsfr_tag label=offer.category_display extra_classes="fr-icon-award-line fr-tag--icon-left" %}</li>
                     {% endif %}
                 </ul>
             </div>
-            <div class="fr-card__end">
-                {% if offer.job_type %}<p class="fr-card__detail fr-icon-briefcase-line">{{ offer.job_type }}</p>{% endif %}
-            </div>
+            {% if offer.location %}
+                <div class="fr-card__end">
+                    <p class="fr-card__detail fr-icon-map-pin-2-line">{{ offer.location }}</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </article>

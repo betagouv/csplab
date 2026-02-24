@@ -10,29 +10,28 @@ class Region(BaseModel):
 
     code: str
 
-    # Valid French region INSEE codes
-    VALID_CODES: ClassVar[set[str]] = {
-        "11",  # Île-de-France
-        "24",  # Centre-Val de Loire
-        "27",  # Bourgogne-Franche-Comté
-        "28",  # Normandie
-        "32",  # Hauts-de-France
-        "44",  # Grand Est
-        "52",  # Pays de la Loire
-        "53",  # Bretagne
-        "75",  # Nouvelle-Aquitaine
-        "76",  # Occitanie
-        "84",  # Auvergne-Rhône-Alpes
-        "93",  # Provence-Alpes-Côte d'Azur
-        "94",  # Corse
-        "01",  # Guadeloupe
-        "02",  # Martinique
-        "03",  # Guyane
-        "04",  # La Réunion
-        "06",  # Mayotte
-        "DOM",  # Overseas regions placeholder
-        "TOM",  # Overseas territories placeholder
+    NAMES: ClassVar[dict[str, str]] = {
+        "11": "Île-de-France",
+        "24": "Centre-Val de Loire",
+        "27": "Bourgogne-Franche-Comté",
+        "28": "Normandie",
+        "32": "Hauts-de-France",
+        "44": "Grand Est",
+        "52": "Pays de la Loire",
+        "53": "Bretagne",
+        "75": "Nouvelle-Aquitaine",
+        "76": "Occitanie",
+        "84": "Auvergne-Rhône-Alpes",
+        "93": "Provence-Alpes-Côte d'Azur",
+        "94": "Corse",
+        "01": "Guadeloupe",
+        "02": "Martinique",
+        "03": "Guyane",
+        "04": "La Réunion",
+        "06": "Mayotte",
     }
+
+    VALID_CODES: ClassVar[set[str]] = set(NAMES.keys()) | {"DOM", "TOM"}
 
     @field_validator("code")
     @classmethod
@@ -45,3 +44,8 @@ class Region(BaseModel):
     def __str__(self) -> str:
         """Return string representation."""
         return self.code
+
+    @property
+    def name(self) -> str:
+        """Return the display name for this region."""
+        return self.NAMES.get(self.code, self.code)

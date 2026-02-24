@@ -822,6 +822,15 @@ html[data-fr-js=true] .no-js-only {
   filter: drop-shadow(var(--lifted-shadow));
 }
 
+.csplab-relative {
+  position: relative;
+}
+
+.csplab-sticky {
+  position: sticky;
+  top: 0;
+}
+
 .fr-alert {
   background-color: var(--background-default-grey);
 }
@@ -836,6 +845,37 @@ html[data-fr-js=true] .no-js-only {
     margin-left: 0 !important;
   }
 }
+.fr-breadcrumb {
+  margin-top: 0;
+  padding-top: 1rem;
+}
+
+hr {
+  padding: 1px !important;
+}
+
+.csplab-filter-tag {
+  cursor: pointer;
+}
+.csplab-filter-tag.fr-tag {
+  background-color: var(--background-action-low-blue-france);
+  color: var(--text-action-high-blue-france);
+}
+.csplab-filter-tag.fr-tag:hover {
+  background-color: var(--background-action-low-blue-france-hover);
+}
+.csplab-filter-tag:has(input.fr-sr-only:checked) {
+  background-color: var(--background-action-high-blue-france);
+  color: var(--text-inverted-blue-france);
+}
+.csplab-filter-tag:has(input.fr-sr-only:checked):hover {
+  background-color: var(--background-action-high-blue-france-hover);
+}
+.csplab-filter-tag:has(input.fr-sr-only:focus-visible) {
+  outline: 2px solid var(--border-action-high-blue-france);
+  outline-offset: 2px;
+}
+
 .csplab-toast {
   position: fixed;
   top: 1rem;
