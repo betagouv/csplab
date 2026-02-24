@@ -13,7 +13,9 @@
                       aria-hidden="true"></span>
                 Localisation
             </label>
-            <select class="fr-select" id="{{ filter_prefix|default:'' }}filter-location" name="filter-location">
+            <select class="fr-select"
+                    id="{{ filter_prefix|default:'' }}filter-location"
+                    name="filter-location">
                 {% for option in location_options %}<option value="{{ option.value }}">{{ option.text }}</option>{% endfor %}
             </select>
         </div>
@@ -21,7 +23,8 @@
         {# VOIE D'ACCÈS #}
         <fieldset class="fr-fieldset fr-px-3v fr-stack-3v"
                   aria-labelledby="{{ filter_prefix|default:'' }}filter-voie-legend">
-            <legend class="fr-label fr-px-0" id="{{ filter_prefix|default:'' }}filter-voie-legend">
+            <legend class="fr-label fr-px-0"
+                    id="{{ filter_prefix|default:'' }}filter-voie-legend">
                 <span class="fr-icon-briefcase-line fr-icon--sm fr-mr-1w"
                       aria-hidden="true"></span>
                 Voie d'accès
@@ -55,7 +58,8 @@
         {# VERSANT #}
         <fieldset class="fr-fieldset fr-px-3v fr-stack-3v"
                   aria-labelledby="{{ filter_prefix|default:'' }}filter-versant-legend">
-            <legend class="fr-label fr-px-0" id="{{ filter_prefix|default:'' }}filter-versant-legend">
+            <legend class="fr-label fr-px-0"
+                    id="{{ filter_prefix|default:'' }}filter-versant-legend">
                 <span class="fr-icon-government-line fr-icon--sm fr-mr-1w"
                       aria-hidden="true"></span>
                 Versant de la fonction publique
@@ -81,7 +85,8 @@
         {# CATÉGORIE #}
         <fieldset class="fr-fieldset fr-px-3v fr-stack-3v"
                   aria-labelledby="{{ filter_prefix|default:'' }}filter-category-legend">
-            <legend class="fr-label fr-px-0" id="{{ filter_prefix|default:'' }}filter-category-legend">
+            <legend class="fr-label fr-px-0"
+                    id="{{ filter_prefix|default:'' }}filter-category-legend">
                 <span class="fr-icon-award-line fr-icon--sm fr-mr-1w" aria-hidden="true"></span>
                 Catégorie
             </legend>

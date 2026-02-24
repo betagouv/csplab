@@ -40,7 +40,9 @@
                                 aria-expanded="false"
                                 aria-controls="filters-mobile-content">Filtrer les résultats</button>
                     </h3>
-                    <div class="fr-collapse" id="filters-mobile-content">{% include "candidate/components/_filters_content.html" with filter_prefix="mobile-" %}</div>
+                    <div class="fr-collapse" id="filters-mobile-content">
+                        {% include "candidate/components/_filters_content.html" with filter_prefix="mobile-" %}
+                    </div>
                 </section>
             </div>
             <!-- Results zone -->

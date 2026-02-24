@@ -1,5 +1,6 @@
 {% load static %}
-<div hx-get="{% url 'candidate:cv_results' cv_uuid %}"
+<div class="fr-background-alt--blue-france"
+     hx-get="{% url 'candidate:cv_results' cv_uuid %}"
      hx-trigger="every {{ poll_interval }}s"
      hx-swap="outerHTML">
     <div class="fr-container">
@@ -13,13 +14,13 @@
                     <p class="fr-text--md fr-text--center fr-mb-0 csplab-processing__message"
                        data-message="2">Vos données sont strictement confidentielles, et nullement partagées</p>
                     <p class="fr-text--md fr-text--center fr-mb-0 csplab-processing__message"
-                       data-message="3">Promis c'est bientôt prêt !</p>
+                       data-message="3">Promis, c'est bientôt prêt !</p>
                 </div>
             </div>
             <div class="csplab-processing__illustration">
                 <img width="128"
                      height="128"
-                     src="{% static 'candidate/images/microscope.svg' %}"
+                     src="{% static 'candidate/images/illustrations-csp/recherche-1.svg' %}"
                      alt=""
                      aria-hidden="true">
             </div>
