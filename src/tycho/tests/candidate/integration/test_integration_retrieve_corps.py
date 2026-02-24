@@ -51,7 +51,7 @@ def shared_container_fixture():
     )
     container.corps_repository.override(postgres_corps_repository)
 
-    pgvector_repository = pgvector_repo.PgVectorRepository()
+    pgvector_repository = pgvector_repo.PgVectorRepository(logger_service)
     container.vector_repository.override(pgvector_repository)
 
     return container
@@ -106,16 +106,19 @@ def corps_data_fixture(shared_container, embeddings):
     # Create a mapping from corps to fixture data based on order
     fixture_items = list(embeddings.items())[:EXPECTED_TEST_CORPS_COUNT]
 
+    vectorized_documents = []
     for i, corps in enumerate(corps_list):
         _, fixture_data = fixture_items[i]
-        vectorized_doc = VectorizedDocument(
-            entity_id=corps.id,
-            document_type=DocumentType.CORPS,
-            content=fixture_data["long_label"],
-            embedding=fixture_data["embedding"],
-            metadata={"document_type": "CORPS"},
+        vectorized_documents.append(
+            VectorizedDocument(
+                entity_id=corps.id,
+                document_type=DocumentType.CORPS,
+                content=fixture_data["long_label"],
+                embedding=fixture_data["embedding"],
+                metadata={"document_type": "CORPS"},
+            )
         )
-        vector_repository.store_embedding(vectorized_doc)
+    vector_repository.upsert_batch(vectorized_documents, DocumentType.CORPS.value)
 
     return corps_list
 

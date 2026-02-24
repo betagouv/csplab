@@ -81,14 +81,14 @@ def test_execute_with_valid_cv_returns_opportunities(
     offers_repo.upsert_batch(offers)
 
     # Generate vectorized documents using entity UUIDs
-    vectorized_documents = generate_vectorized_documents(
-        concours_repo.get_all() + offers_repo.get_all()
-    )
+    vectorized_concours = generate_vectorized_documents(concours_repo.get_all())
+    vectorized_offers = generate_vectorized_documents(offers_repo.get_all())
+    vectorized_documents = vectorized_concours + vectorized_offers
 
     # Populate vector data in real DB
     vector_repo = _integration_candidate_container.shared_container.vector_repository()
-    for vectorized_doc in vectorized_documents:
-        vector_repo.store_embedding(vectorized_doc)
+    vector_repo.upsert_batch(vectorized_concours, DocumentType.CONCOURS.value)
+    vector_repo.upsert_batch(vectorized_offers, DocumentType.OFFERS.value)
 
     usecase = _integration_candidate_container.match_cv_to_opportunities_usecase()
     result = usecase.execute(cv_metadata, limit=10)
