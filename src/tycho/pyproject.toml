@@ -145,3 +145,7 @@ ignore_missing_imports = true
 [tool.django-stubs]
 django_settings_module = "config.settings.test"
 ignore_missing_model_attributes = true
+
+[tool.djlint]
+profile = "django"
+indent = 4
