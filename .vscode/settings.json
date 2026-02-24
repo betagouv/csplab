@@ -8,9 +8,11 @@
     }
   },
   "[html][django-html][handlebars][hbs][mustache][jinja][jinja-html][nj][njk][nunjucks][twig]": {
-    "editor.defaultFormatter": "monosans.djlint"
+    "editor.defaultFormatter": "monosans.djlint",
+    "editor.formatOnSave": true
   },
   "djlint.useVenv": true,
+  "djlint.useEditorIndentation": false,
   "ruff.enable": true,
   "ruff.importStrategy": "fromEnvironment",
   "ruff.configuration": "${workspaceFolder}/src/tycho/pyproject.toml",
@@ -48,5 +50,8 @@
   "stylelint.enable": true,
   "stylelint.validate": ["css", "scss"],
   "stylelint.configFile": "${workspaceFolder}/.stylelintrc.json",
-  "prettier.enable": true
+  "prettier.enable": true,
+  "emmet.includeLanguages": {
+    "django-html": "html"
+  }
 }
