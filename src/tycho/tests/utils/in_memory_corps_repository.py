@@ -69,3 +69,9 @@ class InMemoryCorpsRepository(ICorpsRepository):
 
     def get_pending_processing(self, limit: int = 1000) -> List[Corps]:
         return []
+
+    def mark_as_processed(self, offers_list: List[Corps]) -> int:
+        return 0
+
+    def mark_as_pending(self, offers_list: List[Corps]) -> int:
+        return 0

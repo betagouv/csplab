@@ -2,6 +2,7 @@ from typing import List
 
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
+from django.utils import timezone
 
 from domain.entities.concours import Concours
 from domain.exceptions.concours_errors import ConcoursDoesNotExist
@@ -93,3 +94,19 @@ class PostgresConcoursRepository(IConcoursRepository):
             raise DatabaseError(f"Database error during update: {str(e)}") from e
 
         return [model.to_entity() for model in qs]
+
+    def mark_as_processed(self, offers_list: List[Concours]) -> int:
+        try:
+            return ConcoursModel.objects.filter(
+                id__in=[obj.id for obj in offers_list]
+            ).update(processed_at=timezone.now(), processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+    def mark_as_pending(self, offers_list: List[Concours]) -> int:
+        try:
+            return ConcoursModel.objects.filter(
+                id__in=[obj.id for obj in offers_list]
+            ).update(processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e

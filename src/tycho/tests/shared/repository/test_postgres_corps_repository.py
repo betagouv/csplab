@@ -51,3 +51,45 @@ class TestGetPendingProcessing:
         assert len(entities) == 1
         assert CorpsModel.objects.filter(processing=True).count() == 1
         assert CorpsModel.objects.filter(processing=False).count() == 1
+
+
+def test_mark_as_processed(db, repository):
+    corps_list = [
+        CorpsFactory.create(processing=True).to_entity(),
+        CorpsFactory.create(processing=False).to_entity(),
+    ]
+    undesired_corps = CorpsFactory.create(processing=True).to_entity()
+
+    count = repository.mark_as_processed(corps_list)
+    assert count == len(corps_list)
+
+    model_objects = CorpsModel.objects.filter(
+        processing=False, processed_at__isnull=False
+    )
+    assert set(model_objects.values_list("id", flat=True)) == {
+        corps.id for corps in corps_list
+    }
+
+    undesired_model_objects = CorpsModel.objects.get(
+        processing=True, processed_at__isnull=True
+    )
+    assert undesired_model_objects.id == undesired_corps.id
+
+
+def test_mark_as_pending(db, repository):
+    corps_list = [
+        CorpsFactory.create(processing=True).to_entity(),
+        CorpsFactory.create(processing=False).to_entity(),
+    ]
+    undesired_corps = CorpsFactory.create(processing=True).to_entity()
+
+    count = repository.mark_as_pending(corps_list)
+    assert count == len(corps_list)
+
+    model_objects = CorpsModel.objects.filter(processing=False)
+    assert set(model_objects.values_list("id", flat=True)) == {
+        corps.id for corps in corps_list
+    }
+
+    undesired_model_objects = CorpsModel.objects.get(processing=True)
+    assert undesired_model_objects.id == undesired_corps.id

@@ -73,3 +73,9 @@ class InMemoryOffersRepository(IOffersRepository):
 
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]:
         return []
+
+    def mark_as_processed(self, offers_list: List[Offer]) -> int:
+        return 0
+
+    def mark_as_pending(self, offers_list: List[Offer]) -> int:
+        return 0

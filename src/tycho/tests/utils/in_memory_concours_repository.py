@@ -65,3 +65,9 @@ class InMemoryConcoursRepository(IConcoursRepository):
 
     def get_pending_processing(self, limit: int = 1000) -> List[Concours]:
         return []
+
+    def mark_as_processed(self, offers_list: List[Concours]) -> int:
+        return 0
+
+    def mark_as_pending(self, offers_list: List[Concours]) -> int:
+        return 0
