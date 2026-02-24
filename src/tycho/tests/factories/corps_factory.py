@@ -1,6 +1,8 @@
 import random
+from datetime import datetime
 from typing import List, Optional
 
+from django.utils import timezone
 from faker import Faker
 
 from domain.entities.corps import Corps
@@ -23,6 +25,10 @@ class CorpsFactory:
         short_label: Optional[str] = None,
         long_label: Optional[str] = None,
         access_modalities: Optional[List[str]] = None,
+        updated_at: Optional[datetime] = None,
+        processing: bool = False,
+        processed_at: Optional[datetime] = None,
+        archived_at: Optional[datetime] = None,
     ) -> CorpsModel:
         if code is None:
             code = fake.word()
@@ -42,6 +48,12 @@ class CorpsFactory:
         if access_modalities is None:
             access_modalities = []
 
+        if processed_at:
+            processed_at = timezone.make_aware(processed_at)
+
+        if archived_at:
+            archived_at = timezone.make_aware(archived_at)
+
         entity = Corps(
             code=code,
             category=Category(category) if isinstance(category, str) else category,
@@ -51,9 +63,25 @@ class CorpsFactory:
             if access_modalities
             else [],
             label=Label(short_value=short_label, value=long_label),
+            processing=processing,
+            processed_at=processed_at,
+            archived_at=archived_at,
         )
 
         corps = CorpsModel.from_entity(entity)
         corps.save()
 
+        if updated_at:
+            CorpsModel.objects.filter(id=corps.id).update(
+                updated_at=timezone.make_aware(updated_at)
+            )
+            corps.refresh_from_db()
+
         return corps
+
+    @staticmethod
+    def create_batch(
+        size: int,
+        **kwargs,
+    ) -> List[CorpsModel]:
+        return [CorpsFactory.create(**kwargs) for _ in range(size)]

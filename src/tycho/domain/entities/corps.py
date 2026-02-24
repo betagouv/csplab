@@ -23,6 +23,7 @@ class Corps(IEntity):
     diploma: Optional[Diploma]
     access_modalities: list[AccessModality]
     label: Label
+    processing: bool = False
     processed_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
     id: UUID = field(default_factory=uuid4)
