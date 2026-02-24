@@ -51,3 +51,45 @@ class TestGetPendingProcessing:
         assert len(entities) == 1
         assert OfferModel.objects.filter(processing=True).count() == 1
         assert OfferModel.objects.filter(processing=False).count() == 1
+
+
+def test_mark_as_processed(db, repository):
+    offers = [
+        OfferFactory.create(processing=True).to_entity(),
+        OfferFactory.create(processing=False).to_entity(),
+    ]
+    undesired_offer = OfferFactory.create(processing=True).to_entity()
+
+    count = repository.mark_as_processed(offers)
+    assert count == len(offers)
+
+    model_objects = OfferModel.objects.filter(
+        processing=False, processed_at__isnull=False
+    )
+    assert set(model_objects.values_list("id", flat=True)) == {
+        offer.id for offer in offers
+    }
+
+    undesired_model_objects = OfferModel.objects.get(
+        processing=True, processed_at__isnull=True
+    )
+    assert undesired_model_objects.id == undesired_offer.id
+
+
+def test_mark_as_pending(db, repository):
+    offers = [
+        OfferFactory.create(processing=True).to_entity(),
+        OfferFactory.create(processing=False).to_entity(),
+    ]
+    undesired_offer = OfferFactory.create(processing=True).to_entity()
+
+    count = repository.mark_as_pending(offers)
+    assert count == len(offers)
+
+    model_objects = OfferModel.objects.filter(processing=False)
+    assert set(model_objects.values_list("id", flat=True)) == {
+        offer.id for offer in offers
+    }
+
+    undesired_model_objects = OfferModel.objects.get(processing=True)
+    assert undesired_model_objects.id == undesired_offer.id
