@@ -798,6 +798,15 @@ html[data-fr-js=true] .no-js-only {
   display: none !important;
 }
 
+/* On touch-only devices (mobile), always use the native uploader */
+@media (hover: none) and (pointer: coarse) {
+  html[data-fr-js=true] .no-js-only:not([hidden]) {
+    display: revert !important;
+  }
+  html[data-fr-js=true] .js-only {
+    display: none !important;
+  }
+}
 [hidden] {
   display: none !important;
 }
@@ -909,7 +918,6 @@ hr {
 .csplab-upload-wrapper .csplab-dropzone {
   position: relative;
   border: 1px dashed var(--border-action-high-blue-france);
-  border-radius: 0.5rem;
   padding: 2rem;
   text-align: center;
   cursor: pointer;
@@ -930,16 +938,6 @@ hr {
 }
 .csplab-upload-wrapper .csplab-dropzone:hover .csplab-dropzone__browse {
   text-decoration: underline var(--text-action-high-blue-france) 2px;
-}
-.csplab-upload-wrapper .csplab-dropzone .csplab-dropzone__icon {
-  height: 2rem;
-  width: 2rem;
-  border-radius: 50%;
-  background-color: var(--background-action-high-blue-france);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-inverted-grey);
 }
 .csplab-upload-wrapper .csplab-dropzone .csplab-dropzone__label {
   position: absolute;
@@ -964,7 +962,6 @@ hr {
   align-items: center;
   gap: 1rem;
   padding: 1.5rem;
-  border-radius: 0.5rem;
   background-color: var(--background-default-grey);
   border: 1px solid var(--border-default-grey);
 }
@@ -974,18 +971,6 @@ hr {
   gap: 1rem;
   flex: 1;
 }
-.csplab-file-card .csplab-file-card__icon-badge {
-  background-color: var(--background-contrast-blue-france);
-  padding: 4px;
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.csplab-file-card .csplab-file-card__icon-badge .fr-icon {
-  color: var(--background-action-high-blue-france);
-}
 .csplab-file-card .csplab-file-card__info {
   display: flex;
   flex-direction: column;
@@ -993,9 +978,6 @@ hr {
 }
 .csplab-file-card .csplab-file-card__name {
   font-weight: 500;
-}
-.csplab-file-card .csplab-file-card__size {
-  color: var(--text-action-high-blue-france);
 }
 
 .csplab-spinner {

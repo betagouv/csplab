@@ -4,6 +4,17 @@ html[data-fr-js="true"] .no-js-only {
   display: none !important;
 }
 
+/* On touch-only devices (mobile), always use the native uploader */
+@media (hover: none) and (pointer: coarse) {
+  html[data-fr-js="true"] .no-js-only:not([hidden]) {
+    display: revert !important;
+  }
+
+  html[data-fr-js="true"] .js-only {
+    display: none !important;
+  }
+}
+
 [hidden] {
   display: none !important;
 }

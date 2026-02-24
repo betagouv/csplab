@@ -6,7 +6,6 @@
   .csplab-dropzone {
     position: relative;
     border: 1px dashed var(--border-action-high-blue-france);
-    border-radius: $sp-1w;
     padding: $sp-4w;
     text-align: center;
     cursor: pointer;
@@ -29,17 +28,6 @@
 
     &:hover .csplab-dropzone__browse {
       text-decoration: underline var(--text-action-high-blue-france) 2px;
-    }
-
-    .csplab-dropzone__icon {
-      height: $sp-4w;
-      width: $sp-4w;
-      border-radius: 50%;
-      background-color: var(--background-action-high-blue-france);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-inverted-grey);
     }
 
     .csplab-dropzone__label {

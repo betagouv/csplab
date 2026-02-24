@@ -26,7 +26,8 @@
             <span class="fr-sr-only">{{ field.label }}</span>
         </label>
         <div class="csplab-dropzone__icon">
-            <span class="fr-icon-upload-line fr-icon--sm" aria-hidden="true"></span>
+            <span class="fr-icon-drag-drop-line fr-text-action-high--blue-france"
+                  aria-hidden="true"></span>
         </div>
         <p class="csplab-dropzone__text fr-text--bold fr-m-0">
             {{ dropzone_text|default:"Glissez-déposez votre fichier ou" }}
@@ -42,7 +43,7 @@
             </div>
             <div class="csplab-file-card__info">
                 <span class="csplab-file-card__name" data-file-name></span>
-                <span class="csplab-file-card__size" data-file-size></span>
+                <span class="csplab-file-card__size fr-text-mention--grey" data-file-size></span>
             </div>
         </div>
         <button type="button"

@@ -223,8 +223,20 @@ class CVUploadHandler {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const isTouchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
   const form = document.getElementById('cv-upload-form');
-  if (form) {
-    new CVUploadHandler(form);
+  if (!form) return;
+
+  if (isTouchOnly) {
+    const noJsInput = form.querySelector('[data-nojs-input]');
+    const noJsActions = form.querySelector('[data-nojs-actions]');
+    if (noJsInput && noJsActions) {
+      noJsInput.addEventListener('change', () => {
+        noJsActions.hidden = !noJsInput.value;
+      });
+    }
+    return;
   }
+
+  new CVUploadHandler(form);
 });

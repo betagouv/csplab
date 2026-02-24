@@ -7,54 +7,56 @@
     <script type="module" src="{% static 'candidate/js/cv-upload.js' %}"></script>
 {% endblock page_js %}
 {% block main %}
-    <!-- Toast alerts (server-side errors) -->
-    {% if form.errors %}
-        {% for field, errors in form.errors.items %}
-            {% for error in errors %}
-                {% dsfr_alert title="Le fichier n'a pas pu être importé." type="error" content=error is_collapsible=True extra_classes="csplab-toast" %}
+    <div class="fr-background-alt--blue-france">
+        <!-- Toast alerts (server-side errors) -->
+        {% if form.errors %}
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    {% dsfr_alert title="Le fichier n'a pas pu être importé." type="error" content=error is_collapsible=True extra_classes="csplab-toast" %}
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-    {% endif %}
-    <!-- Template for JS-generated info toasts -->
-    <template id="info-toast-template">
-        {% dsfr_alert title="CV supprimé" type="info" content="Votre CV a bien été supprimé. Vous pouvez en charger un nouveau." is_collapsible=True extra_classes="csplab-toast" %}
-    </template>
-    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
-    <div class="fr-container">
-        <!-- Header -->
-        <div class="fr-grid-row fr-grid-row--gutters">
-            <div class="fr-col-12 fr-col-md-6 fr-col-offset-md-2 fr-stack-3w">
-                <h1 class="csplab-text-blue-france">Analyse de profil</h1>
-                <p class="fr-text--xl">
-                    Grâce à votre CV, découvrez en quelques secondes les concours et les offres d'emploi de la fonction publique les plus adaptés à votre profil.
-                </p>
-            </div>
-            <div class="fr-col fr-col-6 fr-col-offset-3 fr-col-md-2 csplab-col-offset-md-0">
-                <img src="{% static 'candidate/images/460.Ai-Assistant.svg' %}"
-                     height="180"
-                     width="180"
-                     alt=""
-                     aria-hidden="true">
+        {% endif %}
+        <!-- Template for JS-generated info toasts -->
+        <template id="info-toast-template">
+            {% dsfr_alert title="CV supprimé" type="info" content="Votre CV a bien été supprimé. Vous pouvez en charger un nouveau." is_collapsible=True extra_classes="csplab-toast" %}
+        </template>
+        <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+        <div class="fr-container">
+            <!-- Header -->
+            <div class="fr-grid-row fr-grid-row--gutters">
+                <div class="fr-col-12 fr-col-md-6 fr-col-offset-md-2 fr-stack-3w">
+                    <h1>Analyse de profil</h1>
+                    <p class="fr-text--xl">
+                        Grâce à votre CV, découvrez en quelques secondes les concours et les offres d'emploi de la fonction publique les plus adaptés à votre profil.
+                    </p>
+                </div>
+                <div class="fr-col fr-col-6 fr-col-offset-3 fr-col-md-2 csplab-col-offset-md-0">
+                    <img src="{% static 'candidate/images/illustrations-csp/home-assis-11.svg' %}"
+                         height="180"
+                         width="180"
+                         alt=""
+                         aria-hidden="true">
+                </div>
             </div>
         </div>
-    </div>
-    <div class="fr-container fr-pt-3w fr-pb-12w">
-        <div class="fr-grid-row fr-grid-row--gutters">
-            <div class="fr-col-12 fr-col-md-8 fr-col-offset-md-2">
-                <!-- Upload section -->
-                <div class="fr-stack-2w">
-                    <hgroup class="fr-stack-1w">
-                        <h2 class="fr-h5 csplab-text-blue-france">Ajouter votre CV</h2>
-                        <p class="fr-text--sm">Afin d'avoir un résultat pertinent, nous vous conseillons d'ajouter un CV à jour.</p>
-                    </hgroup>
-                    <form method="post" enctype="multipart/form-data" id="cv-upload-form">
-                        {% csrf_token %}
-                        {% include "components/file_upload.html" with field=form.cv_file dropzone_text="Glissez-déposez votre CV ou" %}
-                        <!-- No-JS: always visible submit -->
-                        {% include "components/cv_upload_actions.html" with extra_classes="no-js-only" %}
-                        <!-- JS: shown after file selection -->
-                        {% include "components/cv_upload_actions.html" with extra_classes="js-only" extra_attrs="data-upload-actions hidden aria-hidden='true'" %}
-                    </form>
+        <div class="fr-container fr-pt-3w fr-pb-12w">
+            <div class="fr-grid-row fr-grid-row--gutters">
+                <div class="fr-col-12 fr-col-md-8 fr-col-offset-md-2">
+                    <!-- Upload section -->
+                    <div class="fr-stack-2w">
+                        <hgroup class="fr-stack-1w">
+                            <h2 class="fr-h5">Ajouter votre CV</h2>
+                            <p class="fr-text--sm">Afin d'avoir un résultat pertinent, nous vous conseillons d'ajouter un CV à jour.</p>
+                        </hgroup>
+                        <form method="post" enctype="multipart/form-data" id="cv-upload-form">
+                            {% csrf_token %}
+                            {% include "components/file_upload.html" with field=form.cv_file dropzone_text="Glissez-déposez votre CV ou" %}
+                            <!-- No-JS / mobile: hidden until file selected -->
+                            {% include "components/cv_upload_actions.html" with extra_classes="no-js-only" extra_attrs="data-nojs-actions hidden" %}
+                            <!-- JS: shown after file selection -->
+                            {% include "components/cv_upload_actions.html" with extra_classes="js-only" extra_attrs="data-upload-actions hidden aria-hidden='true'" %}
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
