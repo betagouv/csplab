@@ -1,3 +1,4 @@
+import uuid
 from typing import Any, Dict, List, Union
 
 from domain.entities.concours import Concours
@@ -65,16 +66,16 @@ class VectorizeDocumentsUsecase:
         embedding = self.embedding_generator.generate_embedding(content)
 
         if isinstance(source, Document):
-            entity_id = source.id
+            entity_id = str(source.id)
             document_type = source.type
         elif isinstance(source, Corps):
-            entity_id = source.id
+            entity_id = str(source.id)
             document_type = DocumentType.CORPS
         elif isinstance(source, Concours):
-            entity_id = source.id
+            entity_id = str(source.id)
             document_type = DocumentType.CONCOURS
         elif isinstance(source, Offer):
-            entity_id = source.id  # type: ignore  # TODO: Offer still uses int ID
+            entity_id = str(source.id)
             document_type = DocumentType.OFFERS
         else:
             raise UnsupportedDocumentTypeError(type(source).__name__)
@@ -83,12 +84,10 @@ class VectorizeDocumentsUsecase:
         if entity_id is None:
             raise ValueError("Entity ID cannot be None for vectorization")
 
-        vectorized_doc = VectorizedDocument(
-            entity_id=entity_id,
+        return VectorizedDocument(
+            entity_id=uuid.UUID(entity_id),
             document_type=document_type,
             content=content,
             embedding=embedding,
             metadata=metadata,
         )
-
-        return self.vector_repository.store_embedding(vectorized_doc)
