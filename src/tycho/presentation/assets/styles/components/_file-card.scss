@@ -5,7 +5,6 @@
   align-items: center;
   gap: $sp-2w;
   padding: $sp-3w;
-  border-radius: $sp-1w;
   background-color: var(--background-default-grey);
   border: 1px solid var(--border-default-grey);
 
@@ -16,20 +15,6 @@
     flex: 1;
   }
 
-  .csplab-file-card__icon-badge {
-    background-color: var(--background-contrast-blue-france);
-    padding: 4px;
-    border-radius: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    .fr-icon {
-      color: var(--background-action-high-blue-france);
-    }
-  }
-
   .csplab-file-card__info {
     display: flex;
     flex-direction: column;
@@ -38,9 +23,5 @@
 
   .csplab-file-card__name {
     font-weight: 500;
-  }
-
-  .csplab-file-card__size {
-    color: var(--text-action-high-blue-france);
   }
 }
