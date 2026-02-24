@@ -51,8 +51,8 @@
                         <form method="post" enctype="multipart/form-data" id="cv-upload-form">
                             {% csrf_token %}
                             {% include "components/file_upload.html" with field=form.cv_file dropzone_text="Glissez-déposez votre CV ou" %}
-                            <!-- No-JS: always visible submit -->
-                            {% include "components/cv_upload_actions.html" with extra_classes="no-js-only" %}
+                            <!-- No-JS / mobile: hidden until file selected -->
+                            {% include "components/cv_upload_actions.html" with extra_classes="no-js-only" extra_attrs="data-nojs-actions hidden" %}
                             <!-- JS: shown after file selection -->
                             {% include "components/cv_upload_actions.html" with extra_classes="js-only" extra_attrs="data-upload-actions hidden aria-hidden='true'" %}
                         </form>
