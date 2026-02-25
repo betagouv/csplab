@@ -1,7 +1,5 @@
 """Integration test cases for MatchCVToOpportunitiesUsecase."""
 
-from datetime import datetime, timezone
-
 import pytest
 from faker import Faker
 
@@ -54,8 +52,6 @@ def generate_vectorized_documents(documents):
             content=fake.word(),
             embedding=[0.2] * 3072,  # Mock embedding
             metadata={"source": "test"},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
         )
         for obj in documents
     ]

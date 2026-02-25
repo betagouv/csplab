@@ -1,7 +1,6 @@
 """VectorizedDocument entity for semantic search operations."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import Any, Dict, List
 from uuid import UUID, uuid4
 
@@ -18,6 +17,4 @@ class VectorizedDocument(IEntity):
     content: str
     embedding: List[float]
     metadata: Dict[str, Any]
-    created_at: datetime
-    updated_at: datetime
     id: UUID = field(default_factory=uuid4)

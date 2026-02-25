@@ -1,7 +1,6 @@
 """In-memory vector repository implementation for testing."""
 
 import math
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -39,8 +38,6 @@ class InMemoryVectorRepository(IVectorRepository):
                 content=vectorized_doc.content,
                 embedding=vectorized_doc.embedding,
                 metadata=vectorized_doc.metadata,
-                created_at=existing.created_at,
-                updated_at=datetime.now(timezone.utc),
             )
             self._documents[existing.id] = updated_doc
             return updated_doc
@@ -52,8 +49,6 @@ class InMemoryVectorRepository(IVectorRepository):
                 content=vectorized_doc.content,
                 embedding=vectorized_doc.embedding,
                 metadata=vectorized_doc.metadata,
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
             )
             self._documents[new_doc.id] = new_doc
             return new_doc
