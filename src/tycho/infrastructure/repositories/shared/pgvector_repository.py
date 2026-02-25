@@ -23,25 +23,6 @@ class PgVectorRepository(IVectorRepository):
     def __init__(self, logger: ILogger):
         self.logger = logger
 
-    def store_embedding(self, vectorized_doc: VectorizedDocument) -> VectorizedDocument:
-        """Store a vectorized document with its embedding."""
-        model = VectorizedDocumentModel.from_entity(vectorized_doc)
-
-        existing = VectorizedDocumentModel.objects.filter(
-            entity_id=vectorized_doc.entity_id, document_type=model.document_type
-        ).first()
-
-        if existing:
-            existing.content = model.content
-            existing.embedding = model.embedding
-            existing.metadata = model.metadata
-            existing.save()
-            return existing.to_entity()
-        else:
-            # Create new record
-            model.save()
-            return model.to_entity()
-
     def semantic_search(
         self,
         query_embedding: List[float],

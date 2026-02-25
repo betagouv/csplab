@@ -7,10 +7,6 @@ from domain.value_objects.similarity_type import SimilarityResult, SimilarityTyp
 
 
 class IVectorRepository(Protocol):
-    def store_embedding(self, vectorized_doc: VectorizedDocument) -> VectorizedDocument:
-        """Store a vectorized document with its embedding."""
-        ...
-
     def semantic_search(
         self,
         query_embedding: List[float],
