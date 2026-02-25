@@ -32,7 +32,9 @@ class InMemoryVectorRepository(IVectorRepository):
         return {"created": 99999, "updated": 99999, "errors": []}
 
     def store_embedding(self, vectorized_doc: VectorizedDocument):
-        """Store a vectorized document in memory."""
+        # WARNING! This method has been remove from pgvector_repository
+        # It is maintend for in_memory usecase existing test :
+        # DO NOT REUSE
         # Handle upsert based on entity_id
         existing = None
         for doc in self._documents.values():
