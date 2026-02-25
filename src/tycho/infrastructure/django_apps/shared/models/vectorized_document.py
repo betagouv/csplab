@@ -32,7 +32,7 @@ class VectorizedDocumentModel(models.Model):
         ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["id", "document_type"],
+                fields=["entity_id", "document_type"],
                 name="unique_id_document_type",
             ),
         ]
