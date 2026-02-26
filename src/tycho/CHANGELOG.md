@@ -4,7 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.3] - 2026-02-23
+## [0.1.4] - 2026-02-26
+
+### <!-- 2 --> Modified
+
+- ♻️(tycho:candidate) update results page styles and filtering logic ([#196](https://github.com/betagouv/csplab/pull/196))
+- 💎(candidate) update cv upload page styles ([#219](https://github.com/betagouv/csplab/pull/219))
+- 💎(candidate) update cv processing page styles ([#223](https://github.com/betagouv/csplab/pull/223))
+
+### <!-- 4 --> Fixed
+
+- 🐛(tooling) align git commit hook with new cz emojis config ([#221](https://github.com/betagouv/csplab/pull/221))
+- 🔧(tooling) make sure both vscode djlint and cli djlint use same config ([#220](https://github.com/betagouv/csplab/pull/220))
+- 🐛(tooling) align git commit hook with new cz emojis config ([#222](https://github.com/betagouv/csplab/pull/222))
+- 🐛(candidate) fix concours card props ([#231](https://github.com/betagouv/csplab/pull/231))
+- 🐛(ingestion) fix VectorizedDocumentModel unicity constraint ([#233](https://github.com/betagouv/csplab/pull/233))
+
+## [0.1.3] - 2026-02-24
 
 ### <!-- 0 --> Breaking Changes
 
