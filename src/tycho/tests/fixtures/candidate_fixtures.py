@@ -170,8 +170,6 @@ def vectorized_concours_documents_fixture(concours):
             content=f"{c.corps} {c.grade}",
             embedding=[0.1] * 3072,  # Mock embedding
             metadata={"source": "test"},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
         )
         documents.append(vectorized_doc)
     return documents
@@ -194,8 +192,6 @@ def vectorized_offers_documents_fixture(offers):
             content=f"{c.external_id} {c.title}",
             embedding=[0.2] * 3072,  # Mock embedding
             metadata={"source": "test"},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
         )
         for c in offers
     ]

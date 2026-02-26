@@ -1,6 +1,5 @@
 """VectorizeDocuments usecase."""
 
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Union
 
 from domain.entities.concours import Concours
@@ -97,8 +96,6 @@ class VectorizeDocumentsUsecase:
             content=content,
             embedding=embedding,
             metadata=metadata,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
         )
 
         return self.vector_repository.store_embedding(vectorized_doc)

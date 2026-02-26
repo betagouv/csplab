@@ -1,7 +1,6 @@
 """Unit test cases for RetrieveCorpsUsecase."""
 
 import unittest
-from datetime import datetime, timezone
 
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
@@ -70,8 +69,6 @@ class TestUnitRetrieveCorpsUsecase(unittest.TestCase):
                 content=fixture_data["long_label"],
                 embedding=fixture_data["embedding"],
                 metadata={"document_type": "CORPS"},
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
             )
             vector_repository.store_embedding(vectorized_doc)
 

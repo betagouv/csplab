@@ -1,6 +1,5 @@
 """PgVector repository implementation for vector operations."""
 
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from django.db.models import Q
@@ -33,7 +32,6 @@ class PgVectorRepository(IVectorRepository):
             existing.content = model.content
             existing.embedding = model.embedding
             existing.metadata = model.metadata
-            existing.updated_at = datetime.now(timezone.utc)
             existing.save()
             return existing.to_entity()
         else:

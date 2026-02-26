@@ -32,7 +32,7 @@ class VectorizedDocumentModel(models.Model):
         ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["id", "document_type"],
+                fields=["entity_id", "document_type"],
                 name="unique_id_document_type",
             ),
         ]
@@ -50,8 +50,6 @@ class VectorizedDocumentModel(models.Model):
             content=self.content,
             embedding=list(self.embedding),
             metadata=self.metadata,
-            created_at=self.created_at,
-            updated_at=self.updated_at,
         )
 
     @classmethod
@@ -64,6 +62,4 @@ class VectorizedDocumentModel(models.Model):
             content=entity.content,
             embedding=entity.embedding,
             metadata=entity.metadata,
-            created_at=entity.created_at,
-            updated_at=entity.updated_at,
         )

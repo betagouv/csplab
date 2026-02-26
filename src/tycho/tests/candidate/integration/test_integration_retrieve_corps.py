@@ -1,7 +1,5 @@
 """Integration tests for RetrieveCorpsUsecase with external adapters."""
 
-from datetime import datetime, timezone
-
 import pytest
 from faker import Faker
 
@@ -116,8 +114,6 @@ def corps_data_fixture(shared_container, embeddings):
             content=fixture_data["long_label"],
             embedding=fixture_data["embedding"],
             metadata={"document_type": "CORPS"},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
         )
         vector_repository.store_embedding(vectorized_doc)
 
