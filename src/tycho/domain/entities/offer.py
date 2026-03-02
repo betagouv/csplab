@@ -31,6 +31,7 @@ class Offer(IEntity):
     localisation: Optional[Localisation]
     publication_date: datetime
     beginning_date: Optional[LimitDate]
+    processing: bool = False
     processed_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
     id: UUID = field(default_factory=uuid4)

@@ -1,11 +1,10 @@
-"""Factory for generating test Concours instances."""
-
 import random
 import string
 from datetime import datetime
 from typing import List, Optional
 from uuid import uuid4
 
+from django.utils import timezone
 from faker import Faker
 from faker.providers import BaseProvider
 
@@ -15,10 +14,7 @@ from infrastructure.django_apps.shared.models.concours import ConcoursModel
 
 
 class NorProvider(BaseProvider):
-    """Nor Provider class."""
-
     def nor(self):
-        """Random nor generator."""
         letters = string.ascii_uppercase
         return (
             "".join(random.choice(letters) for _ in range(4))
@@ -32,8 +28,6 @@ fake.add_provider(NorProvider)
 
 
 class ConcoursFactory:
-    """Factory for creating Concours test instances."""
-
     @staticmethod
     def create(
         corps: Optional[str] = None,
@@ -45,8 +39,11 @@ class ConcoursFactory:
         access_modality: Optional[List[str]] = None,
         written_exam_date: Optional[datetime] = None,
         open_position_number: Optional[int] = None,
+        updated_at: Optional[datetime] = None,
+        processing: bool = False,
+        processed_at: Optional[datetime] = None,
+        archived_at: Optional[datetime] = None,
     ) -> ConcoursModel:
-        """Create a ConcoursModel instance."""
         if corps is None:
             corps = "Test Corps"
 
@@ -71,6 +68,12 @@ class ConcoursFactory:
         if open_position_number is None:
             open_position_number = 10
 
+        if processed_at:
+            processed_at = timezone.make_aware(processed_at)
+
+        if archived_at:
+            archived_at = timezone.make_aware(archived_at)
+
         concours = ConcoursModel(
             id=uuid4(),
             corps=corps,
@@ -82,8 +85,24 @@ class ConcoursFactory:
             access_modality=access_modality,
             written_exam_date=written_exam_date,
             open_position_number=open_position_number,
+            processing=processing,
+            processed_at=processed_at,
+            archived_at=archived_at,
         )
 
         concours.save()
 
+        if updated_at:
+            ConcoursModel.objects.filter(id=concours.id).update(
+                updated_at=timezone.make_aware(updated_at)
+            )
+            concours.refresh_from_db()
+
         return concours
+
+    @staticmethod
+    def create_batch(
+        size: int,
+        **kwargs,
+    ) -> List[ConcoursModel]:
+        return [ConcoursFactory.create(**kwargs) for _ in range(size)]

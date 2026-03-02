@@ -1,6 +1,8 @@
-"""Django implementation of IConcoursRepository."""
-
 from typing import List
+
+from django.db import DatabaseError, transaction
+from django.db.models import F, Q
+from django.utils import timezone
 
 from domain.entities.concours import Concours
 from domain.exceptions.concours_errors import ConcoursDoesNotExist
@@ -14,14 +16,10 @@ from infrastructure.django_apps.shared.models.concours import ConcoursModel
 
 
 class PostgresConcoursRepository(IConcoursRepository):
-    """Django ORM implementation of IConcoursRepository."""
-
     def __init__(self, logger: ILogger):
-        """Initialize with logger."""
         self.logger = logger
 
     def upsert_batch(self, concours_list: List[Concours]) -> IUpsertResult:
-        """Insert or update multiple Concours entities and return operation results."""
         created = 0
         updated = 0
         errors: List[IUpsertError] = []
@@ -64,7 +62,6 @@ class PostgresConcoursRepository(IConcoursRepository):
         return {"created": created, "updated": updated, "errors": errors}
 
     def find_by_id(self, concours_id) -> Concours:
-        """Find a Concours by its ID."""
         try:
             concours_model = ConcoursModel.objects.get(id=concours_id)
             return concours_model.to_entity()
@@ -72,7 +69,6 @@ class PostgresConcoursRepository(IConcoursRepository):
             raise ConcoursDoesNotExist(str(concours_id)) from e
 
     def find_by_nor(self, nor) -> Concours:
-        """Find a Concours by its NOR."""
         try:
             concours_model = ConcoursModel.objects.get(nor_original=nor.value)
             return concours_model.to_entity()
@@ -80,6 +76,37 @@ class PostgresConcoursRepository(IConcoursRepository):
             raise ConcoursDoesNotExist(str(nor)) from e
 
     def get_all(self) -> List[Concours]:
-        """Get all Concours entities."""
         concours_models = ConcoursModel.objects.all()
         return [model.to_entity() for model in concours_models]
+
+    @transaction.atomic
+    def get_pending_processing(self, limit: int = 1000) -> List[Concours]:
+        qs = (
+            ConcoursModel.objects.filter(archived_at__isnull=True, processing=False)
+            .filter(Q(processed_at__isnull=True) | Q(updated_at__gt=F("processed_at")))
+            .select_for_update(of=("self",), skip_locked=True)[:limit]
+        )
+        for obj in qs:
+            obj.processing = True
+        try:
+            ConcoursModel.objects.bulk_update(qs, ["processing"])
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+        return [model.to_entity() for model in qs]
+
+    def mark_as_processed(self, offers_list: List[Concours]) -> int:
+        try:
+            return ConcoursModel.objects.filter(
+                id__in=[obj.id for obj in offers_list]
+            ).update(processed_at=timezone.now(), processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+    def mark_as_pending(self, offers_list: List[Concours]) -> int:
+        try:
+            return ConcoursModel.objects.filter(
+                id__in=[obj.id for obj in offers_list]
+            ).update(processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e

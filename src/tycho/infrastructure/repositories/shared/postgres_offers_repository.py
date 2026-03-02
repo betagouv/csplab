@@ -1,9 +1,9 @@
-"""Django implementation of IOffersRepository."""
-
 from typing import Dict, List
 from uuid import UUID
 
 from django.db import DatabaseError, transaction
+from django.db.models import F, Q
+from django.utils import timezone
 
 from domain.entities.offer import Offer
 from domain.exceptions.offer_errors import OfferDoesNotExist
@@ -16,14 +16,10 @@ from infrastructure.django_apps.shared.models.offer import OfferModel
 
 
 class PostgresOffersRepository(IOffersRepository):
-    """Django ORM implementation of IOffersRepository."""
-
     def __init__(self, logger: ILogger):
-        """Initialize with logger."""
         self.logger = logger
 
     def upsert_batch(self, offers_list: List[Offer]) -> IUpsertResult:
-        """Insert or update multiple Offer entities and return operation results."""
         try:
             with transaction.atomic():
                 # Get existing models with select_for_update to prevent race conditions
@@ -115,7 +111,6 @@ class PostgresOffersRepository(IOffersRepository):
             }
 
     def find_by_id(self, offer_id: UUID) -> Offer:
-        """Find an Offer by its ID."""
         try:
             offer_model = OfferModel.objects.get(id=offer_id)
             return offer_model.to_entity()
@@ -123,7 +118,6 @@ class PostgresOffersRepository(IOffersRepository):
             raise OfferDoesNotExist(offer_id) from e
 
     def find_by_external_id(self, external_id: str) -> Offer:
-        """Find an Offer by its external ID (Talentsoft ID)."""
         try:
             offer_model = OfferModel.objects.get(external_id=external_id)
             return offer_model.to_entity()
@@ -131,6 +125,38 @@ class PostgresOffersRepository(IOffersRepository):
             raise OfferDoesNotExist(external_id) from e
 
     def get_all(self) -> List[Offer]:
-        """Get all Offer entities."""
         offer_models = OfferModel.objects.all()
         return [model.to_entity() for model in offer_models]
+
+    @transaction.atomic
+    def get_pending_processing(self, limit: int = 1000) -> List[Offer]:
+        qs = (
+            OfferModel.objects.filter(archived_at__isnull=True, processing=False)
+            .filter(Q(processed_at__isnull=True) | Q(updated_at__gt=F("processed_at")))
+            .select_for_update(of=("self",), skip_locked=True)[:limit]
+        )
+
+        for obj in qs:
+            obj.processing = True
+        try:
+            OfferModel.objects.bulk_update(qs, ["processing"])
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+        return [model.to_entity() for model in qs]
+
+    def mark_as_processed(self, offers_list: List[Offer]) -> int:
+        try:
+            return OfferModel.objects.filter(
+                id__in=[obj.id for obj in offers_list]
+            ).update(processed_at=timezone.now(), processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+    def mark_as_pending(self, offers_list: List[Offer]) -> int:
+        try:
+            return OfferModel.objects.filter(
+                id__in=[obj.id for obj in offers_list]
+            ).update(processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e

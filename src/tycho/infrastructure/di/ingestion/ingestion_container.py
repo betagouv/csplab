@@ -1,5 +1,3 @@
-"""Ingestion dependency injection container."""
-
 from dependency_injector import containers, providers
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
@@ -28,8 +26,6 @@ from infrastructure.repositories.repository_factory import RepositoryFactory
 
 
 class IngestionContainer(containers.DeclarativeContainer):
-    """Ingestion services container."""
-
     logger_service: providers.Dependency = providers.Dependency()
     app_config: providers.Dependency = providers.Dependency()
 
@@ -118,4 +114,5 @@ class IngestionContainer(containers.DeclarativeContainer):
         text_extractor=text_extractor,
         embedding_generator=embedding_generator,
         logger=logger_service,
+        repository_factory=repository_factory,
     )

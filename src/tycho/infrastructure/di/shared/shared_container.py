@@ -39,4 +39,7 @@ class SharedContainer(containers.DeclarativeContainer):
         config=providers.Callable(lambda cfg: cfg.openai, app_config),
     )
 
-    vector_repository = providers.Singleton(pgvector_repository.PgVectorRepository)
+    vector_repository = providers.Singleton(
+        pgvector_repository.PgVectorRepository,
+        logger=logger_service,
+    )
