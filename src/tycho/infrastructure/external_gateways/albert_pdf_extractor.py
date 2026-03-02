@@ -1,9 +1,9 @@
 """Albert PDF text extractor implementation."""
 
 import json
-from typing import Any, Dict
+from typing import Any, Dict, List
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from config.app_config import AlbertConfig
 from domain.services.async_http_client_interface import IAsyncHttpClient
@@ -15,11 +15,53 @@ from infrastructure.external_gateways.constants.ocr_cv_prompts import (
 )
 
 
+class AlbertUsageCarbon(BaseModel):
+    """Carbon usage information from Albert API."""
+
+    kWh: Dict[str, float]
+    kgCO2eq: Dict[str, float]
+
+
+class AlbertUsage(BaseModel):
+    """Usage information from Albert API."""
+
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+    cost: float
+    carbon: AlbertUsageCarbon
+    requests: int
+
+
+class AlbertDocumentPageMetadata(BaseModel):
+    """Metadata for a document page from Albert API."""
+
+    document_name: str
+    page: int
+
+
+class AlbertDocumentPage(BaseModel):
+    """Document page from Albert API."""
+
+    object: str
+    content: str
+    images: Dict[str, str]
+    metadata: AlbertDocumentPageMetadata
+
+
+class AlbertOCRResponse(BaseModel):
+    """Complete OCR response structure from Albert API."""
+
+    object: str
+    data: List[AlbertDocumentPage]
+    usage: AlbertUsage
+
+
 class AlbertPDFExtractor(IPDFTextExtractor):
     """Implementation of PDF text extraction service using Albert API."""
 
     def __init__(self, config: AlbertConfig, http_client: IAsyncHttpClient):
-        """Initialize with Albert configuration and HTTP client."""
+        """Initialize with Albert configuration, HTTP client and logger."""
         self.config = config
         self.http_client = http_client
 
@@ -63,10 +105,18 @@ class AlbertPDFExtractor(IPDFTextExtractor):
 
         try:
             ocr_data = response.json()
-            return self._normalize_albert_ocr_structured(ocr_data)
+
+            # Parse the response using the Pydantic model
+            albert_response = AlbertOCRResponse.model_validate(ocr_data)
+            return self._normalize_albert_ocr_structured(albert_response)
         except json.JSONDecodeError as e:
             raise ExternalApiError(
                 "Invalid JSON response from Albert API",
+                api_name="Albert",
+            ) from e
+        except ValidationError as e:
+            raise ExternalApiError(
+                f"Invalid Albert API response structure: {e}",
                 api_name="Albert",
             ) from e
 
@@ -104,99 +154,51 @@ class AlbertPDFExtractor(IPDFTextExtractor):
             fence_pos = text.rfind("```")
             if fence_pos != -1:
                 text = text[:fence_pos]
-        try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            return {}
+        return json.loads(text)
 
-    def _normalize_albert_ocr_structured(self, ocr_data: Any) -> CVExtractionResult:
+    def _normalize_albert_ocr_structured(
+        self, albert_response: AlbertOCRResponse
+    ) -> CVExtractionResult:
         """Normalize Albert OCR JSON output to extract experiences and skills."""
-        # Guard: Not a dict or string, return empty
-        if not isinstance(ocr_data, (dict, str)):
-            try:
-                return CVExtractionResult.model_validate(
-                    {"experiences": [], "skills": []}
-                )
-            except ValidationError as e:
-                raise ExternalApiError(
-                    f"Invalid extraction result structure: {e}"
-                ) from e
-
-        # Case 1: Direct experiences in dict
-        if isinstance(ocr_data, dict):
-            experiences = ocr_data.get("experiences", [])
-            skills = ocr_data.get("skills", [])
-            if isinstance(experiences, list) and isinstance(skills, list):
-                try:
-                    return CVExtractionResult.model_validate(
-                        {"experiences": experiences, "skills": skills}
-                    )
-                except ValidationError as e:
-                    raise ExternalApiError(
-                        f"Invalid extraction result structure: {e}"
-                    ) from e
-
-            # Case 2: Multi-page structure
-            data = ocr_data.get("data")
-            if isinstance(data, list):
-                return self._extract_from_pages(data)
-
-            # Case 3: Text field
-            text = ocr_data.get("text")
-            if isinstance(text, str):
-                return self._extract_from_text(text)
-
-        # Case 4: Raw string
-        if isinstance(ocr_data, str):
-            return self._extract_from_text(ocr_data)
-
         try:
-            return CVExtractionResult.model_validate({"experiences": [], "skills": []})
-        except ValidationError as e:
-            raise ExternalApiError(f"Invalid extraction result structure: {e}") from e
+            # Extract content from all pages
+            final_experiences = []
+            final_skills = []
 
-    def _extract_from_pages(self, pages: list) -> CVExtractionResult:
-        """Extract experiences and skills from multi-page data."""
-        final_experiences = []
-        final_skills = []
-        for page in pages:
-            if not isinstance(page, dict):
-                continue
-            content = page.get("content")
-            if not isinstance(content, str):
-                continue
-            parsed = self._extract_json_from_fenced_content(content)
-            if not isinstance(parsed, dict):
-                continue
-            experiences = parsed.get("experiences", [])
-            skills = parsed.get("skills", [])
-            if isinstance(experiences, list):
-                final_experiences.extend(experiences)
-            if isinstance(skills, list):
-                final_skills.extend(skills)
-        try:
-            return CVExtractionResult.model_validate(
+            for page in albert_response.data:
+                content = page.content.strip()
+                parsed_json = None
+
+                # First try: direct JSON parsing
+                if content.startswith("{") and content.endswith("}"):
+                    try:
+                        parsed_json = json.loads(content)
+                    except json.JSONDecodeError:
+                        pass
+
+                # Second try: extract from markdown fenced blocks
+                if parsed_json is None:
+                    parsed_json = self._extract_json_from_fenced_content(content)
+
+                # Extract experiences and skills if we have valid JSON
+                if isinstance(parsed_json, dict):
+                    experiences = parsed_json.get("experiences", [])
+                    skills = parsed_json.get("skills", [])
+
+                    if isinstance(experiences, list):
+                        final_experiences.extend(experiences)
+
+                    if isinstance(skills, list):
+                        final_skills.extend(skills)
+
+            # Create and validate the final result
+            result = CVExtractionResult.model_validate(
                 {"experiences": final_experiences, "skills": final_skills}
             )
-        except ValidationError as e:
-            raise ExternalApiError(f"Invalid extraction result structure: {e}") from e
 
-    def _extract_from_text(self, text: str) -> CVExtractionResult:
-        """Extract experiences and skills from text content."""
-        parsed = self._extract_json_from_fenced_content(text)
-        if isinstance(parsed, dict):
-            experiences = parsed.get("experiences", [])
-            skills = parsed.get("skills", [])
-            if isinstance(experiences, list) and isinstance(skills, list):
-                try:
-                    return CVExtractionResult.model_validate(
-                        {"experiences": experiences, "skills": skills}
-                    )
-                except ValidationError as e:
-                    raise ExternalApiError(
-                        f"Invalid extraction result structure: {e}"
-                    ) from e
-        try:
-            return CVExtractionResult.model_validate({"experiences": [], "skills": []})
+            return result
+
         except ValidationError as e:
-            raise ExternalApiError(f"Invalid extraction result structure: {e}") from e
+            raise ExternalApiError(f"Invalid CV extraction result format: {e}") from e
+        except Exception as e:
+            raise ExternalApiError(f"Error processing Albert API response: {e}") from e
