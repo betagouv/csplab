@@ -1,0 +1,616 @@
+{
+"versant":
+[
+  {
+    "label": "Fonction publique de l'Etat",
+    "code": "FPE"
+  },
+  {
+    "label": "Fonction publique Hospitalière",
+    "code": "FPH"
+  },
+  {
+    "label": "Fonction publique Territoriale",
+    "code": "FPT"
+  }
+],
+"contract":
+[
+  {
+    "label": "Emploi ouvert aux fonctionnaires et/ou aux contractuels",
+    "code": "NAT_TITULAIRE_CONTRACTUEL"
+  },
+  {
+    "label": "Emploi ouvert aux contractuels",
+    "code": "NAT_CONTRACTUELS"
+  }
+],
+"contract_type":
+[
+  {
+    "label": "CDD de 6 mois",
+    "code": "CDD_6M"
+  },
+  {
+    "label": "CDD d'1 an",
+    "code": "CDD_1A"
+  },
+  {
+    "label": "CDD de 2 ans",
+    "code": "CDD_2A"
+  },
+  {
+    "label": "CDD de 3 ans",
+    "code": "CDD_3A"
+  },
+  {
+    "label": "CDI",
+    "code": "CDI"
+  }
+],
+"category":
+[
+  {
+    "label": "Catégorie A+ (Encadrement supérieur - Autres emplois fonctionnels)",
+    "code": "CAT-AEF"
+  },
+  {
+    "label": "Catégorie A+ (Encadrement supérieur - Emplois de direction)",
+    "code": "CAT-ESD"
+  },
+  {
+    "label": "Catégorie A (cadre)",
+    "code": "CAT-A"
+  },
+  {
+    "label": "Catégorie B (profession intermédiaire)",
+    "code": "CAT-B"
+  },
+  {
+    "label": "Catégorie C (employé)",
+    "code": "CAT-C"
+  }
+],
+"profession_domain":
+[
+  {
+    "label": "Achat",
+    "code": "ERACH"
+  },
+  {
+    "label": "Agriculture",
+    "code": "ERAGR"
+  },
+  {
+    "label": "Aménagement et développement durable du territoire",
+    "code": "ERAMT"
+  },
+  {
+    "label": "Animation, jeunesse et sports",
+    "code": "ERASP"
+  },
+  {
+    "label": "Bâtiment",
+    "code": "ERBAT"
+  },
+  {
+    "label": "Communication",
+    "code": "ERCOM"
+  },
+  {
+    "label": "Organisation, contrôle et évaluation",
+    "code": "ERCTL"
+  },
+  {
+    "label": "Culture et Patrimoine",
+    "code": "ERCUL"
+  },
+  {
+    "label": "Défense",
+    "code": "ERDEF"
+  },
+  {
+    "label": "Direction et pilotage des politiques publiques",
+    "code": "ERDIR"
+  },
+  {
+    "label": "Lecture publique et Documentation",
+    "code": "ERDOC"
+  },
+  {
+    "label": "Enseignement et Formation",
+    "code": "ERENS"
+  },
+  {
+    "label": "Environnement",
+    "code": "ERENV"
+  },
+  {
+    "label": "Finances Publiques",
+    "code": "ERFIP"
+  },
+  {
+    "label": "Gestion budgétaire et financière",
+    "code": "ERGBF"
+  },
+  {
+    "label": "Ressources Humaines",
+    "code": "ERGRH"
+  },
+  {
+    "label": "International",
+    "code": "ERINT"
+  },
+  {
+    "label": "Affaires juridiques",
+    "code": "ERJUR"
+  },
+  {
+    "label": "Justice",
+    "code": "ERJUS"
+  },
+  {
+    "label": "Interventions techniques et logistiques",
+    "code": "ERLOG"
+  },
+  {
+    "label": "Médical et paramédical",
+    "code": "ERMED"
+  },
+  {
+    "label": "Numérique",
+    "code": "ERNUM"
+  },
+  {
+    "label": "Recherche",
+    "code": "ERRCH"
+  },
+  {
+    "label": "Renseignement",
+    "code": "ERREN"
+  },
+  {
+    "label": "Prévention, conseil et pilotage en santé",
+    "code": "ERSAN"
+  },
+  {
+    "label": "Sécurité",
+    "code": "ERSEC"
+  },
+  {
+    "label": "Social, enfance et famille",
+    "code": "ERSOC"
+  },
+  {
+    "label": "Transports",
+    "code": "ERTRA"
+  },
+  {
+    "label": "Relation à l'usager",
+    "code": "ERUSA"
+  }
+],
+"profession_detail":
+[
+  {
+    "label": "Responsable achats",
+    "code": "ERACH001"
+  },
+  {
+    "label": "Responsable achats - marchés publics",
+    "code": "ERACH002"
+  },
+  {
+    "label": "Responsable marchés publics",
+    "code": "ERACH003"
+  },
+  {
+    "label": "Acheteuse polyvalente / Acheteur polyvalent",
+    "code": "ERACH004"
+  },
+  {
+    "label": "Acheteuse / Acheteur informatique (IT, Telecom, PII)",
+    "code": "ERACH005"
+  }
+],
+"status":
+[
+  {
+    "label": "Vacant",
+    "code": "STATUT01"
+  },
+  {
+    "label": "Susceptible d'être vacant",
+    "code": "STATUT02"
+  }
+],
+"document":
+[
+  {
+    "label": "L'envoi du CV est obligatoire",
+    "code": "Doc_CV"
+  },
+  {
+    "label": "L'envoi du CV et d'une lettre de motivation est obligatoire",
+    "code": "Doc_CV_LM"
+  },
+  {
+    "label": "L'envoi du CV, d'une lettre de motivation et d'un portfolio est obligatoire",
+    "code": "Doc_CV_LM_PF"
+  },
+  {
+    "label": "L'envoi du CV et d'un portfolio est obligatoire",
+    "code": "Doc_CV_PF"
+  },
+  {
+    "label": "L'envoi du CV et d'une bande démo est obligatoire",
+    "code": "Doc_CV_BD"
+  },
+  {
+    "label": "L'envoi du CV, d'une lettre de motivation et d'une bande démo est obligatoire",
+    "code": "Doc_CV_LM_BD"
+  }
+],
+"entity":
+[
+  {
+    "label": "Entity name",
+    "code": "SIRET15DIGITS"
+  },
+],
+"specialization":
+[
+  {
+    "label": "Formations générales",
+    "code": "01"
+  },
+  {
+    "label": "Spécialités pluriscientifiques",
+    "code": "02"
+  },
+  {
+    "label": "Physique-chimie",
+    "code": "03"
+  },
+  {
+    "label": "Chimie-biologie, biochimie",
+    "code": "04"
+  }
+],
+"experience":
+[
+  {
+    "label": "Confirmé",
+    "code": "confirme"
+  },
+  {
+    "label": "Débutant",
+    "code": "debutant"
+  },
+  {
+    "label": "Expert",
+    "code": "expert"
+  }
+],
+"studies Level":
+[
+  {
+    "label": "Niveau 1 Maîtrise des savoirs de base",
+    "code": "A"
+  },
+  {
+    "label": "Niveau 2 Effectuer des activités simples",
+    "code": "B"
+  },
+  {
+    "label": "Niveau 3 Diplômes équivalents au CAP/BEP",
+    "code": "C"
+  },
+  {
+    "label": "Niveau 4 Baccalauréat",
+    "code": "D"
+  },
+  {
+    "label": "Niveau 5 Diplômes de niveau bac +2",
+    "code": "E"
+  },
+  {
+    "label": "Niveau 6 Licence/diplômes équivalents",
+    "code": "F"
+  },
+  {
+    "label": "Niveau 7 Master/diplômes équivalents",
+    "code": "G"
+  },
+  {
+    "label": "Niveau 8 Doctorat/diplômes équivalents",
+    "code": "H"
+  }
+],
+"national_diploma":
+[
+  {
+    "label": "Diplôme d'Etat de sage-femme",
+    "code": "CSPU0001"
+  },
+  {
+    "label": "Diplôme d'Etat d'infirmier en pratique avancée",
+    "code": "CEDU0001"
+  },
+  {
+    "label": "Diplôme d'Etat d'audioprothésiste",
+    "code": "CEDU0002"
+  },
+  {
+    "label": "Diplôme d'Etat d'infirmier",
+    "code": "CSPU0002"
+  },
+  {
+    "label": "Diplôme d'Etat d'infirmier de bloc opératoire",
+    "code": "CEDU0003"
+  },
+  {
+    "label": "Diplôme d'Etat d'infirmier anesthésiste",
+    "code": "CSPU0003"
+  },
+  {
+    "label": "Diplôme d'Etat de puéricultrice",
+    "code": "CSPU0004"
+  },
+  {
+    "label": "Diplôme d'Etat d'ergothérapeute",
+    "code": "CSPU0005"
+  },
+  {
+    "label": "Diplôme d'Etat de psychomotricien",
+    "code": "CSPU0006"
+  },
+  {
+    "label": "Diplôme d'Etat de manipulateur d'électroradiologie médicale",
+    "code": "CSPU0007"
+  },
+  {
+    "label": "Diplôme d'Etat de pédicure-podologue",
+    "code": "CSPU0008"
+  },
+  {
+    "label": "Diplôme d'Etat de masseur-kinésithérapeute",
+    "code": "CSPU0009"
+  },
+  {
+    "label": "Diplôme d'Etat français de diététicien",
+    "code": "CSPU0010"
+  },
+  {
+    "label": "Diplôme d'Etat de technicien de laboratoire médical",
+    "code": "CSPU0011"
+  },
+  {
+    "label": "Diplôme d'Etat d'aide-soignant",
+    "code": "CSPU0012"
+  },
+  {
+    "label": "Diplôme d'Etat d'auxiliaire de puériculture",
+    "code": "CSPU0013"
+  },
+  {
+    "label": "Diplôme d'Etat d'ambulancier",
+    "code": "CSPU0014"
+  },
+  {
+    "label": "Diplôme d'Etat d'éducateur spécialisé",
+    "code": "CASF0001"
+  },
+  {
+    "label": "Diplôme d'Etat français d'assistant de service social",
+    "code": "CASF0002"
+  },
+  {
+    "label": "Diplôme d'Etat d'éducateur de jeunes enfants",
+    "code": "CASF0003"
+  },
+  {
+    "label": "Diplôme d'Etat d'éducateur technique spécialisé",
+    "code": "CASF0004"
+  },
+  {
+    "label": "Diplôme d'Etat de conseiller en économie sociale familiale",
+    "code": "CASF0005"
+  },
+  {
+    "label": "Diplôme d'Etat de moniteur éducateur",
+    "code": "CASF0006"
+  },
+  {
+    "label": "Diplôme d'Etat d'audio-protésiste",
+    "code": "CSPU0015"
+  },
+  {
+    "label": "Diplôme d'Etat d'aide médico psychologique",
+    "code": "DECR0001"
+  },
+  {
+    "label": "Diplôme d'Etat de la jeunesse, de l'éducation populaire et du sport",
+    "code": "CSPO0001"
+  }
+],
+"language":
+[
+  {
+    "label": "Abkhazian",
+    "code": "ab"
+  },
+  {
+    "label": "Afar",
+    "code": "aa"
+  },
+  {
+    "label": "Afrikaans",
+    "code": "af"
+  },
+  {
+    "label": "Akan",
+    "code": "ak"
+  },
+  {
+    "label": "Albanian",
+    "code": "sq"
+  },
+  {
+    "label": "Amharic",
+    "code": "am"
+  },
+  {
+    "label": "Arabic",
+    "code": "ar"
+  },
+  {
+    "label": "Aragonese",
+    "code": "an"
+  }
+],
+"language_level":
+[
+  {
+    "label": "Introductif",
+    "code": "A1"
+  },
+  {
+    "label": "Intermédiaire ou de survie",
+    "code": "A2"
+  },
+  {
+    "label": "Seuil",
+    "code": "B1"
+  },
+  {
+    "label": "Avancé ou indépendant",
+    "code": "B2"
+  },
+  {
+    "label": "Autonome",
+    "code": "C1"
+  },
+  {
+    "label": "Maîtrise",
+    "code": "C2"
+  }
+],
+"area":
+[
+  {
+    "label": "Afrique",
+    "code": "AF"
+  },
+  {
+    "label": "Amériques du Nord / Caraibes",
+    "code": "NA"
+  },
+  {
+    "label": "Amériques du Sud",
+    "code": "SA"
+  },
+  {
+    "label": "Asie",
+    "code": "AS"
+  },
+  {
+    "label": "Europe",
+    "code": "EU"
+  },
+  {
+    "label": "Moyen-Orient / Afrique du Nord",
+    "code": "MENA"
+  },
+  {
+    "label": "Océanie",
+    "code": "OC"
+  },
+],
+"country":
+[
+  {
+    "label": "Afghanistan",
+    "code": "AFG"
+  },
+  {
+    "label": "Afrique du sud",
+    "code": "ZAF"
+  },
+  {
+    "label": "Albanie",
+    "code": "ALB"
+  },
+  {
+    "label": "Algérie",
+    "code": "DZA"
+  },
+  {
+    "label": "Allemagne",
+    "code": "DEU"
+  }
+],
+"region":
+[
+  {
+    "label": "Auvergne-Rhône-Alpes",
+    "code": "84"
+  },
+  {
+    "label": "Bourgogne-Franche-Comté",
+    "code": "27"
+  },
+  {
+    "label": "Bretagne",
+    "code": "53"
+  }
+],
+"departement":
+[
+  {
+    "label": "Ain (01)",
+    "code": "01"
+  },
+  {
+    "label": "Aisne (02)",
+    "code": "02"
+  },
+  {
+    "label": "Allier (03)",
+    "code": "03"
+  }
+],
+"working_time":
+[
+  {
+    "label": "Temps plein",
+    "code": "0"
+  },
+  {
+    "label": "Temps partiel",
+    "code": "1"
+  },
+],
+"working_place":
+[
+  {
+    "label": "Sur site",
+    "code": "0"
+  },
+  {
+    "label": "Télétravail",
+    "code": "1"
+  },
+],
+"management":
+[
+  {
+    "label": "Sans management",
+    "code": "0"
+  },
+  {
+    "label": "Management",
+    "code": "1"
+  },
+]
+}
