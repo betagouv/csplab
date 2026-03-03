@@ -994,6 +994,80 @@ hr {
     transform: rotate(360deg);
   }
 }
+.csplab-drawer {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  left: auto;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: transparent;
+  overflow: visible;
+  transform: translateX(100%);
+  transition: transform 0.3s ease, display 0.3s ease allow-discrete, overlay 0.3s ease allow-discrete;
+}
+@media (min-width: 48em) {
+  .csplab-drawer {
+    width: 50%;
+    max-width: 40rem;
+  }
+}
+.csplab-drawer[open] {
+  transform: translateX(0);
+}
+@starting-style {
+  .csplab-drawer[open] {
+    transform: translateX(100%);
+  }
+}
+.csplab-drawer::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s ease, display 0.3s ease allow-discrete, overlay 0.3s ease allow-discrete;
+}
+.csplab-drawer[open]::backdrop {
+  opacity: 1;
+}
+@starting-style {
+  .csplab-drawer[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+.csplab-drawer__panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--background-default-grey);
+}
+
+.csplab-drawer__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.csplab-drawer__content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .csplab-drawer {
+    transition: none;
+  }
+  .csplab-drawer::backdrop {
+    transition: none;
+  }
+}
 .csplab-hero__title {
   font-size: 2rem;
   line-height: 112.5%;

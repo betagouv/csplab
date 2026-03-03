@@ -1,4 +1,5 @@
-"""Mapper for transforming Concours and Offer entities to template format."""
+from django.utils.html import linebreaks
+from django.utils.safestring import mark_safe
 
 from domain.entities.concours import Concours
 from domain.entities.offer import Offer
@@ -15,20 +16,23 @@ from presentation.candidate.formatters import (
     format_opportunity_type_display,
     format_verse_display,
 )
-from presentation.candidate.types import ConcoursCard, OfferCard
+from presentation.candidate.types import (
+    AccordionItem,
+    ConcoursCard,
+    DrawerContext,
+    OfferCard,
+)
 
 
 class ConcoursToTemplateMapper:
-    """Maps Concours entities to template-compatible dictionaries."""
-
     @staticmethod
-    def map(concours: Concours) -> ConcoursCard:
-        """Transform a Concours entity to template format."""
+    def map_for_card(concours: Concours) -> ConcoursCard:
         return {
             "opportunity_type": OpportunityType.CONCOURS,
             "opportunity_type_display": format_opportunity_type_display(
                 OpportunityType.CONCOURS
             ),
+            "concours_id": str(concours.id),
             "title": concours.corps,
             "description": concours.grade,
             "access_modalities": [str(m) for m in concours.access_modality]
@@ -41,13 +45,34 @@ class ConcoursToTemplateMapper:
             "url": "#",
         }
 
+    @staticmethod
+    def map_for_drawer(concours: Concours) -> DrawerContext:
+        accordions: list[AccordionItem] = []
+        if concours.grade:
+            accordions.append(
+                {
+                    "id": "drawer-grade-content",
+                    "title": "Grade",
+                    "content": mark_safe(  # noqa: S308
+                        linebreaks(concours.grade, autoescape=True)
+                    ),
+                }
+            )
+        return {
+            "title": concours.corps,
+            "opportunity_type_display": format_opportunity_type_display(
+                OpportunityType.CONCOURS
+            ),
+            "versant_display": format_verse_display(Verse.FPE),
+            "category_display": format_category_display(concours.category),
+            "url": "#",
+            "accordions": accordions,
+        }
+
 
 class OfferToTemplateMapper:
-    """Maps Offer entities to template-compatible dictionaries."""
-
     @staticmethod
-    def map(offer: Offer) -> OfferCard:
-        """Transform an Offer entity to template format."""
+    def map_for_card(offer: Offer) -> OfferCard:
         return {
             "opportunity_type": OpportunityType.OFFER,
             "opportunity_type_display": format_opportunity_type_display(
@@ -55,6 +80,8 @@ class OfferToTemplateMapper:
             ),
             "title": offer.title,
             "description": offer.mission,
+            "offer_id": str(offer.id),
+            "profile": offer.profile,
             "category_display": format_category_display(offer.category),
             "category_value": format_category_value(offer.category),
             "versant_display": format_verse_display(offer.verse),
@@ -63,4 +90,38 @@ class OfferToTemplateMapper:
             "location_value": format_location_value(offer.localisation),
             "contract_type_display": format_contract_type_display(offer.contract_type),
             "url": str(offer.offer_url) if offer.offer_url else "#",
+        }
+
+    @staticmethod
+    def map_for_drawer(offer: Offer) -> DrawerContext:
+        accordions: list[AccordionItem] = []
+        if offer.mission:
+            accordions.append(
+                {
+                    "id": "drawer-mission-content",
+                    "title": "Mission",
+                    "content": mark_safe(  # noqa: S308
+                        linebreaks(offer.mission, autoescape=True)
+                    ),
+                }
+            )
+        if offer.profile:
+            accordions.append(
+                {
+                    "id": "drawer-profile-content",
+                    "title": "Profil recherch\u00e9",
+                    "content": mark_safe(  # noqa: S308
+                        linebreaks(offer.profile, autoescape=True)
+                    ),
+                }
+            )
+        return {
+            "title": offer.title,
+            "opportunity_type_display": format_opportunity_type_display(
+                OpportunityType.OFFER
+            ),
+            "versant_display": format_verse_display(offer.verse),
+            "category_display": format_category_display(offer.category),
+            "url": str(offer.offer_url) if offer.offer_url else "#",
+            "accordions": accordions,
         }

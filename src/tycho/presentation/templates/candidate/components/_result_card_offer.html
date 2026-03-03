@@ -3,7 +3,11 @@
     <div class="fr-card__body">
         <div class="fr-card__content">
             <h3 class="fr-card__title">
-                <a href="{{ offer.url }}" class="fr-card__link">{{ offer.title }}</a>
+                <a href="{{ offer.url }}"
+                   class="fr-card__link"
+                   hx-get="{% url 'candidate:offer_drawer' cv_uuid=cv_uuid offer_id=offer.offer_id %}"
+                   hx-target="#opportunity-drawer-body"
+                   hx-swap="innerHTML">{{ offer.title }}</a>
             </h3>
             <div class="fr-card__start">
                 <ul class="fr-tags-group">
