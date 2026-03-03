@@ -114,4 +114,5 @@ class IngestionContainer(containers.DeclarativeContainer):
         text_extractor=text_extractor,
         embedding_generator=embedding_generator,
         logger=logger_service,
+        repository_factory=repository_factory,
     )

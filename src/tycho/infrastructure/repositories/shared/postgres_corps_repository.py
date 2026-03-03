@@ -1,6 +1,10 @@
 from typing import List
 from uuid import UUID
 
+from django.db import DatabaseError, transaction
+from django.db.models import F, Q
+from django.utils import timezone
+
 from domain.entities.corps import Corps
 from domain.exceptions.corps_errors import CorpsDoesNotExist
 from domain.repositories.corps_repository_interface import ICorpsRepository
@@ -73,3 +77,36 @@ class PostgresCorpsRepository(ICorpsRepository):
     def get_all(self) -> List[Corps]:
         corps_models = CorpsModel.objects.all()
         return [corps_model.to_entity() for corps_model in corps_models]
+
+    @transaction.atomic
+    def get_pending_processing(self, limit: int = 1000) -> List[Corps]:
+        qs = (
+            CorpsModel.objects.filter(archived_at__isnull=True, processing=False)
+            .filter(Q(processed_at__isnull=True) | Q(updated_at__gt=F("processed_at")))
+            .select_for_update(of=("self",), skip_locked=True)[:limit]
+        )
+
+        for obj in qs:
+            obj.processing = True
+        try:
+            CorpsModel.objects.bulk_update(qs, ["processing"])
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+        return [model.to_entity() for model in qs]
+
+    def mark_as_processed(self, offers_list: List[Corps]) -> int:
+        try:
+            return CorpsModel.objects.filter(
+                id__in=[obj.id for obj in offers_list]
+            ).update(processed_at=timezone.now(), processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+    def mark_as_pending(self, offers_list: List[Corps]) -> int:
+        try:
+            return CorpsModel.objects.filter(
+                id__in=[obj.id for obj in offers_list]
+            ).update(processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e

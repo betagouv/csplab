@@ -1,5 +1,3 @@
-"""Tests for vectorize_documents management command."""
-
 from unittest.mock import Mock, patch
 
 import pytest
@@ -24,24 +22,15 @@ def mock_usecase():
 
 
 @pytest.fixture
-def mock_repository():
-    mock = Mock()
-    mock.get_all.return_value = [Mock() for _ in range(10)]
-    return mock
+def mock_logger():
+    return Mock()
 
 
 @pytest.fixture
-def mock_repository_factory(mock_repository):
-    mock = Mock()
-    mock.get_repository.return_value = mock_repository
-    return mock
-
-
-@pytest.fixture
-def mock_container_factory(mock_usecase, mock_repository_factory):
+def mock_container_factory(mock_usecase, mock_logger):
     mock_container = Mock()
     mock_container.vectorize_documents_usecase.return_value = mock_usecase
-    mock_container.repository_factory.return_value = mock_repository_factory
+    mock_container.logger_service.return_value = mock_logger
 
     with patch(
         "infrastructure.django_apps.ingestion.management.commands.vectorize_documents.create_ingestion_container"
@@ -60,74 +49,34 @@ class TestVectorizeDocumentsCommand:
             call_command("vectorize_documents", "--type", "INVALID_TYPE")
 
     @pytest.mark.parametrize(
-        "document_type",
+        "document_type,limit,expected_limit",
         [
-            DocumentType.CORPS.value,
-            DocumentType.CONCOURS.value,
-            DocumentType.OFFERS.value,
+            (DocumentType.CONCOURS, None, 250),
+            (DocumentType.OFFERS, VECTORIZE_LIMIT, VECTORIZE_LIMIT),
         ],
     )
-    def test_command_accepts_valid_document_types(
+    def test_command_executes_with_correct_parameters(
         self,
         mock_container_factory,
         mock_usecase,
-        mock_repository_factory,
         document_type,
+        limit,
+        expected_limit,
     ):
-        call_command("vectorize_documents", "--type", document_type)
+        args = ["vectorize_documents", "--type", document_type.value]
+        if limit is not None:
+            args.extend(["--limit", limit])
+
+        call_command(*args)
 
         mock_container_factory.assert_called_once()
-        mock_repository_factory.get_repository.assert_called_once_with(
-            DocumentType(document_type)
-        )
-        mock_usecase.execute.assert_called_once()
+        mock_usecase.execute.assert_called_once_with(document_type, expected_limit)
 
-    def test_command_respects_limit_parameter(
+    def test_command_logs_output(
         self,
         mock_container_factory,
         mock_usecase,
-        mock_repository,
-        capsys,
-    ):
-        call_command(
-            "vectorize_documents",
-            "--type",
-            DocumentType.OFFERS.value,
-            "--limit",
-            VECTORIZE_LIMIT,
-        )
-
-        mock_repository.get_all.assert_called_once()
-        mock_usecase.execute.assert_called_once()
-
-        # Verify only limited entities are passed
-        call_args = mock_usecase.execute.call_args[0][0]
-        assert len(call_args) == VECTORIZE_LIMIT
-
-        captured = capsys.readouterr()
-        assert "Fetching 5 entities of type: OFFERS" in captured.out
-        assert "Vectorizing 5 entities..." in captured.out
-
-    def test_command_handles_empty_repository(
-        self,
-        mock_container_factory,
-        mock_repository,
-        capsys,
-    ):
-        mock_repository.get_all.return_value = []
-
-        call_command("vectorize_documents", "--type", DocumentType.OFFERS.value)
-
-        captured = capsys.readouterr()
-        assert "No entities found for type: OFFERS" in captured.out
-
-        captured = capsys.readouterr()
-
-    def test_command_displays_warnings_and_error_details(
-        self,
-        mock_container_factory,
-        mock_usecase,
-        capsys,
+        mock_logger,
     ):
         mock_usecase.execute.return_value = {
             "processed": 5,
@@ -149,12 +98,17 @@ class TestVectorizeDocumentsCommand:
 
         call_command("vectorize_documents", "--type", DocumentType.OFFERS.value)
 
-        captured = capsys.readouterr()
-        assert "✅ Completed: 3/5 documents vectorized" in captured.out
-        assert "⚠️  2 errors occurred" in captured.out
-        assert "Error details:" in captured.out
-        assert "OFFERS 123:Vectorization failed" in captured.out
-        assert "OFFERS 456:Invalid data format" in captured.out
+        # Verify logger was called with correct messages
+        mock_logger.info.assert_any_call(
+            "✅ Vectorization completed: %d of %d vectorized", 3, 5
+        )
+        mock_logger.warning.assert_any_call("⚠️ %d errors occurred", 2)
+        mock_logger.warning.assert_any_call(
+            "%s - %s: %s", "OFFERS", "123", "Vectorization failed"
+        )
+        mock_logger.warning.assert_any_call(
+            "%s - %s: %s", "OFFERS", "456", "Invalid data format"
+        )
 
     def test_command_raises_command_error_on_exception(
         self,

@@ -170,7 +170,7 @@ def _create_ingestion_container(
         postgres_offers_repo = PostgresOffersRepository(logger_service)
         container.shared_container.offers_repository.override(postgres_offers_repo)
 
-        pgvector_repo = PgVectorRepository()
+        pgvector_repo = PgVectorRepository(logger_service)
         container.vector_repository.override(pgvector_repo)
 
     return container

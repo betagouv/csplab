@@ -4,7 +4,9 @@ import math
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
+from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
+from domain.repositories.document_repository_interface import IUpsertResult
 from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.value_objects.similarity_type import (
     SimilarityMetric,
@@ -20,8 +22,19 @@ class InMemoryVectorRepository(IVectorRepository):
         """Initialize with empty storage."""
         self._documents: Dict[UUID, VectorizedDocument] = {}
 
+    def upsert_batch(
+        self,
+        vectorized_documents: List[VectorizedDocument],
+        document_type: DocumentType,
+    ) -> IUpsertResult:
+        # WARNING! This method is added for in_memory usecase test compatibility
+        # DO NOT USE
+        return {"created": 99999, "updated": 99999, "errors": []}
+
     def store_embedding(self, vectorized_doc: VectorizedDocument):
-        """Store a vectorized document in memory."""
+        # WARNING! This method has been remove from pgvector_repository
+        # It is maintend for in_memory usecase existing test :
+        # DO NOT REUSE
         # Handle upsert based on entity_id
         existing = None
         for doc in self._documents.values():

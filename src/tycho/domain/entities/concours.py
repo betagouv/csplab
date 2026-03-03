@@ -28,6 +28,7 @@ class Concours(IEntity):
     written_exam_date: Optional[datetime]
     # registration_url: Optional[str]
     open_position_number: int
+    processing: bool = False
     processed_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
     id: UUID = field(default_factory=uuid4)
