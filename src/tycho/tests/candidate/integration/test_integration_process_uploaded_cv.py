@@ -38,28 +38,7 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
     # Configuration spécifique selon l'extracteur
     if extractor_type == "albert":
         api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
-        # Structure Albert complète avec le contenu CV dans data[0].content
-        response_json = {
-            "object": "ocr_response",
-            "data": [
-                {
-                    "object": "document_page",
-                    "content": json.dumps(
-                        mock_response
-                    ),  # Le contenu CV en JSON string
-                    "images": {},
-                    "metadata": {"document_name": "test.pdf", "page": 1},
-                }
-            ],
-            "usage": {
-                "prompt_tokens": 100,
-                "completion_tokens": 50,
-                "total_tokens": 150,
-                "cost": 0.01,
-                "carbon": {"kWh": {"total": 0.001}, "kgCO2eq": {"total": 0.0001}},
-                "requests": 1,
-            },
-        }
+        response_json = MockApiResponseFactory.create_albert_ocr_response(mock_response)
     else:  # openai
         api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
         response_json = {
