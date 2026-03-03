@@ -431,9 +431,7 @@ def test_cv_results_shows_no_results_when_empty(mock_get_status, client, db):
     response = client.get(reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}))
 
     assert response.status_code == HTTPStatus.OK
-    assertTemplateUsed(response, "candidate/cv_results.html")
-    assertContains(response, "0 résultats")
-    assertContains(response, "Aucun résultat pour le moment")
+    assertTemplateUsed(response, "candidate/cv_no_results.html")
 
 
 @patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
@@ -451,4 +449,24 @@ def test_cv_results_htmx_empty_opportunities_shows_no_results(
 
     assert response.status_code == HTTPStatus.OK
     assertTemplateUsed(response, "candidate/components/_no_results_content.html")
-    assertContains(response, "Aucun résultat trouvé")
+
+
+@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+def test_cv_results_no_results_includes_tally_iframe(
+    mock_get_status, client, db, settings
+):
+    cv_uuid = uuid4()
+    settings.TALLY_FORM_ID_NO_RESULTS = "test-no-results-form"
+    mock_get_status.return_value = {
+        "status": CVStatus.COMPLETED,
+        "opportunities": [],
+    }
+
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}),
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assertContains(response, "tally.so/embed/test-no-results-form")
+    assertContains(response, f"cv_uuid={cv_uuid}")
