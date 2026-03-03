@@ -57,7 +57,7 @@ class CandidateContainer(containers.DeclarativeContainer):
     async_http_client = providers.Factory(AsyncHttpClient)
 
     pdf_text_extractor = providers.Callable(
-        lambda cfg, http_client: _create_pdf_extractor(cfg, http_client),
+        _create_pdf_extractor,
         app_config,
         async_http_client,
     )
