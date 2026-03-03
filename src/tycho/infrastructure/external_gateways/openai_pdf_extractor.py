@@ -1,12 +1,13 @@
 """OpenAI PDF text extractor implementation."""
 
 import base64
-import io
 import json
 
 import pymupdf
-import pypdf
-from openai import AsyncOpenAI
+from openai import (
+    APIStatusError,
+    AsyncOpenAI,
+)
 from pydantic import ValidationError
 
 from config.app_config import OpenAIConfig
@@ -37,7 +38,7 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
             Structured CV extraction result with experiences and skills
 
         Raises:
-            ValueError: If PDF content is invalid or corrupted
+            ExternalApiError: If OpenAI API call fails or returns invalid data
         """
         try:
             # Convert PDF to images using PyMuPDF
@@ -98,37 +99,51 @@ class OpenAIPDFExtractor(IPDFTextExtractor):
 
             return CVExtractionResult.model_validate(result_dict)
 
+        except APIStatusError as e:
+            # Gestion détaillée des erreurs HTTP d'OpenAI (similaire à Albert)
+            raise ExternalApiError(
+                f"OpenAI API error: {e.status_code}",
+                status_code=e.status_code,
+                api_name="OpenAI",
+                details={
+                    "method": "POST",
+                    "endpoint": "chat/completions",
+                    "response_text": str(e.response.text)
+                    if hasattr(e, "response")
+                    else str(e),
+                    "error_type": type(e).__name__,
+                    "message": e.message if hasattr(e, "message") else str(e),
+                },
+            ) from e
         except json.JSONDecodeError as e:
             raise ExternalApiError(
-                "Failed to parse JSON response. "
-                f"Erreur: {e.msg} at line {e.lineno} column {e.colno}"
+                "Failed to parse JSON response from OpenAI API. "
+                f"Erreur: {e.msg} at line {e.lineno} column {e.colno}",
+                api_name="OpenAI",
+                details={
+                    "method": "POST",
+                    "endpoint": "chat/completions",
+                    "error_type": "JSONDecodeError",
+                },
             ) from e
         except ValidationError as e:
-            raise ExternalApiError(f"Invalid response structure: {e}") from e
+            raise ExternalApiError(
+                f"Invalid response structure: {e}",
+                api_name="OpenAI",
+                details={
+                    "method": "POST",
+                    "endpoint": "chat/completions",
+                    "error_type": "ValidationError",
+                },
+            ) from e
         except Exception as e:
-            raise ExternalApiError("Error processing PDF") from e
-
-    def validate_pdf(self, pdf_content: bytes, max_size_mb: int = 5) -> bool:
-        """Validate PDF format and size.
-
-        Args:
-            pdf_content: PDF file content as bytes
-            max_size_mb: Maximum allowed file size in MB (default 5MB)
-
-        Returns:
-            True if PDF is valid, False otherwise
-        """
-        if not pdf_content:
-            return False
-
-        # Check file size
-        size_mb = len(pdf_content) / (1024 * 1024)
-        if size_mb > max_size_mb:
-            return False
-
-        # Validate PDF structure using pypdf
-        try:
-            pypdf.PdfReader(io.BytesIO(pdf_content))
-            return True
-        except Exception:
-            return False
+            raise ExternalApiError(
+                "Error processing PDF",
+                api_name="OpenAI",
+                details={
+                    "method": "POST",
+                    "endpoint": "chat/completions",
+                    "error_type": type(e).__name__,
+                    "message": str(e),
+                },
+            ) from e

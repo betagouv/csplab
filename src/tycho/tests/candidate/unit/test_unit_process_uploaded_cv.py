@@ -6,7 +6,7 @@ from uuid import UUID
 import pytest
 
 from domain.entities.cv_metadata import CVMetadata
-from domain.exceptions.cv_errors import CVNotFoundError, TextExtractionError
+from domain.exceptions.cv_errors import CVNotFoundError
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
@@ -90,33 +90,21 @@ async def test_execute_ocr_error(
     cv_metadata_initial,
     test_app_config,
 ):
-    """Test that API failure raises error and saves CV with FAILED status to DB."""
+    """Test that API failure raises ExternalApiError and saves CV with FAILED."""
     container = request.getfixturevalue(container_name)
     extractor_type = "albert" if "albert" in container_name else "openai"
 
-    mock_response = MockApiResponseFactory.create_ocr_api_response(
-        experiences=[],
-        skills=[],
-        description="",
-    )
-
-    # Configuration spécifique selon l'extracteur
     if extractor_type == "albert":
         api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
-        response_json = mock_response
     else:  # openai
         api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
-        response_json = {
-            "choices": [{"message": {"content": json.dumps(mock_response)}}]
-        }
 
     httpx_mock.add_response(
         method="POST",
         url=api_url,
-        json=response_json,
-        status_code=200,
+        json={"error": "Internal server error"},
+        status_code=500,
     )
-    # Unpack fixture data
     initial_cv, cv_id = cv_metadata_initial
 
     # Prepopulate the repository
@@ -125,13 +113,17 @@ async def test_execute_ocr_error(
 
     usecase = container.process_uploaded_cv_usecase()
 
-    with pytest.raises(TextExtractionError):
+    with pytest.raises(ExternalApiError):
         await usecase.execute(cv_id, pdf_content)
+
+    updated_cv = await repo.find_by_id(cv_id)
+    assert updated_cv is not None
+    assert updated_cv.status == CVStatus.FAILED
 
 
 @pytest.mark.parametrize(
     "container_name",
-    ["openai_candidate_container"],
+    ["albert_candidate_container", "openai_candidate_container"],
 )
 async def test_execute_json_decode_error_with_details(
     httpx_mock,

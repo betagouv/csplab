@@ -91,6 +91,20 @@ class AlbertPDFExtractor(IPDFTextExtractor):
 
         try:
             response.raise_for_status()
+            ocr_data = response.json()
+            albert_response = AlbertOCRResponse.model_validate(ocr_data)
+            return self._normalize_albert_ocr_structured(albert_response)
+        except json.JSONDecodeError as e:
+            raise ExternalApiError(
+                "Failed to parse JSON response."
+                f"Erreur: {e.msg} at line {e.lineno} column {e.colno}",
+                api_name="Albert",
+            ) from e
+        except ValidationError as e:
+            raise ExternalApiError(
+                f"Invalid Albert API response structure: {e}",
+                api_name="Albert",
+            ) from e
         except Exception as e:
             raise ExternalApiError(
                 f"Albert API error: {response.status_code}",
@@ -102,47 +116,6 @@ class AlbertPDFExtractor(IPDFTextExtractor):
                     "response_text": response.text,
                 },
             ) from e
-
-        try:
-            ocr_data = response.json()
-
-            # Parse the response using the Pydantic model
-            albert_response = AlbertOCRResponse.model_validate(ocr_data)
-            return self._normalize_albert_ocr_structured(albert_response)
-        except json.JSONDecodeError as e:
-            raise ExternalApiError(
-                "Invalid JSON response from Albert API",
-                api_name="Albert",
-            ) from e
-        except ValidationError as e:
-            raise ExternalApiError(
-                f"Invalid Albert API response structure: {e}",
-                api_name="Albert",
-            ) from e
-
-    def validate_pdf(self, pdf_content: bytes, max_size_mb: int = 5) -> bool:
-        """Validate PDF format and size.
-
-        Args:
-            pdf_content: PDF file content as bytes
-            max_size_mb: Maximum allowed file size in MB (default 5MB)
-
-        Returns:
-            True if PDF is valid, False otherwise
-        """
-        if not pdf_content:
-            return False
-
-        # Check file size
-        size_mb = len(pdf_content) / (1024 * 1024)
-        if size_mb > max_size_mb:
-            return False
-
-        # Check PDF magic bytes
-        if not pdf_content.startswith(b"%PDF-"):
-            return False
-
-        return True
 
     def _extract_json_from_fenced_content(self, text: str) -> Dict[str, Any]:
         """Extract JSON from Markdown code block."""
