@@ -1,5 +1,3 @@
-"""Django Corps repository implementation."""
-
 from typing import List
 from uuid import UUID
 
@@ -15,14 +13,10 @@ from infrastructure.django_apps.shared.models.corps import CorpsModel
 
 
 class PostgresCorpsRepository(ICorpsRepository):
-    """Django ORM implementation of Corps repository."""
-
     def __init__(self, logger: ILogger):
-        """Initialize with logger."""
         self.logger = logger
 
     def upsert_batch(self, corps: List[Corps]) -> IUpsertResult:
-        """Insert or update multiple Corps entities and return operation results."""
         created = 0
         updated = 0
         errors: List[IUpsertError] = []
@@ -63,7 +57,6 @@ class PostgresCorpsRepository(ICorpsRepository):
         return {"created": created, "updated": updated, "errors": errors}
 
     def find_by_id(self, corps_id: UUID) -> Corps:
-        """Find a Corps by its ID."""
         try:
             corps_model = CorpsModel.objects.get(id=corps_id)
             return corps_model.to_entity()
@@ -71,7 +64,6 @@ class PostgresCorpsRepository(ICorpsRepository):
             raise CorpsDoesNotExist(corps_id) from e
 
     def find_by_code(self, code: str) -> Corps:
-        """Find a Corps by its code."""
         try:
             corps_model = CorpsModel.objects.get(code=code)
             return corps_model.to_entity()
@@ -79,6 +71,5 @@ class PostgresCorpsRepository(ICorpsRepository):
             raise CorpsDoesNotExist(code) from e
 
     def get_all(self) -> List[Corps]:
-        """Get all Corps entities."""
         corps_models = CorpsModel.objects.all()
         return [corps_model.to_entity() for corps_model in corps_models]

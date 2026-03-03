@@ -1,5 +1,3 @@
-"""Factory for generating test Corps instances."""
-
 import random
 from typing import List, Optional
 
@@ -16,8 +14,6 @@ fake = Faker()
 
 
 class CorpsFactory:
-    """Factory for creating Corps test instances."""
-
     @staticmethod
     def create(
         code: Optional[str] = None,
@@ -28,7 +24,6 @@ class CorpsFactory:
         long_label: Optional[str] = None,
         access_modalities: Optional[List[str]] = None,
     ) -> CorpsModel:
-        """Create a CorpsModel instance."""
         if code is None:
             code = fake.word()
 
@@ -58,7 +53,6 @@ class CorpsFactory:
             label=Label(short_value=short_label, value=long_label),
         )
 
-        # Create Django model from entity (preserves UUID)
         corps = CorpsModel.from_entity(entity)
         corps.save()
 

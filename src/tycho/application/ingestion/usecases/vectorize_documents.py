@@ -1,5 +1,3 @@
-"""VectorizeDocuments usecase."""
-
 from typing import Any, Dict, List, Union
 
 from domain.entities.concours import Concours
@@ -16,8 +14,6 @@ from domain.services.text_extractor_interface import ITextExtractor
 
 
 class VectorizeDocumentsUsecase:
-    """Usecase for vectorizing documents or clean entities."""
-
     def __init__(
         self,
         vector_repository: IVectorRepository,
@@ -25,14 +21,12 @@ class VectorizeDocumentsUsecase:
         embedding_generator: IEmbeddingGenerator,
         logger: ILogger,
     ):
-        """Initialize with dependencies."""
         self.vector_repository = vector_repository
         self.text_extractor = text_extractor
         self.embedding_generator = embedding_generator
         self.logger = logger
 
     def execute(self, sources: List[Union[Document, IEntity]]) -> Dict[str, Any]:
-        """Execute the usecase to vectorize documents or entities."""
         self.logger.info(f"Starting vectorization of {len(sources)} sources")
 
         results: Dict[str, Any] = {
@@ -65,7 +59,6 @@ class VectorizeDocumentsUsecase:
     def _vectorize_single_source(
         self, source: Union[Document, IEntity]
     ) -> VectorizedDocument:
-        """Vectorize a single document or entity."""
         content = self.text_extractor.extract_content(source)
         metadata = self.text_extractor.extract_metadata(source)
 
