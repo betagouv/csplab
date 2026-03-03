@@ -34,6 +34,8 @@ env = environ.Env(
     TYCHO_TALENTSOFT_BASE_URL=(str, "https://fake-talentsoft.example.com"),
     TYCHO_TALLY_FORM_ID_RESULTS=(str, ""),
     TYCHO_TALLY_FORM_ID_NO_RESULTS=(str, ""),
+    TYCHO_MATOMO_BASE_URL=(str, ""),
+    TYCHO_MATOMO_SITE_ID=(int, 1),
 )
 env.prefix = "TYCHO_"
 
@@ -214,6 +216,11 @@ LOGGING = {
         },
     },
 }
+
+# MATOMO
+# ---------------------------------------
+MATOMO_BASE_URL = env.str("MATOMO_BASE_URL")
+MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
 
 # Django REST Framework
 REST_FRAMEWORK = {
