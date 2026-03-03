@@ -39,9 +39,23 @@ DEBUG = False
 SECRET_KEY = env.str("SECRET_KEY")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
-# CSRF trusted origins for HTTPS requests
+# SESSIONS
+# ---------------------------------------
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
+# SECURITY
+# ---------------------------------------
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Clickjacking
+# ---------------------------------------
+X_FRAME_OPTIONS = "DENY"
 
 # Application definition
 
