@@ -238,6 +238,11 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             context["results"] = self._filter_results(self.opportunities)
             context["results_count"] = len(context["results"])
 
+        if self.opportunities:
+            context["tally_form_id"] = settings.TALLY_FORM_ID_RESULTS
+        else:
+            context["tally_form_id"] = settings.TALLY_FORM_ID_NO_RESULTS
+
         opportunities = (
             self.opportunities if isinstance(self.opportunities, list) else []
         )

@@ -9,6 +9,7 @@
                 <div class="fr-pt-4w">
                     <a href="{% url 'candidate:cv_upload' %}" class="fr-btn">Retour à l'analyse de profil</a>
                 </div>
+                {% include "candidate/components/_tally_feedback.html" with tally_form_id=tally_form_id cv_uuid=cv_uuid %}
             </div>
         </div>
     </div>
