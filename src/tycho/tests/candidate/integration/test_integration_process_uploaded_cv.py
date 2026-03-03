@@ -38,7 +38,7 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
     # Configuration spécifique selon l'extracteur
     if extractor_type == "albert":
         api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
-        response_json = mock_response
+        response_json = MockApiResponseFactory.create_albert_ocr_response(mock_response)
     else:  # openai
         api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
         response_json = {
