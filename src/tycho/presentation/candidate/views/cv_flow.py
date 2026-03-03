@@ -187,7 +187,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             return (
                 ["candidate/components/_no_results_content.html"]
                 if is_htmx
-                else ["candidate/cv_results.html"]
+                else ["candidate/cv_no_results.html"]
             )
         elif is_htmx:
             return (
