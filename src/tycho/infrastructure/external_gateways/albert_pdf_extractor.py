@@ -133,45 +133,36 @@ class AlbertPDFExtractor(IPDFTextExtractor):
         self, albert_response: AlbertOCRResponse
     ) -> CVExtractionResult:
         """Normalize Albert OCR JSON output to extract experiences and skills."""
-        try:
-            # Extract content from all pages
-            final_experiences = []
-            final_skills = []
+        # Extract content from all pages
+        final_experiences = []
+        final_skills = []
 
-            for page in albert_response.data:
-                content = page.content.strip()
-                parsed_json = None
+        for page in albert_response.data:
+            content = page.content.strip()
+            parsed_json = None
 
-                # First try: direct JSON parsing
-                if content.startswith("{") and content.endswith("}"):
-                    try:
-                        parsed_json = json.loads(content)
-                    except json.JSONDecodeError:
-                        pass
+            # First try: direct JSON parsing
+            if content.startswith("{") and content.endswith("}"):
+                try:
+                    parsed_json = json.loads(content)
+                except json.JSONDecodeError:
+                    pass
 
-                # Second try: extract from markdown fenced blocks
-                if parsed_json is None:
-                    parsed_json = self._extract_json_from_fenced_content(content)
+            # Second try: extract from markdown fenced blocks
+            if parsed_json is None:
+                parsed_json = self._extract_json_from_fenced_content(content)
 
-                # Extract experiences and skills if we have valid JSON
-                if isinstance(parsed_json, dict):
-                    experiences = parsed_json.get("experiences", [])
-                    skills = parsed_json.get("skills", [])
+            # Extract experiences and skills if we have valid JSON
+            if isinstance(parsed_json, dict):
+                experiences = parsed_json.get("experiences", [])
+                skills = parsed_json.get("skills", [])
 
-                    if isinstance(experiences, list):
-                        final_experiences.extend(experiences)
+                if isinstance(experiences, list):
+                    final_experiences.extend(experiences)
 
-                    if isinstance(skills, list):
-                        final_skills.extend(skills)
+                if isinstance(skills, list):
+                    final_skills.extend(skills)
 
-            # Create and validate the final result
-            result = CVExtractionResult.model_validate(
-                {"experiences": final_experiences, "skills": final_skills}
-            )
-
-            return result
-
-        except ValidationError as e:
-            raise ExternalApiError(f"Invalid CV extraction result format: {e}") from e
-        except Exception as e:
-            raise ExternalApiError(f"Error processing Albert API response: {e}") from e
+        return CVExtractionResult.model_validate(
+            {"experiences": final_experiences, "skills": final_skills}
+        )

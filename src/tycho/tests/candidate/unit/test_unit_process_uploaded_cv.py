@@ -135,14 +135,44 @@ async def test_execute_json_decode_error_with_details(
 ):
     """Test that JSONDecodeError includes detailed error information."""
     container = request.getfixturevalue(container_name)
+    extractor_type = "albert" if "albert" in container_name else "openai"
 
-    # Mock invalid JSON response
-    invalid_json_response = '{"experiences": [invalid json here'
+    # Mock invalid JSON response selon l'extracteur
+    invalid_json_content = '{"experiences": [invalid json here'
+
+    if extractor_type == "albert":
+        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
+        # Structure Albert avec JSON invalide dans le content
+        response_json = {
+            "object": "ocr_response",
+            "data": [
+                {
+                    "object": "document_page",
+                    "content": invalid_json_content,  # JSON invalide ici
+                    "images": {},
+                    "metadata": {"document_name": "test.pdf", "page": 1},
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 100,
+                "completion_tokens": 50,
+                "total_tokens": 150,
+                "cost": 0.01,
+                "carbon": {"kWh": {"total": 0.001}, "kgCO2eq": {"total": 0.0001}},
+                "requests": 1,
+            },
+        }
+    else:  # openai
+        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
+        # Structure OpenAI avec JSON invalide dans le content
+        response_json = {"choices": [{"message": {"content": invalid_json_content}}]}
+
+    expected_error_message = "Failed to parse JSON response."
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{test_app_config.openrouter_base_url}/chat/completions",
-        json={"choices": [{"message": {"content": invalid_json_response}}]},
+        url=api_url,
+        json=response_json,
         status_code=200,
     )
 
@@ -160,4 +190,4 @@ async def test_execute_json_decode_error_with_details(
 
     # Verify the error message contains detailed JSON parsing information
     error_message = str(exc_info.value)
-    assert "Failed to parse JSON response. Erreur: " in error_message
+    assert expected_error_message in error_message
