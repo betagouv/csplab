@@ -83,7 +83,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             if talentsoft_offer.salaryRange
             else "UNK"
         )
-        verse = self._map_verse(ts_verse)
+        verse = self._map_verse(ts_verse, talentsoft_offer.reference)
         # Map contract type
         contract_type = self._map_contract_type(
             talentsoft_offer.contractType.clientCode
@@ -131,17 +131,18 @@ class OffersCleaner(IDocumentCleaner[Offer]):
 
         return offer
 
-    def _map_verse(self, verse_str: Optional[str]) -> Optional[Verse]:
+    def _map_verse(self, verse_str: Optional[str], reference: str) -> Optional[Verse]:
         """Map verse string to Verse enum."""
         if not verse_str:
             return None
         verse_upper = verse_str.upper()
         if "FPT" in verse_upper:
             return Verse.FPT
-        elif "FPH" in verse_upper:
+        elif "FPH" in verse_upper or "APHP" in reference.upper():
             return Verse.FPH
-        else:
+        elif "FPE" in verse_upper:
             return Verse.FPE
+        return None
 
     def _map_contract_type(
         self, contract_type_str: Optional[str]
