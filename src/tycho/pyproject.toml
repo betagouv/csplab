@@ -119,6 +119,7 @@ select = [
     "S101", # use of assert
     "S311", # standard pseudo-random generators not suitable for crypto
     "PLR0913", # too many args in function definition
+    "PLW0108", # Lambda may be unnecessary; consider inlining inner function
 ]
 
 [tool.ruff.lint.pydocstyle]
