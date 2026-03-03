@@ -128,18 +128,21 @@ def test_cv_results_htmx_filter_returns_filtered_results(
             "location_value": "75",
             "category_value": "a",
             "opportunity_type": OpportunityType.CONCOURS,
+            "concours_id": str(uuid4()),
         },
         {
             "title": "Responsable des ressources humaines",
             "location_value": "69",
             "category_value": "a",
             "opportunity_type": OpportunityType.CONCOURS,
+            "concours_id": str(uuid4()),
         },
         {
             "title": "Technicien informatique",
             "location_value": "13",
             "category_value": "b",
             "opportunity_type": OpportunityType.CONCOURS,
+            "concours_id": str(uuid4()),
         },
     ]
     mock_get_status.return_value = {
@@ -172,12 +175,14 @@ def test_cv_results_htmx_no_match_displays_empty_state(
             "location_value": "75",
             "category_value": "a",
             "opportunity_type": OpportunityType.CONCOURS,
+            "concours_id": str(uuid4()),
         },
         {
             "title": "Responsable des ressources humaines",
             "location_value": "69",
             "category_value": "a",
             "opportunity_type": OpportunityType.CONCOURS,
+            "concours_id": str(uuid4()),
         },
     ]
     mock_get_status.return_value = {
