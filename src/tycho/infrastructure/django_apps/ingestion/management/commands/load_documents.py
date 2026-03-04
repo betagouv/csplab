@@ -25,7 +25,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             document_type = DocumentType(options["type"])
-            usecase = self.container.load_documents_usecase()
+            load_documents_usecase = self.container.load_documents_usecase()
+            archive_offers_usecase = self.container.archive_offers_usecase()
 
             self.logger.info("Loading documents of type: %s", document_type.value)
 
@@ -33,7 +34,7 @@ class Command(BaseCommand):
                 operation_type=LoadOperationType.FETCH_FROM_API,
                 kwargs={"document_type": document_type},
             )
-            result = usecase.execute(input_data)
+            result = load_documents_usecase.execute(input_data)
 
             self.logger.info(
                 "✅ Load completed: %s created, %s updated",
@@ -43,6 +44,14 @@ class Command(BaseCommand):
 
             if result["errors"]:
                 self.logger.warning("⚠️ %d errors occurred", len(result["errors"]))
+
+            if document_type == DocumentType.OFFERS and result["external_ids"]:
+                archived_offers_count = archive_offers_usecase.execute(
+                    result["external_ids"]
+                )
+                self.logger.info(
+                    "✅ Archiving completed: %d offers archived", archived_offers_count
+                )
 
         except Exception as e:
             raise CommandError(f"Failed to load documents: {str(e)}") from e
