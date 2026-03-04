@@ -2,15 +2,30 @@
 
 from dependency_injector import containers, providers
 
+from infrastructure.external_gateways.albert_embedding_generator import (
+    AlbertEmbeddingGenerator,
+)
 from infrastructure.external_gateways.openai_embedding_generator import (
     OpenAIEmbeddingGenerator,
 )
+from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.repositories.shared import (
     pgvector_repository,
     postgres_concours_repository,
     postgres_corps_repository,
     postgres_offers_repository,
 )
+
+
+def _create_embedding_generator(app_config, http_client):
+    generators = {
+        "ALBERT": lambda cfg: AlbertEmbeddingGenerator(
+            config=cfg.albert, http_client=http_client
+        ),
+        "OPENAI": lambda cfg: OpenAIEmbeddingGenerator(config=cfg.openai),
+    }
+    embedding_type = "ALBERT" if app_config.embedding_type == "ALBERT" else "OPENAI"
+    return generators[embedding_type](app_config)
 
 
 class SharedContainer(containers.DeclarativeContainer):
@@ -34,9 +49,13 @@ class SharedContainer(containers.DeclarativeContainer):
         logger=logger_service,
     )
 
-    embedding_generator = providers.Singleton(
-        OpenAIEmbeddingGenerator,
-        config=providers.Callable(lambda cfg: cfg.openai, app_config),
+    # HTTP client for sync operations
+    http_client = providers.Singleton(SyncHttpClient)
+
+    embedding_generator = providers.Callable(
+        _create_embedding_generator,
+        app_config,
+        http_client,
     )
 
     vector_repository = providers.Singleton(

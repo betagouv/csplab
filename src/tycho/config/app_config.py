@@ -53,6 +53,9 @@ class AppConfig(BaseModel):
     # OCR
     ocr_type: Literal["ALBERT", "OPENAI"]
 
+    # Embedding
+    embedding_type: Literal["ALBERT", "OPENAI"]
+
     # OpenAI/OpenRouter
     openrouter_api_key: str
     openrouter_base_url: HttpUrl
@@ -84,6 +87,7 @@ class AppConfig(BaseModel):
         """Create AppConfig from Django settings."""
         return cls(
             ocr_type=settings.OCR_TYPE,
+            embedding_type=settings.EMBEDDING_TYPE,
             openrouter_api_key=settings.OPENROUTER_API_KEY,
             openrouter_base_url=settings.OPENROUTER_BASE_URL,
             openrouter_embedding_model=settings.OPENROUTER_EMBEDDING_MODEL,
