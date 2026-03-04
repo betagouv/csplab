@@ -13,6 +13,7 @@ class IUpsertResult(TypedDict):
     created: int
     updated: int
     errors: List[IUpsertError]
+    external_ids: List[str | None]
 
 
 class IDocumentRepository(Protocol):

@@ -60,6 +60,7 @@ class TestIntegrationOfferLoadDocumentUseCase:
         result = usecase.execute(input_data)
         assert result["created"] == count
         assert result["updated"] == 0
+        assert len(result["external_ids"]) == count
 
     def test_execute_returns_correct_counts_with_iterations(
         self, db, httpx_mock, ingestion_integration_container
@@ -99,6 +100,7 @@ class TestIntegrationOfferLoadDocumentUseCase:
         result = usecase.execute(input_data)
         assert result["created"] == count_new_offers
         assert result["updated"] == count_existing_offers
+        assert len(result["external_ids"]) == count_existing_offers + count_new_offers
 
     @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     def test_execute_returns_zero_when_api_fails(
@@ -121,6 +123,7 @@ class TestIntegrationOfferLoadDocumentUseCase:
         result = usecase.execute(input_data)
         assert result["created"] == 0
         assert result["updated"] == 0
+        assert result["external_ids"] == []
 
     @pytest.mark.parametrize(
         "data", ["not_a_list", ["not_a_list_of_dict"], [{"missing_reference_key": 1}]]
@@ -150,10 +153,10 @@ class TestIntegrationOfferLoadDocumentUseCase:
         result = usecase.execute(input_data)
         assert result["created"] == 0
         assert result["updated"] == 0
+        assert result["external_ids"] == []
 
 
 class TestIntegrationCorpsLoadDocumentsUseCase:
-
     @responses.activate
     def test_execute_returns_zero_when_no_documents(
         self, db, documents_integration_usecase, test_app_config
@@ -183,6 +186,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         result = documents_integration_usecase.execute(input_data)
         assert result["created"] == 0
         assert result["updated"] == 0
+        assert result["external_ids"] == []
 
     @responses.activate
     def test_execute_returns_correct_count_with_documents(
@@ -222,6 +226,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
             document_type=DocumentType.CORPS.value
         )
         assert saved_documents.count() == len(api_data)
+        assert {d.external_id for d in saved_documents} == set(result["external_ids"])
 
 
 class TestConcoursUploadView(APITestCase):

@@ -57,7 +57,7 @@ class CleanDocumentsUsecase:
             save_result: IUpsertResult = (
                 repository.upsert_batch(cast(List, cleaned_entities))
                 if cleaned_entities
-                else {"created": 0, "updated": 0, "errors": []}
+                else {"created": 0, "updated": 0, "errors": [], "external_ids": []}
             )
             self.logger.info(f"Saved entities: {save_result}")
 

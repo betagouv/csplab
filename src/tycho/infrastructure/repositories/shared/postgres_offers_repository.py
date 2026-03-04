@@ -91,7 +91,12 @@ class PostgresOffersRepository(IOffersRepository):
                             ],
                         )
 
-            return {"created": created, "updated": updated, "errors": []}
+            return {
+                "created": created,
+                "updated": updated,
+                "errors": [],
+                "external_ids": [],
+            }
 
         except Exception as e:
             self.logger.error(f"Database error during bulk upsert: {str(e)}")
@@ -108,6 +113,7 @@ class PostgresOffersRepository(IOffersRepository):
                         "exception": db_error,
                     }
                 ],
+                "external_ids": [],
             }
 
     def find_by_id(self, offer_id: UUID) -> Offer:

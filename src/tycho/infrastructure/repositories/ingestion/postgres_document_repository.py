@@ -35,7 +35,7 @@ class PostgresDocumentRepository(IDocumentRepository):
         self, documents: List[Document], document_type: DocumentType
     ) -> IUpsertResult:
         if not documents:
-            return {"created": 0, "updated": 0, "errors": []}
+            return {"created": 0, "updated": 0, "errors": [], "external_ids": []}
 
         try:
             with transaction.atomic():
@@ -59,6 +59,7 @@ class PostgresDocumentRepository(IDocumentRepository):
 
                 created = 0
                 updated = 0
+                new_external_ids = []
 
                 if partitioned["new"]:
                     new_documents = [
@@ -68,6 +69,7 @@ class PostgresDocumentRepository(IDocumentRepository):
                         new_documents, ignore_conflicts=True
                     )
                     created = len(new_documents)
+                    new_external_ids = [d.external_id for d in partitioned["new"]]
 
                 if partitioned["existing"]:
                     obj_to_update = []
@@ -84,7 +86,12 @@ class PostgresDocumentRepository(IDocumentRepository):
                         fields=["document_type", "raw_data", "created_at"],
                     )
 
-            return {"created": created, "updated": updated, "errors": []}
+            return {
+                "created": created,
+                "updated": updated,
+                "errors": [],
+                "external_ids": new_external_ids + list(existing_external_ids),
+            }
 
         except Exception:
             db_error = DatabaseError("Erreur lors de l'upsert batch des documents")
@@ -98,4 +105,5 @@ class PostgresDocumentRepository(IDocumentRepository):
                         "exception": db_error,
                     }
                 ],
+                "external_ids": [],
             }

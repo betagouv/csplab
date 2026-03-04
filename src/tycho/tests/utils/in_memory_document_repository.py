@@ -83,6 +83,7 @@ class InMemoryDocumentRepository(IDocumentRepository):
             "created": created,
             "updated": updated,
             "errors": errors,
+            "external_ids": [],
         }
 
     def clear(self) -> None:

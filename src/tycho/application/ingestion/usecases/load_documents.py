@@ -26,7 +26,12 @@ class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
         strategy = self.strategy_factory.create(input_data.operation_type)
         document_type = cast(DocumentType, input_data.kwargs.get("document_type"))
         has_more = True
-        batch_result: IUpsertResult = {"created": 0, "updated": 0, "errors": []}
+        batch_result: IUpsertResult = {
+            "created": 0,
+            "updated": 0,
+            "errors": [],
+            "external_ids": [],
+        }
 
         if "start" not in input_data.kwargs.keys():
             input_data.kwargs["start"] = 1
@@ -41,6 +46,7 @@ class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
             batch_result["created"] += result["created"]
             batch_result["updated"] += result["updated"]
             batch_result["errors"].extend(result["errors"])
+            batch_result["external_ids"] += result["external_ids"]
 
             if has_more:
                 input_data.kwargs["start"] += 1

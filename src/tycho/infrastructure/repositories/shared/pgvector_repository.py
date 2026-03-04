@@ -136,7 +136,13 @@ class PgVectorRepository(IVectorRepository):
                         ],
                     )
 
-            return {"created": created, "updated": updated, "errors": []}
+            return {
+                "created": created,
+                "updated": updated,
+                "errors": [],
+                # added due to shared IUpsertResult definition
+                "external_ids": [],
+            }
 
         except Exception as e:
             self.logger.error("Database error during bulk upsert: %s", str(e))
@@ -153,4 +159,5 @@ class PgVectorRepository(IVectorRepository):
                         "exception": db_error,
                     }
                 ],
+                "external_ids": [],
             }

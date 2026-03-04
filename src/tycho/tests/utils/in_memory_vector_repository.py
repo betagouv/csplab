@@ -29,7 +29,7 @@ class InMemoryVectorRepository(IVectorRepository):
     ) -> IUpsertResult:
         # WARNING! This method is added for in_memory usecase test compatibility
         # DO NOT USE
-        return {"created": 99999, "updated": 99999, "errors": []}
+        return {"created": 99999, "updated": 99999, "errors": [], "external_ids": []}
 
     def store_embedding(self, vectorized_doc: VectorizedDocument):
         # WARNING! This method has been remove from pgvector_repository

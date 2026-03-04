@@ -46,7 +46,12 @@ class InMemoryOffersRepository(IOffersRepository):
                 }
                 errors.append(error_detail)
 
-        return {"created": created, "updated": updated, "errors": errors}
+        return {
+            "created": created,
+            "updated": updated,
+            "errors": errors,
+            "external_ids": [],
+        }
 
     def find_by_id(self, offer_id: UUID) -> Offer:
         """Find a Offer by its ID."""
