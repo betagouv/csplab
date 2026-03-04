@@ -115,3 +115,28 @@ class MockApiResponseFactory:
                 "requests": 1,
             },
         }
+
+    @staticmethod
+    def create_ocr_response_with_none_values() -> Dict:
+        """Create a mock response with None values for company and description.
+
+        Returns:
+            Mock API response with None values that previously caused validation errors
+        """
+        return {
+            "experiences": [
+                {
+                    "title": "Développeur Senior",
+                    "company": None,
+                    "sector": "IT",
+                    "description": "Développement web",
+                },
+                {
+                    "title": "Chef de projet",
+                    "company": "StartupXYZ",
+                    "sector": None,
+                    "description": None,
+                },
+            ],
+            "skills": ["Python", "Django", "React"],
+        }
