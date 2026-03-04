@@ -1,21 +1,15 @@
-"""Document repository interface for local persistence."""
-
 from typing import Any, List, Protocol, Tuple, TypedDict
 
 from domain.entities.document import Document, DocumentType
 
 
 class IUpsertError(TypedDict):
-    """Details of an upsert error."""
-
     entity_id: Any
     error: str
     exception: Exception
 
 
 class IUpsertResult(TypedDict):
-    """Result of upsert batch operation."""
-
     created: int
     updated: int
     errors: List[IUpsertError]

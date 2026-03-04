@@ -1,5 +1,3 @@
-"""LoadDocuments usecase."""
-
 from typing import cast
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
@@ -14,21 +12,17 @@ from infrastructure.gateways.ingestion import load_documents_strategy_factory
 
 
 class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
-    """Usecase for loading and persisting documents."""
-
     def __init__(
         self,
         strategy_factory: load_documents_strategy_factory.LoadDocumentsStrategyFactory,
         document_repository: IDocumentRepository,
         logger: ILogger,
     ):
-        """Initialize with dependencies."""
         self.strategy_factory = strategy_factory
         self.document_repository = document_repository
         self.logger = logger
 
     def execute(self, input_data: LoadDocumentsInput) -> IUpsertResult:
-        """Execute the usecase to load and persist documents."""
         strategy = self.strategy_factory.create(input_data.operation_type)
         document_type = cast(DocumentType, input_data.kwargs.get("document_type"))
         has_more = True

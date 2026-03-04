@@ -1,5 +1,3 @@
-"""CleanDocuments usecase."""
-
 from typing import Any, Dict, List, cast
 
 from domain.entities.document import DocumentType
@@ -14,8 +12,6 @@ from domain.services.logger_interface import ILogger
 
 
 class CleanDocumentsUsecase:
-    """Usecase for cleaning and processing raw documents into typed entities."""
-
     def __init__(
         self,
         document_repository: IDocumentRepository,
@@ -23,14 +19,12 @@ class CleanDocumentsUsecase:
         repository_factory: IRepositoryFactory,
         logger: ILogger,
     ):
-        """Initialize with dependencies."""
         self.document_repository = document_repository
         self.document_cleaner = document_cleaner
         self.repository_factory = repository_factory
         self.logger = logger
 
     def execute(self, input_data: DocumentType) -> Dict[str, Any]:
-        """Execute the usecase to clean documents and return processing results."""
         start = 0
         has_more = True
         results = {
