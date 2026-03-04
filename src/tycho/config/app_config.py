@@ -66,6 +66,8 @@ class AppConfig(BaseModel):
 
     # Vector Database
     vector_db_type: Literal["PGVECTOR", "QDRANT"]
+    # Embedding
+    embedding_type: Literal["ALBERT", "OPENAI"]
 
     # OpenAI/OpenRouter
     openrouter_api_key: str
@@ -103,6 +105,7 @@ class AppConfig(BaseModel):
         return cls(
             ocr_type=settings.OCR_TYPE,
             vector_db_type=settings.VECTOR_DB_TYPE,
+            embedding_type=settings.EMBEDDING_TYPE,
             openrouter_api_key=settings.OPENROUTER_API_KEY,
             openrouter_base_url=settings.OPENROUTER_BASE_URL,
             openrouter_embedding_model=settings.OPENROUTER_EMBEDDING_MODEL,
