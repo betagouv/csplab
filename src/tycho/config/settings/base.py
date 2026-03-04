@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from django.utils.csp import CSP
 from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -34,6 +35,8 @@ env = environ.Env(
     TYCHO_TALENTSOFT_BASE_URL=(str, "https://fake-talentsoft.example.com"),
     TYCHO_TALLY_FORM_ID_RESULTS=(str, ""),
     TYCHO_TALLY_FORM_ID_NO_RESULTS=(str, ""),
+    TYCHO_MATOMO_BASE_URL=(str, ""),
+    TYCHO_MATOMO_SITE_ID=(int, 1),
 )
 env.prefix = "TYCHO_"
 
@@ -87,6 +90,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
 ]
@@ -104,6 +108,7 @@ TEMPLATES = [
             "context_processors": [
                 "django.contrib.auth.context_processors.auth",
                 "django.template.context_processors.request",
+                "django.template.context_processors.csp",
                 "django.template.context_processors.static",
                 "django.contrib.messages.context_processors.messages",
                 "dsfr.context_processors.site_config",
@@ -213,6 +218,40 @@ LOGGING = {
             "propagate": False,
         },
     },
+}
+
+# MATOMO
+# ---------------------------------------
+MATOMO_BASE_URL = env.str("MATOMO_BASE_URL")
+MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
+
+# CSP
+# ---------------------------------------
+connect_src = [CSP.SELF, "*.sentry.io"]
+img_src = [CSP.SELF, "data:"]
+script_src = [CSP.SELF, CSP.NONCE, "https://tally.so"]
+style_src = [
+    CSP.SELF,
+    CSP.NONCE,
+    "https://fonts.googleapis.com",
+    "'sha256-faU7yAF8NxuMTNEwVmBz+VcYeIoBQ2EMHW3WaVxCvnk='",  # DSFR inline style
+]
+
+if MATOMO_BASE_URL:
+    connect_src += [MATOMO_BASE_URL]
+    img_src += [MATOMO_BASE_URL]
+    script_src += [MATOMO_BASE_URL]
+
+SECURE_CSP = {
+    "default-src": [CSP.SELF],
+    "connect-src": connect_src,
+    "img-src": img_src,
+    "frame-src": [CSP.SELF, "https://tally.so"],
+    "font-src": [CSP.SELF, "https://fonts.gstatic.com/", "data:"],
+    "script-src": script_src,
+    "script-src-elem": script_src,
+    "style-src": style_src,
+    "style-src-elem": style_src,
 }
 
 # Django REST Framework
