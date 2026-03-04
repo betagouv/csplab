@@ -9,9 +9,9 @@ class CVExperience(BaseModel):
     """Structure for a CV experience entry."""
 
     title: str
-    company: str
+    company: Optional[str]
     sector: Optional[str]
-    description: str
+    description: Optional[str]
 
 
 class CVExtractionResult(BaseModel):

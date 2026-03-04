@@ -178,3 +178,54 @@ async def test_execute_json_decode_error_with_details(
     # Verify the error message contains detailed JSON parsing information
     error_message = str(exc_info.value)
     assert expected_error_message in error_message
+
+
+@pytest.mark.parametrize(
+    "container_name",
+    ["albert_candidate_container", "openai_candidate_container"],
+)
+async def test_execute_with_none_values_in_cv_data(
+    httpx_mock,
+    request,
+    pdf_content,
+    container_name,
+    cv_metadata_initial,
+    test_app_config,
+):
+    """Test that CV processing handles None values in company and description fields."""
+    container = request.getfixturevalue(container_name)
+    extractor_type = "albert" if "albert" in container_name else "openai"
+
+    # Use the new fixture with None values
+    mock_response = MockApiResponseFactory.create_ocr_response_with_none_values()
+
+    # Configuration spécifique selon l'extracteur
+    if extractor_type == "albert":
+        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
+        response_json = MockApiResponseFactory.create_albert_ocr_response(mock_response)
+    else:  # openai
+        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
+        response_json = {
+            "choices": [{"message": {"content": json.dumps(mock_response)}}]
+        }
+
+    httpx_mock.add_response(
+        method="POST",
+        url=api_url,
+        json=response_json,
+        status_code=200,
+    )
+
+    # Unpack fixture data
+    initial_cv, cv_id = cv_metadata_initial
+
+    # Prepopulate the repository
+    repo = container.async_cv_metadata_repository()
+    await repo.save(initial_cv)
+
+    usecase = container.process_uploaded_cv_usecase()
+
+    # This should not raise a ValidationError anymore
+    result = await usecase.execute(cv_id, pdf_content)
+    assert isinstance(result, CVMetadata)
+    assert result.status == CVStatus.COMPLETED
