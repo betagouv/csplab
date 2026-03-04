@@ -6,7 +6,7 @@ from uuid import UUID
 
 from django.conf import settings
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
@@ -14,6 +14,8 @@ from django.views.generic import FormView, TemplateView
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.offer import Offer
+from domain.exceptions.concours_errors import ConcoursDoesNotExist
+from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.value_objects.cv_processing_status import CVStatus
 from domain.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
@@ -157,10 +159,12 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
                 for opportunity in raw_opportunities:
                     if isinstance(opportunity[0], Concours):
                         opportunities.append(
-                            ConcoursToTemplateMapper.map(opportunity[0])
+                            ConcoursToTemplateMapper.map_for_card(opportunity[0])
                         )
                     elif isinstance(opportunity[0], Offer):
-                        opportunities.append(OfferToTemplateMapper.map(opportunity[0]))
+                        opportunities.append(
+                            OfferToTemplateMapper.map_for_card(opportunity[0])
+                        )
 
         except Exception:
             status = CVStatus.FAILED
@@ -255,4 +259,46 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         context["opportunity_type_offer"] = OpportunityType.OFFER
         context["opportunity_type_concours"] = OpportunityType.CONCOURS
         context["results_target_id"] = "results-zone"
+        return context
+
+
+class OfferDrawerView(TemplateView):
+    template_name = "candidate/components/_offer_drawer_content.html"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.container = create_candidate_container()
+
+    def get_context_data(self, **kwargs: object) -> dict[str, object]:
+        context = super().get_context_data(**kwargs)
+        offer_id = self.kwargs.get("offer_id")
+
+        offers_repository = self.container.offers_repository()
+        try:
+            offer = offers_repository.find_by_id(offer_id)
+            context["offer"] = OfferToTemplateMapper.map_for_drawer(offer)
+        except OfferDoesNotExist:
+            raise Http404("Offer not found") from None
+
+        return context
+
+
+class ConcoursDrawerView(TemplateView):
+    template_name = "candidate/components/_concours_drawer_content.html"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.container = create_candidate_container()
+
+    def get_context_data(self, **kwargs: object) -> dict[str, object]:
+        context = super().get_context_data(**kwargs)
+        concours_id = self.kwargs.get("concours_id")
+
+        concours_repository = self.container.concours_repository()
+        try:
+            concours = concours_repository.find_by_id(concours_id)
+            context["concours"] = ConcoursToTemplateMapper.map_for_drawer(concours)
+        except ConcoursDoesNotExist:
+            raise Http404("Concours not found") from None
+
         return context

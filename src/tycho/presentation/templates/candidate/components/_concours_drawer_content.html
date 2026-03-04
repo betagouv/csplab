@@ -1,0 +1,33 @@
+{% load dsfr_tags %}
+<div class="csplab-drawer__content fr-px-3w fr-px-md-5w fr-py-1w fr-stack-3w">
+    <h2 id="drawer-title" data-drawer-title class="fr-h4">{{ concours.title }}</h2>
+    <ul class="fr-tags-group">
+        {% if concours.opportunity_type_display %}
+            <li>
+                {% dsfr_tag label=concours.opportunity_type_display extra_classes="fr-icon-briefcase-line fr-tag--icon-left" %}
+            </li>
+        {% endif %}
+        {% if concours.versant_display %}
+            <li>{% dsfr_tag label=concours.versant_display extra_classes="fr-icon-government-line fr-tag--icon-left" %}</li>
+        {% endif %}
+        {% if concours.category_display %}
+            <li>{% dsfr_tag label=concours.category_display extra_classes="fr-icon-award-line fr-tag--icon-left" %}</li>
+        {% endif %}
+    </ul>
+    {% if concours.accordions %}
+        {% dsfr_accordion_group concours.accordions %}
+    {% endif %}
+</div>
+<footer class="csplab-drawer__footer fr-p-3w fr-p-md-5w">
+    <div class="fr-background-alt--grey fr-p-3w fr-stack-2w">
+        <h2 class="fr-h6">Comment s'inscrire ?</h2>
+        <ul class="fr-btns-group">
+            <li>
+                <a class="fr-btn"
+                   href="{{ concours.url }}"
+                   target="_blank"
+                   rel="noopener noreferrer">Voir le concours</a>
+            </li>
+        </ul>
+    </div>
+</footer>
