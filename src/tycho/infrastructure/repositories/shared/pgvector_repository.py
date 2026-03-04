@@ -161,3 +161,14 @@ class PgVectorRepository(IVectorRepository):
                 ],
                 "external_ids": [],
             }
+
+    def delete_by_entity_ids_and_document_type(
+        self, entity_ids: List[str], document_type: DocumentType
+    ) -> int:
+        try:
+            count, _ = VectorizedDocumentModel.objects.filter(
+                document_type=document_type.value, entity_id__in=entity_ids
+            ).delete()
+            return count
+        except Exception as e:
+            raise DatabaseError(f"Database error during deletion: {str(e)}") from e

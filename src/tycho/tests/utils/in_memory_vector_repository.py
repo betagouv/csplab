@@ -242,3 +242,8 @@ class InMemoryVectorRepository(IVectorRepository):
             raise ValueError("Vectors must have the same length")
 
         return math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b, strict=True)))
+
+    def delete_by_entity_ids_and_document_type(
+        self, entity_ids: List[str], document_type: DocumentType
+    ) -> int:
+        return 0
