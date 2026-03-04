@@ -187,7 +187,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             return (
                 ["candidate/components/_no_results_content.html"]
                 if is_htmx
-                else ["candidate/cv_results.html"]
+                else ["candidate/cv_no_results.html"]
             )
         elif is_htmx:
             return (
@@ -237,6 +237,11 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         if isinstance(self.opportunities, list):
             context["results"] = self._filter_results(self.opportunities)
             context["results_count"] = len(context["results"])
+
+        if self.opportunities:
+            context["tally_form_id"] = settings.TALLY_FORM_ID_RESULTS
+        else:
+            context["tally_form_id"] = settings.TALLY_FORM_ID_NO_RESULTS
 
         opportunities = (
             self.opportunities if isinstance(self.opportunities, list) else []

@@ -32,6 +32,8 @@ env = environ.Env(
     TYCHO_TALENTSOFT_CLIENT_ID=(str, "fake-client-id"),
     TYCHO_TALENTSOFT_CLIENT_SECRET=(str, "fake-client-secret"),
     TYCHO_TALENTSOFT_BASE_URL=(str, "https://fake-talentsoft.example.com"),
+    TYCHO_TALLY_FORM_ID_RESULTS=(str, ""),
+    TYCHO_TALLY_FORM_ID_NO_RESULTS=(str, ""),
 )
 env.prefix = "TYCHO_"
 
@@ -251,3 +253,6 @@ OPIK_API_KEY = env.str("OPIK_API_KEY")
 TALENTSOFT_BASE_URL = env.str("TALENTSOFT_BASE_URL")
 TALENTSOFT_CLIENT_ID = env.str("TALENTSOFT_CLIENT_ID")
 TALENTSOFT_CLIENT_SECRET = env.str("TALENTSOFT_CLIENT_SECRET")
+
+TALLY_FORM_ID_RESULTS = env.str("TALLY_FORM_ID_RESULTS")
+TALLY_FORM_ID_NO_RESULTS = env.str("TALLY_FORM_ID_NO_RESULTS")

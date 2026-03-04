@@ -1,0 +1,12 @@
+{% if tally_form_id %}
+    <iframe data-tally-src="https://tally.so/embed/{{ tally_form_id }}?alignLeft=1&hideTitle=1&transparentBackground=1&cv_uuid={{ cv_uuid }}"
+            loading="lazy"
+            width="100%"
+            height="{{ iframe_height|default:500 }}"
+            frameborder="0"
+            marginheight="0"
+            marginwidth="0"
+            title="Formulaire de feedback">
+    </iframe>
+    <script src="https://tally.so/widgets/embed.js"></script>
+{% endif %}
