@@ -172,3 +172,11 @@ class PostgresOffersRepository(IOffersRepository):
             ).update(processing=False)
         except Exception as e:
             raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+    def mark_as_archived(self, external_ids: List[str]) -> int:
+        try:
+            return OfferModel.objects.filter(external_id__in=external_ids).update(
+                archived_at=timezone.now()
+            )
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e

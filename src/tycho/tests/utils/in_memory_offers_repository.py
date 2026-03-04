@@ -87,3 +87,6 @@ class InMemoryOffersRepository(IOffersRepository):
 
     def find_by_missing_external_ids(self, external_ids: List[str]) -> List[str]:
         return []
+
+    def mark_as_archived(self, external_ids: List[str]) -> int:
+        return 0
