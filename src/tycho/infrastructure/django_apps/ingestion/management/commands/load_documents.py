@@ -27,7 +27,7 @@ class Command(BaseCommand):
             document_type = DocumentType(options["type"])
             usecase = self.container.load_documents_usecase()
 
-            self.logger.info(f"Loading documents of type: {document_type.value}")
+            self.logger.info("Loading documents of type: %s", document_type.value)
 
             input_data = LoadDocumentsInput(
                 operation_type=LoadOperationType.FETCH_FROM_API,
@@ -36,12 +36,13 @@ class Command(BaseCommand):
             result = usecase.execute(input_data)
 
             self.logger.info(
-                f"✅ Load completed: {result['created']} created, "
-                f"{result['updated']} updated"
+                "✅ Load completed: %s created, %s updated",
+                result["created"],
+                result["updated"],
             )
 
             if result["errors"]:
-                self.logger.warning(f"⚠️  {len(result['errors'])} errors occurred")
+                self.logger.warning("⚠️ %d errors occurred", len(result["errors"]))
 
         except Exception as e:
             raise CommandError(f"Failed to load documents: {str(e)}") from e
