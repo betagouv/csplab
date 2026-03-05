@@ -37,6 +37,7 @@ def test_cv_results_page_loads_correctly(
     assertTemplateUsed(response, "candidate/cv_results.html")
     assertContains(response, "Vos opportunités professionnelles")
     assertContains(response, "fr-breadcrumb")
+    assertContains(response, 'id="opportunity-drawer-body"')
 
 
 def test_cv_results_invalid_uuid_returns_404(client, db):
@@ -295,7 +296,7 @@ def test_cv_processing_flow_pending_to_completed(
         f'hx-trigger="every {settings.CV_PROCESSING_POLL_INTERVAL}s"',
     )
 
-    response_poll = client.get(url, HTTP_HX_REQUEST="true")
+    response_poll = client.get(url, {"poll": "1"}, HTTP_HX_REQUEST="true")
     assert response_poll.status_code == HTTPStatus.NO_CONTENT
     assert response_poll["HX-Reswap"] == "none"
 
@@ -303,11 +304,9 @@ def test_cv_processing_flow_pending_to_completed(
         "status": CVStatus.COMPLETED,
         "opportunities": [{"title": "Test opportunity"}],
     }
-    response_completed = client.get(url, HTTP_HX_REQUEST="true")
+    response_completed = client.get(url, {"poll": "1"}, HTTP_HX_REQUEST="true")
     assert response_completed.status_code == HTTPStatus.OK
-    assertTemplateUsed(response_completed, "candidate/components/_results_content.html")
-    assertContains(response_completed, "Vos opportunités professionnelles")
-    assertNotContains(response_completed, 'hx-trigger="every')
+    assert response_completed["HX-Redirect"] == url
 
 
 def test_cv_results_with_pending_cv_in_database_shows_processing(client, db):
@@ -360,17 +359,16 @@ def test_cv_results_htmx_poll_pending_to_completed_transition(
     model.save()
     url = reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id})
 
-    response_pending = client.get(url, HTTP_HX_REQUEST="true")
+    response_pending = client.get(url, {"poll": "1"}, HTTP_HX_REQUEST="true")
     assert response_pending.status_code == HTTPStatus.NO_CONTENT
     assert response_pending["HX-Reswap"] == "none"
 
     model.status = CVStatus.COMPLETED.value
     model.save()
 
-    response_completed = client.get(url, HTTP_HX_REQUEST="true")
-    assertTemplateUsed(response_completed, "candidate/components/_results_content.html")
-    assertContains(response_completed, "Vos opportunités professionnelles")
-    assertNotContains(response_completed, 'hx-trigger="every')
+    response_completed = client.get(url, {"poll": "1"}, HTTP_HX_REQUEST="true")
+    assert response_completed.status_code == HTTPStatus.OK
+    assert response_completed["HX-Redirect"] == url
 
 
 def test_cv_results_nonexistent_cv_redirects_to_upload(client, db):

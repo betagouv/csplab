@@ -119,6 +119,14 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
             response["HX-Reswap"] = "none"
             return response
 
+        if is_htmx and request.GET.get("poll"):
+            response = HttpResponse()
+            cv_uuid = self.kwargs["cv_uuid"]
+            response["HX-Redirect"] = str(
+                reverse_lazy("candidate:cv_results", kwargs={"cv_uuid": cv_uuid})
+            )
+            return response
+
         if self.status == CVStatus.FAILED:
             messages.error(
                 request,

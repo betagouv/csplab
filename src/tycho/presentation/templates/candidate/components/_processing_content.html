@@ -1,6 +1,6 @@
 {% load static %}
 <div class="fr-background-alt--blue-france"
-     hx-get="{% url 'candidate:cv_results' cv_uuid %}"
+     hx-get="{% url 'candidate:cv_results' cv_uuid %}?poll=1"
      hx-trigger="every {{ poll_interval }}s"
      hx-swap="outerHTML">
     <div class="fr-container">
