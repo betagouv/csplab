@@ -1,5 +1,7 @@
 """Django settings for tycho project in dev mode."""
 
+from django.utils.csp import CSP
+
 from config.settings.base import *  # noqa: F403
 
 DEBUG = True
@@ -37,3 +39,13 @@ STORAGES = {
 }
 
 SENTRY_DNS = "example.com"
+
+# CSP: replace nonce with unsafe-inline for debug toolbar in dev
+SECURE_CSP["script-src"] = [CSP.SELF, CSP.UNSAFE_INLINE, "https://tally.so"]  # noqa: F405
+SECURE_CSP["script-src-elem"] = [CSP.SELF, CSP.UNSAFE_INLINE, "https://tally.so"]  # noqa: F405
+SECURE_CSP["style-src"] = [CSP.SELF, CSP.UNSAFE_INLINE, "https://fonts.googleapis.com"]  # noqa: F405
+SECURE_CSP["style-src-elem"] = [  # noqa: F405
+    CSP.SELF,
+    CSP.UNSAFE_INLINE,
+    "https://fonts.googleapis.com",
+]
