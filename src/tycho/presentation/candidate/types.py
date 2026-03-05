@@ -56,6 +56,8 @@ class DrawerContext(TypedDict):
     """Template context for an opportunity drawer."""
 
     title: str
+    opportunity_id: str
+    opportunity_type: str
     opportunity_type_display: str
     versant_display: str
     category_display: str

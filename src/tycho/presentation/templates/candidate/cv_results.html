@@ -7,3 +7,9 @@
     {% include "candidate/components/_results_content.html" %}
     {% include "components/_drawer.html" with drawer_id="opportunity-drawer" drawer_label="Détail de l'opportunité" drawer_body_id="opportunity-drawer-body" %}
 {% endblock main %}
+{% block page_js %}
+    {{ block.super }}
+    <script src="{% static 'candidate/js/opportunity-feedback.js' %}"
+            defer
+            nonce="{{ request.csp_nonce }}"></script>
+{% endblock page_js %}

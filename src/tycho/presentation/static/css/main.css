@@ -1070,6 +1070,10 @@ hr {
     transition: none;
   }
 }
+.csplab-feedback--throttled {
+  pointer-events: none;
+}
+
 .csplab-hero__title {
   font-size: 2rem;
   line-height: 112.5%;
