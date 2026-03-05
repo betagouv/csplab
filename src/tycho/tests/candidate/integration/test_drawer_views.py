@@ -32,7 +32,7 @@ def _create_concours():
             _create_offer,
             "candidate:offer_drawer",
             "offer_id",
-            "candidate/components/_offer_drawer_content.html",
+            "candidate/components/_opportunity_drawer_content.html",
             [
                 "Test Offer Title",
                 "Test profile description",
@@ -43,7 +43,7 @@ def _create_concours():
             _create_concours,
             "candidate:concours_drawer",
             "concours_id",
-            "candidate/components/_concours_drawer_content.html",
+            "candidate/components/_opportunity_drawer_content.html",
             ["Test Corps Title", "Test Grade Description"],
         ),
     ],

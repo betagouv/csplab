@@ -263,7 +263,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
 
 
 class OfferDrawerView(TemplateView):
-    template_name = "candidate/components/_offer_drawer_content.html"
+    template_name = "candidate/components/_opportunity_drawer_content.html"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -276,7 +276,7 @@ class OfferDrawerView(TemplateView):
         offers_repository = self.container.offers_repository()
         try:
             offer = offers_repository.find_by_id(offer_id)
-            context["offer"] = OfferToTemplateMapper.map_for_drawer(offer)
+            context["opportunity"] = OfferToTemplateMapper.map_for_drawer(offer)
         except OfferDoesNotExist:
             raise Http404("Offer not found") from None
 
@@ -284,7 +284,7 @@ class OfferDrawerView(TemplateView):
 
 
 class ConcoursDrawerView(TemplateView):
-    template_name = "candidate/components/_concours_drawer_content.html"
+    template_name = "candidate/components/_opportunity_drawer_content.html"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -297,7 +297,7 @@ class ConcoursDrawerView(TemplateView):
         concours_repository = self.container.concours_repository()
         try:
             concours = concours_repository.find_by_id(concours_id)
-            context["concours"] = ConcoursToTemplateMapper.map_for_drawer(concours)
+            context["opportunity"] = ConcoursToTemplateMapper.map_for_drawer(concours)
         except ConcoursDoesNotExist:
             raise Http404("Concours not found") from None
 
