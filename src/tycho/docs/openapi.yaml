@@ -1,0 +1,1825 @@
+openapi: 3.1.0
+
+info:
+  title: CSP Job Offer API
+  version: 1.0.0
+  description: |
+    API de gestion des offres d'emploi de la fonction publique
+
+    ## Conventions
+    - Toutes les clés de référentiels sont transmises sous forme de **code string** en écriture
+      (`"FPE"`, `"CAT-A"`, `"confirme"` …) et retournées en lecture sous forme d'objet `{code, label}`.
+    - Les champs booléens (`is_full_time`, `remote_work`, `has_management`) utilisent `true`/`false`.
+    - Les adresses peuvent être multiples par offre et portent chacune leurs coordonnées géographiques.
+    - Les catégories peuvent être multiples par offre (tableau de codes).
+
+servers:
+  - url: /api
+    description: Serveur par défaut
+
+# ---------------------------------------------------------------------------
+# Reusable components
+# ---------------------------------------------------------------------------
+components:
+  # ---- Schemas -------------------------------------------------------------
+  schemas:
+    # -- Generic referential (read) ------------------------------------------
+    Referential:
+      type: object
+      description: Entrée d'un référentiel (lecture seule)
+      properties:
+        code:
+          type: string
+          example: "CAT-A"
+        label:
+          type: string
+          example: "Catégorie A (cadre)"
+      required: [code, label]
+
+    # -- Localisation sub-objects --------------------------------------------
+    RefDepartment:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "75"
+        label:
+          type: string
+          example: "Paris (75)"
+
+    RefRegion:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "R11"
+        label:
+          type: string
+          example: "Île-de-France"
+
+    RefCountry:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "FRA"
+        label:
+          type: string
+          example: "France"
+
+    # -- Entity --------------------------------------------------------------
+    Entity:
+      type: object
+      properties:
+        entity_code:
+          type: string
+          example: "1"
+        name:
+          type: string
+          example: "Ministère de la Culture"
+        parent_code:
+          type: string
+          nullable: true
+          example: "FPE"
+      required: [entity_code, name]
+
+    # -- Address (read) ------------------------------------------------------
+    AddressRead:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 12
+        street:
+          type: string
+          example: "20 avenue de Ségur"
+        city:
+          type: string
+          example: "Paris"
+        postal_code:
+          type: string
+          example: "75007"
+        department:
+          $ref: "#/components/schemas/RefDepartment"
+          nullable: true
+        region:
+          $ref: "#/components/schemas/RefRegion"
+          nullable: true
+        country:
+          $ref: "#/components/schemas/RefCountry"
+          nullable: true
+        latitude:
+          type: number
+          format: decimal
+          nullable: true
+          example: 48.8497
+        longitude:
+          type: number
+          format: decimal
+          nullable: true
+          example: 2.308
+        geocoding_source:
+          type: string
+          nullable: true
+          example: "ban"
+          description: "Source du géocodage (ex: 'ban', 'nominatim', 'manual')"
+        geocoding_score:
+          type: number
+          format: float
+          nullable: true
+          minimum: 0
+          maximum: 1
+          example: 0.97
+        geocoded_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        job_location_code:
+          type: string
+          description: "Code TalentSoft JobLocation (Offer.csv)"
+          example: ""
+        offer_location_code:
+          type: string
+          description: "Code TalentSoft OfferLocation (Offer.csv)"
+          example: ""
+        is_primary:
+          type: boolean
+          description: "Adresse principale affichée aux candidats"
+          example: true
+
+    # -- Address (write) -----------------------------------------------------
+    AddressWrite:
+      type: object
+      properties:
+        id:
+          type: integer
+          nullable: true
+          description: "Fourni pour mettre à jour une adresse existante"
+        street:
+          type: string
+          example: "20 avenue de Ségur"
+        city:
+          type: string
+          example: "Paris"
+        postal_code:
+          type: string
+          example: "75007"
+        department:
+          type: string
+          nullable: true
+          description: "Code département (ex: '75')"
+          example: "75"
+        region:
+          type: string
+          nullable: true
+          description: "Code région (ex: 'R11')"
+          example: "R11"
+        country:
+          type: string
+          nullable: true
+          description: "Code pays ISO 3166-1 alpha-3 (ex: 'FRA')"
+          example: "FRA"
+        latitude:
+          type: number
+          format: decimal
+          nullable: true
+          example: 48.8497
+        longitude:
+          type: number
+          format: decimal
+          nullable: true
+          example: 2.308
+        geocoding_source:
+          type: string
+          nullable: true
+          example: "ban"
+        geocoding_score:
+          type: number
+          format: float
+          nullable: true
+          example: 0.97
+        geocoded_at:
+          type: string
+          format: date-time
+          nullable: true
+        job_location_code:
+          type: string
+          example: ""
+        offer_location_code:
+          type: string
+          example: ""
+        is_primary:
+          type: boolean
+          default: false
+
+    # -- Language requirement ------------------------------------------------
+    LanguageRequirement:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        language:
+          type: string
+          description: "Code langue ISO 639 (ex: 'FR', 'EN')"
+          example: "FR"
+        language_label:
+          type: string
+          readOnly: true
+          example: "Français"
+        level:
+          type: string
+          description: "Code niveau CECRL (A1 → C2)"
+          example: "C1"
+        level_label:
+          type: string
+          readOnly: true
+          example: "Autonome"
+
+    LanguageRequirementWrite:
+      type: object
+      required: [language, level]
+      properties:
+        language:
+          type: string
+          description: "Code langue ISO 639"
+          example: "EN"
+        level:
+          type: string
+          description: "Code niveau CECRL"
+          example: "B2"
+
+    # -- JobOffer (read) -----------------------------------------------------
+    JobOfferRead:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        reference:
+          type: string
+          maxLength: 30
+          example: "2025-MIN-0042"
+        external_url:
+          type: string
+          format: uri
+          maxLength: 2083
+          example: "https://example.gouv.fr/postuler/0042"
+        entity:
+          $ref: "#/components/schemas/Entity"
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Referential"
+          description: "Catégories du poste (A+, A, B, C) — valeurs multiples possibles"
+        job_title:
+          type: string
+          example: "Ingénieur systèmes d'information"
+        description:
+          type: string
+          example: "Description principale du poste…"
+        description2:
+          type: string
+          example: "Informations complémentaires…"
+        domain:
+          $ref: "#/components/schemas/Referential"
+          nullable: true
+        job:
+          $ref: "#/components/schemas/Referential"
+          nullable: true
+        contract:
+          $ref: "#/components/schemas/Referential"
+          nullable: true
+        contract_nature:
+          $ref: "#/components/schemas/Referential"
+          nullable: true
+        contract_length:
+          type: string
+          example: "3 ans"
+        versant:
+          $ref: "#/components/schemas/Referential"
+          nullable: true
+          description: "Versant de la fonction publique (FPE, FPH, FPT)"
+        is_full_time:
+          type: boolean
+          nullable: true
+          description: "true = Temps plein, false = Temps partiel"
+        remote_work:
+          type: boolean
+          nullable: true
+          description: "true = Télétravail possible, false = Sur site uniquement"
+        has_management:
+          type: boolean
+          nullable: true
+          description: "true = Poste avec management, false = Sans management"
+        education_level:
+          $ref: "#/components/schemas/Referential"
+          nullable: true
+        experience_level:
+          $ref: "#/components/schemas/Referential"
+          nullable: true
+        diploma:
+          type: string
+          example: "Master informatique"
+        state_diploma:
+          $ref: "#/components/schemas/Referential"
+          nullable: true
+        specialisation:
+          $ref: "#/components/schemas/Referential"
+          nullable: true
+        languages:
+          type: array
+          items:
+            $ref: "#/components/schemas/LanguageRequirement"
+        document_required:
+          $ref: "#/components/schemas/Referential"
+          nullable: true
+        position_status:
+          $ref: "#/components/schemas/Referential"
+          nullable: true
+        number_of_vacancies:
+          type: integer
+          minimum: 1
+          example: 2
+        beginning_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-09-01"
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressRead"
+          description: "Lieux de travail (multiples, géocodés)"
+        is_published:
+          type: boolean
+          example: false
+        publication_start:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-06-01"
+        publication_end:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-07-15"
+        is_extern:
+          type: boolean
+          example: false
+        manager_name:
+          type: string
+          example: "Dupont"
+        manager_first_name:
+          type: string
+          example: "Marie"
+        manager_phone:
+          type: string
+          example: "+33 1 23 45 67 89"
+        manager_email:
+          type: string
+          format: email
+          example: "m.dupont@ministere.gouv.fr"
+        free_criteria_1:
+          type: string
+        free_criteria_2:
+          type: string
+        creation_date:
+          type: string
+          format: date-time
+          readOnly: true
+        modification_date:
+          type: string
+          format: date-time
+          readOnly: true
+
+    # -- JobOffer (write) ----------------------------------------------------
+    JobOfferWrite:
+      type: object
+      required: [reference, job_title, entity]
+      properties:
+        reference:
+          type: string
+          maxLength: 30
+          example: "2025-MIN-0042"
+        external_url:
+          type: string
+          format: uri
+          maxLength: 2083
+          example: "https://example.gouv.fr/postuler/0042"
+        entity:
+          type: string
+          description: "Code de l'entité (entity_code)"
+          example: "1"
+        categories:
+          type: array
+          items:
+            type: string
+          description: "Liste de codes catégorie. Plusieurs valeurs possibles."
+          example: ["CAT-A", "CAT-AEF"]
+        job_title:
+          type: string
+          example: "Ingénieur systèmes d'information"
+        description:
+          type: string
+        description2:
+          type: string
+        domain:
+          type: string
+          nullable: true
+          description: "Code domaine professionnel"
+          example: "ERNUM"
+        job:
+          type: string
+          nullable: true
+          description: "Code métier"
+          example: "ERNUM001"
+        contract:
+          type: string
+          nullable: true
+          description: "Code nature d'ouverture du poste"
+          example: "NAT_TITULAIRE_CONTRACTUEL"
+        contract_nature:
+          type: string
+          nullable: true
+          description: "Code nature de contrat"
+          example: "CDI"
+        contract_length:
+          type: string
+          example: "3 ans"
+        versant:
+          type: string
+          nullable: true
+          description: "Code versant (FPE, FPH, FPT)"
+          example: "FPE"
+        is_full_time:
+          type: boolean
+          nullable: true
+          description: "true = Temps plein, false = Temps partiel"
+          example: true
+        remote_work:
+          type: boolean
+          nullable: true
+          description: "true = Télétravail, false = Sur site"
+          example: true
+        has_management:
+          type: boolean
+          nullable: true
+          description: "true = Avec management, false = Sans management"
+          example: false
+        education_level:
+          type: string
+          nullable: true
+          description: "Code niveau d'études (A → H)"
+          example: "G"
+        experience_level:
+          type: string
+          nullable: true
+          description: "Code niveau d'expérience"
+          example: "confirme"
+        diploma:
+          type: string
+          example: "Master informatique"
+        state_diploma:
+          type: string
+          nullable: true
+          description: "Code diplôme d'État"
+          example: "CSPU0002"
+        specialisation:
+          type: string
+          nullable: true
+          description: "Code spécialisation"
+          example: "01"
+        languages:
+          type: array
+          items:
+            $ref: "#/components/schemas/LanguageRequirementWrite"
+          description: "Exigences linguistiques (langue + niveau CECRL)"
+        document_required:
+          type: string
+          nullable: true
+          description: "Code documents requis à la candidature"
+          example: "Doc_CV_LM"
+        position_status:
+          type: string
+          nullable: true
+          description: "Code statut du poste"
+          example: "STATUT01"
+        number_of_vacancies:
+          type: integer
+          minimum: 1
+          default: 1
+          example: 2
+        beginning_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-09-01"
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressWrite"
+          description: "Lieux de travail. Plusieurs adresses géocodées possibles."
+        is_published:
+          type: boolean
+          default: false
+        publication_start:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-06-01"
+        publication_end:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-07-15"
+        is_extern:
+          type: boolean
+          default: false
+        manager_name:
+          type: string
+          example: "Dupont"
+        manager_first_name:
+          type: string
+          example: "Marie"
+        manager_phone:
+          type: string
+          example: "+33 1 23 45 67 89"
+        manager_email:
+          type: string
+          format: email
+          example: "m.dupont@ministere.gouv.fr"
+        free_criteria_1:
+          type: string
+        free_criteria_2:
+          type: string
+
+    # -- Paginated list wrapper ----------------------------------------------
+    PaginatedJobOffers:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 142
+        next:
+          type: string
+          format: uri
+          nullable: true
+          example: "/api/job-offers/?page=2"
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/JobOfferRead"
+
+    PaginatedReferentials:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Referential"
+
+    PaginatedAddresses:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressRead"
+
+    PublishResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [published, unpublished]
+        reference:
+          type: string
+          example: "2025-MIN-0042"
+
+    TokenObtainRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: "agent.dupont"
+        password:
+          type: string
+          format: password
+          example: "••••••••"
+
+    TokenObtainResponse:
+      type: object
+      properties:
+        access:
+          type: string
+          description: "JWT access token (durée de vie courte)"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"
+        refresh:
+          type: string
+          description: "JWT refresh token (durée de vie longue)"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"
+
+    TokenRefreshRequest:
+      type: object
+      required: [refresh]
+      properties:
+        refresh:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"
+
+    TokenRefreshResponse:
+      type: object
+      properties:
+        access:
+          type: string
+          description: "Nouveau JWT access token"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"
+
+    TokenError:
+      type: object
+      properties:
+        detail:
+          type: string
+          example: "No active account found with the given credentials"
+
+    ValidationError:
+      type: object
+      properties:
+        field_name:
+          type: array
+          items:
+            type: string
+          example: ["Ce champ est obligatoire."]
+
+  # ---- Parameters ----------------------------------------------------------
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+
+    SearchParam:
+      name: search
+      in: query
+      description: "Recherche textuelle (référence, titre, description)"
+      schema:
+        type: string
+
+    OrderingParam:
+      name: ordering
+      in: query
+      description: "Champ de tri. Préfixer par `-` pour ordre décroissant."
+      schema:
+        type: string
+        enum:
+          - modification_date
+          - -modification_date
+          - publication_start
+          - -publication_start
+          - reference
+          - -reference
+      example: "-modification_date"
+
+  # ---- Responses -----------------------------------------------------------
+  responses:
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Pas trouvé."
+
+    ValidationError:
+      description: Erreur de validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationError"
+
+  # ---- Security ------------------------------------------------------------
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Authentification JWT via simplejwt.
+        Obtenez un token sur `POST /api/token/` puis incluez-le dans le header :
+        `Authorization: Bearer <access_token>`
+
+# ---------------------------------------------------------------------------
+# Global security (toutes les routes sauf /token/ sont protégées)
+# ---------------------------------------------------------------------------
+security:
+  - BearerAuth: []
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+paths:
+  # ==========================================================================
+  # Authentification JWT (simplejwt)
+  # ==========================================================================
+
+  /token/:
+    post:
+      tags: [Authentification]
+      summary: Obtenir un token JWT
+      description: >
+        Retourne un `access` token (court) et un `refresh` token (long).
+        Passez l'`access` token dans le header `Authorization: Bearer <token>`
+        pour toutes les requêtes protégées.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenObtainRequest"
+            example:
+              username: "agent.dupont"
+              password: "motdepasse"
+      responses:
+        "200":
+          description: Tokens générés
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenObtainResponse"
+        "401":
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenError"
+
+  /token/refresh/:
+    post:
+      tags: [Authentification]
+      summary: Rafraîchir un access token
+      description: >
+        Échange un `refresh` token valide contre un nouvel `access` token.
+        Le refresh token n'est pas renouvelé (sauf si `ROTATE_REFRESH_TOKENS=True`).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRefreshRequest"
+      responses:
+        "200":
+          description: Nouveau access token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenRefreshResponse"
+        "401":
+          description: Refresh token expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenError"
+
+  # ==========================================================================
+  # Referentials (read-only)
+  # ==========================================================================
+
+  /ref/categories/:
+    get:
+      tags: [Référentiels]
+      summary: Liste des catégories
+      description: "Catégories de poste — A+, A, B, C (OF_Catégorie)"
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+        - $ref: "#/components/parameters/PageParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/categories/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'une catégorie
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "CAT-A"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/versants/:
+    get:
+      tags: [Référentiels]
+      summary: Liste des versants
+      description: "Versants de la fonction publique — FPE, FPH, FPT"
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+              example:
+                count: 3
+                next: null
+                previous: null
+                results:
+                  - code: "FPE"
+                    label: "Fonction publique de l'Etat"
+                  - code: "FPH"
+                    label: "Fonction publique Hospitalière"
+                  - code: "FPT"
+                    label: "Fonction publique Territoriale"
+
+  /ref/versants/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'un versant
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "FPE"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/contracts/:
+    get:
+      tags: [Référentiels]
+      summary: Liste des types de contrat (nature d'ouverture)
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/contracts/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'un type de contrat
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/contract-natures/:
+    get:
+      tags: [Référentiels]
+      summary: Liste des natures de contrat (CDD / CDI)
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/contract-natures/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'une nature de contrat
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/domains/:
+    get:
+      tags: [Référentiels]
+      summary: Liste des domaines professionnels
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/domains/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'un domaine
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "ERNUM"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/jobs/:
+    get:
+      tags: [Référentiels]
+      summary: Liste des métiers
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+        - name: domain
+          in: query
+          description: "Filtrer par code domaine (ex: ERACH)"
+          schema:
+            type: string
+          example: "ERACH"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/jobs/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'un métier
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "ERACH001"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/education-levels/:
+    get:
+      tags: [Référentiels]
+      summary: Niveaux d'études (A → H)
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/education-levels/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'un niveau d'études
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "G"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/experience-levels/:
+    get:
+      tags: [Référentiels]
+      summary: Niveaux d'expérience
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/experience-levels/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'un niveau d'expérience
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "confirme"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/languages/:
+    get:
+      tags: [Référentiels]
+      summary: Langues (ISO 639)
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/languages/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'une langue
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "FR"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/language-levels/:
+    get:
+      tags: [Référentiels]
+      summary: Niveaux de langue CECRL (A1 → C2)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/language-levels/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'un niveau de langue
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [A1, A2, B1, B2, C1, C2]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/specialisations/:
+    get:
+      tags: [Référentiels]
+      summary: Spécialisations
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/specialisations/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'une spécialisation
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/position-statuses/:
+    get:
+      tags: [Référentiels]
+      summary: Statuts du poste (Vacant / Susceptible d'être vacant)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/position-statuses/{code}/:
+    get:
+      tags: [Référentiels]
+      summary: Détail d'un statut de poste
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [STATUT01, STATUT02]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/departments/:
+    get:
+      tags: [Référentiels — Localisation]
+      summary: Départements français
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/departments/{code}/:
+    get:
+      tags: [Référentiels — Localisation]
+      summary: Détail d'un département
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "75"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/regions/:
+    get:
+      tags: [Référentiels — Localisation]
+      summary: Régions françaises
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/regions/{code}/:
+    get:
+      tags: [Référentiels — Localisation]
+      summary: Détail d'une région
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "R11"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ref/countries/:
+    get:
+      tags: [Référentiels — Localisation]
+      summary: Pays (ISO 3166-1 alpha-3)
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReferentials"
+
+  /ref/countries/{code}/:
+    get:
+      tags: [Référentiels — Localisation]
+      summary: Détail d'un pays
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "FRA"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Referential"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ==========================================================================
+  # Entities
+  # ==========================================================================
+
+  /entities/:
+    get:
+      tags: [Entités]
+      summary: Liste des entités (organismes de rattachement)
+      parameters:
+        - $ref: "#/components/parameters/SearchParam"
+        - $ref: "#/components/parameters/PageParam"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    format: uri
+                    nullable: true
+                  previous:
+                    type: string
+                    format: uri
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Entity"
+
+  /entities/{entity_code}/:
+    get:
+      tags: [Entités]
+      summary: Détail d'une entité
+      parameters:
+        - name: entity_code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "1"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entity"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ==========================================================================
+  # Addresses
+  # ==========================================================================
+
+  /addresses/:
+    get:
+      tags: [Adresses]
+      summary: Liste des adresses
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/SearchParam"
+        - name: department__code
+          in: query
+          schema:
+            type: string
+          example: "75"
+        - name: region__code
+          in: query
+          schema:
+            type: string
+          example: "R11"
+        - name: country__code
+          in: query
+          schema:
+            type: string
+          example: "FRA"
+        - name: is_primary
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedAddresses"
+
+    post:
+      tags: [Adresses]
+      summary: Créer une adresse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressWrite"
+      responses:
+        "201":
+          description: Adresse créée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressRead"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /addresses/{id}/:
+    get:
+      tags: [Adresses]
+      summary: Détail d'une adresse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressRead"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    patch:
+      tags: [Adresses]
+      summary: Mise à jour partielle d'une adresse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressWrite"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressRead"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      tags: [Adresses]
+      summary: Supprimer une adresse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Supprimé
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ==========================================================================
+  # Job Offers
+  # ==========================================================================
+
+  /job-offers/:
+    get:
+      tags: [Offres d'emploi]
+      summary: Liste des offres d'emploi
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/SearchParam"
+        - $ref: "#/components/parameters/OrderingParam"
+        - name: is_published
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: entity__entity_code
+          in: query
+          schema:
+            type: string
+          example: "1"
+        - name: versant__code
+          in: query
+          schema:
+            type: string
+          example: "FPE"
+        - name: contract__code
+          in: query
+          schema:
+            type: string
+          example: "NAT_TITULAIRE_CONTRACTUEL"
+        - name: categories__code
+          in: query
+          description: "Filtrer par code catégorie (un seul code, répétable)"
+          schema:
+            type: string
+          example: "CAT-A"
+        - name: domain__code
+          in: query
+          schema:
+            type: string
+          example: "ERNUM"
+        - name: addresses__department__code
+          in: query
+          schema:
+            type: string
+          example: "75"
+        - name: addresses__region__code
+          in: query
+          schema:
+            type: string
+          example: "R11"
+        - name: experience_level__code
+          in: query
+          schema:
+            type: string
+          example: "confirme"
+        - name: education_level__code
+          in: query
+          schema:
+            type: string
+          example: "G"
+        - name: position_status__code
+          in: query
+          schema:
+            type: string
+            enum: [STATUT01, STATUT02]
+        - name: is_full_time
+          in: query
+          schema:
+            type: boolean
+        - name: remote_work
+          in: query
+          schema:
+            type: boolean
+        - name: has_management
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedJobOffers"
+
+    post:
+      tags: [Offres d'emploi]
+      summary: Créer une offre d'emploi
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobOfferWrite"
+            example:
+              reference: "2025-MIN-0042"
+              job_title: "Ingénieur systèmes d'information"
+              entity: "1"
+              categories: ["CAT-A"]
+              domain: "ERNUM"
+              job: "ERNUM001"
+              contract: "NAT_TITULAIRE_CONTRACTUEL"
+              contract_nature: "CDI"
+              versant: "FPE"
+              is_full_time: true
+              remote_work: true
+              has_management: false
+              education_level: "G"
+              experience_level: "confirme"
+              position_status: "STATUT01"
+              number_of_vacancies: 1
+              beginning_date: "2025-09-01"
+              is_published: false
+              publication_start: "2025-06-01"
+              publication_end: "2025-07-15"
+              languages:
+                - language: "FR"
+                  level: "C1"
+                - language: "EN"
+                  level: "B2"
+              addresses:
+                - street: "20 avenue de Ségur"
+                  city: "Paris"
+                  postal_code: "75007"
+                  department: "75"
+                  region: "R11"
+                  country: "FRA"
+                  latitude: 48.8497
+                  longitude: 2.308
+                  geocoding_source: "ban"
+                  geocoding_score: 0.97
+                  is_primary: true
+      responses:
+        "201":
+          description: Offre créée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobOfferRead"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /job-offers/{id}/:
+    get:
+      tags: [Offres d'emploi]
+      summary: Détail d'une offre d'emploi
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobOfferRead"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      tags: [Offres d'emploi]
+      summary: Remplacement complet d'une offre
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobOfferWrite"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobOfferRead"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    patch:
+      tags: [Offres d'emploi]
+      summary: Mise à jour partielle d'une offre
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobOfferWrite"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobOfferRead"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      tags: [Offres d'emploi]
+      summary: Supprimer une offre
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Supprimé
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /job-offers/{id}/publish/:
+    post:
+      tags: [Offres d'emploi]
+      summary: Publier une offre
+      description: "Passe `is_published` à `true`."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Offre publiée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublishResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /job-offers/{id}/unpublish/:
+    post:
+      tags: [Offres d'emploi]
+      summary: Dépublier une offre
+      description: "Passe `is_published` à `false`."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Offre dépubliée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublishResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+# ---------------------------------------------------------------------------
+# Tags (for display order in Swagger UI)
+# ---------------------------------------------------------------------------
+tags:
+  - name: Authentification
+    description: >-
+      Obtenir et rafraîchir les tokens JWT (simplejwt).
+      Les routes /token/ sont publiques — toutes les autres requièrent un Bearer token.
+  - name: Offres d'emploi
+    description: CRUD des offres d'emploi + actions publish/unpublish
+  - name: Adresses
+    description: Gestion des adresses géocodées (lieux de travail)
+  - name: Entités
+    description: Organismes de rattachement (arbre hiérarchique TalentSoft)
+  - name: Référentiels
+    description: Tables de codes paramétrables (lecture seule)
+  - name: Référentiels — Localisation
+    description: Pays, régions, départements

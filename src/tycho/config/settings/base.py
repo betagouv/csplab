@@ -244,7 +244,11 @@ MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
 # ---------------------------------------
 connect_src = [CSP.SELF, "*.sentry.io"]
 img_src = [CSP.SELF, "data:"]
-script_src = [CSP.SELF, CSP.NONCE, "https://tally.so"]
+script_src = [
+    CSP.SELF,
+    CSP.NONCE,
+    "https://tally.so",
+]
 style_src = [
     CSP.SELF,
     CSP.NONCE,
