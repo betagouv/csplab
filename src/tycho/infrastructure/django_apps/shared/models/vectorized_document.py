@@ -1,7 +1,9 @@
 """VectorizedDocument Django model for pgvector storage."""
 
+from django.contrib.postgres.indexes import OpClass
 from django.db import models
-from pgvector.django import VectorField
+from django.db.models.functions import Cast
+from pgvector.django import HalfVectorField, HnswIndex, VectorField
 
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
@@ -29,11 +31,24 @@ class VectorizedDocumentModel(models.Model):
         db_table = "vectorized_documents"
         verbose_name = "VectorizedDocument"
         verbose_name_plural = "VectorizedDocuments"
-        ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
                 fields=["entity_id", "document_type"],
                 name="unique_id_document_type",
+            ),
+        ]
+        indexes = [
+            HnswIndex(
+                OpClass(
+                    Cast("embedding", HalfVectorField(dimensions=3072)),
+                    name="halfvec_cosine_ops",
+                ),
+                name="embedding_hnsw_idx",
+                m=16,
+            ),
+            models.Index(
+                fields=["document_type", "entity_id"],
+                name="doc_type_entity_idx",
             ),
         ]
 
