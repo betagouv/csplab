@@ -475,3 +475,30 @@ def test_cv_results_no_results_includes_tally_iframe(
     assert response.status_code == HTTPStatus.OK
     assertContains(response, "tally.so/embed/test-no-results-form")
     assertContains(response, f"cv_uuid={cv_uuid}")
+
+
+@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+def test_cv_results_with_results_includes_tally_modal(
+    mock_get_status, client, db, settings
+):
+    cv_uuid = uuid4()
+    settings.TALLY_FORM_ID_RESULTS = "test-results-form"
+    mock_get_status.return_value = {
+        "status": CVStatus.COMPLETED,
+        "opportunities": [
+            {
+                "title": "Poste test",
+                "location_value": "75",
+                "category_value": "a",
+                "opportunity_type": OpportunityType.CONCOURS,
+                "concours_id": str(uuid4()),
+            },
+        ],
+    }
+
+    response = client.get(reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}))
+
+    assert response.status_code == HTTPStatus.OK
+    assertContains(response, "tally.so/embed/test-results-form")
+    assertContains(response, f"cv_uuid={cv_uuid}")
+    assertContains(response, "tally-results-modal")
