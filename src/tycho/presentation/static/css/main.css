@@ -1074,6 +1074,25 @@ hr {
   pointer-events: none;
 }
 
+.csplab-feedback-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 500;
+  opacity: 0;
+  animation: csplab-feedback-fade-in 0.5s ease-out 3s forwards;
+}
+
+@keyframes csplab-feedback-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .csplab-hero__title {
   font-size: 2rem;
   line-height: 112.5%;

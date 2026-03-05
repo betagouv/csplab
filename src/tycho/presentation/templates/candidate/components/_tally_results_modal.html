@@ -1,0 +1,24 @@
+{% if tally_form_id %}
+    <button class="csplab-feedback-btn fr-btn fr-icon-chat-quote-line fr-btn--icon-left"
+            aria-controls="tally-results-modal"
+            data-fr-opened="false">Donnez votre avis sur ces résultats</button>
+    <dialog id="tally-results-modal"
+            class="fr-modal"
+            aria-labelledby="tally-results-modal-title">
+        <div class="fr-container fr-container--fluid fr-container-md">
+            <div class="fr-grid-row fr-grid-row--center">
+                <div class="fr-col-12 fr-col-md-8">
+                    <div class="fr-modal__body">
+                        <div class="fr-modal__header">
+                            <button class="fr-btn--close fr-btn" aria-controls="tally-results-modal">Fermer</button>
+                        </div>
+                        <div class="fr-modal__content">
+                            <h1 id="tally-results-modal-title" class="fr-modal__title">Donnez votre avis</h1>
+                            {% include "candidate/components/_tally_feedback.html" with tally_form_id=tally_form_id cv_uuid=cv_uuid iframe_height=400 %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+{% endif %}
