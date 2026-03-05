@@ -67,6 +67,8 @@ class ConcoursToTemplateMapper:
             "category_display": format_category_display(concours.category),
             "url": "#",
             "accordions": accordions,
+            "cta_heading": "Comment s'inscrire ?",
+            "cta_label": "Voir le concours",
         }
 
 
@@ -124,4 +126,6 @@ class OfferToTemplateMapper:
             "category_display": format_category_display(offer.category),
             "url": str(offer.offer_url) if offer.offer_url else "#",
             "accordions": accordions,
+            "cta_heading": "Candidater à ce poste",
+            "cta_label": "Voir l'offre",
         }

@@ -4,15 +4,11 @@
         data-drawer
         aria-label="{{ drawer_label }}">
     <div class="csplab-drawer__panel">
-        <div class="fr-px-3w fr-px-md-5w fr-pt-3w fr-pt-md-5w">
-            <ul class="fr-btns-group fr-btns-group--inline fr-btns-group--right">
-                <li>
-                    <button type="button" class="fr-btn fr-btn--close fr-mb-0" data-drawer-close>Fermer</button>
-                </li>
-            </ul>
+        <div class="fr-modal__header">
+            <button type="button" class="fr-btn fr-btn--close" data-drawer-close>Fermer</button>
         </div>
         <div id="{{ drawer_body_id }}"
-             class="csplab-drawer__body"
+             class="csplab-drawer__body fr-modal__content"
              data-drawer-body></div>
     </div>
 </dialog>

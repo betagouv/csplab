@@ -1,0 +1,33 @@
+{% load dsfr_tags %}
+<div class="csplab-drawer__content fr-stack-3w">
+    <h2 id="drawer-title" data-drawer-title class="fr-h4">{{ opportunity.title }}</h2>
+    <ul class="fr-tags-group">
+        {% if opportunity.opportunity_type_display %}
+            <li>
+                {% dsfr_tag label=opportunity.opportunity_type_display extra_classes="fr-icon-briefcase-line fr-tag--icon-left" %}
+            </li>
+        {% endif %}
+        {% if opportunity.versant_display %}
+            <li>{% dsfr_tag label=opportunity.versant_display extra_classes="fr-icon-government-line fr-tag--icon-left" %}</li>
+        {% endif %}
+        {% if opportunity.category_display %}
+            <li>{% dsfr_tag label=opportunity.category_display extra_classes="fr-icon-award-line fr-tag--icon-left" %}</li>
+        {% endif %}
+    </ul>
+    {% if opportunity.accordions %}
+        {% dsfr_accordion_group opportunity.accordions %}
+    {% endif %}
+</div>
+<footer class="csplab-drawer__footer">
+    <div class="fr-background-alt--grey fr-p-3w fr-stack-2w">
+        <h2 class="fr-h6">{{ opportunity.cta_heading }}</h2>
+        <ul class="fr-btns-group">
+            <li>
+                <a class="fr-btn"
+                   href="{{ opportunity.url }}"
+                   target="_blank"
+                   rel="noopener noreferrer">{{ opportunity.cta_label }}</a>
+            </li>
+        </ul>
+    </div>
+</footer>
