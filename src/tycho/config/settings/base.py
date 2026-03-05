@@ -253,6 +253,7 @@ SECURE_CSP = {
     "script-src-elem": script_src,
     "style-src": style_src,
     "style-src-elem": style_src,
+    "style-src-attr": [CSP.UNSAFE_INLINE],
 }
 
 # Django REST Framework
