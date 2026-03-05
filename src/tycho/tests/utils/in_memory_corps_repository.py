@@ -44,6 +44,7 @@ class InMemoryCorpsRepository(ICorpsRepository):
             "created": created,
             "updated": updated,
             "errors": errors,
+            "external_ids": [],
         }
 
     def find_by_id(self, corps_id: UUID) -> Corps:

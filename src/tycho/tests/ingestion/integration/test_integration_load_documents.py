@@ -1,5 +1,3 @@
-"""Integration tests for LoadDocuments usecase with external adapters."""
-
 from datetime import datetime
 
 import pytest
@@ -21,7 +19,6 @@ fake = Faker()
 
 
 def create_offer_documents(container, document_type, raw_offers):
-    """Insert RawDocument from json offers."""
     documents = []
     for raw_data in raw_offers["data"]:
         versant_dict = raw_data.get("salaryRange", None)
@@ -41,13 +38,10 @@ def create_offer_documents(container, document_type, raw_offers):
 
 
 class TestIntegrationOfferLoadDocumentUseCase:
-    """Test LoadDocuments use case for Offer docs."""
-
     @pytest.mark.parametrize("count", [0, 2])
     def test_execute_returns_correct_counts(
         self, db, httpx_mock, ingestion_integration_container, count
     ):
-        """Test execute returns correct count based on parameter."""
         usecase = ingestion_integration_container.load_documents_usecase()
         client = ingestion_integration_container.talentsoft_front_client()
         client.cached_token = cached_token()
@@ -66,11 +60,11 @@ class TestIntegrationOfferLoadDocumentUseCase:
         result = usecase.execute(input_data)
         assert result["created"] == count
         assert result["updated"] == 0
+        assert len(result["external_ids"]) == count
 
     def test_execute_returns_correct_counts_with_iterations(
         self, db, httpx_mock, ingestion_integration_container
     ):
-        """Test execute returns correct count based on parameter."""
         document_type = DocumentType.OFFERS
         count_existing_offers = 4
         count_new_offers = 3
@@ -106,12 +100,12 @@ class TestIntegrationOfferLoadDocumentUseCase:
         result = usecase.execute(input_data)
         assert result["created"] == count_new_offers
         assert result["updated"] == count_existing_offers
+        assert len(result["external_ids"]) == count_existing_offers + count_new_offers
 
     @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     def test_execute_returns_zero_when_api_fails(
         self, db, httpx_mock, ingestion_integration_container
     ):
-        """Test execute returns 0 when API call fails."""
         usecase = ingestion_integration_container.load_documents_usecase()
         client = ingestion_integration_container.talentsoft_front_client()
         client.cached_token = cached_token()
@@ -129,6 +123,7 @@ class TestIntegrationOfferLoadDocumentUseCase:
         result = usecase.execute(input_data)
         assert result["created"] == 0
         assert result["updated"] == 0
+        assert result["external_ids"] == []
 
     @pytest.mark.parametrize(
         "data", ["not_a_list", ["not_a_list_of_dict"], [{"missing_reference_key": 1}]]
@@ -136,7 +131,6 @@ class TestIntegrationOfferLoadDocumentUseCase:
     def test_execute_returns_zero_when_api_response_is_malformed(
         self, db, httpx_mock, ingestion_integration_container, data
     ):
-        """Test execute returns 0 when API response is malformed."""
         usecase = ingestion_integration_container.load_documents_usecase()
 
         raw_offers = offers_response()
@@ -159,16 +153,14 @@ class TestIntegrationOfferLoadDocumentUseCase:
         result = usecase.execute(input_data)
         assert result["created"] == 0
         assert result["updated"] == 0
+        assert result["external_ids"] == []
 
 
 class TestIntegrationCorpsLoadDocumentsUseCase:
-    """Test LoadDocuments use case for Corps docs."""
-
     @responses.activate
     def test_execute_returns_zero_when_no_documents(
         self, db, documents_integration_usecase, test_app_config
     ):
-        """Test execute returns 0 when repository is empty."""
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
@@ -194,12 +186,12 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         result = documents_integration_usecase.execute(input_data)
         assert result["created"] == 0
         assert result["updated"] == 0
+        assert result["external_ids"] == []
 
     @responses.activate
     def test_execute_returns_correct_count_with_documents(
         self, db, documents_integration_usecase, test_app_config
     ):
-        """Test execute returns correct count when documents exist with mocked API."""
         api_response = IngresCorpsApiResponseFactory.build()
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
 
@@ -234,13 +226,11 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
             document_type=DocumentType.CORPS.value
         )
         assert saved_documents.count() == len(api_data)
+        assert {d.external_id for d in saved_documents} == set(result["external_ids"])
 
 
 class TestConcoursUploadView(APITestCase):
-    """Integration tests for ConcoursUploadView."""
-
     def setUp(self):
-        """Set up test environment."""
         self.concours_upload_url = "/ingestion/concours/upload/"
         # Create a test user for authenticated tests
         self.user = User.objects.create_user(
@@ -248,17 +238,14 @@ class TestConcoursUploadView(APITestCase):
         )
 
     def _get_jwt_token(self, user):
-        """Generate JWT token for the given user."""
         refresh = RefreshToken.for_user(user)
         return str(refresh.access_token)
 
     def _authenticate_client(self, user):
-        """Authenticate the test client with JWT token."""
         token = self._get_jwt_token(user)
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
     def _create_valid_csv_content(self):
-        """Create valid CSV content for testing."""
         return (
             "N° NOR;Ministère;Catégorie;Corps;"
             "Grade;Année de référence;Nb postes total\n"
@@ -267,7 +254,6 @@ class TestConcoursUploadView(APITestCase):
         )
 
     def _create_invalid_csv_content(self):
-        """Create invalid CSV content for testing."""
         return (
             "N° NOR;Ministère;Catégorie;Corps;Grade;"
             "Année de référence;Nb postes total\n"
@@ -276,13 +262,11 @@ class TestConcoursUploadView(APITestCase):
         )
 
     def _create_csv_file(self, content, filename="test.csv"):
-        """Create a temporary CSV file for testing."""
         return SimpleUploadedFile(
             filename, content.encode("utf-8"), content_type="text/csv"
         )
 
     def test_unauthenticated_access_returns_401(self):
-        """Test that unauthenticated requests return 401."""
         # Ensure client is not authenticated
         self.client.logout()
 
@@ -294,7 +278,6 @@ class TestConcoursUploadView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_no_file_provided(self):
-        """Test error when no file is provided."""
         self._authenticate_client(self.user)
         response = self.client.post(self.concours_upload_url, {}, format="multipart")
 
@@ -302,7 +285,6 @@ class TestConcoursUploadView(APITestCase):
         self.assertEqual(response.data["error"], "No file provided")
 
     def test_invalid_file_format(self):
-        """Test error when file is not CSV."""
         self._authenticate_client(self.user)
         txt_file = SimpleUploadedFile(
             "test.txt", b"not a csv file", content_type="text/plain"
@@ -316,7 +298,6 @@ class TestConcoursUploadView(APITestCase):
         self.assertEqual(response.data["error"], "File must be a CSV")
 
     def test_validation_errors(self):
-        """Test handling of validation errors in CSV data."""
         self._authenticate_client(self.user)
         invalid_csv = self._create_csv_file(self._create_invalid_csv_content())
 
@@ -330,7 +311,6 @@ class TestConcoursUploadView(APITestCase):
         self.assertEqual(len(response.data["validation_errors"]), 2)
 
     def test_success_response(self):
-        """Test successful CSV upload and processing."""
         self._authenticate_client(self.user)
         valid_csv = self._create_csv_file(self._create_valid_csv_content())
 

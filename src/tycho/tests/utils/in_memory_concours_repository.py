@@ -40,7 +40,12 @@ class InMemoryConcoursRepository(IConcoursRepository):
                 }
                 errors.append(error_detail)
 
-        return {"created": created, "updated": updated, "errors": errors}
+        return {
+            "created": created,
+            "updated": updated,
+            "errors": errors,
+            "external_ids": [],
+        }
 
     def find_by_id(self, concours_id: UUID) -> Concours:
         """Find a Concours by its ID."""

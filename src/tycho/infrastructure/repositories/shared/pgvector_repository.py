@@ -136,7 +136,13 @@ class PgVectorRepository(IVectorRepository):
                         ],
                     )
 
-            return {"created": created, "updated": updated, "errors": []}
+            return {
+                "created": created,
+                "updated": updated,
+                "errors": [],
+                # added due to shared IUpsertResult definition
+                "external_ids": [],
+            }
 
         except Exception as e:
             self.logger.error("Database error during bulk upsert: %s", str(e))
@@ -153,4 +159,16 @@ class PgVectorRepository(IVectorRepository):
                         "exception": db_error,
                     }
                 ],
+                "external_ids": [],
             }
+
+    def delete_by_entity_ids_and_document_type(
+        self, entity_ids: List[str], document_type: DocumentType
+    ) -> int:
+        try:
+            count, _ = VectorizedDocumentModel.objects.filter(
+                document_type=document_type.value, entity_id__in=entity_ids
+            ).delete()
+            return count
+        except Exception as e:
+            raise DatabaseError(f"Database error during deletion: {str(e)}") from e

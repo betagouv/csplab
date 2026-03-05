@@ -20,3 +20,7 @@ class IVectorRepository(Protocol):
         vectorized_documents: List[VectorizedDocument],
         document_type: DocumentType,
     ) -> IUpsertResult: ...
+
+    def delete_by_entity_ids_and_document_type(
+        self, entity_ids: List[str], document_type: DocumentType
+    ) -> int: ...

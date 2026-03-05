@@ -1,6 +1,7 @@
 from dependency_injector import containers, providers
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
+from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
@@ -115,4 +116,11 @@ class IngestionContainer(containers.DeclarativeContainer):
         embedding_generator=embedding_generator,
         logger=logger_service,
         repository_factory=repository_factory,
+    )
+
+    archive_offers_usecase = providers.Factory(
+        ArchiveOffersUsecase,
+        offers_repository=offers_repository,
+        vector_repository=vector_repository,
+        logger=logger_service,
     )
