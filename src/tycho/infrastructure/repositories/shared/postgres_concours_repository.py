@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
@@ -67,6 +68,10 @@ class PostgresConcoursRepository(IConcoursRepository):
             return concours_model.to_entity()
         except ConcoursModel.DoesNotExist as e:
             raise ConcoursDoesNotExist(str(concours_id)) from e
+
+    def find_by_ids(self, concours_ids: List[UUID]) -> List[Concours]:
+        concours_list = ConcoursModel.objects.filter(id__in=concours_ids)
+        return [concours.to_entity() for concours in concours_list]
 
     def find_by_nor(self, nor) -> Concours:
         try:
