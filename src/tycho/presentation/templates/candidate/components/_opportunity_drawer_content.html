@@ -20,7 +20,7 @@
                 {% dsfr_accordion_group opportunity.accordions %}
             {% endif %}
         </div>
-        {% include "candidate/components/_opportunity_feedback.html" with opportunity_id=concours.opportunity_id opportunity_type=concours.opportunity_type %}
+        {% include "candidate/components/_opportunity_feedback.html" with opportunity_id=opportunity.opportunity_id opportunity_type=opportunity.opportunity_type %}
     </div>
 </div>
 <footer class="csplab-drawer__footer">
