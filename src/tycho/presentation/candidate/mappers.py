@@ -60,6 +60,8 @@ class ConcoursToTemplateMapper:
             )
         return {
             "title": concours.corps,
+            "opportunity_id": str(concours.id),
+            "opportunity_type": OpportunityType.CONCOURS,
             "opportunity_type_display": format_opportunity_type_display(
                 OpportunityType.CONCOURS
             ),
@@ -119,6 +121,8 @@ class OfferToTemplateMapper:
             )
         return {
             "title": offer.title,
+            "opportunity_id": str(offer.id),
+            "opportunity_type": OpportunityType.OFFER,
             "opportunity_type_display": format_opportunity_type_display(
                 OpportunityType.OFFER
             ),

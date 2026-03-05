@@ -112,6 +112,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.contrib.messages.context_processors.messages",
                 "dsfr.context_processors.site_config",
+                "presentation.context_processors.matomo",
             ],
         },
     },
