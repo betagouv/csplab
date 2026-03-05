@@ -53,10 +53,9 @@
         {% block theme_modale %}
             {% dsfr_theme_modale %}
         {% endblock theme_modale %}
-        {% dsfr_js nonce=request.csp_nonce %}
-        {% htmx_script %}
+        {% dsfr_js nonce=csp_nonce %}
         {% if MATOMO_BASE_URL %}
-            <script nonce="{{ request.csp_nonce }}">
+            <script nonce="{{ csp_nonce }}">
                 var _paq = window._paq = window._paq || [];
                 _paq.push(['trackPageView']);
                 _paq.push(['enableLinkTracking']);

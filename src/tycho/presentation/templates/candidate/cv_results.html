@@ -12,5 +12,5 @@
     {{ block.super }}
     <script src="{% static 'candidate/js/opportunity-feedback.js' %}"
             defer
-            nonce="{{ request.csp_nonce }}"></script>
+            nonce="{{ csp_nonce }}"></script>
 {% endblock page_js %}
