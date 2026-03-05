@@ -4,7 +4,9 @@
     Analyse de profil
 {% endblock page_title %}
 {% block page_js %}
-    <script type="module" src="{% static 'candidate/js/cv-upload.js' %}"></script>
+    <script type="module"
+            src="{% static 'candidate/js/cv-upload.js' %}"
+            nonce="{{ csp_nonce }}"></script>
 {% endblock page_js %}
 {% block main %}
     <div class="fr-background-alt--blue-france">
