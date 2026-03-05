@@ -55,6 +55,9 @@ class InMemoryOffersRepository(IOffersRepository):
             raise OfferDoesNotExist(str(offer_id))
         return offer
 
+    def find_by_ids(self, offer_ids: List[UUID]) -> List[Offer]:
+        return []
+
     def find_by_external_id(self, external_id: str) -> Offer:
         """Find an Offer by its external ID (Talentsoft ID)."""
         offer_id = self._external_id_index.get(external_id)

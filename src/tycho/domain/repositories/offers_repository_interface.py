@@ -1,5 +1,3 @@
-"""Offers repository interface definitions."""
-
 from typing import List, Protocol
 from uuid import UUID
 
@@ -8,19 +6,13 @@ from domain.repositories.document_repository_interface import IUpsertResult
 
 
 class IOffersRepository(Protocol):
-    """Interface for Offers repository operations."""
+    def upsert_batch(self, offers_list: List[Offer]) -> IUpsertResult: ...
 
-    def upsert_batch(self, offers_list: List[Offer]) -> IUpsertResult:
-        """Insert or update multiple Offers entities and return operation results."""
-        ...
+    def find_by_id(self, offer_id: UUID) -> Offer: ...
 
-    def find_by_id(self, offer_id: UUID) -> Offer:
-        """Find a Offer by its ID."""
-        ...
+    def find_by_ids(self, offer_ids: List[UUID]) -> List[Offer]: ...
 
-    def find_by_external_id(self, external_id: str) -> Offer:
-        """Find an Offer by its external ID (Talentsoft ID)."""
-        ...
+    def find_by_external_id(self, external_id: str) -> Offer: ...
 
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]: ...
 
