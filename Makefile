@@ -125,6 +125,14 @@ run-tycho: ## run the tycho service
 	@bin/manage runserver
 .PHONY: run-tycho
 
+dev: ## run tycho with sass watch and browser auto-reload
+	@echo "🚀 Starting development server with auto-reload..."
+	@echo "   Press Ctrl+C to stop all processes"
+	@trap 'kill 0' EXIT; \
+	bin/sass watch & \
+	bin/manage runserver
+.PHONY: dev
+
 ## LINT
 # -- Global linting
 lint: ## lint all sources
