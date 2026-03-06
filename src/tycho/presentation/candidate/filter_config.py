@@ -6,6 +6,7 @@ from domain.value_objects.opportunity_type import OpportunityType
 from domain.value_objects.verse import Verse
 from presentation.candidate.formatters import (
     CATEGORY_DISPLAY,
+    OPPORTUNITY_TYPE_FILTER_DISPLAY,
     VERSE_DISPLAY,
 )
 from presentation.candidate.types import FilterOption
@@ -20,6 +21,13 @@ CATEGORY_FILTER_VALUE: dict[Category, str] = {
 }
 
 OPPORTUNITY_TYPES: frozenset[str] = frozenset(OpportunityType)
+
+
+def get_opportunity_type_filter_options() -> list[FilterOption]:
+    return [
+        FilterOption(value=member.value, text=OPPORTUNITY_TYPE_FILTER_DISPLAY[member])
+        for member in OpportunityType
+    ]
 
 
 def format_category_value(category: Category | None) -> str:

@@ -1,0 +1,26 @@
+<fieldset class="fr-fieldset fr-px-3v fr-stack-3v"
+          aria-labelledby="{{ filter_prefix|default:'' }}{{ legend_id }}">
+    <legend class="fr-label fr-px-0"
+            id="{{ filter_prefix|default:'' }}{{ legend_id }}">
+        <span class="{{ icon_class }} fr-icon--sm fr-mr-1w" aria-hidden="true"></span>
+        {{ label }}
+    </legend>
+    <div class="fr-fieldset__content">
+        <ul class="fr-tags-group">
+            {% for option in options %}
+                {% if option.value %}
+                    <li>
+                        <label class="fr-tag csplab-filter-tag">
+                            <input type="checkbox"
+                                   id="{{ filter_prefix|default:'' }}{{ filter_name }}-{{ option.value }}"
+                                   name="{{ filter_name }}"
+                                   value="{{ option.value }}"
+                                   class="fr-sr-only">
+                            {{ option.text }}
+                        </label>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</fieldset>
