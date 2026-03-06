@@ -5,7 +5,8 @@
           hx-get="{% url 'candidate:cv_results' cv_uuid %}"
           hx-target="#{{ results_target_id|default:'results-zone' }}"
           hx-swap="innerHTML"
-          hx-trigger="change">
+          hx-trigger="change"
+          hx-push-url="true">
         {# LOCALISATION #}
         <div class="fr-select-group">
             <label class="fr-label" for="{{ filter_prefix|default:'' }}filter-location">
