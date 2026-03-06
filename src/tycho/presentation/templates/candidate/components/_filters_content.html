@@ -19,10 +19,10 @@
             </select>
         </div>
         <hr class="fr-hr fr-mb-2w">
-        {% include "candidate/components/_filter_fieldset.html" with legend_id="filter-voie-legend" icon_class="fr-icon-briefcase-line" label="Voie d'accès" filter_name="filter-opportunity_type" options=opportunity_type_options %}
+        {% include "candidate/components/_filter_fieldset.html" with legend_id="filter-voie-legend" icon_class="fr-icon-briefcase-line" label="Voie d’accès" filter_name="filter-opportunity_type" options=opportunity_type_options tooltip_id="tooltip-voie" tooltip_content="La voie d’accès désigne le type de recrutement : offre d’emploi (recrutement direct) ou concours (sélection sur épreuves)." %}
         <hr class="fr-hr fr-mb-2w">
-        {% include "candidate/components/_filter_fieldset.html" with legend_id="filter-versant-legend" icon_class="fr-icon-government-line" label="Versant de la fonction publique" filter_name="filter-versant" options=verse_options %}
+        {% include "candidate/components/_filter_fieldset.html" with legend_id="filter-versant-legend" icon_class="fr-icon-government-line" label="Versant de la fonction publique" filter_name="filter-versant" options=verse_options tooltip_id="tooltip-versant" tooltip_content="Le versant désigne la branche de la fonction publique : État (FPE), territoriale (FPT) ou hospitalière (FPH)." %}
         <hr class="fr-hr fr-mb-2w">
-        {% include "candidate/components/_filter_fieldset.html" with legend_id="filter-category-legend" icon_class="fr-icon-award-line" label="Catégorie" filter_name="filter-category" options=category_options %}
+        {% include "candidate/components/_filter_fieldset.html" with legend_id="filter-category-legend" icon_class="fr-icon-award-line" label="Catégorie" filter_name="filter-category" options=category_options tooltip_id="tooltip-categorie" tooltip_content="La catégorie (A, B ou C) correspond au niveau de qualification requis et au niveau de responsabilité du poste." %}
     </form>
 </div>

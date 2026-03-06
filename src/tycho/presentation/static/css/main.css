@@ -863,28 +863,6 @@ hr {
   padding: 1px !important;
 }
 
-.csplab-filter-tag {
-  cursor: pointer;
-}
-.csplab-filter-tag.fr-tag {
-  background-color: var(--background-action-low-blue-france);
-  color: var(--text-action-high-blue-france);
-}
-.csplab-filter-tag.fr-tag:hover {
-  background-color: var(--background-action-low-blue-france-hover);
-}
-.csplab-filter-tag:has(input.fr-sr-only:checked) {
-  background-color: var(--background-action-high-blue-france);
-  color: var(--text-inverted-blue-france);
-}
-.csplab-filter-tag:has(input.fr-sr-only:checked):hover {
-  background-color: var(--background-action-high-blue-france-hover);
-}
-.csplab-filter-tag:has(input.fr-sr-only:focus-visible) {
-  outline: 2px solid var(--border-action-high-blue-france);
-  outline-offset: 2px;
-}
-
 .csplab-toast {
   position: fixed;
   top: 1rem;
@@ -1093,6 +1071,80 @@ hr {
     transform: translateY(0);
   }
 }
+.csplab-filter-tag {
+  cursor: pointer;
+}
+.csplab-filter-tag.fr-tag {
+  background-color: var(--background-action-low-blue-france);
+  color: var(--text-action-high-blue-france);
+}
+.csplab-filter-tag.fr-tag:hover {
+  background-color: var(--background-action-low-blue-france-hover);
+}
+.csplab-filter-tag:has(input.fr-sr-only:checked) {
+  background-color: var(--background-action-high-blue-france);
+  color: var(--text-inverted-blue-france);
+}
+.csplab-filter-tag:has(input.fr-sr-only:checked):hover {
+  background-color: var(--background-action-high-blue-france-hover);
+}
+.csplab-filter-tag:has(input.fr-sr-only:focus-visible) {
+  outline: 2px solid var(--border-action-high-blue-france);
+  outline-offset: 2px;
+}
+
+.csplab-results__filters-column {
+  position: relative;
+  z-index: 20;
+}
+
+.csplab-results__filters-sticky {
+  z-index: 20;
+}
+
+.csplab-results__results-column {
+  position: relative;
+  z-index: 1;
+}
+
+.csplab-results__filters {
+  position: relative;
+  z-index: 20;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.csplab-filter-fieldset {
+  position: relative;
+}
+
+.csplab-filter-fieldset__legend {
+  width: 100%;
+}
+
+.csplab-filter-fieldset__legend-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.csplab-filter-fieldset__tooltip {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  z-index: 30;
+}
+
+.csplab-filter-fieldset__tooltip .fr-btn--tooltip {
+  position: relative;
+  z-index: 1200;
+}
+
+.csplab-filter-fieldset__tooltip .fr-tooltip {
+  z-index: 1200;
+}
+
 .csplab-hero__title {
   font-size: 2rem;
   line-height: 112.5%;
