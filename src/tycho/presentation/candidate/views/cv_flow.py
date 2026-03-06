@@ -6,10 +6,12 @@ from uuid import UUID
 
 from django.conf import settings
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
+from dsfr.utils import list_pages
 
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
@@ -247,8 +249,14 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         # TODO We may want to use a template tag to count opportunities to display,
         # and get context lighter.
         if isinstance(self.opportunities, list):
-            context["results"] = self._filter_results(self.opportunities)
-            context["results_count"] = len(context["results"])
+            filtered = self._filter_results(self.opportunities)
+            context["results_count"] = len(filtered)
+
+            paginator = Paginator(filtered, settings.CV_RESULTS_PER_PAGE)
+            page_obj = paginator.get_page(self.request.GET.get("page", 1))
+            list_pages(page_obj)
+            context["results"] = page_obj.object_list
+            context["page_obj"] = page_obj
 
         if self.opportunities:
             context["tally_form_id"] = settings.TALLY_FORM_ID_RESULTS

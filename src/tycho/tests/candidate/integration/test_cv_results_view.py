@@ -561,3 +561,94 @@ def test_cv_results_with_results_includes_tally_modal(
     assertContains(response, "tally.so/embed/test-results-form")
     assertContains(response, f"cv_uuid={cv_uuid}")
     assertContains(response, "tally-results-modal")
+
+
+@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+def test_cv_results_pagination_default_page(
+    mock_get_status, client, db, db_cv_uuid, settings
+):
+    settings.CV_RESULTS_PER_PAGE = 2
+    mock_get_status.return_value = {
+        "status": CVStatus.COMPLETED,
+        "opportunities": [
+            {
+                "title": f"Opportunity {i}",
+                "location_value": "75",
+                "category_value": "a",
+                "opportunity_type": OpportunityType.CONCOURS,
+                "concours_id": str(uuid4()),
+            }
+            for i in range(5)
+        ],
+    }
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid})
+    )
+    assert response.status_code == HTTPStatus.OK
+    assertContains(response, "Opportunity 0")
+    assertContains(response, "Opportunity 1")
+    assertNotContains(response, "Opportunity 2")
+
+
+@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+def test_cv_results_pagination_second_page(
+    mock_get_status, client, db, db_cv_uuid, settings
+):
+    settings.CV_RESULTS_PER_PAGE = 2
+    mock_get_status.return_value = {
+        "status": CVStatus.COMPLETED,
+        "opportunities": [
+            {
+                "title": f"Opportunity {i}",
+                "location_value": "75",
+                "category_value": "a",
+                "opportunity_type": OpportunityType.CONCOURS,
+                "concours_id": str(uuid4()),
+            }
+            for i in range(5)
+        ],
+    }
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}), {"page": "2"}
+    )
+    assert response.status_code == HTTPStatus.OK
+    assertContains(response, "Opportunity 2")
+    assertContains(response, "Opportunity 3")
+    assertNotContains(response, "Opportunity 0")
+
+
+@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+def test_cv_results_pagination_with_filters(
+    mock_get_status, client, db, db_cv_uuid, settings
+):
+    settings.CV_RESULTS_PER_PAGE = 1
+    mock_get_status.return_value = {
+        "status": CVStatus.COMPLETED,
+        "opportunities": [
+            {
+                "title": f"Paris {i}",
+                "location_value": "75",
+                "category_value": "a",
+                "opportunity_type": OpportunityType.CONCOURS,
+                "concours_id": str(uuid4()),
+            }
+            for i in range(3)
+        ]
+        + [
+            {
+                "title": "Lyon 0",
+                "location_value": "69",
+                "category_value": "a",
+                "opportunity_type": OpportunityType.CONCOURS,
+                "concours_id": str(uuid4()),
+            },
+        ],
+    }
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}),
+        {"filter-location": "75", "page": "2"},
+    )
+    assert response.status_code == HTTPStatus.OK
+    assertContains(response, "Paris 1")
+    assertNotContains(response, "Paris 0")
+    assertNotContains(response, "Lyon 0")
