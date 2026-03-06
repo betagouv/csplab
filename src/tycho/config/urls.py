@@ -18,3 +18,6 @@ if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:
     from debug_toolbar.toolbar import debug_toolbar_urls
 
     urlpatterns = [*urlpatterns] + debug_toolbar_urls()
+
+if settings.DEBUG and "django_browser_reload" in settings.INSTALLED_APPS:
+    urlpatterns.append(path("__reload__/", include("django_browser_reload.urls")))

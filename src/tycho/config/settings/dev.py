@@ -14,10 +14,14 @@ INTERNAL_IPS = ["127.0.0.1"]
 INSTALLED_APPS.extend(  # noqa: F405
     [
         "debug_toolbar",
+        "django_browser_reload",
     ]
 )
 
-MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]  # noqa F405
+MIDDLEWARE += [  # noqa F405
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
+]
 
 DEBUG_TOOLBAR_CONFIG = {
     # https://django-debug-toolbar.readthedocs.io/en/latest/panels.html#panels
