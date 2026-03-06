@@ -262,6 +262,28 @@ def test_cv_results_htmx_no_match_displays_empty_state(
     assertContains(response, "0 résultat")
 
 
+@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+def test_cv_results_filter_bar_renders_tooltips(mock_get_status, client, db):
+    cv_uuid = uuid4()
+    mock_get_status.return_value = {
+        "status": CVStatus.COMPLETED,
+        "opportunities": [
+            {
+                "title": "Poste test",
+                "location_value": "75",
+                "category_value": "a",
+                "opportunity_type": OpportunityType.CONCOURS,
+                "concours_id": str(uuid4()),
+            },
+        ],
+    }
+
+    response = client.get(reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}))
+    assert response.status_code == HTTPStatus.OK
+    assertContains(response, 'role="tooltip"', count=6)
+    assertContains(response, "fr-btn--tooltip", count=6)
+
+
 @pytest.mark.parametrize(
     "test_case",
     [
