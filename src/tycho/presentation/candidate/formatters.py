@@ -3,6 +3,7 @@
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
 from domain.value_objects.localisation import Localisation
+from domain.value_objects.opportunity_type import OpportunityType
 from domain.value_objects.verse import Verse
 
 CATEGORY_DISPLAY: dict[Category, str] = {
@@ -19,8 +20,13 @@ VERSE_DISPLAY: dict[Verse, str] = {
 }
 
 OPPORTUNITY_TYPE_DISPLAY: dict[str, str] = {
-    "offer": "Offre",
-    "concours": "Concours",
+    OpportunityType.OFFER: "Offre",
+    OpportunityType.CONCOURS: "Concours",
+}
+
+OPPORTUNITY_TYPE_FILTER_DISPLAY: dict[OpportunityType, str] = {
+    OpportunityType.OFFER: "Offre d'emploi",
+    OpportunityType.CONCOURS: "Concours",
 }
 
 
