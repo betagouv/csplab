@@ -161,7 +161,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
                 )
                 raw_opportunities = match_cv_to_opportunities.execute(
                     cv_metadata=cv_metadata,
-                    limit=10,
+                    limit=settings.CV_MAX_OPPORTUNITIES,
                 )
 
                 for opportunity in raw_opportunities:

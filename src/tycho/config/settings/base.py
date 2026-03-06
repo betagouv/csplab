@@ -178,6 +178,9 @@ CV_MAX_SIZE_MB = 5
 # Polling interval for CV processing status (in seconds)
 CV_PROCESSING_POLL_INTERVAL = 2
 
+# Maximum number of opportunities returned by the matching use case
+CV_MAX_OPPORTUNITIES = 10
+
 # Logging configuration
 LOG_LEVEL = env.str("LOG_LEVEL")
 
