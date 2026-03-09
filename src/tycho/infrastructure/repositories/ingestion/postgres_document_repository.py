@@ -81,7 +81,12 @@ class PostgresDocumentRepository(IDocumentRepository):
 
                     updated = RawDocument.objects.bulk_update(
                         obj_to_update,
-                        fields=["document_type", "raw_data", "created_at"],
+                        fields=[
+                            "document_type",
+                            "raw_data",
+                            "created_at",
+                            "updated_at",
+                        ],
                     )
 
             return {"created": created, "updated": updated, "errors": []}
