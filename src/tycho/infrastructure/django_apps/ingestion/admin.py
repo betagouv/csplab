@@ -13,8 +13,10 @@ class RawDocumentAdmin(admin.ModelAdmin):
         "id",
         "external_id",
         "document_type",
+        "raw_data",
         "created_at",
         "updated_at",
     )
     list_filter = ("document_type", "created_at", "updated_at")
+    search_fields = ("external_id", "raw_data", "error_msg")
     readonly_fields = [f.name for f in RawDocument._meta.get_fields()]
