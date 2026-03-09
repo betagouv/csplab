@@ -94,8 +94,8 @@ def test_execute_with_valid_cv_returns_opportunities(
     usecase = _integration_candidate_container.match_cv_to_opportunities_usecase()
     with assertNumQueries(
         1  # select VectorizedDocument
-        + len(concours)  # duplicated select ConcoursModel
-        + len(offers)  # duplicated select OfferModel
+        + 1  # select ConcoursModel
+        + 1  # select OfferModel
     ):
         result = usecase.execute(cv_metadata, limit=10)
 

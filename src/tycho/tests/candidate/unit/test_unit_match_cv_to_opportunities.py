@@ -4,8 +4,6 @@ from unittest.mock import patch
 
 import pytest
 
-from domain.entities.concours import Concours
-from domain.entities.offer import Offer
 from domain.exceptions.cv_errors import CVProcessingFailedError
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
@@ -50,52 +48,6 @@ def _candidate_container():
     container.postgres_cv_metadata_repository.override(cv_repo)
 
     return container
-
-
-def test_execute_with_valid_cv_returns_opportunities(
-    _candidate_container,
-    cv_metadata_completed,
-    concours,
-    vectorized_concours_documents,
-    offers,
-    vectorized_offers_documents,
-):
-    """Test that valid CV metadata returns Concours with scores."""
-    cv_metadata, cv_id = cv_metadata_completed
-
-    # Setup CV metadata
-    cv_repo = _candidate_container.postgres_cv_metadata_repository()
-    cv_repo.save(cv_metadata)
-
-    # Populate data
-    concours_repo = _candidate_container.shared_container.concours_repository()
-    concours_repo.upsert_batch(concours)
-
-    offers_repo = _candidate_container.shared_container.offers_repository()
-    offers_repo.upsert_batch(offers)
-
-    # Populate vector data
-    vector_repo = _candidate_container.shared_container.vector_repository()
-    for vectorized_doc in vectorized_concours_documents + vectorized_offers_documents:
-        vector_repo.store_embedding(vectorized_doc)
-
-    usecase = _candidate_container.match_cv_to_opportunities_usecase()
-    result = usecase.execute(cv_metadata, limit=10)
-
-    assert isinstance(result, list)
-    assert len(result) == len(
-        vectorized_concours_documents + vectorized_offers_documents
-    )
-
-    assert sum(isinstance(obj, Concours) for obj, _ in result) == len(
-        vectorized_concours_documents
-    )
-    assert sum(isinstance(obj, Offer) for obj, _ in result) == len(
-        vectorized_offers_documents
-    )
-    # TODO - reactivate these assertions
-    # assert all(0.0 <= score <= 1.0 for _, score in result)
-    # assert all(isinstance(score, float) for _, score in result)
 
 
 def test_execute_with_failed_cv_raises_error(_candidate_container, cv_metadata_failed):

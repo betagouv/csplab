@@ -72,23 +72,32 @@ class MatchCVToOpportunitiesUsecase:
 
         opportunities: List[Tuple[Concours | Offer, float]] = []
 
-        for result in concours_similarity_results:
-            self._logger.info(
-                f"Searching for concours with ID: {result.document.entity_id}"
-            )
-            concours = self._concours_repository.find_by_id(result.document.entity_id)
-            self._logger.info(f"Found concours with ID: {concours.id}")
-            opportunities.append((concours, result.score))
+        concours_ids = [
+            result.document.entity_id for result in concours_similarity_results
+        ]
+        concours_list = self._concours_repository.find_by_ids(concours_ids)
+        concours_scores_by_id = {
+            result.document.entity_id: result.score
+            for result in concours_similarity_results
+        }
+        opportunities.extend(
+            [
+                (concours, concours_scores_by_id[concours.id])
+                for concours in concours_list
+            ]
+        )
 
-        for result in offers_similarity_results:
-            self._logger.info(
-                f"Searching for offer with ID: {result.document.entity_id}"
-            )
-            offer = self._offers_repository.find_by_id(result.document.entity_id)
-            self._logger.info(f"Found offer with ID: {offer.id}")
-            opportunities.append((offer, result.score))
+        offers_ids = [result.document.entity_id for result in offers_similarity_results]
+        offers_list = self._offers_repository.find_by_ids(offers_ids)
+        offers_scores_by_id = {
+            result.document.entity_id: result.score
+            for result in offers_similarity_results
+        }
+        opportunities.extend(
+            [(offer, offers_scores_by_id[offer.id]) for offer in offers_list]
+        )
 
         self._logger.info(f"Returning {len(opportunities)} opportunities")
 
         sorted_opportunities = sorted(opportunities, key=lambda x: x[1], reverse=True)
-        return sorted_opportunities[:limit]
+        return sorted_opportunities
