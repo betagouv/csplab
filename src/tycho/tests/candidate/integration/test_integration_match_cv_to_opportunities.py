@@ -11,6 +11,8 @@ from domain.entities.vectorized_document import VectorizedDocument
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
+from tests.factories.concours_factory import ConcoursFactory
+from tests.factories.offer_factory import OfferFactory
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
@@ -62,11 +64,11 @@ def generate_vectorized_documents(documents):
 def test_execute_with_valid_cv_returns_opportunities(
     _integration_candidate_container,
     cv_metadata_completed,
-    concours,
-    offers,
 ):
     """Test that valid CV metadata returns Concours/Offers with scores using real DB."""
     cv_metadata, cv_id = cv_metadata_completed
+    concours = ConcoursFactory.create_batch(2)
+    offers = OfferFactory.create_batch(3)
 
     # Setup CV metadata in real DB
     cv_repo = _integration_candidate_container.postgres_cv_metadata_repository()
