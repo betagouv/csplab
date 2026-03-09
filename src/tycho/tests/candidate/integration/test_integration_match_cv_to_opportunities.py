@@ -2,6 +2,7 @@
 
 import pytest
 from faker import Faker
+from pytest_django.asserts import assertNumQueries
 
 from domain.entities.concours import Concours
 from domain.entities.document import DocumentType
@@ -91,7 +92,12 @@ def test_execute_with_valid_cv_returns_opportunities(
     vector_repo.upsert_batch(vectorized_offers, DocumentType.OFFERS.value)
 
     usecase = _integration_candidate_container.match_cv_to_opportunities_usecase()
-    result = usecase.execute(cv_metadata, limit=10)
+    with assertNumQueries(
+        1  # select VectorizedDocument
+        + len(concours)  # duplicated select ConcoursModel
+        + len(offers)  # duplicated select OfferModel
+    ):
+        result = usecase.execute(cv_metadata, limit=10)
 
     assert isinstance(result, list)
     assert len(result) == len(vectorized_documents)

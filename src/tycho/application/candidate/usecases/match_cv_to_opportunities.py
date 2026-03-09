@@ -54,16 +54,21 @@ class MatchCVToOpportunitiesUsecase:
             cv_metadata.search_query
         )
 
-        concours_similarity_results = self._vector_repository.semantic_search(
+        similarity_results = self._vector_repository.semantic_search(
             query_embedding=query_embedding,
             limit=limit,
-            filters={"document_type": DocumentType.CONCOURS.value},
         )
-        offers_similarity_results = self._vector_repository.semantic_search(
-            query_embedding=query_embedding,
-            limit=limit,
-            filters={"document_type": DocumentType.OFFERS.value},
-        )
+
+        concours_similarity_results = [
+            result
+            for result in similarity_results
+            if result.document.document_type == DocumentType.CONCOURS
+        ]
+        offers_similarity_results = [
+            result
+            for result in similarity_results
+            if result.document.document_type == DocumentType.OFFERS
+        ]
 
         opportunities: List[Tuple[Concours | Offer, float]] = []
 
