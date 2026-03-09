@@ -10,7 +10,6 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.retrieve_corps import RetrieveCorpsUsecase
-from domain.value_objects.pdf_extractor_type import PDFExtractorType
 from infrastructure.external_gateways.albert_pdf_extractor import AlbertPDFExtractor
 from infrastructure.external_gateways.openai_pdf_extractor import OpenAIPDFExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
@@ -26,16 +25,12 @@ from infrastructure.repositories.candidate.postgres_cv_metadata_repository impor
 def _create_pdf_extractor(app_config, http_client):
     """Create PDF extractor based on configuration using a more readable approach."""
     extractors = {
-        PDFExtractorType.ALBERT: lambda cfg: AlbertPDFExtractor(
+        "ALBERT": lambda cfg: AlbertPDFExtractor(
             config=cfg.albert, http_client=http_client
         ),
-        PDFExtractorType.OPENAI: lambda cfg: OpenAIPDFExtractor(config=cfg.openai),
+        "OPENAI": lambda cfg: OpenAIPDFExtractor(config=cfg.openai),
     }
-    pdf_extractor_type = (
-        PDFExtractorType.ALBERT
-        if app_config.ocr_type == "ALBERT"
-        else PDFExtractorType.OPENAI
-    )
+    pdf_extractor_type = "ALBERT" if app_config.ocr_type == "ALBERT" else "OPENAI"
     return extractors[pdf_extractor_type](app_config)
 
 

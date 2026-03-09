@@ -1,82 +1,27 @@
 """Albert PDF text extractor implementation."""
 
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict
 
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from config.app_config import AlbertConfig
 from domain.services.async_http_client_interface import IAsyncHttpClient
-from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
 from domain.value_objects.cv_extraction_types import CVExtractionResult
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.constants.ocr_cv_prompts import (
     CV_EXTRACTION_PROMPT,
 )
+from infrastructure.external_gateways.dtos.albert_types import AlbertOCRResponse
 
 
-class AlbertUsageCarbon(BaseModel):
-    """Carbon usage information from Albert API."""
-
-    kWh: Dict[str, float]
-    kgCO2eq: Dict[str, float]
-
-
-class AlbertUsage(BaseModel):
-    """Usage information from Albert API."""
-
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
-    cost: float
-    carbon: AlbertUsageCarbon
-    requests: int
-
-
-class AlbertDocumentPageMetadata(BaseModel):
-    """Metadata for a document page from Albert API."""
-
-    document_name: str
-    page: int
-
-
-class AlbertDocumentPage(BaseModel):
-    """Document page from Albert API."""
-
-    object: str
-    content: str
-    images: Dict[str, str]
-    metadata: AlbertDocumentPageMetadata
-
-
-class AlbertOCRResponse(BaseModel):
-    """Complete OCR response structure from Albert API."""
-
-    object: str
-    data: List[AlbertDocumentPage]
-    usage: AlbertUsage
-
-
-class AlbertPDFExtractor(IPDFTextExtractor):
-    """Implementation of PDF text extraction service using Albert API."""
-
+class AlbertPDFExtractor:
     def __init__(self, config: AlbertConfig, http_client: IAsyncHttpClient):
-        """Initialize with Albert configuration, HTTP client and logger."""
         self.config = config
         self.http_client = http_client
 
     async def extract_text(self, pdf_content: bytes) -> CVExtractionResult:
-        """Extract structured content from PDF bytes using Albert API.
 
-        Args:
-            pdf_content: PDF file content as bytes
-
-        Returns:
-            Structured CV extraction result with experiences and skills
-
-        Raises:
-            ExternalApiError: If PDF content is invalid or API call fails
-        """
         url = f"{self.config.api_base_url}v1/ocr-beta"
         headers = {"Authorization": f"Bearer {self.config.api_key}"}
         files = {"file": ("document.pdf", pdf_content, "application/pdf")}
@@ -118,7 +63,6 @@ class AlbertPDFExtractor(IPDFTextExtractor):
             ) from e
 
     def _extract_json_from_fenced_content(self, text: str) -> Dict[str, Any]:
-        """Extract JSON from Markdown code block."""
         text = text.strip()
         if text.startswith("```"):
             first_newline = text.find("\n")
@@ -132,7 +76,6 @@ class AlbertPDFExtractor(IPDFTextExtractor):
     def _normalize_albert_ocr_structured(
         self, albert_response: AlbertOCRResponse
     ) -> CVExtractionResult:
-        """Normalize Albert OCR JSON output to extract experiences and skills."""
         # Extract content from all pages
         final_experiences = []
         final_skills = []
