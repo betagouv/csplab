@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytest
 from dateutil.relativedelta import relativedelta
+from faker import Faker
 
 from domain.entities.offer import Offer
 from infrastructure.django_apps.shared.models.offer import OfferModel
@@ -11,6 +12,7 @@ from infrastructure.repositories.shared.postgres_offers_repository import (
 )
 from tests.factories.offer_factory import OfferFactory
 
+fake = Faker()
 NOW = datetime.now()
 DAY_AGO = NOW - relativedelta(days=1)
 
@@ -18,6 +20,22 @@ DAY_AGO = NOW - relativedelta(days=1)
 @pytest.fixture(name="repository")
 def repository_fixture():
     return PostgresOffersRepository(LoggerService())
+
+
+class TestFindByIds:
+    @pytest.mark.parametrize("ids", [[], [fake.uuid4()]])
+    def test_empty_or_unknown_ids(self, db, repository, ids):
+        assert repository.find_by_ids(ids) == []
+
+    def test_return_correct_list_of_existing_ids(self, db, repository):
+        offer = OfferFactory.create_batch(3)
+        expected_ids = [offer[i].id for i in range(2)]
+
+        results = repository.find_by_ids(expected_ids)
+
+        assert {doc.id for doc in results} == set(expected_ids)
+        for doc in results:
+            assert isinstance(doc, Offer)
 
 
 class TestGetPendingProcessing:

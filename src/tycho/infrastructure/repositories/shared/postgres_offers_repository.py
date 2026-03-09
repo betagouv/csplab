@@ -117,6 +117,10 @@ class PostgresOffersRepository(IOffersRepository):
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(offer_id) from e
 
+    def find_by_ids(self, offer_ids: List[UUID]) -> List[Offer]:
+        offers = OfferModel.objects.filter(id__in=offer_ids)
+        return [offer.to_entity() for offer in offers]
+
     def find_by_external_id(self, external_id: str) -> Offer:
         try:
             offer_model = OfferModel.objects.get(external_id=external_id)

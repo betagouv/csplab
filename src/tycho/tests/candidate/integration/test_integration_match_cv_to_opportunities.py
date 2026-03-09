@@ -1,15 +1,17 @@
-"""Integration test cases for MatchCVToOpportunitiesUsecase."""
+from random import random
 
 import pytest
 from faker import Faker
+from pytest_django.asserts import assertNumQueries
 
 from domain.entities.concours import Concours
 from domain.entities.document import DocumentType
-from domain.entities.offer import Offer
 from domain.entities.vectorized_document import VectorizedDocument
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
+from tests.factories.concours_factory import ConcoursFactory
+from tests.factories.offer_factory import OfferFactory
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
@@ -18,7 +20,6 @@ fake = Faker()
 
 @pytest.fixture
 def _integration_candidate_container():
-    """Create a test candidate container for integration tests with real DB."""
     container = CandidateContainer()
 
     # Setup shared container with real repositories (except embedding generator)
@@ -42,7 +43,6 @@ def _integration_candidate_container():
 
 
 def generate_vectorized_documents(documents):
-    """Generate vectorized docs using entity UUID."""
     return [
         VectorizedDocument(
             entity_id=obj.id,
@@ -50,7 +50,7 @@ def generate_vectorized_documents(documents):
             if isinstance(obj, Concours)
             else DocumentType.OFFERS,
             content=fake.word(),
-            embedding=[0.2] * 3072,  # Mock embedding
+            embedding=[0.2 + random() / 10000] * 3072,
             metadata={"source": "test"},
         )
         for obj in documents
@@ -61,11 +61,11 @@ def generate_vectorized_documents(documents):
 def test_execute_with_valid_cv_returns_opportunities(
     _integration_candidate_container,
     cv_metadata_completed,
-    concours,
-    offers,
 ):
-    """Test that valid CV metadata returns Concours/Offers with scores using real DB."""
     cv_metadata, cv_id = cv_metadata_completed
+    concours = ConcoursFactory.create_batch(2)
+    offers = OfferFactory.create_batch(3)
+    limit = len(offers) + len(concours) - 1
 
     # Setup CV metadata in real DB
     cv_repo = _integration_candidate_container.postgres_cv_metadata_repository()
@@ -83,7 +83,6 @@ def test_execute_with_valid_cv_returns_opportunities(
     # Generate vectorized documents using entity UUIDs
     vectorized_concours = generate_vectorized_documents(concours_repo.get_all())
     vectorized_offers = generate_vectorized_documents(offers_repo.get_all())
-    vectorized_documents = vectorized_concours + vectorized_offers
 
     # Populate vector data in real DB
     vector_repo = _integration_candidate_container.shared_container.vector_repository()
@@ -91,13 +90,19 @@ def test_execute_with_valid_cv_returns_opportunities(
     vector_repo.upsert_batch(vectorized_offers, DocumentType.OFFERS.value)
 
     usecase = _integration_candidate_container.match_cv_to_opportunities_usecase()
-    result = usecase.execute(cv_metadata, limit=10)
+    with assertNumQueries(
+        1  # select VectorizedDocument
+        + 1  # select ConcoursModel
+        + 1  # select OfferModel
+    ):
+        results = usecase.execute(cv_metadata, limit=limit)
 
-    assert isinstance(result, list)
-    assert len(result) == len(vectorized_documents)
+    assert isinstance(results, list)
+    assert len(results) == limit
 
-    assert sum(isinstance(obj, Concours) for obj, _ in result) == len(concours)
-    assert sum(isinstance(obj, Offer) for obj, _ in result) == len(offers)
+    similarities = [r[1] for r in results]
+    assert sorted(similarities, reverse=True) == similarities
+
     # TODO - reactivate these assertions
     # assert all(0.0 <= score <= 1.0 for _, score in result)
     # assert all(isinstance(score, float) for _, score in result)
