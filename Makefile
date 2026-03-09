@@ -36,6 +36,7 @@ setup: ## copy example env files to local files
 bootstrap: ## setup development environment (build dev service and install git hooks)
 bootstrap: \
   run-postgres \
+  run-qdrant \
   build \
   migrate \
   create-superuser \
@@ -120,6 +121,10 @@ run-es: ## run the elasticsearch service
 run-postgres: ## run the DB service
 	$(COMPOSE_UP) postgresql
 .PHONY: run-postgres
+
+run-qdrant: ## run the Qdrant vector database service
+	$(COMPOSE_UP) qdrant
+.PHONY: run-qdrant
 
 run-tycho: ## run the tycho service
 	@bin/manage runserver
