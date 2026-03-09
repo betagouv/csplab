@@ -18,6 +18,7 @@ class IConcoursRepository(Protocol):
     def find_by_id(self, concours_id: UUID) -> Concours:
         """Find a Concours by its ID."""
         ...
+    def find_by_ids(self, concours_ids: List[UUID]) -> List[Concours]: ...
 
     def find_by_nor(self, nor: NOR) -> Concours:
         """Find a Concours by its NOR."""
