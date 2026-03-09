@@ -59,7 +59,12 @@ class PostgresConcoursRepository(IConcoursRepository):
                 }
                 errors.append(error_detail)
 
-        return {"created": created, "updated": updated, "errors": errors}
+        return {
+            "created": created,
+            "updated": updated,
+            "errors": errors,
+            "external_ids": [],
+        }
 
     def find_by_id(self, concours_id) -> Concours:
         try:

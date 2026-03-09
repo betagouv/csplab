@@ -46,7 +46,12 @@ class InMemoryOffersRepository(IOffersRepository):
                 }
                 errors.append(error_detail)
 
-        return {"created": created, "updated": updated, "errors": errors}
+        return {
+            "created": created,
+            "updated": updated,
+            "errors": errors,
+            "external_ids": [],
+        }
 
     def find_by_id(self, offer_id: UUID) -> Offer:
         """Find a Offer by its ID."""
@@ -78,4 +83,10 @@ class InMemoryOffersRepository(IOffersRepository):
         return 0
 
     def mark_as_pending(self, offers_list: List[Offer]) -> int:
+        return 0
+
+    def find_by_missing_external_ids(self, external_ids: List[str]) -> List[str]:
+        return []
+
+    def mark_as_archived(self, external_ids: List[str]) -> int:
         return 0

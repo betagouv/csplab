@@ -91,7 +91,12 @@ class PostgresOffersRepository(IOffersRepository):
                             ],
                         )
 
-            return {"created": created, "updated": updated, "errors": []}
+            return {
+                "created": created,
+                "updated": updated,
+                "errors": [],
+                "external_ids": [],
+            }
 
         except Exception as e:
             self.logger.error(f"Database error during bulk upsert: {str(e)}")
@@ -108,6 +113,7 @@ class PostgresOffersRepository(IOffersRepository):
                         "exception": db_error,
                     }
                 ],
+                "external_ids": [],
             }
 
     def find_by_id(self, offer_id: UUID) -> Offer:
@@ -123,6 +129,12 @@ class PostgresOffersRepository(IOffersRepository):
             return offer_model.to_entity()
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(external_id) from e
+
+    def find_by_missing_external_ids(self, external_ids: List[str]) -> List[str]:
+        ids = OfferModel.objects.exclude(external_id__in=external_ids).values_list(
+            "external_id", flat=True
+        )
+        return list(ids)
 
     def get_all(self) -> List[Offer]:
         offer_models = OfferModel.objects.all()
@@ -158,5 +170,13 @@ class PostgresOffersRepository(IOffersRepository):
             return OfferModel.objects.filter(
                 id__in=[obj.id for obj in offers_list]
             ).update(processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+    def mark_as_archived(self, external_ids: List[str]) -> int:
+        try:
+            return OfferModel.objects.filter(external_id__in=external_ids).update(
+                archived_at=timezone.now()
+            )
         except Exception as e:
             raise DatabaseError(f"Database error during update: {str(e)}") from e
