@@ -44,6 +44,17 @@ class TalentsoftConfig(BaseModel):
     client_secret: str
 
 
+class QdrantConfig(BaseModel):
+    """Qdrant vector database configuration."""
+
+    url: str
+    api_key: str
+    timeout: int = 10
+    # prefer_grpc: gRPC is ~2x faster than REST for high throughput
+    # See: https://qdrant.tech/documentation/interfaces/#grpc-interface
+    prefer_grpc: bool = False
+
+
 class AppConfig(BaseModel):
     """
     Application configuration for dependency injection.
@@ -52,6 +63,9 @@ class AppConfig(BaseModel):
 
     # OCR
     ocr_type: Literal["ALBERT", "OPENAI"]
+
+    # Vector Database
+    vector_db_type: Literal["PGVECTOR", "QDRANT"]
 
     # OpenAI/OpenRouter
     openrouter_api_key: str
@@ -76,6 +90,10 @@ class AppConfig(BaseModel):
     talentsoft_client_id: str
     talentsoft_client_secret: str
 
+    # Qdrant
+    qdrant_url: str
+    qdrant_api_key: str
+
     # Other
     opik_api_key: str
 
@@ -84,6 +102,7 @@ class AppConfig(BaseModel):
         """Create AppConfig from Django settings."""
         return cls(
             ocr_type=settings.OCR_TYPE,
+            vector_db_type=settings.VECTOR_DB_TYPE,
             openrouter_api_key=settings.OPENROUTER_API_KEY,
             openrouter_base_url=settings.OPENROUTER_BASE_URL,
             openrouter_embedding_model=settings.OPENROUTER_EMBEDDING_MODEL,
@@ -99,6 +118,8 @@ class AppConfig(BaseModel):
             talentsoft_base_url=settings.TALENTSOFT_BASE_URL,
             talentsoft_client_id=settings.TALENTSOFT_CLIENT_ID,
             talentsoft_client_secret=settings.TALENTSOFT_CLIENT_SECRET,
+            qdrant_url=settings.QDRANT_URL,
+            qdrant_api_key=settings.QDRANT_API_KEY,
             opik_api_key=settings.OPIK_API_KEY,
         )
 
@@ -139,4 +160,12 @@ class AppConfig(BaseModel):
             base_url=self.talentsoft_base_url,
             client_id=self.talentsoft_client_id,
             client_secret=self.talentsoft_client_secret,
+        )
+
+    @property
+    def qdrant(self) -> QdrantConfig:
+        """Get Qdrant configuration."""
+        return QdrantConfig(
+            url=self.qdrant_url,
+            api_key=self.qdrant_api_key,
         )
