@@ -1,5 +1,3 @@
-"""Integration test cases for MatchCVToOpportunitiesUsecase."""
-
 import pytest
 from faker import Faker
 from pytest_django.asserts import assertNumQueries
@@ -21,7 +19,6 @@ fake = Faker()
 
 @pytest.fixture
 def _integration_candidate_container():
-    """Create a test candidate container for integration tests with real DB."""
     container = CandidateContainer()
 
     # Setup shared container with real repositories (except embedding generator)
@@ -45,7 +42,6 @@ def _integration_candidate_container():
 
 
 def generate_vectorized_documents(documents):
-    """Generate vectorized docs using entity UUID."""
     return [
         VectorizedDocument(
             entity_id=obj.id,
@@ -65,7 +61,6 @@ def test_execute_with_valid_cv_returns_opportunities(
     _integration_candidate_container,
     cv_metadata_completed,
 ):
-    """Test that valid CV metadata returns Concours/Offers with scores using real DB."""
     cv_metadata, cv_id = cv_metadata_completed
     concours = ConcoursFactory.create_batch(2)
     offers = OfferFactory.create_batch(3)

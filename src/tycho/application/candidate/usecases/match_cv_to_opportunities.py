@@ -1,5 +1,3 @@
-"""Use case for matching opportunities (concours) to CV based on semantic similarity."""
-
 from typing import List, Tuple
 
 from domain.entities.concours import Concours
@@ -17,8 +15,6 @@ from domain.value_objects.cv_processing_status import CVStatus
 
 
 class MatchCVToOpportunitiesUsecase:
-    """Usecase for matching opportunities to CV based on semantic similarity."""
-
     def __init__(  # noqa: PLR0913
         self,
         postgres_cv_metadata_repository: ICVMetadataRepository,
@@ -28,7 +24,6 @@ class MatchCVToOpportunitiesUsecase:
         offers_repository: IOffersRepository,
         logger: ILogger,
     ):
-        """Initialize the use case with required dependencies."""
         self._postgres_cv_metadata_repository = postgres_cv_metadata_repository
         self._embedding_generator = embedding_generator
         self._vector_repository = vector_repository
@@ -41,7 +36,6 @@ class MatchCVToOpportunitiesUsecase:
         cv_metadata: CVMetadata,
         limit: int = 5,
     ) -> List[Tuple[Concours | Offer, float]]:
-        """Execute the matching of opportunities to CV based on semantic similarity."""
         self._logger.info(
             f"Starting opportunity matching for cv_uuid='{cv_metadata.id}',"
             f"limit={limit}"
