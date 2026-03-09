@@ -1,10 +1,11 @@
+from random import random
+
 import pytest
 from faker import Faker
 from pytest_django.asserts import assertNumQueries
 
 from domain.entities.concours import Concours
 from domain.entities.document import DocumentType
-from domain.entities.offer import Offer
 from domain.entities.vectorized_document import VectorizedDocument
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
@@ -49,7 +50,7 @@ def generate_vectorized_documents(documents):
             if isinstance(obj, Concours)
             else DocumentType.OFFERS,
             content=fake.word(),
-            embedding=[0.2] * 3072,  # Mock embedding
+            embedding=[0.2 + random() / 10000] * 3072,
             metadata={"source": "test"},
         )
         for obj in documents
@@ -64,6 +65,7 @@ def test_execute_with_valid_cv_returns_opportunities(
     cv_metadata, cv_id = cv_metadata_completed
     concours = ConcoursFactory.create_batch(2)
     offers = OfferFactory.create_batch(3)
+    limit = len(offers) + len(concours) - 1
 
     # Setup CV metadata in real DB
     cv_repo = _integration_candidate_container.postgres_cv_metadata_repository()
@@ -81,7 +83,6 @@ def test_execute_with_valid_cv_returns_opportunities(
     # Generate vectorized documents using entity UUIDs
     vectorized_concours = generate_vectorized_documents(concours_repo.get_all())
     vectorized_offers = generate_vectorized_documents(offers_repo.get_all())
-    vectorized_documents = vectorized_concours + vectorized_offers
 
     # Populate vector data in real DB
     vector_repo = _integration_candidate_container.shared_container.vector_repository()
@@ -94,13 +95,14 @@ def test_execute_with_valid_cv_returns_opportunities(
         + 1  # select ConcoursModel
         + 1  # select OfferModel
     ):
-        result = usecase.execute(cv_metadata, limit=10)
+        results = usecase.execute(cv_metadata, limit=limit)
 
-    assert isinstance(result, list)
-    assert len(result) == len(vectorized_documents)
+    assert isinstance(results, list)
+    assert len(results) == limit
 
-    assert sum(isinstance(obj, Concours) for obj, _ in result) == len(concours)
-    assert sum(isinstance(obj, Offer) for obj, _ in result) == len(offers)
+    similarities = [r[1] for r in results]
+    assert sorted(similarities, reverse=True) == similarities
+
     # TODO - reactivate these assertions
     # assert all(0.0 <= score <= 1.0 for _, score in result)
     # assert all(isinstance(score, float) for _, score in result)
