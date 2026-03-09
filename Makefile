@@ -260,9 +260,21 @@ status: ## an alias for "docker compose ps"
 	@$(COMPOSE) ps
 .PHONY: status
 
-down: ## stop and remove all containers
+down: ## stop and remove containers but keep volumes (data persists)
 	@$(COMPOSE) down
 .PHONY: down
+
+down-all: ## stop and remove containers AND volumes (⚠️ data loss!)
+	@$(COMPOSE) down -v
+.PHONY: down-all
+
+volumes: ## show docker volumes info
+	@echo "=== DOCKER VOLUMES ==="
+	@docker volume ls | grep csplab || echo "No csplab volumes found"
+	@echo ""
+	@echo "=== POSTGRES DATA SIZE ==="
+	@docker volume inspect csplab_postgres_data --format '{{.Mountpoint}}' 2>/dev/null | xargs -I {} du -sh {} 2>/dev/null || echo "Volume not found or not accessible"
+.PHONY: volumes
 
 stop: ## stop all servers
 	@$(COMPOSE) stop
