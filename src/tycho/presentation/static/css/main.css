@@ -885,6 +885,10 @@ hr {
   outline-offset: 2px;
 }
 
+#fr-btn-menu-mobile {
+  display: none;
+}
+
 .csplab-toast {
   position: fixed;
   top: 1rem;
