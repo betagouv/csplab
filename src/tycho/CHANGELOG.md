@@ -4,7 +4,50 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.3] - 2026-02-23
+## [0.1.4] - 2026-03-10
+
+### <!-- 1 --> Added
+
+- 🔧(backend) let add custom domain to allowed hosts in dev ([#206](https://github.com/betagouv/csplab/pull/206))
+- ✨(tycho:candidate) integrate tally form in no results scenario for user feedback ([#245](https://github.com/betagouv/csplab/pull/245))
+- 🔒️(security) setup Cross-Origin Opener Policy and HTTP Strict Transport Security, make default clickjacking setup explicit, use secure cookies ([#248](https://github.com/betagouv/csplab/pull/248))
+- 🔒️(security) setup Content Security Policies ([#247](https://github.com/betagouv/csplab/pull/247))
+- ✨(candidate) add opportunity detail drawers ([#254](https://github.com/betagouv/csplab/pull/254))
+- ✨(candidate) add simple client opportunity user feedback mechanism ([#260](https://github.com/betagouv/csplab/pull/260))
+- ✨(candidate) add feedback modal and trigger button in cv results page when matching return results ([#261](https://github.com/betagouv/csplab/pull/261))
+- ✨(tycho) add field in admin raw documents for better data wrangling ([#285](https://github.com/betagouv/csplab/pull/285))
+
+### <!-- 2 --> Modified
+
+- ♻️(tycho:candidate) update results page styles and filtering logic ([#196](https://github.com/betagouv/csplab/pull/196))
+- 💎(candidate) update cv upload page styles ([#219](https://github.com/betagouv/csplab/pull/219))
+- 💎(candidate) update cv processing page styles ([#223](https://github.com/betagouv/csplab/pull/223))
+- 🐛(candidate) fix albert ocr implementation ([#246](https://github.com/betagouv/csplab/pull/246))
+- ♻️(tooling) preliminary refactoring before #204 ([#242](https://github.com/betagouv/csplab/pull/242))
+- ✨(candidate) create error static pages ([#228](https://github.com/betagouv/csplab/pull/228))
+- ♻️(candidate) refactor opportunity drawer components ([#262](https://github.com/betagouv/csplab/pull/262))
+- ⚡️(db) add HnswIndex ([#269](https://github.com/betagouv/csplab/pull/269))
+- ⚡️(candidate) remove duplicates queries ([#271](https://github.com/betagouv/csplab/pull/271))
+- 🧩(candidate) hide inactive header actions ([#288](https://github.com/betagouv/csplab/pull/288))
+
+### <!-- 4 --> Fixed
+
+- 🐛(tooling) align git commit hook with new cz emojis config ([#221](https://github.com/betagouv/csplab/pull/221))
+- 🔧(tooling) make sure both vscode djlint and cli djlint use same config ([#220](https://github.com/betagouv/csplab/pull/220))
+- 🐛(tooling) align git commit hook with new cz emojis config ([#222](https://github.com/betagouv/csplab/pull/222))
+- 🐛(candidate) fix concours card props ([#231](https://github.com/betagouv/csplab/pull/231))
+- 🐛(ingestion) fix VectorizedDocumentModel unicity constraint ([#233](https://github.com/betagouv/csplab/pull/233))
+- 🎨(candidate) fix unproperly formatted partial ([#244](https://github.com/betagouv/csplab/pull/244))
+- 🐛(ingestion) add APHP in FPH verse ([#234](https://github.com/betagouv/csplab/pull/234))
+- ✨(ingestion) vectorize only pending documents ([#204](https://github.com/betagouv/csplab/pull/204))
+- 🐛(candidate) allow for optionnal field in cv experience ([#256](https://github.com/betagouv/csplab/pull/256))
+- 🐛(security) fix request.csp_nonce into csp_nonce ([#267](https://github.com/betagouv/csplab/pull/267))
+- 🔒️(tycho) fix CSP nonces on all script tags ([#265](https://github.com/betagouv/csplab/pull/265))
+- 🐛(candidate) fix htmx targetError on poll-to-results transition ([#264](https://github.com/betagouv/csplab/pull/264))
+- 🐛(candidate) fix opportunity variable reference in feedback component inclusion ([#270](https://github.com/betagouv/csplab/pull/270))
+- 🐛(ingestion) add updated_at in load_documents upsert_batch ([#286](https://github.com/betagouv/csplab/pull/286))
+
+## [0.1.3] - 2026-02-24
 
 ### <!-- 0 --> Breaking Changes
 
