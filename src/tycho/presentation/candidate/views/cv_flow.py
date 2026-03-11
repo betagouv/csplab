@@ -26,6 +26,7 @@ from presentation.candidate.filter_config import (
     get_category_all_filter_values,
     get_category_filter_options,
     get_location_filter_options,
+    get_opportunity_type_filter_options,
     get_verse_all_filter_values,
     get_verse_filter_options,
 )
@@ -272,6 +273,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         context["location_options"] = get_location_filter_options(locations)
         context["category_options"] = get_category_filter_options()
         context["verse_options"] = get_verse_filter_options()
+        context["opportunity_type_options"] = get_opportunity_type_filter_options()
         context["opportunity_type_offer"] = OpportunityType.OFFER
         context["opportunity_type_concours"] = OpportunityType.CONCOURS
         context["results_target_id"] = "results-zone"

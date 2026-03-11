@@ -24,8 +24,8 @@
         <!-- Main content -->
         <div class="fr-grid-row fr-grid-row--gutters">
             <!-- Filters sidebar (desktop) -->
-            <div class="fr-col-12 fr-col-md-4 csplab-relative">
-                <div class="fr-pt-4w fr-mt-n4w csplab-sticky">
+            <div class="fr-col-12 fr-col-md-4 csplab-relative csplab-results__filters-column">
+                <div class="fr-pt-4w fr-mt-n4w csplab-sticky csplab-results__filters-sticky">
                     <aside class="fr-hidden fr-unhidden-md" id="filters-sidebar">
                         {% include "candidate/components/_filters_content.html" with filter_prefix="desktop-" %}
                     </aside>
@@ -46,9 +46,8 @@
                 </section>
             </div>
             <!-- Results zone -->
-            <div class="fr-col-12 fr-col-md-8 fr-pl-md-4w" id="results-zone">
-                {% include "candidate/components/_results_list.html" %}
-            </div>
+            <div class="fr-col-12 fr-col-md-8 fr-pl-md-4w csplab-results__results-column"
+                 id="results-zone">{% include "candidate/components/_results_list.html" %}</div>
         </div>
     </div>
 </div>
