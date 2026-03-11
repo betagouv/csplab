@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n dsfr_tags %}
 <div class="fr-stack-3w">
     <p class="fr-text--lg">
         <span class="fr-text--bold">{{ results_count|default:0 }} résultat{{ results_count|pluralize:"s" }}</span>
@@ -17,4 +17,11 @@
             <p class="fr-text--sm fr-text--disabled">Aucun résultat pour le moment.</p>
         {% endif %}
     </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+        <div class="fr-grid-row fr-grid-row--center"
+             hx-boost="true"
+             hx-target="#results-zone"
+             hx-swap="innerHTML"
+             hx-push-url="true">{% dsfr_pagination page_obj %}</div>
+    {% endif %}
 </div>
