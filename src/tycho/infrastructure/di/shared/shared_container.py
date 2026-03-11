@@ -11,6 +11,16 @@ from infrastructure.repositories.shared import (
     postgres_corps_repository,
     postgres_offers_repository,
 )
+from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
+
+
+def _create_vector_repository(config, logger):
+    """Factory function to create vector repository based on config."""
+    if config.vector_db_type == "QDRANT":
+        return QdrantRepository(config=config.qdrant, logger=logger)
+    else:
+        # Default to PgVector
+        return pgvector_repository.PgVectorRepository(logger=logger)
 
 
 class SharedContainer(containers.DeclarativeContainer):
@@ -39,7 +49,9 @@ class SharedContainer(containers.DeclarativeContainer):
         config=providers.Callable(lambda cfg: cfg.openai, app_config),
     )
 
-    vector_repository = providers.Singleton(
-        pgvector_repository.PgVectorRepository,
+    # Vector repository with feature flag (PgVector or Qdrant)
+    vector_repository = providers.Factory(
+        _create_vector_repository,
+        config=app_config,
         logger=logger_service,
     )
