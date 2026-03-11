@@ -7,16 +7,17 @@ assignees: ''
 
 ---
 
-# Contexte
-
-## description du bug
+# contexte
 …
 
-## comportement attendu
+# description du bug
 …
 
-## utilisateurs impactés
+# comportement attendu
 …
 
-## écrans concernés
+# utilisateurs impactés
+…
+
+# écrans concernés
 :warning: copies d'écran
