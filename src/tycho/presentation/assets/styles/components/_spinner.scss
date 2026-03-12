@@ -14,3 +14,9 @@
     transform: rotate(360deg);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .csplab-spinner {
+    animation: none;
+  }
+}
