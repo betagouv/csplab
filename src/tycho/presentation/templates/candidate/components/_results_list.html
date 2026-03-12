@@ -1,9 +1,11 @@
 {% load i18n dsfr_tags %}
 <div class="fr-stack-3w">
-    <p class="fr-text--lg">
+    <h2 class="fr-text--lg">
         <span class="fr-text--bold">{{ results_count|default:0 }} résultat{{ results_count|pluralize:"s" }}</span>
-        {% if results_count %}<span class="fr-text-mention--grey fr-ml-1w">triés par pertinence</span>{% endif %}
-    </p>
+        {% if results_count %}
+            <span class="fr-text--regular fr-text-mention--grey fr-ml-1w">triés par pertinence</span>
+        {% endif %}
+    </h2>
     <div id="results-list" class="fr-stack-3w">
         {% if results %}
             {% for result in results %}
