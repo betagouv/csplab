@@ -24,7 +24,9 @@
             </div>
             {% if offer.location %}
                 <div class="fr-card__end">
-                    <p class="fr-card__detail fr-icon-map-pin-2-line">{{ offer.location }}</p>
+                    <p class="fr-card__detail fr-icon-map-pin-2-line">
+                        <span class="fr-sr-only">Localisation :</span>{{ offer.location }}
+                    </p>
                 </div>
             {% endif %}
         </div>
