@@ -79,3 +79,14 @@
     opacity: 0;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .csplab-processing .csplab-processing__message {
+    animation: none;
+    opacity: 0;
+
+    &[data-message="1"] {
+      opacity: 1;
+    }
+  }
+}

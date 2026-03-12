@@ -1,5 +1,8 @@
 {% load static %}
 <div class="fr-background-alt--blue-france"
+     role="status"
+     aria-live="polite"
+     aria-busy="true"
      hx-get="{% url 'candidate:cv_results' cv_uuid %}?poll=1"
      hx-trigger="every {{ poll_interval }}s"
      hx-swap="outerHTML">
