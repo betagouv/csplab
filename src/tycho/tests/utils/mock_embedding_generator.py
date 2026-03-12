@@ -49,4 +49,4 @@ class MockEmbeddingGenerator(IEmbeddingGenerator):
         # Fallback
         # we do not want all zeros array which make semantic_search
         # returns array of nan
-        return [1e-8] * 3072
+        return [1e-8] * 1536

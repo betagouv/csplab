@@ -8,7 +8,6 @@ from qdrant_client.http.models import (
     Filter,
     MatchValue,
     PointStruct,
-    SparseVector,
 )
 
 from config.app_config import QdrantConfig
@@ -34,7 +33,7 @@ class QdrantRepository(IVectorRepository):
             timeout=config.timeout,
             prefer_grpc=config.prefer_grpc,
         )
-        self.collection_name = "fonction-publique"
+        self.collection_name = "fonction_publique"
 
     def semantic_search(
         self,
@@ -57,7 +56,6 @@ class QdrantRepository(IVectorRepository):
             query_response = self.client.query_points(
                 collection_name=self.collection_name,
                 query=query_embedding,
-                using="semantic",
                 query_filter=qdrant_filter,
                 limit=limit,
                 # score_threshold=0.7,
@@ -67,6 +65,7 @@ class QdrantRepository(IVectorRepository):
             for point in query_response.points:
                 payload = point.payload or {}
 
+                # default value OFFERS if document_type is missing
                 doc_type_str = payload.get("document_type", DocumentType.OFFERS.value)
                 doc_type = DocumentType(doc_type_str)
 
@@ -101,20 +100,16 @@ class QdrantRepository(IVectorRepository):
             raise ExternalApiError(f"Vector search failed: {str(e)}") from e
 
     def store_embedding(self, vectorized_doc: VectorizedDocument) -> VectorizedDocument:
-        """Store a single vectorized document."""
         try:
             payload = {
                 "content": vectorized_doc.content,
                 "document_type": vectorized_doc.document_type.value,
-                **vectorized_doc.metadata,  # Flatten metadata for easier filtering
+                **vectorized_doc.metadata,
             }
 
             point = PointStruct(
                 id=str(vectorized_doc.entity_id),
-                vector={
-                    "semantic": vectorized_doc.embedding,
-                    "keywords": SparseVector(indices=[], values=[]),
-                },
+                vector=vectorized_doc.embedding,
                 payload=payload,
             )
 
@@ -151,10 +146,7 @@ class QdrantRepository(IVectorRepository):
 
                 point = PointStruct(
                     id=str(doc.entity_id),
-                    vector={
-                        "semantic": doc.embedding,
-                        "keywords": SparseVector(indices=[], values=[]),
-                    },
+                    vector=doc.embedding,  # Use simple vector
                     payload=payload,
                 )
                 points.append(point)

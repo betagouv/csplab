@@ -168,7 +168,7 @@ def vectorized_concours_documents_fixture(concours):
             entity_id=c.id,
             document_type=DocumentType.CONCOURS,
             content=f"{c.corps} {c.grade}",
-            embedding=[0.1] * 3072,  # Mock embedding
+            embedding=[0.1] * 1536,  # Mock embedding
             metadata={"source": "test"},
         )
         documents.append(vectorized_doc)
@@ -190,7 +190,7 @@ def vectorized_offers_documents_fixture(offers):
             entity_id=c.id,
             document_type=DocumentType.OFFERS,
             content=f"{c.external_id} {c.title}",
-            embedding=[0.2] * 3072,  # Mock embedding
+            embedding=[0.2] * 1536,  # Mock embedding
             metadata={"source": "test"},
         )
         for c in offers
