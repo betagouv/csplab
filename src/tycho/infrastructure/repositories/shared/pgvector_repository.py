@@ -133,6 +133,7 @@ class PgVectorRepository(IVectorRepository):
                             "content",
                             "embedding",
                             "metadata",
+                            "updated_at",
                         ],
                     )
 
