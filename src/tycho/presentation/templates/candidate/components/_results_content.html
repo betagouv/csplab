@@ -46,8 +46,14 @@
                 </section>
             </div>
             <!-- Results zone -->
-            <div class="fr-col-12 fr-col-md-8 fr-pl-md-4w csplab-results__results-column"
-                 id="results-zone">{% include "candidate/components/_results_list.html" %}</div>
+            <div class="fr-col-12 fr-col-md-8 fr-pl-md-4w csplab-results__results-column">
+                <p role="status" class="fr-sr-only" id="results-announcer"></p>
+                <div id="results-zone"
+                     class="fr-stack-3w"
+                     hx-on::after-settle="this.querySelector('#results-heading')?.focus()">
+                    {% include "candidate/components/_results_list.html" %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

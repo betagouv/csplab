@@ -1,27 +1,31 @@
-{% load i18n dsfr_tags %}
-<div class="fr-stack-3w">
-    <p class="fr-text--lg">
-        <span class="fr-text--bold">{{ results_count|default:0 }} résultat{{ results_count|pluralize:"s" }}</span>
-        {% if results_count %}<span class="fr-text-mention--grey fr-ml-1w">triés par pertinence</span>{% endif %}
-    </p>
-    <div id="results-list" class="fr-stack-3w">
-        {% if results %}
-            {% for result in results %}
-                {% if result.opportunity_type == opportunity_type_offer %}
-                    {% include "candidate/components/_result_card_offer.html" with offer=result %}
-                {% elif result.opportunity_type == opportunity_type_concours %}
-                    {% include "candidate/components/_result_card_concours.html" with concours=result %}
-                {% endif %}
-            {% endfor %}
-        {% else %}
-            <p class="fr-text--sm fr-text--disabled">Aucun résultat pour le moment.</p>
-        {% endif %}
-    </div>
-    {% if page_obj.paginator.num_pages > 1 %}
-        <div class="fr-grid-row fr-grid-row--center"
-             hx-boost="true"
-             hx-target="#results-zone"
-             hx-swap="innerHTML"
-             hx-push-url="true">{% dsfr_pagination page_obj %}</div>
+{% load dsfr_tags %}
+<h2 class="fr-text--lg" id="results-heading" tabindex="-1">
+    <span class="fr-text--bold">{{ results_count|default:0 }} résultat{{ results_count|pluralize:"s" }}</span>
+    {% if results_count %}
+        <span class="fr-text--regular fr-text-mention--grey fr-ml-1w">triés par pertinence</span>
     {% endif %}
-</div>
+</h2>
+{% if results %}
+    {% for result in results %}
+        {% if result.opportunity_type == opportunity_type_offer %}
+            {% include "candidate/components/_result_card_offer.html" with offer=result %}
+        {% elif result.opportunity_type == opportunity_type_concours %}
+            {% include "candidate/components/_result_card_concours.html" with concours=result %}
+        {% endif %}
+    {% endfor %}
+{% else %}
+    <p class="fr-text--sm fr-text--disabled">Aucun résultat pour le moment.</p>
+{% endif %}
+{% if page_obj.paginator.num_pages > 1 %}
+    <div class="fr-grid-row fr-grid-row--center"
+         hx-boost="true"
+         hx-target="#results-zone"
+         hx-swap="innerHTML"
+         hx-push-url="true">{% dsfr_pagination page_obj %}</div>
+{% endif %}
+{% if request.htmx %}
+    <p id="results-announcer"
+       hx-swap-oob="true"
+       role="status"
+       class="fr-sr-only">{{ results_count|default:0 }} résultat{{ results_count|pluralize:"s" }}</p>
+{% endif %}
