@@ -26,7 +26,9 @@
             </div>
             {% if concours.location %}
                 <div class="fr-card__end">
-                    <p class="fr-card__detail fr-icon-map-pin-2-line">{{ concours.location }}</p>
+                    <p class="fr-card__detail fr-icon-map-pin-2-line">
+                        <span class="fr-sr-only">Localisation :</span>{{ concours.location }}
+                    </p>
                 </div>
             {% endif %}
         </div>
