@@ -20,9 +20,9 @@
         {% block title %}
             <title>
                 {% block page_title %}
+                    Accueil
                 {% endblock page_title %}
-                {% if page_title %}|{% endif %}
-            CSPLab</title>
+            | {{ SITE_CONFIG.site_title|default:"CSPLab" }}</title>
         {% endblock title %}
         <meta name="format-detection"
               content="telephone=no,date=no,address=no,email=no,url=no">
