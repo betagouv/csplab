@@ -29,10 +29,11 @@
             <span class="fr-icon-drag-drop-line fr-text-action-high--blue-france"
                   aria-hidden="true"></span>
         </div>
-        <p class="csplab-dropzone__text fr-text--bold fr-m-0">
+        <p class="csplab-dropzone__text fr-text--bold fr-m-0" aria-hidden="true">
             {{ dropzone_text|default:"Glissez-déposez votre fichier ou" }}
             <span class="csplab-dropzone__browse">parcourez vos dossiers</span>
         </p>
+        <p class="fr-sr-only">Parcourez vos dossiers pour sélectionner votre fichier</p>
         <p class="csplab-dropzone__hint fr-hint-text">{{ field.help_text }}</p>
     </div>
     <!-- File card -->
