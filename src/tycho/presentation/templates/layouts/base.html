@@ -41,7 +41,7 @@
             {% dsfr_notice title=SITE_CONFIG.notice_title description=SITE_CONFIG.notice_description link=SITE_CONFIG.notice_link type=SITE_CONFIG.notice_type icon=SITE_CONFIG.notice_icon_class is_collapsible=SITE_CONFIG.notice_is_collapsible %}
         {% endif %}
         <div class="fr-container">{% dsfr_django_messages is_collapsible=True %}</div>
-        <main id="content" role="main">
+        <main id="content">
             {% block main %}
             {% endblock main %}
         </main>
