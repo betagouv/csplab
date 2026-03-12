@@ -9,9 +9,7 @@
         <meta name="viewport"
               content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="description"
-              content="{% block meta_description %}CSPLab - Plateforme de candidature{% endblock meta_description %}">
-        <meta name="keywords"
-              content="{% block meta_keywords %}CSPLab, candidature{% endblock meta_keywords %}">
+              content="{% block meta_description %}Découvrez les opportunités de carrière dans la fonction publique grâce à l'analyse de votre CV.{% endblock meta_description %}">
         {% dsfr_css %}
         {% dsfr_favicon %}
         <link rel="stylesheet" href="{% static 'css/main.css' %}">
@@ -28,6 +26,12 @@
               content="telephone=no,date=no,address=no,email=no,url=no">
         {% block opengraph %}
         {% endblock opengraph %}
+        <meta property="og:title"
+              content="{% block og_title %}{{ SITE_CONFIG.site_title|default:'CSPLab' }}{% endblock og_title %}">
+        <meta property="og:description"
+              content="{% block og_description %}Découvrez les opportunités de carrière dans la fonction publique grâce à l'analyse de votre CV.{% endblock og_description %}">
+        <meta property="og:type" content="website">
+        <meta property="og:locale" content="fr_FR">
         {% htmx_script %}
     </head>
     <body>
