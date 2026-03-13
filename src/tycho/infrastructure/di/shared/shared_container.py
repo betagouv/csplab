@@ -15,7 +15,6 @@ from infrastructure.repositories.shared.qdrant_repository import QdrantRepositor
 
 
 def _create_vector_repository(config, logger):
-    """Factory function to create vector repository based on config."""
     if config.vector_db_type == "QDRANT":
         return QdrantRepository(config=config.qdrant, logger=logger)
     else:
@@ -24,8 +23,6 @@ def _create_vector_repository(config, logger):
 
 
 class SharedContainer(containers.DeclarativeContainer):
-    """Container for shared infrastructure services."""
-
     app_config: providers.Dependency = providers.Dependency()
     logger_service: providers.Dependency = providers.Dependency()
 
