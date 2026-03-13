@@ -1,19 +1,22 @@
 import pytest
 from faker import Faker
 from pytest_django.asserts import assertNumQueries
-from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
 
-from config.app_config import AppConfig, QdrantConfig
+from config.app_config import AppConfig
 from domain.entities.document import DocumentType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
-from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.offer_factory import OfferFactory
 from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
+
+# Import fixtures needed for this test
+from tests.fixtures.candidate_fixtures import create_cv_metadata_completed
 from tests.fixtures.fixture_loader import load_fixture
+from tests.fixtures.shared_fixtures import (
+    create_shared_qdrant_repository,
+)
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 fake = Faker()
@@ -21,6 +24,7 @@ fake = Faker()
 
 @pytest.fixture
 def _integration_candidate_container():
+    shared_qdrant_repository = create_shared_qdrant_repository()
 
     container = CandidateContainer()
 
@@ -40,24 +44,8 @@ def _integration_candidate_container():
     embedding_generator = MockEmbeddingGenerator(embedding_fixtures)
     shared_container.embedding_generator.override(embedding_generator)
 
-    # Create Qdrant repository with in-memory client like ingestion tests
-    qdrant_config = QdrantConfig(
-        url="http://localhost:6333",
-        api_key="",
-        timeout=30,
-        prefer_grpc=False,
-    )
-    qdrant_repo = QdrantRepository(qdrant_config, logger_service)
-    qdrant_repo.client = QdrantClient(":memory:")
-
-    # Create test collection with simple vector config
-    qdrant_repo.client.create_collection(
-        collection_name=qdrant_repo.collection_name,
-        vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
-    )
-
-    # Override vector repository with our configured Qdrant
-    shared_container.vector_repository.override(qdrant_repo)
+    # Use shared Qdrant repository fixture
+    shared_container.vector_repository.override(shared_qdrant_repository)
 
     container.shared_container.override(shared_container)
 
@@ -71,9 +59,8 @@ def _integration_candidate_container():
 @pytest.mark.django_db
 def test_execute_with_valid_cv_returns_opportunities(
     _integration_candidate_container,
-    cv_metadata_completed,
 ):
-    cv_metadata, cv_id = cv_metadata_completed
+    cv_metadata, cv_id = create_cv_metadata_completed()
     concours = ConcoursFactory.create_batch(2)
     offers = OfferFactory.create_batch(3)
     limit = len(offers) + len(concours) - 1

@@ -2,10 +2,8 @@
 
 import pytest
 from faker import Faker
-from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
 
-from config.app_config import AppConfig, QdrantConfig
+from config.app_config import AppConfig
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
@@ -20,8 +18,8 @@ from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_corps_repository import (
     PostgresCorpsRepository,
 )
-from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
 from tests.fixtures.fixture_loader import load_fixture
+from tests.fixtures.shared_fixtures import create_shared_qdrant_repository
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 fake = Faker()
@@ -49,25 +47,9 @@ def shared_container_fixture():
     postgres_corps_repository = PostgresCorpsRepository(logger_service)
     container.corps_repository.override(postgres_corps_repository)
 
-    # Configure Qdrant like in match_cv_to_opportunities test
-    qdrant_config = QdrantConfig(
-        url="http://localhost:6333",
-        api_key="",
-        timeout=30,
-        prefer_grpc=False,
-    )
-    qdrant_repo = QdrantRepository(qdrant_config, logger_service)
-
-    # Replace client with in-memory version
-    qdrant_repo.client = QdrantClient(":memory:")
-
-    # Create test collection
-    qdrant_repo.client.create_collection(
-        collection_name=qdrant_repo.collection_name,
-        vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
-    )
-
-    container.vector_repository.override(qdrant_repo)
+    # Use shared Qdrant repository fixture
+    shared_qdrant_repository = create_shared_qdrant_repository()
+    container.vector_repository.override(shared_qdrant_repository)
 
     return container
 
@@ -155,6 +137,7 @@ def test_retrieve_corps_with_valid_query_returns_results(
     assert result[0][0].label.value == query
 
     # Verify scores are between 0 and 1 (relevance scores)
+    # Allow small floating point tolerance for scores slightly above 1.0
     for _, score in result:
         assert 0.0 <= score <= 1.0
 
