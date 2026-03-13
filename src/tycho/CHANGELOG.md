@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-03-13
+
+### <!-- 1 --> Added
+
+- ✨(candidate) push cv results filter params in url and implement simple pagination ([#274](https://github.com/betagouv/csplab/pull/274))
+- 🤸(tycho) add skip links for accessibility ([#275](https://github.com/betagouv/csplab/pull/275))
+- ✨(candidate) implement filter fieldset tooltips ([#276](https://github.com/betagouv/csplab/pull/276))
+- 🤸(tycho:candidate) add live region to processing page polling and respect reduced motion preference ([#310](https://github.com/betagouv/csplab/pull/310))
+- 🔧(dev) add auto-reload and django-browser-reload integration ([#277](https://github.com/betagouv/csplab/pull/277))
+
+### <!-- 2 --> Modified
+
+- 🔧(tycho:candidate) improve meta tags ([#308](https://github.com/betagouv/csplab/pull/308))
+- 🤸(candidate) remove redundant main role ([#309](https://github.com/betagouv/csplab/pull/309))
+- 🤸(tycho:candidate) add a11y sr-only hints on result cards and drawer ([#311](https://github.com/betagouv/csplab/pull/311))
+
+### <!-- 4 --> Fixed
+
+- 🤸(a11y) fix cv results page title hierarchy ([#315](https://github.com/betagouv/csplab/pull/315))
+- 🤸(tycho:candidate) hide drag-drop text from AT in dropzone ([#314](https://github.com/betagouv/csplab/pull/314))
+
 ## [0.1.4] - 2026-03-10
 
 ### <!-- 1 --> Added
