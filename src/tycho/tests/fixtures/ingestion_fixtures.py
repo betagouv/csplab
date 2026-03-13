@@ -4,8 +4,10 @@ from datetime import datetime, timezone
 
 import pytest
 from faker import Faker
+from qdrant_client import QdrantClient
+from qdrant_client.http.models import Distance, VectorParams
 
-from config.app_config import AppConfig
+from config.app_config import AppConfig, QdrantConfig
 from domain.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
@@ -13,7 +15,6 @@ from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.ingestion.postgres_document_repository import (
     PostgresDocumentRepository,
 )
-from infrastructure.repositories.shared.pgvector_repository import PgVectorRepository
 from infrastructure.repositories.shared.postgres_concours_repository import (
     PostgresConcoursRepository,
 )
@@ -23,6 +24,7 @@ from infrastructure.repositories.shared.postgres_corps_repository import (
 from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
 )
+from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
@@ -104,6 +106,26 @@ def test_app_config_fixture():
     return AppConfig.from_django_settings()
 
 
+def shared_qdrant_repository_fixture():
+    logger_service = LoggerService()
+    qdrant_config = QdrantConfig(
+        url=None,
+        api_key="",
+        timeout=30,
+        prefer_grpc=False,
+    )
+    qdrant_repo = QdrantRepository(qdrant_config, logger_service)
+    qdrant_repo.client = QdrantClient(":memory:")
+
+    # Create test collection with simple vector config
+    qdrant_repo.client.create_collection(
+        collection_name=qdrant_repo.collection_name,
+        vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
+    )
+
+    return qdrant_repo
+
+
 # CLIENTS
 
 
@@ -170,8 +192,9 @@ def _create_ingestion_container(
         postgres_offers_repo = PostgresOffersRepository(logger_service)
         container.shared_container.offers_repository.override(postgres_offers_repo)
 
-        pgvector_repo = PgVectorRepository(logger_service)
-        container.vector_repository.override(pgvector_repo)
+        qdrant_repository = shared_qdrant_repository_fixture()
+
+        container.shared_container.vector_repository.override(qdrant_repository)
 
     return container
 

@@ -70,13 +70,21 @@ def test_vectorize_entity_integration(
 
     assert_success_result(result, expected_count=len(documents))
 
-    saved_vectors = VectorizedDocumentModel.objects.all()
-    assert saved_vectors.count() == len(documents)
-    for vector in saved_vectors:
-        assert vector.embedding is not None
-        assert len(vector.embedding) > 0
-        assert vector.content is not None
-        assert vector.metadata is not None
+    # With Qdrant, documents are not stored in VectorizedDocumentModel anymore
+    # Instead, verify they are in Qdrant by doing a search
+    vector_repo = ingestion_integration_container.vector_repository()
+    search_results = vector_repo.semantic_search(
+        query_embedding=[0.1] * 1536,  # Mock embedding for search
+        limit=10,
+        filters={"document_type": document_type.value},
+    )
+
+    assert len(search_results) == len(documents)
+    for result in search_results:
+        assert result.document.document_type == document_type
+        assert result.document.content is not None
+        assert result.document.metadata is not None
+        assert result.score >= 0.0
 
 
 def test_vectorize_empty_list_integration(db, ingestion_integration_container):
@@ -95,7 +103,16 @@ def test_vectorize_limit(db, ingestion_integration_container):
     result = usecase.execute(DocumentType.OFFERS, limit=limit)
 
     assert_success_result(result, expected_count=limit)
-    assert VectorizedDocumentModel.objects.count() == limit
+
+    # With Qdrant, verify documents are stored by searching
+    vector_repo = ingestion_integration_container.vector_repository()
+    search_results = vector_repo.semantic_search(
+        query_embedding=[0.1] * 1536,  # Mock embedding for search
+        limit=10,
+        filters={"document_type": DocumentType.OFFERS.value},
+    )
+    assert len(search_results) == limit
+
     assert OfferModel.objects.filter(processed_at__isnull=False).count() == limit
 
 

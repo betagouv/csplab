@@ -36,6 +36,7 @@ setup: ## copy example env files to local files
 bootstrap: ## setup development environment (build dev service and install git hooks)
 bootstrap: \
   run-postgres \
+  run-qdrant \
   build \
   migrate \
   create-superuser \
@@ -120,6 +121,10 @@ run-es: ## run the elasticsearch service
 run-postgres: ## run the DB service
 	$(COMPOSE_UP) postgresql
 .PHONY: run-postgres
+
+run-qdrant: ## run the Qdrant vector database service
+	$(COMPOSE_UP) qdrant
+.PHONY: run-qdrant
 
 run-tycho: ## run the tycho service
 	@bin/manage runserver
@@ -217,9 +222,21 @@ status: ## an alias for "docker compose ps"
 	@$(COMPOSE) ps
 .PHONY: status
 
-down: ## stop and remove all containers
+down: ## stop and remove containers but keep volumes (data persists)
 	@$(COMPOSE) down
 .PHONY: down
+
+down-all: ## stop and remove containers AND volumes (⚠️ data loss!)
+	@$(COMPOSE) down -v
+.PHONY: down-all
+
+volumes: ## show docker volumes info
+	@echo "=== DOCKER VOLUMES ==="
+	@docker volume ls | grep csplab || echo "No csplab volumes found"
+	@echo ""
+	@echo "=== POSTGRES DATA SIZE ==="
+	@docker volume inspect csplab_postgres_data --format '{{.Mountpoint}}' 2>/dev/null | xargs -I {} du -sh {} 2>/dev/null || echo "Volume not found or not accessible"
+.PHONY: volumes
 
 stop: ## stop all servers
 	@$(COMPOSE) stop
