@@ -70,6 +70,11 @@ build-tycho: ## build tycho image
 	$(TYCHO_UV) uv sync --group dev --locked
 .PHONY: build-tycho
 
+playwright-install: ## install Playwright browsers
+	@echo 'Installing Playwright browsers…'
+	$(TYCHO_UV) uv run playwright install chromium
+.PHONY: playwright-install
+
 jupytext--to-md: ## convert local ipynb files into md
 	cd src/notebook && uv run jupytext --to md *.ipynb && cd ../..
 .PHONY: jupytext--to-md
