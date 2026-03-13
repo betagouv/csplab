@@ -99,34 +99,6 @@ class QdrantRepository(IVectorRepository):
             self.logger.error(f"Unexpected error during search: {str(e)}")
             raise ExternalApiError(f"Vector search failed: {str(e)}") from e
 
-    def store_embedding(self, vectorized_doc: VectorizedDocument) -> VectorizedDocument:
-        try:
-            payload = {
-                "content": vectorized_doc.content,
-                "document_type": vectorized_doc.document_type.value,
-                **vectorized_doc.metadata,
-            }
-
-            point = PointStruct(
-                id=str(vectorized_doc.entity_id),
-                vector=vectorized_doc.embedding,
-                payload=payload,
-            )
-
-            self.client.upsert(
-                collection_name=self.collection_name,
-                points=[point],
-            )
-
-            return vectorized_doc
-
-        except UnexpectedResponse as e:
-            self.logger.error(f"Qdrant API error during store: {str(e)}")
-            raise ExternalApiError(f"Vector store failed: {str(e)}") from e
-        except Exception as e:
-            self.logger.error(f"Unexpected error during store: {str(e)}")
-            raise ExternalApiError(f"Vector store failed: {str(e)}") from e
-
     def upsert_batch(
         self,
         vectorized_documents: List[VectorizedDocument],
@@ -192,6 +164,9 @@ class QdrantRepository(IVectorRepository):
             }
 
     def _build_filter(self, filters: Optional[Dict[str, Any]]) -> Optional[Filter]:
+        # - `must=[]` : conditions AND
+        # - `should=[]` : conditions OR
+        # - `must_not=[]` : conditions NOT
         if not filters:
             return None
 

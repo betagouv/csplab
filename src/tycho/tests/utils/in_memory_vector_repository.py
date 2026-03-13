@@ -6,7 +6,10 @@ from uuid import UUID
 
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
-from domain.repositories.document_repository_interface import IUpsertResult
+from domain.repositories.document_repository_interface import (
+    IUpsertError,
+    IUpsertResult,
+)
 from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.value_objects.similarity_type import (
     SimilarityMetric,
@@ -16,10 +19,7 @@ from domain.value_objects.similarity_type import (
 
 
 class InMemoryVectorRepository(IVectorRepository):
-    """In-memory implementation of vector repository for testing."""
-
     def __init__(self):
-        """Initialize with empty storage."""
         self._documents: Dict[UUID, VectorizedDocument] = {}
 
     def upsert_batch(
@@ -27,44 +27,51 @@ class InMemoryVectorRepository(IVectorRepository):
         vectorized_documents: List[VectorizedDocument],
         document_type: DocumentType,
     ) -> IUpsertResult:
-        # WARNING! This method is added for in_memory usecase test compatibility
-        # DO NOT USE
-        return {"created": 99999, "updated": 99999, "errors": []}
+        created = 0
+        updated = 0
+        errors = []
 
-    def store_embedding(self, vectorized_doc: VectorizedDocument):
-        # WARNING! This method has been remove from pgvector_repository
-        # It is maintend for in_memory usecase existing test :
-        # DO NOT REUSE
-        # Handle upsert based on entity_id
-        existing = None
-        for doc in self._documents.values():
-            if doc.entity_id == vectorized_doc.entity_id:
-                existing = doc
-                break
+        for doc in vectorized_documents:
+            try:
+                # Check if document already exists
+                existing = None
+                for existing_doc in self._documents.values():
+                    if existing_doc.entity_id == doc.entity_id:
+                        existing = existing_doc
+                        break
 
-        if existing:
-            # Update existing record
-            updated_doc = VectorizedDocument(
-                id=existing.id,
-                entity_id=vectorized_doc.entity_id,
-                document_type=vectorized_doc.document_type,
-                content=vectorized_doc.content,
-                embedding=vectorized_doc.embedding,
-                metadata=vectorized_doc.metadata,
-            )
-            self._documents[existing.id] = updated_doc
-            return updated_doc
-        else:
-            # Create new record - VectorizedDocument generates its own UUID
-            new_doc = VectorizedDocument(
-                entity_id=vectorized_doc.entity_id,
-                document_type=vectorized_doc.document_type,
-                content=vectorized_doc.content,
-                embedding=vectorized_doc.embedding,
-                metadata=vectorized_doc.metadata,
-            )
-            self._documents[new_doc.id] = new_doc
-            return new_doc
+                if existing:
+                    # Update existing document
+                    updated_doc = VectorizedDocument(
+                        id=existing.id,
+                        entity_id=doc.entity_id,
+                        document_type=doc.document_type,
+                        content=doc.content,
+                        embedding=doc.embedding,
+                        metadata=doc.metadata,
+                    )
+                    self._documents[existing.id] = updated_doc
+                    updated += 1
+                else:
+                    # Create new document
+                    new_doc = VectorizedDocument(
+                        entity_id=doc.entity_id,
+                        document_type=doc.document_type,
+                        content=doc.content,
+                        embedding=doc.embedding,
+                        metadata=doc.metadata,
+                    )
+                    self._documents[new_doc.id] = new_doc
+                    created += 1
+            except Exception as e:
+                error_obj: IUpsertError = {
+                    "entity_id": doc.entity_id,
+                    "error": str(e),
+                    "exception": e,
+                }
+                errors.append(error_obj)
+
+        return {"created": created, "updated": updated, "errors": errors}
 
     def semantic_search(
         self,
@@ -105,36 +112,6 @@ class InMemoryVectorRepository(IVectorRepository):
         return [
             SimilarityResult(document=doc, score=score)
             for score, doc in scored_docs[:limit]
-        ]
-
-    def similarity_search(
-        self,
-        entity_id: UUID,
-        threshold: float = 0.8,
-        limit: int = 10,
-        similarity_type: Optional[SimilarityType] = None,
-    ) -> List[SimilarityResult]:
-        """Find documents similar to a specific entity."""
-        if similarity_type is None:
-            similarity_type = SimilarityType()
-
-        reference_doc = None
-        for doc in self._documents.values():
-            if doc.entity_id == entity_id:
-                reference_doc = doc
-                break
-
-        if not reference_doc:
-            return []
-
-        results = self.semantic_search(
-            query_embedding=reference_doc.embedding,
-            limit=limit + 1,  # +1 to exclude the reference document itself
-            similarity_type=similarity_type,
-        )
-
-        return [result for result in results if result.document.entity_id != entity_id][
-            :limit
         ]
 
     def _filter_documents(

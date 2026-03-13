@@ -2,8 +2,10 @@
 
 import pytest
 from faker import Faker
+from qdrant_client import QdrantClient
+from qdrant_client.http.models import Distance, VectorParams
 
-from config.app_config import AppConfig
+from config.app_config import AppConfig, QdrantConfig
 from domain.entities.corps import Corps
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
@@ -15,10 +17,10 @@ from domain.value_objects.ministry import Ministry
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
-from infrastructure.repositories.shared import pgvector_repository as pgvector_repo
-from infrastructure.repositories.shared import (
-    postgres_corps_repository as postgres_corps_repo,
+from infrastructure.repositories.shared.postgres_corps_repository import (
+    PostgresCorpsRepository,
 )
+from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
@@ -31,13 +33,11 @@ EXPECTED_TEST_CORPS_COUNT_WITH_LIMIT = 1
 
 @pytest.fixture(name="embeddings", scope="session")
 def embeddings_fixture():
-    """Load fixtures all at once."""
     return load_fixture("embedding_fixtures.json")
 
 
 @pytest.fixture(name="shared_container")
 def shared_container_fixture():
-    """Set up shared container."""
     container = SharedContainer()
 
     test_app_config = AppConfig.from_django_settings()
@@ -46,13 +46,28 @@ def shared_container_fixture():
     logger_service = LoggerService()
     container.logger_service.override(logger_service)
 
-    postgres_corps_repository = postgres_corps_repo.PostgresCorpsRepository(
-        logger_service
-    )
+    postgres_corps_repository = PostgresCorpsRepository(logger_service)
     container.corps_repository.override(postgres_corps_repository)
 
-    pgvector_repository = pgvector_repo.PgVectorRepository(logger_service)
-    container.vector_repository.override(pgvector_repository)
+    # Configure Qdrant like in match_cv_to_opportunities test
+    qdrant_config = QdrantConfig(
+        url="http://localhost:6333",
+        api_key="",
+        timeout=30,
+        prefer_grpc=False,
+    )
+    qdrant_repo = QdrantRepository(qdrant_config, logger_service)
+
+    # Replace client with in-memory version
+    qdrant_repo.client = QdrantClient(":memory:")
+
+    # Create test collection
+    qdrant_repo.client.create_collection(
+        collection_name=qdrant_repo.collection_name,
+        vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
+    )
+
+    container.vector_repository.override(qdrant_repo)
 
     return container
 
@@ -118,7 +133,7 @@ def corps_data_fixture(shared_container, embeddings):
                 metadata={"document_type": "CORPS"},
             )
         )
-    vector_repository.upsert_batch(vectorized_documents, DocumentType.CORPS.value)
+    vector_repository.upsert_batch(vectorized_documents, DocumentType.CORPS)
 
     return corps_list
 

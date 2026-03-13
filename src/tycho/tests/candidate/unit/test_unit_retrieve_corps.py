@@ -61,6 +61,8 @@ class TestUnitRetrieveCorpsUsecase(unittest.TestCase):
 
         corps_repository.upsert_batch(corps_list)
 
+        # Create vectorized documents for all corps
+        vectorized_docs = []
         for corps in corps_list:
             fixture_data = self.embedding_fixtures[str(corps.id)]
             vectorized_doc = VectorizedDocument(
@@ -70,7 +72,10 @@ class TestUnitRetrieveCorpsUsecase(unittest.TestCase):
                 embedding=fixture_data["embedding"],
                 metadata={"document_type": "CORPS"},
             )
-            vector_repository.store_embedding(vectorized_doc)
+            vectorized_docs.append(vectorized_doc)
+
+        # Use upsert_batch instead of store_embedding
+        vector_repository.upsert_batch(vectorized_docs, DocumentType.CORPS)
 
         return corps_list
 
