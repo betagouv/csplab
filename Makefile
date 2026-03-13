@@ -40,6 +40,7 @@ bootstrap: ## setup development environment (build dev service and install git h
 bootstrap: \
   run-postgres \
   run-qdrant \
+  setup-qdrant \
   build \
   migrate \
   create-superuser \
@@ -101,6 +102,11 @@ create-superuser: ## create tycho super user
 	@echo "Creating tycho super user…"
 	@bin/manage createsuperuser --noinput || true
 .PHONY: create-superuser
+
+setup-qdrant: ## setup qdrant collection if not exists
+	@echo "Setting up Qdrant collection…"
+	@$(TYCHO_UV) python config/setup-qdrant.py
+.PHONY: setup-qdrant
 
 ### SASS
 sass-compile: ## compile SCSS files to CSS

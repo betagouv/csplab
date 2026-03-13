@@ -78,12 +78,18 @@ jobs:
           --health-retries 10
         ports:
           - 5432:5432
+      qdrant:
+        image: qdrant/qdrant:latest
+        ports:
+          - 6333:6333
     defaults:
       run:
         working-directory: ./src/tycho
     env:
       TYCHO_SECRET_KEY: the_secret_key
       TYCHO_DATABASE_URL: psql://postgres:pass@localhost:5432/tycho
+      TYCHO_QDRANT_URL: http://localhost:6333
+      TYCHO_VECTOR_DB_TYPE: QDRANT
       DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
       - uses: actions/checkout@v5
@@ -96,5 +102,24 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version-file: "./src/tycho/.python-version"
+      - name: Install dependencies
+        run: uv sync --locked --all-extras --dev
+      - name: Wait for Qdrant to be ready
+        run: |
+          echo "Waiting for Qdrant to be ready..."
+          for i in {1..30}; do
+            if curl -f http://localhost:6333/health > /dev/null 2>&1; then
+              echo "✅ Qdrant is ready"
+              break
+            fi
+            echo "⏳ Waiting for Qdrant... (attempt $i/30)"
+            sleep 2
+          done
+      - name: Setup Qdrant collections
+        run: |
+          echo "Creating production collection..."
+          uv run python config/setup-qdrant.py
+          echo "Creating test collection..."
+          uv run python config/setup-qdrant.py --collection-name fonction_publique_test
       - name: Test with pytest
         run: uv run pytest .

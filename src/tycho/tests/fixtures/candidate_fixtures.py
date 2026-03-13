@@ -94,9 +94,7 @@ def pdf_content_fixture():
     return create_minimal_valid_pdf()
 
 
-@pytest.fixture(name="cv_metadata_initial")
-def cv_metadata_initial_fixture():
-    """Initial CV metadata for testing."""
+def create_cv_metadata_initial():
     cv_id = UUID("00000000-0000-0000-0000-000000000001")
     now = datetime.now(timezone.utc)
     return CVMetadata(
@@ -108,10 +106,8 @@ def cv_metadata_initial_fixture():
     ), cv_id
 
 
-@pytest.fixture(name="cv_metadata_completed")
-def cv_metadata_completed_fixture(cv_metadata_initial):
-    """CV metadata with COMPLETED status and search query."""
-    cv_metadata, cv_id = cv_metadata_initial
+def create_cv_metadata_completed():
+    cv_metadata, cv_id = create_cv_metadata_initial()
     cv_metadata.status = CVStatus.COMPLETED
     cv_metadata.search_query = "Python developer with Django experience"
     cv_metadata.extracted_text = {
@@ -119,6 +115,17 @@ def cv_metadata_completed_fixture(cv_metadata_initial):
         "skills": ["Python", "Django"],
     }
     return cv_metadata, cv_id
+
+
+# Garder les fixtures pytest pour la compatibilité avec les autres tests
+@pytest.fixture(name="cv_metadata_initial")
+def cv_metadata_initial_fixture():
+    return create_cv_metadata_initial()
+
+
+@pytest.fixture(name="cv_metadata_completed")
+def cv_metadata_completed_fixture():
+    return create_cv_metadata_completed()
 
 
 @pytest.fixture(name="cv_metadata_failed")

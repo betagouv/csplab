@@ -1,0 +1,50 @@
+from qdrant_client import QdrantClient
+from qdrant_client.http.models import Distance, PayloadSchemaType, VectorParams
+
+from config.app_config import AppConfig
+from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
+
+
+def create_collection(client: QdrantClient, collection_name: str):
+    # Créer la collection
+    client.create_collection(
+        collection_name=collection_name,
+        vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
+    )
+
+    # Créer les index comme dans le script de setup
+    indexes = [
+        "document_type",
+        "category",
+        "verse",
+        "localisation.region",
+        "localisation.country",
+        "localisation.department",
+    ]
+
+    for field_name in indexes:
+        client.create_payload_index(
+            collection_name=collection_name,
+            field_name=field_name,
+            field_schema=PayloadSchemaType.KEYWORD,
+        )
+
+
+def create_shared_qdrant_repository():
+    app_config = AppConfig.from_django_settings()
+    collection_name = "fonction_publique_test"
+    # Nettoyer la collection avant de créer le repository
+    # Sauf si httpx_mock est actif (détecté par la présence de mocks HTTP)
+    client = QdrantClient(url=app_config.qdrant.url)
+    if client.get_collection(collection_name) is None:
+        create_collection(client, collection_name)
+    else:
+        client.delete_collection(
+            collection_name=collection_name,
+        )
+        create_collection(client, collection_name)
+    logger_service = LoggerService()
+    qdrant_repo = QdrantRepository(app_config.qdrant, logger_service)
+    qdrant_repo.collection_name = collection_name
+    return qdrant_repo

@@ -24,16 +24,21 @@ from infrastructure.exceptions.exceptions import ExternalApiError
 
 
 class QdrantRepository(IVectorRepository):
-    def __init__(self, config: QdrantConfig, logger: ILogger):
+    def __init__(
+        self,
+        config: QdrantConfig,
+        logger: ILogger,
+        collection_name: str = "fonction_publique",
+    ):
         self.config = config
         self.logger = logger
+        self.collection_name = collection_name
         self.client = QdrantClient(
             url=config.url,
             api_key=config.api_key if config.api_key else None,
             timeout=config.timeout,
             prefer_grpc=config.prefer_grpc,
         )
-        self.collection_name = "fonction_publique"
 
     def semantic_search(
         self,
@@ -135,33 +140,9 @@ class QdrantRepository(IVectorRepository):
                 "updated": 0,
                 "errors": [],
             }
-
-        except UnexpectedResponse as e:
-            self.logger.error(f"Qdrant API error during upsert: {str(e)}")
-            return {
-                "created": 0,
-                "updated": 0,
-                "errors": [
-                    {
-                        "entity_id": None,
-                        "error": f"Qdrant upsert failed: {str(e)}",
-                        "exception": ExternalApiError(str(e)),
-                    }
-                ],
-            }
         except Exception as e:
             self.logger.error(f"Unexpected error during upsert: {str(e)}")
-            return {
-                "created": 0,
-                "updated": 0,
-                "errors": [
-                    {
-                        "entity_id": None,
-                        "error": f"Upsert failed: {str(e)}",
-                        "exception": ExternalApiError(str(e)),
-                    }
-                ],
-            }
+            raise ExternalApiError(str(e)) from e
 
     def _build_filter(self, filters: Optional[Dict[str, Any]]) -> Optional[Filter]:
         # - `must=[]` : conditions AND

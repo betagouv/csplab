@@ -4,10 +4,8 @@ from datetime import datetime, timezone
 
 import pytest
 from faker import Faker
-from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
 
-from config.app_config import AppConfig, QdrantConfig
+from config.app_config import AppConfig
 from domain.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
@@ -24,8 +22,8 @@ from infrastructure.repositories.shared.postgres_corps_repository import (
 from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
 )
-from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
 from tests.fixtures.fixture_loader import load_fixture
+from tests.fixtures.shared_fixtures import create_shared_qdrant_repository
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
 from tests.utils.in_memory_document_repository import InMemoryDocumentRepository
@@ -106,25 +104,6 @@ def test_app_config_fixture():
     return AppConfig.from_django_settings()
 
 
-def _create_qdrant_test_repository(logger_service):
-    qdrant_config = QdrantConfig(
-        url="http://localhost:6333",
-        api_key="",
-        timeout=30,
-        prefer_grpc=False,
-    )
-    qdrant_repo = QdrantRepository(qdrant_config, logger_service)
-    qdrant_repo.client = QdrantClient(":memory:")
-
-    # Create test collection with simple vector config
-    qdrant_repo.client.create_collection(
-        collection_name=qdrant_repo.collection_name,
-        vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
-    )
-
-    return qdrant_repo
-
-
 # CLIENTS
 
 
@@ -191,8 +170,8 @@ def _create_ingestion_container(
         postgres_offers_repo = PostgresOffersRepository(logger_service)
         container.shared_container.offers_repository.override(postgres_offers_repo)
 
-        qdrant_repo = _create_qdrant_test_repository(logger_service)
-        container.vector_repository.override(qdrant_repo)
+        qdrant_repository = create_shared_qdrant_repository()
+        container.shared_container.vector_repository.override(qdrant_repository)
 
     return container
 

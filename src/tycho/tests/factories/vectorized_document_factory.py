@@ -52,14 +52,39 @@ class VectorizedDocumentFactory:
                     ),
                 }
             else:  # DocumentType.OFFERS
+                localisation_choices = [
+                    None,
+                    {
+                        "region": "11",
+                        "country": "FRA",
+                        "department": "75",
+                    },
+                    {
+                        "region": "84",
+                        "country": "FRA",
+                        "department": "13",
+                    },
+                    {
+                        "region": "32",
+                        "country": "FRA",
+                        "department": "60",
+                    },
+                    {
+                        "region": "44",
+                        "country": "FRA",
+                        "department": "67",
+                    },
+                    {
+                        "region": "93",
+                        "country": "FRA",
+                        "department": "06",
+                    },
+                ]
+
                 metadata = {
                     "verse": random.choice(["FPE", "FPT", "FPH"]),
-                    "contract_type": random.choice(
-                        [None, "TITULAIRE_CONTRACTUEL", "CONTRACTUELS", "TERRITORIAL"]
-                    ),
-                    "localisation": random.choice(
-                        [None, "FRA-11-75", "FRA-84-13", "FRA-32-69"]
-                    ),
+                    "category": None,
+                    "localisation": random.choice(localisation_choices),
                 }
 
         entity = VectorizedDocument(
