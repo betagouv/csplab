@@ -54,7 +54,7 @@ def _integration_candidate_container():
     # Create test collection with simple vector config
     qdrant_repo.client.create_collection(
         collection_name=qdrant_repo.collection_name,
-        vectors_config=VectorParams(size=3072, distance=Distance.COSINE),
+        vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
     )
 
     # Override vector repository with our configured Qdrant
@@ -70,7 +70,6 @@ def _integration_candidate_container():
 
 
 def generate_vectorized_documents(documents):
-    """Generate vectorized docs using entity UUID."""
     vectorized_docs = []
     for obj in documents:
         if isinstance(obj, Concours):
@@ -93,7 +92,7 @@ def generate_vectorized_documents(documents):
                 entity_id=obj.id,
                 document_type=doc_type,
                 content=fake.sentence(),
-                embedding=[0.2] * 3072,  # Mock embedding
+                embedding=[0.2] * 1536,  # Mock embedding
                 metadata=metadata,
             )
         )
@@ -134,8 +133,7 @@ def test_execute_with_valid_cv_returns_opportunities(
 
     usecase = _integration_candidate_container.match_cv_to_opportunities_usecase()
     with assertNumQueries(
-        1  # select VectorizedDocument
-        + 1  # select ConcoursModel
+        1  # select ConcoursModel
         + 1  # select OfferModel
     ):
         results = usecase.execute(cv_metadata, limit=limit)
