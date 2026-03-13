@@ -106,9 +106,10 @@ def test_app_config_fixture():
     return AppConfig.from_django_settings()
 
 
-def _create_qdrant_test_repository(logger_service):
+def shared_qdrant_repository_fixture():
+    logger_service = LoggerService()
     qdrant_config = QdrantConfig(
-        url="http://localhost:6333",
+        url=None,
         api_key="",
         timeout=30,
         prefer_grpc=False,
@@ -191,8 +192,9 @@ def _create_ingestion_container(
         postgres_offers_repo = PostgresOffersRepository(logger_service)
         container.shared_container.offers_repository.override(postgres_offers_repo)
 
-        qdrant_repo = _create_qdrant_test_repository(logger_service)
-        container.vector_repository.override(qdrant_repo)
+        qdrant_repository = shared_qdrant_repository_fixture()
+
+        container.shared_container.vector_repository.override(qdrant_repository)
 
     return container
 

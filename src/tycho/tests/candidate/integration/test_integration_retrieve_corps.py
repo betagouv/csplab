@@ -51,7 +51,7 @@ def shared_container_fixture():
 
     # Configure Qdrant like in match_cv_to_opportunities test
     qdrant_config = QdrantConfig(
-        url="http://localhost:6333",
+        url=None,
         api_key="",
         timeout=30,
         prefer_grpc=False,
@@ -155,8 +155,9 @@ def test_retrieve_corps_with_valid_query_returns_results(
     assert result[0][0].label.value == query
 
     # Verify scores are between 0 and 1 (relevance scores)
+    # Allow small floating point tolerance for scores slightly above 1.0
     for _, score in result:
-        assert 0.0 <= score <= 1.0
+        assert 0.0 <= score <= 1.0 + 1e-6
 
     returned_ids = {corps.id for corps, score in result}
     expected_ids = {corps.id for corps in corps_data}

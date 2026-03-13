@@ -47,7 +47,7 @@ class TalentsoftConfig(BaseModel):
 class QdrantConfig(BaseModel):
     """Qdrant vector database configuration."""
 
-    url: str
+    url: str | None
     api_key: str
     timeout: int = 10
     # prefer_grpc: gRPC is ~2x faster than REST for high throughput

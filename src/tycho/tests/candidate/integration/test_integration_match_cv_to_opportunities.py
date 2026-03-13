@@ -42,7 +42,7 @@ def _integration_candidate_container():
 
     # Create Qdrant repository with in-memory client like ingestion tests
     qdrant_config = QdrantConfig(
-        url="http://localhost:6333",
+        url=None,
         api_key="",
         timeout=30,
         prefer_grpc=False,

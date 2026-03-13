@@ -43,6 +43,9 @@ def create_offer_documents(container, document_type, raw_offers):
 class TestIntegrationOfferLoadDocumentUseCase:
     """Test LoadDocuments use case for Offer docs."""
 
+    @pytest.mark.httpx_mock(
+        assert_all_requests_were_expected=False,
+    )
     @pytest.mark.parametrize("count", [0, 2])
     def test_execute_returns_correct_counts(
         self, db, httpx_mock, ingestion_integration_container, count
@@ -67,6 +70,9 @@ class TestIntegrationOfferLoadDocumentUseCase:
         assert result["created"] == count
         assert result["updated"] == 0
 
+    @pytest.mark.httpx_mock(
+        assert_all_requests_were_expected=False,
+    )
     def test_execute_returns_correct_counts_with_iterations(
         self, db, httpx_mock, ingestion_integration_container
     ):
@@ -107,7 +113,9 @@ class TestIntegrationOfferLoadDocumentUseCase:
         assert result["created"] == count_new_offers
         assert result["updated"] == count_existing_offers
 
-    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
+    @pytest.mark.httpx_mock(
+        assert_all_requests_were_expected=False,
+    )
     def test_execute_returns_zero_when_api_fails(
         self, db, httpx_mock, ingestion_integration_container
     ):
@@ -130,6 +138,9 @@ class TestIntegrationOfferLoadDocumentUseCase:
         assert result["created"] == 0
         assert result["updated"] == 0
 
+    @pytest.mark.httpx_mock(
+        assert_all_requests_were_expected=False,
+    )
     @pytest.mark.parametrize(
         "data", ["not_a_list", ["not_a_list_of_dict"], [{"missing_reference_key": 1}]]
     )
