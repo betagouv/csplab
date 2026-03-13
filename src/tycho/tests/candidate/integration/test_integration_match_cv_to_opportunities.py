@@ -5,15 +5,14 @@ from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 
 from config.app_config import AppConfig, QdrantConfig
-from domain.entities.concours import Concours
 from domain.entities.document import DocumentType
-from domain.entities.vectorized_document import VectorizedDocument
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.offer_factory import OfferFactory
+from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
@@ -69,36 +68,6 @@ def _integration_candidate_container():
     return container
 
 
-def generate_vectorized_documents(documents):
-    vectorized_docs = []
-    for obj in documents:
-        if isinstance(obj, Concours):
-            doc_type = DocumentType.CONCOURS
-            metadata = {
-                "category": obj.category,
-                "ministry": obj.ministry,
-                "access_modality": obj.access_modality or [],
-            }
-        else:
-            doc_type = DocumentType.OFFERS
-            metadata = {
-                "verse": obj.verse.value if obj.verse else "FPE",
-                "contract_type": obj.contract_type.value if obj.contract_type else None,
-                "localisation": str(obj.localisation) if obj.localisation else None,
-            }
-
-        vectorized_docs.append(
-            VectorizedDocument(
-                entity_id=obj.id,
-                document_type=doc_type,
-                content=fake.sentence(),
-                embedding=[0.2] * 1536,  # Mock embedding
-                metadata=metadata,
-            )
-        )
-    return vectorized_docs
-
-
 @pytest.mark.django_db
 def test_execute_with_valid_cv_returns_opportunities(
     _integration_candidate_container,
@@ -122,9 +91,26 @@ def test_execute_with_valid_cv_returns_opportunities(
     offers_repo = _integration_candidate_container.shared_container.offers_repository()
     offers_repo.upsert_batch(offers)
 
-    # Generate vectorized documents using entity UUIDs
-    vectorized_concours = generate_vectorized_documents(concours_repo.get_all())
-    vectorized_offers = generate_vectorized_documents(offers_repo.get_all())
+    # Generate vectorized documents using VectorizedDocumentFactory
+    vectorized_concours = []
+    for concours_entity in concours_repo.get_all():
+        vectorized_doc = VectorizedDocumentFactory.create(
+            entity_id=concours_entity.id,
+            document_type=DocumentType.CONCOURS,
+            content=fake.sentence(),
+            embedding_dimensions=1536,  # Use 1536 for Qdrant compatibility
+        )
+        vectorized_concours.append(vectorized_doc)
+
+    vectorized_offers = []
+    for offer_entity in offers_repo.get_all():
+        vectorized_doc = VectorizedDocumentFactory.create(
+            entity_id=offer_entity.id,
+            document_type=DocumentType.OFFERS,
+            content=fake.sentence(),
+            embedding_dimensions=1536,
+        )
+        vectorized_offers.append(vectorized_doc)
 
     # Populate vector data in real DB
     vector_repo = _integration_candidate_container.shared_container.vector_repository()

@@ -15,7 +15,6 @@ from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.pgvector_repository import (
     PgVectorRepository,
 )
-from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
 
 fake = Faker()
 
@@ -28,20 +27,47 @@ def repository_fixture():
 @pytest.mark.parametrize("document_type", list(DocumentType))
 def test_entity_id_and_document_type_combination_is_unique(db, document_type):
     entity_id = uuid4()
-    VectorizedDocumentFactory.create(entity_id=entity_id, document_type=document_type)
+
+    # Create VectorizedDocumentModel directly for pgvector testing
+    model = VectorizedDocumentModel(
+        id=uuid4(),
+        entity_id=entity_id,
+        document_type=document_type.value,
+        content=fake.paragraph(),
+        embedding=[random.random() for _ in range(3072)],
+        metadata={"test": "data"},
+    )
+    model.save()
 
     with pytest.raises(IntegrityError):
-        VectorizedDocumentFactory.create(
-            entity_id=entity_id, document_type=document_type
+        duplicate_model = VectorizedDocumentModel(
+            id=uuid4(),
+            entity_id=entity_id,
+            document_type=document_type.value,
+            content=fake.paragraph(),
+            embedding=[random.random() for _ in range(3072)],
+            metadata={"test": "data"},
         )
+        duplicate_model.save()
 
 
 class TestUpsertBatch:
     @pytest.mark.parametrize("document_type", list(DocumentType))
     def test_upsert_logic(self, db, repository, document_type):
-        vectorized_documents = VectorizedDocumentFactory.create_batch(
-            2, document_type=document_type
-        )
+        # Create VectorizedDocumentModel directly for pgvector testing
+        vectorized_documents = []
+        for _ in range(2):
+            model = VectorizedDocumentModel(
+                id=uuid4(),
+                entity_id=uuid4(),
+                document_type=document_type.value,
+                content=fake.paragraph(),
+                embedding=[random.random() for _ in range(3072)],
+                metadata={"test": "data"},
+            )
+            model.save()
+            vectorized_documents.append(model)
+
         vectorized_doc_to_insert = vectorized_documents[0].to_entity()
         vectorized_doc_to_insert.id = uuid4()
         vectorized_doc_to_insert.entity_id = uuid4()
@@ -86,7 +112,20 @@ class TestUpsertBatch:
             )
 
     def test_num_queries(self, db, repository):
-        vectorized_documents = VectorizedDocumentFactory.create_batch(10)
+        # Create VectorizedDocumentModel directly for pgvector testing
+        vectorized_documents = []
+        for _ in range(10):
+            model = VectorizedDocumentModel(
+                id=uuid4(),
+                entity_id=uuid4(),
+                document_type=DocumentType.OFFERS.value,
+                content=fake.paragraph(),
+                embedding=[random.random() for _ in range(3072)],
+                metadata={"test": "data"},
+            )
+            model.save()
+            vectorized_documents.append(model)
+
         entities = []
         for model_obj in vectorized_documents:
             entity = model_obj.to_entity()
@@ -102,7 +141,18 @@ class TestUpsertBatch:
         assert results == {"created": 10, "updated": 10, "errors": []}
 
     def test_upsert_with_errors(self, db, repository):
-        vectorized_document = VectorizedDocumentFactory.create().to_entity()
+        # Create VectorizedDocumentModel directly for pgvector testing
+        model = VectorizedDocumentModel(
+            id=uuid4(),
+            entity_id=uuid4(),
+            document_type=DocumentType.OFFERS.value,
+            content=fake.paragraph(),
+            embedding=[random.random() for _ in range(3072)],
+            metadata={"test": "data"},
+        )
+        model.save()
+
+        vectorized_document = model.to_entity()
         vectorized_document.entity_id = "not an uuid"
 
         results = repository.upsert_batch([vectorized_document], DocumentType.OFFERS)
