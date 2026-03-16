@@ -1,0 +1,41 @@
+name: OCR
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened, edited]
+    paths:
+      - "src/ocr/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build-ocr:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/ocr
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.7"
+          enable-cache: true
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "./src/ocr/.python-version"
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+      - name: Lint with Ruff
+        run: uv run ruff check .
+      - name: Lint format with Ruff
+        run: uv run ruff format --check .
+      - name: Lint with MyPy
+        run: uv run mypy .
+      - name: Test with pytest
+        run: uv run pytest .
