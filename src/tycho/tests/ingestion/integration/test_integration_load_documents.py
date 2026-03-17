@@ -118,8 +118,6 @@ class TestIntegrationOfferLoadDocumentUseCase:
         client = ingestion_integration_container.talentsoft_front_client()
         client.cached_token = cached_token()
 
-        # Mock Qdrant endpoints
-
         # Mock Talentsoft API (failure case)
         for _ in range(3):
             httpx_mock.add_response(
