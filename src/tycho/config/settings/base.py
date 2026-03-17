@@ -40,7 +40,7 @@ env = environ.Env(
     TYCHO_MATOMO_SITE_ID=(int, 1),
     TYCHO_QDRANT_URL=(str, "http://localhost:6333"),
     TYCHO_QDRANT_API_KEY=(str, ""),
-    TYCHO_VECTOR_DB_TYPE=(str, "PGVECTOR"),
+    TYCHO_VECTOR_DB_TYPE=(str, "QDRANT"),
 )
 env.prefix = "TYCHO_"
 

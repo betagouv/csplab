@@ -6,6 +6,10 @@ from config.app_config import AppConfig
 from domain.entities.document import DocumentType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
+from infrastructure.external_gateways.albert_embedding_generator import (
+    AlbertEmbeddingGenerator,
+)
+from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.offer_factory import OfferFactory
@@ -13,11 +17,9 @@ from tests.factories.vectorized_document_factory import VectorizedDocumentFactor
 
 # Import fixtures needed for this test
 from tests.fixtures.candidate_fixtures import create_cv_metadata_completed
-from tests.fixtures.fixture_loader import load_fixture
 from tests.fixtures.shared_fixtures import (
     create_shared_qdrant_repository,
 )
-from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 fake = Faker()
 
@@ -40,8 +42,10 @@ def _integration_candidate_container():
     shared_container.logger_service.override(logger_service)
 
     # Use mock embedding generator for consistent test results
-    embedding_fixtures = load_fixture("../fixtures/embedding_fixtures.json")
-    embedding_generator = MockEmbeddingGenerator(embedding_fixtures)
+    http_client = SyncHttpClient()
+    embedding_generator = AlbertEmbeddingGenerator(
+        config=app_config.albert, http_client=http_client
+    )
     shared_container.embedding_generator.override(embedding_generator)
 
     # Use shared Qdrant repository fixture
@@ -85,7 +89,7 @@ def test_execute_with_valid_cv_returns_opportunities(
             entity_id=concours_entity.id,
             document_type=DocumentType.CONCOURS,
             content=fake.sentence(),
-            embedding_dimensions=1536,  # Use 1536 for Qdrant compatibility
+            embedding_dimensions=1024,
         )
         vectorized_concours.append(vectorized_doc)
 
@@ -95,7 +99,7 @@ def test_execute_with_valid_cv_returns_opportunities(
             entity_id=offer_entity.id,
             document_type=DocumentType.OFFERS,
             content=fake.sentence(),
-            embedding_dimensions=1536,
+            embedding_dimensions=1024,
         )
         vectorized_offers.append(vectorized_doc)
 

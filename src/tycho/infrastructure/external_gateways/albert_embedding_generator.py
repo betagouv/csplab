@@ -22,7 +22,7 @@ class AlbertEmbeddingGenerator(IEmbeddingGenerator):
 
         response = self.http_client.request(
             method="POST",
-            url=f"{self.config.api_base_url}/v1/embeddings",
+            url=f"{self.config.api_base_url}v1/embeddings",
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {self.config.api_key}",

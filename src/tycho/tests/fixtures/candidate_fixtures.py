@@ -62,35 +62,30 @@ def _create_candidate_container(app_config: AppConfig, in_memory: bool):
 
 @pytest.fixture(name="albert_candidate_container")
 def albert_candidate_container_fixture(test_app_config):
-    """Set up candidate container with Albert extractor and in-memory repository."""
     albert_config = test_app_config.model_copy(update={"ocr_type": "ALBERT"})
     return _create_candidate_container(albert_config, in_memory=True)
 
 
 @pytest.fixture(name="openai_candidate_container")
 def openai_candidate_container_fixture(test_app_config):
-    """Set up candidate container with OpenAI extractor and in-memory repository."""
     openai_config = test_app_config.model_copy(update={"ocr_type": "OPENAI"})
     return _create_candidate_container(openai_config, in_memory=True)
 
 
 @pytest.fixture(name="albert_integration_container")
 def albert_integration_container_fixture(test_app_config):
-    """Set up integration container with Albert extractor and Django persistence."""
     albert_config = test_app_config.model_copy(update={"ocr_type": "ALBERT"})
     return _create_candidate_container(albert_config, in_memory=False)
 
 
 @pytest.fixture(name="openai_integration_container")
 def openai_integration_container_fixture(test_app_config):
-    """Set up integration container with OpenAI extractor and Django persistence."""
     openai_config = test_app_config.model_copy(update={"ocr_type": "OPENAI"})
     return _create_candidate_container(openai_config, in_memory=False)
 
 
 @pytest.fixture(name="pdf_content")
 def pdf_content_fixture():
-    """Valid PDF content for testing."""
     return create_minimal_valid_pdf()
 
 
@@ -130,7 +125,6 @@ def cv_metadata_completed_fixture():
 
 @pytest.fixture(name="cv_metadata_failed")
 def cv_metadata_failed_fixture(cv_metadata_initial):
-    """CV metadata with FAILED status."""
     cv_metadata, cv_id = cv_metadata_initial
     cv_metadata.status = CVStatus.FAILED
     return cv_metadata, cv_id
@@ -138,7 +132,6 @@ def cv_metadata_failed_fixture(cv_metadata_initial):
 
 @pytest.fixture(name="concours")
 def concours_fixture():
-    """Create test concours data."""
     return [
         Concours(
             nor_original=NOR("MENA2400001A"),
@@ -167,7 +160,6 @@ def concours_fixture():
 
 @pytest.fixture(name="vectorized_concours_documents")
 def vectorized_concours_documents_fixture(concours):
-    """Create test vectorized documents for concours."""
     documents = []
     for c in concours:
         vectorized_doc = VectorizedDocument(
@@ -175,7 +167,7 @@ def vectorized_concours_documents_fixture(concours):
             entity_id=c.id,
             document_type=DocumentType.CONCOURS,
             content=f"{c.corps} {c.grade}",
-            embedding=[0.1] * 1536,  # Mock embedding
+            embedding=[0.1] * 1024,  # Mock embedding
             metadata={"source": "test"},
         )
         documents.append(vectorized_doc)
@@ -184,20 +176,18 @@ def vectorized_concours_documents_fixture(concours):
 
 @pytest.fixture(name="offers")
 def offers_fixture():
-    """Create test offers datas."""
     return [create_test_offer(i) for i in range(4, 7)]
 
 
 @pytest.fixture(name="vectorized_offers_documents")
 def vectorized_offers_documents_fixture(offers):
-    """Create test vectorized documents for offers."""
     return [
         VectorizedDocument(
             id=c.id,
             entity_id=c.id,
             document_type=DocumentType.OFFERS,
             content=f"{c.external_id} {c.title}",
-            embedding=[0.2] * 1536,  # Mock embedding
+            embedding=[0.2] * 1024,  # Mock embedding
             metadata={"source": "test"},
         )
         for c in offers
@@ -206,7 +196,6 @@ def vectorized_offers_documents_fixture(offers):
 
 @pytest.fixture(name="db_cv_uuid")
 def db_cv_uuid_fixture(status: CVStatus = CVStatus.COMPLETED) -> UUID:
-    """Create a CV with given status in database and return its UUID."""
     cv_metadata = CVMetadataFactory.build(status=status)
     CVMetadataModel.from_entity(cv_metadata).save()
     return cv_metadata.id

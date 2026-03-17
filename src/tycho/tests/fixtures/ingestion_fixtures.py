@@ -11,9 +11,6 @@ from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.external_gateways.albert_embedding_generator import (
     AlbertEmbeddingGenerator,
 )
-from infrastructure.external_gateways.openai_embedding_generator import (
-    OpenAIEmbeddingGenerator,
-)
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
 from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
@@ -36,7 +33,6 @@ from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
 from tests.utils.in_memory_document_repository import InMemoryDocumentRepository
 from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
 from tests.utils.in_memory_vector_repository import InMemoryVectorRepository
-from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 fake = Faker()
@@ -44,7 +40,6 @@ fake = Faker()
 
 @pytest.fixture(name="logger_service")
 def logger_service_fixture():
-    """Setup logger service for tests."""
     return LoggerService()
 
 
@@ -58,7 +53,6 @@ def raw_corps_documents_fixture():
 
 @pytest.fixture(name="corps_document")
 def corps_document_fixture():
-    """Create a single corps document for testing."""
     return Document(
         external_id="test_corps_doc",
         raw_data={"name": "Test Document"},
@@ -70,7 +64,6 @@ def corps_document_fixture():
 
 @pytest.fixture(name="corps_documents")
 def corps_documents_fixture():
-    """Create multiple corps documents for batch testing."""
     return [
         Document(
             external_id="corps_1",
@@ -91,7 +84,6 @@ def corps_documents_fixture():
 
 @pytest.fixture(name="concours_documents")
 def concours_documents_fixture():
-    """Create sample concours documents."""
     return [
         Document(
             external_id="exam_1",
@@ -116,7 +108,6 @@ def test_app_config_fixture():
 
 @pytest.fixture(name="talentsoft_front_client")
 def talentsoft_front_client_fixture(logger_service, test_app_config):
-    """Setup talentsoft front client for usecase and tests."""
     return TalentsoftFrontClient(
         config=test_app_config.talentsoft,
         logger_service=logger_service,
@@ -132,7 +123,6 @@ def _create_ingestion_container(
     in_memory: bool = True,
     embedding_generator=None,
 ):
-    """Factory function to create ingestion containers with specified configuration."""
     container = IngestionContainer()
 
     logger_service = LoggerService()
@@ -191,7 +181,6 @@ def _create_ingestion_container(
 
 @pytest.fixture(name="ingestion_container")
 def ingestion_container_fixture(test_app_config, talentsoft_front_client):
-    """Set up ingestion container with in-memory repositories for unit tests."""
     return _create_ingestion_container(
         test_app_config,
         talentsoft_front_client,
@@ -201,7 +190,6 @@ def ingestion_container_fixture(test_app_config, talentsoft_front_client):
 
 @pytest.fixture(name="documents_ingestion_container")
 def documents_ingestion_container_fixture(test_app_config, talentsoft_front_client):
-    """Set up documents ingestion container for unit tests."""
     # Use the same factory as integration tests but with in-memory repos
     return _create_ingestion_container(
         test_app_config,
@@ -215,7 +203,6 @@ def ingestion_integration_container_fixture(
     test_app_config,
     talentsoft_front_client,
 ):
-    """Set up ingestion container with Django persistence for integration tests."""
     return _create_ingestion_container(
         test_app_config,
         talentsoft_front_client,
@@ -224,17 +211,12 @@ def ingestion_integration_container_fixture(
 
 
 # REPOSITORIES
-
-
 @pytest.fixture(name="documents_repository")
 def documents_repository_fixture(documents_ingestion_container):
-    """Get the document documents_repository from the documents_ingestion_container."""
     return documents_ingestion_container.document_repository()
 
 
 # USECASES
-
-
 @pytest.fixture(name="documents_usecase")
 def documents_usecase_fixture(documents_ingestion_container):
     """Create the load documents documents_usecase."""
@@ -245,20 +227,13 @@ def documents_usecase_fixture(documents_ingestion_container):
 def documents_integration_usecase_fixture(
     ingestion_integration_container,
 ):
-    """Set up container dependencies for Corps LoadDocuments integration tests."""
     return ingestion_integration_container.load_documents_usecase()
 
 
 @pytest.fixture(name="ingestion_integration_container_albert")
 def ingestion_integration_container_albert_fixture(
-    db, httpx_mock, test_app_config, talentsoft_front_client
+    db, test_app_config, talentsoft_front_client
 ):
-    # Mock Albert API response
-    albert_url = f"{test_app_config.albert.api_base_url}/v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(method="POST", url=albert_url, json=mock_response)
-
-    # Create Albert embedding generator
     http_client = SyncHttpClient()
     albert_embedding_generator = AlbertEmbeddingGenerator(
         config=test_app_config.albert, http_client=http_client
@@ -270,20 +245,4 @@ def ingestion_integration_container_albert_fixture(
         talentsoft_front_client,
         in_memory=False,
         embedding_generator=albert_embedding_generator,
-    )
-
-
-@pytest.fixture(name="ingestion_integration_container_openai")
-def ingestion_integration_container_openai_fixture(
-    db, test_app_config, talentsoft_front_client
-):
-    # Create OpenAI embedding generator
-    openai_embedding_generator = OpenAIEmbeddingGenerator(config=test_app_config.openai)
-
-    # Use factory with OpenAI embedding generator
-    return _create_ingestion_container(
-        test_app_config,
-        talentsoft_front_client,
-        in_memory=False,
-        embedding_generator=openai_embedding_generator,
     )

@@ -1,12 +1,8 @@
-"""Factory for creating mock API responses for testing."""
-
 import json
 from typing import Dict, List, Optional
 
 
 class MockApiResponseFactory:
-    """Factory for creating consistent mock API responses across tests."""
-
     @staticmethod
     def create_empty_response() -> Dict:
         return {
@@ -109,7 +105,7 @@ class MockApiResponseFactory:
 
     @staticmethod
     def create_albert_embedding_response(
-        embedding_dimension: int = 1536, embedding_value: float = 0.1
+        embedding_dimension: int = 1024, embedding_value: float = 0.1
     ) -> Dict:
         return {
             "data": [
@@ -130,4 +126,39 @@ class MockApiResponseFactory:
                 "requests": 1,
             },
             "id": "test-embedding-id",
+        }
+
+    @staticmethod
+    def create_albert_embedding_response_empty_data() -> Dict:
+        """Create a valid Albert response structure but with empty data array."""
+        return {
+            "data": [],  # Empty data array
+            "model": "openweight-embeddings",
+            "object": "list",
+            "usage": {
+                "prompt_tokens": 10,
+                "completion_tokens": 0,
+                "total_tokens": 10,
+                "cost": 0.001,
+                "carbon": {"kWh": {"total": 0.0001}, "kgCO2eq": {"total": 0.00001}},
+                "requests": 1,
+            },
+            "id": "test-embedding-id",
+        }
+
+    @staticmethod
+    def create_openai_embedding_response(
+        embedding_dimension: int = 1024, embedding_value: float = 0.1
+    ) -> Dict:
+        return {
+            "object": "list",
+            "data": [
+                {
+                    "object": "embedding",
+                    "embedding": [embedding_value] * embedding_dimension,
+                    "index": 0,
+                }
+            ],
+            "model": "text-embedding-3-small",
+            "usage": {"prompt_tokens": 10, "total_tokens": 10},
         }

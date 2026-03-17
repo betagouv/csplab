@@ -12,7 +12,7 @@ def create_collection(client: QdrantClient, collection_name: str):
     # Créer la collection
     client.create_collection(
         collection_name=collection_name,
-        vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
+        vectors_config=VectorParams(size=1024, distance=Distance.COSINE),
     )
 
     # Créer les index comme dans le script de setup
