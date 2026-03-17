@@ -46,18 +46,6 @@ class OfferFactory:
                 f"test_offer_{timezone.make_aware(datetime.now()).timestamp()}"
             )
 
-        if title is None:
-            title = "Test Offer Title"
-
-        if profile is None:
-            profile = "Test profile description"
-
-        if mission is None:
-            mission = "Test mission description"
-
-        if organization is None:
-            organization = "Test Organization"
-
         if publication_date is None:
             publication_date = timezone.make_aware(datetime.now())
 
