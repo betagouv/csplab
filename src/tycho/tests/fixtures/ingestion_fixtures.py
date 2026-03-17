@@ -154,7 +154,7 @@ def _create_ingestion_container(
         in_memory_offers_repo = InMemoryOffersRepository()
         container.shared_container.offers_repository.override(in_memory_offers_repo)
 
-        in_memory_vector_repo = InMemoryVectorRepository()
+        in_memory_vector_repo = InMemoryVectorRepository(logger_service)
         container.vector_repository.override(in_memory_vector_repo)
     else:
         # Use Django persistence for integration tests
