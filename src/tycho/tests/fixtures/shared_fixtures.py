@@ -1,3 +1,5 @@
+import os
+
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, PayloadSchemaType, VectorParams
 
@@ -33,7 +35,8 @@ def create_collection(client: QdrantClient, collection_name: str):
 
 def create_shared_qdrant_repository():
     app_config = AppConfig.from_django_settings()
-    collection_name = "fonction_publique_test"
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER", "master")
+    collection_name = f"fonction_publique_test_{worker_id}"
     client = QdrantClient(url=app_config.qdrant.url)
 
     try:
