@@ -11,6 +11,7 @@ class RawDocumentFactory:
         external_id: Optional[str] = None,
         document_type: DocumentType = DocumentType.OFFERS,
         raw_data: Optional[Dict[str, Any]] = None,
+        save_in_db: Optional[bool] = True,
     ) -> RawDocument:
         if external_id is None:
             external_id = (
@@ -34,7 +35,8 @@ class RawDocumentFactory:
         )
 
         raw_document = RawDocument.from_entity(document_entity)
-        raw_document.save()
+        if save_in_db:
+            raw_document.save()
 
         return raw_document
 

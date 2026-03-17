@@ -1,10 +1,14 @@
 import pytest
+from faker import Faker
 
 from domain.entities.document import DocumentType
+from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.repositories.ingestion.postgres_document_repository import (
     PostgresDocumentRepository,
 )
 from tests.factories.raw_document_factory import RawDocumentFactory
+
+fake = Faker()
 
 
 @pytest.fixture
@@ -86,3 +90,41 @@ class TestFindByType:
         assert len(documents) == expected_document_count
         assert documents[0].external_id == "uuid-1"
         assert documents[1].external_id == "uuid-2"
+
+
+class TestUpsertBatch:
+    def test_datetime_on_upsert(self, db, repository):
+        raw_doc = RawDocumentFactory.create()
+        raw_doc_to_update = RawDocumentFactory.create()
+        new_raw_doc = RawDocumentFactory.create(save_in_db=False)
+
+        documents = [
+            RawDocument.to_entity(raw_doc_to_update),
+            RawDocument.to_entity(new_raw_doc),
+        ]
+
+        timestamps = {
+            raw_doc: (raw_doc.created_at, raw_doc.updated_at),
+            raw_doc_to_update: (
+                raw_doc_to_update.created_at,
+                raw_doc_to_update.updated_at,
+            ),
+        }
+
+        assert not RawDocument.objects.filter(
+            external_id=new_raw_doc.external_id
+        ).exists()
+
+        repository.upsert_batch(documents, DocumentType.OFFERS)
+
+        created_at, updated_at = timestamps[raw_doc]
+        raw_doc.refresh_from_db()
+        assert raw_doc.created_at == created_at
+        assert raw_doc.updated_at == updated_at
+
+        created_at, updated_at = timestamps[raw_doc_to_update]
+        raw_doc_to_update.refresh_from_db()
+        assert raw_doc_to_update.created_at == created_at
+        assert raw_doc_to_update.updated_at > updated_at
+
+        assert RawDocument.objects.filter(external_id=new_raw_doc.external_id).exists()
