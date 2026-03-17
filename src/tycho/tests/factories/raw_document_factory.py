@@ -1,5 +1,3 @@
-"""Factory for generating test RawDocument instances."""
-
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
@@ -8,15 +6,12 @@ from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 
 
 class RawDocumentFactory:
-    """Factory for creating RawDocument test instances."""
-
     @staticmethod
     def create(
         external_id: Optional[str] = None,
         document_type: DocumentType = DocumentType.OFFERS,
         raw_data: Optional[Dict[str, Any]] = None,
     ) -> RawDocument:
-        """Create a RawDocument instance."""
         if external_id is None:
             external_id = (
                 f"test_{document_type.value.lower()}_"
@@ -49,7 +44,6 @@ class RawDocumentFactory:
         document_type: DocumentType = DocumentType.OFFERS,
         **kwargs,
     ) -> list[RawDocument]:
-        """Create multiple RawDocument instances."""
         documents = []
         for i in range(count):
             external_id = kwargs.get(

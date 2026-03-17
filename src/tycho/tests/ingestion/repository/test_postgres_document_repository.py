@@ -1,5 +1,3 @@
-"""Integration tests for PostgresDocumentRepository (with real database)."""
-
 import pytest
 
 from domain.entities.document import DocumentType
@@ -11,13 +9,10 @@ from tests.factories.raw_document_factory import RawDocumentFactory
 
 @pytest.fixture
 def repository():
-    """Create a PostgresDocumentRepository instance."""
     return PostgresDocumentRepository()
 
 
 class TestFindByType:
-    """Test find_by_type method with real database."""
-
     @pytest.mark.parametrize(
         "start,batch_size",
         [
@@ -27,14 +22,12 @@ class TestFindByType:
         ],
     )
     def test_invalid_parameters(self, db, repository, start, batch_size):
-        """Test that invalid parameters raise ValueError."""
         with pytest.raises(ValueError, match="Invalid start or batch_size values"):
             repository.find_by_type(
                 DocumentType.OFFERS, start=start, batch_size=batch_size
             )
 
     def test_empty_results(self, db, repository):
-        """Test fetching when no documents exist."""
         documents, has_more = repository.find_by_type(
             DocumentType.OFFERS, start=0, batch_size=10
         )
@@ -52,7 +45,6 @@ class TestFindByType:
         ],
     )
     def test_offsetting(self, db, repository, start, fetched_docs, expected_has_more):
-        """Test has_more flag when more documents exist beyond current batch."""
         total_docs = 5
         batch_size = 2
         document_type = DocumentType.OFFERS
@@ -66,7 +58,6 @@ class TestFindByType:
         assert has_more is expected_has_more
 
     def test_filtering_with_mixed_document_type(self, db, repository):
-        """Test that fetch_by_type correctly filters by document type."""
         nb_doc_per_type = batch_size = 2
         for document_type in DocumentType:
             RawDocumentFactory.create_batch(
@@ -82,7 +73,6 @@ class TestFindByType:
             assert has_more is False
 
     def test_fetch_by_type_returns_documents_in_id_order(self, db, repository):
-        """Test that documents are returned in ID order (insertion order)."""
         document_type = DocumentType.OFFERS
         expected_document_count = 2
 

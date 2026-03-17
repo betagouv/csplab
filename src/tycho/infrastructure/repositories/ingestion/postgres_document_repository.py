@@ -1,5 +1,3 @@
-"""Django document repository implementation."""
-
 from typing import Dict, List, Tuple
 
 from django.db import DatabaseError, transaction
@@ -13,8 +11,6 @@ from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 
 
 class PostgresDocumentRepository(IDocumentRepository):
-    """Complete document repository using Django ORM."""
-
     def find_by_type(
         self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
