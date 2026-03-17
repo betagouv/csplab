@@ -1,5 +1,3 @@
-"""Shared Albert API types and DTOs."""
-
 from typing import Dict, List
 
 from pydantic import BaseModel

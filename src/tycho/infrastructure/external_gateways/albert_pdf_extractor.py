@@ -1,5 +1,3 @@
-"""Albert PDF text extractor implementation."""
-
 import json
 from typing import Any, Dict
 

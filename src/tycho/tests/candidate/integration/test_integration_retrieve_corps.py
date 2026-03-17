@@ -115,7 +115,7 @@ def corps_data_fixture(shared_container, test_app_config):
                 entity_id=corps.id,
                 document_type=DocumentType.CORPS,
                 content=corps.label.value,
-                embedding=embeddings,  # Use the mock embedding
+                embedding=embeddings,
                 metadata={"document_type": "CORPS"},
             )
         )
@@ -128,7 +128,6 @@ def corps_data_fixture(shared_container, test_app_config):
 def test_retrieve_corps_with_valid_query_returns_results(
     db, retrieve_corps_usecase, corps_data, test_app_config
 ):
-    # Mock Albert API
     albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
     mock_response = MockApiResponseFactory.create_albert_embedding_response()
     responses.add(
@@ -178,7 +177,6 @@ def test_retrieve_corps_with_no_matching_documents_returns_empty_list(
     retrieve_corps_usecase,
     test_app_config,
 ):
-    # Mock Albert API
     albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
     mock_response = MockApiResponseFactory.create_albert_embedding_response()
     responses.add(
@@ -198,7 +196,6 @@ def test_retrieve_corps_with_no_matching_documents_returns_empty_list(
 def test_retrieve_corps_respects_limit_parameter(
     db, retrieve_corps_usecase, corps_data, test_app_config
 ):
-    # Mock Albert API
     albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
     mock_response = MockApiResponseFactory.create_albert_embedding_response()
     responses.add(

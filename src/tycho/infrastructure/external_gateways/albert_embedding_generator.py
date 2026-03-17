@@ -1,5 +1,3 @@
-"""Albert embedding generator service."""
-
 from typing import List
 
 from pydantic import ValidationError
