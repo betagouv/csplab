@@ -8,7 +8,14 @@ from faker import Faker
 from config.app_config import AppConfig
 from domain.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.external_gateways.albert_embedding_generator import (
+    AlbertEmbeddingGenerator,
+)
+from infrastructure.external_gateways.openai_embedding_generator import (
+    OpenAIEmbeddingGenerator,
+)
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
+from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.ingestion.postgres_document_repository import (
     PostgresDocumentRepository,
@@ -29,6 +36,7 @@ from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
 from tests.utils.in_memory_document_repository import InMemoryDocumentRepository
 from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
 from tests.utils.in_memory_vector_repository import InMemoryVectorRepository
+from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 fake = Faker()
@@ -45,7 +53,6 @@ def logger_service_fixture():
 
 @pytest.fixture(scope="session", name="raw_corps_documents")
 def raw_corps_documents_fixture():
-    """Load fixture data once for all tests."""
     return load_fixture("corps_ingres_20251117.json")
 
 
@@ -123,6 +130,7 @@ def _create_ingestion_container(
     app_config: AppConfig,
     talentsoft_front_client: TalentsoftFrontClient,
     in_memory: bool = True,
+    embedding_generator=None,
 ):
     """Factory function to create ingestion containers with specified configuration."""
     container = IngestionContainer()
@@ -130,14 +138,14 @@ def _create_ingestion_container(
     logger_service = LoggerService()
     container.logger_service.override(logger_service)
 
-    embedding_fixtures = load_fixture("embedding_fixtures.json")
-    mock_embedding_generator = MockEmbeddingGenerator(embedding_fixtures)
-    container.shared_container.embedding_generator.override(mock_embedding_generator)
+    # Use provided embedding generator or default to mock
+    if embedding_generator is None:
+        embedding_fixtures = load_fixture("embedding_fixtures.json")
+        embedding_generator = MockEmbeddingGenerator(embedding_fixtures)
 
-    # Always set configurations for both unit and integration tests
+    container.shared_container.embedding_generator.override(embedding_generator)
     container.app_config.override(app_config)
     container.shared_container.app_config.override(app_config)
-
     container.talentsoft_front_client.override(talentsoft_front_client)
 
     if in_memory:
@@ -157,7 +165,12 @@ def _create_ingestion_container(
         in_memory_vector_repo = InMemoryVectorRepository(logger_service)
         container.vector_repository.override(in_memory_vector_repo)
     else:
-        # Use Django persistence for integration tests
+        # Always set configurations for both unit and integration tests
+        container.app_config.override(app_config)
+        container.shared_container.app_config.override(app_config)
+
+        container.talentsoft_front_client.override(talentsoft_front_client)
+
         postgres_document_repo = PostgresDocumentRepository()
         container.document_repository.override(postgres_document_repo)
 
@@ -234,3 +247,43 @@ def documents_integration_usecase_fixture(
 ):
     """Set up container dependencies for Corps LoadDocuments integration tests."""
     return ingestion_integration_container.load_documents_usecase()
+
+
+@pytest.fixture(name="ingestion_integration_container_albert")
+def ingestion_integration_container_albert_fixture(
+    db, httpx_mock, test_app_config, talentsoft_front_client
+):
+    # Mock Albert API response
+    albert_url = f"{test_app_config.albert.api_base_url}/v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    httpx_mock.add_response(method="POST", url=albert_url, json=mock_response)
+
+    # Create Albert embedding generator
+    http_client = SyncHttpClient()
+    albert_embedding_generator = AlbertEmbeddingGenerator(
+        config=test_app_config.albert, http_client=http_client
+    )
+
+    # Use factory with Albert embedding generator
+    return _create_ingestion_container(
+        test_app_config,
+        talentsoft_front_client,
+        in_memory=False,
+        embedding_generator=albert_embedding_generator,
+    )
+
+
+@pytest.fixture(name="ingestion_integration_container_openai")
+def ingestion_integration_container_openai_fixture(
+    db, test_app_config, talentsoft_front_client
+):
+    # Create OpenAI embedding generator
+    openai_embedding_generator = OpenAIEmbeddingGenerator(config=test_app_config.openai)
+
+    # Use factory with OpenAI embedding generator
+    return _create_ingestion_container(
+        test_app_config,
+        talentsoft_front_client,
+        in_memory=False,
+        embedding_generator=openai_embedding_generator,
+    )
