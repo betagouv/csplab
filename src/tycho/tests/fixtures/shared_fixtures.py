@@ -34,16 +34,19 @@ def create_collection(client: QdrantClient, collection_name: str):
 def create_shared_qdrant_repository():
     app_config = AppConfig.from_django_settings()
     collection_name = "fonction_publique_test"
-    # Nettoyer la collection avant de créer le repository
-    # Sauf si httpx_mock est actif (détecté par la présence de mocks HTTP)
     client = QdrantClient(url=app_config.qdrant.url)
-    if client.get_collection(collection_name) is None:
-        create_collection(client, collection_name)
-    else:
-        client.delete_collection(
-            collection_name=collection_name,
+
+    try:
+        client.delete_collection(collection_name=collection_name)
+    except Exception:
+        logger_service = LoggerService()
+        logger_service.warning(
+            f"Collection {collection_name} does not exist, skipping deletion."
         )
-        create_collection(client, collection_name)
+        pass
+
+    create_collection(client, collection_name)
+
     logger_service = LoggerService()
     qdrant_repo = QdrantRepository(app_config.qdrant, logger_service)
     qdrant_repo.collection_name = collection_name
