@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict, List
 from uuid import UUID
 
@@ -61,7 +62,9 @@ class PostgresOffersRepository(IOffersRepository):
                             existing_model = existing_models_map[offer.external_id]
                             updated_model = OfferModel.from_entity(offer)
                             updated_model.id = existing_model.id
-                            updated_model.created_at = existing_model.created_at
+                            updated_model.updated_at = timezone.make_aware(
+                                datetime.now()
+                            )
                             models_to_update.append(updated_model)
 
                     if models_to_update:
@@ -81,6 +84,7 @@ class PostgresOffersRepository(IOffersRepository):
                                 "department",
                                 "publication_date",
                                 "beginning_date",
+                                "updated_at",
                             ],
                         )
 

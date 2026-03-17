@@ -38,6 +38,44 @@ class TestFindByIds:
             assert isinstance(doc, Offer)
 
 
+class TestUpsertBatch:
+    def test_datetime_on_upsert(self, db, repository):
+        offer = OfferFactory.create()
+        offer_to_update = OfferFactory.create()
+        new_offer = OfferFactory.create(save_in_db=False)
+
+        offers = [
+            OfferModel.to_entity(offer_to_update),
+            OfferModel.to_entity(new_offer),
+        ]
+
+        timestamps = {
+            offer: (offer.created_at, offer.updated_at),
+            offer_to_update: (
+                offer_to_update.created_at,
+                offer_to_update.updated_at,
+            ),
+        }
+
+        OfferModel.objects.get(external_id=offer.external_id)
+        OfferModel.objects.get(external_id=offer_to_update.external_id)
+        assert not OfferModel.objects.filter(external_id=new_offer.external_id).exists()
+
+        repository.upsert_batch(offers)
+
+        created_at, updated_at = timestamps[offer]
+        offer.refresh_from_db()
+        assert offer.created_at == created_at
+        assert offer.updated_at == updated_at
+
+        created_at, updated_at = timestamps[offer_to_update]
+        offer_to_update.refresh_from_db()
+        assert offer_to_update.created_at == created_at
+        assert offer_to_update.updated_at > updated_at
+
+        assert OfferModel.objects.filter(external_id=new_offer.external_id).exists()
+
+
 class TestGetPendingProcessing:
     def test_excluded_items(self, db, repository):
         OfferFactory.create(archived_at=NOW)
