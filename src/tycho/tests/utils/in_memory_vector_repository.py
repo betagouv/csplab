@@ -1,5 +1,3 @@
-"""In-memory vector repository implementation for testing."""
-
 import math
 from typing import Any, Dict, List, Optional
 from uuid import UUID
@@ -11,15 +9,21 @@ from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from domain.repositories.vector_repository_interface import IVectorRepository
+from domain.services.logger_interface import ILogger
 from domain.value_objects.similarity_type import (
     SimilarityMetric,
     SimilarityResult,
     SimilarityType,
 )
+from infrastructure.exceptions.exceptions import ExternalApiError
 
 
 class InMemoryVectorRepository(IVectorRepository):
-    def __init__(self):
+    def __init__(
+        self,
+        logger: ILogger,
+    ):
+        self.logger = logger
         self._documents: Dict[UUID, VectorizedDocument] = {}
 
     def upsert_batch(
@@ -29,7 +33,7 @@ class InMemoryVectorRepository(IVectorRepository):
     ) -> IUpsertResult:
         created = 0
         updated = 0
-        errors = []
+        errors: List[IUpsertError] = []
 
         for doc in vectorized_documents:
             try:
@@ -64,12 +68,8 @@ class InMemoryVectorRepository(IVectorRepository):
                     self._documents[new_doc.id] = new_doc
                     created += 1
             except Exception as e:
-                error_obj: IUpsertError = {
-                    "entity_id": doc.entity_id,
-                    "error": str(e),
-                    "exception": e,
-                }
-                errors.append(error_obj)
+                self.logger.error(f"Unexpected error during search: {str(e)}")
+                raise ExternalApiError(f"Vector search failed: {str(e)}") from e
 
         return {"created": created, "updated": updated, "errors": errors}
 
@@ -80,7 +80,6 @@ class InMemoryVectorRepository(IVectorRepository):
         filters: Optional[Dict[str, Any]] = None,
         similarity_type: Optional[SimilarityType] = None,
     ) -> List[SimilarityResult]:
-        """Search for documents semantically similar to the query embedding."""
         if similarity_type is None:
             similarity_type = SimilarityType()
 
@@ -117,13 +116,11 @@ class InMemoryVectorRepository(IVectorRepository):
     def _filter_documents(
         self, documents: List[VectorizedDocument], filters: Dict[str, Any]
     ) -> List[VectorizedDocument]:
-        """Filter documents by direct fields and metadata criteria."""
         return [doc for doc in documents if self._matches_filters(doc, filters)]
 
     def _matches_filters(
         self, doc: VectorizedDocument, filters: Dict[str, Any]
     ) -> bool:
-        """Check if document matches all filter criteria."""
         for key, value in filters.items():
             if not self._matches_single_filter(doc, key, value):
                 return False
@@ -132,7 +129,6 @@ class InMemoryVectorRepository(IVectorRepository):
     def _matches_single_filter(
         self, doc: VectorizedDocument, key: str, value: Any
     ) -> bool:
-        """Check if document matches a single filter criterion."""
         # Check if it's a direct field of VectorizedDocument
         if hasattr(doc, key):
             return self._matches_direct_field(doc, key, value)
@@ -146,7 +142,6 @@ class InMemoryVectorRepository(IVectorRepository):
     def _matches_direct_field(
         self, doc: VectorizedDocument, key: str, value: Any
     ) -> bool:
-        """Check if document's direct field matches the filter value."""
         doc_value = getattr(doc, key)
         # Handle enum values
         if hasattr(doc_value, "value"):
@@ -159,7 +154,6 @@ class InMemoryVectorRepository(IVectorRepository):
     def _matches_metadata_field(
         self, doc: VectorizedDocument, key: str, value: Any
     ) -> bool:
-        """Check if document's metadata field matches the filter value."""
         doc_value = doc.metadata[key]
 
         if isinstance(value, list):
@@ -172,7 +166,6 @@ class InMemoryVectorRepository(IVectorRepository):
     def _filter_by_metadata(
         self, documents: List[VectorizedDocument], filters: Dict[str, Any]
     ) -> List[VectorizedDocument]:
-        """Filter documents by metadata criteria."""
         filtered = []
         for doc in documents:
             match = True
@@ -200,7 +193,6 @@ class InMemoryVectorRepository(IVectorRepository):
         return filtered
 
     def _cosine_similarity(self, a: List[float], b: List[float]) -> float:
-        """Calculate cosine similarity between two vectors."""
         if len(a) != len(b):
             raise ValueError("Vectors must have the same length")
 
@@ -214,7 +206,6 @@ class InMemoryVectorRepository(IVectorRepository):
         return dot_product / (norm_a * norm_b)
 
     def _euclidean_distance(self, a: List[float], b: List[float]) -> float:
-        """Calculate Euclidean distance between two vectors."""
         if len(a) != len(b):
             raise ValueError("Vectors must have the same length")
 
