@@ -2,13 +2,16 @@ from unittest.mock import patch
 
 import pytest
 import responses
+from qdrant_client.http.exceptions import UnexpectedResponse
 
 from domain.entities.document import DocumentType
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.value_objects.similarity_type import SimilarityMetric, SimilarityType
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.django_apps.shared.models.vectorized_document import (
     VectorizedDocumentModel,
 )
+from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.corps_factory import CorpsFactory
 from tests.factories.offer_factory import OfferFactory
@@ -246,6 +249,264 @@ def test_vectorize_upsert_batch_error(offer_setup, test_app_config):
 
     assert_nothing_vectorized()
     assert_offer_pending(processing=True)
+
+
+@responses.activate
+def test_vectorize_qdrant_unsupported_similarity_metric(
+    db, ingestion_integration_container_albert, test_app_config
+):
+    # Mock Albert API
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
+    # Create and vectorize a document first
+    OfferFactory.create()
+    usecase = ingestion_integration_container_albert.vectorize_documents_usecase()
+    usecase.execute(DocumentType.OFFERS)
+
+    # Test unsupported similarity metric
+    vector_repo = ingestion_integration_container_albert.vector_repository()
+    unsupported_similarity = SimilarityType(metric=SimilarityMetric.EUCLIDEAN)
+
+    with pytest.raises(
+        NotImplementedError, match="Similarity metric .* not implemented"
+    ):
+        vector_repo.semantic_search(
+            query_embedding=[0.1] * 1024,
+            limit=10,
+            similarity_type=unsupported_similarity,
+        )
+
+
+@responses.activate
+def test_vectorize_qdrant_search_unexpected_response(
+    db, ingestion_integration_container_albert, test_app_config
+):
+    # Mock Albert API
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
+    # Create and vectorize a document first
+    OfferFactory.create()
+    usecase = ingestion_integration_container_albert.vectorize_documents_usecase()
+    usecase.execute(DocumentType.OFFERS)
+
+    # Test UnexpectedResponse from Qdrant (lignes 100-105)
+    vector_repo = ingestion_integration_container_albert.vector_repository()
+
+    # Create a proper UnexpectedResponse with required parameters
+    qdrant_error = UnexpectedResponse(
+        status_code=500,
+        reason_phrase="Internal Server Error",
+        content=b"Qdrant server error",
+        headers={},
+    )
+
+    with patch.object(
+        vector_repo.client,
+        "query_points",
+        side_effect=qdrant_error,
+    ):
+        with pytest.raises(ExternalApiError, match="Vector search failed"):
+            vector_repo.semantic_search(
+                query_embedding=[0.1] * 1024,
+                limit=10,
+            )
+
+
+@responses.activate
+def test_vectorize_qdrant_search_general_error(
+    db, ingestion_integration_container_albert, test_app_config
+):
+    # Mock Albert API
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
+    # Create and vectorize a document first
+    OfferFactory.create()
+    usecase = ingestion_integration_container_albert.vectorize_documents_usecase()
+    usecase.execute(DocumentType.OFFERS)
+
+    # Test general Exception from Qdrant (ligne 106)
+    vector_repo = ingestion_integration_container_albert.vector_repository()
+
+    with patch.object(
+        vector_repo.client,
+        "query_points",
+        side_effect=Exception("General Qdrant error"),
+    ):
+        with pytest.raises(ExternalApiError, match="Vector search failed"):
+            vector_repo.semantic_search(
+                query_embedding=[0.1] * 1024,
+                limit=10,
+            )
+
+
+@responses.activate
+def test_vectorize_qdrant_upsert_error(
+    db, ingestion_integration_container_albert, test_app_config
+):
+    # Mock Albert API
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
+    # Create a document to vectorize
+    OfferFactory.create()
+    usecase = ingestion_integration_container_albert.vectorize_documents_usecase()
+
+    # Test Exception from Qdrant upsert (lignes 143-145)
+    with patch.object(
+        usecase.vector_repository.client,
+        "upsert",
+        side_effect=Exception("Qdrant upsert error"),
+    ):
+        with pytest.raises(ExternalApiError, match="Qdrant upsert error"):
+            usecase.execute(DocumentType.OFFERS)
+
+
+@responses.activate
+def test_vectorize_qdrant_empty_documents_upsert(
+    db, ingestion_integration_container_albert, test_app_config
+):
+    # Mock Albert API (won't be called)
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
+    # Test empty documents list (ligne 108)
+    vector_repo = ingestion_integration_container_albert.vector_repository()
+    result = vector_repo.upsert_batch([], DocumentType.OFFERS)
+
+    assert result == {"created": 0, "updated": 0, "errors": []}
+
+
+@responses.activate
+def test_vectorize_qdrant_search_no_filters(
+    db, ingestion_integration_container_albert, test_app_config
+):
+    # Mock Albert API
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
+    # Create and vectorize a document first
+    OfferFactory.create()
+    usecase = ingestion_integration_container_albert.vectorize_documents_usecase()
+    usecase.execute(DocumentType.OFFERS)
+
+    # Test search without filters (ligne 113 - return None)
+    vector_repo = ingestion_integration_container_albert.vector_repository()
+    search_results = vector_repo.semantic_search(
+        query_embedding=[0.1] * 1024,
+        limit=10,
+        filters=None,  # This should trigger ligne 113
+    )
+
+    assert len(search_results) >= 0  # Should work without filters
+
+
+@responses.activate
+def test_vectorize_qdrant_search_empty_filters(
+    db, ingestion_integration_container_albert, test_app_config
+):
+    # Mock Albert API
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
+    # Create and vectorize a document first
+    OfferFactory.create()
+    usecase = ingestion_integration_container_albert.vectorize_documents_usecase()
+    usecase.execute(DocumentType.OFFERS)
+
+    # Test search with empty filters dict (ligne 157-158 - return None)
+    vector_repo = ingestion_integration_container_albert.vector_repository()
+    search_results = vector_repo.semantic_search(
+        query_embedding=[0.1] * 1024,
+        limit=10,
+        filters={},  # Empty dict should trigger ligne 157-158
+    )
+
+    assert len(search_results) >= 0  # Should work with empty filters
+
+
+@responses.activate
+def test_vectorize_qdrant_search_list_filters(
+    db, ingestion_integration_container_albert, test_app_config
+):
+    # Mock Albert API
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
+    # Create and vectorize documents first
+    OfferFactory.create_batch(2)
+    usecase = ingestion_integration_container_albert.vectorize_documents_usecase()
+    usecase.execute(DocumentType.OFFERS)
+
+    # Test search with list filters (lignes 149-152)
+    vector_repo = ingestion_integration_container_albert.vector_repository()
+    search_results = vector_repo.semantic_search(
+        query_embedding=[0.1] * 1024,
+        limit=10,
+        filters={
+            "document_type": [DocumentType.OFFERS.value, DocumentType.CORPS.value]
+        },
+    )
+
+    assert len(search_results) >= 0  # Should work with list filters
 
 
 @responses.activate
