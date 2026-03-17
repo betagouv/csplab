@@ -1,4 +1,5 @@
 import pytest
+import responses
 from faker import Faker
 from pytest_django.asserts import assertNumQueries
 
@@ -20,6 +21,7 @@ from tests.fixtures.candidate_fixtures import create_cv_metadata_completed
 from tests.fixtures.shared_fixtures import (
     create_shared_qdrant_repository,
 )
+from tests.utils.mock_api_response_factory import MockApiResponseFactory
 
 fake = Faker()
 
@@ -60,10 +62,23 @@ def _integration_candidate_container():
     return container
 
 
+@responses.activate
 @pytest.mark.django_db
 def test_execute_with_valid_cv_returns_opportunities(
     _integration_candidate_container,
 ):
+    # Mock Albert API
+    app_config = _integration_candidate_container.app_config()
+    albert_url = f"{app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
     cv_metadata, cv_id = create_cv_metadata_completed()
     concours = ConcoursFactory.create_batch(2)
     offers = OfferFactory.create_batch(3)

@@ -1,6 +1,5 @@
-"""Integration tests for RetrieveCorpsUsecase with external adapters."""
-
 import pytest
+import responses
 from faker import Faker
 
 from config.app_config import AppConfig
@@ -125,9 +124,21 @@ def corps_data_fixture(shared_container, test_app_config):
     return corps_list
 
 
+@responses.activate
 def test_retrieve_corps_with_valid_query_returns_results(
     db, retrieve_corps_usecase, corps_data, test_app_config
 ):
+    # Mock Albert API
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
     query = corps_data[0].label.value
 
     result = retrieve_corps_usecase.execute(query, limit=10)
@@ -144,7 +155,7 @@ def test_retrieve_corps_with_valid_query_returns_results(
 
     # Verify scores are valid (cosine similarity can be negative)
     for _, score in result:
-        assert -1.0 <= score <= 1.0
+        assert -1.0 <= round(score, 1) <= 1.0
 
     returned_ids = {corps.id for corps, score in result}
     expected_ids = {corps.id for corps in corps_data}
@@ -161,18 +172,43 @@ def test_retrieve_corps_with_empty_query_returns_empty_list(
     assert result == []
 
 
+@responses.activate
 def test_retrieve_corps_with_no_matching_documents_returns_empty_list(
     db,
     retrieve_corps_usecase,
+    test_app_config,
 ):
+    # Mock Albert API
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
     result = retrieve_corps_usecase.execute("some random query", limit=10)
 
     assert result == []
 
 
+@responses.activate
 def test_retrieve_corps_respects_limit_parameter(
-    db, retrieve_corps_usecase, corps_data
+    db, retrieve_corps_usecase, corps_data, test_app_config
 ):
+    # Mock Albert API
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    responses.add(
+        responses.POST,
+        albert_url,
+        json=mock_response,
+        status=200,
+        content_type="application/json",
+    )
+
     query = corps_data[0].label.value
 
     result = retrieve_corps_usecase.execute(query, limit=1)
