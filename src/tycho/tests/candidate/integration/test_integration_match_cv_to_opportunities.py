@@ -1,5 +1,6 @@
 import pytest
 import responses
+from django.conf import settings
 from faker import Faker
 from pytest_django.asserts import assertNumQueries
 
@@ -104,7 +105,7 @@ def test_execute_with_valid_cv_returns_opportunities(
             entity_id=concours_entity.id,
             document_type=DocumentType.CONCOURS,
             content=fake.sentence(),
-            embedding_dimensions=1024,
+            embedding_dimensions=settings.EMBEDDING_DIMENSION,
         )
         vectorized_concours.append(vectorized_doc)
 
@@ -114,7 +115,7 @@ def test_execute_with_valid_cv_returns_opportunities(
             entity_id=offer_entity.id,
             document_type=DocumentType.OFFERS,
             content=fake.sentence(),
-            embedding_dimensions=1024,
+            embedding_dimensions=settings.EMBEDDING_DIMENSION,
         )
         vectorized_offers.append(vectorized_doc)
 

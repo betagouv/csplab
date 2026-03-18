@@ -1,5 +1,6 @@
 import os
 
+from django.conf import settings
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, PayloadSchemaType, VectorParams
 
@@ -12,7 +13,9 @@ def create_collection(client: QdrantClient, collection_name: str):
     # Créer la collection
     client.create_collection(
         collection_name=collection_name,
-        vectors_config=VectorParams(size=1024, distance=Distance.COSINE),
+        vectors_config=VectorParams(
+            size=settings.EMBEDDING_DIMENSION, distance=Distance.COSINE
+        ),
     )
 
     # Créer les index comme dans le script de setup

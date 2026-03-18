@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 import pytest
+from django.conf import settings
 from faker import Faker
 
 from config.app_config import AppConfig
@@ -167,7 +168,7 @@ def vectorized_concours_documents_fixture(concours):
             entity_id=c.id,
             document_type=DocumentType.CONCOURS,
             content=f"{c.corps} {c.grade}",
-            embedding=[0.1] * 1024,  # Mock embedding
+            embedding=[0.1] * settings.EMBEDDING_DIMENSION,
             metadata={"source": "test"},
         )
         documents.append(vectorized_doc)
@@ -187,7 +188,7 @@ def vectorized_offers_documents_fixture(offers):
             entity_id=c.id,
             document_type=DocumentType.OFFERS,
             content=f"{c.external_id} {c.title}",
-            embedding=[0.2] * 1024,  # Mock embedding
+            embedding=[0.1] * settings.EMBEDDING_DIMENSION,
             metadata={"source": "test"},
         )
         for c in offers

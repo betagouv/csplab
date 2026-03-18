@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 import responses
+from django.conf import settings
 from qdrant_client.http.exceptions import UnexpectedResponse
 
 from domain.entities.document import DocumentType
@@ -96,7 +97,8 @@ def test_vectorize_entity_integration(
     # Instead, verify they are in Qdrant by doing a search
     vector_repo = container.vector_repository()
     search_results = vector_repo.semantic_search(
-        query_embedding=[0.1] * 1024,
+        query_embedding=[0.1]
+        * settings.EMBEDDING_DIMENSION,  # Mock embedding for search
         limit=10,
         filters={"document_type": document_type.value},
     )
@@ -155,7 +157,8 @@ def test_vectorize_limit(db, ingestion_integration_container_albert, test_app_co
     # With Qdrant, verify documents are stored by searching
     vector_repo = ingestion_integration_container_albert.vector_repository()
     search_results = vector_repo.semantic_search(
-        query_embedding=[0.1] * 1024,  # Mock embedding for search
+        query_embedding=[0.1]
+        * settings.EMBEDDING_DIMENSION,  # Mock embedding for search
         limit=10,
         filters={"document_type": DocumentType.OFFERS.value},
     )
@@ -279,7 +282,7 @@ def test_vectorize_qdrant_unsupported_similarity_metric(
         NotImplementedError, match="Similarity metric .* not implemented"
     ):
         vector_repo.semantic_search(
-            query_embedding=[0.1] * 1024,
+            query_embedding=[0.1] * settings.EMBEDDING_DIMENSION,
             limit=10,
             similarity_type=unsupported_similarity,
         )
@@ -323,7 +326,7 @@ def test_vectorize_qdrant_search_unexpected_response(
     ):
         with pytest.raises(ExternalApiError, match="Vector search failed"):
             vector_repo.semantic_search(
-                query_embedding=[0.1] * 1024,
+                query_embedding=[0.1] * settings.EMBEDDING_DIMENSION,
                 limit=10,
             )
 
@@ -358,7 +361,7 @@ def test_vectorize_qdrant_search_general_error(
     ):
         with pytest.raises(ExternalApiError, match="Vector search failed"):
             vector_repo.semantic_search(
-                query_embedding=[0.1] * 1024,
+                query_embedding=[0.1] * settings.EMBEDDING_DIMENSION,
                 limit=10,
             )
 
@@ -429,20 +432,18 @@ def test_vectorize_qdrant_search_no_filters(
         content_type="application/json",
     )
 
-    # Create and vectorize a document first
     OfferFactory.create()
     usecase = ingestion_integration_container_albert.vectorize_documents_usecase()
     usecase.execute(DocumentType.OFFERS)
 
-    # Test search without filters (ligne 113 - return None)
     vector_repo = ingestion_integration_container_albert.vector_repository()
     search_results = vector_repo.semantic_search(
-        query_embedding=[0.1] * 1024,
+        query_embedding=[0.1] * settings.EMBEDDING_DIMENSION,
         limit=10,
-        filters=None,  # This should trigger ligne 113
+        filters=None,
     )
 
-    assert len(search_results) >= 0  # Should work without filters
+    assert len(search_results) >= 0
 
 
 @responses.activate
@@ -468,9 +469,9 @@ def test_vectorize_qdrant_search_empty_filters(
     # Test search with empty filters dict (ligne 157-158 - return None)
     vector_repo = ingestion_integration_container_albert.vector_repository()
     search_results = vector_repo.semantic_search(
-        query_embedding=[0.1] * 1024,
+        query_embedding=[0.1] * settings.EMBEDDING_DIMENSION,
         limit=10,
-        filters={},  # Empty dict should trigger ligne 157-158
+        filters={},
     )
 
     assert len(search_results) >= 0  # Should work with empty filters
@@ -499,7 +500,7 @@ def test_vectorize_qdrant_search_list_filters(
     # Test search with list filters (lignes 149-152)
     vector_repo = ingestion_integration_container_albert.vector_repository()
     search_results = vector_repo.semantic_search(
-        query_embedding=[0.1] * 1024,
+        query_embedding=[0.1] * settings.EMBEDDING_DIMENSION,
         limit=10,
         filters={
             "document_type": [DocumentType.OFFERS.value, DocumentType.CORPS.value]

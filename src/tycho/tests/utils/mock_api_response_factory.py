@@ -1,6 +1,8 @@
 import json
 from typing import Dict, List, Optional
 
+from django.conf import settings
+
 
 class MockApiResponseFactory:
     @staticmethod
@@ -105,7 +107,8 @@ class MockApiResponseFactory:
 
     @staticmethod
     def create_albert_embedding_response(
-        embedding_dimension: int = 1024, embedding_value: float = 0.1
+        embedding_dimension: int = settings.EMBEDDING_DIMENSION,
+        embedding_value: float = 0.1,
     ) -> Dict:
         return {
             "data": [
@@ -148,7 +151,8 @@ class MockApiResponseFactory:
 
     @staticmethod
     def create_openai_embedding_response(
-        embedding_dimension: int = 1024, embedding_value: float = 0.1
+        embedding_dimension: int = settings.EMBEDDING_DIMENSION,
+        embedding_value: float = 0.1,
     ) -> Dict:
         return {
             "object": "list",
