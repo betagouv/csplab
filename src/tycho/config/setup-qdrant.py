@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""
-Script pour configurer automatiquement la collection Qdrant 'fonction_publique'.
-Ce script vérifie si la collection existe et la crée si nécessaire avec la
-configuration appropriée.
-"""
-
 import argparse
 import logging
 import sys
@@ -73,7 +67,7 @@ def create_collection(base_url: str, collection_name: str) -> bool:
     logger.info(f"🔧 Création de la collection '{collection_name}'...")
 
     # Configuration de la collection
-    collection_config = {"vectors": {"size": 1536, "distance": "Cosine"}}
+    collection_config = {"vectors": {"size": 1024, "distance": "Cosine"}}
 
     try:
         # Créer la collection

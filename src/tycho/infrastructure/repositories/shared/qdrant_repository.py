@@ -154,12 +154,16 @@ class QdrantRepository(IVectorRepository):
         must_conditions = []
         for key, value in filters.items():
             if isinstance(value, list):
-                for item in value:
-                    must_conditions.append(
-                        FieldCondition(key=key, match=MatchValue(value=item))
-                    )
+                # For a list: create an OR condition
+                should_conditions = [
+                    FieldCondition(key=key, match=MatchValue(value=item))
+                    for item in value
+                ]
+                must_conditions.append(Filter(should=cast(list, should_conditions)))
             else:
                 must_conditions.append(
-                    FieldCondition(key=key, match=MatchValue(value=value))
+                    Filter(
+                        must=[FieldCondition(key=key, match=MatchValue(value=value))]
+                    )
                 )
         return Filter(must=cast(list, must_conditions)) if must_conditions else None

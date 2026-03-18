@@ -1,19 +1,12 @@
-"""Factory for creating mock API responses for testing."""
-
 import json
 from typing import Dict, List, Optional
 
+from django.conf import settings
+
 
 class MockApiResponseFactory:
-    """Factory for creating consistent mock API responses across tests."""
-
     @staticmethod
     def create_empty_response() -> Dict:
-        """Create a mock response with empty experiences and skills.
-
-        Returns:
-            Mock API response with empty data
-        """
         return {
             "experiences": [],
             "skills": [],
@@ -26,17 +19,7 @@ class MockApiResponseFactory:
         sector: str = "Technology",
         description: str = "Professional experience",
     ) -> Dict:
-        """Create a mock response with multiple experiences.
 
-        Args:
-            experiences: List of (title, company) tuples
-            skills: List of skills. Defaults to ["Python", "Django"]
-            sector: Industry sector
-            description: Job description
-
-        Returns:
-            Mock API response with multiple experiences
-        """
         if skills is None:
             skills = ["Python", "Django"]
 
@@ -57,14 +40,6 @@ class MockApiResponseFactory:
 
     @staticmethod
     def create_albert_ocr_response(cv_content: Dict) -> Dict:
-        """Create a complete Albert OCR API response structure.
-
-        Args:
-            cv_content: The CV content (experiences and skills) to embed in the response
-
-        Returns:
-            Complete Albert OCR response structure
-        """
 
         return {
             "object": "ocr_response",
@@ -88,14 +63,7 @@ class MockApiResponseFactory:
 
     @staticmethod
     def create_albert_ocr_response_with_invalid_json(invalid_json_content: str) -> Dict:
-        """Create Albert OCR response with invalid JSON content.
 
-        Args:
-            invalid_json_content: Invalid JSON string to embed in the response
-
-        Returns:
-            Albert OCR response structure with invalid JSON content
-        """
         return {
             "object": "ocr_response",
             "data": [
@@ -118,11 +86,7 @@ class MockApiResponseFactory:
 
     @staticmethod
     def create_ocr_response_with_none_values() -> Dict:
-        """Create a mock response with None values for company and description.
 
-        Returns:
-            Mock API response with None values that previously caused validation errors
-        """
         return {
             "experiences": [
                 {
@@ -139,4 +103,66 @@ class MockApiResponseFactory:
                 },
             ],
             "skills": ["Python", "Django", "React"],
+        }
+
+    @staticmethod
+    def create_albert_embedding_response(
+        embedding_dimension: int = settings.EMBEDDING_DIMENSION,
+        embedding_value: float = 0.1,
+    ) -> Dict:
+        return {
+            "data": [
+                {
+                    "embedding": [embedding_value] * embedding_dimension,
+                    "index": 0,
+                    "object": "embedding",
+                }
+            ],
+            "model": "openweight-embeddings",
+            "object": "list",
+            "usage": {
+                "prompt_tokens": 10,
+                "completion_tokens": 0,
+                "total_tokens": 10,
+                "cost": 0.001,
+                "carbon": {"kWh": {"total": 0.0001}, "kgCO2eq": {"total": 0.00001}},
+                "requests": 1,
+            },
+            "id": "test-embedding-id",
+        }
+
+    @staticmethod
+    def create_albert_embedding_response_empty_data() -> Dict:
+        """Create a valid Albert response structure but with empty data array."""
+        return {
+            "data": [],  # Empty data array
+            "model": "openweight-embeddings",
+            "object": "list",
+            "usage": {
+                "prompt_tokens": 10,
+                "completion_tokens": 0,
+                "total_tokens": 10,
+                "cost": 0.001,
+                "carbon": {"kWh": {"total": 0.0001}, "kgCO2eq": {"total": 0.00001}},
+                "requests": 1,
+            },
+            "id": "test-embedding-id",
+        }
+
+    @staticmethod
+    def create_openai_embedding_response(
+        embedding_dimension: int = settings.EMBEDDING_DIMENSION,
+        embedding_value: float = 0.1,
+    ) -> Dict:
+        return {
+            "object": "list",
+            "data": [
+                {
+                    "object": "embedding",
+                    "embedding": [embedding_value] * embedding_dimension,
+                    "index": 0,
+                }
+            ],
+            "model": "text-embedding-3-small",
+            "usage": {"prompt_tokens": 10, "total_tokens": 10},
         }

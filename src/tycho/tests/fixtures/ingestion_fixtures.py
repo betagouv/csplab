@@ -8,7 +8,11 @@ from faker import Faker
 from config.app_config import AppConfig
 from domain.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.external_gateways.albert_embedding_generator import (
+    AlbertEmbeddingGenerator,
+)
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
+from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.ingestion.postgres_document_repository import (
     PostgresDocumentRepository,
@@ -36,7 +40,6 @@ fake = Faker()
 
 @pytest.fixture(name="logger_service")
 def logger_service_fixture():
-    """Setup logger service for tests."""
     return LoggerService()
 
 
@@ -45,13 +48,11 @@ def logger_service_fixture():
 
 @pytest.fixture(scope="session", name="raw_corps_documents")
 def raw_corps_documents_fixture():
-    """Load fixture data once for all tests."""
     return load_fixture("corps_ingres_20251117.json")
 
 
 @pytest.fixture(name="corps_document")
 def corps_document_fixture():
-    """Create a single corps document for testing."""
     return Document(
         external_id="test_corps_doc",
         raw_data={"name": "Test Document"},
@@ -63,7 +64,6 @@ def corps_document_fixture():
 
 @pytest.fixture(name="corps_documents")
 def corps_documents_fixture():
-    """Create multiple corps documents for batch testing."""
     return [
         Document(
             external_id="corps_1",
@@ -84,7 +84,6 @@ def corps_documents_fixture():
 
 @pytest.fixture(name="concours_documents")
 def concours_documents_fixture():
-    """Create sample concours documents."""
     return [
         Document(
             external_id="exam_1",
@@ -109,7 +108,6 @@ def test_app_config_fixture():
 
 @pytest.fixture(name="talentsoft_front_client")
 def talentsoft_front_client_fixture(logger_service, test_app_config):
-    """Setup talentsoft front client for usecase and tests."""
     return TalentsoftFrontClient(
         config=test_app_config.talentsoft,
         logger_service=logger_service,
@@ -123,21 +121,21 @@ def _create_ingestion_container(
     app_config: AppConfig,
     talentsoft_front_client: TalentsoftFrontClient,
     in_memory: bool = True,
+    embedding_generator=None,
 ):
-    """Factory function to create ingestion containers with specified configuration."""
     container = IngestionContainer()
 
     logger_service = LoggerService()
     container.logger_service.override(logger_service)
 
-    embedding_fixtures = load_fixture("embedding_fixtures.json")
-    mock_embedding_generator = MockEmbeddingGenerator(embedding_fixtures)
-    container.shared_container.embedding_generator.override(mock_embedding_generator)
+    # Use provided embedding generator or default to mock
+    if embedding_generator is None:
+        embedding_fixtures = load_fixture("embedding_fixtures.json")
+        embedding_generator = MockEmbeddingGenerator(embedding_fixtures)
 
-    # Always set configurations for both unit and integration tests
+    container.shared_container.embedding_generator.override(embedding_generator)
     container.app_config.override(app_config)
     container.shared_container.app_config.override(app_config)
-
     container.talentsoft_front_client.override(talentsoft_front_client)
 
     if in_memory:
@@ -157,7 +155,12 @@ def _create_ingestion_container(
         in_memory_vector_repo = InMemoryVectorRepository(logger_service)
         container.vector_repository.override(in_memory_vector_repo)
     else:
-        # Use Django persistence for integration tests
+        # Always set configurations for both unit and integration tests
+        container.app_config.override(app_config)
+        container.shared_container.app_config.override(app_config)
+
+        container.talentsoft_front_client.override(talentsoft_front_client)
+
         postgres_document_repo = PostgresDocumentRepository()
         container.document_repository.override(postgres_document_repo)
 
@@ -178,7 +181,6 @@ def _create_ingestion_container(
 
 @pytest.fixture(name="ingestion_container")
 def ingestion_container_fixture(test_app_config, talentsoft_front_client):
-    """Set up ingestion container with in-memory repositories for unit tests."""
     return _create_ingestion_container(
         test_app_config,
         talentsoft_front_client,
@@ -188,7 +190,6 @@ def ingestion_container_fixture(test_app_config, talentsoft_front_client):
 
 @pytest.fixture(name="documents_ingestion_container")
 def documents_ingestion_container_fixture(test_app_config, talentsoft_front_client):
-    """Set up documents ingestion container for unit tests."""
     # Use the same factory as integration tests but with in-memory repos
     return _create_ingestion_container(
         test_app_config,
@@ -202,7 +203,6 @@ def ingestion_integration_container_fixture(
     test_app_config,
     talentsoft_front_client,
 ):
-    """Set up ingestion container with Django persistence for integration tests."""
     return _create_ingestion_container(
         test_app_config,
         talentsoft_front_client,
@@ -211,17 +211,12 @@ def ingestion_integration_container_fixture(
 
 
 # REPOSITORIES
-
-
 @pytest.fixture(name="documents_repository")
 def documents_repository_fixture(documents_ingestion_container):
-    """Get the document documents_repository from the documents_ingestion_container."""
     return documents_ingestion_container.document_repository()
 
 
 # USECASES
-
-
 @pytest.fixture(name="documents_usecase")
 def documents_usecase_fixture(documents_ingestion_container):
     """Create the load documents documents_usecase."""
@@ -232,5 +227,22 @@ def documents_usecase_fixture(documents_ingestion_container):
 def documents_integration_usecase_fixture(
     ingestion_integration_container,
 ):
-    """Set up container dependencies for Corps LoadDocuments integration tests."""
     return ingestion_integration_container.load_documents_usecase()
+
+
+@pytest.fixture(name="ingestion_integration_container_albert")
+def ingestion_integration_container_albert_fixture(
+    db, test_app_config, talentsoft_front_client
+):
+    http_client = SyncHttpClient()
+    albert_embedding_generator = AlbertEmbeddingGenerator(
+        config=test_app_config.albert, http_client=http_client
+    )
+
+    # Use factory with Albert embedding generator
+    return _create_ingestion_container(
+        test_app_config,
+        talentsoft_front_client,
+        in_memory=False,
+        embedding_generator=albert_embedding_generator,
+    )
