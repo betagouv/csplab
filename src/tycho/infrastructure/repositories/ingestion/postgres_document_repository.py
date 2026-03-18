@@ -1,8 +1,8 @@
-"""Django document repository implementation."""
-
+from datetime import datetime
 from typing import Dict, List, Tuple
 
 from django.db import DatabaseError, transaction
+from django.utils import timezone
 
 from domain.entities.document import Document, DocumentType
 from domain.repositories.document_repository_interface import (
@@ -13,8 +13,6 @@ from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 
 
 class PostgresDocumentRepository(IDocumentRepository):
-    """Complete document repository using Django ORM."""
-
     def find_by_type(
         self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
@@ -75,8 +73,8 @@ class PostgresDocumentRepository(IDocumentRepository):
                         existing_obj = existing_documents_map[doc.external_id]
                         updated_obj = RawDocument.from_entity(doc)
                         updated_obj.id = existing_obj.id
-                        updated_obj.created_at = existing_obj.created_at
                         updated_obj.raw_data = doc.raw_data
+                        updated_obj.updated_at = timezone.make_aware(datetime.now())
                         obj_to_update.append(updated_obj)
 
                     updated = RawDocument.objects.bulk_update(
@@ -84,7 +82,6 @@ class PostgresDocumentRepository(IDocumentRepository):
                         fields=[
                             "document_type",
                             "raw_data",
-                            "created_at",
                             "updated_at",
                         ],
                     )
