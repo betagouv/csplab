@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import logging
+import os
 import sys
 import time
 
@@ -19,6 +20,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger("qdrant-setup")
+vector_size = int(os.getenv("TYCHO_EMBEDDING_DIMENSION", "1024"))
 
 
 def wait_for_qdrant(url: str, max_retries: int = 30, delay: int = 2) -> bool:
@@ -67,7 +69,7 @@ def create_collection(base_url: str, collection_name: str) -> bool:
     logger.info(f"🔧 Création de la collection '{collection_name}'...")
 
     # Configuration de la collection
-    collection_config = {"vectors": {"size": 1024, "distance": "Cosine"}}
+    collection_config = {"vectors": {"size": vector_size, "distance": "Cosine"}}
 
     try:
         # Créer la collection
@@ -168,6 +170,7 @@ def main():
     logger.info("🚀 Démarrage de la configuration automatique de Qdrant")
     logger.info(f"📍 URL Qdrant: {QDRANT_URL}")
     logger.info(f"📦 Collection: {COLLECTION_NAME}")
+    logger.info(f"📏 Dimension des vecteurs: {vector_size}")
 
     # Étape 1: Attendre que Qdrant soit disponible
     if not wait_for_qdrant(QDRANT_URL):
