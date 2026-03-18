@@ -6,6 +6,7 @@ COMPOSE                 = docker compose
 COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
 
 TYCHO_UV = cd src/tycho && direnv exec .
+OCR_UV = cd src/ocr && direnv exec .
 NOTEBOOK_UV = cd src/notebook && direnv exec .
 DEV_UV = cd dev && direnv exec .
 
@@ -54,6 +55,7 @@ build: ## build services image
 build: \
   build-dev \
   build-tycho \
+  build-ocr \
   build-notebook
 .PHONY: build
 
@@ -69,6 +71,10 @@ build-tycho: ## build tycho image
 	# not using @ which suppress the command's echoing in terminal
 	$(TYCHO_UV) uv sync --group dev --locked
 .PHONY: build-tycho
+
+build-ocr:
+	$(OCR_UV) uv sync --group dev --locked
+.PHONY: build-ocr
 
 jupytext--to-md: ## convert local ipynb files into md
 	cd src/notebook && uv run jupytext --to md *.ipynb && cd ../..
@@ -124,6 +130,10 @@ run-postgres: ## run the DB service
 run-tycho: ## run the tycho service
 	@bin/manage runserver
 .PHONY: run-tycho
+
+run-ocr: ## run the ocr service
+	$(OCR_UV) uvicorn app.main:app --reload --port=8001
+.PHONY: run-ocr
 
 dev: ## run tycho with sass watch and browser auto-reload
 	@echo "🚀 Starting development server with auto-reload..."
