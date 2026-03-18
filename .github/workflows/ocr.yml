@@ -18,6 +18,8 @@ jobs:
     defaults:
       run:
         working-directory: ./src/ocr
+    env:
+      API_KEY: the_secret_key
     steps:
       - uses: actions/checkout@v5
       - name: Install uv

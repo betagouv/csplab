@@ -27,9 +27,11 @@ setup: ## copy example env files to local files
 	@cp src/tycho/.envrc.sample src/tycho/.envrc
 	@cp src/notebook/.envrc.sample src/notebook/.envrc
 	@cp env.d/tycho-example env.d/tycho
+	@cp env.d/ocr-example env.d/ocr
 	@cp env.d/notebook-example env.d/notebook
 	@cp env.d/postgresql-example env.d/postgresql
 	@cd src/tycho && direnv allow
+	@cd src/ocr && direnv allow
 	@cd src/notebook && direnv allow
 	@echo "✅ Environment files copied. Please edit env.d/* with your actual values."
 .PHONY: setup
@@ -148,13 +150,15 @@ dev: ## run tycho with sass watch and browser auto-reload
 lint: ## lint all sources
 lint: \
   lint-notebook \
-  lint-tycho
+  lint-tycho \
+  lint-ocr
 .PHONY: lint
 
 lint-fix: ## lint and fix all sources
 lint-fix: \
   lint-notebook-fix \
-  lint-tycho-fix
+  lint-tycho-fix \
+  lint-ocr-fix
 .PHONY: lint-fix
 
 # -- Per-service linting
@@ -210,6 +214,35 @@ lint-tycho-mypy: ## lint tycho python sources with mypy
 	@echo 'lint:tycho-mypy started…'
 	$(TYCHO_UV) mypy .
 .PHONY: lint-tycho-mypy
+
+lint-ocr: ## lint ocr python sources
+lint-ocr: \
+  lint-ocr-ruff \
+  lint-ocr-mypy
+.PHONY: lint-ocr
+
+lint-ocr-fix: ## lint and fix ocr python sources
+lint-ocr-fix: \
+  lint-ocr-ruff-fix \
+  lint-ocr-mypy
+.PHONY: lint-ocr-fix
+
+lint-ocr-ruff: ## lint ocr python sources with ruff (check only, like CI)
+	@echo 'lint:ocr-ruff started…'
+	$(OCR_UV) ruff check .
+	$(OCR_UV) ruff format --check .
+.PHONY: lint-ocr-ruff
+
+lint-ocr-ruff-fix: ## lint and fix ocr python sources with ruff
+	@echo 'lint:ocr-ruff-fix started…'
+	$(OCR_UV) ruff check --fix .
+	$(OCR_UV) ruff format .
+.PHONY: lint-ocr-ruff-fix
+
+lint-ocr-mypy: ## lint ocr python sources with mypy
+	@echo 'lint:ocr-mypy started…'
+	$(OCR_UV) mypy .
+.PHONY: lint-ocr-mypy
 
 ## TEST
 test: ## test all services
