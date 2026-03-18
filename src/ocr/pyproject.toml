@@ -91,6 +91,7 @@ ignore_missing_imports = true
 mypy_path = "."
 namespace_packages = true
 explicit_package_bases = true
+plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 module = [
