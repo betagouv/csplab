@@ -21,9 +21,11 @@ env = environ.Env(
     TYCHO_INGRES_CLIENT_ID=(str, "fake-client-id"),
     TYCHO_INGRES_CLIENT_SECRET=(str, "fake-client-secret"),
     TYCHO_OCR_TYPE=(str, "ALBERT"),
+    TYCHO_EMBEDDING_TYPE=(str, "ALBERT"),
+    TYCHO_EMBEDDING_DIMENSION=(int, 1024),
     TYCHO_OPENROUTER_API_KEY=(str, "fake-api-key"),
     TYCHO_OPENROUTER_BASE_URL=(str, "https://api.openai.com/v1"),
-    TYCHO_OPENROUTER_EMBEDDING_MODEL=(str, "text-embedding-3-large"),
+    TYCHO_OPENROUTER_EMBEDDING_MODEL=(str, "text-embedding-3-small"),
     TYCHO_OPENROUTER_OCR_MODEL=(str, "openai/gpt-5.2"),
     TYCHO_ALBERT_API_BASE_URL=(str, "https://albert.api.etalab.gouv.fr"),
     TYCHO_ALBERT_API_KEY=(str, "albert-api-key"),
@@ -37,6 +39,9 @@ env = environ.Env(
     TYCHO_TALLY_FORM_ID_NO_RESULTS=(str, ""),
     TYCHO_MATOMO_BASE_URL=(str, ""),
     TYCHO_MATOMO_SITE_ID=(int, 1),
+    TYCHO_QDRANT_URL=(str, "http://localhost:6333"),
+    TYCHO_QDRANT_API_KEY=(str, ""),
+    TYCHO_VECTOR_DB_TYPE=(str, "QDRANT"),
 )
 env.prefix = "TYCHO_"
 
@@ -298,6 +303,8 @@ INGRES_CLIENT_ID = env.str("INGRES_CLIENT_ID")
 INGRES_CLIENT_SECRET = env.str("INGRES_CLIENT_SECRET")
 
 OCR_TYPE = env.str("OCR_TYPE")
+EMBEDDING_TYPE = env.str("EMBEDDING_TYPE")
+EMBEDDING_DIMENSION = env.int("EMBEDDING_DIMENSION")
 
 OPENROUTER_BASE_URL = env.str("OPENROUTER_BASE_URL")
 OPENROUTER_API_KEY = env.str("OPENROUTER_API_KEY")
@@ -317,3 +324,8 @@ TALENTSOFT_CLIENT_SECRET = env.str("TALENTSOFT_CLIENT_SECRET")
 
 TALLY_FORM_ID_RESULTS = env.str("TALLY_FORM_ID_RESULTS")
 TALLY_FORM_ID_NO_RESULTS = env.str("TALLY_FORM_ID_NO_RESULTS")
+
+# Qdrant vector database
+QDRANT_URL = env.str("QDRANT_URL")
+QDRANT_API_KEY = env.str("QDRANT_API_KEY")
+VECTOR_DB_TYPE = env.str("VECTOR_DB_TYPE")

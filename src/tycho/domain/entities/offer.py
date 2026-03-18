@@ -17,8 +17,6 @@ from domain.value_objects.verse import Verse
 
 @dataclass
 class Offer(IEntity):
-    """Offer entity."""
-
     external_id: str
     verse: Optional[Verse]
     title: str

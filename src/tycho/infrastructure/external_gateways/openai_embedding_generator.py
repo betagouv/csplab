@@ -10,15 +10,11 @@ from infrastructure.exceptions.exceptions import ExternalApiError
 
 
 class OpenAIEmbeddingGenerator(IEmbeddingGenerator):
-    """Service for generating embeddings using OpenAI's text-embedding-3-large model."""
-
     def __init__(self, config: OpenAIConfig):
-        """Initialize with OpenAI configuration."""
         self.config = config
         self.client = OpenAI(api_key=config.api_key, base_url=str(config.base_url))
 
     def generate_embedding(self, text: str) -> List[float]:
-        """Generate an embedding vector from text content."""
         if not text.strip():
             raise ValueError("Text content cannot be empty")
 

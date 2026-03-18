@@ -1,25 +1,29 @@
-"""In-memory vector repository implementation for testing."""
-
 import math
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
-from domain.repositories.document_repository_interface import IUpsertResult
+from domain.repositories.document_repository_interface import (
+    IUpsertError,
+    IUpsertResult,
+)
 from domain.repositories.vector_repository_interface import IVectorRepository
+from domain.services.logger_interface import ILogger
 from domain.value_objects.similarity_type import (
     SimilarityMetric,
     SimilarityResult,
     SimilarityType,
 )
+from infrastructure.exceptions.exceptions import ExternalApiError
 
 
 class InMemoryVectorRepository(IVectorRepository):
-    """In-memory implementation of vector repository for testing."""
-
-    def __init__(self):
-        """Initialize with empty storage."""
+    def __init__(
+        self,
+        logger: ILogger,
+    ):
+        self.logger = logger
         self._documents: Dict[UUID, VectorizedDocument] = {}
 
     def upsert_batch(
@@ -27,44 +31,47 @@ class InMemoryVectorRepository(IVectorRepository):
         vectorized_documents: List[VectorizedDocument],
         document_type: DocumentType,
     ) -> IUpsertResult:
-        # WARNING! This method is added for in_memory usecase test compatibility
-        # DO NOT USE
-        return {"created": 99999, "updated": 99999, "errors": []}
+        created = 0
+        updated = 0
+        errors: List[IUpsertError] = []
 
-    def store_embedding(self, vectorized_doc: VectorizedDocument):
-        # WARNING! This method has been remove from pgvector_repository
-        # It is maintend for in_memory usecase existing test :
-        # DO NOT REUSE
-        # Handle upsert based on entity_id
-        existing = None
-        for doc in self._documents.values():
-            if doc.entity_id == vectorized_doc.entity_id:
-                existing = doc
-                break
+        for doc in vectorized_documents:
+            try:
+                # Check if document already exists
+                existing = None
+                for existing_doc in self._documents.values():
+                    if existing_doc.entity_id == doc.entity_id:
+                        existing = existing_doc
+                        break
 
-        if existing:
-            # Update existing record
-            updated_doc = VectorizedDocument(
-                id=existing.id,
-                entity_id=vectorized_doc.entity_id,
-                document_type=vectorized_doc.document_type,
-                content=vectorized_doc.content,
-                embedding=vectorized_doc.embedding,
-                metadata=vectorized_doc.metadata,
-            )
-            self._documents[existing.id] = updated_doc
-            return updated_doc
-        else:
-            # Create new record - VectorizedDocument generates its own UUID
-            new_doc = VectorizedDocument(
-                entity_id=vectorized_doc.entity_id,
-                document_type=vectorized_doc.document_type,
-                content=vectorized_doc.content,
-                embedding=vectorized_doc.embedding,
-                metadata=vectorized_doc.metadata,
-            )
-            self._documents[new_doc.id] = new_doc
-            return new_doc
+                if existing:
+                    # Update existing document
+                    updated_doc = VectorizedDocument(
+                        id=existing.id,
+                        entity_id=doc.entity_id,
+                        document_type=doc.document_type,
+                        content=doc.content,
+                        embedding=doc.embedding,
+                        metadata=doc.metadata,
+                    )
+                    self._documents[existing.id] = updated_doc
+                    updated += 1
+                else:
+                    # Create new document
+                    new_doc = VectorizedDocument(
+                        entity_id=doc.entity_id,
+                        document_type=doc.document_type,
+                        content=doc.content,
+                        embedding=doc.embedding,
+                        metadata=doc.metadata,
+                    )
+                    self._documents[new_doc.id] = new_doc
+                    created += 1
+            except Exception as e:
+                self.logger.error(f"Unexpected error during search: {str(e)}")
+                raise ExternalApiError(f"Vector search failed: {str(e)}") from e
+
+        return {"created": created, "updated": updated, "errors": errors}
 
     def semantic_search(
         self,
@@ -73,7 +80,6 @@ class InMemoryVectorRepository(IVectorRepository):
         filters: Optional[Dict[str, Any]] = None,
         similarity_type: Optional[SimilarityType] = None,
     ) -> List[SimilarityResult]:
-        """Search for documents semantically similar to the query embedding."""
         if similarity_type is None:
             similarity_type = SimilarityType()
 
@@ -107,46 +113,14 @@ class InMemoryVectorRepository(IVectorRepository):
             for score, doc in scored_docs[:limit]
         ]
 
-    def similarity_search(
-        self,
-        entity_id: UUID,
-        threshold: float = 0.8,
-        limit: int = 10,
-        similarity_type: Optional[SimilarityType] = None,
-    ) -> List[SimilarityResult]:
-        """Find documents similar to a specific entity."""
-        if similarity_type is None:
-            similarity_type = SimilarityType()
-
-        reference_doc = None
-        for doc in self._documents.values():
-            if doc.entity_id == entity_id:
-                reference_doc = doc
-                break
-
-        if not reference_doc:
-            return []
-
-        results = self.semantic_search(
-            query_embedding=reference_doc.embedding,
-            limit=limit + 1,  # +1 to exclude the reference document itself
-            similarity_type=similarity_type,
-        )
-
-        return [result for result in results if result.document.entity_id != entity_id][
-            :limit
-        ]
-
     def _filter_documents(
         self, documents: List[VectorizedDocument], filters: Dict[str, Any]
     ) -> List[VectorizedDocument]:
-        """Filter documents by direct fields and metadata criteria."""
         return [doc for doc in documents if self._matches_filters(doc, filters)]
 
     def _matches_filters(
         self, doc: VectorizedDocument, filters: Dict[str, Any]
     ) -> bool:
-        """Check if document matches all filter criteria."""
         for key, value in filters.items():
             if not self._matches_single_filter(doc, key, value):
                 return False
@@ -155,7 +129,6 @@ class InMemoryVectorRepository(IVectorRepository):
     def _matches_single_filter(
         self, doc: VectorizedDocument, key: str, value: Any
     ) -> bool:
-        """Check if document matches a single filter criterion."""
         # Check if it's a direct field of VectorizedDocument
         if hasattr(doc, key):
             return self._matches_direct_field(doc, key, value)
@@ -169,7 +142,6 @@ class InMemoryVectorRepository(IVectorRepository):
     def _matches_direct_field(
         self, doc: VectorizedDocument, key: str, value: Any
     ) -> bool:
-        """Check if document's direct field matches the filter value."""
         doc_value = getattr(doc, key)
         # Handle enum values
         if hasattr(doc_value, "value"):
@@ -182,7 +154,6 @@ class InMemoryVectorRepository(IVectorRepository):
     def _matches_metadata_field(
         self, doc: VectorizedDocument, key: str, value: Any
     ) -> bool:
-        """Check if document's metadata field matches the filter value."""
         doc_value = doc.metadata[key]
 
         if isinstance(value, list):
@@ -195,7 +166,6 @@ class InMemoryVectorRepository(IVectorRepository):
     def _filter_by_metadata(
         self, documents: List[VectorizedDocument], filters: Dict[str, Any]
     ) -> List[VectorizedDocument]:
-        """Filter documents by metadata criteria."""
         filtered = []
         for doc in documents:
             match = True
@@ -223,7 +193,6 @@ class InMemoryVectorRepository(IVectorRepository):
         return filtered
 
     def _cosine_similarity(self, a: List[float], b: List[float]) -> float:
-        """Calculate cosine similarity between two vectors."""
         if len(a) != len(b):
             raise ValueError("Vectors must have the same length")
 
@@ -237,7 +206,6 @@ class InMemoryVectorRepository(IVectorRepository):
         return dot_product / (norm_a * norm_b)
 
     def _euclidean_distance(self, a: List[float], b: List[float]) -> float:
-        """Calculate Euclidean distance between two vectors."""
         if len(a) != len(b):
             raise ValueError("Vectors must have the same length")
 

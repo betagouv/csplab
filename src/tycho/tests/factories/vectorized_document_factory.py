@@ -6,9 +6,6 @@ from faker import Faker
 
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
-from infrastructure.django_apps.shared.models.vectorized_document import (
-    VectorizedDocumentModel,
-)
 
 fake = Faker()
 
@@ -18,32 +15,93 @@ class VectorizedDocumentFactory:
     def create(
         entity_id: Optional[UUID] = None,
         document_type: DocumentType = DocumentType.OFFERS,
-    ) -> VectorizedDocumentModel:
+        content: Optional[str] = None,
+        embedding: Optional[List[float]] = None,
+        metadata: Optional[dict] = None,
+        embedding_dimensions: int = 1536,  # Default to pgvector dimensions
+    ) -> VectorizedDocument:
         if entity_id is None:
             entity_id = uuid4()
         elif isinstance(entity_id, str):
             entity_id = UUID(entity_id)
 
+        if content is None:
+            content = fake.paragraph()
+
+        if embedding is None:
+            embedding = [random.random() for i in range(embedding_dimensions)]
+
+        if metadata is None:
+            if document_type == DocumentType.CONCOURS:
+                metadata = {
+                    "category": random.choice(
+                        ["APLUS", "A", "B", "C", "HORS_CATEGORIE"]
+                    ),
+                    "ministry": random.choice(
+                        ["MAA", "MESRI", "MEF", "MEN", "MSS", "MC", "MJ", "MI", "MTE"]
+                    ),
+                    "access_modality": random.choice(
+                        [
+                            [],
+                            ["Concours externe"],
+                            ["Concours interne"],
+                            ["Concours externe", "Concours interne"],
+                            ["3ème concours"],
+                            ["Sans concours"],
+                        ]
+                    ),
+                }
+            else:  # DocumentType.OFFERS
+                localisation_choices = [
+                    None,
+                    {
+                        "region": "11",
+                        "country": "FRA",
+                        "department": "75",
+                    },
+                    {
+                        "region": "84",
+                        "country": "FRA",
+                        "department": "13",
+                    },
+                    {
+                        "region": "32",
+                        "country": "FRA",
+                        "department": "60",
+                    },
+                    {
+                        "region": "44",
+                        "country": "FRA",
+                        "department": "67",
+                    },
+                    {
+                        "region": "93",
+                        "country": "FRA",
+                        "department": "06",
+                    },
+                ]
+
+                metadata = {
+                    "verse": random.choice(["FPE", "FPT", "FPH"]),
+                    "category": None,
+                    "localisation": random.choice(localisation_choices),
+                }
+
         entity = VectorizedDocument(
             entity_id=entity_id,
             document_type=document_type,
-            content=fake.paragraph(),
-            embedding=[random.random() for i in range(3072)],
-            metadata={
-                "verse": "FPE",
-                "category": None,
-                "localisation": {"region": "11", "country": "FRA", "department": "93"},
-            },
+            content=content,
+            embedding=embedding,
+            metadata=metadata,
         )
 
-        vectorized_doc = VectorizedDocumentModel.from_entity(entity)
-        vectorized_doc.save()
-
-        return vectorized_doc
+        # Return the entity directly instead of saving to pgvector
+        # The caller should use the vector repository (Qdrant) to save
+        return entity
 
     @staticmethod
     def create_batch(
         size: int,
         **kwargs,
-    ) -> List[VectorizedDocumentModel]:
+    ) -> List[VectorizedDocument]:
         return [VectorizedDocumentFactory.create(**kwargs) for _ in range(size)]

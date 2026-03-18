@@ -21,7 +21,6 @@ fake = Faker()
 
 
 def create_offer_documents(container, document_type, raw_offers):
-    """Insert RawDocument from json offers."""
     documents = []
     for raw_data in raw_offers["data"]:
         versant_dict = raw_data.get("salaryRange", None)
@@ -40,18 +39,21 @@ def create_offer_documents(container, document_type, raw_offers):
     repository.upsert_batch(documents, document_type)
 
 
-class TestIntegrationOfferLoadDocumentUseCase:
-    """Test LoadDocuments use case for Offer docs."""
+PORT = 6333
 
+
+@pytest.mark.httpx_mock(should_mock=lambda request: request.url.port != PORT)
+class TestIntegrationOfferLoadDocumentUseCase:
+    @pytest.mark.httpx_mock
     @pytest.mark.parametrize("count", [0, 2])
     def test_execute_returns_correct_counts(
         self, db, httpx_mock, ingestion_integration_container, count
     ):
-        """Test execute returns correct count based on parameter."""
         usecase = ingestion_integration_container.load_documents_usecase()
         client = ingestion_integration_container.talentsoft_front_client()
         client.cached_token = cached_token()
 
+        # Mock Talentsoft API
         httpx_mock.add_response(
             method="GET",
             url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
@@ -67,10 +69,10 @@ class TestIntegrationOfferLoadDocumentUseCase:
         assert result["created"] == count
         assert result["updated"] == 0
 
+    @pytest.mark.httpx_mock
     def test_execute_returns_correct_counts_with_iterations(
         self, db, httpx_mock, ingestion_integration_container
     ):
-        """Test execute returns correct count based on parameter."""
         document_type = DocumentType.OFFERS
         count_existing_offers = 4
         count_new_offers = 3
@@ -85,6 +87,7 @@ class TestIntegrationOfferLoadDocumentUseCase:
         client = ingestion_integration_container.talentsoft_front_client()
         client.cached_token = cached_token()
 
+        # Mock Talentsoft API
         httpx_mock.add_response(
             method="GET",
             url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
@@ -107,20 +110,21 @@ class TestIntegrationOfferLoadDocumentUseCase:
         assert result["created"] == count_new_offers
         assert result["updated"] == count_existing_offers
 
-    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
+    @pytest.mark.httpx_mock
     def test_execute_returns_zero_when_api_fails(
         self, db, httpx_mock, ingestion_integration_container
     ):
-        """Test execute returns 0 when API call fails."""
         usecase = ingestion_integration_container.load_documents_usecase()
         client = ingestion_integration_container.talentsoft_front_client()
         client.cached_token = cached_token()
 
-        httpx_mock.add_response(
-            method="GET",
-            url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
-            status_code=500,
-        )
+        # Mock Talentsoft API (failure case)
+        for _ in range(3):
+            httpx_mock.add_response(
+                method="GET",
+                url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
+                status_code=500,
+            )
 
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
@@ -130,13 +134,13 @@ class TestIntegrationOfferLoadDocumentUseCase:
         assert result["created"] == 0
         assert result["updated"] == 0
 
+    @pytest.mark.httpx_mock
     @pytest.mark.parametrize(
         "data", ["not_a_list", ["not_a_list_of_dict"], [{"missing_reference_key": 1}]]
     )
     def test_execute_returns_zero_when_api_response_is_malformed(
         self, db, httpx_mock, ingestion_integration_container, data
     ):
-        """Test execute returns 0 when API response is malformed."""
         usecase = ingestion_integration_container.load_documents_usecase()
 
         raw_offers = offers_response()
@@ -145,6 +149,7 @@ class TestIntegrationOfferLoadDocumentUseCase:
         client = ingestion_integration_container.talentsoft_front_client()
         client.cached_token = cached_token()
 
+        # Mock Talentsoft API (malformed response)
         httpx_mock.add_response(
             method="GET",
             url=f"{client.base_url}/api/v2/offersummaries?count=1000&start=1",
@@ -162,13 +167,10 @@ class TestIntegrationOfferLoadDocumentUseCase:
 
 
 class TestIntegrationCorpsLoadDocumentsUseCase:
-    """Test LoadDocuments use case for Corps docs."""
-
     @responses.activate
     def test_execute_returns_zero_when_no_documents(
         self, db, documents_integration_usecase, test_app_config
     ):
-        """Test execute returns 0 when repository is empty."""
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
@@ -199,7 +201,6 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
     def test_execute_returns_correct_count_with_documents(
         self, db, documents_integration_usecase, test_app_config
     ):
-        """Test execute returns correct count when documents exist with mocked API."""
         api_response = IngresCorpsApiResponseFactory.build()
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
 
@@ -237,8 +238,6 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
 
 
 class TestConcoursUploadView(APITestCase):
-    """Integration tests for ConcoursUploadView."""
-
     def setUp(self):
         """Set up test environment."""
         self.concours_upload_url = "/ingestion/concours/upload/"

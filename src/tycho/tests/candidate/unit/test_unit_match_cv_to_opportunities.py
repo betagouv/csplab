@@ -35,7 +35,7 @@ def _candidate_container():
     embedding_generator = MockEmbeddingGenerator(embedding_fixtures)
     shared_container.embedding_generator.override(embedding_generator)
 
-    vector_repo = InMemoryVectorRepository()
+    vector_repo = InMemoryVectorRepository(logger_service)
     shared_container.vector_repository.override(vector_repo)
 
     container.shared_container.override(shared_container)
@@ -49,7 +49,6 @@ def _candidate_container():
 
 
 def test_execute_with_failed_cv_raises_error(_candidate_container, cv_metadata_failed):
-    """Test that FAILED CV status raises CVProcessingFailedError."""
     cv_metadata, cv_id = cv_metadata_failed
 
     cv_repo = _candidate_container.postgres_cv_metadata_repository()
