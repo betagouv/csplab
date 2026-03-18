@@ -1,8 +1,18 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-router = APIRouter()
+from app.auth import verify_api_key
+
+public_router = APIRouter()
 
 
-@router.get("/health")
+@public_router.get("/health")
 def health():
     return {"status": "healthy"}
+
+
+protected_router = APIRouter(dependencies=[Depends(verify_api_key)])
+
+
+@protected_router.get("/welcome")
+def welcome():
+    return {"status": "you're authenticated"}
