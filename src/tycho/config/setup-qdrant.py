@@ -5,7 +5,6 @@ import sys
 import time
 
 import requests
-from django.conf import settings
 from requests.exceptions import ConnectionError, RequestException, Timeout
 
 # Constantes HTTP
@@ -68,9 +67,7 @@ def create_collection(base_url: str, collection_name: str) -> bool:
     logger.info(f"🔧 Création de la collection '{collection_name}'...")
 
     # Configuration de la collection
-    collection_config = {
-        "vectors": {"size": settings.EMBEDDING_DIMENSION, "distance": "Cosine"}
-    }
+    collection_config = {"vectors": {"size": 1024, "distance": "Cosine"}}
 
     try:
         # Créer la collection
