@@ -24,6 +24,7 @@ class RawDocument(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     processed_at = models.DateTimeField(null=True, blank=True)
+    processing = models.BooleanField(default=False)
     error_msg = models.TextField(null=True, blank=True)
 
     class Meta:
@@ -46,6 +47,7 @@ class RawDocument(models.Model):
             created_at=self.created_at,
             updated_at=self.updated_at,
             processed_at=self.processed_at,
+            processing=self.processing,
             error_msg=self.error_msg,
         )
 
@@ -59,5 +61,6 @@ class RawDocument(models.Model):
             created_at=document.created_at,
             updated_at=document.updated_at,
             processed_at=document.processed_at,
+            processing=document.processing,
             error_msg=document.error_msg,
         )
