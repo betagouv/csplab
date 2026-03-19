@@ -1,8 +1,8 @@
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from app.auth import verify_api_key
-from app.main import app
+from api.auth import verify_api_key
+from api.main import app
 
 client = TestClient(app)
 

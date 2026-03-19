@@ -4,7 +4,7 @@ from application.usecases.extract_text_usecase import ExtractTextUsecase
 
 
 @pytest.mark.asyncio
-async def test_usecase_calls_extractor(mock_pdf_extractor, sample_pdf_content):
+async def test_extract_text(mock_pdf_extractor, sample_pdf_content):
     usecase = ExtractTextUsecase(mock_pdf_extractor)
 
     result = await usecase.execute(sample_pdf_content)

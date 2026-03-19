@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
 
 from application.usecases.extract_text_usecase import ExtractTextUsecase
-from infrastructure.services.tesseract_extractor import TesseractPDFExtractor
+from infrastructure.gateways.tesseract_extractor import TesseractPDFExtractor
 
 
 class Container(containers.DeclarativeContainer):

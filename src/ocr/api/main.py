@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 
-from app import routes
-from app._sentry import sentry_init
-from app.config import settings
-from app.routes import protected_router, public_router
+from api import routes
+from api._sentry import sentry_init
+from api.config import settings
+from api.routes import protected_router, public_router
 from infrastructure.di.container import Container
 
 if settings.sentry_dsn:

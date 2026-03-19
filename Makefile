@@ -147,7 +147,7 @@ run-tycho: ## run the tycho service
 .PHONY: run-tycho
 
 run-ocr: ## run the ocr service
-	$(OCR_UV) uvicorn app.main:app --reload --port=8001
+	$(OCR_UV) uvicorn api.main:app --reload --port=8001
 .PHONY: run-ocr
 
 dev: ## run tycho with sass watch and browser auto-reload

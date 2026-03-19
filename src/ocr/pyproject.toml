@@ -43,7 +43,7 @@ url = "https://pypi.org/simple"
 ocr = { path = ".", editable = true }
 
 [tool.setuptools.packages.find]
-include = ["app*", "domain*", "application*", "infrastructure*"]
+include = ["api*", "domain*", "application*", "infrastructure*"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 python_files = [
@@ -79,7 +79,7 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"app/routes.py" = [
+"api/routes.py" = [
     "B008", # Function call in argument defaults (acceptable for FastAPI)
 ]
 "**/tests/*" = [

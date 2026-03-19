@@ -1,11 +1,12 @@
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
-from app.auth import verify_api_key
+from api.auth import verify_api_key
 from application.usecases.extract_text_usecase import ExtractTextUsecase
 from infrastructure.di.container import Container
 
 public_router = APIRouter()
+protected_router = APIRouter(dependencies=[Depends(verify_api_key)])
 
 
 @public_router.get("/health")
@@ -13,7 +14,7 @@ def health():
     return {"status": "healthy"}
 
 
-@public_router.post("/extract-text")
+@protected_router.post("/extract-text")
 @inject
 async def extract_text(
     file: UploadFile = File(...),
@@ -26,11 +27,3 @@ async def extract_text(
     text = await usecase.execute(content)
 
     return {"text": text, "pages": 1}
-
-
-protected_router = APIRouter(dependencies=[Depends(verify_api_key)])
-
-
-@protected_router.get("/welcome")
-def welcome():
-    return {"status": "you're authenticated"}
