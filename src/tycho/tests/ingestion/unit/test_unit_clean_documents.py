@@ -85,7 +85,6 @@ def test_execute_raises_error_for_unsupported_document_type(ingestion_container)
         raw_data={"test": "data"},
         type=DocumentType.GRADE,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
     )
 
     repository = ingestion_container.document_repository()
@@ -165,7 +164,6 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
         raw_data=valid_fpe_data,
         type=DocumentType.OFFERS,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
     )
 
     # Valid FPT with TERRITORIAL contract and edge cases
@@ -181,7 +179,6 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
         raw_data=valid_fpt_data,
         type=DocumentType.OFFERS,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
     )
 
     # Valid FPH with CONTRACTUELS and URL/date edge cases
@@ -196,7 +193,6 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
         raw_data=valid_fph_data,
         type=DocumentType.OFFERS,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
     )
 
     # Valid document with unknown contract type
@@ -210,7 +206,6 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
         raw_data=unknown_contract_data,
         type=DocumentType.OFFERS,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
     )
 
     # Invalid documents
@@ -219,7 +214,6 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
         raw_data={"reference": "", "department": [{"clientCode": "18"}]},
         type=DocumentType.OFFERS,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
     )
 
     invalid_dep_data = copy.deepcopy(create_test_offer_document(6).raw_data)
@@ -230,7 +224,6 @@ def test_clean_offers_filters_invalid_documents(ingestion_container):
         raw_data=invalid_dep_data,
         type=DocumentType.OFFERS,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
     )
 
     repository = ingestion_container.document_repository()

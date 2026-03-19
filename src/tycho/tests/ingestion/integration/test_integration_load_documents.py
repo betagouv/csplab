@@ -30,7 +30,6 @@ def create_offer_documents(container, document_type, raw_offers):
                 raw_data=raw_data,
                 type=document_type,
                 created_at=datetime.now(),
-                updated_at=datetime.now(),
             )
         )
     repository = container.document_repository()

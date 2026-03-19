@@ -45,7 +45,6 @@ class RawDocument(models.Model):
             raw_data=self.raw_data,
             type=DocumentType(self.document_type),  # String -> Enum
             created_at=self.created_at,
-            updated_at=self.updated_at,
             processed_at=self.processed_at,
             processing=self.processing,
             error_msg=self.error_msg,
@@ -59,7 +58,6 @@ class RawDocument(models.Model):
             raw_data=document.raw_data,
             document_type=document.type.value if document.type else None,
             created_at=document.created_at,
-            updated_at=document.updated_at,
             processed_at=document.processed_at,
             processing=document.processing,
             error_msg=document.error_msg,

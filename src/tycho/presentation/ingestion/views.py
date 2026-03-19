@@ -92,7 +92,6 @@ class ConcoursUploadView(APIView):
                         raw_data=raw_data,
                         type=DocumentType.CONCOURS,
                         created_at=current_time,
-                        updated_at=current_time,
                     )
                     valid_documents.append(document)
 

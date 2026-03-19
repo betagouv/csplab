@@ -39,7 +39,6 @@ class InMemoryDocumentRepository(IDocumentRepository):
                             raw_data=document.raw_data,
                             type=document.type,
                             created_at=existing_doc.created_at,
-                            updated_at=datetime.now(timezone.utc),
                         )
                         self._documents[i] = updated_doc
                         updated += 1
@@ -59,7 +58,6 @@ class InMemoryDocumentRepository(IDocumentRepository):
                         raw_data=document.raw_data,
                         type=document.type,
                         created_at=datetime.now(timezone.utc),
-                        updated_at=datetime.now(timezone.utc),
                     )
                     self._documents.append(new_doc)
                     created += 1

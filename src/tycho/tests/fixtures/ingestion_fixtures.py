@@ -56,7 +56,6 @@ def corps_document_fixture():
         raw_data={"name": "Test Document"},
         type=DocumentType.CORPS,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
     )
 
 
@@ -68,14 +67,12 @@ def corps_documents_fixture():
             raw_data={"name": "Corps 1", "description": "First corps"},
             type=DocumentType.CORPS,
             created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
         ),
         Document(
             external_id="corps_2",
             raw_data={"name": "Corps 2", "description": "Second corps"},
             type=DocumentType.CORPS,
             created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
         ),
     ]
 
@@ -88,7 +85,6 @@ def concours_documents_fixture():
             raw_data={"name": "Exam 1"},
             type=DocumentType.CONCOURS,
             created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
         ),
     ]
 

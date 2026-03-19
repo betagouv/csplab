@@ -155,5 +155,4 @@ def create_test_document(
         raw_data={"content": f"Test document content {entity_id}"},
         type=doc_type,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
     )

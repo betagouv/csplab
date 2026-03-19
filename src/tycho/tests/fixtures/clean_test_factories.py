@@ -19,7 +19,6 @@ def _create_base_document(
         raw_data=raw_data,
         type=doc_type,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
         id=uuid4(),  # Generate UUID automatically
     )
 
