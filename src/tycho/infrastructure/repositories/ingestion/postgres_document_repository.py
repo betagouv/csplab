@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Dict, List, Tuple
 
 from django.db import DatabaseError, transaction
+from django.db.models import F, Q
 from django.utils import timezone
 
 from domain.entities.document import Document, DocumentType
@@ -101,3 +102,24 @@ class PostgresDocumentRepository(IDocumentRepository):
                     }
                 ],
             }
+
+    @transaction.atomic
+    def get_pending_processing(
+        self,
+        document_type: DocumentType,
+        limit: int = 1000,
+    ) -> List[Document]:
+        qs = (
+            RawDocument.objects.filter(processing=False, document_type=document_type)
+            .filter(Q(processed_at__isnull=True) | Q(updated_at__gt=F("processed_at")))
+            .select_for_update(of=("self",), skip_locked=True)[:limit]
+        )
+
+        for obj in qs:
+            obj.processing = True
+        try:
+            RawDocument.objects.bulk_update(qs, ["processing"])
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+        return [model.to_entity() for model in qs]
