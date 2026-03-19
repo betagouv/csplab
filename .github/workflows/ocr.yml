@@ -20,6 +20,10 @@ jobs:
         working-directory: ./src/ocr
     steps:
       - uses: actions/checkout@v5
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils tesseract-ocr
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -68,6 +72,10 @@ jobs:
       API_KEY: test-api-key-for-development
     steps:
       - uses: actions/checkout@v5
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils tesseract-ocr
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
