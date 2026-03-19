@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from api.auth import verify_api_key
 from application.usecases.extract_text_usecase import ExtractTextUsecase
+from domain.interfaces.pdf_validator import IPDFValidator
 from infrastructure.di.container import Container
 
 public_router = APIRouter()
@@ -19,11 +20,14 @@ def health():
 async def extract_text(
     file: UploadFile = File(...),
     usecase: ExtractTextUsecase = Depends(Provide[Container.extract_text_usecase]),
+    validator: IPDFValidator = Depends(Provide[Container.pdf_validator]),
 ):
-    if file.content_type != "application/pdf":
-        raise HTTPException(status_code=400, detail="File must be a PDF")
-
     content = await file.read()
+
+    # Utiliser pypdf pour valider le PDF au lieu du content_type
+    if not await validator.validate_pdf(content):
+        raise HTTPException(status_code=400, detail="File must be a valid PDF")
+
     text = await usecase.execute(content)
 
     return {"text": text, "pages": 1}

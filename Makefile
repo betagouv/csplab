@@ -34,7 +34,6 @@ setup: ## copy example env files to local files
 	@cd src/tycho && direnv allow
 	@cd src/ocr && direnv allow
 	@cd src/notebook && direnv allow
-	@cd src/ocr && direnv allow
 	@echo "✅ Environment files copied. Please edit env.d/* with your actual values."
 .PHONY: setup
 
@@ -260,13 +259,19 @@ lint-ocr-mypy: ## lint ocr python sources with mypy
 ## TEST
 test: ## test all services
 test: \
-  test-tycho
+  test-tycho \
+  test-ocr
 .PHONY: test
 
 test-tycho: ## test tycho python sources
 	@echo 'test:tycho started…'
 	$(TYCHO_UV) pytest --numprocesses=logical --create-db $(ARGS)
 .PHONY: test-tycho
+
+test-ocr: ## test ocr python sources
+	@echo 'test:ocr started…'
+	$(OCR_UV) pytest $(ARGS)
+.PHONY: test-ocr
 
 ## MANAGE docker services
 status: ## an alias for "docker compose ps"
