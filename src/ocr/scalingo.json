@@ -1,0 +1,13 @@
+{
+  "formation": {
+    "web": {
+      "amount": 1,
+      "size": "S"
+    }
+  },
+  "env": {
+    "PYTHON_VERSION": "3.12.11",
+    "UV_PYTHON": "3.12"
+  },
+  "addons": []
+}

@@ -10,6 +10,12 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "sentry-sdk>=2.54.0",
     "uvicorn>=0.42.0",
+    "pytesseract>=0.3.10",
+    "pdf2image>=1.17.0",
+    "Pillow>=10.0.0",
+    "dependency-injector>=4.41.0",
+    "pydantic>=2.0.0",
+    "python-multipart>=0.0.6",
 ]
 
 [dependency-groups]
@@ -36,10 +42,8 @@ url = "https://pypi.org/simple"
 [tool.uv.sources]
 ocr = { path = ".", editable = true }
 
-[tool.hatch.build.targets.wheel]
-packages = [
-  "ocr",
-]
+[tool.setuptools.packages.find]
+include = ["app*", "domain*", "application*", "infrastructure*"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 python_files = [
@@ -75,11 +79,15 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"app/routes.py" = [
+    "B008", # Function call in argument defaults (acceptable for FastAPI)
+]
 "**/tests/*" = [
     "S101", # use of assert
     "S311", # standard pseudo-random generators not suitable for crypto
     "PLR0913", # too many args in function definition
     "PLW0108", # Lambda may be unnecessary; consider inlining inner function
+    "PLR2004", # Magic value used in comparison (acceptable for HTTP status codes in tests)
 ]
 
 [tool.ruff.lint.pydocstyle]
