@@ -1,5 +1,3 @@
-"""Albert text formatter implementation."""
-
 import json
 from http import HTTPStatus
 from typing import Any, Dict
