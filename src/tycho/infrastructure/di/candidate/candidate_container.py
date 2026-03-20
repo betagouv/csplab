@@ -10,8 +10,8 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.retrieve_corps import RetrieveCorpsUsecase
-from infrastructure.external_gateways.albert_pdf_extractor import AlbertPDFExtractor
-from infrastructure.external_gateways.openai_pdf_extractor import OpenAIPDFExtractor
+from infrastructure.external_gateways.albert_text_formatter import AlbertTextFormatter
+from infrastructure.external_gateways.ocr_extractor import OCRExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
 from infrastructure.repositories.candidate.async_postgres_cv_metadata_repository import (  # noqa E501
@@ -20,18 +20,6 @@ from infrastructure.repositories.candidate.async_postgres_cv_metadata_repository
 from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,
 )
-
-
-def _create_pdf_extractor(app_config, http_client):
-    """Create PDF extractor based on configuration using a more readable approach."""
-    extractors = {
-        "ALBERT": lambda cfg: AlbertPDFExtractor(
-            config=cfg.albert, http_client=http_client
-        ),
-        "OPENAI": lambda cfg: OpenAIPDFExtractor(config=cfg.openai),
-    }
-    pdf_extractor_type = "ALBERT" if app_config.ocr_type == "ALBERT" else "OPENAI"
-    return extractors[pdf_extractor_type](app_config)
 
 
 class CandidateContainer(containers.DeclarativeContainer):
@@ -51,11 +39,17 @@ class CandidateContainer(containers.DeclarativeContainer):
     # HTTP client for async operations
     async_http_client = providers.Factory(AsyncHttpClient)
 
-    pdf_text_extractor = providers.Callable(
-        _create_pdf_extractor,
-        app_config,
-        async_http_client,
+    ocr_text_extractor = providers.Factory(
+        OCRExtractor,
+        config=providers.Callable(lambda cfg: cfg.ocr, app_config),
+        http_client=async_http_client,
     )
+    pdf_text_extractor = providers.Factory(
+        AlbertTextFormatter,
+        config=providers.Callable(lambda cfg: cfg.albert, app_config),
+        http_client=async_http_client,
+    )
+
     query_builder = providers.Factory(QueryBuilder)
     async_cv_metadata_repository = providers.Singleton(
         AsyncPostgresCVMetadataRepository
@@ -77,7 +71,8 @@ class CandidateContainer(containers.DeclarativeContainer):
 
     process_uploaded_cv_usecase = providers.Factory(
         ProcessUploadedCVUsecase,
-        pdf_text_extractor=pdf_text_extractor,
+        ocr=ocr_text_extractor,
+        text_formatter=pdf_text_extractor,
         query_builder=query_builder,
         async_cv_metadata_repository=async_cv_metadata_repository,
         logger=logger_service,
