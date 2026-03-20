@@ -26,6 +26,7 @@ default: help
 setup: ## copy example env files to local files
 	@cp src/tycho/.envrc.sample src/tycho/.envrc
 	@cp src/notebook/.envrc.sample src/notebook/.envrc
+	@cp src/ocr/.envrc.sample src/ocr/.envrc
 	@cp env.d/tycho-example env.d/tycho
 	@cp env.d/ocr-example env.d/ocr
 	@cp env.d/notebook-example env.d/notebook
@@ -145,7 +146,7 @@ run-tycho: ## run the tycho service
 .PHONY: run-tycho
 
 run-ocr: ## run the ocr service
-	$(OCR_UV) uvicorn app.main:app --reload --port=8001
+	$(OCR_UV) uvicorn api.main:app --reload --port=8001
 .PHONY: run-ocr
 
 dev: ## run tycho with sass watch and browser auto-reload
@@ -258,13 +259,19 @@ lint-ocr-mypy: ## lint ocr python sources with mypy
 ## TEST
 test: ## test all services
 test: \
-  test-tycho
+  test-tycho \
+  test-ocr
 .PHONY: test
 
 test-tycho: ## test tycho python sources
 	@echo 'test:tycho started…'
 	$(TYCHO_UV) pytest --numprocesses=logical --create-db $(ARGS)
 .PHONY: test-tycho
+
+test-ocr: ## test ocr python sources
+	@echo 'test:ocr started…'
+	$(OCR_UV) pytest $(ARGS)
+.PHONY: test-ocr
 
 ## MANAGE docker services
 status: ## an alias for "docker compose ps"
