@@ -10,7 +10,6 @@ from tests.fixtures.clean_test_factories import (
     create_test_corps_document,
     create_test_offer_document,
 )
-from tests.fixtures.vectorize_test_factories import create_test_offer_for_integration
 
 # Test constants
 DOCUMENTS_COUNT = 2
@@ -132,9 +131,6 @@ def test_upsert_batch_database_error(db, ingestion_integration_container):
     concours_repository = (
         ingestion_integration_container.shared_container.concours_repository()
     )
-    offers_repository = (
-        ingestion_integration_container.shared_container.offers_repository()
-    )
 
     corps = create_test_corps_document(1)
     corps.name = None  # no QA
@@ -144,10 +140,6 @@ def test_upsert_batch_database_error(db, ingestion_integration_container):
     concours.nor_original = None  # no QA
     result_concours = concours_repository.upsert_batch([concours])
 
-    offer = create_test_offer_for_integration(1)
-    offer.publication_date = "invalid_date"  # no QA
-    result_offer = offers_repository.upsert_batch([offer])
-
     assert result_corps["created"] == 0
     assert result_corps["updated"] == 0
     assert len(result_corps["errors"]) == 1
@@ -155,7 +147,3 @@ def test_upsert_batch_database_error(db, ingestion_integration_container):
     assert result_concours["created"] == 0
     assert result_concours["updated"] == 0
     assert len(result_concours["errors"]) == 1
-
-    assert result_offer["created"] == 0
-    assert result_offer["updated"] == 0
-    assert len(result_offer["errors"]) == 1

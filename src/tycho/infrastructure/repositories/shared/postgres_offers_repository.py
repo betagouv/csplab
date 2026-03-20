@@ -91,21 +91,8 @@ class PostgresOffersRepository(IOffersRepository):
             return {"created": created, "updated": updated, "errors": []}
 
         except Exception as e:
-            self.logger.error(f"Database error during bulk upsert: {str(e)}")
-            db_error = DatabaseError(
-                f"Erreur lors de l'upsert batch des offres: {str(e)}"
-            )
-            return {
-                "created": 0,
-                "updated": 0,
-                "errors": [
-                    {
-                        "entity_id": None,
-                        "error": f"Database error during bulk upsert: {str(e)}",
-                        "exception": db_error,
-                    }
-                ],
-            }
+            self.logger.error("Database error during bulk upsert: %s", str(e))
+            raise DatabaseError("Database error during bulk upsert: %s", str(e)) from e
 
     def find_by_id(self, offer_id: UUID) -> Offer:
         try:
