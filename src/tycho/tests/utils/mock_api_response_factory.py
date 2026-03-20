@@ -131,3 +131,133 @@ class MockApiResponseFactory:
                 "requests": 1,
             },
         }
+
+    @staticmethod
+    def create_albert_formatter_error_response() -> Dict:
+        return {
+            "status_code": 401,
+            "detail": "Invalid API key provided",
+            "headers": {"Content-Type": "application/json"},
+        }
+
+    @staticmethod
+    def create_albert_formatter_invalid_response() -> Dict:
+        return {"invalid": "structure", "missing": "required_fields"}
+
+    @staticmethod
+    def create_albert_formatter_empty_choices_response() -> Dict:
+        return {
+            "id": "chatcmpl-test123",
+            "object": "chat.completion",
+            "created": 1774004024,
+            "model": "openweight-large",
+            "choices": [],  # Empty choices array
+            "usage": {
+                "prompt_tokens": 1262,
+                "completion_tokens": 0,
+                "total_tokens": 1262,
+                "cost": 0.0,
+                "carbon": {
+                    "kWh": {"min": 0.022736131127999996, "max": 0.026871822072},
+                    "kgCO2eq": {
+                        "min": 0.013437987405148953,
+                        "max": 0.015880021922380184,
+                    },
+                },
+                "requests": 1,
+            },
+        }
+
+    @staticmethod
+    def create_albert_formatter_fenced_json_response() -> Dict:
+        cv_data = {
+            "experiences": [
+                {
+                    "title": "Data Scientist",
+                    "company": "AI Corp",
+                    "sector": "Artificial Intelligence",
+                    "description": "Machine learning development",
+                }
+            ],
+            "skills": ["Python", "TensorFlow", "Pandas"],
+        }
+
+        fenced_content = f"```json\n{json.dumps(cv_data)}\n```"
+
+        return {
+            "id": "chatcmpl-test456",
+            "object": "chat.completion",
+            "created": 1774004024,
+            "model": "openweight-large",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": fenced_content,
+                        "refusal": None,
+                        "annotations": None,
+                        "audio": None,
+                        "function_call": None,
+                        "tool_calls": [],
+                        "reasoning": None,
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 1262,
+                "completion_tokens": 432,
+                "total_tokens": 1694,
+                "cost": 0.0,
+                "carbon": {
+                    "kWh": {"min": 0.022736131127999996, "max": 0.026871822072},
+                    "kgCO2eq": {
+                        "min": 0.013437987405148953,
+                        "max": 0.015880021922380184,
+                    },
+                },
+                "requests": 1,
+            },
+        }
+
+    @staticmethod
+    def create_albert_formatter_invalid_fenced_json_response() -> Dict:
+        invalid_fenced_content = '```json\n{"experiences": [invalid json here\n```'
+
+        return {
+            "id": "chatcmpl-test789",
+            "object": "chat.completion",
+            "created": 1774004024,
+            "model": "openweight-large",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": invalid_fenced_content,
+                        "refusal": None,
+                        "annotations": None,
+                        "audio": None,
+                        "function_call": None,
+                        "tool_calls": [],
+                        "reasoning": None,
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 1262,
+                "completion_tokens": 432,
+                "total_tokens": 1694,
+                "cost": 0.0,
+                "carbon": {
+                    "kWh": {"min": 0.022736131127999996, "max": 0.026871822072},
+                    "kgCO2eq": {
+                        "min": 0.013437987405148953,
+                        "max": 0.015880021922380184,
+                    },
+                },
+                "requests": 1,
+            },
+        }
