@@ -1,6 +1,5 @@
 """Integration tests for ProcessUploadedCVUsecase with Django persistence."""
 
-import json
 from uuid import UUID
 
 import pytest
@@ -12,45 +11,36 @@ from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 
 
-@pytest.mark.parametrize(
-    "container_name",
-    ["albert_integration_container", "openai_integration_container"],
-)
 @pytest.mark.django_db
 async def test_execute_with_valid_pdf_updates_cv_metadatas(
     httpx_mock,
-    request,
+    albert_integration_container,
     pdf_content,
-    container_name,
     cv_metadata_initial,
     test_app_config,
 ):
-    """Test that valid PDF is processed and saved to real database."""
-    container = request.getfixturevalue(container_name)
-    extractor_type = "albert" if "albert" in container_name else "openai"
+    container = albert_integration_container
 
-    mock_response = MockApiResponseFactory.create_ocr_api_response(
-        experiences=[("Software Engineer", "Tech Corp")],
-        skills=["Python", "Django"],
-        description="5 years in Python development",
-    )
-
-    # Configuration spécifique selon l'extracteur
-    if extractor_type == "albert":
-        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
-        response_json = MockApiResponseFactory.create_albert_ocr_response(mock_response)
-    else:  # openai
-        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
-        response_json = {
-            "choices": [{"message": {"content": json.dumps(mock_response)}}]
-        }
+    # Mock OCR service response
+    ocr_response = MockApiResponseFactory.create_ocr_service_response()
 
     httpx_mock.add_response(
         method="POST",
-        url=api_url,
-        json=response_json,
+        url=f"{test_app_config.ocr.base_url}extract-text",
+        json=ocr_response,
         status_code=200,
     )
+
+    # Mock Albert text formatter response
+    albert_response = MockApiResponseFactory.create_albert_formatter_response()
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
+        json=albert_response,
+        status_code=200,
+    )
+
     # Unpack fixture data
     initial_cv, cv_id = cv_metadata_initial
 
@@ -65,14 +55,11 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
     assert result.status == CVStatus.COMPLETED
 
 
-@pytest.mark.parametrize(
-    "container_name",
-    ["albert_integration_container", "openai_integration_container"],
-)
 @pytest.mark.django_db
-async def test_execute_cv_metadatas_not_found(request, pdf_content, container_name):
-    """Test that CVNotFoundError is raised when CV metadata doesn't exist."""
-    container = request.getfixturevalue(container_name)
+async def test_execute_cv_metadatas_not_found(
+    albert_integration_container, pdf_content
+):
+    container = albert_integration_container
     cv_id = UUID("00000000-0000-0000-0000-000000000000")  # UUID that doesn't exist
 
     usecase = container.process_uploaded_cv_usecase()
@@ -80,38 +67,23 @@ async def test_execute_cv_metadatas_not_found(request, pdf_content, container_na
         await usecase.execute(cv_id, pdf_content)
 
 
-@pytest.mark.parametrize(
-    "container_name", ["albert_integration_container", "openai_integration_container"]
-)
 @pytest.mark.django_db
 async def test_execute_with_api_failure_saves_failed_status_to_database(
     httpx_mock,
-    request,
+    albert_integration_container,
     pdf_content,
-    container_name,
     cv_metadata_initial,
     test_app_config,
 ):
-    """Test that API failure raises error and saves CV with FAILED status to DB."""
-    container = request.getfixturevalue(container_name)
-    extractor_type = "albert" if "albert" in container_name else "openai"
+    container = albert_integration_container
 
-    # Configuration spécifique selon l'extracteur
-    if extractor_type == "albert":
-        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
-        retry_count = 1
-    else:  # openai
-        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
-        retry_count = 3
-
-    # Mock multiple potential retry attempts
-    for _ in range(retry_count):
-        httpx_mock.add_response(
-            method="POST",
-            url=api_url,
-            json={"error": "API Error"},
-            status_code=500,
-        )
+    # Mock OCR service failure
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{test_app_config.ocr.base_url}extract-text",
+        json={"error": "OCR Service Error"},
+        status_code=500,
+    )
 
     # Unpack fixture data
     initial_cv, cv_id = cv_metadata_initial

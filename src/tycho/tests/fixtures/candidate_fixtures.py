@@ -39,7 +39,6 @@ def test_app_config_fixture():
 
 
 def _create_candidate_container(app_config: AppConfig, in_memory: bool):
-    """Factory function to create candidate containers with specified configuration."""
     container = CandidateContainer()
 
     logger_service = LoggerService()
@@ -63,26 +62,12 @@ def _create_candidate_container(app_config: AppConfig, in_memory: bool):
 
 @pytest.fixture(name="albert_candidate_container")
 def albert_candidate_container_fixture(test_app_config):
-    albert_config = test_app_config.model_copy(update={"ocr_type": "ALBERT"})
-    return _create_candidate_container(albert_config, in_memory=True)
-
-
-@pytest.fixture(name="openai_candidate_container")
-def openai_candidate_container_fixture(test_app_config):
-    openai_config = test_app_config.model_copy(update={"ocr_type": "OPENAI"})
-    return _create_candidate_container(openai_config, in_memory=True)
+    return _create_candidate_container(test_app_config, in_memory=True)
 
 
 @pytest.fixture(name="albert_integration_container")
 def albert_integration_container_fixture(test_app_config):
-    albert_config = test_app_config.model_copy(update={"ocr_type": "ALBERT"})
-    return _create_candidate_container(albert_config, in_memory=False)
-
-
-@pytest.fixture(name="openai_integration_container")
-def openai_integration_container_fixture(test_app_config):
-    openai_config = test_app_config.model_copy(update={"ocr_type": "OPENAI"})
-    return _create_candidate_container(openai_config, in_memory=False)
+    return _create_candidate_container(test_app_config, in_memory=False)
 
 
 @pytest.fixture(name="pdf_content")
