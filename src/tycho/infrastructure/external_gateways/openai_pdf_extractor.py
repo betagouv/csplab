@@ -4,6 +4,7 @@ import base64
 import json
 
 import pymupdf
+from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
 from openai import (
     APIStatusError,
     AsyncOpenAI,
@@ -11,7 +12,6 @@ from openai import (
 from pydantic import ValidationError
 
 from config.app_config import OpenAIConfig
-from domain.services.pdf_text_extractor_interface import IPDFTextExtractor
 from domain.value_objects.cv_extraction_types import CVExtractionResult
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.constants.ocr_cv_prompts import (
