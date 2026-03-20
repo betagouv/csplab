@@ -32,9 +32,8 @@ DOCUMENT_FACTORY_MAP = {
 @pytest.mark.parametrize(
     "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
 )
-@pytest.mark.django_db
 def test_execute_handles_empty_documents(
-    ingestion_integration_container, document_type
+    db, ingestion_integration_container, document_type
 ):
     clean_documents_usecase = ingestion_integration_container.clean_documents_usecase()
 
@@ -55,9 +54,8 @@ def test_execute_handles_empty_documents(
 @pytest.mark.parametrize(
     "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
 )
-@pytest.mark.django_db
 def test_execute_updates_existing_entities(
-    ingestion_integration_container, document_type
+    db, ingestion_integration_container, document_type
 ):
     clean_documents_usecase = ingestion_integration_container.clean_documents_usecase()
 
@@ -85,8 +83,7 @@ def test_execute_updates_existing_entities(
     assert len(saved_entities) == 1
 
 
-@pytest.mark.django_db
-def test_find_by_id_nonexistent(ingestion_integration_container):
+def test_find_by_id_nonexistent(db, ingestion_integration_container):
     corps_repository = (
         ingestion_integration_container.shared_container.corps_repository()
     )
@@ -104,8 +101,7 @@ def test_find_by_id_nonexistent(ingestion_integration_container):
         offers_repository.find_by_id(99999)
 
 
-@pytest.mark.django_db
-def test_repository_get_all_empty(ingestion_integration_container):
+def test_repository_get_all_empty(db, ingestion_integration_container):
     corps_repository = (
         ingestion_integration_container.shared_container.corps_repository()
     )
@@ -129,8 +125,7 @@ def test_repository_get_all_empty(ingestion_integration_container):
     assert isinstance(all_offers, list)
 
 
-@pytest.mark.django_db
-def test_upsert_batch_database_error(ingestion_integration_container):
+def test_upsert_batch_database_error(db, ingestion_integration_container):
     corps_repository = (
         ingestion_integration_container.shared_container.corps_repository()
     )
