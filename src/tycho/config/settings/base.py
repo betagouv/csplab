@@ -29,7 +29,7 @@ env = environ.Env(
     TYCHO_OPENROUTER_OCR_MODEL=(str, "openai/gpt-5.2"),
     TYCHO_ALBERT_API_BASE_URL=(str, "https://albert.api.etalab.gouv.fr"),
     TYCHO_ALBERT_API_KEY=(str, "albert-api-key"),
-    TYCHO_ALBERT_OCR_MODEL=(str, "albert-large"),
+    TYCHO_ALBERT_MODEL=(str, "openweight-large"),
     TYCHO_ALBERT_OCR_DPI=(int, 200),
     TYCHO_OCR_API_KEY=(str, "fake-ocr-api-key"),
     TYCHO_OCR_BASE_URL=(str, "https://fake-ocr.example.com"),
@@ -315,8 +315,7 @@ OPENROUTER_OCR_MODEL = env.str("OPENROUTER_OCR_MODEL")
 
 ALBERT_API_BASE_URL = env.str("ALBERT_API_BASE_URL")
 ALBERT_API_KEY = env.str("ALBERT_API_KEY")
-ALBERT_OCR_MODEL = env.str("ALBERT_OCR_MODEL")
-ALBERT_OCR_DPI = env.str("ALBERT_OCR_DPI")
+ALBERT_MODEL = env.str("ALBERT_MODEL")
 
 # OCR Service
 OCR_API_KEY = env.str("OCR_API_KEY")

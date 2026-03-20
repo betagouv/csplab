@@ -49,9 +49,20 @@ class AlbertOCRResponse(BaseModel):
     usage: AlbertUsage
 
 
+class AlbertCompletionMessage(BaseModel):
+    role: str
+    content: Optional[str] = None
+    refusal: Optional[str] = None
+    annotations: Optional[str] = None
+    audio: Optional[str] = None
+    function_call: Optional[str] = None
+    tool_calls: Optional[List[Dict]] = None
+    reasoning: Optional[str] = None
+
+
 class AlbertCompletionChoice(BaseModel):
     index: int
-    message: Dict[str, str]
+    message: AlbertCompletionMessage
     finish_reason: str
 
 

@@ -14,8 +14,7 @@ class OpenAIConfig(BaseModel):
 class AlbertConfig(BaseModel):
     api_base_url: HttpUrl
     api_key: str
-    ocr_model: str
-    ocr_dpi: int
+    model: str
 
 
 class PisteConfig(BaseModel):
@@ -64,8 +63,7 @@ class AppConfig(BaseModel):
     # Albert
     albert_api_base_url: HttpUrl
     albert_api_key: str
-    albert_ocr_model: str
-    albert_ocr_dpi: int
+    albert_model: str
 
     # PISTE
     piste_oauth_base_url: HttpUrl
@@ -102,8 +100,7 @@ class AppConfig(BaseModel):
             openrouter_ocr_model=settings.OPENROUTER_OCR_MODEL,
             albert_api_base_url=settings.ALBERT_API_BASE_URL,
             albert_api_key=settings.ALBERT_API_KEY,
-            albert_ocr_model=settings.ALBERT_OCR_MODEL,
-            albert_ocr_dpi=settings.ALBERT_OCR_DPI,
+            albert_model=settings.ALBERT_MODEL,
             piste_oauth_base_url=settings.PISTE_OAUTH_BASE_URL,
             ingres_base_url=settings.INGRES_BASE_URL,
             ingres_client_id=settings.INGRES_CLIENT_ID,
@@ -132,8 +129,7 @@ class AppConfig(BaseModel):
         return AlbertConfig(
             api_base_url=self.albert_api_base_url,
             api_key=self.albert_api_key,
-            ocr_model=self.albert_ocr_model,
-            ocr_dpi=self.albert_ocr_dpi,
+            model=self.albert_model,
         )
 
     @property
