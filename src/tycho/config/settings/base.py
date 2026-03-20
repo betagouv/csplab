@@ -31,6 +31,8 @@ env = environ.Env(
     TYCHO_ALBERT_API_KEY=(str, "albert-api-key"),
     TYCHO_ALBERT_OCR_MODEL=(str, "albert-large"),
     TYCHO_ALBERT_OCR_DPI=(int, 200),
+    TYCHO_OCR_API_KEY=(str, "fake-ocr-api-key"),
+    TYCHO_OCR_BASE_URL=(str, "https://fake-ocr.example.com"),
     TYCHO_OPIK_API_KEY=(str, "opik-api-key"),
     TYCHO_TALENTSOFT_CLIENT_ID=(str, "fake-client-id"),
     TYCHO_TALENTSOFT_CLIENT_SECRET=(str, "fake-client-secret"),
@@ -315,6 +317,10 @@ ALBERT_API_BASE_URL = env.str("ALBERT_API_BASE_URL")
 ALBERT_API_KEY = env.str("ALBERT_API_KEY")
 ALBERT_OCR_MODEL = env.str("ALBERT_OCR_MODEL")
 ALBERT_OCR_DPI = env.str("ALBERT_OCR_DPI")
+
+# OCR Service
+OCR_API_KEY = env.str("OCR_API_KEY")
+OCR_BASE_URL = env.str("OCR_BASE_URL")
 
 OPIK_API_KEY = env.str("OPIK_API_KEY")
 
