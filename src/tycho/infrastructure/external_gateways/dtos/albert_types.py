@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -47,3 +47,24 @@ class AlbertOCRResponse(BaseModel):
     object: str
     data: List[AlbertDocumentPage]
     usage: AlbertUsage
+
+
+class AlbertCompletionChoice(BaseModel):
+    index: int
+    message: Dict[str, str]
+    finish_reason: str
+
+
+class AlbertCompletionResponse(BaseModel):
+    id: str
+    object: str
+    created: int
+    model: str
+    choices: List[AlbertCompletionChoice]
+    usage: AlbertUsage
+
+
+class AlbertErrorResponse(BaseModel):
+    status_code: Optional[int]
+    detail: str
+    headers: Optional[Dict[str, str]] | None = None

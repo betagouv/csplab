@@ -1,5 +1,3 @@
-"""OCR CV prompts constants."""
-
 CV_EXTRACTION_PROMPT = """Tu es un assistant qui extrait les expériences
 professionnelles et les compétences d'un CV.
 
