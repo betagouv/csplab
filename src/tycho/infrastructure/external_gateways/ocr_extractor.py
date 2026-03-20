@@ -23,7 +23,7 @@ class OCRExtractor(IOCR):
         self.http_client = http_client
 
     async def extract_text(self, pdf_content: bytes) -> str:
-        url = f"{self.config.base_url}/extract-text"
+        url = f"{self.config.base_url}extract-text"
         headers = {"X-API-Key": self.config.api_key}
         files = {"file": ("document.pdf", pdf_content, "application/pdf")}
 

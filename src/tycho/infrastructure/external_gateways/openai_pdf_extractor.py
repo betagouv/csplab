@@ -21,25 +21,12 @@ from infrastructure.external_gateways.dtos.openai_dtos import OpenAIResponse
 
 
 class OpenAIPDFExtractor(IPDFTextExtractor):
-    """Implementation of PDF text extraction service using OpenAI API."""
-
     def __init__(self, config: OpenAIConfig):
         """Initialize with OpenAI configuration."""
         self.config = config
         self.client = AsyncOpenAI(api_key=config.api_key, base_url=str(config.base_url))
 
     async def extract_text(self, pdf_content: bytes) -> CVExtractionResult:
-        """Extract structured content from PDF bytes.
-
-        Args:
-            pdf_content: PDF file content as bytes
-
-        Returns:
-            Structured CV extraction result with experiences and skills
-
-        Raises:
-            ExternalApiError: If OpenAI API call fails or returns invalid data
-        """
         try:
             # Convert PDF to images using PyMuPDF
             pdf_doc = pymupdf.open(stream=pdf_content, filetype="pdf")

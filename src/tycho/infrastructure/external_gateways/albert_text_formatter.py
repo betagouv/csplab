@@ -27,11 +27,11 @@ class AlbertTextFormatter(ITextFormatter):
         self.http_client = http_client
 
     async def format_text(self, extracted_text: str) -> CVExtractionResult:
-        url = f"{self.config.api_base_url}/v1/chat/completions"
+        url = f"{self.config.api_base_url}v1/chat/completions"
         headers = {"Authorization": f"Bearer {self.config.api_key}"}
 
         data: JsonDataType = {
-            "model": self.config.ocr_model,
+            "model": self.config.model,
             "messages": [
                 {"role": "system", "content": CV_EXTRACTION_PROMPT},
                 {
@@ -95,7 +95,7 @@ class AlbertTextFormatter(ITextFormatter):
                 },
             )
 
-        completion_content = albert_response.choices[0].message.get("content", "")
+        completion_content = albert_response.choices[0].message.content or ""
 
         # Parse the JSON response from Albert
         try:

@@ -39,8 +39,7 @@ TYCHO_EMBEDDING_DIMENSION=1024
 
 TYCHO_ALBERT_API_BASE_URL=https://albert.api.etalab.gouv.fr
 TYCHO_ALBERT_API_KEY=
-TYCHO_ALBERT_OCR_MODEL=albert-large
-TYCHO_ALBERT_OCR_DPI=200
+TYCHO_ALBERT_MODEL=openweight-large
 
 TYCHO_OCR_API_KEY=verysecretkey
 TYCHO_OCR_BASE_URL=https://csplab-ocr.osc-fr1.scalingo.io
