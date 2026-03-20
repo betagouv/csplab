@@ -79,3 +79,16 @@ class InMemoryDocumentRepository(IDocumentRepository):
     def clear(self) -> None:
         self._documents.clear()
         self._next_id = 1
+
+    def get_pending_processing(
+        self,
+        document_type: DocumentType,
+        limit: int = 1000,
+    ) -> List[Document]:
+        return []
+
+    def mark_as_processed(self, raw_documents: List[Document]) -> int:
+        return 0
+
+    def mark_as_pending(self, raw_documents: List[Document]) -> int:
+        return 0

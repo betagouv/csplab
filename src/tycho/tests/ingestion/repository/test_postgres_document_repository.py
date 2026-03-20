@@ -172,3 +172,45 @@ class TestGetPendingProcessing:
         assert len(entities) == 1
         assert RawDocument.objects.filter(processing=True).count() == 1
         assert RawDocument.objects.filter(processing=False).count() == 1
+
+
+def test_mark_as_processed(db, repository):
+    raw_documents = [
+        RawDocumentFactory.create(processing=True).to_entity(),
+        RawDocumentFactory.create(processing=False).to_entity(),
+    ]
+    undesired_raw_document = RawDocumentFactory.create(processing=True).to_entity()
+
+    count = repository.mark_as_processed(raw_documents)
+    assert count == len(raw_documents)
+
+    model_objects = RawDocument.objects.filter(
+        processing=False, processed_at__isnull=False
+    )
+    assert set(model_objects.values_list("id", flat=True)) == {
+        raw_document.id for raw_document in raw_documents
+    }
+
+    undesired_model_objects = RawDocument.objects.get(
+        processing=True, processed_at__isnull=True
+    )
+    assert undesired_model_objects.id == undesired_raw_document.id
+
+
+def test_mark_as_pending(db, repository):
+    raw_documents = [
+        RawDocumentFactory.create(processing=True).to_entity(),
+        RawDocumentFactory.create(processing=False).to_entity(),
+    ]
+    undesired_raw_document = RawDocumentFactory.create(processing=True).to_entity()
+
+    count = repository.mark_as_pending(raw_documents)
+    assert count == len(raw_documents)
+
+    model_objects = RawDocument.objects.filter(processing=False)
+    assert set(model_objects.values_list("id", flat=True)) == {
+        raw_document.id for raw_document in raw_documents
+    }
+
+    undesired_model_objects = RawDocument.objects.get(processing=True)
+    assert undesired_model_objects.id == undesired_raw_document.id

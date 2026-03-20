@@ -123,3 +123,19 @@ class PostgresDocumentRepository(IDocumentRepository):
             raise DatabaseError(f"Database error during update: {str(e)}") from e
 
         return [model.to_entity() for model in qs]
+
+    def mark_as_processed(self, raw_documents: List[Document]) -> int:
+        try:
+            return RawDocument.objects.filter(
+                id__in=[obj.id for obj in raw_documents]
+            ).update(processed_at=timezone.now(), processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+    def mark_as_pending(self, raw_documents: List[Document]) -> int:
+        try:
+            return RawDocument.objects.filter(
+                id__in=[obj.id for obj in raw_documents]
+            ).update(processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e

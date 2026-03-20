@@ -23,3 +23,13 @@ class IDocumentRepository(Protocol):
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
     ) -> IUpsertResult: ...
+
+    def get_pending_processing(
+        self,
+        document_type: DocumentType,
+        limit: int = 1000,
+    ) -> List[Document]: ...
+
+    def mark_as_processed(self, raw_documents: List[Document]) -> int: ...
+
+    def mark_as_pending(self, raw_documents: List[Document]) -> int: ...
