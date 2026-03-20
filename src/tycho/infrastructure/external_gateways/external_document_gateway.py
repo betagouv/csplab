@@ -1,5 +1,3 @@
-"""External document gateway implementation."""
-
 from datetime import datetime, timezone
 from typing import List, Tuple, cast
 
@@ -17,15 +15,12 @@ from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontCl
 
 
 class ExternalDocumentGateway(IDocumentGateway):
-    """Fetches documents from external API sources."""
-
     def __init__(
         self,
         piste_client: IHttpClient,
         talentsoft_front_client: TalentsoftFrontClient,
         logger_service: ILogger,
     ):
-        """Initialize with PISTE client, logger and source."""
         self.piste_client = piste_client
         self.talentsoft_front_client = talentsoft_front_client
         self.logger = logger_service
@@ -42,7 +37,6 @@ class ExternalDocumentGateway(IDocumentGateway):
     def fetch_by_type(
         self, document_type: DocumentType, start: int = 1, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
-        """Fetch documents from external source."""
         self.logger.info(f"Fetching documents of type {document_type}")
 
         source = self._source.get(document_type)
@@ -98,14 +92,12 @@ class ExternalDocumentGateway(IDocumentGateway):
         return cast(List[JsonDataType], raw_documents), has_more
 
     async def _fetch_offers(self, start: int):
-        """Init talentsoft_front_client with async context."""
         async with self.talentsoft_front_client:
             return await self.talentsoft_front_client.get_offers(start=start)
 
     def _fetch_talentsoft_api(
         self, document_type: DocumentType, start: int = 1
     ) -> Tuple[List[Document], bool]:
-        """Fetch documents from talensoft front external source."""
         if document_type != DocumentType.OFFERS:
             raise ValueError(
                 f"Talentsoft Front API: unsupported document type: {document_type}"

@@ -1,5 +1,3 @@
-"""Views for ingestion API endpoints."""
-
 from datetime import datetime
 
 import polars as pl
@@ -17,7 +15,6 @@ from presentation.ingestion.schemas import ConcoursRowSchema
 
 
 def format_validation_error(error: ValidationError) -> str:
-    """Format Pydantic validation error into a readable message."""
     errors = []
     for err in error.errors():
         field = err["loc"][0] if err["loc"] else "unknown"
@@ -39,12 +36,9 @@ def format_validation_error(error: ValidationError) -> str:
 
 
 class ConcoursUploadView(APIView):
-    """API endpoint for uploading concours CSV files."""
-
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
-        """Handle CSV file upload and process concours data."""
         container = create_ingestion_container()
         logger = container.logger_service()
 

@@ -1,5 +1,3 @@
-"""Integration tests for CleanDocuments usecase with external adapters."""
-
 import pytest
 from django.apps import apps
 
@@ -38,7 +36,6 @@ DOCUMENT_FACTORY_MAP = {
 def test_execute_handles_empty_documents(
     ingestion_integration_container, document_type
 ):
-    """Test that empty document list is handled correctly."""
     clean_documents_usecase = ingestion_integration_container.clean_documents_usecase()
 
     # No documents in database
@@ -62,7 +59,6 @@ def test_execute_handles_empty_documents(
 def test_execute_updates_existing_entities(
     ingestion_integration_container, document_type
 ):
-    """Test that existing entities are updated correctly."""
     clean_documents_usecase = ingestion_integration_container.clean_documents_usecase()
 
     # Create raw document in database using repository
@@ -91,7 +87,6 @@ def test_execute_updates_existing_entities(
 
 @pytest.mark.django_db
 def test_find_by_id_nonexistent(ingestion_integration_container):
-    """Test find_by_id returns None for nonexistent Corp, Concours, Offers."""
     corps_repository = (
         ingestion_integration_container.shared_container.corps_repository()
     )
@@ -111,7 +106,6 @@ def test_find_by_id_nonexistent(ingestion_integration_container):
 
 @pytest.mark.django_db
 def test_repository_get_all_empty(ingestion_integration_container):
-    """Test get_all returns empty list when no Corps exist."""
     corps_repository = (
         ingestion_integration_container.shared_container.corps_repository()
     )
@@ -137,7 +131,6 @@ def test_repository_get_all_empty(ingestion_integration_container):
 
 @pytest.mark.django_db
 def test_upsert_batch_database_error(ingestion_integration_container):
-    """Test that database errors are properly handled."""
     corps_repository = (
         ingestion_integration_container.shared_container.corps_repository()
     )

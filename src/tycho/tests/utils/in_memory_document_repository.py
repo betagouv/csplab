@@ -1,5 +1,3 @@
-"""In-memory implementation of document repository for testing."""
-
 from datetime import datetime, timezone
 from typing import List, Tuple
 
@@ -12,24 +10,19 @@ from domain.repositories.document_repository_interface import (
 
 
 class InMemoryDocumentRepository(IDocumentRepository):
-    """In-memory implementation of document repository for testing."""
-
     def __init__(self) -> None:
-        """Initialize with empty document storage."""
         self._documents: List[Document] = []
         self._next_id = 1
 
     def find_by_type(
         self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
-        """Get documents by type."""
         has_more = False
         return [doc for doc in self._documents if doc.type == document_type], has_more
 
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
     ) -> IUpsertResult:
-        """Insert or update multiple documents."""
         created = 0
         updated = 0
         errors: List[IUpsertError] = []
@@ -86,6 +79,5 @@ class InMemoryDocumentRepository(IDocumentRepository):
         }
 
     def clear(self) -> None:
-        """Clear all documents for testing."""
         self._documents.clear()
         self._next_id = 1

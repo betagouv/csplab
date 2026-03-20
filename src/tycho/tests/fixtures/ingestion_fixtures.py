@@ -1,5 +1,3 @@
-"""Shared fixtures for ingestion tests."""
-
 from datetime import datetime, timezone
 
 import pytest
@@ -219,7 +217,6 @@ def documents_repository_fixture(documents_ingestion_container):
 # USECASES
 @pytest.fixture(name="documents_usecase")
 def documents_usecase_fixture(documents_ingestion_container):
-    """Create the load documents documents_usecase."""
     return documents_ingestion_container.load_documents_usecase()
 
 

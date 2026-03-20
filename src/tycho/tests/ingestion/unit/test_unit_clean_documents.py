@@ -35,7 +35,6 @@ OFFERS_ERROR_DOCUMENTS = 2
     "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
 )
 def test_clean_multiple_documents_success(ingestion_container, document_type):
-    """Test cleaning multiple documents of the same type."""
     usecase = ingestion_container.clean_documents_usecase()
     # Create multiple documents
     if document_type == DocumentType.CORPS:
@@ -68,7 +67,6 @@ def test_clean_multiple_documents_success(ingestion_container, document_type):
     "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
 )
 def test_clean_documents_with_empty_repository(ingestion_container, document_type):
-    """Test cleaning when no documents exist returns zero statistics."""
     usecase = ingestion_container.clean_documents_usecase()
 
     result = usecase.execute(document_type)
@@ -81,7 +79,6 @@ def test_clean_documents_with_empty_repository(ingestion_container, document_typ
 
 
 def test_execute_raises_error_for_unsupported_document_type(ingestion_container):
-    """Test that UnsupportedDocumentTypeError is raised for unsupported types."""
     # Create a GRADE document (unsupported)
     grade_document = Document(
         external_id="grade_test_1",
@@ -103,7 +100,6 @@ def test_execute_raises_error_for_unsupported_document_type(ingestion_container)
 
 
 def test_clean_corps_filters_invalid_documents(ingestion_container):
-    """Test that invalid corps data is properly filtered out."""
     usecase = ingestion_container.clean_documents_usecase()
 
     # Create mixed data: 1 valid FPE + 1 invalid FPT
@@ -130,7 +126,6 @@ def test_clean_corps_filters_invalid_documents(ingestion_container):
 
 
 def test_clean_concours_filters_invalid_documents(ingestion_container):
-    """Test that invalid concours data is properly filtered out."""
     usecase = ingestion_container.clean_documents_usecase()
 
     # Create mixed data: 1 valid FPE + 1 invalid FPT
@@ -157,7 +152,6 @@ def test_clean_concours_filters_invalid_documents(ingestion_container):
 
 
 def test_clean_offers_filters_invalid_documents(ingestion_container):
-    """Test that invalid offers data is properly filtered out."""
     usecase = ingestion_container.clean_documents_usecase()
 
     # Valid FPE with multiple edge cases combined

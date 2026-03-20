@@ -24,7 +24,6 @@ from tests.factories.ingres_factories import IngresCorpsApiResponseFactory
 
 @pytest.fixture(name="corps_document")
 def corps_document_fixture():
-    """Create a single corps document for testing."""
     return Document(
         external_id="test_corps_doc",
         raw_data={"name": "Test Document"},
@@ -36,7 +35,6 @@ def corps_document_fixture():
 
 @pytest.fixture(name="corps_documents")
 def corps_documents_fixture():
-    """Create multiple corps documents for batch testing."""
     return [
         Document(
             external_id="corps_1",
@@ -57,7 +55,6 @@ def corps_documents_fixture():
 
 @pytest.fixture(name="offer_documents")
 def offer_documents_fixture():
-    """Create multiple offer documents for batch testing."""
     return [
         Document(
             external_id="offer_1",
@@ -78,13 +75,11 @@ def offer_documents_fixture():
 
 @pytest.fixture(name="raw_offer_documents")
 def raw_offer_documents_fixture(offer_documents):
-    """Return raw_data of offer_documents fixture."""
     return [doc.raw_data for doc in offer_documents]
 
 
 @pytest.fixture(name="concours_documents")
 def concours_documents_fixture():
-    """Create sample contest documents."""
     return [
         Document(
             external_id="exam_1",
@@ -98,7 +93,6 @@ def concours_documents_fixture():
 
 @pytest.fixture(name="raw_concours_documents")
 def raw_concours_documents_fixture(concours_documents):
-    """Return raw_data of concours_documents fixture."""
     return [doc.raw_data for doc in concours_documents]
 
 
@@ -107,7 +101,6 @@ def create_test_documents(
     raw_data_list,
     doc_type=DocumentType.CORPS,
 ):
-    """Helper to create test documents and load them into documents_repository."""
     documents_repository = documents_ingestion_container.document_repository()
 
     documents = [
@@ -126,13 +119,10 @@ def create_test_documents(
 
 
 class TestCorpsDocumentsUsecase:
-    """Test documents usecase for CORPS documents."""
-
     @responses.activate
     def test_execute_returns_zero_when_no_documents(
         self, documents_usecase, test_app_config
     ):
-        """Test execute returns 0 when documents_repository is empty."""
         # Mock OAuth token endpoint
         responses.add(
             responses.POST,
@@ -166,7 +156,6 @@ class TestCorpsDocumentsUsecase:
         documents_ingestion_container,
         test_app_config,
     ):
-        """Test execute creates new documents when none exist in the system."""
         api_response = IngresCorpsApiResponseFactory.build()
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
 
@@ -205,7 +194,6 @@ class TestCorpsDocumentsUsecase:
         raw_concours_documents,
         test_app_config,
     ):
-        """Test execute updates existing documents."""
         raw_data = copy.deepcopy(raw_concours_documents)
         create_test_documents(
             documents_ingestion_container, raw_data, doc_type=DocumentType.CORPS
@@ -242,12 +230,9 @@ class TestCorpsDocumentsUsecase:
 
 
 class TestOffersDocumentsUsecase:
-    """Test documents usecase for OFFERS documents."""
-
     def test_execute_returns_zero_when_no_documents(
         self, documents_usecase, documents_ingestion_container, httpx_mock
     ):
-        """Test execute returns 0 when documents_repository is empty."""
         client = documents_ingestion_container.talentsoft_front_client()
         client.cached_token = cached_token()
 
@@ -272,7 +257,6 @@ class TestOffersDocumentsUsecase:
         documents_ingestion_container,
         httpx_mock,
     ):
-        """Test execute creates new documents when none exist in the system."""
         count = 2
         client = documents_ingestion_container.talentsoft_front_client()
         client.cached_token = cached_token()
@@ -300,7 +284,6 @@ class TestOffersDocumentsUsecase:
         raw_offer_documents,
         httpx_mock,
     ):
-        """Test execute updates existing documents."""
         raw_data = copy.deepcopy(raw_offer_documents)
         create_test_documents(
             documents_ingestion_container, raw_data, doc_type=DocumentType.OFFERS
@@ -327,15 +310,12 @@ class TestOffersDocumentsUsecase:
 
 
 class TestGeneralDocumentsUsecase:
-    """Test general documents usecase functionality."""
-
     def test_execute_returns_correct_count_with_documents_with_data_input(
         self,
         documents_usecase,
         documents_ingestion_container,
         raw_concours_documents,
     ):
-        """Test execute returns correct count when documents exist with CSV upload."""
         raw_data = copy.deepcopy(raw_concours_documents)
         documents = create_test_documents(documents_ingestion_container, raw_data)
 
@@ -349,7 +329,6 @@ class TestGeneralDocumentsUsecase:
     def test_missing_document_type_raises_missing_operation_parameter_error(
         self, documents_usecase
     ):
-        """Test that missing document_type in kwargs raises ApplicationError."""
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={},
