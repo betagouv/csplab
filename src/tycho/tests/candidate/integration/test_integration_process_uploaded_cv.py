@@ -374,3 +374,109 @@ async def test_execute_albert_invalid_fenced_json_response(
 
     error_message = str(exc_info.value)
     assert "Failed to parse JSON from Albert completion response" in error_message
+
+
+@pytest.mark.django_db
+async def test_execute_ocr_http_error_with_valid_error_response(
+    httpx_mock,
+    albert_integration_container,
+    pdf_content,
+    cv_metadata_initial,
+    test_app_config,
+):
+    container = albert_integration_container
+
+    # Mock OCR service HTTP error with valid error response
+    ocr_error_response = MockApiResponseFactory.create_ocr_service_error_response()
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{test_app_config.ocr.base_url}extract-text",
+        json=ocr_error_response,
+        status_code=HTTPStatus.BAD_REQUEST,
+    )
+
+    # Unpack fixture data
+    initial_cv, cv_id = cv_metadata_initial
+
+    # Prepopulate the repository
+    repo = container.async_cv_metadata_repository()
+    await repo.save(initial_cv)
+
+    usecase = container.process_uploaded_cv_usecase()
+
+    with pytest.raises(ExternalApiError) as exc_info:
+        await usecase.execute(cv_id, pdf_content)
+
+    error_message = str(exc_info.value)
+    assert "Invalid file format or corrupted PDF" in error_message
+    assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
+
+
+@pytest.mark.django_db
+async def test_execute_ocr_http_error_with_invalid_error_response(
+    httpx_mock,
+    albert_integration_container,
+    pdf_content,
+    cv_metadata_initial,
+    test_app_config,
+):
+    container = albert_integration_container
+
+    # Mock OCR service HTTP error with invalid error response (line 38)
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{test_app_config.ocr.base_url}extract-text",
+        json={"unexpected": "error format"},
+        status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+    )
+
+    # Unpack fixture data
+    initial_cv, cv_id = cv_metadata_initial
+
+    # Prepopulate the repository
+    repo = container.async_cv_metadata_repository()
+    await repo.save(initial_cv)
+
+    usecase = container.process_uploaded_cv_usecase()
+
+    with pytest.raises(ExternalApiError) as exc_info:
+        await usecase.execute(cv_id, pdf_content)
+
+    error_message = str(exc_info.value)
+    assert "OCR service error: 500" in error_message
+    assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+@pytest.mark.django_db
+async def test_execute_ocr_invalid_success_response_structure(
+    httpx_mock,
+    albert_integration_container,
+    pdf_content,
+    cv_metadata_initial,
+    test_app_config,
+):
+    container = albert_integration_container
+
+    # Mock OCR service with invalid success response structure (lines 58-59)
+    ocr_invalid_response = MockApiResponseFactory.create_ocr_service_invalid_response()
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{test_app_config.ocr.base_url}extract-text",
+        json=ocr_invalid_response,
+        status_code=HTTPStatus.OK,
+    )
+
+    # Unpack fixture data
+    initial_cv, cv_id = cv_metadata_initial
+
+    # Prepopulate the repository
+    repo = container.async_cv_metadata_repository()
+    await repo.save(initial_cv)
+
+    usecase = container.process_uploaded_cv_usecase()
+
+    with pytest.raises(ExternalApiError) as exc_info:
+        await usecase.execute(cv_id, pdf_content)
+
+    error_message = str(exc_info.value)
+    assert "Failed to parse JSON response" in error_message

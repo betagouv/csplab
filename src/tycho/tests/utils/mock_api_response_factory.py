@@ -82,6 +82,14 @@ class MockApiResponseFactory:
         }
 
     @staticmethod
+    def create_ocr_service_error_response() -> Dict:
+        return {"detail": "Invalid file format or corrupted PDF"}
+
+    @staticmethod
+    def create_ocr_service_invalid_response() -> Dict:
+        return {"invalid": "structure", "missing": "required_fields"}
+
+    @staticmethod
     def create_albert_formatter_response() -> Dict:
         cv_data = {
             "experiences": [
