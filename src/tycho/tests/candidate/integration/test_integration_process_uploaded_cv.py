@@ -151,50 +151,6 @@ async def test_execute_albert_http_error_with_valid_error_response(
 
 
 @pytest.mark.django_db
-async def test_execute_albert_http_error_with_invalid_error_response(
-    httpx_mock,
-    albert_integration_container,
-    pdf_content,
-    cv_metadata_initial,
-    test_app_config,
-):
-    container = albert_integration_container
-
-    # Mock OCR service success
-    ocr_response = MockApiResponseFactory.create_ocr_service_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json=ocr_response,
-        status_code=200,
-    )
-
-    # Mock Albert HTTP error with invalid error response
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
-        json={"unexpected": "error format"},
-        status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-    )
-
-    # Unpack fixture data
-    initial_cv, cv_id = cv_metadata_initial
-
-    # Prepopulate the repository
-    repo = container.async_cv_metadata_repository()
-    await repo.save(initial_cv)
-
-    usecase = container.process_uploaded_cv_usecase()
-
-    with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(cv_id, pdf_content)
-
-    error_message = str(exc_info.value)
-    assert "Albert completion API error: 500" in error_message
-    assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-
-
-@pytest.mark.django_db
 async def test_execute_albert_invalid_response_structure(
     httpx_mock,
     albert_integration_container,

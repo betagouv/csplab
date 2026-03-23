@@ -90,21 +90,11 @@ class MockApiResponseFactory:
         return {"invalid": "structure", "missing": "required_fields"}
 
     @staticmethod
-    def create_albert_formatter_response() -> Dict:
-        cv_data = {
-            "experiences": [
-                {
-                    "title": "Software Engineer",
-                    "company": "Tech Corp",
-                    "sector": "Technology",
-                    "description": "Python development",
-                }
-            ],
-            "skills": ["Python", "Django"],
-        }
-
+    def create_albert_formatter_response_with_content(
+        content: str, response_id: str = "chatcmpl-test123"
+    ) -> Dict:
         return {
-            "id": "chatcmpl-test123",
+            "id": response_id,
             "object": "chat.completion",
             "created": 1774004024,
             "model": "openweight-large",
@@ -113,7 +103,7 @@ class MockApiResponseFactory:
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": json.dumps(cv_data),
+                        "content": content,
                         "refusal": None,
                         "annotations": None,
                         "audio": None,
@@ -139,6 +129,23 @@ class MockApiResponseFactory:
                 "requests": 1,
             },
         }
+
+    @staticmethod
+    def create_albert_formatter_response() -> Dict:
+        cv_data = {
+            "experiences": [
+                {
+                    "title": "Software Engineer",
+                    "company": "Tech Corp",
+                    "sector": "Technology",
+                    "description": "Python development",
+                }
+            ],
+            "skills": ["Python", "Django"],
+        }
+        return MockApiResponseFactory.create_albert_formatter_response_with_content(
+            json.dumps(cv_data)
+        )
 
     @staticmethod
     def create_albert_formatter_error_response() -> Dict:
@@ -191,81 +198,13 @@ class MockApiResponseFactory:
         }
 
         fenced_content = f"```json\n{json.dumps(cv_data)}\n```"
-
-        return {
-            "id": "chatcmpl-test456",
-            "object": "chat.completion",
-            "created": 1774004024,
-            "model": "openweight-large",
-            "choices": [
-                {
-                    "index": 0,
-                    "message": {
-                        "role": "assistant",
-                        "content": fenced_content,
-                        "refusal": None,
-                        "annotations": None,
-                        "audio": None,
-                        "function_call": None,
-                        "tool_calls": [],
-                        "reasoning": None,
-                    },
-                    "finish_reason": "stop",
-                }
-            ],
-            "usage": {
-                "prompt_tokens": 1262,
-                "completion_tokens": 432,
-                "total_tokens": 1694,
-                "cost": 0.0,
-                "carbon": {
-                    "kWh": {"min": 0.022736131127999996, "max": 0.026871822072},
-                    "kgCO2eq": {
-                        "min": 0.013437987405148953,
-                        "max": 0.015880021922380184,
-                    },
-                },
-                "requests": 1,
-            },
-        }
+        return MockApiResponseFactory.create_albert_formatter_response_with_content(
+            fenced_content, "chatcmpl-test456"
+        )
 
     @staticmethod
     def create_albert_formatter_invalid_fenced_json_response() -> Dict:
         invalid_fenced_content = '```json\n{"experiences": [invalid json here\n```'
-
-        return {
-            "id": "chatcmpl-test789",
-            "object": "chat.completion",
-            "created": 1774004024,
-            "model": "openweight-large",
-            "choices": [
-                {
-                    "index": 0,
-                    "message": {
-                        "role": "assistant",
-                        "content": invalid_fenced_content,
-                        "refusal": None,
-                        "annotations": None,
-                        "audio": None,
-                        "function_call": None,
-                        "tool_calls": [],
-                        "reasoning": None,
-                    },
-                    "finish_reason": "stop",
-                }
-            ],
-            "usage": {
-                "prompt_tokens": 1262,
-                "completion_tokens": 432,
-                "total_tokens": 1694,
-                "cost": 0.0,
-                "carbon": {
-                    "kWh": {"min": 0.022736131127999996, "max": 0.026871822072},
-                    "kgCO2eq": {
-                        "min": 0.013437987405148953,
-                        "max": 0.015880021922380184,
-                    },
-                },
-                "requests": 1,
-            },
-        }
+        return MockApiResponseFactory.create_albert_formatter_response_with_content(
+            invalid_fenced_content, "chatcmpl-test789"
+        )

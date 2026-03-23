@@ -40,7 +40,7 @@ TYCHO_ALBERT_API_KEY=
 TYCHO_ALBERT_MODEL=openweight-large
 
 TYCHO_OCR_API_KEY=verysecretkey
-TYCHO_OCR_BASE_URL=https://csplab-ocr.osc-fr1.scalingo.io
+TYCHO_OCR_BASE_URL=http://localhost:8001
 
 TYCHO_TALENTSOFT_CLIENT_ID=...
 TYCHO_TALENTSOFT_CLIENT_SECRET=...
