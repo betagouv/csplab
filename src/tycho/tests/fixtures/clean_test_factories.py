@@ -98,8 +98,7 @@ def create_test_offer_document(doc_id: int = 1) -> Document:
     # Ensure unique reference for each document to avoid conflicts
     original_reference = offer_data["reference"]
     offer_data["reference"] = f"{original_reference}-{doc_id}"
+    external_id = f"{offer_data['salaryRange']['clientCode']}-{offer_data['reference']}"
 
     # Use the offer data directly (not wrapped in API response)
-    return _create_base_document(
-        DocumentType.OFFERS, doc_id, f"offer_fixture_{doc_id}", offer_data
-    )
+    return _create_base_document(DocumentType.OFFERS, doc_id, external_id, offer_data)
