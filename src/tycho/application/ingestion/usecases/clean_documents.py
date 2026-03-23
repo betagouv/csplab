@@ -1,7 +1,9 @@
 from typing import Any, Dict, List, cast
 
+from django.db import transaction
+
 from domain.entities.document import DocumentType
-from domain.interfaces.entity_interface import IEntity
+from domain.interfaces.entity_interface import IEntity, IOfferEntity
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,
@@ -24,11 +26,9 @@ class CleanDocumentsUsecase:
         self.repository_factory = repository_factory
         self.logger = logger
 
-    def execute(self, input_data: DocumentType) -> Dict[str, Any]:
-        """Execute the usecase to clean documents and return processing results."""
-        start = 0
-        has_more = True
-        results = {
+    def execute(self, document_type: DocumentType, limit: int = 1000) -> Dict[str, Any]:
+        self.logger.info("Starting cleaning %d document type: %s", limit, document_type)
+        results: Dict[str, Any] = {
             "processed": 0,
             "cleaned": 0,
             "created": 0,
@@ -37,46 +37,90 @@ class CleanDocumentsUsecase:
             "error_details": [],
         }
 
+        if document_type == DocumentType.OFFERS:
+            return self._clean_offers(document_type, limit, results)
+        return self._clean_concours_or_corps(document_type, limit, results)
+
+    def _clean_offers(
+        self, document_type: DocumentType, limit: int, results: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        raw_documents = self.document_repository.get_pending_processing(
+            document_type=document_type.value,
+            limit=limit,
+        )
+
+        cleaning_result = self.document_cleaner.clean(raw_documents)
+        cleaned_entities = cast(List[IOfferEntity], cleaning_result.entities)
+        cleaning_errors = cleaning_result.cleaning_errors
+
+        cleaned_entities_external_id = [
+            cleaned_entity.external_id for cleaned_entity in cleaned_entities
+        ]
+
+        cleaned_raw_documents = [
+            raw_doc
+            for raw_doc in raw_documents
+            if raw_doc.external_id in cleaned_entities_external_id
+        ]
+        failed_raw_documents = [
+            raw_doc
+            for raw_doc in raw_documents
+            if raw_doc.external_id not in cleaned_entities_external_id
+        ]
+
+        with transaction.atomic():
+            if cleaned_entities:
+                repository = self.repository_factory.get_repository(document_type)
+                save_result: IUpsertResult = repository.upsert_batch(
+                    cast(List, cleaned_entities)
+                )
+                self.document_repository.mark_as_processed(
+                    cast(List, cleaned_raw_documents)
+                )
+
+                results["processed"] = len(raw_documents)  # type: ignore
+                results["cleaned"] = len(cleaned_entities)  # type: ignore
+                results["created"] = save_result["created"]  # type: ignore
+                results["updated"] = save_result["updated"]  # type: ignore
+                results["errors"] = len(cleaning_errors)  # type: ignore
+                results["error_details"] = cleaning_errors  # type: ignore[operator]
+
+            if cleaning_errors:
+                self.document_repository.mark_as_pending(
+                    cast(List, failed_raw_documents)
+                )
+
+        return results
+
+    def _clean_concours_or_corps(
+        self, document_type: DocumentType, limit: int, results: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        start = 0
+        has_more = True
+
         while has_more:
             raw_documents, has_more = self.document_repository.find_by_type(
-                input_data, start
-            )
-            self.logger.info(
-                f"Fetched {len(raw_documents)} raw documents of type {input_data}"
+                document_type, start
             )
 
             cleaning_result = self.document_cleaner.clean(raw_documents)
             cleaned_entities = cleaning_result.entities
-            cleaning_errors = cleaning_result.cleaning_errors
 
-            self.logger.info(
-                f"Cleaned {len(cleaned_entities)} entities from "
-                f"{len(raw_documents)} raw documents"
-            )
-
-            repository = self.repository_factory.get_repository(input_data)
+            repository = self.repository_factory.get_repository(document_type)
             save_result: IUpsertResult = (
                 repository.upsert_batch(cast(List, cleaned_entities))
                 if cleaned_entities
                 else {"created": 0, "updated": 0, "errors": []}
             )
-            self.logger.info(f"Saved entities: {save_result}")
 
             results["processed"] += len(raw_documents)  # type: ignore
             results["cleaned"] += len(cleaned_entities)  # type: ignore
             results["created"] += save_result["created"]  # type: ignore
             results["updated"] += save_result["updated"]  # type: ignore
 
-            if input_data == DocumentType.OFFERS:
-                all_errors = cleaning_errors + cast(
-                    List[Dict[str, str]], save_result["errors"]
-                )  # type: ignore
-                results["errors"] += len(all_errors)  # type: ignore
-                results["error_details"] += all_errors  # type: ignore[operator]
-            else:
-                cleaning_error_count = len(raw_documents) - len(cleaned_entities)
-                results["errors"] += cleaning_error_count + len(save_result["errors"])  # type: ignore
-                results["error_details"] += save_result["errors"]  # type: ignore[operator]
+            cleaning_error_count = len(raw_documents) - len(cleaned_entities)
+            results["errors"] += cleaning_error_count + len(save_result["errors"])  # type: ignore
+            results["error_details"] += save_result["errors"]  # type: ignore[operator]
 
             start += 1
 

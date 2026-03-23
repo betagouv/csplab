@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.apps import apps
 
@@ -5,6 +7,8 @@ from domain.entities.document import DocumentType
 from domain.exceptions.concours_errors import ConcoursDoesNotExist
 from domain.exceptions.corps_errors import CorpsDoesNotExist
 from domain.exceptions.offer_errors import OfferDoesNotExist
+from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
+from infrastructure.django_apps.shared.models.offer import OfferModel
 from tests.fixtures.clean_test_factories import (
     create_test_concours_document,
     create_test_corps_document,
@@ -27,6 +31,37 @@ DOCUMENT_FACTORY_MAP = {
     DocumentType.OFFERS: create_test_offer_document,
 }
 
+DB_ERROR = "Database connection error"
+
+
+def execute_results(created: int = 0, updated: int = 0):
+    return {
+        "processed": created + updated,
+        "cleaned": created + updated,
+        "created": created,
+        "updated": updated,
+        "errors": 0,
+        "error_details": [],
+    }
+
+
+def assert_raw_document_pending(processing: bool):
+    assert RawDocument.objects.filter(
+        processed_at__isnull=True, processing=processing
+    ).exists()
+
+
+def assert_no_offer_cleaned():
+    assert not OfferModel.objects.exists()
+
+
+@pytest.fixture(name="raw_offer_setup")
+def raw_offer_setup_fixture(db, ingestion_integration_container):
+    usecase = ingestion_integration_container.clean_documents_usecase()
+    repository = ingestion_integration_container.document_repository()
+    document = DOCUMENT_FACTORY_MAP[DocumentType.OFFERS](1)
+    return usecase, repository, document
+
 
 @pytest.mark.parametrize(
     "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
@@ -37,22 +72,14 @@ def test_execute_handles_empty_documents(
     clean_documents_usecase = ingestion_integration_container.clean_documents_usecase()
 
     # No documents in database
-    result = clean_documents_usecase.execute(document_type)
-
-    assert result["processed"] == 0
-    assert result["cleaned"] == 0
-    assert result["created"] == 0
-    assert result["updated"] == 0
-    assert result["errors"] == 0
+    assert clean_documents_usecase.execute(document_type) == execute_results()
 
     # Verify no entities are saved
     model_class = apps.get_model("shared", DOCUMENT_TYPE_MODEL_MAP[document_type])
     assert model_class.objects.count() == 0
 
 
-@pytest.mark.parametrize(
-    "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
-)
+@pytest.mark.parametrize("document_type", [DocumentType.CORPS, DocumentType.CONCOURS])
 def test_execute_updates_existing_entities(
     db, ingestion_integration_container, document_type
 ):
@@ -66,20 +93,33 @@ def test_execute_updates_existing_entities(
     document_repository.upsert_batch([document], document_type)
 
     # First execution - create entity
-    result1 = clean_documents_usecase.execute(document_type)
-    assert result1["created"] == 1
-    assert result1["updated"] == 0
+    assert clean_documents_usecase.execute(document_type) == execute_results(created=1)
 
     # Second execution with same data - should update
-    result2 = clean_documents_usecase.execute(document_type)
-    assert result2["created"] == 0
-    assert result2["updated"] == 1
+    assert clean_documents_usecase.execute(document_type) == execute_results(updated=1)
 
     # Verify only one entity exists
     model_class = apps.get_model("shared", DOCUMENT_TYPE_MODEL_MAP[document_type])
-    saved_entities = model_class.objects.all()
+    assert model_class.objects.count() == 1
 
-    assert len(saved_entities) == 1
+
+def test_execute_updates_existing_offers_entities(db, raw_offer_setup):
+    document_type = DocumentType.OFFERS
+    clean_documents_usecase, document_repository, document = raw_offer_setup
+    document_repository.upsert_batch([document], document_type)
+
+    # First execution - create entity
+    assert clean_documents_usecase.execute(document_type) == execute_results(created=1)
+
+    # Second execution with same data - should not update
+    assert clean_documents_usecase.execute(document_type) == execute_results()
+
+    # Third execution with updated entity
+    document_repository.upsert_batch([document], document_type)
+    assert clean_documents_usecase.execute(document_type) == execute_results(updated=1)
+
+    # Verify only one entity exists
+    assert OfferModel.objects.count() == 1
 
 
 def test_find_by_id_nonexistent(db, ingestion_integration_container):
@@ -147,3 +187,94 @@ def test_upsert_batch_database_error(db, ingestion_integration_container):
     assert result_concours["created"] == 0
     assert result_concours["updated"] == 0
     assert len(result_concours["errors"]) == 1
+
+
+def test_clean_offers_upsert_batch_error(
+    db, ingestion_integration_container, raw_offer_setup
+):
+    offers_repository = (
+        ingestion_integration_container.shared_container.offers_repository()
+    )
+
+    document_type = DocumentType.OFFERS
+    clean_documents_usecase, document_repository, document = raw_offer_setup
+    document_repository.upsert_batch([document], document_type)
+
+    with patch.object(
+        offers_repository,
+        "upsert_batch",
+        side_effect=Exception(DB_ERROR),
+    ) as mocked_method:
+        with pytest.raises(Exception, match=DB_ERROR):
+            clean_documents_usecase.execute(document_type)
+        mocked_method.assert_called_once()
+
+    assert_no_offer_cleaned()
+    assert_raw_document_pending(processing=True)
+
+
+def test_clean_offers_get_pending_processing_error(db, raw_offer_setup):
+    document_type = DocumentType.OFFERS
+    clean_documents_usecase, document_repository, document = raw_offer_setup
+    document_repository.upsert_batch([document], document_type)
+
+    with patch.object(
+        document_repository,
+        "get_pending_processing",
+        side_effect=Exception(DB_ERROR),
+    ) as mocked_method:
+        with pytest.raises(Exception, match=DB_ERROR):
+            clean_documents_usecase.execute(document_type)
+        mocked_method.assert_called_once()
+
+    assert_no_offer_cleaned()
+    assert_raw_document_pending(processing=False)
+
+
+def test_clean_offers_cleaner_error(db, raw_offer_setup):
+    document_type = DocumentType.OFFERS
+    clean_documents_usecase, document_repository, document = raw_offer_setup
+    document.raw_data = {"data": "dummy"}
+    document_repository.upsert_batch([document], document_type)
+
+    clean_documents_usecase.execute(document_type)
+
+    assert_no_offer_cleaned()
+    assert_raw_document_pending(processing=False)
+
+
+def test_clean_offers_mark_as_processed_error(db, raw_offer_setup):
+    document_type = DocumentType.OFFERS
+    clean_documents_usecase, document_repository, document = raw_offer_setup
+    document_repository.upsert_batch([document], document_type)
+
+    with patch.object(
+        document_repository,
+        "mark_as_processed",
+        side_effect=Exception(DB_ERROR),
+    ) as mocked_method:
+        with pytest.raises(Exception, match=DB_ERROR):
+            clean_documents_usecase.execute(document_type)
+        mocked_method.assert_called_once()
+
+    assert_no_offer_cleaned()
+    assert_raw_document_pending(processing=True)
+
+
+def test_clean_offers_mark_as_pending_error(db, raw_offer_setup):
+    document_type = DocumentType.OFFERS
+    clean_documents_usecase, document_repository, document = raw_offer_setup
+    document.raw_data = {"data": "dummy"}
+    document_repository.upsert_batch([document], document_type)
+
+    with patch.object(
+        document_repository,
+        "mark_as_pending",
+        side_effect=Exception(DB_ERROR),
+    ) as mocked_method:
+        with pytest.raises(Exception, match=DB_ERROR):
+            clean_documents_usecase.execute(document_type)
+        mocked_method.assert_called_once()
+
+    assert_no_offer_cleaned()
+    assert_raw_document_pending(processing=True)
