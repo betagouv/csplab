@@ -1,5 +1,3 @@
-"""Use case for processing uploaded CV files."""
-
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -70,9 +68,9 @@ class ProcessUploadedCVUsecase:
             )
 
         self._logger.info(
-            "Text extraction successful, experiences:"
-            f"{len(formatted_text.experiences)}"
-            f"skills: {len(formatted_text.skills)}"
+            "Text extraction successful, experiences: %d, skills: %d",
+            len(formatted_text.experiences),
+            len(formatted_text.skills),
         )
         formatted_text_dict = formatted_text.model_dump()
         search_query = self._query_builder.build_query(formatted_text_dict)
