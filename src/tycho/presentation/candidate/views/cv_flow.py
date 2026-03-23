@@ -1,5 +1,3 @@
-"""CV upload flow views."""
-
 import asyncio
 import threading
 from uuid import UUID
@@ -43,11 +41,6 @@ from presentation.candidate.types import OpportunityCard
 
 
 class CVUploadView(BreadcrumbMixin, FormView):
-    """View for CV upload page.
-
-    Displays the CV upload form and validates the uploaded PDF.
-    """
-
     template_name = "candidate/cv_upload.html"
     form_class = CVUploadForm
     breadcrumb_current = "Recommandation de carrière"
@@ -55,13 +48,11 @@ class CVUploadView(BreadcrumbMixin, FormView):
     success_url = reverse_lazy("candidate:cv_upload")  # TODO: change to next step URL
 
     def __init__(self, *args, **kwargs):
-        """Initialize view with dependency injection."""
         super().__init__(*args, **kwargs)
         self.container = create_candidate_container()
         self.logger = self.container.logger_service()
 
     def form_valid(self, form: CVUploadForm) -> HttpResponse:
-        """Handle valid form submission."""
         cv_file = form.cleaned_data["cv_file"]
         self.logger.info(
             "CV upload validated: filename=%s, size=%d",
@@ -85,19 +76,15 @@ class CVUploadView(BreadcrumbMixin, FormView):
         return redirect("candidate:cv_results", cv_uuid=cv_uuid)
 
     def form_invalid(self, form: CVUploadForm) -> HttpResponse:
-        """Handle invalid form submission."""
         self.logger.warning("Form validation failed: %s", dict(form.errors))
         return super().form_invalid(form)
 
 
 class CVResultsView(BreadcrumbMixin, TemplateView):
-    """CV analysis results with HTMX polling support."""
-
     breadcrumb_current = "Résultat de l'analyse du CV"
     breadcrumb_links: list[BreadcrumbLink] = []
 
     def __init__(self, *args, **kwargs):
-        """Initialize view with dependency injection."""
         super().__init__(*args, **kwargs)
         self.container = create_candidate_container()
         self.logger = self.container.logger_service()
@@ -106,7 +93,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         self.filename = None
 
     def dispatch(self, request, *args, **kwargs):
-        """Initialize status and opportunities once per request."""
         status_data = self._get_cv_processing_status()
         self.status = status_data.get("status")
         self.opportunities = status_data.get("opportunities", [])
@@ -114,7 +100,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        """Handle GET request with status-based routing."""
         is_htmx = request.headers.get("HX-Request")
 
         if self.status == CVStatus.PENDING and is_htmx:
@@ -145,7 +130,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
     def _get_cv_processing_status(self) -> dict[str, object]:
-        """Get CV processing status from repository."""
         cv_uuid = self.kwargs.get("cv_uuid")
         self.logger.info("Getting CV processing status for cv_uuid=%s", cv_uuid)
 
@@ -189,7 +173,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return result
 
     def get_template_names(self) -> list[str]:
-        """Route to appropriate template based on status and HTMX context."""
         is_htmx = self.request.headers.get("HX-Request")
         hx_target = self.request.headers.get("HX-Target")
         if self.status == CVStatus.PENDING:
@@ -215,7 +198,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return ["candidate/cv_results.html"]
 
     def _filter_results(self, results: list[OpportunityCard]) -> list[OpportunityCard]:
-        """Filter results based on GET parameters."""
         filtered = results
 
         location = self.request.GET.get("filter-location")
@@ -236,7 +218,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return filtered
 
     def get_context_data(self, **kwargs: object) -> dict[str, object]:
-        """Add mock data for results display."""
         context = super().get_context_data(**kwargs)
 
         context["cv_uuid"] = self.kwargs.get("cv_uuid")

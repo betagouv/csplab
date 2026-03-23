@@ -1,20 +1,29 @@
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
 from domain.entities.offer import Offer
 from domain.exceptions.cv_errors import CVProcessingFailedError
+from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
 from domain.services.logger_interface import ILogger
+from domain.value_objects.category import Category
 from domain.value_objects.cv_processing_status import CVStatus
+from domain.value_objects.localisation import Localisation
+from domain.value_objects.opportunity_type import OpportunityType
+from domain.value_objects.verse import Verse
+
+IFilters = Localisation | OpportunityType | Verse | Category
 
 
-class MatchCVToOpportunitiesUsecase:
+class MatchCVToOpportunitiesUsecase(
+    IUseCase[CVMetadata, List[Tuple[Concours | Offer, float]]],
+):
     def __init__(  # noqa: PLR0913
         self,
         postgres_cv_metadata_repository: ICVMetadataRepository,
@@ -34,6 +43,7 @@ class MatchCVToOpportunitiesUsecase:
     def execute(
         self,
         cv_metadata: CVMetadata,
+        filters: Optional[IFilters] | None = None,
         limit: int = 5,
     ) -> List[Tuple[Concours | Offer, float]]:
         self._logger.info(

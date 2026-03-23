@@ -31,21 +31,18 @@ def get_opportunity_type_filter_options() -> list[FilterOption]:
 
 
 def format_category_value(category: Category | None) -> str:
-    """Format category value for filtering."""
     if not category:
         return ""
     return CATEGORY_FILTER_VALUE.get(category, "")
 
 
 def format_location_value(localisation: Localisation | None) -> str:
-    """Format localisation value for filtering (department code)."""
     if not localisation:
         return ""
     return str(localisation.department)
 
 
 def get_category_filter_options() -> list[FilterOption]:
-    """Build category filter options from domain enum."""
     seen: set[str] = set()
     options: list[FilterOption] = []
     for member in Category:
@@ -60,28 +57,24 @@ def get_category_filter_options() -> list[FilterOption]:
 
 
 def get_category_all_filter_values() -> set[str]:
-    """All possible category filter values (for 'select all' logic)."""
     return {
         v for cat, v in CATEGORY_FILTER_VALUE.items() if cat not in EXCLUDED_CATEGORIES
     }
 
 
 def get_verse_filter_options() -> list[FilterOption]:
-    """Build versant filter options from domain enum."""
     return [
         FilterOption(value=member.value, text=VERSE_DISPLAY[member]) for member in Verse
     ]
 
 
 def get_verse_all_filter_values() -> set[str]:
-    """All possible verse filter values (for 'select all' logic)."""
     return {member.value for member in Verse}
 
 
 def get_location_filter_options(
     locations: list[tuple[str, str]],
 ) -> list[FilterOption]:
-    """Build location filter options from (value, display) pairs."""
     options: list[FilterOption] = [
         FilterOption(value="", text="Toutes les localisations"),
     ]
