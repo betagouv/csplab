@@ -1,5 +1,3 @@
-"""Shared factory functions and constants for vectorize documents tests."""
-
 from datetime import datetime, timezone
 
 from domain.entities.concours import Concours
@@ -31,15 +29,11 @@ SECOND_ENTITY_ID = 2
 
 
 class UnsupportedEntity(IEntity):
-    """Mock entity for testing unsupported source type."""
-
     def __init__(self, id: int):
-        """Initialize with id."""
         self.id = id
 
 
 def create_test_corps(entity_id: int = 1) -> Corps:
-    """Create a test Corps entity for unit tests."""
     return Corps(
         code=f"CODE{entity_id}",
         category=Category.A,
@@ -53,7 +47,6 @@ def create_test_corps(entity_id: int = 1) -> Corps:
 
 
 def create_test_corps_for_integration(entity_id: int = 1) -> Corps:
-    """Create a test Corps entity for integration tests."""
     return Corps(
         code=f"0000{entity_id + 2}",
         category=Category.A,
@@ -77,7 +70,6 @@ def create_test_corps_for_integration(entity_id: int = 1) -> Corps:
 
 
 def create_test_concours(entity_id: int = 1) -> Concours:
-    """Create a test Concours entity for unit tests."""
     return Concours(
         nor_original=NOR("AGRS2400001A"),
         nor_list=[NOR("AGRS2400001A")],
@@ -94,7 +86,6 @@ def create_test_concours(entity_id: int = 1) -> Concours:
 
 
 def create_test_concours_for_integration(entity_id: int = 1) -> Concours:
-    """Create a test Concours entity for integration tests."""
     return Concours(
         nor_original=NOR(f"AGRS240000{entity_id}A"),
         nor_list=[NOR(f"AGRS240000{entity_id}A")],
@@ -111,7 +102,6 @@ def create_test_concours_for_integration(entity_id: int = 1) -> Concours:
 
 
 def create_test_offer(entity_id: int = 1) -> Offer:
-    """Create a test Offer entity for unit tests."""
     return Offer(
         external_id=f"OFFER_{entity_id:03d}",
         verse=Verse.FPE,
@@ -135,7 +125,6 @@ def create_test_offer(entity_id: int = 1) -> Offer:
 
 
 def create_test_offer_for_integration(entity_id: int = 1) -> Offer:
-    """Create a test Offer entity for integration tests."""
     return Offer(
         external_id=f"OFFER_{entity_id + 2:03d}",
         verse=Verse.FPE if entity_id == 1 else Verse.FPT,
@@ -161,11 +150,9 @@ def create_test_offer_for_integration(entity_id: int = 1) -> Offer:
 def create_test_document(
     entity_id: int = 1, doc_type: DocumentType = DocumentType.GRADE
 ) -> Document:
-    """Create a test Document entity."""
     return Document(
         external_id=f"test_doc_{entity_id}",
         raw_data={"content": f"Test document content {entity_id}"},
         type=doc_type,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
     )

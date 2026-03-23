@@ -1,10 +1,20 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from dateutil.relativedelta import relativedelta
+from django.db import DatabaseError
 from faker import Faker
+from pydantic import HttpUrl
 
 from domain.entities.offer import Offer
+from domain.value_objects.category import Category
+from domain.value_objects.contract_type import ContractType
+from domain.value_objects.country import Country
+from domain.value_objects.department import Department
+from domain.value_objects.limit_date import LimitDate
+from domain.value_objects.localisation import Localisation
+from domain.value_objects.region import Region
+from domain.value_objects.verse import Verse
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_offers_repository import (
@@ -74,6 +84,75 @@ class TestUpsertBatch:
         assert offer_to_update.updated_at > updated_at
 
         assert OfferModel.objects.filter(external_id=new_offer.external_id).exists()
+
+    def test_upsert_raises_error(self, db, repository):
+        with pytest.raises(DatabaseError):
+            repository.upsert_batch([{"dummy": "object"}])
+
+    def test_upsert_batch_with_empty_offers_list(self, db, repository):
+        result = repository.upsert_batch([])
+
+        assert result == {"created": 0, "updated": 0, "errors": []}
+
+    def test_multiple_offers_success(self, db, repository):
+        offers = OfferFactory.create_batch(2) + [OfferFactory.create(save_in_db=False)]
+        entities = [OfferModel.to_entity(offer) for offer in offers]
+
+        result = repository.upsert_batch(entities)
+
+        assert result == {"created": 1, "updated": 2, "errors": []}
+
+        external_ids = [e.external_id for e in entities]
+        saved_offers = OfferModel.objects.filter(external_id__in=external_ids)
+        saved_by_id = {o.external_id: o for o in saved_offers}
+
+        for entity in entities:
+            saved = saved_by_id[entity.external_id]
+            assert OfferModel.to_entity(saved) == entity
+
+    def test_updated_datas_are_stored(self, db, repository):
+        offer = OfferFactory.create(
+            verse=Verse.FPT,
+            title="old title",
+            profile="old  profile",
+            mission="old mission",
+            category=Category.B,
+            contract_type=ContractType.CONTRACTUELS,
+            organization="old organization",
+            offer_url="https://fake.url/old",
+            country="FRA",
+            region="28",
+            department="14",
+            publication_date=datetime(2025, 5, 17),
+            beginning_date=LimitDate(datetime(2025, 6, 17)),
+        )
+        now = datetime.now(timezone.utc)
+        entity = OfferModel.to_entity(offer)
+        updated_fields = {
+            "verse": Verse.FPE,
+            "title": "title",
+            "profile": "profile",
+            "mission": "mission",
+            "category": Category.A,
+            "contract_type": ContractType.TITULAIRE_CONTRACTUEL,
+            "organization": "organization",
+            "offer_url": HttpUrl("https://fake.url/offer"),
+            "localisation": Localisation(
+                country=Country("GUF"),
+                region=Region(code="03"),
+                department=Department(code="973"),
+            ),
+            "publication_date": now,
+            "beginning_date": LimitDate(now),
+        }
+        for field, value in updated_fields.items():
+            setattr(entity, field, value)
+
+        result = repository.upsert_batch([entity])
+        assert result == {"created": 0, "updated": 1, "errors": []}
+
+        saved_offer = OfferModel.objects.get()
+        assert OfferModel.to_entity(saved_offer) == entity
 
 
 class TestGetPendingProcessing:

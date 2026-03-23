@@ -1,13 +1,9 @@
-"""Django models for legal document ingestion."""
-
 from django.db import models
 
 from domain.entities.document import Document, DocumentType
 
 
 class RawDocument(models.Model):
-    """Model for storing raw ingres employement body."""
-
     id = models.UUIDField(primary_key=True)
     external_id = models.CharField(
         "Identifiant externe",
@@ -28,11 +24,10 @@ class RawDocument(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     processed_at = models.DateTimeField(null=True, blank=True)
+    processing = models.BooleanField(default=False)
     error_msg = models.TextField(null=True, blank=True)
 
     class Meta:
-        """Meta configuration for RawDocument model."""
-
         verbose_name = "RawDocument"
         verbose_name_plural = "RawDocument"
         ordering = ["-created_at"]
@@ -44,28 +39,26 @@ class RawDocument(models.Model):
         ]
 
     def to_entity(self) -> Document:
-        """Convert to core entity."""
         return Document(
             id=self.id,
             external_id=self.external_id,
             raw_data=self.raw_data,
             type=DocumentType(self.document_type),  # String -> Enum
             created_at=self.created_at,
-            updated_at=self.updated_at,
             processed_at=self.processed_at,
+            processing=self.processing,
             error_msg=self.error_msg,
         )
 
     @classmethod
     def from_entity(cls, document: Document) -> "RawDocument":
-        """Create Django model **instance** from Document entity."""
         return cls(
             id=document.id,
             external_id=document.external_id,
             raw_data=document.raw_data,
             document_type=document.type.value if document.type else None,
             created_at=document.created_at,
-            updated_at=document.updated_at,
             processed_at=document.processed_at,
+            processing=document.processing,
             error_msg=document.error_msg,
         )

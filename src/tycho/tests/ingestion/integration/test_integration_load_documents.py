@@ -1,5 +1,3 @@
-"""Integration tests for LoadDocuments usecase with external adapters."""
-
 from datetime import datetime
 
 import pytest
@@ -32,7 +30,6 @@ def create_offer_documents(container, document_type, raw_offers):
                 raw_data=raw_data,
                 type=document_type,
                 created_at=datetime.now(),
-                updated_at=datetime.now(),
             )
         )
     repository = container.document_repository()
@@ -239,7 +236,6 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
 
 class TestConcoursUploadView(APITestCase):
     def setUp(self):
-        """Set up test environment."""
         self.concours_upload_url = "/ingestion/concours/upload/"
         # Create a test user for authenticated tests
         self.user = User.objects.create_user(
@@ -247,17 +243,14 @@ class TestConcoursUploadView(APITestCase):
         )
 
     def _get_jwt_token(self, user):
-        """Generate JWT token for the given user."""
         refresh = RefreshToken.for_user(user)
         return str(refresh.access_token)
 
     def _authenticate_client(self, user):
-        """Authenticate the test client with JWT token."""
         token = self._get_jwt_token(user)
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
     def _create_valid_csv_content(self):
-        """Create valid CSV content for testing."""
         return (
             "N° NOR;Ministère;Catégorie;Corps;"
             "Grade;Année de référence;Nb postes total\n"
@@ -266,7 +259,6 @@ class TestConcoursUploadView(APITestCase):
         )
 
     def _create_invalid_csv_content(self):
-        """Create invalid CSV content for testing."""
         return (
             "N° NOR;Ministère;Catégorie;Corps;Grade;"
             "Année de référence;Nb postes total\n"
@@ -275,13 +267,11 @@ class TestConcoursUploadView(APITestCase):
         )
 
     def _create_csv_file(self, content, filename="test.csv"):
-        """Create a temporary CSV file for testing."""
         return SimpleUploadedFile(
             filename, content.encode("utf-8"), content_type="text/csv"
         )
 
     def test_unauthenticated_access_returns_401(self):
-        """Test that unauthenticated requests return 401."""
         # Ensure client is not authenticated
         self.client.logout()
 
@@ -293,7 +283,6 @@ class TestConcoursUploadView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_no_file_provided(self):
-        """Test error when no file is provided."""
         self._authenticate_client(self.user)
         response = self.client.post(self.concours_upload_url, {}, format="multipart")
 
@@ -301,7 +290,6 @@ class TestConcoursUploadView(APITestCase):
         self.assertEqual(response.data["error"], "No file provided")
 
     def test_invalid_file_format(self):
-        """Test error when file is not CSV."""
         self._authenticate_client(self.user)
         txt_file = SimpleUploadedFile(
             "test.txt", b"not a csv file", content_type="text/plain"
@@ -315,7 +303,6 @@ class TestConcoursUploadView(APITestCase):
         self.assertEqual(response.data["error"], "File must be a CSV")
 
     def test_validation_errors(self):
-        """Test handling of validation errors in CSV data."""
         self._authenticate_client(self.user)
         invalid_csv = self._create_csv_file(self._create_invalid_csv_content())
 
@@ -329,7 +316,6 @@ class TestConcoursUploadView(APITestCase):
         self.assertEqual(len(response.data["validation_errors"]), 2)
 
     def test_success_response(self):
-        """Test successful CSV upload and processing."""
         self._authenticate_client(self.user)
         valid_csv = self._create_csv_file(self._create_valid_csv_content())
 

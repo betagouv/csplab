@@ -1,7 +1,10 @@
+from datetime import datetime
+
 import pytest
+from dateutil.relativedelta import relativedelta
 from faker import Faker
 
-from domain.entities.document import DocumentType
+from domain.entities.document import Document, DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.repositories.ingestion.postgres_document_repository import (
     PostgresDocumentRepository,
@@ -9,6 +12,9 @@ from infrastructure.repositories.ingestion.postgres_document_repository import (
 from tests.factories.raw_document_factory import RawDocumentFactory
 
 fake = Faker()
+
+NOW = datetime.now()
+DAY_AGO = NOW - relativedelta(days=1)
 
 
 @pytest.fixture
@@ -128,3 +134,83 @@ class TestUpsertBatch:
         assert raw_doc_to_update.updated_at > updated_at
 
         assert RawDocument.objects.filter(external_id=new_raw_doc.external_id).exists()
+
+
+class TestGetPendingProcessing:
+    def test_excluded_items(self, db, repository):
+        RawDocumentFactory.create(document_type=DocumentType.CORPS)
+        RawDocumentFactory.create(document_type=DocumentType.CONCOURS)
+        RawDocumentFactory.create(processing=True)
+        RawDocumentFactory.create(processed_at=NOW, updated_at=DAY_AGO)
+
+        assert (
+            repository.get_pending_processing(document_type=DocumentType.OFFERS) == []
+        )
+
+    def test_get_pending_items_with_logical_lock(self, db, repository):
+        never_processed = RawDocumentFactory.create()
+        updated_after_processed = RawDocumentFactory.create(
+            processed_at=DAY_AGO, updated_at=NOW
+        )
+
+        entities = repository.get_pending_processing(document_type=DocumentType.OFFERS)
+        assert {e.id for e in entities} == {
+            never_processed.id,
+            updated_after_processed.id,
+        }
+
+        for entity in entities:
+            assert isinstance(entity, Document)
+            assert entity.processing
+
+    def test_limit(self, db, repository):
+        RawDocumentFactory.create_batch(2)
+
+        entities = repository.get_pending_processing(
+            document_type=DocumentType.OFFERS, limit=1
+        )
+        assert len(entities) == 1
+        assert RawDocument.objects.filter(processing=True).count() == 1
+        assert RawDocument.objects.filter(processing=False).count() == 1
+
+
+def test_mark_as_processed(db, repository):
+    raw_documents = [
+        RawDocumentFactory.create(processing=True).to_entity(),
+        RawDocumentFactory.create(processing=False).to_entity(),
+    ]
+    undesired_raw_document = RawDocumentFactory.create(processing=True).to_entity()
+
+    count = repository.mark_as_processed(raw_documents)
+    assert count == len(raw_documents)
+
+    model_objects = RawDocument.objects.filter(
+        processing=False, processed_at__isnull=False
+    )
+    assert set(model_objects.values_list("id", flat=True)) == {
+        raw_document.id for raw_document in raw_documents
+    }
+
+    undesired_model_objects = RawDocument.objects.get(
+        processing=True, processed_at__isnull=True
+    )
+    assert undesired_model_objects.id == undesired_raw_document.id
+
+
+def test_mark_as_pending(db, repository):
+    raw_documents = [
+        RawDocumentFactory.create(processing=True).to_entity(),
+        RawDocumentFactory.create(processing=False).to_entity(),
+    ]
+    undesired_raw_document = RawDocumentFactory.create(processing=True).to_entity()
+
+    count = repository.mark_as_pending(raw_documents)
+    assert count == len(raw_documents)
+
+    model_objects = RawDocument.objects.filter(processing=False)
+    assert set(model_objects.values_list("id", flat=True)) == {
+        raw_document.id for raw_document in raw_documents
+    }
+
+    undesired_model_objects = RawDocument.objects.get(processing=True)
+    assert undesired_model_objects.id == undesired_raw_document.id

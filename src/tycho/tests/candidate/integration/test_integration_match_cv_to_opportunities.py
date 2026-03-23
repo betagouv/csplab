@@ -8,6 +8,8 @@ from config.app_config import AppConfig
 from domain.entities.document import DocumentType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
+from infrastructure.django_apps.shared.models.concours import ConcoursModel
+from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.external_gateways.albert_embedding_generator import (
     AlbertEmbeddingGenerator,
 )
@@ -93,10 +95,10 @@ def test_execute_with_valid_cv_returns_opportunities(
     concours_repo = (
         _integration_candidate_container.shared_container.concours_repository()
     )
-    concours_repo.upsert_batch(concours)
+    concours_repo.upsert_batch([ConcoursModel.to_entity(c) for c in concours])
 
     offers_repo = _integration_candidate_container.shared_container.offers_repository()
-    offers_repo.upsert_batch(offers)
+    offers_repo.upsert_batch([OfferModel.to_entity(offer) for offer in offers])
 
     # Generate vectorized documents using VectorizedDocumentFactory
     vectorized_concours = []

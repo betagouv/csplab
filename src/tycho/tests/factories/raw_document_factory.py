@@ -1,5 +1,7 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Dict, Optional
+
+from django.utils import timezone
 
 from domain.entities.document import Document, DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
@@ -11,12 +13,14 @@ class RawDocumentFactory:
         external_id: Optional[str] = None,
         document_type: DocumentType = DocumentType.OFFERS,
         raw_data: Optional[Dict[str, Any]] = None,
+        updated_at: Optional[datetime] = None,
+        processing: bool = False,
+        processed_at: Optional[datetime] = None,
         save_in_db: Optional[bool] = True,
     ) -> RawDocument:
         if external_id is None:
             external_id = (
-                f"test_{document_type.value.lower()}_"
-                f"{datetime.now(timezone.utc).timestamp()}"
+                f"test_{document_type.value.lower()}_{datetime.now().timestamp()}"
             )
         if raw_data is None:
             raw_data = {
@@ -25,18 +29,27 @@ class RawDocumentFactory:
                 "description": f"Test document of type {document_type.value}",
             }
 
+        if processed_at:
+            processed_at = timezone.make_aware(processed_at)
+
         document_entity = Document(
             external_id=external_id,
             raw_data=raw_data,
             type=document_type,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
-            processed_at=None,
+            created_at=timezone.make_aware(datetime.now()),
+            processing=processing,
+            processed_at=processed_at,
         )
 
         raw_document = RawDocument.from_entity(document_entity)
         if save_in_db:
             raw_document.save()
+
+            if updated_at:
+                RawDocument.objects.filter(id=raw_document.id).update(
+                    updated_at=timezone.make_aware(updated_at)
+                )
+                raw_document.refresh_from_db()
 
         return raw_document
 
