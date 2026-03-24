@@ -1,5 +1,3 @@
-"""Pydantic models for FO Talentsoft API endpoints."""
-
 from time import time
 from typing import List, Optional
 
@@ -7,8 +5,6 @@ from pydantic import BaseModel, Field
 
 
 class TalentsoftTokenResponse(BaseModel):
-    """Raw token response content."""
-
     access_token: str
     token_type: str
     expires_in: int
@@ -16,22 +12,17 @@ class TalentsoftTokenResponse(BaseModel):
 
 
 class CachedToken(BaseModel):
-    """Cached token with an absolute expiry timestamp."""
-
     access_token: str
     token_type: str
     expires_at_epoch: float
     refresh_token: Optional[str] = None
 
     def is_valid(self) -> bool:
-        """True if token is valid (with leeway)."""
         leeway_seconds = 30
         return (self.expires_at_epoch - leeway_seconds) > time()
 
 
 class TalentsoftCodedObject(BaseModel):
-    """Base class for all TalentSoft coded objects."""
-
     code: int
     clientCode: str
     label: str
@@ -43,15 +34,11 @@ class TalentsoftCodedObject(BaseModel):
 
 
 class TalentsoftLink(BaseModel):
-    """TalentSoft _links object."""
-
     href: str
     rel: str
 
 
 class TalentsoftOffer(BaseModel):
-    """Complete TalentSoft offer DTO with strict validation."""
-
     # Mandatory fields
     reference: str
     isTopOffer: bool
@@ -98,8 +85,6 @@ class TalentsoftOffer(BaseModel):
 
 
 class TalentsoftPagination(BaseModel):
-    """Pagination information from Talentsoft API."""
-
     start: int
     count: int
     total: int
@@ -109,7 +94,5 @@ class TalentsoftPagination(BaseModel):
 
 
 class TalentsoftOffersResponse(BaseModel):
-    """TalentSoft offers API response with typed data."""
-
     data: List[TalentsoftOffer]
     pagination: TalentsoftPagination = Field(alias="_pagination")

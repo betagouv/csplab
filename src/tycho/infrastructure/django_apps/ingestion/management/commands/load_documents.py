@@ -1,5 +1,3 @@
-"""Django management command to load documents by type."""
-
 from django.core.management.base import BaseCommand, CommandError
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
@@ -9,18 +7,14 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 
 
 class Command(BaseCommand):
-    """Load documents by type using LoadDocumentsUsecase."""
-
     help = "Load documents by type (CORPS, CONCOURS, etc.)"
 
     def __init__(self, *args, **kwargs):
-        """Initialize the command with logger."""
         super().__init__(*args, **kwargs)
         self.container = create_ingestion_container()
         self.logger = self.container.logger_service()
 
     def add_arguments(self, parser):
-        """Add command arguments."""
         parser.add_argument(
             "--type",
             required=True,
@@ -29,7 +23,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Execute the command."""
         try:
             document_type = DocumentType(options["type"])
             usecase = self.container.load_documents_usecase()

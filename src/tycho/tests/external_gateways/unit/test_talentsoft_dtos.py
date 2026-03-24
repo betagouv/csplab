@@ -1,5 +1,3 @@
-"""Unit tests for Talentsoft DTOs."""
-
 from time import time
 
 import pytest
@@ -14,7 +12,6 @@ fake = Faker()
     "delay,is_valid", [(100, True), (31, True), (30, False), (-100, False)]
 )
 def test_is_valid_cached_token(delay, is_valid):
-    """Test that token is valid depending of expiry."""
     token = CachedToken(
         access_token=fake.uuid4(),
         token_type=fake.word().capitalize(),

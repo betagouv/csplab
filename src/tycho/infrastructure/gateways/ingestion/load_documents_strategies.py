@@ -1,5 +1,3 @@
-"""Load documents strategy adapters."""
-
 from typing import List, Tuple
 
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
@@ -11,14 +9,10 @@ from infrastructure.exceptions.ingestion_exceptions import (
 
 
 class FetchFromApiStrategy:
-    """Adapter for fetching documents from external API."""
-
     def __init__(self, document_gateway: IDocumentGateway):
-        """Initialize with document gateway dependency."""
         self.document_gateway = document_gateway
 
     def load_documents(self, **kwargs) -> Tuple[List[Document], bool]:
-        """Load documents from external API by document type."""
         start = kwargs.get("start", 1)
 
         document_type = kwargs.get("document_type")
@@ -32,10 +26,7 @@ class FetchFromApiStrategy:
 
 
 class UploadFromCsvStrategy:
-    """Adapter for handling pre-validated CSV documents."""
-
     def load_documents(self, **kwargs) -> Tuple[List[Document], bool]:
-        """Return pre-validated documents from CSV upload."""
         has_more = False
         documents = kwargs.get("documents")
         if not isinstance(documents, list):

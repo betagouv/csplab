@@ -1,5 +1,3 @@
-"""Client for Talentsoft API."""
-
 import asyncio
 from http import HTTPStatus
 from time import time
@@ -24,15 +22,12 @@ OFFERS_ENDPOINT = "/api/v2/offersummaries"
 
 
 class TalentsoftFrontClient(AsyncHttpClient):
-    """Client for interacting with Talentsoft API Front."""
-
     def __init__(
         self,
         config: TalentsoftConfig,
         logger_service: ILogger,
         **kwargs,
     ):
-        """Initialize client with config and logger."""
         timeout = kwargs.get("timeout", 30)
         max_retries = kwargs.get("max_retries", 2)
 
@@ -46,7 +41,6 @@ class TalentsoftFrontClient(AsyncHttpClient):
         self._token_lock = asyncio.Lock()
 
     async def _fetch_new_token(self) -> str:
-        """Fetch a new access token."""
         url = f"{self.base_url}{TOKEN_ENDPOINT}"
         headers = {
             "Accept": "application/json",
@@ -87,14 +81,12 @@ class TalentsoftFrontClient(AsyncHttpClient):
         return self.cached_token.access_token
 
     async def get_access_token(self) -> str:
-        """Get valid access token, refreshing if needed."""
         async with self._token_lock:
             if self.cached_token and self.cached_token.is_valid():
                 return self.cached_token.access_token
             return await self._fetch_new_token()
 
     def _build_auth_headers(self, token: str) -> Dict[str, str]:
-        """Build headers with authorization token."""
         return {
             "Accept": "application/json",
             "Authorization": f"Bearer {token}",
@@ -103,7 +95,6 @@ class TalentsoftFrontClient(AsyncHttpClient):
     async def _make_authenticated_request(
         self, url: str, params: Dict[str, int]
     ) -> IAsyncHttpResponse:
-        """Make HTTP request with automatic retry on 401."""
         token = await self.get_access_token()
 
         for attempt in range(self.max_retries + 1):
@@ -149,7 +140,6 @@ class TalentsoftFrontClient(AsyncHttpClient):
     async def get_offers(
         self, count: int = 1000, start: int = 1
     ) -> Tuple[List[TalentsoftOffer], bool]:
-        """Fetch job offers from Talentsoft API Front."""
         url = f"{self.base_url}{OFFERS_ENDPOINT}"
         params = {"count": count, "start": start}
 

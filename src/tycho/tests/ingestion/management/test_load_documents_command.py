@@ -1,5 +1,3 @@
-"""Tests for load_documents management command."""
-
 from unittest.mock import Mock, patch
 
 import pytest
@@ -12,7 +10,6 @@ from domain.entities.document import DocumentType
 
 @pytest.fixture
 def mock_usecase():
-    """Create a mock usecase with default return values."""
     mock = Mock()
     mock.execute.return_value = {"created": 5, "updated": 2, "errors": []}
     return mock
@@ -20,7 +17,6 @@ def mock_usecase():
 
 @pytest.fixture
 def mock_container_factory(mock_usecase):
-    """Create a mock container factory that returns the mock container."""
     mock_container = Mock()
     mock_container.load_documents_usecase.return_value = mock_usecase
 
@@ -32,8 +28,6 @@ def mock_container_factory(mock_usecase):
 
 
 class TestLoadDocumentsCommand:
-    """Test cases for load_documents management command."""
-
     def test_command_requires_type_argument(self):
         """Test that command fails without --type argument."""
         with pytest.raises(CommandError):
@@ -57,7 +51,6 @@ class TestLoadDocumentsCommand:
         mock_usecase,
         document_type,
     ):
-        """Test that command calls usecase with correct parameters."""
         call_command("load_documents", "--type", document_type)
 
         mock_container_factory.assert_called_once()
@@ -74,7 +67,6 @@ class TestLoadDocumentsCommand:
     def test_command_displays_warnings_for_errors(
         self, mock_container_factory, mock_usecase
     ):
-        """Test that command displays warnings when errors occur."""
         mock_usecase.execute.return_value = {
             "created": 3,
             "updated": 1,
@@ -89,7 +81,6 @@ class TestLoadDocumentsCommand:
     def test_command_raises_command_error_on_exception(
         self, mock_container_factory, mock_usecase
     ):
-        """Test that command raises CommandError when usecase fails."""
         mock_usecase.execute.side_effect = Exception("Database connection failed")
 
         with pytest.raises(
@@ -98,7 +89,6 @@ class TestLoadDocumentsCommand:
             call_command("load_documents", "--type", DocumentType.CORPS.value)
 
     def test_command_handles_zero_results(self, mock_container_factory, mock_usecase):
-        """Test command output when no documents are processed."""
         mock_usecase.execute.return_value = {"created": 0, "updated": 0, "errors": []}
 
         call_command("load_documents", "--type", DocumentType.OFFERS.value)
