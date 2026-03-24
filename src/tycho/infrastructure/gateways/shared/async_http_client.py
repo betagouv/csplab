@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Mapping, Optional
 
 import httpx
 
@@ -60,7 +60,7 @@ class AsyncHttpClient(IAsyncHttpClient):
         self,
         url: str,
         headers: Optional[Dict[str, str]] = None,
-        params: Optional[Dict[str, Any]] = None,
+        params: Optional[Mapping[str, int | str]] = None,
     ) -> IAsyncHttpResponse:
         if not self._client:
             raise RuntimeError("Client not initialized. Use async context manager.")

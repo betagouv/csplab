@@ -1,7 +1,7 @@
 import asyncio
 from http import HTTPStatus
 from time import time
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 
 from pydantic import ValidationError
 
@@ -93,7 +93,9 @@ class TalentsoftFrontClient(AsyncHttpClient):
         }
 
     async def _make_authenticated_request(
-        self, url: str, params: Dict[str, int]
+        self,
+        url: str,
+        params: Mapping[str, int | str],
     ) -> IAsyncHttpResponse:
         token = await self.get_access_token()
 
