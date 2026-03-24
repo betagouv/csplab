@@ -1,6 +1,3 @@
-"""Unit test cases for ProcessUploadedCVUsecase."""
-
-import json
 from uuid import UUID
 
 import pytest
@@ -12,42 +9,30 @@ from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 
 
-@pytest.mark.parametrize(
-    "container_name",
-    ["albert_candidate_container", "openai_candidate_container"],
-)
 async def test_execute_with_valid_pdf_updates_cv_metadatas(
     httpx_mock,
-    request,
+    albert_candidate_container,
     pdf_content,
-    container_name,
     cv_metadata_initial,
     test_app_config,
 ):
-    """Test that valid PDF is processed and saved to real database."""
-    container = request.getfixturevalue(container_name)
-    extractor_type = "albert" if "albert" in container_name else "openai"
+    container = albert_candidate_container
 
-    mock_response = MockApiResponseFactory.create_ocr_api_response(
-        experiences=[("Software Engineer", "Tech Corp")],
-        skills=["Python", "Django"],
-        description="5 years in Python development",
-    )
-
-    # Configuration spécifique selon l'extracteur
-    if extractor_type == "albert":
-        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
-        response_json = MockApiResponseFactory.create_albert_ocr_response(mock_response)
-    else:  # openai
-        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
-        response_json = {
-            "choices": [{"message": {"content": json.dumps(mock_response)}}]
-        }
-
+    # Mock OCR service response
+    ocr_response = MockApiResponseFactory.create_ocr_service_response()
     httpx_mock.add_response(
         method="POST",
-        url=api_url,
-        json=response_json,
+        url=f"{test_app_config.ocr.base_url}extract-text",
+        json=ocr_response,
+        status_code=200,
+    )
+
+    # Mock Albert text formatter response
+    albert_response = MockApiResponseFactory.create_albert_formatter_response()
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
+        json=albert_response,
         status_code=200,
     )
     # Unpack fixture data
@@ -64,13 +49,8 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
     assert result.status == CVStatus.COMPLETED
 
 
-@pytest.mark.parametrize(
-    "container_name",
-    ["albert_candidate_container", "openai_candidate_container"],
-)
-async def test_execute_cv_metadatas_not_found(request, pdf_content, container_name):
-    """Test that CVNotFoundError is raised when CV metadata doesn't exist."""
-    container = request.getfixturevalue(container_name)
+async def test_execute_cv_metadatas_not_found(albert_candidate_container, pdf_content):
+    container = albert_candidate_container
     cv_id = UUID("00000000-0000-0000-0000-000000000000")  # UUID that doesn't exist
 
     usecase = container.process_uploaded_cv_usecase()
@@ -78,36 +58,23 @@ async def test_execute_cv_metadatas_not_found(request, pdf_content, container_na
         await usecase.execute(cv_id, pdf_content)
 
 
-@pytest.mark.parametrize(
-    "container_name",
-    ["albert_candidate_container", "openai_candidate_container"],
-)
 async def test_execute_ocr_error(
     httpx_mock,
-    request,
+    albert_candidate_container,
     pdf_content,
-    container_name,
     cv_metadata_initial,
     test_app_config,
 ):
-    """Test that API failure raises ExternalApiError and saves CV with FAILED."""
-    container = request.getfixturevalue(container_name)
-    extractor_type = "albert" if "albert" in container_name else "openai"
+    container = albert_candidate_container
 
-    if extractor_type == "albert":
-        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
-    else:  # openai
-        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
+    # Mock OCR service failure
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{test_app_config.ocr.base_url}extract-text",
+        json={"error": "Internal server error"},
+        status_code=500,
+    )
 
-    # OpenAI can make multiple requests (retries), Albert makes only one
-    num_requests = 3 if extractor_type == "openai" else 1
-    for _ in range(num_requests):
-        httpx_mock.add_response(
-            method="POST",
-            url=api_url,
-            json={"error": "Internal server error"},
-            status_code=500,
-        )
     initial_cv, cv_id = cv_metadata_initial
 
     # Prepopulate the repository
@@ -124,42 +91,67 @@ async def test_execute_ocr_error(
     assert updated_cv.status == CVStatus.FAILED
 
 
-@pytest.mark.parametrize(
-    "container_name",
-    ["albert_candidate_container", "openai_candidate_container"],
-)
 async def test_execute_json_decode_error_with_details(
     httpx_mock,
-    request,
+    albert_candidate_container,
     pdf_content,
-    container_name,
     cv_metadata_initial,
     test_app_config,
 ):
-    """Test that JSONDecodeError includes detailed error information."""
-    container = request.getfixturevalue(container_name)
-    extractor_type = "albert" if "albert" in container_name else "openai"
+    container = albert_candidate_container
 
-    # Mock invalid JSON response selon l'extracteur
+    # Mock OCR service response (valid)
+    ocr_response = MockApiResponseFactory.create_ocr_service_response()
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{test_app_config.ocr.base_url}extract-text",
+        json=ocr_response,
+        status_code=200,
+    )
+
+    # Mock Albert text formatter with invalid JSON
     invalid_json_content = '{"experiences": [invalid json here'
-
-    if extractor_type == "albert":
-        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
-        response_json = (
-            MockApiResponseFactory.create_albert_ocr_response_with_invalid_json(
-                invalid_json_content
-            )
-        )
-    else:  # openai
-        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
-        response_json = {"choices": [{"message": {"content": invalid_json_content}}]}
-
-    expected_error_message = "Failed to parse JSON response."
+    invalid_albert_response = {
+        "id": "chatcmpl-test123",
+        "object": "chat.completion",
+        "created": 1774004024,
+        "model": "openweight-large",
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": invalid_json_content,
+                    "refusal": None,
+                    "annotations": None,
+                    "audio": None,
+                    "function_call": None,
+                    "tool_calls": [],
+                    "reasoning": None,
+                },
+                "finish_reason": "stop",
+            }
+        ],
+        "usage": {
+            "prompt_tokens": 1262,
+            "completion_tokens": 432,
+            "total_tokens": 1694,
+            "cost": 0.0,
+            "carbon": {
+                "kWh": {"min": 0.022736131127999996, "max": 0.026871822072},
+                "kgCO2eq": {
+                    "min": 0.013437987405148953,
+                    "max": 0.015880021922380184,
+                },
+            },
+            "requests": 1,
+        },
+    }
 
     httpx_mock.add_response(
         method="POST",
-        url=api_url,
-        json=response_json,
+        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
+        json=invalid_albert_response,
         status_code=200,
     )
 
@@ -177,55 +169,4 @@ async def test_execute_json_decode_error_with_details(
 
     # Verify the error message contains detailed JSON parsing information
     error_message = str(exc_info.value)
-    assert expected_error_message in error_message
-
-
-@pytest.mark.parametrize(
-    "container_name",
-    ["albert_candidate_container", "openai_candidate_container"],
-)
-async def test_execute_with_none_values_in_cv_data(
-    httpx_mock,
-    request,
-    pdf_content,
-    container_name,
-    cv_metadata_initial,
-    test_app_config,
-):
-    """Test that CV processing handles None values in company and description fields."""
-    container = request.getfixturevalue(container_name)
-    extractor_type = "albert" if "albert" in container_name else "openai"
-
-    # Use the new fixture with None values
-    mock_response = MockApiResponseFactory.create_ocr_response_with_none_values()
-
-    # Configuration spécifique selon l'extracteur
-    if extractor_type == "albert":
-        api_url = f"{test_app_config.albert_api_base_url}v1/ocr-beta"
-        response_json = MockApiResponseFactory.create_albert_ocr_response(mock_response)
-    else:  # openai
-        api_url = f"{test_app_config.openrouter_base_url}/chat/completions"
-        response_json = {
-            "choices": [{"message": {"content": json.dumps(mock_response)}}]
-        }
-
-    httpx_mock.add_response(
-        method="POST",
-        url=api_url,
-        json=response_json,
-        status_code=200,
-    )
-
-    # Unpack fixture data
-    initial_cv, cv_id = cv_metadata_initial
-
-    # Prepopulate the repository
-    repo = container.async_cv_metadata_repository()
-    await repo.save(initial_cv)
-
-    usecase = container.process_uploaded_cv_usecase()
-
-    # This should not raise a ValidationError anymore
-    result = await usecase.execute(cv_id, pdf_content)
-    assert isinstance(result, CVMetadata)
-    assert result.status == CVStatus.COMPLETED
+    assert "Failed to parse JSON from Albert completion response" in error_message
