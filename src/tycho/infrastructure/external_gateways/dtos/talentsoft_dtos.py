@@ -96,3 +96,129 @@ class TalentsoftPagination(BaseModel):
 class TalentsoftOffersResponse(BaseModel):
     data: List[TalentsoftOffer]
     pagination: TalentsoftPagination = Field(alias="_pagination")
+
+
+class TalentsoftGeolocation(BaseModel):
+    latitude: float
+    longitude: float
+
+
+class TalentsoftOrganisation(BaseModel):
+    entityCode: str
+    name: str
+    description: Optional[str] = None
+    url: Optional[str] = None
+    phoneNumber: Optional[str] = None
+    postCode: Optional[str] = None
+    geolocation: Optional[TalentsoftGeolocation] = None
+    parentName: Optional[str] = None
+    logoUrl: Optional[str] = None
+    maxDelayForConsent: Optional[int] = None
+    retentionPeriod: Optional[int] = None
+    generalConditions: Optional[str] = None
+    personalDataConsent: Optional[str] = None
+
+
+class TalentsoftOperationalManager(BaseModel):
+    language: Optional[str] = None
+    firstName: Optional[str] = None
+    lastName: Optional[str] = None
+    email: Optional[str] = None
+    phoneNumber: Optional[str] = None
+
+
+class TalentsoftLanguage(BaseModel):
+    languageName: TalentsoftCodedObject
+    languageLevel: TalentsoftCodedObject
+
+
+class TalentsoftCustomCodeTable(BaseModel):
+    code: int
+    clientCode: str
+    label: str
+    active: bool
+    parentCode: Optional[int] = None
+    type: Optional[str] = None
+    parentType: Optional[str] = None
+    hasChildren: bool = False
+
+
+class TalentsoftOfferCustomFields(BaseModel):
+    date1: Optional[str] = None
+    longText1: Optional[str] = None
+    longText2: Optional[str] = None
+    longText1Formatted: Optional[str] = None
+    longText2Formatted: Optional[str] = None
+    customCodeTable2: Optional[TalentsoftCustomCodeTable] = None
+
+
+class TalentsoftDescriptionCustomFields(BaseModel):
+    shortText2: Optional[str] = None
+    shortText3: Optional[str] = None
+    longText1: Optional[str] = None
+    longText2: Optional[str] = None
+    longText3: Optional[str] = None
+    longText1Formatted: Optional[str] = None
+    longText2Formatted: Optional[str] = None
+    longText3Formatted: Optional[str] = None
+    customCodeTable1: Optional[TalentsoftCustomCodeTable] = None
+    customCodeTable3: Optional[TalentsoftCustomCodeTable] = None
+
+
+class TalentsoftLocationCustomFields(BaseModel):
+    shortText1: Optional[str] = None
+
+
+class TalentsoftApplicantCriteriaCustomFields(BaseModel):
+    longText1: Optional[str] = None
+    longText1Formatted: Optional[str] = None
+    customCodeTable1: Optional[TalentsoftCustomCodeTable] = None
+
+
+class TalentsoftOriginCustomFields(BaseModel):
+    shortText1: Optional[str] = None
+    shortText2: Optional[str] = None
+    shortText3: Optional[str] = None
+
+
+class TalentsoftOfferCustomBlock(BaseModel):
+    longText1: Optional[str] = None
+    longText2: Optional[str] = None
+    longText3: Optional[str] = None
+    longText1Formatted: Optional[str] = None
+    longText2Formatted: Optional[str] = None
+    longText3Formatted: Optional[str] = None
+    customCodeTable1: Optional[TalentsoftCustomCodeTable] = None
+    customCodeTable2: Optional[TalentsoftCustomCodeTable] = None
+    customCodeTable3: Optional[TalentsoftCustomCodeTable] = None
+
+
+class TalentsoftCustomFields(BaseModel):
+    offer: Optional[TalentsoftOfferCustomFields] = None
+    description: Optional[TalentsoftDescriptionCustomFields] = None
+    location: Optional[TalentsoftLocationCustomFields] = None
+    applicantCriteria: Optional[TalentsoftApplicantCriteriaCustomFields] = None
+    origin: Optional[TalentsoftOriginCustomFields] = None
+    offerCustomBlock1: Optional[TalentsoftOfferCustomBlock] = None
+
+
+class TalentsoftDetailOffer(TalentsoftOffer):
+    applicationUrl: Optional[str] = None
+    endPublicationDate: Optional[str] = None
+    isAnonymousOrganisation: bool = False
+    beginningDate: Optional[str] = None
+
+    organisation: Optional[TalentsoftOrganisation] = None
+    operationalManager: Optional[TalentsoftOperationalManager] = None
+
+    educationLevel: Optional[TalentsoftCodedObject] = None
+    diploma: Optional[TalentsoftCodedObject] = None
+    experienceLevel: Optional[TalentsoftCodedObject] = None
+    languages: List[TalentsoftLanguage] = []
+    specialisations: List[TalentsoftCodedObject] = []
+    applicationQuestions: List[str] = []
+    attachedFilesUrls: List[str] = []
+
+    geolocation: Optional[TalentsoftGeolocation] = None
+
+    customFields: Optional[TalentsoftCustomFields] = None

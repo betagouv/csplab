@@ -47,6 +47,12 @@ def offers_response(count: int = 2, has_more: bool = False):
     return offers_response
 
 
+def detail_offer_response(reference: Optional[str] = None) -> Dict[str, Any]:
+    offer = load_fixture("talentsoft_offer_detail.json").copy()
+    offer["reference"] = reference if reference is not None else fake.uuid4()
+    return offer
+
+
 def mocked_response(status_code: int = 200, return_value: JsonDataType = None):
     response = Mock(spec=Response)
     response.status_code = status_code
