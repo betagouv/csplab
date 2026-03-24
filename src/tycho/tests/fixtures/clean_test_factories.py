@@ -36,7 +36,7 @@ def _load_concours_fixture_data(doc_id: int) -> Dict[str, Any]:
 
 
 def _load_offer_fixture_data(doc_id: int) -> Dict[str, Any]:
-    offer_fixtures = load_fixture("offers_talentsoft_20260124.json")
+    offer_fixtures = load_fixture("talentsoft_offers.json")
     fixture_index = (doc_id - 1) % len(offer_fixtures)
     return offer_fixtures[fixture_index].copy()
 
