@@ -1,5 +1,3 @@
-"""Offers cleaner adapter with TalentSoft DTO validation."""
-
 from datetime import datetime
 from typing import List, Optional
 
@@ -25,15 +23,11 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
 
 
 class OffersCleaner(IDocumentCleaner[Offer]):
-    """Adapter for cleaning raw documents of type OFFERS into Offers entities."""
-
     def __init__(self, logger: ILogger, offers_repository: IOffersRepository):
-        """Initialize with logger and offers repository dependencies."""
         self.logger = logger
         self.offers_repository = offers_repository
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[Offer]:
-        """Clean raw documents and return cleaning result with entities and errors."""
         for document in raw_documents:
             if document.type != DocumentType.OFFERS:
                 raise InvalidDocumentTypeError(document.type.value)  # todo: test
@@ -76,7 +70,6 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         return CleaningResult(entities=offers_list, cleaning_errors=cleaning_errors)
 
     def _map_talentsoft_to_offer(self, talentsoft_offer: TalentsoftOffer) -> Offer:
-        """Map a validated TalentSoft DTO to an Offer entity."""
         # Extract verse from salaryRange if available
         ts_verse = (
             talentsoft_offer.salaryRange.clientCode
@@ -132,7 +125,6 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         return offer
 
     def _map_verse(self, verse_str: Optional[str], reference: str) -> Optional[Verse]:
-        """Map verse string to Verse enum."""
         if not verse_str:
             return None
         verse_upper = verse_str.upper()
@@ -147,7 +139,6 @@ class OffersCleaner(IDocumentCleaner[Offer]):
     def _map_contract_type(
         self, contract_type_str: Optional[str]
     ) -> Optional[ContractType]:
-        """Map contract type string to ContractType enum."""
         if not contract_type_str:
             return None
 
@@ -164,7 +155,6 @@ class OffersCleaner(IDocumentCleaner[Offer]):
     def _map_localisation_from_arrays(
         self, countries: List, regions: List, departments: List
     ) -> Optional[Localisation]:
-        """Map location arrays to Localisation value object."""
         # Extract first element from each array if available
         country_code = countries[0].clientCode if countries else None
         region_code = regions[0].clientCode if regions else None
@@ -196,18 +186,15 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         )
 
     def _parse_url(self, url_str: str) -> Optional[HttpUrl]:
-        """Parse URL string to HttpUrl."""
         try:
             return HttpUrl(url_str)
         except Exception:
             return None  # todo: test
 
     def _parse_publication_date(self, date_str: str) -> datetime:
-        """Parse publication date string to timezone-aware datetime."""
         return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
 
     def _parse_beginning_date(self, date_str: Optional[str]) -> Optional[LimitDate]:
-        """Parse beginning date string to LimitDate."""
         if not date_str:
             return None  # todo: test
 
