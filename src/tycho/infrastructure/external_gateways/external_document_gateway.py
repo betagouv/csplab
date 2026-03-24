@@ -91,6 +91,9 @@ class ExternalDocumentGateway(IDocumentGateway):
         return cast(List[JsonDataType], raw_documents), has_more
 
     async def _fetch_offers(self, start: int):
+        # Will break in case of parallelised used of TalentsoftFrontClient
+        # TODO open & close connection at client level
+        # need piste_client to be asynced
         async with self.talentsoft_front_client:
             return await self.talentsoft_front_client.get_offers(start=start)
 
@@ -146,3 +149,32 @@ class ExternalDocumentGateway(IDocumentGateway):
             documents.append(document)
 
         return documents, has_more
+
+    async def _fetch_detail_offer(self, reference: str):
+        # Will break in case of parallelised used of TalentsoftFrontClient
+        # TODO open & close connection at client level
+        # need piste_client to be asynced
+        async with self.talentsoft_front_client:
+            return await self.talentsoft_front_client.get_detail_offer(reference)
+
+    def get_detail(self, document_type: DocumentType, external_id: str) -> Document:
+        # external_id format is "{versant}-{reference}", e.g. "FPE-12345"
+        # The reference is everything after the first "-"
+        reference = external_id.split("-", 1)[-1]
+
+        sync_fetch = async_to_sync(self._fetch_detail_offer)
+
+        try:
+            raw_doc = sync_fetch(reference)
+        except Exception as e:
+            self.logger.error(
+                "Failed to fetch detail %s %s: %s", document_type, external_id, e
+            )
+            raise
+        now = datetime.now(timezone.utc)
+        return Document(
+            external_id=external_id,
+            raw_data=raw_doc.model_dump(),
+            type=document_type,
+            created_at=now,
+        )

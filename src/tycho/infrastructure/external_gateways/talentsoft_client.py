@@ -11,6 +11,7 @@ from domain.services.logger_interface import ILogger
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
+    TalentsoftDetailOffer,
     TalentsoftOffer,
     TalentsoftOffersResponse,
     TalentsoftTokenResponse,
@@ -19,6 +20,7 @@ from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
 
 TOKEN_ENDPOINT = "/api/token"  # noqa
 OFFERS_ENDPOINT = "/api/v2/offersummaries"
+DETAIL_OFFER_ENDPOINT = "/api/v2/offers/getoffer"
 
 
 class TalentsoftFrontClient(AsyncHttpClient):
@@ -159,3 +161,28 @@ class TalentsoftFrontClient(AsyncHttpClient):
         has_more = pagination.hasMore
 
         return offers, has_more
+
+    async def get_detail_offer(self, reference: str) -> TalentsoftDetailOffer:
+        if not reference:
+            raise ExternalApiError(
+                message="Reference is required", api_name="Talentsoft Front API"
+            )
+
+        url = f"{self.base_url}{DETAIL_OFFER_ENDPOINT}"
+        params = {"reference": reference, "sort": "modificationDate"}
+
+        response = await self._make_authenticated_request(url, params)
+        if response.status_code == HTTPStatus.NOT_FOUND:
+            raise ExternalApiError(
+                message=f"Offer not found for reference: {reference}",
+                api_name="Talentsoft Front API",
+            )
+
+        try:
+            offer = TalentsoftDetailOffer.model_validate(response.json())
+        except ValidationError as e:
+            raise ExternalApiError(
+                f"Invalid response structure: {e}", api_name="Talentsoft Front API"
+            ) from e
+
+        return offer
