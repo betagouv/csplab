@@ -54,7 +54,7 @@ choices = [
 [[tool.commitizen.customize.questions]]
 type = "input"
 name = "scope"
-message = "scope (front, backend, api, notebook, component):"
+message = "scope (candidate, ingestion, ocr, accessibility, tooling, notebook):"
 
 [[tool.commitizen.customize.questions]]
 type = "input"
