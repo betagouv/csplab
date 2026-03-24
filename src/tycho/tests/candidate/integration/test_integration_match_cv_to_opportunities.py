@@ -136,9 +136,8 @@ def test_execute_with_valid_cv_returns_opportunities(
     assert isinstance(results, list)
     assert len(results) == limit
 
-    similarities = [r[1] for r in results]
+    similarities = [score for _, score in results]
     assert sorted(similarities, reverse=True) == similarities
 
-    # TODO - reactivate these assertions
-    # assert all(0.0 <= score <= 1.0 for _, score in result)
-    # assert all(isinstance(score, float) for _, score in result)
+    assert all(0.0 <= score <= 1 for score in similarities)
+    assert all(isinstance(score, float) for score in similarities)
