@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Any, Dict
 from uuid import UUID
 
 import pytest
@@ -8,6 +9,40 @@ from domain.exceptions.cv_errors import CVNotFoundError
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
+
+
+def mock_ocr_response(
+    httpx_mock,
+    config,
+    ocr_response: Dict[str, Any] | None = None,
+    status_code: int = 200,
+):
+    if not ocr_response:
+        ocr_response = MockApiResponseFactory.create_ocr_service_response()
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{config.ocr.base_url}extract-text",
+        json=ocr_response,
+        status_code=status_code,
+    )
+
+
+def mock_llm_response(
+    httpx_mock,
+    config,
+    llm_response: Dict[str, Any] | None = None,
+    status_code: int = 200,
+):
+    if not llm_response:
+        llm_response = MockApiResponseFactory.create_albert_formatter_response()
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{config.albert.api_base_url}v1/chat/completions",
+        json=llm_response,
+        status_code=status_code,
+    )
 
 
 @pytest.mark.django_db
@@ -20,25 +55,8 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
 ):
     container = albert_integration_container
 
-    # Mock OCR service response
-    ocr_response = MockApiResponseFactory.create_ocr_service_response()
-
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json=ocr_response,
-        status_code=200,
-    )
-
-    # Mock Albert text formatter response
-    albert_response = MockApiResponseFactory.create_albert_formatter_response()
-
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
-        json=albert_response,
-        status_code=200,
-    )
+    mock_ocr_response(httpx_mock, test_app_config)
+    mock_llm_response(httpx_mock, test_app_config)
 
     # Unpack fixture data
     initial_cv, cv_id = cv_metadata_initial
@@ -77,10 +95,10 @@ async def test_execute_with_api_failure_saves_failed_status_to_database(
     container = albert_integration_container
 
     # Mock OCR service failure
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json={"error": "OCR Service Error"},
+    mock_ocr_response(
+        httpx_mock,
+        test_app_config,
+        ocr_response={"error": "OCR Service Error"},
         status_code=500,
     )
 
@@ -114,22 +132,16 @@ async def test_execute_albert_http_error_with_valid_error_response(
     container = albert_integration_container
 
     # Mock OCR service success
-    ocr_response = MockApiResponseFactory.create_ocr_service_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json=ocr_response,
-        status_code=HTTPStatus.OK,
-    )
+    mock_ocr_response(httpx_mock, test_app_config)
 
     # Mock Albert HTTP error with valid error response
     albert_error_response = (
         MockApiResponseFactory.create_albert_formatter_error_response()
     )
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
-        json=albert_error_response,
+    mock_llm_response(
+        httpx_mock,
+        test_app_config,
+        llm_response=albert_error_response,
         status_code=HTTPStatus.UNAUTHORIZED,
     )
 
@@ -161,23 +173,16 @@ async def test_execute_albert_invalid_response_structure(
     container = albert_integration_container
 
     # Mock OCR service success
-    ocr_response = MockApiResponseFactory.create_ocr_service_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json=ocr_response,
-        status_code=HTTPStatus.OK,
-    )
+    mock_ocr_response(httpx_mock, test_app_config)
 
     # Mock Albert invalid response structure
     albert_invalid_response = (
         MockApiResponseFactory.create_albert_formatter_invalid_response()
     )
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
-        json=albert_invalid_response,
-        status_code=HTTPStatus.OK,
+    mock_llm_response(
+        httpx_mock,
+        test_app_config,
+        llm_response=albert_invalid_response,
     )
 
     # Unpack fixture data
@@ -207,23 +212,16 @@ async def test_execute_albert_empty_choices_response(
     container = albert_integration_container
 
     # Mock OCR service success
-    ocr_response = MockApiResponseFactory.create_ocr_service_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json=ocr_response,
-        status_code=HTTPStatus.OK,
-    )
+    mock_ocr_response(httpx_mock, test_app_config)
 
     # Mock Albert response with empty choices
     albert_empty_choices_response = (
         MockApiResponseFactory.create_albert_formatter_empty_choices_response()
     )
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
-        json=albert_empty_choices_response,
-        status_code=HTTPStatus.OK,
+    mock_llm_response(
+        httpx_mock,
+        test_app_config,
+        llm_response=albert_empty_choices_response,
     )
 
     # Unpack fixture data
@@ -253,23 +251,16 @@ async def test_execute_albert_fenced_json_response_success(
     container = albert_integration_container
 
     # Mock OCR service success
-    ocr_response = MockApiResponseFactory.create_ocr_service_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json=ocr_response,
-        status_code=HTTPStatus.OK,
-    )
+    mock_ocr_response(httpx_mock, test_app_config)
 
     # Mock Albert response with fenced JSON
     albert_fenced_response = (
         MockApiResponseFactory.create_albert_formatter_fenced_json_response()
     )
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
-        json=albert_fenced_response,
-        status_code=HTTPStatus.OK,
+    mock_llm_response(
+        httpx_mock,
+        test_app_config,
+        llm_response=albert_fenced_response,
     )
 
     # Unpack fixture data
@@ -297,23 +288,16 @@ async def test_execute_albert_invalid_fenced_json_response(
     container = albert_integration_container
 
     # Mock OCR service success
-    ocr_response = MockApiResponseFactory.create_ocr_service_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json=ocr_response,
-        status_code=HTTPStatus.OK,
-    )
+    mock_ocr_response(httpx_mock, test_app_config)
 
     # Mock Albert response with invalid fenced JSON
     albert_invalid_fenced_response = (
         MockApiResponseFactory.create_albert_formatter_invalid_fenced_json_response()
     )
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
-        json=albert_invalid_fenced_response,
-        status_code=HTTPStatus.OK,
+    mock_llm_response(
+        httpx_mock,
+        test_app_config,
+        llm_response=albert_invalid_fenced_response,
     )
 
     # Unpack fixture data
@@ -344,10 +328,10 @@ async def test_execute_ocr_http_error_with_valid_error_response(
 
     # Mock OCR service HTTP error with valid error response
     ocr_error_response = MockApiResponseFactory.create_ocr_service_error_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json=ocr_error_response,
+    mock_ocr_response(
+        httpx_mock,
+        test_app_config,
+        ocr_response=ocr_error_response,
         status_code=HTTPStatus.BAD_REQUEST,
     )
 
@@ -378,11 +362,11 @@ async def test_execute_ocr_http_error_with_invalid_error_response(
 ):
     container = albert_integration_container
 
-    # Mock OCR service HTTP error with invalid error response (line 38)
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json={"unexpected": "error format"},
+    # Mock OCR service HTTP error with invalid error response
+    mock_ocr_response(
+        httpx_mock,
+        test_app_config,
+        ocr_response={"unexpected": "error format"},
         status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
     )
 
@@ -413,13 +397,12 @@ async def test_execute_ocr_invalid_success_response_structure(
 ):
     container = albert_integration_container
 
-    # Mock OCR service with invalid success response structure (lines 58-59)
+    # Mock OCR service with invalid success response structure
     ocr_invalid_response = MockApiResponseFactory.create_ocr_service_invalid_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json=ocr_invalid_response,
-        status_code=HTTPStatus.OK,
+    mock_ocr_response(
+        httpx_mock,
+        test_app_config,
+        ocr_response=ocr_invalid_response,
     )
 
     # Unpack fixture data
