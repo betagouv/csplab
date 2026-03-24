@@ -38,7 +38,6 @@ class AlbertTextFormatter(ITextFormatter):
                     \n\n{extracted_text}",
                 },
             ],
-            "max_tokens": 2000,
             "temperature": 0.1,
         }
 
