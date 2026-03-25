@@ -125,11 +125,18 @@ sass-watch: ## watch and compile SCSS files on changes
 .PHONY: sass-watch
 
 ### RUN
-run-all: ## run the whole stack
-run-all: \
+run-data-exploration: ## run the data exploration stack
+run-data-exploration: \
   run-notebook \
   run-es
 .PHONY: run-all
+
+run-infra: ## run infra services
+run-infra: \
+  run-postgres \
+  run-qdrant \
+  run-ocr
+.PHONY: run-infra
 
 run-notebook: ## run the notebook service
 	$(NOTEBOOK_UV) jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
