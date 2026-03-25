@@ -280,12 +280,19 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         return context
 
 
-class OfferDrawerView(TemplateView):
+class OfferDrawerView(BreadcrumbMixin, TemplateView):
     template_name = "candidate/components/_opportunity_drawer_content.html"
+    breadcrumb_current = "Détail de l'offre"
+    breadcrumb_links: list[BreadcrumbLink] = []
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.container = create_candidate_container()
+
+    def get_template_names(self) -> list[str]:
+        if self.request.headers.get("HX-Request"):
+            return ["candidate/components/_opportunity_drawer_content.html"]
+        return ["candidate/opportunity_detail.html"]
 
     def get_context_data(self, **kwargs: object) -> dict[str, object]:
         context = super().get_context_data(**kwargs)
@@ -298,15 +305,23 @@ class OfferDrawerView(TemplateView):
         except OfferDoesNotExist:
             raise Http404("Offer not found") from None
 
+        context["cv_uuid"] = self.kwargs.get("cv_uuid")
         return context
 
 
-class ConcoursDrawerView(TemplateView):
+class ConcoursDrawerView(BreadcrumbMixin, TemplateView):
     template_name = "candidate/components/_opportunity_drawer_content.html"
+    breadcrumb_current = "Détail du concours"
+    breadcrumb_links: list[BreadcrumbLink] = []
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.container = create_candidate_container()
+
+    def get_template_names(self) -> list[str]:
+        if self.request.headers.get("HX-Request"):
+            return ["candidate/components/_opportunity_drawer_content.html"]
+        return ["candidate/opportunity_detail.html"]
 
     def get_context_data(self, **kwargs: object) -> dict[str, object]:
         context = super().get_context_data(**kwargs)
@@ -319,4 +334,5 @@ class ConcoursDrawerView(TemplateView):
         except ConcoursDoesNotExist:
             raise Http404("Concours not found") from None
 
+        context["cv_uuid"] = self.kwargs.get("cv_uuid")
         return context

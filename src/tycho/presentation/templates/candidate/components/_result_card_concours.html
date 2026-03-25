@@ -3,11 +3,9 @@
     <div class="fr-card__body">
         <div class="fr-card__content">
             <h3 class="fr-card__title">
-                <a href="{{ concours.url }}"
+                <a href="{% url 'candidate:concours_drawer' cv_uuid=cv_uuid concours_id=concours.concours_id %}"
                    class="fr-card__link"
-                   hx-get="{% url 'candidate:concours_drawer' cv_uuid=cv_uuid concours_id=concours.concours_id %}"
-                   hx-target="#opportunity-drawer-body"
-                   hx-swap="innerHTML">{{ concours.title }}</a>
+                   data-drawer-open>{{ concours.title }}</a>
             </h3>
             <div class="fr-card__start">
                 <ul class="fr-tags-group">
