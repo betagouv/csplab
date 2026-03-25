@@ -44,7 +44,9 @@
         {% if SITE_CONFIG.notice_title or SITE_CONFIG.notice_description %}
             {% dsfr_notice title=SITE_CONFIG.notice_title description=SITE_CONFIG.notice_description link=SITE_CONFIG.notice_link type=SITE_CONFIG.notice_type icon=SITE_CONFIG.notice_icon_class is_collapsible=SITE_CONFIG.notice_is_collapsible %}
         {% endif %}
-        <div class="fr-container">{% dsfr_django_messages is_collapsible=True %}</div>
+        {% for message in messages %}
+            {% dsfr_alert type=message.level_tag content=message is_collapsible=True extra_classes="csplab-toast" %}
+        {% endfor %}
         <main id="content">
             {% block main %}
             {% endblock main %}
@@ -58,6 +60,7 @@
             {% dsfr_theme_modale %}
         {% endblock theme_modale %}
         {% dsfr_js nonce=csp_nonce %}
+        <script src="{% static 'js/toast.js' %}" nonce="{{ csp_nonce }}"></script>
         {% if MATOMO_BASE_URL %}
             <script nonce="{{ csp_nonce }}">
                 var _paq = window._paq = window._paq || [];
