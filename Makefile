@@ -45,6 +45,7 @@ bootstrap: \
   build \
   migrate \
   create-superuser \
+  seed-data \
   jupytext--to-ipynb
 .PHONY: bootstrap
 
@@ -108,6 +109,11 @@ setup-qdrant: ## setup qdrant collection if not exists
 	@echo "Setting up Qdrant collection…"
 	@$(TYCHO_UV) python config/setup-qdrant.py
 .PHONY: setup-qdrant
+
+seed-data: ## load qdrant collection and pg datas
+	@echo "seed minimal dev data…"
+	./dev/scripts/seed_data.sh
+.PHONY: seed-data
 
 ### SASS
 sass-compile: ## compile SCSS files to CSS
