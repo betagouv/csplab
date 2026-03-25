@@ -4,6 +4,7 @@
           hx-get="{% url 'candidate:cv_results' cv_uuid %}"
           hx-target="#{{ results_target_id|default:'results-zone' }}"
           hx-swap="innerHTML"
+          hx-indicator="#results-zone"
           hx-trigger="change"
           hx-push-url="true">
         {# LOCALISATION #}

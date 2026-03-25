@@ -998,6 +998,11 @@ hr {
     transform: rotate(360deg);
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  .csplab-spinner {
+    animation: none;
+  }
+}
 .csplab-drawer {
   border: 0;
   padding: 0;
@@ -1171,6 +1176,11 @@ hr {
   z-index: 1200;
 }
 
+.csplab-results-loading.htmx-request {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .csplab-hero__title {
   font-size: 2rem;
   line-height: 112.5%;
@@ -1287,6 +1297,15 @@ hr {
   }
   100% {
     opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .csplab-processing .csplab-processing__message {
+    animation: none;
+    opacity: 0;
+  }
+  .csplab-processing .csplab-processing__message[data-message="1"] {
+    opacity: 1;
   }
 }
 .corps-search {
