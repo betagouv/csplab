@@ -69,7 +69,7 @@ jobs:
       run:
         working-directory: ./src/ocr
     env:
-      API_KEY: test-api-key-for-development
+      OCR_API_KEY: test-api-key-for-development
     steps:
       - uses: actions/checkout@v5
       - name: Install system dependencies

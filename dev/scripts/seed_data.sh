@@ -14,7 +14,7 @@ SQL_PATH="./dev/datas/offers.sql"
 echo "loading qdrant snapshot"
 curl -X POST "http://localhost:6333/collections/${COLLECTION}/snapshots/upload?priority=snapshot" \
   -H "Content-Type:multipart/form-data" \
-  -H "api-key: ${API_KEY}" \
+  -H "api-key: ${OCR_API_KEY" \
   -F "snapshot=@${SNAPSHOT_PATH}"
 
 echo "loading offers in db"

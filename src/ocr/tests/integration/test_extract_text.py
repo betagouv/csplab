@@ -18,7 +18,7 @@ def test_client(monkeypatch):
 def valid_api_key(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
     settings = get_settings()
-    return settings.api_key
+    return settings.ocr_api_key
 
 
 @pytest.fixture

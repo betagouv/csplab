@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    api_key: str
+    ocr_api_key: str
     sentry_dsn: HttpUrl | None = None
     sentry_profiles_sample_rate: float | None = 0.1
     sentry_traces_sample_rate: float | None = 0.1
@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
 
 class TestSettings(Settings):
-    api_key: str = "test-api-key-for-development"
+    ocr_api_key: str = "test-api-key-for-development"
     sentry_dsn: HttpUrl | None = None
     sentry_profiles_sample_rate: float | None = 0.0
     sentry_traces_sample_rate: float | None = 0.0
