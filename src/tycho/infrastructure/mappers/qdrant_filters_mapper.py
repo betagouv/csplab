@@ -6,10 +6,11 @@ from qdrant_client.http.models import (
     MatchValue,
 )
 
+from domain.interfaces.mapper_interface import IFromDomainMapper
 from domain.repositories.vector_repository_interface import IFilters
 
 
-class QdrantFiltersMapper:
+class QdrantFiltersMapper(IFromDomainMapper[IFilters, Filter]):
     def from_domain(self, filters: Optional[IFilters]) -> Optional[Filter]:
         if not filters:
             return None
