@@ -15,85 +15,41 @@ class QdrantFiltersMapper(IFromDomainMapper[IFilters, Filter]):
         if not filters:
             return None
 
-        qdrant_filters: dict[str, list[str]] = {}
+        qdrant_filters = {}
 
-        filter_handlers = {
-            "localisation": self._handle_localisation_filter,
-            "opportunity_type": self._handle_opportunity_type_filter,
-            "verse": self._handle_verse_filter,
-            "category": self._handle_category_filter,
-        }
+        document_type = filters.get("document_type")
+        if document_type:
+            qdrant_filters["document_type"] = document_type
 
-        for filter_type, filter_values in filters.items():
-            if not filter_values:
-                continue
-
-            handler = filter_handlers.get(filter_type)
-            if handler:
-                handler(filter_values, qdrant_filters)
-
-        if not qdrant_filters:
-            return None
+        verse = filters.get("verse")
+        if verse:
+            qdrant_filters["verse"] = verse
 
         must_conditions = []
         for key, value in qdrant_filters.items():
             if isinstance(value, list):
                 should_conditions = [
-                    FieldCondition(key=key, match=MatchValue(value=item))
+                    FieldCondition(
+                        key=key,
+                        match=MatchValue(
+                            value=cast(
+                                str, item.value if hasattr(item, "value") else item
+                            )
+                        ),
+                    )
                     for item in value
                 ]
                 must_conditions.append(Filter(should=cast(list, should_conditions)))
             else:
                 must_conditions.append(
-                    Filter(
-                        must=[FieldCondition(key=key, match=MatchValue(value=value))]
+                    FieldCondition(
+                        key=key,
+                        match=MatchValue(
+                            value=cast(
+                                str, value.value if hasattr(value, "value") else value
+                            )
+                        ),
                     )
                 )
+
         return Filter(must=cast(list, must_conditions)) if must_conditions else None
-
-    def _handle_localisation_filter(self, filter_values, qdrant_filters):
-        departments = []
-        regions = []
-        countries = []
-
-        for loc in filter_values:
-            if hasattr(loc, "department") and hasattr(loc.department, "code"):
-                departments.append(loc.department.code)
-            if hasattr(loc, "region") and hasattr(loc.region, "code"):
-                regions.append(loc.region.code)
-            if hasattr(loc, "country") and hasattr(loc.country, "code"):
-                countries.append(loc.country.code)
-
-        if departments:
-            qdrant_filters["department"] = departments
-        if regions:
-            qdrant_filters["region"] = regions
-        if countries:
-            qdrant_filters["country"] = countries
-
-    def _handle_opportunity_type_filter(self, filter_values, qdrant_filters):
-        doc_types = []
-        for opp_type in filter_values:
-            if hasattr(opp_type, "value"):
-                if opp_type.value == "CONCOURS":
-                    doc_types.append("CONCOURS")
-                elif opp_type.value == "OFFER":
-                    doc_types.append("OFFERS")
-        if doc_types:
-            qdrant_filters["document_type"] = doc_types
-
-    def _handle_verse_filter(self, filter_values, qdrant_filters):
-        verses = []
-        for verse in filter_values:
-            if hasattr(verse, "value"):
-                verses.append(verse.value)
-        if verses:
-            qdrant_filters["verse"] = verses
-
-    def _handle_category_filter(self, filter_values, qdrant_filters):
-        categories = []
-        for category in filter_values:
-            if hasattr(category, "value"):
-                categories.append(category.value)
-        if categories:
-            qdrant_filters["category"] = categories

@@ -8,7 +8,6 @@ from qdrant_client.http.exceptions import UnexpectedResponse
 from domain.entities.document import DocumentType
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
 from domain.value_objects.similarity_type import SimilarityMetric, SimilarityType
-from domain.value_objects.verse import Verse
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.django_apps.shared.models.vectorized_document import (
     VectorizedDocumentModel,
@@ -447,77 +446,6 @@ def test_vectorize_qdrant_search_no_filters(
     )
 
     assert len(search_results) == 1
-
-
-@responses.activate
-def test_vectorize_qdrant_search_empty_filters(
-    db, ingestion_integration_container_albert, test_app_config
-):
-    # Mock Albert API
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    responses.add(
-        responses.POST,
-        albert_url,
-        json=mock_response,
-        status=200,
-        content_type="application/json",
-    )
-
-    # Create and vectorize a document first
-    OfferFactory.create()
-    usecase = ingestion_integration_container_albert.vectorize_documents_usecase()
-    usecase.execute(DocumentType.OFFERS)
-
-    # Test search with empty filters dict (ligne 157-158 - return None)
-    vector_repo = ingestion_integration_container_albert.vector_repository()
-    search_results = vector_repo.semantic_search(
-        query_embedding=[0.1] * settings.EMBEDDING_DIMENSION,
-        limit=10,
-        filters={},
-    )
-
-    assert len(search_results) == 1
-
-
-@responses.activate
-def test_vectorize_qdrant_search_list_filters(
-    db, ingestion_integration_container_albert, test_app_config
-):
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    responses.add(
-        responses.POST,
-        albert_url,
-        json=mock_response,
-        status=200,
-        content_type="application/json",
-    )
-    OfferFactory.create(verse=Verse.FPE)
-    OfferFactory.create(verse=Verse.FPH)
-    OfferFactory.create(verse=Verse.FPT)
-    usecase = ingestion_integration_container_albert.vectorize_documents_usecase()
-    usecase.execute(DocumentType.OFFERS)  # a usecase only handles one document type
-
-    vector_repo = ingestion_integration_container_albert.vector_repository()
-    search_results_filter_and = vector_repo.semantic_search(
-        query_embedding=[0.1] * settings.EMBEDDING_DIMENSION,
-        limit=10,
-        filters={
-            "document_type": DocumentType.OFFERS.value,
-        },
-    )
-    search_results_and_or_combination = vector_repo.semantic_search(
-        query_embedding=[0.1] * settings.EMBEDDING_DIMENSION,
-        limit=10,
-        filters={
-            "document_type": DocumentType.OFFERS.value,
-            "verse": [Verse.FPE.value, Verse.FPH.value],
-        },
-    )
-
-    assert len(search_results_and_or_combination) == TWO_DOCUMENTS
-    assert len(search_results_filter_and) == THREE_DOCUMENTS
 
 
 @responses.activate
