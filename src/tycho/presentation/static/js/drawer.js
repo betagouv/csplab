@@ -22,9 +22,22 @@ class DrawerHandler {
   }
 
   init() {
+    this.markTriggers();
     this.setupHtmxListeners();
     this.setupClose();
     this.setupFocusRestore();
+  }
+
+  markTriggers() {
+    const targetId = this.body.id;
+    if (!targetId) return;
+    document.querySelectorAll('[data-drawer-open]').forEach((el) => {
+      el.setAttribute('hx-get', el.getAttribute('href'));
+      el.setAttribute('hx-target', `#${targetId}`);
+      el.setAttribute('hx-swap', 'innerHTML');
+      el.setAttribute('aria-haspopup', 'dialog');
+      htmx.process(el);
+    });
   }
 
   setupHtmxListeners() {

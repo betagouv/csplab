@@ -1,0 +1,26 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags %}
+{% block page_title %}
+    {{ opportunity.title }}
+{% endblock page_title %}
+{% block meta_description %}
+    {{ opportunity.title }}
+{% endblock meta_description %}
+{% block main %}
+    <div class="fr-background-alt--blue-france fr-pb-5w fr-pb-md-9w fr-stack-3w fr-stack-md-4w">
+        <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+        <div class="fr-container">
+            <a class="fr-link fr-icon-arrow-left-line fr-link--icon-left"
+               href="{% url 'candidate:cv_results' cv_uuid=cv_uuid %}">Retour aux résultats</a>
+        </div>
+        <div class="fr-container">
+            <div class="fr-card fr-p-2w fr-p-md-4w">{% include "candidate/components/_opportunity_detail_content.html" %}</div>
+        </div>
+    </div>
+{% endblock main %}
+{% block page_js %}
+    {{ block.super }}
+    <script src="{% static 'candidate/js/opportunity-feedback.js' %}"
+            defer
+            nonce="{{ csp_nonce }}"></script>
+{% endblock page_js %}
