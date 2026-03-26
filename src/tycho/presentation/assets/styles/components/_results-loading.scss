@@ -1,0 +1,6 @@
+.csplab-results-loading {
+  &.htmx-request {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
