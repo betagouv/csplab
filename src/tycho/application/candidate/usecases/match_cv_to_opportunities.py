@@ -9,16 +9,10 @@ from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from domain.repositories.offers_repository_interface import IOffersRepository
-from domain.repositories.vector_repository_interface import IVectorRepository
+from domain.repositories.vector_repository_interface import IFilters, IVectorRepository
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
 from domain.services.logger_interface import ILogger
-from domain.value_objects.category import Category
 from domain.value_objects.cv_processing_status import CVStatus
-from domain.value_objects.localisation import Localisation
-from domain.value_objects.opportunity_type import OpportunityType
-from domain.value_objects.verse import Verse
-
-IFilters = Localisation | OpportunityType | Verse | Category
 
 
 class MatchCVToOpportunitiesUsecase(
@@ -61,6 +55,7 @@ class MatchCVToOpportunitiesUsecase(
         similarity_results = self._vector_repository.semantic_search(
             query_embedding=query_embedding,
             limit=limit,
+            filters=filters,
         )
 
         concours_similarity_results = [
