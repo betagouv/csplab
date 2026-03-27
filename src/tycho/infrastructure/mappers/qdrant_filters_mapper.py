@@ -25,6 +25,22 @@ class QdrantFiltersMapper(IFromDomainMapper[IFilters, Filter]):
         if verse:
             qdrant_filters["verse"] = verse
 
+        category = filters.get("category")
+        if category:
+            qdrant_filters["category"] = category
+
+        region = filters.get("region")
+        if region:
+            qdrant_filters["localisation.region"] = region
+
+        department = filters.get("department")
+        if department:
+            qdrant_filters["localisation.department"] = department
+
+        country = filters.get("country")
+        if country:
+            qdrant_filters["localisation.country"] = country
+
         must_conditions = []
         for key, value in qdrant_filters.items():
             if isinstance(value, list):

@@ -109,28 +109,28 @@ def test_execute_with_valid_cv_returns_opportunities(
     # Generate vectorized documents using VectorizedDocumentFactory
     vectorized_concours = []
     for concours_entity in concours_repo.get_all():
+        metadata = {
+            "category": concours_entity.category.value,
+            "ministry": concours_entity.ministry.value,
+            "access_modality": [],
+        }
         vectorized_doc = VectorizedDocumentFactory.create(
             entity_id=concours_entity.id,
             document_type=DocumentType.CONCOURS,
             content=fake.sentence(),
             embedding_dimensions=settings.EMBEDDING_DIMENSION,
+            metadata=metadata,
         )
         vectorized_concours.append(vectorized_doc)
 
     vectorized_offers = []
-    for offer_entity in offers_repo.get_all():
-        # Créer les métadonnées avec le vrai verse de l'offer
-        metadata = {
-            "verse": offer_entity.verse.value,  # Utiliser le vrai verse !
-            "category": None,
-            "localisation": None,
-        }
+    offer_entities = list(offers_repo.get_all())
+    for offer_entity in offer_entities:
         vectorized_doc = VectorizedDocumentFactory.create(
             entity_id=offer_entity.id,
             document_type=DocumentType.OFFERS,
             content=fake.sentence(),
             embedding_dimensions=settings.EMBEDDING_DIMENSION,
-            metadata=metadata,  # Passer les vraies métadonnées
         )
         vectorized_offers.append(vectorized_doc)
 
@@ -181,18 +181,11 @@ def test_vectorize_qdrant_search_empty_filters(_integration_candidate_container)
 
     vectorized_offers = []
     for offer_entity in offers_repo.get_all():
-        # Créer les métadonnées avec le vrai verse de l'offer
-        metadata = {
-            "verse": offer_entity.verse.value,  # Utiliser le vrai verse !
-            "category": None,
-            "localisation": None,
-        }
         vectorized_doc = VectorizedDocumentFactory.create(
             entity_id=offer_entity.id,
             document_type=DocumentType.OFFERS,
             content=fake.sentence(),
             embedding_dimensions=settings.EMBEDDING_DIMENSION,
-            metadata=metadata,  # Passer les vraies métadonnées
         )
         vectorized_offers.append(vectorized_doc)
 
@@ -217,6 +210,8 @@ def test_vectorize_qdrant_search_empty_filters(_integration_candidate_container)
 @pytest.mark.django_db
 def test_vectorize_qdrant_search_list_filters(_integration_candidate_container):
     # Mock Albert API
+
+    INDEX_REGION = 2
     test_app_config = _integration_candidate_container.app_config()
     albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
     mock_response = MockApiResponseFactory.create_albert_embedding_response()
@@ -253,19 +248,32 @@ def test_vectorize_qdrant_search_list_filters(_integration_candidate_container):
     concours_repo.upsert_batch([ConcoursModel.to_entity(c) for c in concours])
 
     vectorized_offers = []
-    for offer_entity in offers_repo.get_all():
-        # Créer les métadonnées avec le vrai verse de l'offer
+    offer_entities = list(offers_repo.get_all())
+    for i, offer_entity in enumerate(offer_entities):
+        if i < INDEX_REGION:
+            localisation = {
+                "country": "FRA",
+                "region": "11",
+                "department": "75",
+            }
+        else:
+            localisation = {
+                "country": "FRA",
+                "region": "75",
+                "department": "40",
+            }
+
         metadata = {
-            "verse": offer_entity.verse.value,  # Utiliser le vrai verse !
+            "verse": offer_entity.verse.value,
             "category": None,
-            "localisation": None,
+            "localisation": localisation,
         }
         vectorized_doc = VectorizedDocumentFactory.create(
             entity_id=offer_entity.id,
             document_type=DocumentType.OFFERS,
             content=fake.sentence(),
             embedding_dimensions=settings.EMBEDDING_DIMENSION,
-            metadata=metadata,  # Passer les vraies métadonnées
+            metadata=metadata,
         )
         vectorized_offers.append(vectorized_doc)
 
@@ -275,11 +283,17 @@ def test_vectorize_qdrant_search_list_filters(_integration_candidate_container):
 
     vectorized_concours = []
     for concours_entity in concours_repo.get_all():
+        metadata = {
+            "category": concours_entity.category.value,
+            "ministry": concours_entity.ministry.value,
+            "access_modality": [],
+        }
         vectorized_doc = VectorizedDocumentFactory.create(
             entity_id=concours_entity.id,
             document_type=DocumentType.CONCOURS,
             content=fake.sentence(),
             embedding_dimensions=settings.EMBEDDING_DIMENSION,
+            metadata=metadata,
         )
         vectorized_concours.append(vectorized_doc)
 
@@ -304,3 +318,47 @@ def test_vectorize_qdrant_search_list_filters(_integration_candidate_container):
     )
 
     assert len(all_offers_and_concours) == SIX_DOCUMENTS
+
+    offers_and_concours_fpe = usecase.execute(
+        cv_metadata,
+        filters={
+            "document_type": [DocumentType.OFFERS.value, DocumentType.CONCOURS.value],
+            "verse": Verse.FPE.value,
+        },
+        limit=10,
+    )
+
+    assert len(offers_and_concours_fpe) == 1
+
+    concours_a_b = usecase.execute(
+        cv_metadata,
+        filters={
+            "document_type": DocumentType.CONCOURS.value,
+            "category": [Category.A.value, Category.B.value],
+        },
+        limit=10,
+    )
+
+    assert len(concours_a_b) == TWO_DOCUMENTS
+
+    offers_ile_de_france = usecase.execute(
+        cv_metadata,
+        filters={
+            "document_type": DocumentType.OFFERS.value,
+            "region": "11",
+        },
+        limit=10,
+    )
+
+    assert len(offers_ile_de_france) == TWO_DOCUMENTS
+
+    offers_landes = usecase.execute(
+        cv_metadata,
+        filters={
+            "document_type": DocumentType.OFFERS.value,
+            "region": "75",
+        },
+        limit=10,
+    )
+
+    assert len(offers_landes) == 1
