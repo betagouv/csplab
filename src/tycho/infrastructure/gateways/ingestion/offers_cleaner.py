@@ -17,9 +17,7 @@ from domain.value_objects.limit_date import LimitDate
 from domain.value_objects.localisation import Localisation
 from domain.value_objects.region import Region
 from domain.value_objects.verse import Verse
-from infrastructure.external_gateways.dtos.talentsoft_dtos import (
-    TalentsoftOffer,
-)
+from infrastructure.external_gateways.dtos.talentsoft_dtos import TalentsoftOffer
 
 
 class OffersCleaner(IDocumentCleaner[Offer]):

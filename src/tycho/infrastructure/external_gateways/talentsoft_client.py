@@ -141,7 +141,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
             api_name="Talentsoft Front API",
         )
 
-    async def get_offers(
+    async def get_all(
         self, count: int = 1000, start: int = 1
     ) -> Tuple[List[TalentsoftOffer], bool]:
         url = f"{self.base_url}{OFFERS_ENDPOINT}"
@@ -162,7 +162,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
 
         return offers, has_more
 
-    async def get_detail_offer(self, reference: str) -> TalentsoftDetailOffer:
+    async def get_detail(self, reference: str) -> TalentsoftDetailOffer:
         if not reference:
             raise ExternalApiError(
                 message="Reference is required", api_name="Talentsoft Front API"

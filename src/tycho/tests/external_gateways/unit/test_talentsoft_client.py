@@ -108,7 +108,7 @@ class TestGetAccessToken:
 
 class TestGetOffers:
     @pytest.mark.asyncio
-    async def test_get_offers_handles_empty_data(self, talentsoft_client):
+    async def test_get_all_handles_empty_data(self, talentsoft_client):
         mock_response = mocked_response(return_value={})
 
         talentsoft_client.cached_token = cached_token()
@@ -119,12 +119,12 @@ class TestGetOffers:
             with pytest.raises(
                 ExternalApiError, match="Invalid response structure"
             ) as exc_info:
-                await talentsoft_client.get_offers()
+                await talentsoft_client.get_all()
 
             assert exc_info.value.api_name == "Talentsoft Front API"
 
     @pytest.mark.asyncio
-    async def test_get_offers_fails_due_to_unauthorized_token(self, talentsoft_client):
+    async def test_get_all_fails_due_to_unauthorized_token(self, talentsoft_client):
         response_data = offers_response()
 
         unauthorized_response = mocked_response(status_code=401)
@@ -153,7 +153,7 @@ class TestGetOffers:
             mock_get.side_effect = [unauthorized_response, success_response]
             mock_post.return_value = new_token_response
 
-            offers, has_more = await talentsoft_client.get_offers()
+            offers, has_more = await talentsoft_client.get_all()
 
             # Compare the number of offers and their references
             assert len(offers) == len(response_data["data"])
@@ -167,7 +167,7 @@ class TestGetOffers:
             mock_post.assert_called_once()  # Token refresh called
 
     @pytest.mark.asyncio
-    async def test_get_offers_fails_after_max_retries_attempts(self, talentsoft_client):
+    async def test_get_all_fails_after_max_retries_attempts(self, talentsoft_client):
         failed_response = mocked_response(status_code=500)
         failed_response.raise_for_status.side_effect = Exception(
             "500 Internal Server Error"
@@ -181,7 +181,7 @@ class TestGetOffers:
             with pytest.raises(
                 ExternalApiError, match="Request failed after retries"
             ) as exc_info:
-                await talentsoft_client.get_offers()
+                await talentsoft_client.get_all()
 
             assert exc_info.value.api_name == "Talentsoft Front API"
             assert mock_get.call_count == talentsoft_client.max_retries + 1
@@ -189,16 +189,16 @@ class TestGetOffers:
 
 class TestGetDetailOffer:
     @pytest.mark.asyncio
-    async def test_get_detail_offer_raises_error_if_reference_is_missing(
+    async def test_get_detail_raises_error_if_reference_is_missing(
         self, talentsoft_client
     ):
         with pytest.raises(ExternalApiError, match="Reference is required") as exc_info:
-            await talentsoft_client.get_detail_offer(reference="")
+            await talentsoft_client.get_detail(reference="")
 
         assert exc_info.value.api_name == "Talentsoft Front API"
 
     @pytest.mark.asyncio
-    async def test_get_detail_offer_raises_error_if_reference_is_unknown(
+    async def test_get_detail_raises_error_if_reference_is_unknown(
         self, talentsoft_client
     ):
         mock_response = mocked_response(status_code=404)
@@ -210,12 +210,12 @@ class TestGetDetailOffer:
             with pytest.raises(
                 ExternalApiError, match="Offer not found for reference"
             ) as exc_info:
-                await talentsoft_client.get_detail_offer(reference=fake.uuid4())
+                await talentsoft_client.get_detail(reference=fake.uuid4())
 
             assert exc_info.value.api_name == "Talentsoft Front API"
 
     @pytest.mark.asyncio
-    async def test_get_detail_offer_raises_error_if_response_is_malformed(
+    async def test_get_detail_raises_error_if_response_is_malformed(
         self, talentsoft_client
     ):
         talentsoft_client.cached_token = cached_token()
@@ -227,14 +227,12 @@ class TestGetDetailOffer:
             with pytest.raises(
                 ExternalApiError, match="Invalid response structure"
             ) as exc_info:
-                await talentsoft_client.get_detail_offer(reference=fake.uuid4())
+                await talentsoft_client.get_detail(reference=fake.uuid4())
 
             assert exc_info.value.api_name == "Talentsoft Front API"
 
     @pytest.mark.asyncio
-    async def test_get_detail_offer_fails_due_to_unauthorized_token(
-        self, talentsoft_client
-    ):
+    async def test_get_detail_fails_due_to_unauthorized_token(self, talentsoft_client):
         response_data = detail_offer_response()
 
         unauthorized_response = mocked_response(status_code=401)
@@ -263,7 +261,7 @@ class TestGetDetailOffer:
             mock_get.side_effect = [unauthorized_response, success_response]
             mock_post.return_value = new_token_response
 
-            offer = await talentsoft_client.get_detail_offer(
+            offer = await talentsoft_client.get_detail(
                 reference=response_data["reference"]
             )
 
@@ -272,9 +270,7 @@ class TestGetDetailOffer:
             mock_post.assert_called_once()  # Token refresh called
 
     @pytest.mark.asyncio
-    async def test_get_detail_offer_fails_after_max_retries_attempts(
-        self, talentsoft_client
-    ):
+    async def test_get_detail_fails_after_max_retries_attempts(self, talentsoft_client):
         failed_response = mocked_response(status_code=500)
         failed_response.raise_for_status.side_effect = Exception(
             "500 Internal Server Error"
@@ -288,7 +284,7 @@ class TestGetDetailOffer:
             with pytest.raises(
                 ExternalApiError, match="Request failed after retries"
             ) as exc_info:
-                await talentsoft_client.get_detail_offer(reference=fake.uuid4())
+                await talentsoft_client.get_detail(reference=fake.uuid4())
 
             assert exc_info.value.api_name == "Talentsoft Front API"
             assert mock_get.call_count == talentsoft_client.max_retries + 1

@@ -95,7 +95,7 @@ class ExternalDocumentGateway(IDocumentGateway):
         # TODO open & close connection at client level
         # need piste_client to be asynced
         async with self.talentsoft_front_client:
-            return await self.talentsoft_front_client.get_offers(start=start)
+            return await self.talentsoft_front_client.get_all(start=start)
 
     def _fetch_talentsoft_api(
         self, document_type: DocumentType, start: int = 1
@@ -155,7 +155,7 @@ class ExternalDocumentGateway(IDocumentGateway):
         # TODO open & close connection at client level
         # need piste_client to be asynced
         async with self.talentsoft_front_client:
-            return await self.talentsoft_front_client.get_detail_offer(reference)
+            return await self.talentsoft_front_client.get_detail(reference)
 
     def get_detail(self, document_type: DocumentType, external_id: str) -> Document:
         # external_id format is "{versant}-{reference}", e.g. "FPE-12345"

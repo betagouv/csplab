@@ -32,3 +32,11 @@ class IAsyncHttpClient(Protocol):
         headers: Optional[Dict[str, str]] = None,
         params: Optional[Mapping[str, int | str]] = None,
     ) -> IAsyncHttpResponse: ...
+
+    async def get_all(
+        self,
+        count: int = 1000,
+        start: int = 1,
+    ): ...
+
+    async def get_detail(self, reference: str): ...
