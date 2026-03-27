@@ -20,6 +20,11 @@ class InMemoryDocumentRepository(IDocumentRepository):
         has_more = False
         return [doc for doc in self._documents if doc.type == document_type], has_more
 
+    def find_by_external_ids(
+        self, document_type: DocumentType, documents: List[Document]
+    ) -> List[Document]:
+        return []
+
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
     ) -> IUpsertResult:

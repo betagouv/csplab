@@ -30,6 +30,15 @@ class PostgresDocumentRepository(IDocumentRepository):
 
         return [raw_doc.to_entity() for raw_doc in raw_documents_to_return], has_more
 
+    def find_by_external_ids(
+        self, document_type: DocumentType, documents: List[Document]
+    ) -> List[Document]:
+        external_ids = [doc.external_id for doc in documents]
+        qs = RawDocument.objects.filter(
+            document_type=document_type.value, external_id__in=external_ids
+        )
+        return [raw_doc.to_entity() for raw_doc in qs]
+
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
     ) -> IUpsertResult:

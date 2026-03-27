@@ -20,6 +20,10 @@ class IDocumentRepository(Protocol):
         self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]: ...
 
+    def find_by_external_ids(
+        self, document_type: DocumentType, documents: List[Document]
+    ) -> List[Document]: ...
+
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
     ) -> IUpsertResult: ...

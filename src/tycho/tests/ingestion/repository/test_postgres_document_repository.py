@@ -98,6 +98,53 @@ class TestFindByType:
         assert documents[1].external_id == "uuid-2"
 
 
+class TestFindByExternalIds:
+    def test_handle_empty_results(self, db, repository):
+        documents = repository.find_by_external_ids(
+            document_type=DocumentType.OFFERS, documents=[]
+        )
+        assert documents == []
+
+    def test_ignore_other_document_type(self, db, repository):
+        external_id = "uuid-1"
+        raw_document = RawDocumentFactory.create(
+            document_type=DocumentType.OFFERS, external_id=external_id
+        )
+        RawDocumentFactory.create(
+            document_type=DocumentType.CORPS, external_id=external_id
+        )
+        RawDocumentFactory.create(
+            document_type=DocumentType.CONCOURS, external_id=external_id
+        )
+
+        documents = repository.find_by_external_ids(
+            document_type=DocumentType.OFFERS, documents=[raw_document.to_entity()]
+        )
+
+        assert len(documents) == 1
+        document = documents[0]
+        assert isinstance(document, Document)
+        assert document.external_id == external_id
+        assert document.type == DocumentType.OFFERS
+
+    def test_find_correct_external_ids(self, db, repository):
+        raw_documents_models = [
+            RawDocumentFactory.create(
+                document_type=DocumentType.OFFERS, external_id=f"uuid-{i}"
+            )
+            for i in range(3)
+        ]
+        raw_documents = [
+            raw_document.to_entity() for raw_document in raw_documents_models
+        ]
+
+        documents = repository.find_by_external_ids(
+            document_type=DocumentType.OFFERS, documents=raw_documents[:2]
+        )
+
+        assert {d.external_id for d in documents} == {"uuid-0", "uuid-1"}
+
+
 class TestUpsertBatch:
     def test_datetime_on_upsert(self, db, repository):
         raw_doc = RawDocumentFactory.create()
