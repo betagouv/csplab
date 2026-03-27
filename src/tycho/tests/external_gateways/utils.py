@@ -7,18 +7,16 @@ from httpx import Response
 
 from domain.types import JsonDataType
 from infrastructure.external_gateways.dtos.talentsoft_dtos import CachedToken
-from tests.fixtures.fixture_loader import load_fixture
+from tests.factories.talentsoft_factories import (
+    TalentsoftDetailOfferFactory,
+    TalentsoftOfferFactory,
+)
 
 fake = Faker()
 
 
-def _load_offer_fixture_data(doc_id: int) -> Dict[str, Any]:
-    offer_fixtures = load_fixture("talentsoft_offers.json")
-    fixture_index = (doc_id - 1) % len(offer_fixtures)
-
-    offer = offer_fixtures[fixture_index].copy()
-    offer["reference"] = fake.uuid4()
-    return offer
+def _build_offer_data() -> Dict[str, Any]:
+    return TalentsoftOfferFactory.build().model_dump()
 
 
 def cached_token(access_token: Optional[str] = None, expire_in: int = 3600):
@@ -31,7 +29,7 @@ def cached_token(access_token: Optional[str] = None, expire_in: int = 3600):
 
 
 def offers_response(count: int = 2, has_more: bool = False):
-    offers = [_load_offer_fixture_data(i) for i in range(1, count + 1)]
+    offers = [_build_offer_data() for _ in range(count)]
 
     offers_response = {
         "data": offers,
@@ -48,9 +46,10 @@ def offers_response(count: int = 2, has_more: bool = False):
 
 
 def detail_offer_response(reference: Optional[str] = None) -> Dict[str, Any]:
-    offer = load_fixture("talentsoft_offer_detail.json").copy()
-    offer["reference"] = reference if reference is not None else fake.uuid4()
-    return offer
+    offer = TalentsoftDetailOfferFactory.build()
+    data = offer.model_dump()
+    data["reference"] = reference if reference is not None else fake.uuid4()
+    return data
 
 
 def mocked_response(status_code: int = 200, return_value: JsonDataType = None):
