@@ -13,7 +13,7 @@ from qdrant_client.http.models import (
 from config.app_config import QdrantConfig
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
-from domain.repositories.vector_repository_interface import IVectorRepository
+from domain.repositories.vector_repository_interface import IFilters, IVectorRepository
 from domain.services.logger_interface import ILogger
 from domain.value_objects.similarity_type import (
     SimilarityMetric,
@@ -21,6 +21,7 @@ from domain.value_objects.similarity_type import (
     SimilarityType,
 )
 from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.mappers.qdrant_filters_mapper import QdrantFiltersMapper
 
 
 class QdrantRepository(IVectorRepository):
@@ -33,6 +34,7 @@ class QdrantRepository(IVectorRepository):
         self.config = config
         self.logger = logger
         self.collection_name = collection_name
+        self._mapper = QdrantFiltersMapper()
         self.client = QdrantClient(
             url=config.url,
             api_key=config.api_key if config.api_key else None,
@@ -44,7 +46,7 @@ class QdrantRepository(IVectorRepository):
         self,
         query_embedding: List[float],
         limit: int = 10,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: Optional[IFilters] = None,
         similarity_type: Optional[SimilarityType] = None,
     ) -> List[SimilarityResult]:
         if similarity_type is None:
@@ -56,7 +58,7 @@ class QdrantRepository(IVectorRepository):
             )
 
         try:
-            qdrant_filter = self._build_filter(filters)
+            qdrant_filter = self._mapper.from_domain(filters)
 
             query_response = self.client.query_points(
                 collection_name=self.collection_name,
