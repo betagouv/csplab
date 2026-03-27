@@ -93,7 +93,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         self.filename = None
 
     def dispatch(self, request, *args, **kwargs):
-        status_data = self._get_cv_processing_status()
+        status_data = self._get_cv_processing_status(request)
         self.status = status_data.get("status")
         self.opportunities = status_data.get("opportunities", [])
         self.filename = status_data.get("filename")
@@ -129,9 +129,18 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
 
         return super().get(request, *args, **kwargs)
 
-    def _get_cv_processing_status(self) -> dict[str, object]:
+    def _get_cv_processing_status(self, request) -> dict[str, object]:
         cv_uuid = self.kwargs.get("cv_uuid")
         self.logger.info("Getting CV processing status for cv_uuid=%s", cv_uuid)
+
+        # Log filter parameters for debugging
+        filter_params = {
+            "department": request.GET.get("filter-location"),
+            "category": request.GET.getlist("filter-category"),
+            "versant": request.GET.getlist("filter-versant"),
+            "opportunity_type": request.GET.getlist("filter-opportunity_type"),
+        }
+        self.logger.info(f"Filter parameters: {filter_params}")
 
         cv_metadata_repository = self.container.postgres_cv_metadata_repository()
         opportunities: list[OpportunityCard] = []
@@ -146,6 +155,12 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
                 match_cv_to_opportunities = (
                     self.container.match_cv_to_opportunities_usecase()
                 )
+
+                if any(filter_params.values()):
+                    self.logger.info(
+                        "Filters detected - relaunching usecase without filters for now"
+                    )
+
                 raw_opportunities = match_cv_to_opportunities.execute(
                     cv_metadata=cv_metadata,
                     limit=settings.CV_MAX_OPPORTUNITIES,
