@@ -1,5 +1,3 @@
-"""Integration tests for CV results page view."""
-
 from http import HTTPStatus
 from unittest.mock import patch
 from uuid import uuid4

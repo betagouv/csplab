@@ -21,9 +21,9 @@ from domain.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.filter_config import (
     OPPORTUNITY_TYPES,
+    get_all_departments_filter_options,
     get_category_all_filter_values,
     get_category_filter_options,
-    get_location_filter_options,
     get_opportunity_type_filter_options,
     get_verse_all_filter_values,
     get_verse_filter_options,
@@ -201,7 +201,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         filtered = results
 
         location = self.request.GET.get("filter-location")
-        if location:
+        if location and location.strip():
             filtered = [r for r in filtered if r.get("location_value") == location]
 
         multi_value_filters: list[tuple[str, set[str], str]] = [
@@ -245,13 +245,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         else:
             context["tally_form_id"] = settings.TALLY_FORM_ID_NO_RESULTS
 
-        opportunities = (
-            self.opportunities if isinstance(self.opportunities, list) else []
-        )
-        locations = [
-            (r.get("location_value", ""), r.get("location", "")) for r in opportunities
-        ]
-        context["location_options"] = get_location_filter_options(locations)
+        context["location_options"] = get_all_departments_filter_options()
         context["category_options"] = get_category_filter_options()
         context["verse_options"] = get_verse_filter_options()
         context["opportunity_type_options"] = get_opportunity_type_filter_options()
