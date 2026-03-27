@@ -20,18 +20,16 @@ from domain.value_objects.cv_processing_status import CVStatus
 from domain.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.filter_config import (
-    OPPORTUNITY_TYPES,
     get_all_departments_filter_options,
-    get_category_all_filter_values,
     get_category_filter_options,
     get_opportunity_type_filter_options,
-    get_verse_all_filter_values,
     get_verse_filter_options,
 )
 from presentation.candidate.forms.cv_flow import CVUploadForm
 from presentation.candidate.mappers import (
     ConcoursToTemplateMapper,
     OfferToTemplateMapper,
+    ViewFiltersToUsecaseMapper,
 )
 from presentation.candidate.mixins import (
     BreadcrumbLink,
@@ -88,6 +86,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         super().__init__(*args, **kwargs)
         self.container = create_candidate_container()
         self.logger = self.container.logger_service()
+        self.filters_mapper = ViewFiltersToUsecaseMapper()
         self.status = None
         self.opportunities = None
         self.filename = None
@@ -156,13 +155,11 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
                     self.container.match_cv_to_opportunities_usecase()
                 )
 
-                if any(filter_params.values()):
-                    self.logger.info(
-                        "Filters detected - relaunching usecase without filters for now"
-                    )
+                domain_filters = self.filters_mapper.to_domain(request.GET)
 
                 raw_opportunities = match_cv_to_opportunities.execute(
                     cv_metadata=cv_metadata,
+                    filters=domain_filters,
                     limit=settings.CV_MAX_OPPORTUNITIES,
                 )
 
@@ -212,26 +209,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         # Default template for completed status with results
         return ["candidate/cv_results.html"]
 
-    def _filter_results(self, results: list[OpportunityCard]) -> list[OpportunityCard]:
-        filtered = results
-
-        location = self.request.GET.get("filter-location")
-        if location and location.strip():
-            filtered = [r for r in filtered if r.get("location_value") == location]
-
-        multi_value_filters: list[tuple[str, set[str], str]] = [
-            ("filter-category", get_category_all_filter_values(), "category_value"),
-            ("filter-versant", get_verse_all_filter_values(), "versant_value"),
-            ("filter-opportunity_type", set(OPPORTUNITY_TYPES), "opportunity_type"),
-        ]
-
-        for param_name, all_values, field_key in multi_value_filters:
-            selected = set(self.request.GET.getlist(param_name)) - {""}
-            if selected and not all_values.issubset(selected):
-                filtered = [r for r in filtered if r.get(field_key) in selected]
-
-        return filtered
-
     def get_context_data(self, **kwargs: object) -> dict[str, object]:
         context = super().get_context_data(**kwargs)
 
@@ -246,10 +223,9 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         # TODO We may want to use a template tag to count opportunities to display,
         # and get context lighter.
         if isinstance(self.opportunities, list):
-            filtered = self._filter_results(self.opportunities)
-            context["results_count"] = len(filtered)
+            context["results_count"] = len(self.opportunities)
 
-            paginator = Paginator(filtered, settings.CV_RESULTS_PER_PAGE)
+            paginator = Paginator(self.opportunities, settings.CV_RESULTS_PER_PAGE)
             page_obj = paginator.get_page(self.request.GET.get("page", 1))
             list_pages(page_obj)
             context["results"] = page_obj.object_list

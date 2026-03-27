@@ -11,15 +11,23 @@ from domain.repositories.vector_repository_interface import IFilters
 
 
 class QdrantFiltersMapper(IFromDomainMapper[IFilters, Filter]):
+    def _extract_value(self, item):
+        if hasattr(item, "code"):
+            return item.code
+        elif hasattr(item, "value"):
+            return item.value
+        else:
+            return str(item)
+
     def from_domain(self, filters: Optional[IFilters]) -> Optional[Filter]:
         if not filters:
             return None
 
         qdrant_filters = {}
 
-        document_type = filters.get("document_type")
-        if document_type:
-            qdrant_filters["document_type"] = document_type
+        doc_type = filters.get("document_type")
+        if doc_type:
+            qdrant_filters["document_type"] = doc_type
 
         verse = filters.get("verse")
         if verse:
@@ -47,11 +55,7 @@ class QdrantFiltersMapper(IFromDomainMapper[IFilters, Filter]):
                 should_conditions = [
                     FieldCondition(
                         key=key,
-                        match=MatchValue(
-                            value=cast(
-                                str, item.value if hasattr(item, "value") else item
-                            )
-                        ),
+                        match=MatchValue(value=cast(str, self._extract_value(item))),
                     )
                     for item in value
                 ]
@@ -60,11 +64,7 @@ class QdrantFiltersMapper(IFromDomainMapper[IFilters, Filter]):
                 must_conditions.append(
                     FieldCondition(
                         key=key,
-                        match=MatchValue(
-                            value=cast(
-                                str, value.value if hasattr(value, "value") else value
-                            )
-                        ),
+                        match=MatchValue(value=cast(str, self._extract_value(value))),
                     )
                 )
 
