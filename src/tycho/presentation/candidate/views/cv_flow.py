@@ -20,18 +20,16 @@ from domain.value_objects.cv_processing_status import CVStatus
 from domain.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.filter_config import (
-    OPPORTUNITY_TYPES,
-    get_category_all_filter_values,
+    get_all_departments_filter_options,
     get_category_filter_options,
-    get_location_filter_options,
     get_opportunity_type_filter_options,
-    get_verse_all_filter_values,
     get_verse_filter_options,
 )
 from presentation.candidate.forms.cv_flow import CVUploadForm
 from presentation.candidate.mappers import (
     ConcoursToTemplateMapper,
     OfferToTemplateMapper,
+    ViewFiltersToUsecaseMapper,
 )
 from presentation.candidate.mixins import (
     BreadcrumbLink,
@@ -88,12 +86,13 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         super().__init__(*args, **kwargs)
         self.container = create_candidate_container()
         self.logger = self.container.logger_service()
+        self.filters_mapper = ViewFiltersToUsecaseMapper()
         self.status = None
         self.opportunities = None
         self.filename = None
 
     def dispatch(self, request, *args, **kwargs):
-        status_data = self._get_cv_processing_status()
+        status_data = self._get_cv_processing_status(request)
         self.status = status_data.get("status")
         self.opportunities = status_data.get("opportunities", [])
         self.filename = status_data.get("filename")
@@ -129,9 +128,18 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
 
         return super().get(request, *args, **kwargs)
 
-    def _get_cv_processing_status(self) -> dict[str, object]:
+    def _get_cv_processing_status(self, request) -> dict[str, object]:
         cv_uuid = self.kwargs.get("cv_uuid")
         self.logger.info("Getting CV processing status for cv_uuid=%s", cv_uuid)
+
+        # Log filter parameters for debugging
+        filter_params = {
+            "department": request.GET.get("filter-location"),
+            "category": request.GET.getlist("filter-category"),
+            "versant": request.GET.getlist("filter-versant"),
+            "opportunity_type": request.GET.getlist("filter-opportunity_type"),
+        }
+        self.logger.info(f"Filter parameters: {filter_params}")
 
         cv_metadata_repository = self.container.postgres_cv_metadata_repository()
         opportunities: list[OpportunityCard] = []
@@ -146,8 +154,12 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
                 match_cv_to_opportunities = (
                     self.container.match_cv_to_opportunities_usecase()
                 )
+
+                domain_filters = self.filters_mapper.to_domain(request.GET)
+
                 raw_opportunities = match_cv_to_opportunities.execute(
                     cv_metadata=cv_metadata,
+                    filters=domain_filters,
                     limit=settings.CV_MAX_OPPORTUNITIES,
                 )
 
@@ -197,26 +209,6 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         # Default template for completed status with results
         return ["candidate/cv_results.html"]
 
-    def _filter_results(self, results: list[OpportunityCard]) -> list[OpportunityCard]:
-        filtered = results
-
-        location = self.request.GET.get("filter-location")
-        if location:
-            filtered = [r for r in filtered if r.get("location_value") == location]
-
-        multi_value_filters: list[tuple[str, set[str], str]] = [
-            ("filter-category", get_category_all_filter_values(), "category_value"),
-            ("filter-versant", get_verse_all_filter_values(), "versant_value"),
-            ("filter-opportunity_type", set(OPPORTUNITY_TYPES), "opportunity_type"),
-        ]
-
-        for param_name, all_values, field_key in multi_value_filters:
-            selected = set(self.request.GET.getlist(param_name)) - {""}
-            if selected and not all_values.issubset(selected):
-                filtered = [r for r in filtered if r.get(field_key) in selected]
-
-        return filtered
-
     def get_context_data(self, **kwargs: object) -> dict[str, object]:
         context = super().get_context_data(**kwargs)
 
@@ -231,10 +223,9 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         # TODO We may want to use a template tag to count opportunities to display,
         # and get context lighter.
         if isinstance(self.opportunities, list):
-            filtered = self._filter_results(self.opportunities)
-            context["results_count"] = len(filtered)
+            context["results_count"] = len(self.opportunities)
 
-            paginator = Paginator(filtered, settings.CV_RESULTS_PER_PAGE)
+            paginator = Paginator(self.opportunities, settings.CV_RESULTS_PER_PAGE)
             page_obj = paginator.get_page(self.request.GET.get("page", 1))
             list_pages(page_obj)
             context["results"] = page_obj.object_list
@@ -245,13 +236,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         else:
             context["tally_form_id"] = settings.TALLY_FORM_ID_NO_RESULTS
 
-        opportunities = (
-            self.opportunities if isinstance(self.opportunities, list) else []
-        )
-        locations = [
-            (r.get("location_value", ""), r.get("location", "")) for r in opportunities
-        ]
-        context["location_options"] = get_location_filter_options(locations)
+        context["location_options"] = get_all_departments_filter_options()
         context["category_options"] = get_category_filter_options()
         context["verse_options"] = get_verse_filter_options()
         context["opportunity_type_options"] = get_opportunity_type_filter_options()

@@ -1,5 +1,3 @@
-"""Integration tests for CV results page view."""
-
 from http import HTTPStatus
 from unittest.mock import patch
 from uuid import uuid4
@@ -14,9 +12,11 @@ from pytest_django.asserts import (
     assertTemplateUsed,
 )
 
+from domain.value_objects.category import Category
 from domain.value_objects.cv_processing_status import CVStatus
 from domain.value_objects.opportunity_type import OpportunityType
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
+from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.cv_metadata_factory import CVMetadataFactory
 
 
@@ -26,7 +26,6 @@ from tests.factories.cv_metadata_factory import CVMetadataFactory
 def test_cv_results_page_loads_correctly(
     mock_execute, client, db, concours, db_cv_uuid
 ):
-    """GET returns 200 with template, title, breadcrumb, and all results."""
     # Mock the usecase to return mock results with proper format
     mock_execute.return_value = [(concours[0], 0.9)]
 
@@ -41,7 +40,6 @@ def test_cv_results_page_loads_correctly(
 
 
 def test_cv_results_invalid_uuid_returns_404(client, db):
-    """Invalid UUID format in URL returns 404."""
     response = client.get("/candidate/cv/invalid-uuid/results/")
     assert response.status_code == HTTPStatus.NOT_FOUND
 
@@ -52,7 +50,6 @@ def test_cv_results_invalid_uuid_returns_404(client, db):
 def test_cv_results_htmx_request_returns_partial(
     mock_execute, client, db, db_cv_uuid, concours
 ):
-    """HTMX request returns partial template with results only."""
     # Mock the usecase to return mock results with proper format
     mock_execute.return_value = [(concours[0], 0.9)]
 
@@ -83,36 +80,76 @@ def test_cv_results_htmx_request_returns_partial(
         },
     ],
 )
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
 def test_cv_results_full_page_load_with_filter_params_returns_filtered_results(
-    mock_get_status, client, db, filter_test_case, db_cv_uuid
+    mock_execute, client, db, filter_test_case, db_cv_uuid
 ):
-    mock_get_status.return_value = {
-        "status": CVStatus.COMPLETED,
-        "opportunities": [
-            {
-                "title": "Chef de projet transformation numérique",
-                "location_value": "75",
-                "category_value": "a",
-                "opportunity_type": OpportunityType.CONCOURS,
-                "concours_id": str(uuid4()),
-            },
-            {
-                "title": "Responsable des ressources humaines",
-                "location_value": "69",
-                "category_value": "a",
-                "opportunity_type": OpportunityType.CONCOURS,
-                "concours_id": str(uuid4()),
-            },
-            {
-                "title": "Technicien informatique",
-                "location_value": "13",
-                "category_value": "b",
-                "opportunity_type": OpportunityType.CONCOURS,
-                "concours_id": str(uuid4()),
-            },
-        ],
-    }
+    # Create Concours models using the factory with valid data
+    concours_paris_model = ConcoursFactory.create(
+        corps="Chef de projet transformation numérique",
+        grade="Attaché principal",
+        category=Category.A,
+        open_position_number=5,
+    )
+
+    concours_lyon_model = ConcoursFactory.create(
+        corps="Responsable des ressources humaines",
+        grade="Attaché",
+        category=Category.A,
+        open_position_number=3,
+    )
+
+    concours_tech_model = ConcoursFactory.create(
+        corps="Technicien informatique",
+        grade="Technicien",
+        category=Category.B,
+        open_position_number=2,
+    )
+
+    # Convert models to entities
+    concours_paris = concours_paris_model.to_entity()
+    concours_lyon = concours_lyon_model.to_entity()
+    concours_tech = concours_tech_model.to_entity()
+
+    # Mock the usecase to return filtered results based on the test case
+    all_opportunities = [
+        (concours_paris, 0.9),
+        (concours_lyon, 0.8),
+        (concours_tech, 0.7),
+    ]
+
+    # Filter opportunities based on the test filters
+    filters = filter_test_case["filters"]
+    filtered_opportunities = []
+
+    for opportunity, score in all_opportunities:
+        include = True
+
+        # Filter by location (simulated - in real app this would be done by the usecase)
+        if "filter-location" in filters and filters["filter-location"]:
+            location_filter = filters["filter-location"]
+            # Map concours to departments for testing
+            concours_locations = {
+                "Chef de projet transformation numérique": "75",
+                "Responsable des ressources humaines": "69",
+                "Technicien informatique": "13",
+            }
+            if concours_locations.get(opportunity.corps) != location_filter:
+                include = False
+
+        # Filter by category
+        if "filter-category" in filters and filters["filter-category"]:
+            category_filter = filters["filter-category"]
+            category_mapping = {"a": Category.A, "b": Category.B}
+            if opportunity.category != category_mapping.get(category_filter):
+                include = False
+
+        if include:
+            filtered_opportunities.append((opportunity, score))
+
+    mock_execute.return_value = filtered_opportunities
 
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}),
@@ -178,39 +215,76 @@ def test_cv_results_full_page_load_with_filter_params_returns_filtered_results(
         },
     ],
 )
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
 def test_cv_results_htmx_filter_returns_filtered_results(
-    mock_get_status, client, db, filter_test_case, db_cv_uuid
+    mock_execute, client, db, filter_test_case, db_cv_uuid
 ):
-    """HTMX filter request returns only matching results."""
-    # Mock opportunities data that matches the filter expectations
-    mock_opportunities = [
-        {
-            "title": "Chef de projet transformation numérique",
-            "location_value": "75",
-            "category_value": "a",
-            "opportunity_type": OpportunityType.CONCOURS,
-            "concours_id": str(uuid4()),
-        },
-        {
-            "title": "Responsable des ressources humaines",
-            "location_value": "69",
-            "category_value": "a",
-            "opportunity_type": OpportunityType.CONCOURS,
-            "concours_id": str(uuid4()),
-        },
-        {
-            "title": "Technicien informatique",
-            "location_value": "13",
-            "category_value": "b",
-            "opportunity_type": OpportunityType.CONCOURS,
-            "concours_id": str(uuid4()),
-        },
+    # Create Concours models using the factory with valid data
+    concours_paris_model = ConcoursFactory.create(
+        corps="Chef de projet transformation numérique",
+        grade="Attaché principal",
+        category=Category.A,
+        open_position_number=5,
+    )
+
+    concours_lyon_model = ConcoursFactory.create(
+        corps="Responsable des ressources humaines",
+        grade="Attaché",
+        category=Category.A,
+        open_position_number=3,
+    )
+
+    concours_tech_model = ConcoursFactory.create(
+        corps="Technicien informatique",
+        grade="Technicien",
+        category=Category.B,
+        open_position_number=2,
+    )
+
+    # Convert models to entities
+    concours_paris = concours_paris_model.to_entity()
+    concours_lyon = concours_lyon_model.to_entity()
+    concours_tech = concours_tech_model.to_entity()
+
+    # Mock the usecase to return filtered results based on the test case
+    all_opportunities = [
+        (concours_paris, 0.9),
+        (concours_lyon, 0.8),
+        (concours_tech, 0.7),
     ]
-    mock_get_status.return_value = {
-        "status": CVStatus.COMPLETED,
-        "opportunities": mock_opportunities,
-    }
+
+    # Filter opportunities based on the test filters
+    filters = filter_test_case["filters"]
+    filtered_opportunities = []
+
+    for opportunity, score in all_opportunities:
+        include = True
+
+        # Filter by location (simulated - in real app this would be done by the usecase)
+        if "filter-location" in filters and filters["filter-location"]:
+            location_filter = filters["filter-location"]
+            # Map concours to departments for testing
+            concours_locations = {
+                "Chef de projet transformation numérique": "75",
+                "Responsable des ressources humaines": "69",
+                "Technicien informatique": "13",
+            }
+            if concours_locations.get(opportunity.corps) != location_filter:
+                include = False
+
+        # Filter by category
+        if "filter-category" in filters and filters["filter-category"]:
+            category_filter = filters["filter-category"]
+            category_mapping = {"a": Category.A, "b": Category.B}
+            if opportunity.category != category_mapping.get(category_filter):
+                include = False
+
+        if include:
+            filtered_opportunities.append((opportunity, score))
+
+    mock_execute.return_value = filtered_opportunities
 
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}),
@@ -218,39 +292,25 @@ def test_cv_results_htmx_filter_returns_filtered_results(
         HTTP_HX_REQUEST="true",
     )
     assert response.status_code == HTTPStatus.OK
-    assertTemplateUsed(response, "candidate/components/_results_list.html")
+
+    if filter_test_case["expected_titles"]:
+        assertTemplateUsed(response, "candidate/components/_results_list.html")
+    else:
+        assertTemplateUsed(response, "candidate/components/_no_results_content.html")
+
     for title in filter_test_case["expected_titles"]:
         assertContains(response, title)
     for title in filter_test_case["excluded_titles"]:
         assertNotContains(response, title)
 
 
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
 def test_cv_results_htmx_no_match_displays_empty_state(
-    mock_get_status, client, db, db_cv_uuid
+    mock_execute, client, db, db_cv_uuid
 ):
-    """HTMX filter with no matches shows zero results message."""
-    # Mock opportunities data that won't match the Gironde (33) filter
-    mock_opportunities = [
-        {
-            "title": "Chef de projet transformation numérique",
-            "location_value": "75",
-            "category_value": "a",
-            "opportunity_type": OpportunityType.CONCOURS,
-            "concours_id": str(uuid4()),
-        },
-        {
-            "title": "Responsable des ressources humaines",
-            "location_value": "69",
-            "category_value": "a",
-            "opportunity_type": OpportunityType.CONCOURS,
-            "concours_id": str(uuid4()),
-        },
-    ]
-    mock_get_status.return_value = {
-        "status": CVStatus.COMPLETED,
-        "opportunities": mock_opportunities,
-    }
+    mock_execute.return_value = []
 
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}),
@@ -258,8 +318,8 @@ def test_cv_results_htmx_no_match_displays_empty_state(
         HTTP_HX_REQUEST="true",
     )
     assert response.status_code == HTTPStatus.OK
-    assertTemplateUsed(response, "candidate/components/_results_list.html")
-    assertContains(response, "0 résultat")
+    assertTemplateUsed(response, "candidate/components/_no_results_content.html")
+    assertContains(response, "nous n'avons pas trouvé d'opportunité")
 
 
 @patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
@@ -332,7 +392,6 @@ def test_cv_results_view_renders_correct_template_based_on_status(
     db_cv_uuid,
     test_case,
 ):
-    """View renders appropriate template based on CV status and HTMX context."""
     opportunities = (
         [{"title": "Test opportunity"}]
         if test_case["status"] == CVStatus.COMPLETED
@@ -367,7 +426,6 @@ def test_cv_results_view_renders_correct_template_based_on_status(
 def test_cv_processing_flow_pending_to_completed(
     mock_get_status, client, db, db_cv_uuid
 ):
-    """Full polling flow: initial PENDING request → HTMX poll → COMPLETED transition."""
     url = reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid})
 
     mock_get_status.return_value = {"status": CVStatus.PENDING}
@@ -393,7 +451,6 @@ def test_cv_processing_flow_pending_to_completed(
 
 
 def test_cv_results_with_pending_cv_in_database_shows_processing(client, db):
-    """Real CV with PENDING status in DB shows processing template."""
     cv_metadata = CVMetadataFactory.build(status=CVStatus.PENDING)
     CVMetadataModel.from_entity(cv_metadata).save()
 
@@ -415,7 +472,6 @@ def test_cv_results_with_pending_cv_in_database_shows_processing(client, db):
 def test_cv_results_with_completed_cv_in_database_shows_results(
     mock_execute, client, db, concours
 ):
-    """Real CV with COMPLETED status in DB shows results template."""
     mock_execute.return_value = [(concours[0], 0.9)]
     cv_metadata = CVMetadataFactory.build(status=CVStatus.COMPLETED)
     CVMetadataModel.from_entity(cv_metadata).save()
@@ -435,7 +491,6 @@ def test_cv_results_with_completed_cv_in_database_shows_results(
 def test_cv_results_htmx_poll_pending_to_completed_transition(
     mock_execute, client, db, concours
 ):
-    """HTMX polling detects status change from PENDING to COMPLETED in DB."""
     mock_execute.return_value = [(concours[0], 0.9)]
     cv_metadata = CVMetadataFactory.build(status=CVStatus.PENDING)
     model = CVMetadataModel.from_entity(cv_metadata)
@@ -455,7 +510,6 @@ def test_cv_results_htmx_poll_pending_to_completed_transition(
 
 
 def test_cv_results_nonexistent_cv_redirects_to_upload(client, db):
-    """CV not found in DB redirects to upload view due to container creation failure."""
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": uuid4()}), follow=True
     )
@@ -472,7 +526,6 @@ def test_cv_results_nonexistent_cv_redirects_to_upload(client, db):
 
 
 def test_cv_results_failed_status_redirects_with_error_message(client, db):
-    """CV with FAILED status redirects to cv-upload with French error message."""
     cv_metadata = CVMetadataFactory.build(status=CVStatus.FAILED)
     CVMetadataModel.from_entity(cv_metadata).save()
 
@@ -494,7 +547,6 @@ def test_cv_results_failed_status_redirects_with_error_message(client, db):
 
 @patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
 def test_cv_results_htmx_request_sets_redirect_header(mock_get_status, client, db):
-    """HTMX request with FAILED status sets HX-Redirect header."""
     cv_uuid = uuid4()
     mock_get_status.return_value = {"status": CVStatus.FAILED, "opportunities": []}
 
@@ -510,7 +562,6 @@ def test_cv_results_htmx_request_sets_redirect_header(mock_get_status, client, d
 
 @patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
 def test_cv_results_shows_no_results_when_empty(mock_get_status, client, db):
-    """CV with COMPLETED status and empty opportunities shows no-results template."""
     cv_uuid = uuid4()
     mock_get_status.return_value = {"status": CVStatus.COMPLETED, "opportunities": []}
 
@@ -524,7 +575,6 @@ def test_cv_results_shows_no_results_when_empty(mock_get_status, client, db):
 def test_cv_results_htmx_empty_opportunities_shows_no_results(
     mock_get_status, client, db
 ):
-    """HTMX request with empty opportunities shows no-results template."""
     cv_uuid = uuid4()
     mock_get_status.return_value = {"status": CVStatus.COMPLETED, "opportunities": []}
 

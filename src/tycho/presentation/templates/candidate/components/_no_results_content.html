@@ -1,34 +1,9 @@
-{% load static dsfr_tags %}
-<div class="fr-pb-5w fr-background-alt--blue-france ">
-    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
-    <div class="fr-container">
-        <!-- Header -->
-        <header class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
-            <div class="fr-col-12 fr-col-md-10">
-                <hgroup class="fr-stack-2w">
-                    <h1 class="fr-h2">Vos opportunités professionnelles</h1>
-                    <p class="fr-text--lg fr-text-mention--grey">
-                        Identifiées à partir du fichier <span class="fr-text-default--grey">« {{ cv_name }} »</span>
-                    </p>
-                </hgroup>
-            </div>
-            <div class="fr-col-12 fr-col-md-2 fr-pl-6w">
-                <img class="fr-responsive-img fr-hidden fr-unhidden-md"
-                     width="128"
-                     height="128"
-                     src="{% static 'candidate/images/illustrations-csp/parcours-professionnels-1.svg' %}"
-                     alt=""
-                     aria-hidden="true">
-            </div>
-        </header>
-        <!-- Main content -->
-        <div class="fr-grid-row fr-grid-row--gutters">
-            <div class="fr-col-12 fr-col-md-8">
-                {% dsfr_highlight title="Information" type="info" content="Pour le moment, nous n'avons pas trouvé d'opportunité parfaitement adaptée à votre profil. Pas de panique ! Cela peut s'expliquer par des critères de recherche très spécifiques et/ou la quantité d'offres actuellement publiées. Nos équipes travaillent chaque jour à affiner les critères de correspondance afin de proposer des résultats toujours plus pertinents." %}
-            </div>
-            <div class="fr-col-12">
-                {% include "candidate/components/_tally_feedback.html" with tally_form_id=tally_form_id cv_uuid=cv_uuid %}
-            </div>
-        </div>
+{% load dsfr_tags %}
+<div class="fr-grid-row fr-grid-row--gutters">
+    <div class="fr-col-12 fr-col-md-8">
+        {% dsfr_highlight title="Information" type="info" content="Pour le moment, nous n'avons pas trouvé d'opportunité parfaitement adaptée à votre profil. Pas de panique ! Cela peut s'expliquer par des critères de recherche très spécifiques et/ou la quantité d'offres actuellement publiées. Nos équipes travaillent chaque jour à affiner les critères de correspondance afin de proposer des résultats toujours plus pertinents." %}
+    </div>
+    <div class="fr-col-12">
+        {% include "candidate/components/_tally_feedback.html" with tally_form_id=tally_form_id cv_uuid=cv_uuid %}
     </div>
 </div>

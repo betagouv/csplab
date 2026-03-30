@@ -1,6 +1,5 @@
-"""Filter configuration for candidate search results."""
-
 from domain.value_objects.category import Category
+from domain.value_objects.department import Department
 from domain.value_objects.localisation import Localisation
 from domain.value_objects.opportunity_type import OpportunityType
 from domain.value_objects.verse import Verse
@@ -70,6 +69,18 @@ def get_verse_filter_options() -> list[FilterOption]:
 
 def get_verse_all_filter_values() -> set[str]:
     return {member.value for member in Verse}
+
+
+def get_all_departments_filter_options() -> list[FilterOption]:
+    options: list[FilterOption] = [
+        FilterOption(value="", text="Toutes les localisations"),
+    ]
+
+    for code, name in Department.NAMES.items():
+        options.append(FilterOption(value=code, text=name))
+
+    options[1:] = sorted(options[1:], key=lambda o: o["value"])
+    return options
 
 
 def get_location_filter_options(
