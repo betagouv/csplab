@@ -9,3 +9,10 @@ class IDocumentGateway(Protocol):
     ) -> Tuple[List[Document], bool]: ...
 
     def get_detail(self, document_type: DocumentType, external_id: str) -> Document: ...
+
+    def get_documents_to_upsert(
+        self,
+        document_type: DocumentType,
+        fetched_documents: List[Document],
+        existing_documents: List[Document],
+    ) -> List[Document]: ...

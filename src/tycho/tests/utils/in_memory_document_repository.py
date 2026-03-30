@@ -25,6 +25,14 @@ class InMemoryDocumentRepository(IDocumentRepository):
     ) -> List[Document]:
         return []
 
+    def get_documents_to_upsert(
+        self,
+        document_type: DocumentType,
+        fetched_documents: List[Document],
+        existing_documents: List[Document],
+    ) -> List[Document]:
+        return []
+
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
     ) -> IUpsertResult:

@@ -24,6 +24,13 @@ class IDocumentRepository(Protocol):
         self, document_type: DocumentType, documents: List[Document]
     ) -> List[Document]: ...
 
+    def get_documents_to_upsert(
+        self,
+        document_type: DocumentType,
+        fetched_documents: List[Document],
+        existing_documents: List[Document],
+    ) -> List[Document]: ...
+
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
     ) -> IUpsertResult: ...
