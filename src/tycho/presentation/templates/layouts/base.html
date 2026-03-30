@@ -74,6 +74,9 @@
                     g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
                 })();
             </script>
+            <script src="{% static 'js/matomo-tracking.js' %}"
+                    defer
+                    nonce="{{ csp_nonce }}"></script>
         {% endif %}
         {% block page_js %}
         {% endblock page_js %}
