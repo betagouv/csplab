@@ -7,27 +7,19 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 
 
 class Command(BaseCommand):
-    help = "Load documents by type (CORPS, CONCOURS, etc.)"
+    help = "Load documents, type CORPS"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.container = create_ingestion_container()
         self.logger = self.container.logger_service()
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "--type",
-            required=True,
-            choices=[DocumentType.CORPS.value, DocumentType.OFFERS.value],
-            help="Type of documents to load",
-        )
-
     def handle(self, *args, **options):
         try:
-            document_type = DocumentType(options["type"])
+            document_type = DocumentType.CORPS
             usecase = self.container.load_documents_usecase()
 
-            self.logger.info(f"Loading documents of type: {document_type.value}")
+            self.logger.info("Loading documents of type: %s", document_type.value)
 
             input_data = LoadDocumentsInput(
                 operation_type=LoadOperationType.FETCH_FROM_API,
@@ -36,12 +28,13 @@ class Command(BaseCommand):
             result = usecase.execute(input_data)
 
             self.logger.info(
-                f"✅ Load completed: {result['created']} created, "
-                f"{result['updated']} updated"
+                "✅ Load completed: %d created, %d updated",
+                result["created"],
+                result["updated"],
             )
 
             if result["errors"]:
-                self.logger.warning(f"⚠️  {len(result['errors'])} errors occurred")
+                self.logger.warning("⚠️ %d errors occurred", len(result["errors"]))
 
         except Exception as e:
             raise CommandError(f"Failed to load documents: {str(e)}") from e

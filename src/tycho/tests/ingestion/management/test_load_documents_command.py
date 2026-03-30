@@ -5,7 +5,6 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from domain.entities.document import DocumentType
 
 
 @pytest.fixture
@@ -28,41 +27,23 @@ def mock_container_factory(mock_usecase):
 
 
 class TestLoadDocumentsCommand:
-    def test_command_requires_type_argument(self):
-        """Test that command fails without --type argument."""
-        with pytest.raises(CommandError):
-            call_command("load_documents")
-
-    def test_command_rejects_invalid_type(self):
-        """Test that command fails with invalid document type."""
-        with pytest.raises(CommandError):
-            call_command("load_documents", "--type", "INVALID_TYPE")
-
-    @pytest.mark.parametrize(
-        "document_type",
-        [
-            DocumentType.OFFERS.value,
-            DocumentType.CORPS.value,
-        ],
-    )
     def test_command_calls_usecase_with_correct_parameters(
         self,
         mock_container_factory,
         mock_usecase,
-        document_type,
     ):
-        call_command("load_documents", "--type", document_type)
+        call_command("load_documents")
 
         mock_container_factory.assert_called_once()
         mock_usecase.execute.assert_called_once()
         call_args = mock_usecase.execute.call_args[0][0]
 
         assert call_args.operation_type == LoadOperationType.FETCH_FROM_API
-        assert call_args.kwargs["document_type"] == DocumentType(document_type)
 
         mock_logger = mock_container_factory.return_value.logger_service.return_value
-        mock_logger.info.assert_any_call(f"Loading documents of type: {document_type}")
-        mock_logger.info.assert_any_call("✅ Load completed: 5 created, 2 updated")
+        mock_logger.info.assert_any_call(
+            "✅ Load completed: %d created, %d updated", 5, 2
+        )
 
     def test_command_displays_warnings_for_errors(
         self, mock_container_factory, mock_usecase
@@ -73,10 +54,10 @@ class TestLoadDocumentsCommand:
             "errors": ["Error 1", "Error 2"],
         }
 
-        call_command("load_documents", "--type", DocumentType.OFFERS.value)
+        call_command("load_documents")
 
         mock_logger = mock_container_factory.return_value.logger_service.return_value
-        mock_logger.warning.assert_called_once_with("⚠️  2 errors occurred")
+        mock_logger.warning.assert_called_once_with("⚠️ %d errors occurred", 2)
 
     def test_command_raises_command_error_on_exception(
         self, mock_container_factory, mock_usecase
@@ -86,12 +67,14 @@ class TestLoadDocumentsCommand:
         with pytest.raises(
             CommandError, match="Failed to load documents: Database connection failed"
         ):
-            call_command("load_documents", "--type", DocumentType.CORPS.value)
+            call_command("load_documents")
 
     def test_command_handles_zero_results(self, mock_container_factory, mock_usecase):
         mock_usecase.execute.return_value = {"created": 0, "updated": 0, "errors": []}
 
-        call_command("load_documents", "--type", DocumentType.OFFERS.value)
+        call_command("load_documents")
 
         mock_logger = mock_container_factory.return_value.logger_service.return_value
-        mock_logger.info.assert_any_call("✅ Load completed: 0 created, 0 updated")
+        mock_logger.info.assert_any_call(
+            "✅ Load completed: %d created, %d updated", 0, 0
+        )

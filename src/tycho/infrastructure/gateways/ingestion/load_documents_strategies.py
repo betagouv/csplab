@@ -15,13 +15,9 @@ class FetchFromApiStrategy:
     def load_documents(self, **kwargs) -> Tuple[List[Document], bool]:
         start = kwargs.get("start", 1)
 
-        document_type = kwargs.get("document_type")
-        if not isinstance(document_type, DocumentType):
-            raise MissingOperationParameterError(
-                "document_type", LoadOperationType.FETCH_FROM_API.value
-            )
-
-        documents, has_more = self.document_gateway.fetch_by_type(document_type, start)
+        documents, has_more = self.document_gateway.fetch_by_type(
+            DocumentType.CORPS, start
+        )
         return documents, has_more
 
 
