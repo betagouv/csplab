@@ -77,6 +77,9 @@
             <script src="{% static 'js/matomo-tracking.js' %}"
                     defer
                     nonce="{{ csp_nonce }}"></script>
+            <script src="{% static 'candidate/js/candidate-tracking.js' %}"
+                    defer
+                    nonce="{{ csp_nonce }}"></script>
         {% endif %}
         {% block page_js %}
         {% endblock page_js %}

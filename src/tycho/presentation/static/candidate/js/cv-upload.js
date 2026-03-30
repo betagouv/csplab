@@ -154,6 +154,7 @@ class CVUploadHandler {
       this.uploadActions.hidden = false;
       this.uploadActions.setAttribute('aria-hidden', 'false');
     }
+    window.csplab?.matomo?.trackEvent('CVUpload', 'file_selected', null, Math.round(file.size / 1024));
   }
 
   /**
@@ -195,6 +196,7 @@ class CVUploadHandler {
 
     this.hideToast();
     this.showInfo();
+    window.csplab?.matomo?.trackEvent('CVUpload', 'file_removed');
 
     if (this.fileInput) {
       this.fileInput.focus();
