@@ -1,5 +1,3 @@
-"""Unit tests for TalentsoftClient."""
-
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -16,7 +14,6 @@ fake = Faker()
 
 @pytest.fixture(name="talentsoft_client")
 def talentsoft_client_fixture():
-    """Create a TalentsoftFrontClient instance for testing."""
     logger_service = Mock()
     logger_service.get_logger.return_value = Mock()
 
@@ -34,11 +31,8 @@ def talentsoft_client_fixture():
 
 
 class TestGetAccessToken:
-    """Tests for get_access_token method."""
-
     @pytest.mark.asyncio
     async def test_cached_token_is_valid(self, talentsoft_client):
-        """Test that valid cached token is returned without API call."""
         valid_token = cached_token()
         talentsoft_client.cached_token = valid_token
         result = await talentsoft_client.get_access_token()
@@ -49,7 +43,6 @@ class TestGetAccessToken:
     async def test_new_cached_token_has_to_be_fetched(
         self, talentsoft_client, cached_token
     ):
-        """Test that new token is fetched when no cached token exists."""
         talentsoft_client.cached_token = cached_token
         expected_token = fake.uuid4()
         mock_response = mocked_response(
@@ -72,7 +65,6 @@ class TestGetAccessToken:
 
     @pytest.mark.asyncio
     async def test_fetching_token_raises_403(self, talentsoft_client):
-        """Test that ExternalApiError is raised."""
         talentsoft_client.cached_token = None
         mock_response = mocked_response(status_code=403)
         mock_response.raise_for_status.side_effect = Exception("403 Forbidden")
@@ -91,7 +83,6 @@ class TestGetAccessToken:
 
     @pytest.mark.asyncio
     async def test_fetching_returns_malformed_token(self, talentsoft_client):
-        """Test that ExternalApiError is raised when token response is malformed."""
         talentsoft_client.cached_token = None
         mock_response = mocked_response(
             return_value={"invalid": "response"},
@@ -111,13 +102,8 @@ class TestGetAccessToken:
 
 
 class TestGetOffers:
-    """Tests for get_offers method."""
-
-    # Edge cases
     @pytest.mark.asyncio
     async def test_get_offers_handles_empty_data(self, talentsoft_client):
-        """Test get_offers raises ExternalApiError for empty/invalid response."""
-        # Setup - response without required fields
         mock_response = mocked_response(return_value={})
 
         talentsoft_client.cached_token = cached_token()
@@ -134,7 +120,6 @@ class TestGetOffers:
 
     @pytest.mark.asyncio
     async def test_get_offers_fails_due_to_unauthorized_token(self, talentsoft_client):
-        """Test get_offers handles 401 unauthorized by refreshing token and retrying."""
         response_data = offers_response()
 
         unauthorized_response = mocked_response(status_code=401)
@@ -178,7 +163,6 @@ class TestGetOffers:
 
     @pytest.mark.asyncio
     async def test_get_offers_fails_after_max_retries_attempts(self, talentsoft_client):
-        """Test get_offers raises ExternalApiError after max retries exceeded."""
         failed_response = mocked_response(status_code=500)
         failed_response.raise_for_status.side_effect = Exception(
             "500 Internal Server Error"
