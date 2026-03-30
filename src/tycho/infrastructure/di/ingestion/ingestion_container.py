@@ -3,6 +3,7 @@ from dependency_injector import containers, providers
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
+from application.ingestion.usecases.load_offers import LoadOffersUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from domain.entities.document import DocumentType
 from domain.interfaces.entity_interface import IEntity
@@ -95,6 +96,15 @@ class IngestionContainer(containers.DeclarativeContainer):
         LoadDocumentsUsecase,
         strategy_factory=load_documents_strategy_factory,
         document_repository=document_repository,
+        logger=logger_service,
+    )
+
+    load_offers_usecase: providers.Provider[
+        IUseCase[LoadDocumentsInput, IUpsertResult]
+    ] = providers.Factory(
+        LoadOffersUsecase,
+        document_repository=document_repository,
+        document_gateway=document_gateway,
         logger=logger_service,
     )
 
