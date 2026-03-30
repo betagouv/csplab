@@ -3,6 +3,7 @@ from typing import Any, Dict
 from uuid import uuid4
 
 from domain.entities.document import Document, DocumentType
+from tests.factories.talentsoft_factories import TalentsoftOfferFactory
 from tests.fixtures.fixture_loader import load_fixture
 
 # Test constants
@@ -33,12 +34,6 @@ def _load_concours_fixture_data(doc_id: int) -> Dict[str, Any]:
     concours_fixtures = load_fixture("concours_greco_2025.json")
     fixture_index = (doc_id - 1) % len(concours_fixtures)
     return concours_fixtures[fixture_index].copy()
-
-
-def _load_offer_fixture_data(doc_id: int) -> Dict[str, Any]:
-    offer_fixtures = load_fixture("offers_talentsoft_20260124.json")
-    fixture_index = (doc_id - 1) % len(offer_fixtures)
-    return offer_fixtures[fixture_index].copy()
 
 
 def create_test_corps_document(doc_id: int = 1) -> Document:
@@ -92,12 +87,14 @@ def create_test_concours_document_old_year(doc_id: int = 1) -> Document:
 
 
 def create_test_offer_document(doc_id: int = 1) -> Document:
-    offer_data = _load_offer_fixture_data(doc_id)
+    offer = TalentsoftOfferFactory.build()
+    offer_data = offer.model_dump()
 
-    # Ensure unique reference for each document to avoid conflicts
-    original_reference = offer_data["reference"]
-    offer_data["reference"] = f"{original_reference}-{doc_id}"
-    external_id = f"{offer_data['salaryRange']['clientCode']}-{offer_data['reference']}"
+    salary_range_code = (
+        offer_data["salaryRange"]["clientCode"]
+        if offer_data.get("salaryRange")
+        else "UNK"
+    )
+    external_id = f"{salary_range_code}-{offer_data['reference']}"
 
-    # Use the offer data directly (not wrapped in API response)
     return _create_base_document(DocumentType.OFFERS, doc_id, external_id, offer_data)

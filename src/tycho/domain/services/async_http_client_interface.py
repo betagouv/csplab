@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Protocol
+from typing import Any, Dict, Mapping, Optional, Protocol
 
 from domain.types import JsonDataType
 
@@ -30,5 +30,13 @@ class IAsyncHttpClient(Protocol):
         self,
         url: str,
         headers: Optional[Dict[str, str]] = None,
-        params: Optional[Dict[str, Any]] = None,
+        params: Optional[Mapping[str, int | str]] = None,
     ) -> IAsyncHttpResponse: ...
+
+    async def get_all(
+        self,
+        count: int = 1000,
+        start: int = 1,
+    ): ...
+
+    async def get_detail(self, reference: str): ...

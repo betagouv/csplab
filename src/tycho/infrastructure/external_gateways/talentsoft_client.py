@@ -1,7 +1,7 @@
 import asyncio
 from http import HTTPStatus
 from time import time
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 
 from pydantic import ValidationError
 
@@ -11,6 +11,7 @@ from domain.services.logger_interface import ILogger
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
+    TalentsoftDetailOffer,
     TalentsoftOffer,
     TalentsoftOffersResponse,
     TalentsoftTokenResponse,
@@ -19,6 +20,7 @@ from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
 
 TOKEN_ENDPOINT = "/api/token"  # noqa
 OFFERS_ENDPOINT = "/api/v2/offersummaries"
+DETAIL_OFFER_ENDPOINT = "/api/v2/offers/getoffer"
 
 
 class TalentsoftFrontClient(AsyncHttpClient):
@@ -93,7 +95,9 @@ class TalentsoftFrontClient(AsyncHttpClient):
         }
 
     async def _make_authenticated_request(
-        self, url: str, params: Dict[str, int]
+        self,
+        url: str,
+        params: Mapping[str, int | str],
     ) -> IAsyncHttpResponse:
         token = await self.get_access_token()
 
@@ -137,7 +141,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
             api_name="Talentsoft Front API",
         )
 
-    async def get_offers(
+    async def get_all(
         self, count: int = 1000, start: int = 1
     ) -> Tuple[List[TalentsoftOffer], bool]:
         url = f"{self.base_url}{OFFERS_ENDPOINT}"
@@ -157,3 +161,28 @@ class TalentsoftFrontClient(AsyncHttpClient):
         has_more = pagination.hasMore
 
         return offers, has_more
+
+    async def get_detail(self, reference: str) -> TalentsoftDetailOffer:
+        if not reference:
+            raise ExternalApiError(
+                message="Reference is required", api_name="Talentsoft Front API"
+            )
+
+        url = f"{self.base_url}{DETAIL_OFFER_ENDPOINT}"
+        params = {"reference": reference, "sort": "modificationDate"}
+
+        response = await self._make_authenticated_request(url, params)
+        if response.status_code == HTTPStatus.NOT_FOUND:
+            raise ExternalApiError(
+                message=f"Offer not found for reference: {reference}",
+                api_name="Talentsoft Front API",
+            )
+
+        try:
+            offer = TalentsoftDetailOffer.model_validate(response.json())
+        except ValidationError as e:
+            raise ExternalApiError(
+                f"Invalid response structure: {e}", api_name="Talentsoft Front API"
+            ) from e
+
+        return offer
