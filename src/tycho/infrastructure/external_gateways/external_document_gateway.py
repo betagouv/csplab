@@ -43,7 +43,7 @@ class ExternalDocumentGateway(IDocumentGateway):
         if not source:
             raise ValueError(f"No fetch source for {document_type}")
 
-        raw_documents, has_more = source(document_type, start)
+        raw_documents, has_more = source(document_type, start, batch_size)
         now = datetime.now(timezone.utc)
 
         documents = []
@@ -69,7 +69,7 @@ class ExternalDocumentGateway(IDocumentGateway):
         return documents, has_more
 
     def _fetch_ingres_api(
-        self, document_type: DocumentType, start: int = 1
+        self, document_type: DocumentType, start: int = 1, batch_size: int = 1000
     ) -> Tuple[List[JsonDataType], bool]:
         document_type_map = {
             DocumentType.CORPS: "CORPS",
@@ -90,15 +90,17 @@ class ExternalDocumentGateway(IDocumentGateway):
         has_more = False
         return cast(List[JsonDataType], raw_documents), has_more
 
-    async def _fetch_offers(self, start: int):
+    async def _fetch_offers(self, start: int, batch_size: int = 1000):
         # Will break in case of parallelised used of TalentsoftFrontClient
         # TODO open & close connection at client level
         # need piste_client to be asynced
         async with self.talentsoft_front_client:
-            return await self.talentsoft_front_client.get_all(start=start)
+            return await self.talentsoft_front_client.get_all(
+                start=start, count=batch_size
+            )
 
     def _fetch_talentsoft_api(
-        self, document_type: DocumentType, start: int = 1
+        self, document_type: DocumentType, start: int = 1, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         if document_type != DocumentType.OFFERS:
             raise ValueError(
@@ -112,7 +114,7 @@ class ExternalDocumentGateway(IDocumentGateway):
 
         # Run async method in sync context
         try:
-            raw_documents, has_more = sync_fetch_offers(start)
+            raw_documents, has_more = sync_fetch_offers(start, batch_size)
         except Exception as e:
             self.logger.error("Failed to fetch offers from Talentsoft: %s", e)
             return [], False
