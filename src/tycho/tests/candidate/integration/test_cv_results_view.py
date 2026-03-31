@@ -14,10 +14,10 @@ from pytest_django.asserts import (
 
 from domain.value_objects.category import Category
 from domain.value_objects.cv_processing_status import CVStatus
-from domain.value_objects.opportunity_type import OpportunityType
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.cv_metadata_factory import CVMetadataFactory
+from tests.factories.offer_factory import OfferFactory
 
 
 @patch(
@@ -290,6 +290,7 @@ def test_cv_results_htmx_filter_returns_filtered_results(
         reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}),
         filter_test_case["filters"],
         HTTP_HX_REQUEST="true",
+        HTTP_HX_TARGET="results-zone",
     )
     assert response.status_code == HTTPStatus.OK
 
@@ -322,23 +323,41 @@ def test_cv_results_htmx_no_match_displays_empty_state(
     assertContains(response, "nous n'avons pas trouvé d'opportunité")
 
 
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
-def test_cv_results_filter_bar_renders_tooltips(mock_get_status, client, db):
-    cv_uuid = uuid4()
-    mock_get_status.return_value = {
-        "status": CVStatus.COMPLETED,
-        "opportunities": [
-            {
-                "title": "Poste test",
-                "location_value": "75",
-                "category_value": "a",
-                "opportunity_type": OpportunityType.CONCOURS,
-                "concours_id": str(uuid4()),
-            },
-        ],
-    }
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_htmx_results_zone_target_returns_results_list_template(
+    mock_execute, client, db
+):
+    cv_metadata = CVMetadataFactory.build(
+        status=CVStatus.COMPLETED, search_query="Python developer"
+    )
+    CVMetadataModel.from_entity(cv_metadata).save()
+    mock_execute.return_value = [(OfferFactory.build(title="Poste ciblé"), 0.9)]
 
-    response = client.get(reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}))
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}),
+        HTTP_HX_REQUEST="true",
+        HTTP_HX_TARGET="results-zone",
+    )
+    assert response.status_code == HTTPStatus.OK
+    assertTemplateUsed(response, "candidate/components/_results_list.html")
+    assertContains(response, "Poste ciblé")
+
+
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_filter_bar_renders_tooltips(mock_execute, client, db):
+    cv_metadata = CVMetadataFactory.build(
+        status=CVStatus.COMPLETED, search_query="Python developer"
+    )
+    CVMetadataModel.from_entity(cv_metadata).save()
+    mock_execute.return_value = [(OfferFactory.build(title="Poste test"), 0.9)]
+
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id})
+    )
     assert response.status_code == HTTPStatus.OK
     assertContains(response, 'role="tooltip"', count=6)
     assertContains(response, "fr-btn--tooltip", count=6)
@@ -361,11 +380,6 @@ def test_cv_results_filter_bar_renders_tooltips(mock_get_status, client, db):
         {
             "status": CVStatus.PENDING,
             "is_htmx": True,
-            "expected_template": "candidate/components/_processing_content.html",
-            "expected_content": [
-                "Analyse de votre CV en cours...",
-            ],
-            "unexpected_content": ["<html", "<!DOCTYPE"],
             "expected_status": HTTPStatus.NO_CONTENT,
         },
         {
@@ -384,27 +398,28 @@ def test_cv_results_filter_bar_renders_tooltips(mock_get_status, client, db):
         },
     ],
 )
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
 def test_cv_results_view_renders_correct_template_based_on_status(
-    mock_get_status,
+    mock_execute,
     client,
     db,
-    db_cv_uuid,
     test_case,
 ):
-    opportunities = (
-        [{"title": "Test opportunity"}]
+    cv_metadata = CVMetadataFactory.build(
+        status=test_case["status"], search_query="Python developer"
+    )
+    CVMetadataModel.from_entity(cv_metadata).save()
+    mock_execute.return_value = (
+        [(OfferFactory.build(title="Test opportunity"), 0.9)]
         if test_case["status"] == CVStatus.COMPLETED
         else []
     )
-    mock_get_status.return_value = {
-        "status": test_case["status"],
-        "opportunities": opportunities,
-    }
 
     headers = {"HTTP_HX_REQUEST": "true"} if test_case["is_htmx"] else {}
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}), **headers
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}), **headers
     )
 
     expected_status = test_case.get("expected_status", HTTPStatus.OK)
@@ -422,13 +437,15 @@ def test_cv_results_view_renders_correct_template_based_on_status(
         assert response["HX-Reswap"] == "none"
 
 
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
-def test_cv_processing_flow_pending_to_completed(
-    mock_get_status, client, db, db_cv_uuid
-):
-    url = reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid})
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_processing_flow_pending_to_completed(mock_execute, client, db):
+    cv_metadata = CVMetadataFactory.build(status=CVStatus.PENDING)
+    model = CVMetadataModel.from_entity(cv_metadata)
+    model.save()
+    url = reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id})
 
-    mock_get_status.return_value = {"status": CVStatus.PENDING}
     response_initial = client.get(url)
     assert response_initial.status_code == HTTPStatus.OK
     assertTemplateUsed(response_initial, "candidate/cv_processing.html")
@@ -441,10 +458,11 @@ def test_cv_processing_flow_pending_to_completed(
     assert response_poll.status_code == HTTPStatus.NO_CONTENT
     assert response_poll["HX-Reswap"] == "none"
 
-    mock_get_status.return_value = {
-        "status": CVStatus.COMPLETED,
-        "opportunities": [{"title": "Test opportunity"}],
-    }
+    model.status = CVStatus.COMPLETED.value
+    model.save()
+    mock_execute.return_value = [
+        (OfferFactory.build(title="Test opportunity"), 0.9),
+    ]
     response_completed = client.get(url, {"poll": "1"}, HTTP_HX_REQUEST="true")
     assert response_completed.status_code == HTTPStatus.OK
     assert response_completed["HX-Redirect"] == url
@@ -473,7 +491,9 @@ def test_cv_results_with_completed_cv_in_database_shows_results(
     mock_execute, client, db, concours
 ):
     mock_execute.return_value = [(concours[0], 0.9)]
-    cv_metadata = CVMetadataFactory.build(status=CVStatus.COMPLETED)
+    cv_metadata = CVMetadataFactory.build(
+        status=CVStatus.COMPLETED, search_query="Python developer"
+    )
     CVMetadataModel.from_entity(cv_metadata).save()
 
     response = client.get(
@@ -545,13 +565,12 @@ def test_cv_results_failed_status_redirects_with_error_message(client, db):
     )
 
 
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
-def test_cv_results_htmx_request_sets_redirect_header(mock_get_status, client, db):
-    cv_uuid = uuid4()
-    mock_get_status.return_value = {"status": CVStatus.FAILED, "opportunities": []}
+def test_cv_results_htmx_request_sets_redirect_header(client, db):
+    cv_metadata = CVMetadataFactory.build(status=CVStatus.FAILED)
+    CVMetadataModel.from_entity(cv_metadata).save()
 
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}),
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}),
         HTTP_HX_REQUEST="true",
     )
 
@@ -560,26 +579,36 @@ def test_cv_results_htmx_request_sets_redirect_header(mock_get_status, client, d
     assert response["HX-Redirect"] == reverse("candidate:cv_upload")
 
 
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
-def test_cv_results_shows_no_results_when_empty(mock_get_status, client, db):
-    cv_uuid = uuid4()
-    mock_get_status.return_value = {"status": CVStatus.COMPLETED, "opportunities": []}
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_shows_no_results_when_empty(mock_execute, client, db):
+    cv_metadata = CVMetadataFactory.build(
+        status=CVStatus.COMPLETED, search_query="Python developer"
+    )
+    CVMetadataModel.from_entity(cv_metadata).save()
+    mock_execute.return_value = []
 
-    response = client.get(reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}))
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id})
+    )
 
     assert response.status_code == HTTPStatus.OK
     assertTemplateUsed(response, "candidate/cv_no_results.html")
 
 
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
-def test_cv_results_htmx_empty_opportunities_shows_no_results(
-    mock_get_status, client, db
-):
-    cv_uuid = uuid4()
-    mock_get_status.return_value = {"status": CVStatus.COMPLETED, "opportunities": []}
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_htmx_empty_opportunities_shows_no_results(mock_execute, client, db):
+    cv_metadata = CVMetadataFactory.build(
+        status=CVStatus.COMPLETED, search_query="Python developer"
+    )
+    CVMetadataModel.from_entity(cv_metadata).save()
+    mock_execute.return_value = []
 
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}),
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}),
         HTTP_HX_REQUEST="true",
     )
 
@@ -587,74 +616,66 @@ def test_cv_results_htmx_empty_opportunities_shows_no_results(
     assertTemplateUsed(response, "candidate/components/_no_results_content.html")
 
 
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
 def test_cv_results_no_results_includes_tally_iframe(
-    mock_get_status, client, db, settings
+    mock_execute, client, db, settings
 ):
-    cv_uuid = uuid4()
+    cv_metadata = CVMetadataFactory.build(
+        status=CVStatus.COMPLETED, search_query="Python developer"
+    )
+    CVMetadataModel.from_entity(cv_metadata).save()
     settings.TALLY_FORM_ID_NO_RESULTS = "test-no-results-form"
-    mock_get_status.return_value = {
-        "status": CVStatus.COMPLETED,
-        "opportunities": [],
-    }
+    mock_execute.return_value = []
 
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}),
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}),
         HTTP_HX_REQUEST="true",
     )
 
     assert response.status_code == HTTPStatus.OK
     assertContains(response, "tally.so/embed/test-no-results-form")
-    assertContains(response, f"cv_uuid={cv_uuid}")
+    assertContains(response, f"cv_uuid={cv_metadata.id}")
 
 
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
 def test_cv_results_with_results_includes_tally_modal(
-    mock_get_status, client, db, settings
+    mock_execute, client, db, settings
 ):
-    cv_uuid = uuid4()
+    cv_metadata = CVMetadataFactory.build(
+        status=CVStatus.COMPLETED, search_query="Python developer"
+    )
+    CVMetadataModel.from_entity(cv_metadata).save()
     settings.TALLY_FORM_ID_RESULTS = "test-results-form"
-    mock_get_status.return_value = {
-        "status": CVStatus.COMPLETED,
-        "opportunities": [
-            {
-                "title": "Poste test",
-                "location_value": "75",
-                "category_value": "a",
-                "opportunity_type": OpportunityType.CONCOURS,
-                "concours_id": str(uuid4()),
-            },
-        ],
-    }
+    mock_execute.return_value = [(OfferFactory.build(title="Poste test"), 0.9)]
 
-    response = client.get(reverse("candidate:cv_results", kwargs={"cv_uuid": cv_uuid}))
+    response = client.get(
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id})
+    )
 
     assert response.status_code == HTTPStatus.OK
     assertContains(response, "tally.so/embed/test-results-form")
-    assertContains(response, f"cv_uuid={cv_uuid}")
+    assertContains(response, f"cv_uuid={cv_metadata.id}")
     assertContains(response, "tally-results-modal")
 
 
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
-def test_cv_results_pagination_default_page(
-    mock_get_status, client, db, db_cv_uuid, settings
-):
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_pagination_default_page(mock_execute, client, db, settings):
+    cv_metadata = CVMetadataFactory.build(
+        status=CVStatus.COMPLETED, search_query="Python developer"
+    )
+    CVMetadataModel.from_entity(cv_metadata).save()
     settings.CV_RESULTS_PER_PAGE = 2
-    mock_get_status.return_value = {
-        "status": CVStatus.COMPLETED,
-        "opportunities": [
-            {
-                "title": f"Opportunity {i}",
-                "location_value": "75",
-                "category_value": "a",
-                "opportunity_type": OpportunityType.CONCOURS,
-                "concours_id": str(uuid4()),
-            }
-            for i in range(5)
-        ],
-    }
+    mock_execute.return_value = [
+        (OfferFactory.build(title=f"Opportunity {i}"), 0.9 - i * 0.01) for i in range(5)
+    ]
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid})
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id})
     )
     assert response.status_code == HTTPStatus.OK
     assertContains(response, "Opportunity 0")
@@ -662,26 +683,21 @@ def test_cv_results_pagination_default_page(
     assertNotContains(response, "Opportunity 2")
 
 
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
-def test_cv_results_pagination_second_page(
-    mock_get_status, client, db, db_cv_uuid, settings
-):
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_pagination_second_page(mock_execute, client, db, settings):
+    cv_metadata = CVMetadataFactory.build(
+        status=CVStatus.COMPLETED, search_query="Python developer"
+    )
+    CVMetadataModel.from_entity(cv_metadata).save()
     settings.CV_RESULTS_PER_PAGE = 2
-    mock_get_status.return_value = {
-        "status": CVStatus.COMPLETED,
-        "opportunities": [
-            {
-                "title": f"Opportunity {i}",
-                "location_value": "75",
-                "category_value": "a",
-                "opportunity_type": OpportunityType.CONCOURS,
-                "concours_id": str(uuid4()),
-            }
-            for i in range(5)
-        ],
-    }
+    mock_execute.return_value = [
+        (OfferFactory.build(title=f"Opportunity {i}"), 0.9 - i * 0.01) for i in range(5)
+    ]
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}), {"page": "2"}
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}),
+        {"page": "2"},
     )
     assert response.status_code == HTTPStatus.OK
     assertContains(response, "Opportunity 2")
@@ -689,38 +705,23 @@ def test_cv_results_pagination_second_page(
     assertNotContains(response, "Opportunity 0")
 
 
-@patch("presentation.candidate.views.cv_flow.CVResultsView._get_cv_processing_status")
-def test_cv_results_pagination_with_filters(
-    mock_get_status, client, db, db_cv_uuid, settings
-):
+@patch(
+    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+)
+def test_cv_results_pagination_with_filters(mock_execute, client, db, settings):
+    cv_metadata = CVMetadataFactory.build(
+        status=CVStatus.COMPLETED, search_query="Python developer"
+    )
+    CVMetadataModel.from_entity(cv_metadata).save()
     settings.CV_RESULTS_PER_PAGE = 1
-    mock_get_status.return_value = {
-        "status": CVStatus.COMPLETED,
-        "opportunities": [
-            {
-                "title": f"Paris {i}",
-                "location_value": "75",
-                "category_value": "a",
-                "opportunity_type": OpportunityType.CONCOURS,
-                "concours_id": str(uuid4()),
-            }
-            for i in range(3)
-        ]
-        + [
-            {
-                "title": "Lyon 0",
-                "location_value": "69",
-                "category_value": "a",
-                "opportunity_type": OpportunityType.CONCOURS,
-                "concours_id": str(uuid4()),
-            },
-        ],
-    }
+    mock_execute.return_value = [
+        (OfferFactory.build(title=f"Paris {i}", department="75"), 0.9 - i * 0.01)
+        for i in range(3)
+    ]
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": db_cv_uuid}),
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}),
         {"filter-location": "75", "page": "2"},
     )
     assert response.status_code == HTTPStatus.OK
     assertContains(response, "Paris 1")
     assertNotContains(response, "Paris 0")
-    assertNotContains(response, "Lyon 0")

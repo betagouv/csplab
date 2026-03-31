@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import List, Optional
 from uuid import uuid4
 
@@ -18,6 +18,40 @@ from infrastructure.django_apps.shared.models.offer import OfferModel
 
 
 class OfferFactory:
+    @staticmethod
+    def build(
+        title: str = "Test Offer Title",
+        department: str = "75",
+        category: Category = Category.A,
+        verse: Verse = Verse.FPE,
+        external_id: str | None = None,
+        profile: str = "Test profile description",
+        mission: str = "Test mission description",
+        organization: str = "Test Organization",
+        localisation: Localisation | None = None,
+    ) -> Offer:
+        return Offer(
+            external_id=external_id or f"OFFER_{uuid4().hex[:8]}",
+            verse=verse,
+            title=title,
+            profile=profile,
+            mission=mission,
+            category=category,
+            contract_type=None,
+            organization=organization,
+            offer_url=None,
+            localisation=localisation
+            or Localisation(
+                country=Country("FRA"),
+                region=Region(code="11"),
+                department=Department(code=department),
+            ),
+            publication_date=datetime(2024, 1, 15, tzinfo=UTC),
+            beginning_date=LimitDate(datetime(2024, 12, 31, tzinfo=UTC)),
+            processed_at=None,
+            archived_at=None,
+        )
+
     @staticmethod
     def create(
         external_id: Optional[str] = None,
