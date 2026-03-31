@@ -1,30 +1,22 @@
 import asyncio
+import logging
 import threading
+from collections.abc import Sequence
 from uuid import UUID
 
 from django.conf import settings
 from django.contrib import messages
-from django.core.paginator import Paginator
 from django.http import Http404, HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
-from dsfr.utils import list_pages
 
 from domain.entities.concours import Concours
-from domain.entities.cv_metadata import CVMetadata
 from domain.entities.offer import Offer
 from domain.exceptions.concours_errors import ConcoursDoesNotExist
 from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.value_objects.cv_processing_status import CVStatus
-from domain.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
-from presentation.candidate.filter_config import (
-    get_all_departments_filter_options,
-    get_category_filter_options,
-    get_opportunity_type_filter_options,
-    get_verse_filter_options,
-)
 from presentation.candidate.forms.cv_flow import CVUploadForm
 from presentation.candidate.mappers import (
     ConcoursToTemplateMapper,
@@ -35,7 +27,9 @@ from presentation.candidate.mixins import (
     BreadcrumbLink,
     BreadcrumbMixin,
 )
-from presentation.candidate.types import OpportunityCard
+from presentation.candidate.presenters import OpportunityListPresenter
+
+logger = logging.getLogger(__name__)
 
 
 class CVUploadView(BreadcrumbMixin, FormView):
@@ -82,168 +76,143 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
     breadcrumb_current = "Résultat de l'analyse du CV"
     breadcrumb_links: list[BreadcrumbLink] = []
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.container = create_candidate_container()
-        self.logger = self.container.logger_service()
-        self.filters_mapper = ViewFiltersToUsecaseMapper()
-        self.status = None
-        self.opportunities = None
-        self.filename = None
+        self._filters_mapper = ViewFiltersToUsecaseMapper()
+        self._status: CVStatus = CVStatus.PENDING
+        self._filename: str | None = None
+        self._opportunities: Sequence[tuple[Concours | Offer, float]] = []
 
-    def dispatch(self, request, *args, **kwargs):
-        status_data = self._get_cv_processing_status(request)
-        self.status = status_data.get("status")
-        self.opportunities = status_data.get("opportunities", [])
-        self.filename = status_data.get("filename")
-        return super().dispatch(request, *args, **kwargs)
+    def dispatch(self, request, *args, **kwargs) -> HttpResponse:
+        cv_uuid: UUID = kwargs["cv_uuid"]
+        self._fetch_cv_data(request, cv_uuid)
 
-    def get(self, request, *args, **kwargs):
-        is_htmx = request.headers.get("HX-Request")
+        presenter = OpportunityListPresenter(self._opportunities, request)
+        is_htmx = bool(request.headers.get("HX-Request"))
 
-        if self.status == CVStatus.PENDING and is_htmx:
-            response = HttpResponse(status=204)
-            response["HX-Reswap"] = "none"
-            return response
-
-        if is_htmx and request.GET.get("poll"):
+        if is_htmx and request.GET.get("poll") and self._status != CVStatus.PENDING:
             response = HttpResponse()
-            cv_uuid = self.kwargs["cv_uuid"]
             response["HX-Redirect"] = str(
                 reverse_lazy("candidate:cv_results", kwargs={"cv_uuid": cv_uuid})
             )
             return response
 
-        if self.status == CVStatus.FAILED:
-            messages.error(
-                request,
-                "Une erreur est survenue lors du traitement de votre CV. "
-                "Veuillez réessayer.",
-            )
-            if request.headers.get("HX-Request"):
-                response = HttpResponse()
-                response["HX-Redirect"] = str(reverse_lazy("candidate:cv_upload"))
-                return response
-            return redirect("candidate:cv_upload")
+        match self._status:
+            case CVStatus.PENDING:
+                return self._handle_pending(request, is_htmx, **kwargs)
+            case CVStatus.FAILED:
+                return self._handle_failed(request, is_htmx)
+            case CVStatus.COMPLETED if not presenter.cards:
+                return self._handle_no_results(request, is_htmx, presenter, **kwargs)
+            case _:
+                return self._handle_completed(request, is_htmx, presenter, **kwargs)
 
-        return super().get(request, *args, **kwargs)
-
-    def _get_cv_processing_status(self, request) -> dict[str, object]:
-        cv_uuid = self.kwargs.get("cv_uuid")
-        self.logger.info("Getting CV processing status for cv_uuid=%s", cv_uuid)
-
-        # Log filter parameters for debugging
-        filter_params = {
-            "department": request.GET.get("filter-location"),
-            "category": request.GET.getlist("filter-category"),
-            "versant": request.GET.getlist("filter-versant"),
-            "opportunity_type": request.GET.getlist("filter-opportunity_type"),
-        }
-        self.logger.info(f"Filter parameters: {filter_params}")
-
-        cv_metadata_repository = self.container.postgres_cv_metadata_repository()
-        opportunities: list[OpportunityCard] = []
-        filename = None
+    def _fetch_cv_data(self, request, cv_uuid: UUID) -> None:
+        cv_metadata_repo = self.container.postgres_cv_metadata_repository()
         try:
-            cv_metadata: CVMetadata = cv_metadata_repository.find_by_id(cv_uuid)
-
-            status = cv_metadata.status if cv_metadata else CVStatus.PENDING
-            filename = cv_metadata.filename
-
-            if cv_metadata and status == CVStatus.COMPLETED:
-                match_cv_to_opportunities = (
-                    self.container.match_cv_to_opportunities_usecase()
-                )
-
-                domain_filters = self.filters_mapper.to_domain(request.GET)
-
-                raw_opportunities = match_cv_to_opportunities.execute(
-                    cv_metadata=cv_metadata,
-                    filters=domain_filters,
-                    limit=settings.CV_MAX_OPPORTUNITIES,
-                )
-
-                for opportunity in raw_opportunities:
-                    if isinstance(opportunity[0], Concours):
-                        opportunities.append(
-                            ConcoursToTemplateMapper.map_for_card(opportunity[0])
-                        )
-                    elif isinstance(opportunity[0], Offer):
-                        opportunities.append(
-                            OfferToTemplateMapper.map_for_card(opportunity[0])
-                        )
-
+            cv_metadata = cv_metadata_repo.find_by_id(cv_uuid)
         except Exception:
-            status = CVStatus.FAILED
+            self._status = CVStatus.FAILED
+            return
 
-        result: dict[str, object] = {
-            "status": status,
-            "opportunities": opportunities,
-            "filename": filename,
-        }
+        if cv_metadata is None:
+            self._status = CVStatus.FAILED
+            return
 
-        return result
+        self._status = cv_metadata.status
+        self._filename = cv_metadata.filename
 
-    def get_template_names(self) -> list[str]:
-        is_htmx = self.request.headers.get("HX-Request")
-        hx_target = self.request.headers.get("HX-Target")
-        if self.status == CVStatus.PENDING:
-            return (
-                ["candidate/components/_processing_content.html"]
-                if is_htmx
-                else ["candidate/cv_processing.html"]
+        if cv_metadata.status != CVStatus.COMPLETED or not cv_metadata.search_query:
+            return
+
+        try:
+            usecase = self.container.match_cv_to_opportunities_usecase()
+            domain_filters = self._filters_mapper.to_domain(request.GET)
+            self._opportunities = usecase.execute(
+                cv_metadata=cv_metadata,
+                filters=domain_filters,
+                limit=settings.CV_MAX_OPPORTUNITIES,
             )
-        elif self.status == CVStatus.COMPLETED and not self.opportunities:
-            return (
-                ["candidate/components/_no_results_content.html"]
-                if is_htmx
-                else ["candidate/cv_no_results.html"]
-            )
-        elif is_htmx:
-            return (
-                ["candidate/components/_results_list.html"]
-                if hx_target == "results-zone"
-                else ["candidate/components/_results_content.html"]
-            )
+        except Exception:
+            self._status = CVStatus.FAILED
 
-        # Default template for completed status with results
-        return ["candidate/cv_results.html"]
+    def _handle_pending(self, request, is_htmx: bool, **kwargs) -> HttpResponse:
+        if is_htmx:
+            response = HttpResponse(status=204)
+            response["HX-Reswap"] = "none"
+            return response
 
-    def get_context_data(self, **kwargs: object) -> dict[str, object]:
-        context = super().get_context_data(**kwargs)
+        context = self._base_context(**kwargs)
+        return render(request, "candidate/cv_processing.html", context)
 
-        context["cv_uuid"] = self.kwargs.get("cv_uuid")
-        context["poll_interval"] = settings.CV_PROCESSING_POLL_INTERVAL
+    def _handle_failed(self, request, is_htmx: bool) -> HttpResponse:
+        messages.error(
+            request,
+            "Une erreur est survenue lors du traitement de votre CV. "
+            "Veuillez réessayer.",
+        )
+        if is_htmx:
+            response = HttpResponse()
+            response["HX-Redirect"] = str(reverse_lazy("candidate:cv_upload"))
+            return response
+        return redirect("candidate:cv_upload")
 
-        if self.status == CVStatus.PENDING:
-            return context
+    def _handle_no_results(
+        self,
+        request,
+        is_htmx: bool,
+        presenter: OpportunityListPresenter,
+        **kwargs,
+    ) -> HttpResponse:
+        context = self._base_context(**kwargs)
+        context["cv_name"] = self._filename
+        context["tally_form_id"] = settings.TALLY_FORM_ID_NO_RESULTS
+        context.update(presenter.get_filter_options())
 
-        context["cv_name"] = self.filename
+        template = (
+            "candidate/components/_no_results_content.html"
+            if is_htmx
+            else "candidate/cv_no_results.html"
+        )
+        return render(request, template, context)
 
-        # TODO We may want to use a template tag to count opportunities to display,
-        # and get context lighter.
-        if isinstance(self.opportunities, list):
-            context["results_count"] = len(self.opportunities)
-
-            paginator = Paginator(self.opportunities, settings.CV_RESULTS_PER_PAGE)
-            page_obj = paginator.get_page(self.request.GET.get("page", 1))
-            list_pages(page_obj)
-            context["results"] = page_obj.object_list
-            context["page_obj"] = page_obj
-
-        if self.opportunities:
-            context["tally_form_id"] = settings.TALLY_FORM_ID_RESULTS
-        else:
-            context["tally_form_id"] = settings.TALLY_FORM_ID_NO_RESULTS
-
-        context["location_options"] = get_all_departments_filter_options()
-        context["category_options"] = get_category_filter_options()
-        context["verse_options"] = get_verse_filter_options()
-        context["opportunity_type_options"] = get_opportunity_type_filter_options()
-        context["opportunity_type_offer"] = OpportunityType.OFFER
-        context["opportunity_type_concours"] = OpportunityType.CONCOURS
+    def _handle_completed(
+        self,
+        request,
+        is_htmx: bool,
+        presenter: OpportunityListPresenter,
+        **kwargs,
+    ) -> HttpResponse:
+        context = self._base_context(**kwargs)
+        context["cv_name"] = self._filename
+        context["tally_form_id"] = settings.TALLY_FORM_ID_RESULTS
+        context.update(presenter.get_paginated_context())
+        context.update(presenter.get_filter_options())
         context["results_target_id"] = "results-zone"
+
+        hx_target = request.headers.get("HX-Target")
+        if is_htmx:
+            template = (
+                "candidate/components/_results_list.html"
+                if hx_target == "results-zone"
+                else "candidate/components/_results_content.html"
+            )
+        else:
+            template = "candidate/cv_results.html"
+
+        return render(request, template, context)
+
+    def _base_context(self, **kwargs) -> dict[str, object]:
+        context: dict[str, object] = {
+            "breadcrumb_data": self.get_breadcrumb_data(),
+            "cv_uuid": kwargs.get("cv_uuid"),
+            "poll_interval": settings.CV_PROCESSING_POLL_INTERVAL,
+        }
         return context
+
+    def get_breadcrumb_context(self) -> dict[str, object]:
+        return self.get_breadcrumb_data()
 
 
 class OfferDrawerView(BreadcrumbMixin, TemplateView):
