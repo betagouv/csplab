@@ -263,6 +263,20 @@ class TalentsoftDetailOfferFactory(ModelFactory[TalentsoftDetailOffer]):
     def attachedFilesUrls(cls) -> list:
         return []
 
+    @classmethod
+    def build(
+        cls,
+        factory_use_construct: bool = False,
+        reference: Optional[str] = None,
+        modificationDate: Optional[str] = None,
+        **kwargs,
+    ) -> TalentsoftDetailOffer:
+        if reference is not None:
+            kwargs["reference"] = reference
+        if modificationDate is not None:
+            kwargs["modificationDate"] = modificationDate
+        return super().build(factory_use_construct=factory_use_construct, **kwargs)
+
 
 class TalentsoftPaginationFactory(ModelFactory[TalentsoftPagination]):
     __model__ = TalentsoftPagination

@@ -39,6 +39,40 @@ class PostgresDocumentRepository(IDocumentRepository):
         )
         return [raw_doc.to_entity() for raw_doc in qs]
 
+    def get_documents_to_upsert(
+        self,
+        document_type: DocumentType,
+        fetched_documents: List[Document],
+        existing_documents: List[Document],
+    ) -> List[Document]:
+        fetched_documents_map = {doc.external_id: doc for doc in fetched_documents}
+        fetched_document_external_ids = set(fetched_documents_map.keys())
+
+        existing_documents_map = {doc.external_id: doc for doc in existing_documents}
+        existing_document_external_ids = set(existing_documents_map.keys())
+
+        # new documents
+        new_document_external_ids = (
+            fetched_document_external_ids - existing_document_external_ids
+        )
+        new_documents = [
+            fetched_documents_map[ext_id] for ext_id in new_document_external_ids
+        ]
+
+        # updated documents
+        updated_documents = []
+        for ext_id in existing_document_external_ids:
+            fetched = fetched_documents_map[ext_id]
+            stored = existing_documents_map[ext_id]
+            if (
+                "modificationDate" not in fetched.raw_data
+                or fetched.raw_data["modificationDate"]
+                > stored.raw_data["modificationDate"]
+            ):
+                updated_documents.append(fetched_documents_map[ext_id])
+
+        return new_documents + updated_documents
+
     def upsert_batch(
         self, documents: List[Document], document_type: DocumentType
     ) -> IUpsertResult:
