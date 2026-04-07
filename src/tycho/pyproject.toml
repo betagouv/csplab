@@ -37,10 +37,12 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
   "django-browser-reload>=1.17.0",
+  "axe-playwright-python>=0.1.5",
   "django-debug-toolbar>=6.1.0",
   "djlint>=1.36.4",
   "git-cliff>=2.11.0",
   "mypy>=1.18.2",
+  "pytest-playwright>=0.6.2",
   "polyfactory>=3.0.0",
   "pytest>=8.4.2",
   "pytest-asyncio>=0.25.0",
@@ -79,7 +81,7 @@ omit = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--cov-report term-missing --cov=application --cov=domain --cov=infrastructure --cov=presentation"
+addopts = "--cov-report term-missing --cov=application --cov=domain --cov=infrastructure --cov=presentation -m 'not accessibility'"
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 asyncio_mode = "auto"
 python_files = [
@@ -89,6 +91,10 @@ python_files = [
 testpaths = [
     "tests",
     "tycho/tests",
+]
+markers = [
+    "accessibility: marks tests as accessibility tests (may require browser)",
+    "functional: marks tests as functional tests requiring browser",
 ]
 
 [tool.ruff]

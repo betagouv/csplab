@@ -45,7 +45,8 @@ bootstrap: \
   build \
   migrate \
   create-superuser \
-  jupytext--to-ipynb
+  jupytext--to-ipynb \
+	playwright-install
 .PHONY: bootstrap
 
 git-hooks: ## install pre-commit hook
@@ -80,6 +81,10 @@ build-tycho: ## build tycho image
 build-ocr:
 	$(OCR_UV) uv sync --group dev --locked
 .PHONY: build-ocr
+playwright-install: ## install Playwright browsers
+	@echo 'Installing Playwright browsers…'
+	$(TYCHO_UV) uv run playwright install chromium
+.PHONY: playwright-install
 
 jupytext--to-md: ## convert local ipynb files into md
 	cd src/notebook && uv run jupytext --to md *.ipynb && cd ../..
@@ -263,6 +268,11 @@ test-ocr: ## test ocr python sources
 	@echo 'test:ocr started…'
 	$(OCR_UV) pytest $(ARGS)
 .PHONY: test-ocr
+
+test-a11y: ## run a11y tests with Playwright and axe-playwright-python
+	@echo 'test:a11y started…'
+	$(TYCHO_UV) pytest -m "accessibility" --numprocesses=logical --create-db --no-cov $(ARGS)
+.PHONY: test-a11y
 
 ## MANAGE docker services
 status: ## an alias for "docker compose ps"
