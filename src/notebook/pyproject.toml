@@ -26,9 +26,6 @@ dependencies = [
 
 # [dependency-groups]
 # # -- Jupyter kernels
-# es = [
-#     "elasticsearch>=9.1.1",
-# ]
 #
 # nlp = [
 #     "spacy>=3.8.7",

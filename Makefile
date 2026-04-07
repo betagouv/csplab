@@ -119,19 +119,9 @@ sass-watch: ## watch and compile SCSS files on changes
 .PHONY: sass-watch
 
 ### RUN
-run-all: ## run the whole stack
-run-all: \
-  run-notebook \
-  run-es
-.PHONY: run-all
-
 run-notebook: ## run the notebook service
 	$(NOTEBOOK_UV) jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
 .PHONY: run-notebook
-
-run-es: ## run the elasticsearch service
-	$(COMPOSE_UP) elasticsearch
-.PHONY: run-es
 
 run-postgres: ## run the DB service
 	$(COMPOSE_UP) postgresql
