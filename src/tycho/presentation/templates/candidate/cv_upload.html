@@ -15,6 +15,7 @@
     <div class="fr-background-alt--blue-france">
         <!-- Toast alerts (server-side errors) -->
         {% if form.errors %}
+            <div data-matomo-autofire="CVUpload|validation_error|form"></div>
             {% for field, errors in form.errors.items %}
                 {% for error in errors %}
                     {% dsfr_alert title="Le fichier n'a pas pu être importé." type="error" content=error is_collapsible=True extra_classes="csplab-toast" %}

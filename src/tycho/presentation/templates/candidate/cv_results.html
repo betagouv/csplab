@@ -7,6 +7,7 @@
     Consultez les offres d'emploi et concours de la fonction publique correspondant à votre profil.
 {% endblock meta_description %}
 {% block main %}
+    <div data-matomo-autofire="CVResults|displayed|results|{{ results_count }}"></div>
     {% include "candidate/components/_results_content.html" %}
     {% include "components/_drawer.html" with drawer_id="opportunity-drawer" drawer_label="Détail de l'opportunité" drawer_body_id="opportunity-drawer-body" %}
     {% include "candidate/components/_tally_results_modal.html" %}

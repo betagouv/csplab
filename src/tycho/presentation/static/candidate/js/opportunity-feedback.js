@@ -120,8 +120,7 @@ class OpportunityFeedbackHandler {
       name: label,
     });
 
-    const paq = (window._paq ??= []);
-    paq.push(['trackEvent', 'OpportunityFeedback', sentiment, label]);
+    window.csplab?.matomo?.trackEvent('OpportunityFeedback', sentiment, label);
   }
 
   /**
