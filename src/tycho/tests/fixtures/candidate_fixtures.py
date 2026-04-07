@@ -182,6 +182,8 @@ def vectorized_offers_documents_fixture(offers):
 
 @pytest.fixture(name="db_cv_uuid")
 def db_cv_uuid_fixture(status: CVStatus = CVStatus.COMPLETED) -> UUID:
-    cv_metadata = CVMetadataFactory.build(status=status)
+    cv_metadata = CVMetadataFactory.build(
+        status=status, search_query="Python developer"
+    )
     CVMetadataModel.from_entity(cv_metadata).save()
     return cv_metadata.id
