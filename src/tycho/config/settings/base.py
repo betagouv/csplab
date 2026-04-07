@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "django_htmx",
+    "huey.contrib.djhuey",
     "dsfr",
     "infrastructure.django_apps.shared",
     "infrastructure.django_apps.ingestion",
@@ -296,6 +297,23 @@ if _sentry_dsn:
         traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE"),
         profiles_sample_rate=env.float("SENTRY_PROFILES_SAMPLE_RATE"),
     )
+
+# Huey config
+REDIS_URL = env.str("REDIS_URL")
+REDIS_DB = env.str("REDIS_DB")
+HUEY = {
+    "huey_class": "huey.RedisHuey",
+    "name": REDIS_DB,  # scalingo instances share the same redis but different DB
+    "results": False,  # Store return values of tasks.
+    "url": f"{REDIS_URL}/?db={REDIS_DB}",
+    "consumer": {
+        "workers": 2,
+        "worker_type": "thread",
+        "periodic": True,  # Enable crontab feature.
+        "check_worker_health": True,
+        "health_check_interval": 1,
+    },
+}
 
 # API endpoints
 PISTE_OAUTH_BASE_URL = env.str("PISTE_OAUTH_BASE_URL")

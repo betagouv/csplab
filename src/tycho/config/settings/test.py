@@ -6,6 +6,8 @@ STORAGES = {
     },
 }
 
+HUEY["immediate"] = True  # noqa: F405, run synchronously
+
 # Override third-party API endpoints
 PISTE_OAUTH_BASE_URL = "https://fake-piste-oauth.example.com"
 
@@ -24,3 +26,5 @@ TALENTSOFT_CLIENT_ID = "fake-client-id"
 TALENTSOFT_CLIENT_SECRET = "fake-client-secret"  # noqa S105
 
 SENTRY_DNS = "example.com"
+
+HUEY["immediate"] = False  # noqa: F405

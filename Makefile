@@ -145,6 +145,10 @@ run-tycho: ## run the tycho service
 	@bin/manage runserver
 .PHONY: run-tycho
 
+run-huey: ## run the task queue
+	@bin/manage run_huey
+.PHONY: run-huey
+
 run-ocr: ## run the ocr service
 	$(OCR_UV) uvicorn api.main:app --reload --port=8001
 .PHONY: run-ocr

@@ -43,3 +43,5 @@ STORAGES = {
 }
 
 SENTRY_DNS = "example.com"
+
+HUEY["immediate"] = False  # noqa: F405
