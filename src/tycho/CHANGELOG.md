@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] - 2026-04-07
+
+### <!-- 1 --> Added
+
+- 🤸(tycho:candidate) add live region to announce results to screen readers ([#353](https://github.com/betagouv/csplab/pull/353))
+- 💎(candidate) add loading opacity on results zone during htmx swap ([#352](https://github.com/betagouv/csplab/pull/352))
+- ✨(candidate) add deep filters to match cv to opportunities ([#355](https://github.com/betagouv/csplab/pull/355))
+- ✨(ingestion) add find_by_external_ids in raw_document repository ([#345](https://github.com/betagouv/csplab/pull/345))
+- ✨(ingestion) add get_detail in talentsoft client ([#344](https://github.com/betagouv/csplab/pull/344))
+- ✨(tycho:candidate) add deep filters to cv_flow view ([#357](https://github.com/betagouv/csplab/pull/357))
+- ✨(ingestion) map categories to offers ([#362](https://github.com/betagouv/csplab/pull/362))
+- ✨(tycho:candidate) add Matomo analytics for candidate journey ([#358](https://github.com/betagouv/csplab/pull/358))
+
+### <!-- 2 --> Modified
+
+- ✨(candidate) add progressive enhancement to opportunity detail trigger ([#348](https://github.com/betagouv/csplab/pull/348))
+- ✨(ingestion) load detailed offers (usecase and commnand) ([#342](https://github.com/betagouv/csplab/pull/342))
+- ♻️(candidate) refactor CV results view into use case + presenter ([#361](https://github.com/betagouv/csplab/pull/361))
+- 🐛(tooling) fix dev static management ([#360](https://github.com/betagouv/csplab/pull/360))
+
+### <!-- 3 --> Removed
+
+- 🔥(ingestion) remove ability from load_documents (command and strategy) to handle ingestion of the offers ([#350](https://github.com/betagouv/csplab/pull/350))
+
+### <!-- 4 --> Fixed
+
+- 🐛(tycho:candidate) delete max tokens contraints for experimented cv ([#341](https://github.com/betagouv/csplab/pull/341))
+- 🐛(tycho:candidate) fix toast alert positioning and close button ([#354](https://github.com/betagouv/csplab/pull/354))
+- 💚(tycho) fix ci qdrant ([#356](https://github.com/betagouv/csplab/pull/356))
+
 ## [0.1.5] - 2026-03-24
 
 ### <!-- 1 --> Added
