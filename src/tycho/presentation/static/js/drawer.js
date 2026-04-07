@@ -43,6 +43,7 @@ class DrawerHandler {
   setupHtmxListeners() {
     document.body.addEventListener('htmx:beforeRequest', (e) => this.handleBeforeRequest(e));
     document.body.addEventListener('htmx:afterSwap', (e) => this.handleAfterSwap(e));
+    document.body.addEventListener('htmx:afterSettle', (e) => this.handleAfterSettle(e));
   }
 
   setupClose() {
@@ -100,6 +101,14 @@ class DrawerHandler {
       this.triggerElement.focus();
     }
     this.triggerElement = null;
+  }
+
+  /**
+   * @param {CustomEvent} e
+   */
+  handleAfterSettle(e) {
+    if (e.detail?.target === this.body) return;
+    this.markTriggers();
   }
 }
 
