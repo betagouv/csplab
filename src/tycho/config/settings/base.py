@@ -1,5 +1,3 @@
-"""Django settings for tycho project."""
-
 from datetime import timedelta
 from pathlib import Path
 

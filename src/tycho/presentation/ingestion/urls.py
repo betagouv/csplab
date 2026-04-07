@@ -1,5 +1,3 @@
-"""URL configuration for ingestion app."""
-
 from django.urls import path
 
 from presentation.ingestion.views import ConcoursUploadView

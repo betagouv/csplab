@@ -54,7 +54,6 @@ def wait_for_qdrant(url: str, max_retries: int = 30, delay: int = 2) -> bool:
 
 
 def collection_exists(base_url: str, collection_name: str) -> bool:
-    """Vérifie si une collection existe dans Qdrant."""
     try:
         response = requests.get(
             f"{base_url}/collections/{collection_name}", timeout=REQUEST_TIMEOUT
@@ -65,7 +64,6 @@ def collection_exists(base_url: str, collection_name: str) -> bool:
 
 
 def create_collection(base_url: str, collection_name: str) -> bool:
-    """Crée la collection fonction_publique avec la configuration appropriée."""
     logger.info(f"🔧 Création de la collection '{collection_name}'...")
 
     # Configuration de la collection

@@ -1,5 +1,3 @@
-"""Django settings for tycho project in test mode."""
-
 from config.settings.base import *  # noqa E402 F403
 
 STORAGES = {
