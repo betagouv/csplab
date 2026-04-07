@@ -10,6 +10,7 @@ from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
+from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
 from domain.value_objects.country import Country
 from domain.value_objects.department import Department
@@ -17,7 +18,9 @@ from domain.value_objects.limit_date import LimitDate
 from domain.value_objects.localisation import Localisation
 from domain.value_objects.region import Region
 from domain.value_objects.verse import Verse
-from infrastructure.external_gateways.dtos.talentsoft_dtos import TalentsoftOffer
+from infrastructure.external_gateways.dtos.talentsoft_dtos import (
+    TalentsoftDetailOffer,
+)
 
 
 class OffersCleaner(IDocumentCleaner[Offer]):
@@ -35,7 +38,9 @@ class OffersCleaner(IDocumentCleaner[Offer]):
 
         for document in raw_documents:
             try:
-                talentsoft_offer = TalentsoftOffer.model_validate(document.raw_data)
+                talentsoft_offer = TalentsoftDetailOffer.model_validate(
+                    document.raw_data
+                )
                 validated_offers.append(talentsoft_offer)
             except ValidationError as e:
                 reference = document.raw_data.get("reference", "UNKNOWN")
@@ -67,7 +72,9 @@ class OffersCleaner(IDocumentCleaner[Offer]):
 
         return CleaningResult(entities=offers_list, cleaning_errors=cleaning_errors)
 
-    def _map_talentsoft_to_offer(self, talentsoft_offer: TalentsoftOffer) -> Offer:
+    def _map_talentsoft_to_offer(
+        self, talentsoft_offer: TalentsoftDetailOffer
+    ) -> Offer:
         # Extract verse from salaryRange if available
         ts_verse = (
             talentsoft_offer.salaryRange.clientCode
@@ -96,6 +103,14 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         )
         beginning_date = self._parse_beginning_date(talentsoft_offer.beginningDate)
 
+        category = self._parse_category(
+            talentsoft_offer.customFields.description.customCodeTable1.clientCode
+            if talentsoft_offer.customFields
+            and talentsoft_offer.customFields.description
+            and talentsoft_offer.customFields.description.customCodeTable1
+            else None
+        )
+
         offer = Offer(
             external_id=f"{ts_verse}-{talentsoft_offer.reference}"
             if ts_verse
@@ -104,7 +119,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             title=talentsoft_offer.title,
             profile=talentsoft_offer.description2 or "",
             mission=talentsoft_offer.description1 or "",
-            category=None,  # TODO: Map from offerFamilyCategory if needed
+            category=category,
             contract_type=contract_type,
             organization=talentsoft_offer.organisationName,
             offer_url=offer_url,
@@ -201,3 +216,12 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             return LimitDate(value=parsed_date)
         except (ValueError, TypeError, AttributeError):
             return None  # todo: test
+
+    def _parse_category(self, category_code: Optional[str]) -> Optional[Category]:
+        if category_code in ["CAT-A", "CAT-AEF"]:
+            return Category.A
+        elif category_code == "CAT-B":
+            return Category.B
+        elif category_code == "CAT-C":
+            return Category.C
+        return None  # Unknown category
