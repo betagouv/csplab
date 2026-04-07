@@ -1,6 +1,4 @@
-import asyncio
 import logging
-import threading
 from collections.abc import Sequence
 from uuid import UUID
 
@@ -28,6 +26,7 @@ from presentation.candidate.mixins import (
     BreadcrumbMixin,
 )
 from presentation.candidate.presenters import OpportunityListPresenter
+from presentation.candidate.tasks import process_cv_task
 
 logger = logging.getLogger(__name__)
 
@@ -57,13 +56,7 @@ class CVUploadView(BreadcrumbMixin, FormView):
         cv_uuid = initialize_cv_metadata_usecase.execute(cv_file.name)
 
         # Launch async CV processing
-        process_uploaded_cv_usecase = self.container.process_uploaded_cv_usecase()
-        thread = threading.Thread(
-            target=lambda: asyncio.run(
-                process_uploaded_cv_usecase.execute(UUID(cv_uuid), cv_file.read())
-            )
-        )
-        thread.start()
+        process_cv_task(cv_uuid, cv_file.read())
 
         return redirect("candidate:cv_results", cv_uuid=cv_uuid)
 
