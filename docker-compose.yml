@@ -40,6 +40,13 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
+  redis:
+    image: redis
+    container_name: csp_redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+
 volumes:
   postgres_data:
     driver: local
