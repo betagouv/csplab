@@ -11,6 +11,10 @@ ALLOWED_HOSTS += ["localhost", "127.0.0.1", "192.168.0.1", "0.0.0.0"]  # noqa S1
 # Debug Toolbar Settings
 INTERNAL_IPS = ["127.0.0.1"]
 
+INSTALLED_APPS.insert(  # noqa: F405
+    INSTALLED_APPS.index("django.contrib.staticfiles"),  # noqa: F405
+    "whitenoise.runserver_nostatic",
+)
 INSTALLED_APPS.extend(  # noqa: F405
     [
         "debug_toolbar",

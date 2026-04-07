@@ -150,6 +150,7 @@ run-ocr: ## run the ocr service
 .PHONY: run-ocr
 
 dev: ## run tycho with sass watch and browser auto-reload
+	@rm -rf src/tycho/static_collected/
 	@echo "🚀 Starting development server with auto-reload..."
 	@echo "   Press Ctrl+C to stop all processes"
 	@trap 'kill 0' EXIT; \
