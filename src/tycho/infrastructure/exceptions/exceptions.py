@@ -35,5 +35,14 @@ class DatabaseError(InfrastructureError):
         message: str = "Erreur de base de données",
         details: dict | None = None,
     ):
+        super().__init__(message, details)
 
+
+# Task exceptions
+class TaskError(InfrastructureError):
+    def __init__(
+        self,
+        message: str,
+        details: dict | None = None,
+    ):
         super().__init__(message, details)
