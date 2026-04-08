@@ -1,5 +1,3 @@
-"""Unit tests for InitializeCVMetadataUsecase."""
-
 from uuid import UUID
 
 import pytest
@@ -13,20 +11,17 @@ from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepos
 
 @pytest.fixture
 def cv_metadata_repository():
-    """Create an in-memory CV metadata repository for testing."""
     return InMemoryCVMetadataRepository()
 
 
 @pytest.fixture
 def usecase(cv_metadata_repository):
-    """Create InitializeCVMetadataUsecase with in-memory repository."""
     return InitializeCVMetadataUsecase(cv_metadata_repository)
 
 
 def test_execute_creates_cv_metadata_with_pending_status(
     usecase, cv_metadata_repository
 ):
-    """Test that execute creates CV metadata with PENDING status."""
     filename = "test_cv.pdf"
 
     cv_id = usecase.execute(filename)
@@ -46,7 +41,6 @@ def test_execute_creates_cv_metadata_with_pending_status(
 
 
 def test_execute_creates_unique_ids(usecase, cv_metadata_repository):
-    """Test that execute creates unique IDs for different calls."""
     filename1 = "cv1.pdf"
     filename2 = "cv2.pdf"
     expected_count = 2
@@ -66,7 +60,6 @@ def test_execute_creates_unique_ids(usecase, cv_metadata_repository):
 
 
 def test_execute_sets_timestamps(usecase, cv_metadata_repository):
-    """Test that execute sets created_at and updated_at timestamps."""
     filename = "timestamped_cv.pdf"
 
     cv_id = usecase.execute(filename)
@@ -80,7 +73,6 @@ def test_execute_sets_timestamps(usecase, cv_metadata_repository):
 
 
 def test_execute_with_empty_filename(usecase, cv_metadata_repository):
-    """Test that execute works with empty filename."""
     filename = ""
 
     cv_id = usecase.execute(filename)

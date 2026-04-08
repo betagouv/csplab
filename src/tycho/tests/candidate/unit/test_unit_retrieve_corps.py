@@ -1,5 +1,3 @@
-"""Unit test cases for RetrieveCorpsUsecase."""
-
 import unittest
 
 from domain.entities.corps import Corps
@@ -17,15 +15,11 @@ from tests.utils.test_container_factory import create_test_shared_container
 
 
 class TestUnitRetrieveCorpsUsecase(unittest.TestCase):
-    """Unit test cases for RetrieveCorpsUsecase."""
-
     @classmethod
     def setUpClass(cls):
-        """Load fixtures once for all tests."""
         cls.embedding_fixtures = load_fixture("embedding_fixtures.json")
 
     def _create_isolated_container(self):
-        """Create an isolated container for each test to avoid concurrency issues."""
         container = CandidateContainer()
 
         logger_service = LoggerService()
@@ -37,7 +31,6 @@ class TestUnitRetrieveCorpsUsecase(unittest.TestCase):
         return container
 
     def _setup_test_data(self, container):
-        """Setup test Corps and vectorized documents."""
         corps_repository = container.shared_container.corps_repository()
         vector_repository = container.shared_container.vector_repository()
 
@@ -80,7 +73,6 @@ class TestUnitRetrieveCorpsUsecase(unittest.TestCase):
         return corps_list
 
     def test_execute_with_valid_query_returns_ordered_corps(self):
-        """Test that a valid query returns Corps with scores ordered by similarity."""
         container = self._create_isolated_container()
         corps_list = self._setup_test_data(container)
         usecase = container.retrieve_corps_usecase()
@@ -107,7 +99,6 @@ class TestUnitRetrieveCorpsUsecase(unittest.TestCase):
         self.assertEqual(returned_ids, expected_ids)
 
     def test_execute_with_empty_query_returns_empty_list(self):
-        """Test that empty or whitespace query returns empty list."""
         container = self._create_isolated_container()
         self._setup_test_data(container)
         usecase = container.retrieve_corps_usecase()
