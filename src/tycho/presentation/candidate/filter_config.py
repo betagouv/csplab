@@ -10,6 +10,11 @@ from presentation.candidate.formatters import (
 )
 from presentation.candidate.types import FilterOption
 
+FILTER_PARAM_LOCATION = "filter-location"
+FILTER_PARAM_CATEGORY = "filter-category"
+FILTER_PARAM_VERSANT = "filter-versant"
+FILTER_PARAM_OPPORTUNITY_TYPE = "filter-opportunity_type"
+
 EXCLUDED_CATEGORIES: frozenset[Category] = frozenset({Category.HORS_CATEGORIE})
 
 CATEGORY_FILTER_VALUE: dict[Category, str] = {

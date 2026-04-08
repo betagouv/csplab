@@ -15,6 +15,10 @@ from domain.value_objects.opportunity_type import OpportunityType
 from domain.value_objects.verse import Verse
 from presentation.candidate.filter_config import (
     CATEGORY_FILTER_VALUE,
+    FILTER_PARAM_CATEGORY,
+    FILTER_PARAM_LOCATION,
+    FILTER_PARAM_OPPORTUNITY_TYPE,
+    FILTER_PARAM_VERSANT,
     format_category_value,
     format_location_value,
 )
@@ -160,7 +164,7 @@ class ViewFiltersToUsecaseMapper(IToDomainMapper[QueryDict, IFilters]):
     def _map_departments(
         self, view_filters: QueryDict, usecase_filters: dict[str, Any]
     ) -> None:
-        departments = view_filters.getlist("filter-location")
+        departments = view_filters.getlist(FILTER_PARAM_LOCATION)
         if not departments:
             return
         department_objects = [
@@ -175,7 +179,7 @@ class ViewFiltersToUsecaseMapper(IToDomainMapper[QueryDict, IFilters]):
     def _map_categories(
         self, view_filters: QueryDict, usecase_filters: dict[str, Any]
     ) -> None:
-        categories = view_filters.getlist("filter-category")
+        categories = view_filters.getlist(FILTER_PARAM_CATEGORY)
         if not categories:
             return
         value_to_categories: dict[str, list[Category]] = {}
@@ -195,7 +199,7 @@ class ViewFiltersToUsecaseMapper(IToDomainMapper[QueryDict, IFilters]):
     def _map_versants(
         self, view_filters: QueryDict, usecase_filters: dict[str, Any]
     ) -> None:
-        versants = view_filters.getlist("filter-versant")
+        versants = view_filters.getlist(FILTER_PARAM_VERSANT)
         if not versants:
             return
         verse_objects = [
@@ -210,7 +214,7 @@ class ViewFiltersToUsecaseMapper(IToDomainMapper[QueryDict, IFilters]):
     def _map_opportunity_types(
         self, view_filters: QueryDict, usecase_filters: dict[str, Any]
     ) -> None:
-        opportunity_types = view_filters.getlist("filter-opportunity_type")
+        opportunity_types = view_filters.getlist(FILTER_PARAM_OPPORTUNITY_TYPE)
         if not opportunity_types:
             return
         type_mapping = {

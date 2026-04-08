@@ -9,6 +9,10 @@ from domain.entities.concours import Concours
 from domain.entities.offer import Offer
 from domain.value_objects.opportunity_type import OpportunityType
 from presentation.candidate.filter_config import (
+    FILTER_PARAM_CATEGORY,
+    FILTER_PARAM_LOCATION,
+    FILTER_PARAM_OPPORTUNITY_TYPE,
+    FILTER_PARAM_VERSANT,
     get_all_departments_filter_options,
     get_category_filter_options,
     get_opportunity_type_filter_options,
@@ -62,19 +66,19 @@ class OpportunityListPresenter:
         return {
             "location_options": self._mark_checked(
                 get_all_departments_filter_options(),
-                params.getlist("filter-location"),
+                params.getlist(FILTER_PARAM_LOCATION),
             ),
             "category_options": self._mark_checked(
                 get_category_filter_options(),
-                params.getlist("filter-category"),
+                params.getlist(FILTER_PARAM_CATEGORY),
             ),
             "verse_options": self._mark_checked(
                 get_verse_filter_options(),
-                params.getlist("filter-versant"),
+                params.getlist(FILTER_PARAM_VERSANT),
             ),
             "opportunity_type_options": self._mark_checked(
                 get_opportunity_type_filter_options(),
-                params.getlist("filter-opportunity_type"),
+                params.getlist(FILTER_PARAM_OPPORTUNITY_TYPE),
             ),
             "opportunity_type_offer": OpportunityType.OFFER,
             "opportunity_type_concours": OpportunityType.CONCOURS,
