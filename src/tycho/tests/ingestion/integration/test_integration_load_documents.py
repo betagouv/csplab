@@ -1,8 +1,13 @@
+from unittest.mock import patch
+
+import pytest
 import responses
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
 from faker import Faker
-from rest_framework.test import APITestCase
+from rest_framework import status
+from rest_framework.test import APIClient, APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
@@ -182,3 +187,42 @@ class TestConcoursUploadView(APITestCase):
         self.assertIn(
             "Successfully processed 2 valid concours records", response.data["message"]
         )
+
+
+@pytest.fixture(name="api_client")
+def api_client_fixture():
+    return APIClient()
+
+
+@pytest.fixture(name="user")
+def user_fixture(db):
+    return User.objects.create_user(
+        username=fake.name(), email=fake.email(), password=fake.password()
+    )
+
+
+@pytest.fixture(name="authenticated_client")
+def authenticated_client_fixture(api_client, user):
+    refresh = RefreshToken.for_user(user)
+    token = str(refresh.access_token)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return api_client
+
+
+class TestHueyHealthView:
+    url = reverse("health-huey")
+
+    def test_success_response(self, authenticated_client):
+        response = authenticated_client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_unauthenticated_access(self, api_client):
+        response = api_client.get(self.url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_redis_unavailable(self, authenticated_client):
+        with patch("huey.contrib.djhuey.HUEY.storage.conn.ping") as mocked_ping:
+            mocked_ping.side_effect = Exception("Redis connection refused")
+            response = authenticated_client.get(self.url)
+            assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+            assert response.data == {"status": "Huey health check failed"}
