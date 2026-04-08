@@ -1,9 +1,10 @@
-from typing import TypedDict
+from typing import Required, TypedDict
 
 
-class FilterOption(TypedDict):
-    value: str
-    text: str
+class FilterOption(TypedDict, total=False):
+    value: Required[str]
+    text: Required[str]
+    checked: bool
 
 
 class _BaseCard(TypedDict):

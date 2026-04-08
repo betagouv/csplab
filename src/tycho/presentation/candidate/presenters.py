@@ -18,7 +18,7 @@ from presentation.candidate.mappers import (
     ConcoursToTemplateMapper,
     OfferToTemplateMapper,
 )
-from presentation.candidate.types import OpportunityCard
+from presentation.candidate.types import FilterOption, OpportunityCard
 
 
 class OpportunityListPresenter:
@@ -58,11 +58,41 @@ class OpportunityListPresenter:
         }
 
     def get_filter_options(self) -> dict[str, object]:
+        params = self._request.GET
         return {
-            "location_options": get_all_departments_filter_options(),
-            "category_options": get_category_filter_options(),
-            "verse_options": get_verse_filter_options(),
-            "opportunity_type_options": get_opportunity_type_filter_options(),
+            "location_options": self._mark_checked(
+                get_all_departments_filter_options(),
+                params.getlist("filter-location"),
+            ),
+            "category_options": self._mark_checked(
+                get_category_filter_options(),
+                params.getlist("filter-category"),
+            ),
+            "verse_options": self._mark_checked(
+                get_verse_filter_options(),
+                params.getlist("filter-versant"),
+            ),
+            "opportunity_type_options": self._mark_checked(
+                get_opportunity_type_filter_options(),
+                params.getlist("filter-opportunity_type"),
+            ),
             "opportunity_type_offer": OpportunityType.OFFER,
             "opportunity_type_concours": OpportunityType.CONCOURS,
         }
+
+    @staticmethod
+    def _mark_checked(
+        options: list[FilterOption],
+        active_values: list[str],
+    ) -> list[FilterOption]:
+        if not active_values:
+            return options
+        active_set = set(active_values)
+        return [
+            FilterOption(
+                value=opt["value"],
+                text=opt["text"],
+                checked=opt["value"] in active_set,
+            )
+            for opt in options
+        ]

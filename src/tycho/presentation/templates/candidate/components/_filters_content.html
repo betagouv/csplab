@@ -17,7 +17,9 @@
             <select class="fr-select"
                     id="{{ filter_prefix|default:'' }}filter-location"
                     name="filter-location">
-                {% for option in location_options %}<option value="{{ option.value }}">{{ option.text }}</option>{% endfor %}
+                {% for option in location_options %}
+                    <option value="{{ option.value }}" {% if option.checked %}selected{% endif %}>{{ option.text }}</option>
+                {% endfor %}
             </select>
         </div>
         <hr class="fr-hr fr-mb-2w">

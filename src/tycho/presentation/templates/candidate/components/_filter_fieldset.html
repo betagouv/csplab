@@ -25,7 +25,8 @@
                                    id="{{ filter_prefix|default:'' }}{{ filter_name }}-{{ option.value }}"
                                    name="{{ filter_name }}"
                                    value="{{ option.value }}"
-                                   class="fr-sr-only">
+                                   class="fr-sr-only"
+                                   {% if option.checked %}checked{% endif %}>
                             {{ option.text }}
                         </label>
                     </li>
