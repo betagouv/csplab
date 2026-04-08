@@ -47,7 +47,7 @@ bootstrap: \
   migrate \
   create-superuser \
   jupytext--to-ipynb \
-	playwright-install
+  playwright-install
 .PHONY: bootstrap
 
 git-hooks: ## install pre-commit hook
