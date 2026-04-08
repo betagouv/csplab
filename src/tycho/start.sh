@@ -7,4 +7,4 @@ echo "📦 Collecting static files..."
 python manage.py collectstatic --noinput --clear
 
 echo "🚀 Starting server"
-gunicorn config.wsgi:application --log-file -
+gunicorn config.wsgi:application -w 5 --log-file -
