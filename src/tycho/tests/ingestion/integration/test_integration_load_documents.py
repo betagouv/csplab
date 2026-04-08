@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
@@ -90,105 +90,6 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         assert saved_documents.count() == len(api_data)
 
 
-class TestConcoursUploadView(APITestCase):
-    def setUp(self):
-        self.concours_upload_url = reverse("ingestion:concours-upload")
-        # Create a test user for authenticated tests
-        self.user = User.objects.create_user(
-            username=fake.name(), email=fake.email(), password=fake.password()
-        )
-
-    def _get_jwt_token(self, user):
-        refresh = RefreshToken.for_user(user)
-        return str(refresh.access_token)
-
-    def _authenticate_client(self, user):
-        token = self._get_jwt_token(user)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
-
-    def _create_valid_csv_content(self):
-        return (
-            "N° NOR;Ministère;Catégorie;Corps;"
-            "Grade;Année de référence;Nb postes total\n"
-            "INTB2400001C;Ministère de l'Intérieur;A;Attaché;Attaché;2024;10\n"
-            "INTB2400002C;Ministère de l'Intérieur;B;Secrétaire;Secrétaire;2024;5\n"
-        )
-
-    def _create_invalid_csv_content(self):
-        return (
-            "N° NOR;Ministère;Catégorie;Corps;Grade;"
-            "Année de référence;Nb postes total\n"
-            ";Ministère de l'Intérieur;A;Attaché;Attaché;2024;10\n"  # Missing NOR
-            "INTB2400002C;;B;Secrétaire;Secrétaire;2024;5\n"  # Missing Ministère
-        )
-
-    def _create_csv_file(self, content, filename="test.csv"):
-        return SimpleUploadedFile(
-            filename, content.encode("utf-8"), content_type="text/csv"
-        )
-
-    def test_unauthenticated_access_returns_401(self):
-        # Ensure client is not authenticated
-        self.client.logout()
-
-        valid_csv = self._create_csv_file(self._create_valid_csv_content())
-        response = self.client.post(
-            self.concours_upload_url, {"file": valid_csv}, format="multipart"
-        )
-
-        self.assertEqual(response.status_code, 401)
-
-    def test_no_file_provided(self):
-        self._authenticate_client(self.user)
-        response = self.client.post(self.concours_upload_url, {}, format="multipart")
-
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data["error"], "No file provided")
-
-    def test_invalid_file_format(self):
-        self._authenticate_client(self.user)
-        txt_file = SimpleUploadedFile(
-            "test.txt", b"not a csv file", content_type="text/plain"
-        )
-
-        response = self.client.post(
-            self.concours_upload_url, {"file": txt_file}, format="multipart"
-        )
-
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data["error"], "File must be a CSV")
-
-    def test_validation_errors(self):
-        self._authenticate_client(self.user)
-        invalid_csv = self._create_csv_file(self._create_invalid_csv_content())
-
-        response = self.client.post(
-            self.concours_upload_url, {"file": invalid_csv}, format="multipart"
-        )
-
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data["error"], "No valid rows found")
-        self.assertIn("validation_errors", response.data)
-        self.assertEqual(len(response.data["validation_errors"]), 2)
-
-    def test_success_response(self):
-        self._authenticate_client(self.user)
-        valid_csv = self._create_csv_file(self._create_valid_csv_content())
-
-        response = self.client.post(
-            self.concours_upload_url, {"file": valid_csv}, format="multipart"
-        )
-
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data["status"], "success")
-        self.assertEqual(response.data["total_rows"], 2)
-        self.assertEqual(response.data["valid_rows"], 2)
-        self.assertEqual(response.data["invalid_rows"], 0)
-        self.assertIn(
-            "Successfully processed 2 valid concours records", response.data["message"]
-        )
-
-
 @pytest.fixture(name="api_client")
 def api_client_fixture():
     return APIClient()
@@ -226,3 +127,77 @@ class TestHueyHealthView:
             response = authenticated_client.get(self.url)
             assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
             assert response.data == {"status": "Huey health check failed"}
+
+
+@pytest.fixture(name="valid_csv_content")
+def valid_csv_content_fixture():
+    return (
+        "N° NOR;Ministère;Catégorie;Corps;"
+        "Grade;Année de référence;Nb postes total\n"
+        "INTB2400001C;Ministère de l'Intérieur;A;Attaché;Attaché;2024;10\n"
+        "INTB2400002C;Ministère de l'Intérieur;B;Secrétaire;Secrétaire;2024;5\n"
+    )
+
+
+@pytest.fixture(name="invalid_csv_content")
+def invalid_csv_content_fixture():
+    return (
+        "N° NOR;Ministère;Catégorie;Corps;Grade;"
+        "Année de référence;Nb postes total\n"
+        ";Ministère de l'Intérieur;A;Attaché;Attaché;2024;10\n"
+        "INTB2400002C;;B;Secrétaire;Secrétaire;2024;5\n"
+    )
+
+
+def make_csv_file(content, filename="test.csv"):
+    return SimpleUploadedFile(
+        filename, content.encode("utf-8"), content_type="text/csv"
+    )
+
+
+class TestConcoursUploadView:
+    url = reverse("ingestion:concours-upload")
+
+    def test_unauthenticated_access(self, api_client, valid_csv_content):
+        response = api_client.post(
+            self.url, {"file": make_csv_file(valid_csv_content)}, format="multipart"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_no_file_provided(self, authenticated_client):
+        response = authenticated_client.post(self.url, {}, format="multipart")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["error"] == "No file provided"
+
+    def test_invalid_file_format(self, authenticated_client):
+        txt_file = SimpleUploadedFile(
+            "test.txt", b"not a csv file", content_type="text/plain"
+        )
+        response = authenticated_client.post(
+            self.url, {"file": txt_file}, format="multipart"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["error"] == "File must be a CSV"
+
+    def test_validation_errors(self, authenticated_client, invalid_csv_content):
+        response = authenticated_client.post(
+            self.url, {"file": make_csv_file(invalid_csv_content)}, format="multipart"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["error"] == "No valid rows found"
+        assert "validation_errors" in response.data
+        assert len(response.data["validation_errors"]) == 2  # noqa
+
+    def test_success_response(self, db, authenticated_client, valid_csv_content):
+        response = authenticated_client.post(
+            self.url, {"file": make_csv_file(valid_csv_content)}, format="multipart"
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["status"] == "success"
+        assert response.data["total_rows"] == 2  # noqa
+        assert response.data["valid_rows"] == 2  # noqa
+        assert response.data["invalid_rows"] == 0
+        assert (
+            "Successfully processed 2 valid concours records"
+            in response.data["message"]
+        )
