@@ -92,7 +92,7 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
 
 class TestConcoursUploadView(APITestCase):
     def setUp(self):
-        self.concours_upload_url = "/ingestion/concours/upload/"
+        self.concours_upload_url = reverse("ingestion:concours-upload")
         # Create a test user for authenticated tests
         self.user = User.objects.create_user(
             username=fake.name(), email=fake.email(), password=fake.password()
@@ -210,7 +210,7 @@ def authenticated_client_fixture(api_client, user):
 
 
 class TestHueyHealthView:
-    url = reverse("health-huey")
+    url = reverse("ingestion:health-huey")
 
     def test_success_response(self, authenticated_client):
         response = authenticated_client.get(self.url)
