@@ -1,18 +1,19 @@
-"""Django management command to clean documents by type."""
-
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 
 from domain.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from infrastructure.django_apps.ingestion.tasks import clean_documents
 
 
 class Command(BaseCommand):
-    """Clean documents by type using CleanDocumentsUsecase."""
+    help = "Clean documents by type"
 
-    help = "Clean documents by type (CORPS, CONCOURS, etc.)"
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.container = create_ingestion_container()
+        self.logger = self.container.logger_service()
 
     def add_arguments(self, parser):
-        """Add command arguments."""
         parser.add_argument(
             "--type",
             required=True,
@@ -25,32 +26,11 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Execute the command."""
-        try:
-            document_type = DocumentType(options["type"])
-            container = create_ingestion_container()
-            usecase = container.clean_documents_usecase()
-            self.stdout.write(f"Cleaning documents of type: {document_type.value}")
-            result = usecase.execute(document_type)
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"✅ Clean completed: {result['cleaned']}/{result['processed']}"
-                    " documents cleaned"
-                )
-            )
+        document_type = DocumentType(options["type"])
 
-            if result["errors"] > 0:
-                self.stdout.write(
-                    self.style.WARNING(f"⚠️  {result['errors']} errors occurred")
-                )
-
-            # Display error details if any
-            if result.get("error_details"):
-                self.stdout.write("Error details:")
-                for error in result["error_details"]:
-                    self.stdout.write(
-                        f"  - Entity {error['entity_id']}: {error['error']}"
-                    )
-
-        except Exception as e:
-            raise CommandError(f"Failed to clean documents: {str(e)}") from e
+        self.logger.info(
+            "Enqueuing clean task for %s...",
+            document_type.value,
+        )
+        clean_documents(document_type)
+        self.logger.info(self.style.SUCCESS("✅ Task enqueued successfully."))
