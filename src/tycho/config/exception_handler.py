@@ -1,5 +1,3 @@
-"""Global exception handler for automatic HTTP status mapping."""
-
 from rest_framework.response import Response
 from rest_framework.views import exception_handler, status
 
@@ -16,7 +14,6 @@ infrastructure_logger = logger_service.get_logger("INFRASTRUCTURE")
 
 
 def custom_exception_handler(exc, context):
-    """Custom exception handler that maps our exceptions to HTTP responses."""
     # Handle our custom exceptions with layer-specific logging
     if not isinstance(exc, (DomainError, ApplicationError, InfrastructureError)):
         return exception_handler(exc, context)

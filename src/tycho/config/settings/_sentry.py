@@ -3,7 +3,9 @@ import logging
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.httpx import HttpxIntegration
+from sentry_sdk.integrations.huey import HueyIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration, ignore_logger
+from sentry_sdk.integrations.redis import RedisIntegration
 
 SENSITIVE_KEYS = {
     "password",
@@ -55,6 +57,9 @@ def sentry_init(dsn, traces_sample_rate, profiles_sample_rate):
             sentry_logging,
             sentry_django,
             HttpxIntegration(),
+            HueyIntegration(),
+            # Hardcoded CACHES.*.KEY_PREFIX to not depend on Django being setup
+            RedisIntegration(cache_prefixes=["tycho:"]),
         ],
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.

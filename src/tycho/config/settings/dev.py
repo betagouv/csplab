@@ -1,5 +1,3 @@
-"""Django settings for tycho project in dev mode."""
-
 from config.settings.base import *  # noqa: F403
 
 DEBUG = True
@@ -45,3 +43,5 @@ STORAGES = {
 }
 
 SENTRY_DNS = "example.com"
+
+HUEY["immediate"] = False  # noqa: F405

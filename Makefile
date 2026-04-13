@@ -40,13 +40,14 @@ setup: ## copy example env files to local files
 bootstrap: ## setup development environment (build dev service and install git hooks)
 bootstrap: \
   run-postgres \
+  run-redis \
   run-qdrant \
   setup-qdrant \
   build \
   migrate \
   create-superuser \
   jupytext--to-ipynb \
-	playwright-install
+  playwright-install
 .PHONY: bootstrap
 
 git-hooks: ## install pre-commit hook
@@ -136,9 +137,17 @@ run-qdrant: ## run the Qdrant vector database service
 	$(COMPOSE_UP) qdrant
 .PHONY: run-qdrant
 
+run-redis: ## run the redis service
+	$(COMPOSE_UP) redis
+.PHONY: run-redis
+
 run-tycho: ## run the tycho service
 	@bin/manage runserver
 .PHONY: run-tycho
+
+run-huey: ## run the task queue
+	@bin/manage run_huey
+.PHONY: run-huey
 
 run-ocr: ## run the ocr service
 	$(OCR_UV) uvicorn api.main:app --reload --port=8001
