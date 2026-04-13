@@ -1,5 +1,3 @@
-"""Shared infrastructure services container."""
-
 from dependency_injector import containers, providers
 
 from infrastructure.external_gateways.albert_embedding_generator import (
@@ -10,20 +8,11 @@ from infrastructure.external_gateways.openai_embedding_generator import (
 )
 from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.repositories.shared import (
-    pgvector_repository,
     postgres_concours_repository,
     postgres_corps_repository,
     postgres_offers_repository,
 )
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
-
-
-def _create_vector_repository(config, logger):
-    if config.vector_db_type == "QDRANT":
-        return QdrantRepository(config=config.qdrant, logger=logger)
-    else:
-        # Default to PgVector
-        return pgvector_repository.PgVectorRepository(logger=logger)
 
 
 def _create_embedding_generator(app_config, http_client):
@@ -65,9 +54,8 @@ class SharedContainer(containers.DeclarativeContainer):
         http_client,
     )
 
-    # Vector repository with feature flag (PgVector or Qdrant)
-    vector_repository = providers.Factory(
-        _create_vector_repository,
-        config=app_config,
+    vector_repository = providers.Singleton(
+        QdrantRepository,
+        config=app_config.provided.qdrant,
         logger=logger_service,
     )

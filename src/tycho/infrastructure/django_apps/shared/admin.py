@@ -1,13 +1,8 @@
-
 from django.contrib import admin
-from django.utils.html import format_html
 
 from infrastructure.django_apps.shared.models.concours import ConcoursModel
 from infrastructure.django_apps.shared.models.corps import CorpsModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
-from infrastructure.django_apps.shared.models.vectorized_document import (
-    VectorizedDocumentModel,
-)
 
 
 @admin.register(OfferModel)
@@ -99,34 +94,3 @@ class ConcoursAdmin(admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
-
-
-@admin.register(VectorizedDocumentModel)
-class VectorizedDocumentAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "entity_id",
-        "document_type",
-        "content",
-        "created_at",
-        "updated_at",
-    )
-    list_filter = ("document_type", "created_at", "updated_at")
-    search_fields = ("entity_id", "content")
-    exclude = ["embedding"]
-    readonly_fields = (
-        "id",
-        "entity_id",
-        "document_type",
-        "content",
-        "embedding_html",
-        "metadata",
-        "created_at",
-        "updated_at",
-    )
-
-    def embedding_html(self, obj: VectorizedDocumentModel):
-        return format_html("{}", obj.embedding)
-
-
-#    embedding_html.short_description = "Embedding"

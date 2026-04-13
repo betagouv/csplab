@@ -9,9 +9,6 @@ from domain.entities.document import DocumentType
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
 from domain.value_objects.similarity_type import SimilarityMetric, SimilarityType
 from infrastructure.django_apps.shared.models.offer import OfferModel
-from infrastructure.django_apps.shared.models.vectorized_document import (
-    VectorizedDocumentModel,
-)
 from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.corps_factory import CorpsFactory
@@ -29,10 +26,6 @@ factories_mapper = {
     DocumentType.CONCOURS: ConcoursFactory(),
     DocumentType.OFFERS: OfferFactory(),
 }
-
-
-def assert_nothing_vectorized():
-    assert not VectorizedDocumentModel.objects.exists()
 
 
 def assert_offer_pending(processing: bool):
@@ -133,7 +126,6 @@ def test_vectorize_empty_list_integration(
     result = usecase.execute(DocumentType.OFFERS)
 
     assert_success_result(result, expected_count=0)
-    assert_nothing_vectorized()
 
 
 @responses.activate
@@ -193,7 +185,6 @@ def test_vectorize_get_pending_processing_error(offer_setup, test_app_config):
             usecase.execute(document_type)
         mocked_method.assert_called_once()
 
-    assert_nothing_vectorized()
     assert_offer_pending(processing=False)
 
 
@@ -224,7 +215,6 @@ def test_vectorize_vectorize_single_source_error(offer_setup, test_app_config):
         result,
         expected_exception_message=f"Document type: {BAD_TYPE} is not supported yet",
     )
-    assert_nothing_vectorized()
     assert_offer_pending(processing=False)
 
 
@@ -252,7 +242,6 @@ def test_vectorize_upsert_batch_error(offer_setup, test_app_config):
             usecase.execute(document_type)
         mocked_method.assert_called_once()
 
-    assert_nothing_vectorized()
     assert_offer_pending(processing=True)
 
 
@@ -589,7 +578,6 @@ def test_vectorize_mark_as_processed_error(offer_setup, test_app_config):
             usecase.execute(document_type)
         mocked_method.assert_called_once()
 
-    assert_nothing_vectorized()
     assert_offer_pending(processing=True)
 
 
@@ -624,5 +612,4 @@ def test_vectorize_mark_as_pending_error(offer_setup, test_app_config):
         mocked_vectorize.assert_called_once()
         mocked_mark.assert_called_once()
 
-    assert_nothing_vectorized()
     assert_offer_pending(processing=True)
