@@ -2,25 +2,6 @@
 
 from django.db import migrations, models
 
-def populate_processed_at(apps, schema_editor):
-    from django.db.models import OuterRef, Subquery
-
-    VectorizedDocumentModel = apps.get_model("shared", "VectorizedDocumentModel")
-
-    for model_name, document_type in [
-        ("ConcoursModel","CONCOURS"),
-        ("CorpsModel","CORPS"),
-        ("OfferModel","OFFERS")
-    ]:
-        model = apps.get_model("shared",model_name)
-        model.objects.update(
-            processed_at=Subquery(
-                VectorizedDocumentModel.objects.filter(
-                    document_type=document_type,
-                    entity_id=OuterRef("id")
-                ).values("updated_at")[:1]
-            )
-        )
 
 class Migration(migrations.Migration):
 
@@ -29,11 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(
-            populate_processed_at,
-            reverse_code=migrations.RunPython.noop,
-            elidable=True,
-        ),
         migrations.AddField(
             model_name="concoursmodel",
             name="processing",

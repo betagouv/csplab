@@ -10,14 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name="vectorizeddocumentmodel",
-            options={
-                "ordering": ["-created_at"],
-                "verbose_name": "VectorizedDocument",
-                "verbose_name_plural": "VectorizedDocuments",
-            },
-        ),
         migrations.AlterField(
             model_name="concoursmodel",
             name="corps",
@@ -27,11 +19,5 @@ class Migration(migrations.Migration):
             model_name="concoursmodel",
             name="grade",
             field=models.CharField(blank=True, default="", max_length=200),
-        ),
-        migrations.AddConstraint(
-            model_name="vectorizeddocumentmodel",
-            constraint=models.UniqueConstraint(
-                fields=("id", "document_type"), name="unique_id_document_type"
-            ),
         ),
     ]

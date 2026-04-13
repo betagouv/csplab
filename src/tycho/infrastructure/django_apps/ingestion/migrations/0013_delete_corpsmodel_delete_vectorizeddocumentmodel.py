@@ -13,7 +13,4 @@ class Migration(migrations.Migration):
         migrations.DeleteModel(
             name='CorpsModel',
         ),
-        migrations.DeleteModel(
-            name='VectorizedDocumentModel',
-        ),
     ]

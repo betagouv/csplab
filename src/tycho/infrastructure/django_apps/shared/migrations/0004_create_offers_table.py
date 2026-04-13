@@ -10,22 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name="vectorizeddocumentmodel",
-            name="document_type",
-            field=models.CharField(
-                choices=[
-                    ("CORPS", "CORPS"),
-                    ("GRADE", "GRADE"),
-                    ("CONCOURS", "CONCOURS"),
-                    ("CONCOURS_LAW", "CONCOURS_LAW"),
-                    ("CONCOURS_LAW_DETAILS", "CONCOURS_LAW_DETAILS"),
-                    ("OFFERS", "OFFERS"),
-                ],
-                db_index=True,
-                max_length=20,
-            ),
-        ),
         migrations.CreateModel(
             name="OfferModel",
             fields=[
