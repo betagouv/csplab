@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-import responses
+from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
@@ -20,74 +20,74 @@ fake = Faker()
 
 
 class TestIntegrationCorpsLoadDocumentsUseCase:
-    @responses.activate
-    def test_execute_returns_zero_when_no_documents(
-        self, db, documents_integration_usecase, test_app_config
+    async def test_execute_returns_zero_when_no_documents(
+        self, db, documents_integration_usecase, test_app_config, httpx_mock
     ):
         # Mock OAuth token endpoint
-        responses.add(
-            responses.POST,
-            f"{test_app_config.piste_oauth_base_url}api/oauth/token",
+        httpx_mock.add_response(
+            method="POST",
+            url=f"{test_app_config.piste_oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
-            status=200,
-            content_type="application/json",
+            status_code=200,
         )
 
         # Mock INGRES API endpoint with empty response
-        responses.add(
-            responses.GET,
-            f"{test_app_config.ingres_base_url}/CORPS",
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{test_app_config.ingres_base_url}/CORPS",
+            match_params={"enVigueur": "true", "full": "true"},
             json={"items": []},
-            status=200,
-            content_type="application/json",
+            status_code=200,
         )
 
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
-        result = documents_integration_usecase.execute(input_data)
+        result = await documents_integration_usecase.execute(input_data)
         assert result["created"] == 0
         assert result["updated"] == 0
 
-    @responses.activate
-    def test_execute_returns_correct_count_with_documents(
-        self, db, documents_integration_usecase, test_app_config
+    async def test_execute_returns_correct_count_with_documents(
+        self, db, documents_integration_usecase, test_app_config, httpx_mock
     ):
         api_response = IngresCorpsApiResponseFactory.build()
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
 
         # Mock OAuth token endpoint
-        responses.add(
-            responses.POST,
-            f"{test_app_config.piste_oauth_base_url}api/oauth/token",
+        httpx_mock.add_response(
+            method="POST",
+            url=f"{test_app_config.piste_oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
-            status=200,
-            content_type="application/json",
+            status_code=200,
         )
 
         # Mock INGRES API endpoint
-        responses.add(
-            responses.GET,
-            f"{test_app_config.ingres_base_url}/CORPS",
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{test_app_config.ingres_base_url}/CORPS",
+            match_params={"enVigueur": "true", "full": "true"},
             json={"items": api_data},
-            status=200,
-            content_type="application/json",
+            status_code=200,
         )
 
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
-        result = documents_integration_usecase.execute(input_data)
+        result = await documents_integration_usecase.execute(input_data)
         assert result["created"] == len(api_data)
         assert result["updated"] == 0
 
         # Verify documents are persisted in database
-        saved_documents = RawDocument.objects.filter(
-            document_type=DocumentType.CORPS.value
-        )
-        assert saved_documents.count() == len(api_data)
+        @sync_to_async
+        def get_saved_documents_count():
+            return RawDocument.objects.filter(
+                document_type=DocumentType.CORPS.value
+            ).count()
+
+        saved_count = await get_saved_documents_count()
+        assert saved_count == len(api_data)
 
 
 @pytest.fixture(name="api_client")

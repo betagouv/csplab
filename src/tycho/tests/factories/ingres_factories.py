@@ -527,13 +527,10 @@ class IngresCorpsDocumentFactory(ModelFactory[IngresCorpsDocument]):
 
     @classmethod
     def identifiant(cls) -> str:
-        """Generate unique identifier."""
         return str(uuid.uuid4().int)[:5].zfill(5)
 
 
 class IngresCorpsApiResponseFactory(ModelFactory[IngresCorpsApiResponse]):
-    """Factory for IngresCorpsApiResponse."""
-
     __model__ = IngresCorpsApiResponse
 
     @classmethod
