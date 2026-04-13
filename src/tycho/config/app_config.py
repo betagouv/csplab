@@ -48,8 +48,6 @@ class AppConfig(BaseModel):
     # OCR
     ocr_type: Literal["ALBERT", "OPENAI"]
 
-    # Vector Database
-    vector_db_type: Literal["PGVECTOR", "QDRANT"]
     # Embedding
     embedding_type: Literal["ALBERT", "OPENAI"]
     embedding_dimension: int
@@ -91,7 +89,6 @@ class AppConfig(BaseModel):
     def from_django_settings(cls) -> "AppConfig":
         return cls(
             ocr_type=settings.OCR_TYPE,
-            vector_db_type=settings.VECTOR_DB_TYPE,
             embedding_type=settings.EMBEDDING_TYPE,
             embedding_dimension=settings.EMBEDDING_DIMENSION,
             openrouter_api_key=settings.OPENROUTER_API_KEY,
