@@ -1,5 +1,7 @@
 from typing import List, cast
 
+from asgiref.sync import sync_to_async
+
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from domain.entities.document import DocumentType
 from domain.exceptions.document_error import InvalidDocumentTypeError
@@ -45,9 +47,9 @@ class LoadOffersUsecase(IAsyncUseCase[LoadDocumentsInput, IUpsertResult]):
             if not fetched_documents:
                 break
 
-            existing_documents = self.document_repository.find_by_external_ids(
-                document_type=document_type, documents=cast(List, fetched_documents)
-            )
+            existing_documents = await sync_to_async(
+                self.document_repository.find_by_external_ids
+            )(document_type=document_type, documents=cast(List, fetched_documents))
 
             documents = self.document_repository.get_documents_to_upsert(
                 document_type=document_type,
@@ -82,7 +84,7 @@ class LoadOffersUsecase(IAsyncUseCase[LoadDocumentsInput, IUpsertResult]):
                     )
                     detail_documents.append(detail)
 
-            result = self.document_repository.upsert_batch(
+            result = await sync_to_async(self.document_repository.upsert_batch)(
                 detail_documents, document_type
             )
             self.logger.info(

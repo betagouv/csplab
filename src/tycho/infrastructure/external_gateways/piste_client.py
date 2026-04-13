@@ -32,7 +32,7 @@ class PisteClient(AsyncHttpClient):
 
     async def _get_token(self):
         oauth_url = f"{self.config.oauth_base_url}api/oauth/token"
-        response = await self.post(
+        response = await super().post(
             oauth_url,
             headers={
                 "Accept": "application/json",
@@ -79,45 +79,70 @@ class PisteClient(AsyncHttpClient):
         if not self.access_token or time.time() >= self.expires_at:
             await self._get_token()
 
-    async def request(self, method: str, url: str, **kwargs) -> IAsyncHttpResponse:
+    async def get(self, url: str, headers=None, params=None) -> IAsyncHttpResponse:
         await self._ensure_token()
-        headers = kwargs.get("headers", {})
+
+        # Construct full URL
+        full_url = f"{self.config.ingres_base_url}/{url}"
+
+        # Add authorization header
+        if headers is None:
+            headers = {}
         headers["Authorization"] = f"Bearer {self.access_token}"
-        kwargs["headers"] = headers
 
-        url = f"{self.config.ingres_base_url}/{url}"
-
-        self.logger.info(f"Making {method} request to: {url}")
-
-        if method.upper() == "GET":
-            response = await self.get(url, headers=headers, params=kwargs.get("params"))
-        elif method.upper() == "POST":
-            response = await self.post(
-                url,
-                headers=headers,
-                data=kwargs.get("data"),
-                json=kwargs.get("json"),
-                files=kwargs.get("files"),
-            )
-        else:
-            raise ValueError(f"Unsupported HTTP method: {method}")
-
-        self.logger.info(f"API response status: {response.status_code}")
+        self.logger.info(f"Making GET request to: {full_url}")
 
         try:
+            response = await super().get(full_url, headers=headers, params=params)
+            self.logger.info(f"API response status: {response.status_code}")
             response.raise_for_status()
+            return response
         except httpx.HTTPStatusError as err:
             error_msg = f"INGRES API error: {response.status_code}"
-
+            self.logger.error(error_msg)
             raise ExternalApiError(
                 error_msg,
                 status_code=response.status_code,
                 details={
                     "ingres_status": response.status_code,
-                    "method": method,
-                    "url": url,
+                    "method": "GET",
+                    "url": full_url,
                     "response_text": response.text,
                 },
             ) from err
 
-        return response
+    async def post(
+        self, url: str, headers=None, files=None, data=None, json=None
+    ) -> IAsyncHttpResponse:
+        await self._ensure_token()
+
+        # Construct full URL
+        full_url = f"{self.config.ingres_base_url}/{url}"
+
+        # Add authorization header
+        if headers is None:
+            headers = {}
+        headers["Authorization"] = f"Bearer {self.access_token}"
+
+        self.logger.info(f"Making POST request to: {full_url}")
+
+        try:
+            response = await super().post(
+                full_url, headers=headers, files=files, data=data, json=json
+            )
+            self.logger.info(f"API response status: {response.status_code}")
+            response.raise_for_status()
+            return response
+        except httpx.HTTPStatusError as err:
+            error_msg = f"INGRES API error: {response.status_code}"
+            self.logger.error(error_msg)
+            raise ExternalApiError(
+                error_msg,
+                status_code=response.status_code,
+                details={
+                    "ingres_status": response.status_code,
+                    "method": "POST",
+                    "url": full_url,
+                    "response_text": response.text,
+                },
+            ) from err

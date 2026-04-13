@@ -1,5 +1,7 @@
 from typing import cast
 
+from asgiref.sync import sync_to_async
+
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from domain.entities.document import DocumentType
 from domain.interfaces.async_usecase_interface import IAsyncUseCase
@@ -36,7 +38,9 @@ class LoadDocumentsUsecase(IAsyncUseCase[LoadDocumentsInput, IUpsertResult]):
                 "LoadDocuments, fetching page %d", input_data.kwargs["start"]
             )
             documents, has_more = await strategy.load_documents(**input_data.kwargs)
-            result = self.document_repository.upsert_batch(documents, document_type)
+            result = await sync_to_async(self.document_repository.upsert_batch)(
+                documents, document_type
+            )
 
             batch_result["created"] += result["created"]
             batch_result["updated"] += result["updated"]

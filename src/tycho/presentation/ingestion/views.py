@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import polars as pl
+from asgiref.sync import async_to_sync
 from pydantic import ValidationError
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -134,7 +135,7 @@ class ConcoursUploadView(APIView):
                     "document_type": DocumentType.CONCOURS,
                 },
             )
-            result = usecase.execute(input_data)
+            result = async_to_sync(usecase.execute)(input_data)
 
             created = result.get("created", 0)
             updated = result.get("updated", 0)
