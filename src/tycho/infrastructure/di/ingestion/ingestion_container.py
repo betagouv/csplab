@@ -5,9 +5,8 @@ from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.load_offers import LoadOffersUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
-from domain.entities.document import DocumentType
+from domain.interfaces.async_usecase_interface import IAsyncUseCase
 from domain.interfaces.entity_interface import IEntity
-from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )
@@ -91,7 +90,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     )
 
     load_documents_usecase: providers.Provider[
-        IUseCase[LoadDocumentsInput, IUpsertResult]
+        IAsyncUseCase[LoadDocumentsInput, IUpsertResult]
     ] = providers.Factory(
         LoadDocumentsUsecase,
         strategy_factory=load_documents_strategy_factory,
@@ -100,7 +99,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     )
 
     load_offers_usecase: providers.Provider[
-        IUseCase[LoadDocumentsInput, IUpsertResult]
+        IAsyncUseCase[LoadDocumentsInput, IUpsertResult]
     ] = providers.Factory(
         LoadOffersUsecase,
         document_repository=document_repository,
@@ -108,14 +107,12 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger=logger_service,
     )
 
-    clean_documents_usecase: providers.Provider[IUseCase[DocumentType, dict]] = (
-        providers.Factory(
-            CleanDocumentsUsecase,
-            document_repository=document_repository,
-            document_cleaner=document_cleaner,
-            repository_factory=repository_factory,
-            logger=logger_service,
-        )
+    clean_documents_usecase = providers.Factory(
+        CleanDocumentsUsecase,
+        document_repository=document_repository,
+        document_cleaner=document_cleaner,
+        repository_factory=repository_factory,
+        logger=logger_service,
     )
 
     vectorize_documents_usecase = providers.Factory(

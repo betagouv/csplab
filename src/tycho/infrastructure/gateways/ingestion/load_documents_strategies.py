@@ -12,17 +12,17 @@ class FetchFromApiStrategy:
     def __init__(self, document_gateway: IDocumentGateway):
         self.document_gateway = document_gateway
 
-    def load_documents(self, **kwargs) -> Tuple[List[Document], bool]:
+    async def load_documents(self, **kwargs) -> Tuple[List[Document], bool]:
         start = kwargs.get("start", 1)
 
-        documents, has_more = self.document_gateway.fetch_by_type(
+        documents, has_more = await self.document_gateway.fetch_by_type(
             DocumentType.CORPS, start
         )
         return documents, has_more
 
 
 class UploadFromCsvStrategy:
-    def load_documents(self, **kwargs) -> Tuple[List[Document], bool]:
+    async def load_documents(self, **kwargs) -> Tuple[List[Document], bool]:
         has_more = False
         documents = kwargs.get("documents")
         if not isinstance(documents, list):

@@ -26,7 +26,7 @@ class Command(BaseCommand):
             help="Number of offers to fetch per batch (default: 100)",
         )
 
-    def handle(self, *args, **options):
+    async def handle(self, *args, **options):
         reload = options["reload"]
         batch_size = options["batch_size"]
 
