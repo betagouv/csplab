@@ -1,9 +1,7 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 
-from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
-from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from domain.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from infrastructure.django_apps.ingestion.tasks import load_offers
 
 
 class Command(BaseCommand):
@@ -31,30 +29,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         reload = options["reload"]
         batch_size = options["batch_size"]
-        try:
-            document_type = DocumentType.OFFERS
-            usecase = self.container.load_offers_usecase()
 
-            self.logger.info("Loading documents of type: %s", document_type.value)
-
-            input_data = LoadDocumentsInput(
-                operation_type=LoadOperationType.FETCH_FROM_API,
-                kwargs={
-                    "document_type": document_type,
-                    "reload": reload,
-                    "batch_size": batch_size,
-                },
-            )
-            result = usecase.execute(input_data)
-
-            self.logger.info(
-                "✅ Load completed: %d created, %d updated",
-                result["created"],
-                result["updated"],
-            )
-
-            if result["errors"]:
-                self.logger.warning("⚠️ %d errors occurred", len(result["errors"]))
-
-        except Exception as e:
-            raise CommandError(f"Failed to load documents: {str(e)}") from e
+        self.logger.info("Enqueuing load task for OFFERS...")
+        load_offers(reload=reload, batch_size=batch_size)
+        self.logger.info(self.style.SUCCESS("✅ Task enqueued successfully."))

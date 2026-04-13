@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from django.core.management import call_command
 
-_CMD_MODULE = "infrastructure.django_apps.ingestion.management.commands.load_offers"
+_CMD_MODULE = "infrastructure.django_apps.ingestion.management.commands.load_corps"
 
 
 @pytest.fixture
@@ -22,22 +22,21 @@ def mock_container_factory(mock_logger):
 
 @pytest.fixture
 def mock_task(mock_container_factory):
-    with patch(f"{_CMD_MODULE}.load_offers") as mock:
+    with patch(f"{_CMD_MODULE}.load_corps") as mock:
         yield mock
 
 
-class TestLoadOffersCommand:
-    def test_command_enqueues_task_with_correct_parameters(
+class TestLoadCorpsCommand:
+    def test_command_calls_usecase_with_correct_parameters(
         self,
         mock_task,
         mock_logger,
     ):
-        call_command("load_offers")
+        call_command("load_corps")
 
         mock_task.assert_called_once()
-
         mock_logger.info.assert_any_call(
-            "Enqueuing load task for OFFERS...",
+            "Enqueuing load task for CORPS...",
         )
         mock_logger.info.assert_any_call("✅ Task enqueued successfully.")
         assert mock_logger.info.call_count == 2  # noqa
