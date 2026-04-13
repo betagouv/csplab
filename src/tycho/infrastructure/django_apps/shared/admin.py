@@ -1,4 +1,3 @@
-"""Django admin configuration for ingestion models."""
 
 from django.contrib import admin
 from django.utils.html import format_html
@@ -13,8 +12,6 @@ from infrastructure.django_apps.shared.models.vectorized_document import (
 
 @admin.register(OfferModel)
 class OfferAdmin(admin.ModelAdmin):
-    """Admin interface for Offer model (read-only)."""
-
     list_display = (
         "id",
         "external_id",
@@ -42,8 +39,6 @@ class OfferAdmin(admin.ModelAdmin):
 
 @admin.register(CorpsModel)
 class CorpsAdmin(admin.ModelAdmin):
-    """Admin interface for Corps model."""
-
     list_display = (
         "id",
         "code",
@@ -73,8 +68,6 @@ class CorpsAdmin(admin.ModelAdmin):
 
 @admin.register(ConcoursModel)
 class ConcoursAdmin(admin.ModelAdmin):
-    """Admin interface for Concours model."""
-
     list_display = (
         "id",
         "nor_original",
@@ -110,8 +103,6 @@ class ConcoursAdmin(admin.ModelAdmin):
 
 @admin.register(VectorizedDocumentModel)
 class VectorizedDocumentAdmin(admin.ModelAdmin):
-    """Admin interface for VectorizedDocument model."""
-
     list_display = (
         "id",
         "entity_id",
@@ -135,7 +126,6 @@ class VectorizedDocumentAdmin(admin.ModelAdmin):
     )
 
     def embedding_html(self, obj: VectorizedDocumentModel):
-        """Convert VectorField into renderable html."""
         return format_html("{}", obj.embedding)
 
 

@@ -1,5 +1,3 @@
-"""Django model for Offer entity."""
-
 from django.db import models
 from pydantic import HttpUrl
 
@@ -15,8 +13,6 @@ from domain.value_objects.verse import Verse
 
 
 class OfferModel(models.Model):
-    """Django model for Offer entity persistence."""
-
     objects: models.Manager = models.Manager()
 
     # Contract type choices from ContractType enum
@@ -61,8 +57,6 @@ class OfferModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        """Meta configuration for OfferModel."""
-
         db_table = "offers"
         verbose_name = "Offer"
         verbose_name_plural = "Offers"
@@ -71,7 +65,6 @@ class OfferModel(models.Model):
         ]
 
     def to_entity(self) -> Offer:
-        """Convert OfferModel instance to Offer entity."""
         # Build localisation if both region and department are present
         localisation = None
         if self.region and self.department and self.country:
@@ -112,7 +105,6 @@ class OfferModel(models.Model):
 
     @classmethod
     def from_entity(cls, offer: Offer) -> "OfferModel":
-        """Create OfferModel instance from Offer entity."""
         # Extract localisation fields
         country = None
         region = None
@@ -158,5 +150,4 @@ class OfferModel(models.Model):
         )
 
     def __str__(self) -> str:
-        """String representation of OfferModel."""
         return f"Offer {self.external_id} - {self.title}"

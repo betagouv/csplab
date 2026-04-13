@@ -1,5 +1,3 @@
-"""Django model for Corps entity."""
-
 from django.db import models
 
 from domain.entities.corps import Corps
@@ -11,8 +9,6 @@ from domain.value_objects.ministry import Ministry
 
 
 class CorpsModel(models.Model):
-    """Django model for Corps entity persistence."""
-
     objects: models.Manager = models.Manager()
 
     id = models.UUIDField(primary_key=True)
@@ -31,14 +27,11 @@ class CorpsModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        """Meta configuration for CorpsModel."""
-
         db_table = "corps"
         verbose_name = "Corps"
         verbose_name_plural = "Corps"
 
     def to_entity(self) -> Corps:
-        """Convert Django model to Corps entity."""
         category = Category(self.category) if self.category else None
 
         ministry = Ministry(self.ministry)
