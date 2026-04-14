@@ -10,7 +10,7 @@ TYCHO_SECRET_KEY=the_secret_key
 
 # override ports
 TYCHO_POSTGRES_PORT=5432
-TYCHO_REDIS_PORT=6380
+TYCHO_REDIS_PORT=6379
 
 TYCHO_DATABASE_URL=psql://tycho:pass@localhost:5432/tycho
 
