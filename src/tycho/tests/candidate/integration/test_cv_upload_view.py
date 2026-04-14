@@ -1,5 +1,3 @@
-"""Integration tests for CV upload view."""
-
 from http import HTTPStatus
 from unittest.mock import patch
 from uuid import uuid4
@@ -15,7 +13,6 @@ from tests.utils.pdf_test_utils import create_minimal_valid_pdf
 
 
 def test_cv_upload_page_loads_correctly(client, db):
-    """GET returns 200 with correct template, form, CSRF, important UI classes."""
     response = client.get(reverse("candidate:cv_upload"))
 
     assert response.status_code == HTTPStatus.OK
@@ -30,7 +27,6 @@ def test_cv_upload_page_loads_correctly(client, db):
 @pytest.mark.parametrize("filename", ["cv.pdf", "CV.PDF"])
 @patch("presentation.candidate.views.cv_flow.create_candidate_container")
 def test_cv_upload_valid_pdf_redirects_to_results(mock_container, client, db, filename):
-    """Valid PDF uploads redirect to cv_results view."""
     # Mock the usecases
     mock_uuid = str(uuid4())
     mock_initialize_usecase = (
@@ -57,7 +53,6 @@ def test_cv_upload_valid_pdf_redirects_to_results(mock_container, client, db, fi
 
 
 def test_cv_upload_empty_submission_shows_error(client, db):
-    """POST without file shows required field error."""
     response = client.post(reverse("candidate:cv_upload"), {})
     assert response.status_code == HTTPStatus.OK
     assert_form_error_code(response, "cv_file", "required")
@@ -106,7 +101,6 @@ def test_cv_upload_invalid_files_are_rejected(
     expected_error_code,
     expected_message_fragment,
 ):
-    """Invalid files are rejected with appropriate error codes and messages."""
     file = SimpleUploadedFile(filename, content(), content_type)
     response = client.post(reverse("candidate:cv_upload"), {"cv_file": file})
     assert response.status_code == HTTPStatus.OK

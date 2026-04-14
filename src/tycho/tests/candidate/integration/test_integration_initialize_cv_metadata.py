@@ -1,5 +1,3 @@
-"""Integration tests for InitializeCVMetadataUsecase with Django."""
-
 from uuid import UUID
 
 import pytest
@@ -16,19 +14,16 @@ from infrastructure.repositories.candidate.postgres_cv_metadata_repository impor
 
 @pytest.fixture
 def cv_metadata_repository():
-    """Create a PostgreSQL CV metadata repository for integration testing."""
     return PostgresCVMetadataRepository()
 
 
 @pytest.fixture
 def usecase(cv_metadata_repository):
-    """Create InitializeCVMetadataUsecase with PostgreSQL repository."""
     return InitializeCVMetadataUsecase(cv_metadata_repository)
 
 
 @pytest.mark.django_db
 def test_execute_creates_cv_metadata_in_database(usecase):
-    """Test that execute creates CV metadata in the database."""
     filename = "integration_test_cv.pdf"
     initial_count = CVMetadataModel.objects.count()
 

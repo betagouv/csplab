@@ -1,5 +1,3 @@
-"""Unit test cases for MatchCVToOpportunitiesUsecase."""
-
 import pytest
 
 from domain.exceptions.cv_errors import CVProcessingFailedError
@@ -16,7 +14,6 @@ from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 @pytest.fixture
 def _candidate_container():
-    """Create a test candidate container with minimal dependencies."""
     container = CandidateContainer()
 
     shared_container = SharedContainer()
