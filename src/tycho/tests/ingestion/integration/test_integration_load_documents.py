@@ -13,13 +13,68 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import DocumentType
+from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
+from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.repositories.ingestion.postgres_document_repository import (
+    PostgresDocumentRepository,
+)
+from infrastructure.repositories.shared.postgres_concours_repository import (
+    PostgresConcoursRepository,
+)
+from infrastructure.repositories.shared.postgres_corps_repository import (
+    PostgresCorpsRepository,
+)
+from infrastructure.repositories.shared.postgres_offers_repository import (
+    PostgresOffersRepository,
+)
 from tests.factories.ingres_factories import IngresCorpsApiResponseFactory
+from tests.fixtures.fixture_loader import load_fixture
+from tests.utils.in_memory_vector_repository import InMemoryVectorRepository
+from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 fake = Faker()
 
 
 class TestIntegrationCorpsLoadDocumentsUseCase:
+    @pytest.fixture(name="documents_integration_usecase")
+    def documents_integration_usecase_fixture(
+        self, test_app_config, talentsoft_front_client
+    ):
+
+        container = IngestionContainer()
+        logger_service = LoggerService()
+
+        # Configuration de base
+        container.logger_service.override(logger_service)
+        container.app_config.override(test_app_config)
+        container.shared_container.app_config.override(test_app_config)
+        container.talentsoft_front_client.override(talentsoft_front_client)
+
+        # Mock embedding generator
+        embedding_fixtures = load_fixture("embedding_fixtures.json")
+        embedding_generator = MockEmbeddingGenerator(embedding_fixtures)
+        container.shared_container.embedding_generator.override(embedding_generator)
+
+        # Repositories Postgres (vrais pour l'intégration)
+        postgres_document_repo = PostgresDocumentRepository()
+        container.document_repository.override(postgres_document_repo)
+
+        postgres_corps_repo = PostgresCorpsRepository(logger_service)
+        container.shared_container.corps_repository.override(postgres_corps_repo)
+
+        postgres_concours_repo = PostgresConcoursRepository(logger_service)
+        container.shared_container.concours_repository.override(postgres_concours_repo)
+
+        postgres_offers_repo = PostgresOffersRepository(logger_service)
+        container.shared_container.offers_repository.override(postgres_offers_repo)
+
+        # InMemoryVectorRepository pour éviter Qdrant
+        in_memory_vector_repo = InMemoryVectorRepository(logger_service)
+        container.shared_container.vector_repository.override(in_memory_vector_repo)
+
+        return container.load_documents_usecase()
+
     async def test_execute_returns_zero_when_no_documents(
         self, db, documents_integration_usecase, test_app_config, httpx_mock
     ):
