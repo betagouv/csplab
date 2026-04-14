@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from django.core.management import call_command
@@ -7,8 +7,14 @@ _CMD_MODULE = "infrastructure.django_apps.ingestion.management.commands.load_off
 
 
 @pytest.fixture
-def mock_logger():
-    return Mock()
+def mock_usecase():
+    mock = AsyncMock()
+    mock.execute.return_value = {
+        "created": 3,
+        "updated": 2,
+        "errors": [],
+    }
+    return mock
 
 
 @pytest.fixture
