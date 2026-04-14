@@ -13,7 +13,7 @@ services:
       - PGUSER=postgres
       - PGPASSWORD=password
     ports:
-      - "${TYCHO_POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -45,7 +45,7 @@ services:
     container_name: csp_redis
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${TYCHO_REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
 
 volumes:
   postgres_data:

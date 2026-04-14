@@ -64,6 +64,11 @@ git add .
 bin/cz commit
 ```
 
+### Override des ports
+Si vous avez d'autres projets qui utilisent les même ports que csplab, vous pouvez override les ports avec un
+.env placé à la racine du projet (cf. .env-example pour le format).
+
+
 ### Format des messages de commit
 
 Les messages de commit doivent respecter le format gitmoji configuré :
