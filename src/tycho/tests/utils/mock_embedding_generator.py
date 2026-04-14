@@ -3,6 +3,8 @@
 import json
 from typing import Any, Dict, List
 
+from django.conf import settings
+
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
 
 
@@ -49,4 +51,4 @@ class MockEmbeddingGenerator(IEmbeddingGenerator):
         # Fallback
         # we do not want all zeros array which make semantic_search
         # returns array of nan
-        return [1e-8] * 1536
+        return [1e-8] * settings.EMBEDDING_DIMENSION

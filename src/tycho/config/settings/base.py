@@ -41,7 +41,6 @@ env = environ.Env(
     TYCHO_MATOMO_SITE_ID=(int, 1),
     TYCHO_QDRANT_URL=(str, "http://localhost:6333"),
     TYCHO_QDRANT_API_KEY=(str, ""),
-    TYCHO_VECTOR_DB_TYPE=(str, "QDRANT"),
     TYCHO_REDIS_URL=(str, "redis://localhost:6379"),
     TYCHO_REDIS_DB=(str, "0"),
 )
@@ -351,4 +350,3 @@ TALLY_FORM_ID_NO_RESULTS = env.str("TALLY_FORM_ID_NO_RESULTS")
 # Qdrant vector database
 QDRANT_URL = env.str("QDRANT_URL")
 QDRANT_API_KEY = env.str("QDRANT_API_KEY")
-VECTOR_DB_TYPE = env.str("VECTOR_DB_TYPE")

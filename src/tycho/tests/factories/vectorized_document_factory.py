@@ -2,6 +2,7 @@ import random
 from typing import List, Optional
 from uuid import UUID, uuid4
 
+from django.conf import settings
 from faker import Faker
 
 from domain.entities.document import DocumentType
@@ -18,7 +19,7 @@ class VectorizedDocumentFactory:
         content: Optional[str] = None,
         embedding: Optional[List[float]] = None,
         metadata: Optional[dict] = None,
-        embedding_dimensions: int = 1536,  # Default to pgvector dimensions
+        embedding_dimensions: int = settings.EMBEDDING_DIMENSION,
     ) -> VectorizedDocument:
         if entity_id is None:
             entity_id = uuid4()
@@ -95,8 +96,6 @@ class VectorizedDocumentFactory:
             metadata=metadata,
         )
 
-        # Return the entity directly instead of saving to pgvector
-        # The caller should use the vector repository (Qdrant) to save
         return entity
 
     @staticmethod

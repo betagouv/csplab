@@ -1,5 +1,3 @@
-"""Django model for Concours entity."""
-
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -11,8 +9,6 @@ from domain.value_objects.nor import NOR
 
 
 class ConcoursModel(models.Model):
-    """Django model for Concours entity persistence."""
-
     objects: models.Manager = models.Manager()
 
     id = models.UUIDField(primary_key=True)
@@ -35,8 +31,6 @@ class ConcoursModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        """Meta configuration for ConcoursModel."""
-
         db_table = "concours"
         verbose_name = "Concours"
         verbose_name_plural = "Concours"
@@ -45,7 +39,6 @@ class ConcoursModel(models.Model):
         ]
 
     def to_entity(self) -> Concours:
-        """Convert Django model to Concours entity."""
         return Concours(
             id=self.id,
             corps=self.corps,
