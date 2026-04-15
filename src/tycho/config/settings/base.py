@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf_spectacular",
     "django_htmx",
     "huey.contrib.djhuey",
     "dsfr",
@@ -299,6 +300,17 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "CSPLab API",
+    "DESCRIPTION": "API for CSPLab",
+    "VERSION": "0.0.1",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "PREPROCESSING_HOOKS": ["drf_spectacular.hooks.preprocess_exclude_path_format"],
+    "TAGS": [
+        {"name": "api", "description": "Authentication endpoints"},
+    ],
 }
 
 _sentry_dsn = env.str("SENTRY_DSN")
