@@ -1,5 +1,3 @@
-"""Pydantic schemas for API validation."""
-
 from datetime import datetime
 from typing import Optional
 
@@ -9,8 +7,6 @@ MIN_NOR_LENGTH = 10
 
 
 class ConcoursRowSchema(BaseModel):
-    """Schema for validating a single concours row from CSV."""
-
     nor: str = Field(..., alias="N° NOR", min_length=1)
     nor_reference: Optional[str] = Field(None, alias="N° NOR de référence")
     ministere: str = Field(..., alias="Ministère", min_length=1)
@@ -71,7 +67,6 @@ class ConcoursRowSchema(BaseModel):
     @field_validator("date_premiere_epreuve")
     @classmethod
     def validate_date_format(cls, v):
-        """Validate date format DD/MM/YYYY."""
         if v is None or v == "":
             return None
         try:
@@ -83,7 +78,6 @@ class ConcoursRowSchema(BaseModel):
     @field_validator("nor")
     @classmethod
     def validate_nor_format(cls, v):
-        """Basic NOR format validation."""
         if not v or len(v) < MIN_NOR_LENGTH:
             raise ValueError(f"NOR must be at least {MIN_NOR_LENGTH} characters long")
         return v.upper()
@@ -96,7 +90,6 @@ class ConcoursRowSchema(BaseModel):
     )
     @classmethod
     def parse_french_boolean(cls, v):
-        """Parse French boolean values (Oui/Non) to Python boolean."""
         if isinstance(v, str):
             v_lower = v.strip().lower()
             if v_lower in ["oui", "o", "1", "true", "vrai"]:
@@ -114,8 +107,6 @@ class ConcoursRowSchema(BaseModel):
 
 
 class ConcoursUploadResponse(BaseModel):
-    """Response schema for concours upload."""
-
     status: str
     message: str
     total_rows: int
