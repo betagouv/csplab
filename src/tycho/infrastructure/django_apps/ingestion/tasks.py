@@ -106,7 +106,7 @@ def clean_documents(document_type: DocumentType):
 @db_periodic_task(crontab(day="1", hour="5"))
 def load_corps():
     kwargs = {"document_type": DocumentType.CORPS}
-    load_documents(kwargs)
+    load_documents(kwargs, usecase_name="load_documents_usecase")
 
 
 @db_periodic_task(crontab(hour="5-21", minute="0"))
@@ -116,14 +116,14 @@ def load_offers(reload=False, batch_size=100):
         "reload": reload,
         "batch_size": batch_size,
     }
-    load_documents(kwargs)
+    load_documents(kwargs, usecase_name="load_offers_usecase")
 
 
 @db_task()
-def load_documents(kwargs):
+def load_documents(kwargs, usecase_name):
     container = create_ingestion_container()
     logger = container.logger_service()
-    usecase = container.load_documents_usecase()
+    usecase = getattr(container, usecase_name)()
     input_data = LoadDocumentsInput(
         operation_type=LoadOperationType.FETCH_FROM_API, kwargs=kwargs
     )

@@ -49,18 +49,16 @@ class TestCleanDocumentsCommand:
     def test_command_enqueues_task_with_correct_parameters(
         self,
         mock_task,
+        mock_logger,
         document_type,
     ):
         call_command("clean_documents", "--type", document_type.value)
 
         mock_task.assert_called_once_with(document_type)
 
-    def test_command_logs(self, mock_task, mock_logger):
-        call_command("clean_documents", "--type", DocumentType.OFFERS.value)
-
         mock_logger.info.assert_any_call(
             "Enqueuing clean task for %s...",
-            DocumentType.OFFERS.value,
+            document_type.value,
         )
         mock_logger.info.assert_any_call("✅ Task enqueued successfully.")
         assert mock_logger.info.call_count == 2  # noqa
