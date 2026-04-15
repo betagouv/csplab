@@ -1,11 +1,12 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 
 from domain.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from infrastructure.django_apps.ingestion.tasks import vectorize_documents
 
 
 class Command(BaseCommand):
-    help = "Vectorize documents by type (CORPS, CONCOURS)"
+    help = "Vectorize documents by type"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -23,36 +24,13 @@ class Command(BaseCommand):
             ],
             help="Type of documents to vectorize",
         )
-        parser.add_argument(
-            "--limit",
-            type=int,
-            default=250,
-            help="Limit number of documents to vectorize (optional)",
-        )
 
     def handle(self, *args, **options):
-        try:
-            document_type = DocumentType(options["type"])
+        document_type = DocumentType(options["type"])
 
-            usecase = self.container.vectorize_documents_usecase()
-            result = usecase.execute(document_type, options["limit"])
-            self.logger.info("Vectorization command completed")
-            self.logger.info(
-                "✅ Vectorization completed: %d of %d vectorized",
-                result["vectorized"],
-                result["processed"],
-            )
-
-            if result["errors"] > 0:
-                self.logger.warning("⚠️ %d errors occurred", result["errors"])
-
-            if result.get("error_details"):
-                for error in result["error_details"]:
-                    self.logger.warning(
-                        "%s - %s: %s",
-                        error["source_type"],
-                        error["source_id"],
-                        error["error"],
-                    )
-        except Exception as e:
-            raise CommandError(f"Failed to vectorize documents: {str(e)}") from e
+        self.logger.info(
+            "Enqueuing vectorization task for %s...",
+            document_type.value,
+        )
+        vectorize_documents(document_type)
+        self.logger.info(self.style.SUCCESS("✅ Task enqueued successfully."))
