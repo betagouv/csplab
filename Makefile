@@ -31,6 +31,7 @@ setup: ## copy example env files to local files
 	@cp env.d/ocr-example env.d/ocr
 	@cp env.d/notebook-example env.d/notebook
 	@cp env.d/postgresql-example env.d/postgresql
+	@cp env.d/redis-example env.d/redis
 	@cd src/tycho && direnv allow
 	@cd src/ocr && direnv allow
 	@cd src/notebook && direnv allow

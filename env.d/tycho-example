@@ -9,6 +9,9 @@ TYCHO_SECRET_KEY=the_secret_key
 # database
 TYCHO_DATABASE_URL=psql://tycho:pass@localhost:5432/tycho
 
+#redis
+TYCHO_REDIS_URL=redis://localhost:6379
+
 # Third-party integrations
 
 TYCHO_SENTRY_DSN=...
