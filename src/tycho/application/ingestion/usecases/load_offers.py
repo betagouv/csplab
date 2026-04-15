@@ -76,13 +76,13 @@ class LoadOffersUsecase(IAsyncUseCase[LoadDocumentsInput, IUpsertResult]):
                     page,
                 )
 
-            detail_documents = []
-            for document in documents:
-                if document.external_id is not None:
-                    detail = await self.document_gateway.get_detail(
-                        document_type=document_type, external_id=document.external_id
-                    )
-                    detail_documents.append(detail)
+            detail_documents = [
+                await self.document_gateway.get_detail(
+                    document_type=document_type, external_id=document.external_id
+                )
+                for document in documents
+                if document.external_id is not None
+            ]
 
             result = await sync_to_async(self.document_repository.upsert_batch)(
                 detail_documents, document_type

@@ -1,5 +1,3 @@
-import asyncio
-
 from django.core.management.base import BaseCommand
 
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
@@ -29,9 +27,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        asyncio.run(self._async_handle(*args, **options))
-
-    async def _async_handle(self, *args, **options):
         reload = options["reload"]
         batch_size = options["batch_size"]
 

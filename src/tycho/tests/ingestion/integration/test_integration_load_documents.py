@@ -38,9 +38,7 @@ fake = Faker()
 
 class TestIntegrationCorpsLoadDocumentsUseCase:
     @pytest.fixture(name="documents_integration_usecase")
-    def documents_integration_usecase_fixture(
-        self, test_app_config, talentsoft_front_client
-    ):
+    def documents_integration_usecase_fixture(self, test_app_config):
 
         container = IngestionContainer()
         logger_service = LoggerService()
@@ -49,7 +47,6 @@ class TestIntegrationCorpsLoadDocumentsUseCase:
         container.logger_service.override(logger_service)
         container.app_config.override(test_app_config)
         container.shared_container.app_config.override(test_app_config)
-        container.talentsoft_front_client.override(talentsoft_front_client)
 
         # Mock embedding generator
         embedding_fixtures = load_fixture("embedding_fixtures.json")

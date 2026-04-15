@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 from huey.api import PeriodicTask
@@ -62,7 +62,7 @@ class TestLoadDocumentsTasks:
 
     @pytest.fixture
     def usecase(self, mock_container, case):
-        mock = MagicMock()
+        mock = AsyncMock()
         getattr(mock_container, case["usecase_name"]).return_value = mock
         return mock
 

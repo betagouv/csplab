@@ -61,12 +61,11 @@ class PisteClient(AsyncHttpClient):
         try:
             token_data = OAuthTokenResponse.model_validate(response.json())
         except Exception as err:
-            error_msg = f"Invalid OAuth response format: {response.text}"
+            error_msg = "Invalid OAuth response format"
             self.logger.error(error_msg)
             raise ExternalApiError(
                 error_msg,
                 details={
-                    "response_text": response.text,
                     "oauth_url": oauth_url,
                 },
             ) from err
