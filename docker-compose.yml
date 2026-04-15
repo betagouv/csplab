@@ -13,7 +13,7 @@ services:
       - PGUSER=postgres
       - PGPASSWORD=password
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -44,8 +44,10 @@ services:
     image: redis
     container_name: csp_redis
     restart: unless-stopped
+    env_file:
+      - env.d/redis
     ports:
-      - "127.0.0.1:6379:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
 
 volumes:
   postgres_data:
