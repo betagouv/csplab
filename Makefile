@@ -130,7 +130,7 @@ run-notebook: ## run the notebook service
 .PHONY: run-notebook
 
 run-postgres: ## run the DB service
-	$(COMPOSE_UP) postgresql
+	set -a && source env.d/postgresql && $(COMPOSE_UP) postgresql
 .PHONY: run-postgres
 
 run-qdrant: ## run the Qdrant vector database service
@@ -138,7 +138,7 @@ run-qdrant: ## run the Qdrant vector database service
 .PHONY: run-qdrant
 
 run-redis: ## run the redis service
-	$(COMPOSE_UP) redis
+	set -a && source env.d/redis && $(COMPOSE_UP) redis
 .PHONY: run-redis
 
 run-tycho: ## run the tycho service

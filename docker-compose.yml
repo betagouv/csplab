@@ -44,6 +44,8 @@ services:
     image: redis
     container_name: csp_redis
     restart: unless-stopped
+    env_file:
+      - env.d/redis
     ports:
       - "127.0.0.1:${REDIS_PORT:-6379}:6379"
 
