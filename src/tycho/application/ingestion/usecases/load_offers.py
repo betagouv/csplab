@@ -1,10 +1,12 @@
 from typing import List, cast
 
+from asgiref.sync import sync_to_async
+
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from domain.entities.document import DocumentType
 from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.gateways.document_gateway_interface import IDocumentGateway
-from domain.interfaces.usecase_interface import IUseCase
+from domain.interfaces.async_usecase_interface import IAsyncUseCase
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,
@@ -14,7 +16,7 @@ from domain.services.logger_interface import ILogger
 MAX_ITERATIONS = 1000
 
 
-class LoadOffersUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
+class LoadOffersUsecase(IAsyncUseCase[LoadDocumentsInput, IUpsertResult]):
     def __init__(
         self,
         document_repository: IDocumentRepository,
@@ -25,7 +27,7 @@ class LoadOffersUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
         self.document_gateway = document_gateway
         self.logger = logger
 
-    def execute(self, input_data: LoadDocumentsInput) -> IUpsertResult:
+    async def execute(self, input_data: LoadDocumentsInput) -> IUpsertResult:
         document_type = cast(DocumentType, input_data.kwargs.get("document_type"))
         reload = input_data.kwargs.get("reload", False)
         batch_size = input_data.kwargs.get("batch_size", 100)
@@ -39,15 +41,15 @@ class LoadOffersUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
         while has_more and page < MAX_ITERATIONS:
             self.logger.info("LoadOffers, fetching page %d", page)
 
-            fetched_documents, has_more = self.document_gateway.fetch_by_type(
+            fetched_documents, has_more = await self.document_gateway.fetch_by_type(
                 document_type=document_type, start=page, batch_size=batch_size
             )
             if not fetched_documents:
                 break
 
-            existing_documents = self.document_repository.find_by_external_ids(
-                document_type=document_type, documents=cast(List, fetched_documents)
-            )
+            existing_documents = await sync_to_async(
+                self.document_repository.find_by_external_ids
+            )(document_type=document_type, documents=cast(List, fetched_documents))
 
             documents = self.document_repository.get_documents_to_upsert(
                 document_type=document_type,
@@ -75,14 +77,14 @@ class LoadOffersUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
                 )
 
             detail_documents = [
-                self.document_gateway.get_detail(
+                await self.document_gateway.get_detail(
                     document_type=document_type, external_id=document.external_id
                 )
                 for document in documents
                 if document.external_id is not None
             ]
 
-            result = self.document_repository.upsert_batch(
+            result = await sync_to_async(self.document_repository.upsert_batch)(
                 detail_documents, document_type
             )
             self.logger.info(

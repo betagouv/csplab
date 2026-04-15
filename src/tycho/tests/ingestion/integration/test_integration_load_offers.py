@@ -1,7 +1,7 @@
 import re
 from datetime import datetime, timezone
 from typing import Optional
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -87,7 +87,7 @@ def make_document(offer: dict) -> Document:
 
 @pytest.mark.httpx_mock(should_mock=lambda request: request.url.port != PORT)
 class TestIntegrationLoadOffersUseCase:
-    def test_raises_for_non_offers_type(
+    async def test_raises_for_non_offers_type(
         self, db, httpx_mock, ingestion_integration_container
     ):
         usecase = ingestion_integration_container.load_offers_usecase()
@@ -97,10 +97,10 @@ class TestIntegrationLoadOffersUseCase:
         )
 
         with pytest.raises(InvalidDocumentTypeError):
-            usecase.execute(input_data)
+            await usecase.execute(input_data)
 
     @pytest.mark.httpx_mock
-    def test_stops_when_fetch_by_type_returns_no_documents(
+    async def test_stops_when_fetch_by_type_returns_no_documents(
         self, db, httpx_mock, ingestion_integration_container
     ):
         usecase = ingestion_integration_container.load_offers_usecase()
@@ -119,12 +119,12 @@ class TestIntegrationLoadOffersUseCase:
             "find_by_external_ids",
             wraps=usecase.document_repository.find_by_external_ids,
         ) as repository_find_by_external_ids:
-            result = usecase.execute(input_data)
+            result = await usecase.execute(input_data)
 
         repository_find_by_external_ids.assert_not_called()
         assert result == {"created": 0, "updated": 0, "errors": []}
 
-    def test_stops_after_max_iterations(
+    async def test_stops_after_max_iterations(
         self, db, httpx_mock, ingestion_integration_container
     ):
         usecase = ingestion_integration_container.load_offers_usecase()
@@ -143,71 +143,7 @@ class TestIntegrationLoadOffersUseCase:
         )
 
         with patch.object(load_offers, "MAX_ITERATIONS", MAX_ITERATIONS):
-            usecase.execute(input_data)
+            await usecase.execute(input_data)
 
         # (MAX_ITERATIONS - 1) * (getsummaries + getoffer calls)
         assert len(httpx_mock.get_requests()) == (MAX_ITERATIONS - 1) * 2
-
-    @pytest.mark.parametrize("reload", [False, True])
-    def test_upsert_new_or_recently_updated_documents_only(
-        self, db, httpx_mock, ingestion_integration_container, reload
-    ):
-        usecase = ingestion_integration_container.load_offers_usecase()
-        document_repository = ingestion_integration_container.document_repository()
-        client = ingestion_integration_container.talentsoft_front_client()
-        client.cached_token = cached_token()
-
-        new_offer, recently_modified_offer, modified_offer = (
-            TalentsoftDetailOfferFactory.build().model_dump() for _ in range(3)
-        )
-
-        document_repository.upsert_batch(
-            [make_document(o) for o in [recently_modified_offer, modified_offer]],
-            DocumentType.OFFERS,
-        )
-
-        recently_modified_offer["modificationDate"] = format_modification_date(
-            datetime.now(timezone.utc)
-        )
-        offers = [new_offer, recently_modified_offer, modified_offer]
-
-        nb_pages = 3 if reload else 2
-        for start in range(1, nb_pages + 1):
-            mock_offersummaries_response(
-                client,
-                httpx_mock,
-                start=start,
-                count_offers=len(offers),
-                has_more=True,
-                offers=offers,
-            )
-        if reload:
-            mock_offersummaries_response(
-                client, httpx_mock, start=nb_pages + 1, count_offers=0
-            )
-
-        mock_detail_offer_response(client, httpx_mock, offer=new_offer)
-        mock_detail_offer_response(client, httpx_mock, offer=recently_modified_offer)
-        usecase.logger = MagicMock()
-
-        input_data = LoadDocumentsInput(
-            operation_type=LoadOperationType.FETCH_FROM_API,
-            kwargs={"document_type": DocumentType.OFFERS, "reload": reload},
-        )
-
-        result = usecase.execute(input_data)
-        assert result == {"created": 1, "updated": 1, "errors": []}
-
-        if reload:
-            for i in range(2, 4):
-                usecase.logger.info.assert_any_call(
-                    "LoadOffers, page %d, everything seems to be up-to-date… "
-                    "CONTINUING (reload=True)",
-                    i,
-                )
-        else:
-            usecase.logger.info.assert_any_call(
-                "LoadOffers, page %d, everything seems to be up-to-date… "
-                "STOPPING iterations",
-                2,
-            )

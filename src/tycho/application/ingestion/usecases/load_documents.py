@@ -1,8 +1,10 @@
 from typing import cast
 
+from asgiref.sync import sync_to_async
+
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from domain.entities.document import DocumentType
-from domain.interfaces.usecase_interface import IUseCase
+from domain.interfaces.async_usecase_interface import IAsyncUseCase
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,
@@ -11,7 +13,7 @@ from domain.services.logger_interface import ILogger
 from infrastructure.gateways.ingestion import load_documents_strategy_factory
 
 
-class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
+class LoadDocumentsUsecase(IAsyncUseCase[LoadDocumentsInput, IUpsertResult]):
     def __init__(
         self,
         strategy_factory: load_documents_strategy_factory.LoadDocumentsStrategyFactory,
@@ -22,7 +24,7 @@ class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
         self.document_repository = document_repository
         self.logger = logger
 
-    def execute(self, input_data: LoadDocumentsInput) -> IUpsertResult:
+    async def execute(self, input_data: LoadDocumentsInput) -> IUpsertResult:
         strategy = self.strategy_factory.create(input_data.operation_type)
         document_type = cast(DocumentType, input_data.kwargs.get("document_type"))
         has_more = True
@@ -35,8 +37,10 @@ class LoadDocumentsUsecase(IUseCase[LoadDocumentsInput, IUpsertResult]):
             self.logger.info(
                 "LoadDocuments, fetching page %d", input_data.kwargs["start"]
             )
-            documents, has_more = strategy.load_documents(**input_data.kwargs)
-            result = self.document_repository.upsert_batch(documents, document_type)
+            documents, has_more = await strategy.load_documents(**input_data.kwargs)
+            result = await sync_to_async(self.document_repository.upsert_batch)(
+                documents, document_type
+            )
 
             batch_result["created"] += result["created"]
             batch_result["updated"] += result["updated"]

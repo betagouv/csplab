@@ -22,6 +22,15 @@ def repository():
     return PostgresDocumentRepository()
 
 
+@pytest.fixture(autouse=True)
+def clean_database(db):
+    # Clean up before test runs
+    RawDocument.objects.all().delete()
+    yield
+    # Clean up after test runs (optional, but good practice)
+    RawDocument.objects.all().delete()
+
+
 class TestFindByType:
     @pytest.mark.parametrize(
         "start,batch_size",

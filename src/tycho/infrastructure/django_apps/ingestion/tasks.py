@@ -1,3 +1,5 @@
+import asyncio
+
 from huey import crontab
 from huey.contrib.djhuey import db_periodic_task, db_task
 
@@ -128,7 +130,7 @@ def load_documents(kwargs, usecase_name):
         operation_type=LoadOperationType.FETCH_FROM_API, kwargs=kwargs
     )
     try:
-        result = usecase.execute(input_data)
+        result = asyncio.run(usecase.execute(input_data))
         logger.info(
             "✅ Load completed: %d created, %d updated",
             result["created"],

@@ -1,11 +1,9 @@
 from datetime import datetime, timezone
 from typing import List, Tuple, cast
 
-from asgiref.sync import async_to_sync
-
 from domain.entities.document import Document, DocumentType
 from domain.gateways.document_gateway_interface import IDocumentGateway
-from domain.services.http_client_interface import IHttpClient
+from domain.services.async_http_client_interface import IAsyncHttpClient
 from domain.services.logger_interface import ILogger
 from domain.types import JsonDataType
 from infrastructure.external_gateways.dtos.ingres_corps_dtos import (
@@ -17,7 +15,7 @@ from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontCl
 class ExternalDocumentGateway(IDocumentGateway):
     def __init__(
         self,
-        piste_client: IHttpClient,
+        piste_client: IAsyncHttpClient,
         talentsoft_front_client: TalentsoftFrontClient,
         logger_service: ILogger,
     ):
@@ -34,7 +32,7 @@ class ExternalDocumentGateway(IDocumentGateway):
             # DocumentType.LAW_CORPS: self._fetch_legifrance_sdk,
         }
 
-    def fetch_by_type(
+    async def fetch_by_type(
         self, document_type: DocumentType, start: int = 1, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         self.logger.info(f"Fetching documents of type {document_type}")
@@ -43,7 +41,7 @@ class ExternalDocumentGateway(IDocumentGateway):
         if not source:
             raise ValueError(f"No fetch source for {document_type}")
 
-        raw_documents, has_more = source(document_type, start, batch_size)
+        raw_documents, has_more = await source(document_type, start, batch_size)
         now = datetime.now(timezone.utc)
 
         documents = []
@@ -68,7 +66,7 @@ class ExternalDocumentGateway(IDocumentGateway):
 
         return documents, has_more
 
-    def _fetch_ingres_api(
+    async def _fetch_ingres_api(
         self, document_type: DocumentType, start: int = 1, batch_size: int = 1000
     ) -> Tuple[List[JsonDataType], bool]:
         document_type_map = {
@@ -80,26 +78,28 @@ class ExternalDocumentGateway(IDocumentGateway):
         if endpoint is None:
             raise ValueError(f"Ingres: unknown document type: {document_type}")
 
-        response = self.piste_client.request(
-            "GET", endpoint, params={"enVigueur": "true", "full": "true"}
-        )
+        async with self.piste_client:
+            response = await self.piste_client.get(
+                endpoint, params={"enVigueur": "true", "full": "true"}
+            )
 
-        raw_documents = response.json()["items"]
+        response_data = response.json()
+        if not isinstance(response_data, dict) or "items" not in response_data:
+            raise ValueError(f"Invalid API response format: {response_data}")
+
+        raw_documents = response_data["items"]
+        if not isinstance(raw_documents, list):
+            raise ValueError(f"Expected list of documents, got {type(raw_documents)}")
+
         self.logger.info(f"Found {len(raw_documents)} documents")
 
         has_more = False
         return cast(List[JsonDataType], raw_documents), has_more
 
     async def _fetch_offers(self, start: int, batch_size: int = 1000):
-        # Will break in case of parallelised used of TalentsoftFrontClient
-        # TODO open & close connection at client level
-        # need piste_client to be asynced
-        async with self.talentsoft_front_client:
-            return await self.talentsoft_front_client.get_all(
-                start=start, count=batch_size
-            )
+        return await self.talentsoft_front_client.get_all(start=start, count=batch_size)
 
-    def _fetch_talentsoft_api(
+    async def _fetch_talentsoft_api(
         self, document_type: DocumentType, start: int = 1, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         if document_type != DocumentType.OFFERS:
@@ -107,76 +107,73 @@ class ExternalDocumentGateway(IDocumentGateway):
                 f"Talentsoft Front API: unsupported document type: {document_type}"
             )
 
-        # TODO remove `async_to_sync` as soon as piste_client is _asynced_ !
-        # Convert async method to sync using Django's async_to_sync
-        # with proper context manager
-        sync_fetch_offers = async_to_sync(self._fetch_offers)
+        # Manage connection at client level for better performance
+        async with self.talentsoft_front_client:
+            try:
+                raw_documents, has_more = await self._fetch_offers(start, batch_size)
+            except Exception as e:
+                self.logger.error("Failed to fetch offers from Talentsoft: %s", e)
+                return [], False
 
-        # Run async method in sync context
-        try:
-            raw_documents, has_more = sync_fetch_offers(start, batch_size)
-        except Exception as e:
-            self.logger.error("Failed to fetch offers from Talentsoft: %s", e)
-            return [], False
+            if not isinstance(raw_documents, list):
+                self.logger.error(
+                    "Expected list of documents, got %s", type(raw_documents)
+                )
+                return [], False
 
-        if not isinstance(raw_documents, list):
-            self.logger.error("Expected list of documents, got %s", type(raw_documents))
-            return [], False
-
-        self.logger.info(
-            "Found %d offers from Talentsoft Front API", len(raw_documents)
-        )
-
-        now = datetime.now(timezone.utc)
-        documents = []
-
-        for raw_doc in raw_documents:
-            reference = raw_doc.reference
-            if reference is None:
-                self.logger.warning("Skipping raw_doc without reference: %s", raw_doc)
-                continue
-
-            versant_code_obj = raw_doc.salaryRange
-            versant = versant_code_obj.clientCode if versant_code_obj else "UNK"
-
-            external_id = f"{versant}-{reference}"
-
-            document = Document(
-                external_id=external_id,
-                raw_data=raw_doc.model_dump(),  # convert TalensoftOffer obj into dict
-                type=document_type,
-                created_at=now,
-                # id will be auto-generated by Document entity
+            self.logger.info(
+                "Found %d offers from Talentsoft Front API", len(raw_documents)
             )
-            documents.append(document)
 
-        return documents, has_more
+            now = datetime.now(timezone.utc)
+            documents = []
+
+            for raw_doc in raw_documents:
+                reference = raw_doc.reference
+                if reference is None:
+                    self.logger.warning(
+                        "Skipping raw_doc without reference: %s", raw_doc
+                    )
+                    continue
+
+                versant_code_obj = raw_doc.salaryRange
+                versant = versant_code_obj.clientCode if versant_code_obj else "UNK"
+
+                external_id = f"{versant}-{reference}"
+
+                document = Document(
+                    external_id=external_id,
+                    raw_data=raw_doc.model_dump(),
+                    type=document_type,
+                    created_at=now,
+                    # id will be auto-generated by Document entity
+                )
+                documents.append(document)
+
+            return documents, has_more
 
     async def _fetch_detail_offer(self, reference: str):
-        # Will break in case of parallelised used of TalentsoftFrontClient
-        # TODO open & close connection at client level
-        # need piste_client to be asynced
-        async with self.talentsoft_front_client:
-            return await self.talentsoft_front_client.get_detail(reference)
+        return await self.talentsoft_front_client.get_detail(reference)
 
-    def get_detail(self, document_type: DocumentType, external_id: str) -> Document:
+    async def get_detail(
+        self, document_type: DocumentType, external_id: str
+    ) -> Document:
         # external_id format is "{versant}-{reference}", e.g. "FPE-12345"
         # The reference is everything after the first "-"
         reference = external_id.split("-", 1)[-1]
 
-        sync_fetch = async_to_sync(self._fetch_detail_offer)
-
-        try:
-            raw_doc = sync_fetch(reference)
-        except Exception as e:
-            self.logger.error(
-                "Failed to fetch detail %s %s: %s", document_type, external_id, e
+        async with self.talentsoft_front_client:
+            try:
+                raw_doc = await self._fetch_detail_offer(reference)
+            except Exception as e:
+                self.logger.error(
+                    "Failed to fetch detail %s %s: %s", document_type, external_id, e
+                )
+                raise
+            now = datetime.now(timezone.utc)
+            return Document(
+                external_id=external_id,
+                raw_data=raw_doc.model_dump(),
+                type=document_type,
+                created_at=now,
             )
-            raise
-        now = datetime.now(timezone.utc)
-        return Document(
-            external_id=external_id,
-            raw_data=raw_doc.model_dump(),
-            type=document_type,
-            created_at=now,
-        )

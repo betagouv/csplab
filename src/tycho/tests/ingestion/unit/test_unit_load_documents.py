@@ -1,16 +1,7 @@
-"""Unit test cases for LoadDocuments documents_usecase.
-
-IMPORTANT: Dependency Injection Override Timing
-- Override timing is crucial with dependency-injector
-- Always override BEFORE creating the documents_usecase, not after
-- Dependencies are resolved at creation time, not execution time
-"""
-
 import copy
 from datetime import datetime, timezone
 
 import pytest
-import responses
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
@@ -85,80 +76,77 @@ def create_test_documents(
 
 
 class TestCorpsDocumentsUsecase:
-    @responses.activate
-    def test_execute_returns_zero_when_no_documents(
-        self, documents_usecase, test_app_config
+    async def test_execute_returns_zero_when_no_documents(
+        self, documents_usecase, test_app_config, httpx_mock
     ):
         # Mock OAuth token endpoint
-        responses.add(
-            responses.POST,
-            f"{test_app_config.piste_oauth_base_url}api/oauth/token",
+        httpx_mock.add_response(
+            method="POST",
+            url=f"{test_app_config.piste_oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
-            status=200,
-            content_type="application/json",
+            status_code=200,
         )
 
         # Mock INGRES API endpoint with empty response
-        responses.add(
-            responses.GET,
-            f"{test_app_config.ingres_base_url}/CORPS",
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{test_app_config.ingres_base_url}/CORPS",
+            match_params={"enVigueur": "true", "full": "true"},
             json={"items": []},
-            status=200,
-            content_type="application/json",
+            status_code=200,
         )
 
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
-        result = documents_usecase.execute(input_data)
+        result = await documents_usecase.execute(input_data)
         assert result["created"] == 0
         assert result["updated"] == 0
 
-    @responses.activate
-    def test_execute_creates_new_documents_when_none_exist(
+    async def test_execute_creates_new_documents_when_none_exist(
         self,
         documents_usecase,
         documents_ingestion_container,
         test_app_config,
+        httpx_mock,
     ):
         api_response = IngresCorpsApiResponseFactory.build()
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
 
         # Mock OAuth token endpoint
-        responses.add(
-            responses.POST,
-            f"{test_app_config.piste_oauth_base_url}api/oauth/token",
+        httpx_mock.add_response(
+            method="POST",
+            url=f"{test_app_config.piste_oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
-            status=200,
-            content_type="application/json",
+            status_code=200,
         )
 
         # Mock INGRES API endpoint
-        responses.add(
-            responses.GET,
-            f"{test_app_config.ingres_base_url}/CORPS",
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{test_app_config.ingres_base_url}/CORPS",
+            match_params={"enVigueur": "true", "full": "true"},
             json={"items": api_data},
-            status=200,
-            content_type="application/json",
+            status_code=200,
         )
 
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
-        result = documents_usecase.execute(input_data)
+        result = await documents_usecase.execute(input_data)
 
         assert result["created"] == len(api_data)
         assert result["updated"] == 0
 
-    @responses.activate
-    def test_execute_updates_documents_when_exist(
+    async def test_execute_updates_documents_when_exist(
         self,
         documents_usecase,
         documents_ingestion_container,
         raw_concours_documents,
         test_app_config,
+        httpx_mock,
     ):
         raw_data = copy.deepcopy(raw_concours_documents)
         create_test_documents(
@@ -169,34 +157,33 @@ class TestCorpsDocumentsUsecase:
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
 
         # Mock OAuth token endpoint
-        responses.add(
-            responses.POST,
-            f"{test_app_config.piste_oauth_base_url}api/oauth/token",
+        httpx_mock.add_response(
+            method="POST",
+            url=f"{test_app_config.piste_oauth_base_url}api/oauth/token",
             json={"access_token": "fake_token", "expires_in": 3600},
-            status=200,
-            content_type="application/json",
+            status_code=200,
         )
 
         # Mock INGRES API endpoint
-        responses.add(
-            responses.GET,
-            f"{test_app_config.ingres_base_url}/CORPS",
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{test_app_config.ingres_base_url}/CORPS",
+            match_params={"enVigueur": "true", "full": "true"},
             json={"items": api_data},
-            status=200,
-            content_type="application/json",
+            status_code=200,
         )
 
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
             kwargs={"document_type": DocumentType.CORPS},
         )
-        result = documents_usecase.execute(input_data)
+        result = await documents_usecase.execute(input_data)
         assert result["created"] == len(api_data)
         assert result["updated"] == 0
 
 
 class TestGeneralDocumentsUsecase:
-    def test_execute_returns_correct_count_with_documents_with_data_input(
+    async def test_execute_returns_correct_count_with_documents_with_data_input(
         self,
         documents_usecase,
         documents_ingestion_container,
@@ -209,5 +196,5 @@ class TestGeneralDocumentsUsecase:
             operation_type=LoadOperationType.UPLOAD_FROM_CSV,
             kwargs={"documents": documents, "document_type": DocumentType.CORPS},
         )
-        result = documents_usecase.execute(input_data)
+        result = await documents_usecase.execute(input_data)
         assert result["updated"] == len(raw_concours_documents)
