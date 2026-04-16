@@ -28,7 +28,7 @@ from infrastructure.repositories.shared.postgres_corps_repository import (
 from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
 )
-from tests.factories.ingres_factories import IngresCorpsApiResponseFactory
+from tests.factories.ingres_corps_factories import IngresCorpsApiResponseFactory
 from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_vector_repository import InMemoryVectorRepository
 from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
