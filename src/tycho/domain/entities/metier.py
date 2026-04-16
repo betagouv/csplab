@@ -14,6 +14,8 @@ class Metier(IEntity):
     competences: List[Competence]
     domaine_fonctionnel: UUID
     activites: List[str]
-    versant: List[Verse]
-    competences_par_versant: Optional[Dict[Verse, Optional[str]]] = None
+    versants: List[Verse]
+    competences_specifique_versant: Optional[
+        Dict[Verse, Optional[List[Competence]]]
+    ] = None
     id: UUID = field(default_factory=uuid4)
