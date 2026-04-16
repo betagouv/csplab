@@ -148,7 +148,7 @@ def create_test_offer_for_integration(entity_id: int = 1) -> Offer:
 
 
 def create_test_document(
-    entity_id: int = 1, doc_type: DocumentType = DocumentType.GRADE
+    entity_id: int = 1, doc_type: DocumentType = DocumentType.CORPS
 ) -> Document:
     return Document(
         external_id=f"test_doc_{entity_id}",

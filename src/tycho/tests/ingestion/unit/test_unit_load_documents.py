@@ -6,7 +6,12 @@ import pytest
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import Document, DocumentType
-from tests.factories.ingres_factories import IngresCorpsApiResponseFactory
+from tests.factories.ingres_corps_factories import (
+    IngresCorpsApiResponseFactory,
+)
+from tests.factories.ingres_metiers_factories import (
+    IngresMetiersApiResponseFactory,
+)
 
 
 @pytest.fixture(name="corps_document")
@@ -140,20 +145,44 @@ class TestCorpsDocumentsUsecase:
         assert result["created"] == len(api_data)
         assert result["updated"] == 0
 
-    async def test_execute_updates_documents_when_exist(
+
+class TestMetiersDocumentsUsecase:
+    async def test_execute_returns_zero_when_no_documents(
+        self, documents_usecase, test_app_config, httpx_mock
+    ):
+        # Mock OAuth token endpoint
+        httpx_mock.add_response(
+            method="POST",
+            url=f"{test_app_config.piste_oauth_base_url}api/oauth/token",
+            json={"access_token": "fake_token", "expires_in": 3600},
+            status_code=200,
+        )
+
+        # Mock INGRES API endpoint with empty response
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{test_app_config.ingres_base_url}/RMFP_EMPL_REF",
+            match_params={"enVigueur": "true", "full": "true"},
+            json={"items": []},
+            status_code=200,
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.METIERS},
+        )
+        result = await documents_usecase.execute(input_data)
+        assert result["created"] == 0
+        assert result["updated"] == 0
+
+    async def test_execute_creates_new_documents_when_none_exist(
         self,
         documents_usecase,
         documents_ingestion_container,
-        raw_concours_documents,
         test_app_config,
         httpx_mock,
     ):
-        raw_data = copy.deepcopy(raw_concours_documents)
-        create_test_documents(
-            documents_ingestion_container, raw_data, doc_type=DocumentType.CORPS
-        )
-
-        api_response = IngresCorpsApiResponseFactory.build()
+        api_response = IngresMetiersApiResponseFactory.build()
         api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
 
         # Mock OAuth token endpoint
@@ -167,7 +196,7 @@ class TestCorpsDocumentsUsecase:
         # Mock INGRES API endpoint
         httpx_mock.add_response(
             method="GET",
-            url=f"{test_app_config.ingres_base_url}/CORPS",
+            url=f"{test_app_config.ingres_base_url}/RMFP_EMPL_REF",
             match_params={"enVigueur": "true", "full": "true"},
             json={"items": api_data},
             status_code=200,
@@ -175,7 +204,49 @@ class TestCorpsDocumentsUsecase:
 
         input_data = LoadDocumentsInput(
             operation_type=LoadOperationType.FETCH_FROM_API,
-            kwargs={"document_type": DocumentType.CORPS},
+            kwargs={"document_type": DocumentType.METIERS},
+        )
+        result = await documents_usecase.execute(input_data)
+
+        assert result["created"] == len(api_data)
+        assert result["updated"] == 0
+
+    async def test_execute_updates_documents_when_exist(
+        self,
+        documents_usecase,
+        documents_ingestion_container,
+        raw_concours_documents,
+        test_app_config,
+        httpx_mock,
+    ):
+        raw_data = copy.deepcopy(raw_concours_documents)
+        create_test_documents(
+            documents_ingestion_container, raw_data, doc_type=DocumentType.METIERS
+        )
+
+        api_response = IngresMetiersApiResponseFactory.build()
+        api_data = [doc.model_dump(mode="json") for doc in api_response.documents]
+
+        # Mock OAuth token endpoint
+        httpx_mock.add_response(
+            method="POST",
+            url=f"{test_app_config.piste_oauth_base_url}api/oauth/token",
+            json={"access_token": "fake_token", "expires_in": 3600},
+            status_code=200,
+        )
+
+        # Mock INGRES API endpoint
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{test_app_config.ingres_base_url}/RMFP_EMPL_REF",
+            match_params={"enVigueur": "true", "full": "true"},
+            json={"items": api_data},
+            status_code=200,
+        )
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.METIERS},
         )
         result = await documents_usecase.execute(input_data)
         assert result["created"] == len(api_data)

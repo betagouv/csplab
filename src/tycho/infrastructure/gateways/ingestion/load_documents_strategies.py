@@ -14,9 +14,10 @@ class FetchFromApiStrategy:
 
     async def load_documents(self, **kwargs) -> Tuple[List[Document], bool]:
         start = kwargs.get("start", 1)
+        document_type = kwargs.get("document_type", DocumentType.CORPS)
 
         documents, has_more = await self.document_gateway.fetch_by_type(
-            DocumentType.CORPS, start
+            document_type, start
         )
         return documents, has_more
 

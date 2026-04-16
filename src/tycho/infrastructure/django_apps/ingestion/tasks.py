@@ -111,6 +111,12 @@ def load_corps():
     load_documents(kwargs, usecase_name="load_documents_usecase")
 
 
+@db_periodic_task(crontab(day="1", hour="5"))
+def load_metiers():
+    kwargs = {"document_type": DocumentType.METIERS}
+    load_documents(kwargs, usecase_name="load_documents_usecase")
+
+
 @db_periodic_task(crontab(hour="5-21", minute="0"))
 def load_offers(reload=False, batch_size=100):
     kwargs = {
