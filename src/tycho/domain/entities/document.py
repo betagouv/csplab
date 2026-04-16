@@ -11,9 +11,8 @@ class DocumentType(Enum):
     CORPS = "CORPS"
     GRADE = "GRADE"
     CONCOURS = "CONCOURS"
-    CONCOURS_LAW = "CONCOURS_LAW"
-    CONCOURS_LAW_DETAILS = "CONCOURS_LAW_DETAILS"
     OFFERS = "OFFERS"
+    METIERS = "METIERS"
 
     def __str__(self):
         return self.value

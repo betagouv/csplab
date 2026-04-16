@@ -1,11 +1,3 @@
-"""Unit tests for CleanDocuments usecase.
-
-IMPORTANT: Dependency Injection Override Timing
-- Override timing is crucial with dependency-injector
-- Always override BEFORE creating the usecase, not after
-- Dependencies are resolved at creation time, not execution time
-"""
-
 from datetime import datetime, timezone
 
 import pytest
