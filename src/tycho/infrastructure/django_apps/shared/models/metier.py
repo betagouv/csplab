@@ -1,5 +1,8 @@
+from uuid import UUID
+
 from django.db import models
 
+from domain.entities.metier import Metier
 from domain.value_objects.verse import Verse
 
 
@@ -36,12 +39,9 @@ class MetierModel(models.Model):
     )
 
     conditions_particulieres = models.TextField(null=True, blank=True)
-    competences_specifiques_fpe = models.TextField(null=True, blank=True)
-    competences_specifiques_fpt = models.TextField(null=True, blank=True)
-    competences_specifiques_fph = models.TextField(null=True, blank=True)
 
     activites = models.JSONField(default=list)
-    competences = models.JSONField(default=list)
+    competences = models.JSONField(default=list, null=True, blank=True)
 
     processing = models.BooleanField(default=False)
     processed_at = models.DateTimeField(null=True, blank=True)
@@ -60,3 +60,40 @@ class MetierModel(models.Model):
 
     def __str__(self) -> str:
         return f"{self.external_id} - {self.libelle_court}"
+
+    def to_entity(self):
+
+        versants = (
+            [Verse(verse) for verse in self.versants if verse] if self.versants else []
+        )
+
+        return Metier(
+            id=self.id,
+            libelle=self.libelle_long,
+            description=self.definition_synthetique or "",
+            domaine_fonctionnel=UUID(self.code_domaine_fonctionnel),
+            versants=versants,
+            activites=self.activites or [],
+            competences=[],
+            conditions_particulieres=self.conditions_particulieres,
+        )
+
+    @classmethod
+    def from_entity(cls, metier):
+
+        versants = (
+            [verse.value for verse in metier.versants] if metier.versants else None
+        )
+
+        return cls(
+            id=metier.id,
+            external_id=getattr(metier, "external_id", str(metier.id)),
+            libelle_court=metier.libelle,
+            libelle_long=metier.libelle,
+            definition_synthetique=metier.description,
+            code_domaine_fonctionnel=str(metier.domaine_fonctionnel),
+            versants=versants,
+            activites=metier.activites,
+            competences=[],
+            conditions_particulieres=metier.conditions_particulieres,
+        )
