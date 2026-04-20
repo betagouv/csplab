@@ -1,9 +1,12 @@
-from uuid import UUID
+from uuid import NAMESPACE_DNS, uuid4, uuid5
 
 from django.db import models
 
 from domain.entities.metier import Metier
 from domain.value_objects.verse import Verse
+from infrastructure.external_gateways.dtos.ingres_metiers_dtos import (
+    IngresMetiersDocument,
+)
 
 
 class ReferencielMetier(models.TextChoices):
@@ -18,7 +21,7 @@ class MetierModel(models.Model):
 
     id = models.UUIDField(primary_key=True)
 
-    external_id = models.CharField(max_length=50, unique=True)
+    external_id = models.CharField(max_length=8, unique=True, default="")
     code_emploi_csp = models.CharField(max_length=50, null=True, blank=True)
 
     libelle_emploi_csp = models.CharField(max_length=200, null=True, blank=True)
@@ -29,16 +32,14 @@ class MetierModel(models.Model):
     libelle_long = models.CharField(max_length=500)
     definition_synthetique = models.TextField(null=True, blank=True)
 
-    code_domaine_fonctionnel = models.CharField(max_length=20)
+    code_domaine_fonctionnel = models.CharField(max_length=3)
     libelle_domaine_fonctionnel = models.CharField(max_length=200)
-    code_famille = models.CharField(max_length=20)
+    code_famille = models.CharField(max_length=6)
     libelle_famille = models.CharField(max_length=200)
 
-    versants = models.CharField(
-        max_length=20, choices=VERSE_CHOICES, null=True, blank=True
-    )
+    versants = models.JSONField(default=list, null=True, blank=True)
 
-    conditions_particulieres = models.TextField(null=True, blank=True)
+    conditions_particulieres = models.JSONField(default=list, null=True, blank=True)
 
     activites = models.JSONField(default=list)
     competences = models.JSONField(default=list, null=True, blank=True)
@@ -54,24 +55,22 @@ class MetierModel(models.Model):
         verbose_name = "Métier"
         verbose_name_plural = "Métiers"
         indexes = [
-            models.Index(fields=["external_id"]),
-            models.Index(fields=["code_emploi_csp"]),
+            models.Index(fields=["external_id", "code_emploi_csp"]),
         ]
 
-    def __str__(self) -> str:
-        return f"{self.external_id} - {self.libelle_court}"
-
     def to_entity(self):
-
         versants = (
             [Verse(verse) for verse in self.versants if verse] if self.versants else []
         )
+
+        namespace = uuid5(NAMESPACE_DNS, "csplab.domaines-fonctionnels")
+        domaine_fonctionnel_uuid = uuid5(namespace, self.code_domaine_fonctionnel)
 
         return Metier(
             id=self.id,
             libelle=self.libelle_long,
             description=self.definition_synthetique or "",
-            domaine_fonctionnel=UUID(self.code_domaine_fonctionnel),
+            domaine_fonctionnel=domaine_fonctionnel_uuid,
             versants=versants,
             activites=self.activites or [],
             competences=[],
@@ -97,3 +96,62 @@ class MetierModel(models.Model):
             competences=[],
             conditions_particulieres=metier.conditions_particulieres,
         )
+
+    @classmethod
+    def _dto_to_model_data(cls, document: IngresMetiersDocument) -> dict:
+        activites = []
+        if document.competences.activitesDeLEr:
+            for activite in document.competences.activitesDeLEr:
+                if activite.commentaire:
+                    activites_list = [
+                        act.strip()
+                        for act in activite.commentaire.split("!N!")
+                        if act.strip()
+                    ]
+                    activites.extend(activites_list)
+
+        # Extraction des versants
+        versants = []
+        if document.definitions.fonctionPublique.PFE == "1":
+            versants.append("FPE")
+        if document.definitions.fonctionPublique.FPT == "1":
+            versants.append("FPT")
+        if document.definitions.fonctionPublique.FPH == "1":
+            versants.append("FPH")
+
+        conditions_particulieres = []
+        if document.competences.conditionsParticulieresDExerciceDAcces:
+            for (
+                condition
+            ) in document.competences.conditionsParticulieresDExerciceDAcces:
+                if condition.commentaire:
+                    conditions_particulieres.append(condition.commentaire)
+
+        return {
+            "id": uuid4(),
+            "external_id": document.identifiant,
+            "code_emploi_csp": document.definitions.emploiDeReferenceCSP.codeEmploiCSP,
+            "libelle_emploi_csp": (
+                document.definitions.emploiDeReferenceCSP.libelleEmploiCSP
+            ),
+            "referenciel_metier_id": "RMFP_V1",
+            "libelle_court": document.definitions.libelles.libelleCourt,
+            "libelle_long": document.definitions.libelles.libelleLong,
+            "definition_synthetique": (
+                document.definitions.definitionSynthetiqueDeLEr.definition
+            ),
+            "code_domaine_fonctionnel": (
+                document.definitions.domaineFonctionnel_Famille.codeDomaineFonctionnel
+            ),
+            "libelle_domaine_fonctionnel": (
+                document.definitions.domaineFonctionnel_Famille.libelleDomaineFonctionnel
+            ),
+            "code_famille": document.definitions.domaineFonctionnel_Famille.codeFamille,
+            "libelle_famille": (
+                document.definitions.domaineFonctionnel_Famille.libelleFamille
+            ),
+            "versants": versants,
+            "activites": activites,
+            "competences": [],  # TODO: ROME 4.0 skills to be added later
+            "conditions_particulieres": conditions_particulieres,
+        }
