@@ -21,6 +21,7 @@ class Command(BaseCommand):
                 DocumentType.CORPS.value,
                 DocumentType.CONCOURS.value,
                 DocumentType.OFFERS.value,
+                DocumentType.METIERS.value,
             ],
             help="Type of documents to clean",
         )
