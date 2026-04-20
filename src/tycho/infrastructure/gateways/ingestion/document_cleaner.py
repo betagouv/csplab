@@ -19,11 +19,6 @@ from infrastructure.gateways.ingestion.offers_cleaner import OffersCleaner
 
 
 class DocumentCleaner(IDocumentCleaner[IEntity]):
-    """Factory for creating appropriate document cleaners based on document type.
-
-    Implements IDocumentCleaner[IEntity] protocol.
-    """
-
     def __init__(
         self,
         logger: ILogger,
@@ -31,7 +26,6 @@ class DocumentCleaner(IDocumentCleaner[IEntity]):
         concours_repository: IConcoursRepository,
         offers_repository: IOffersRepository,
     ):
-        """Initialize the factory with available cleaners."""
         self._cleaners = {
             DocumentType.CORPS: CorpsCleaner(logger, corps_repository),
             DocumentType.CONCOURS: ConcoursCleaner(logger, concours_repository),
@@ -39,7 +33,6 @@ class DocumentCleaner(IDocumentCleaner[IEntity]):
         }
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[IEntity]:
-        """Clean documents using the appropriate cleaner based on document type."""
         if not raw_documents:
             return CleaningResult(entities=[], cleaning_errors=[])
 

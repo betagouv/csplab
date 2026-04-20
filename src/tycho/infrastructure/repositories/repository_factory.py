@@ -11,15 +11,12 @@ from domain.repositories.repository_factory_interface import IRepositoryFactory
 
 
 class RepositoryFactory(IRepositoryFactory):
-    """Factory that provides appropriate repositories by entity type."""
-
     def __init__(
         self,
         corps_repository: ICorpsRepository,
         concours_repository: IConcoursRepository,
         offers_repository: IOffersRepository,
     ):
-        """Initialize with repository dependencies."""
         self.corps_repository = corps_repository
         self.concours_repository = concours_repository
         self.offers_repository = offers_repository
@@ -27,7 +24,6 @@ class RepositoryFactory(IRepositoryFactory):
     def get_repository(
         self, document_type: DocumentType
     ) -> Union[ICorpsRepository, IConcoursRepository, IOffersRepository]:
-        """Get the appropriate repository for the given document type."""
         match document_type:
             case DocumentType.CORPS:
                 return self.corps_repository
