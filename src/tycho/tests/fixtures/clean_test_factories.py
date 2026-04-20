@@ -98,3 +98,66 @@ def create_test_offer_document(doc_id: int = 1) -> Document:
     external_id = f"{salary_range_code}-{offer_data['reference']}"
 
     return _create_base_document(DocumentType.OFFERS, doc_id, external_id, offer_data)
+
+
+def _create_metier_raw_data(doc_id: int) -> Dict[str, Any]:
+    return {
+        "identifiant": f"FPACH{doc_id:03d}",
+        "definitions": {
+            "libelles": {
+                "libelleCourt": f"Responsable test {doc_id}",
+                "libelleLong": f"Responsable test {doc_id}",
+            },
+            "validite": {
+                "status": "A",
+                "debutValidite": "2021-09-15T00:00:00Z",
+                "finValidite": None,
+            },
+            "fonctionPublique": {"PFE": "1", "FPT": "1", "FPH": "1"},
+            "definitionSynthetiqueDeLEr": {
+                "definition": (
+                    f"Définir et mettre en oeuvre la politique test {doc_id}"
+                    "!N!Manager son équipe!N!Evaluer et suivre la performance."
+                )
+            },
+            "emploiDeReferenceCSP": {
+                "codeEmploiCSP": f"ERTEST{doc_id:03d}",
+                "libelleEmploiCSP": f"Responsable test {doc_id}",
+            },
+            "domaineFonctionnel_Famille": {
+                "codeDomaineFonctionnel": "TST",
+                "libelleDomaineFonctionnel": "Test",
+                "codeFamille": "FA0046",
+                "libelleFamille": "Encadrement",
+            },
+        },
+        "competences": {
+            "activitesDeLEr": [
+                {
+                    "dateEffet": "2023-08-01T00:00:00Z",
+                    "commentaire": (
+                        f"Proposer et mettre en oeuvre une organisation test {doc_id}"
+                        "!N!Représenter la fonction test!N!Piloter les stratégies test"
+                    ),
+                }
+            ],
+            "conditionsParticulieresDExerciceDAcces": [
+                {
+                    "dateEffet": "2023-08-01T00:00:00Z",
+                    "commentaire": f"Condition particulière test {doc_id}",
+                }
+            ],
+            "specificites": {
+                "specificitesFPE": None,
+                "specificitesFPH": None,
+                "specificitesFPT": None,
+            },
+        },
+    }
+
+
+def create_test_metier_document(doc_id: int = 1) -> Document:
+    raw_data = _create_metier_raw_data(doc_id)
+    return _create_base_document(
+        DocumentType.METIERS, doc_id, f"metier_fixture_{doc_id}", raw_data
+    )

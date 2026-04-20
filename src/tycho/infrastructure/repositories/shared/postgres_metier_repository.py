@@ -103,6 +103,10 @@ class PostgresMetierRepository(IMetierRepository):
                 f"Metier with external_id {external_id} not found"
             ) from e
 
+    def get_all(self) -> List[Metier]:
+        metier_models = MetierModel.objects.all()
+        return [model.to_entity() for model in metier_models]
+
     def get_pending_processing(self, limit: int = 1000) -> List[Metier]:
         metier_models = MetierModel.objects.filter(
             processing=False, processed_at__isnull=True

@@ -50,6 +50,9 @@ class InMemoryMetierRepository(IMetierRepository):
             raise MetierDoesNotExist(external_id)
         return self._storage[metier_id]
 
+    def get_all(self) -> List[Metier]:
+        return list(self._storage.values())
+
     def upsert_batch_rich_data(self, raw_documents: List[Document]) -> IUpsertResult:
         created = 0
         updated = 0

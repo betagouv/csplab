@@ -30,9 +30,9 @@ from infrastructure.repositories.shared.postgres_offers_repository import (
 from tests.fixtures.clean_test_factories import (
     create_test_concours_document,
     create_test_corps_document,
+    create_test_metier_document,
     create_test_offer_document,
 )
-from tests.fixtures.shared_fixtures import create_shared_qdrant_repository
 
 # Test constants
 DOCUMENTS_COUNT = 2
@@ -42,12 +42,14 @@ DOCUMENT_TYPE_MODEL_MAP = {
     DocumentType.CORPS: "CorpsModel",
     DocumentType.CONCOURS: "ConcoursModel",
     DocumentType.OFFERS: "OfferModel",
+    DocumentType.METIERS: "MetierModel",
 }
 
 DOCUMENT_FACTORY_MAP = {
     DocumentType.CORPS: create_test_corps_document,
     DocumentType.CONCOURS: create_test_concours_document,
     DocumentType.OFFERS: create_test_offer_document,
+    DocumentType.METIERS: create_test_metier_document,
 }
 
 DB_ERROR = "Database connection error"
@@ -100,13 +102,8 @@ def clean_documents_integration_container(db):
     postgres_offers_repo = PostgresOffersRepository(logger_service)
     container.shared_container.offers_repository.override(postgres_offers_repo)
 
-    # Le repository métier manquant !
     postgres_metier_repo = PostgresMetierRepository(logger_service)
     container.shared_container.metiers_repository.override(postgres_metier_repo)
-
-    # Vector repository pour les tests d'intégration
-    qdrant_repository = create_shared_qdrant_repository()
-    container.shared_container.vector_repository.override(qdrant_repository)
 
     return container
 
@@ -120,7 +117,13 @@ def raw_offer_setup_fixture(db, clean_documents_integration_container):
 
 
 @pytest.mark.parametrize(
-    "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
+    "document_type",
+    [
+        DocumentType.CORPS,
+        DocumentType.CONCOURS,
+        DocumentType.OFFERS,
+        DocumentType.METIERS,
+    ],
 )
 def test_execute_handles_empty_documents(
     db, clean_documents_integration_container, document_type
@@ -137,7 +140,9 @@ def test_execute_handles_empty_documents(
     assert model_class.objects.count() == 0
 
 
-@pytest.mark.parametrize("document_type", [DocumentType.CORPS, DocumentType.CONCOURS])
+@pytest.mark.parametrize(
+    "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.METIERS]
+)
 def test_execute_updates_existing_entities(
     db, clean_documents_integration_container, document_type
 ):
@@ -212,9 +217,14 @@ def test_repository_get_all_empty(db, clean_documents_integration_container):
         clean_documents_integration_container.shared_container.offers_repository()
     )
 
+    metier_repository = (
+        clean_documents_integration_container.shared_container.metiers_repository()
+    )
+
     all_corps = corps_repository.get_all()
     all_concours = concours_repository.get_all()
     all_offers = offer_repository.get_all()
+    all_metiers = metier_repository.get_all()
 
     assert len(all_corps) == 0
     assert isinstance(all_corps, list)
@@ -222,6 +232,8 @@ def test_repository_get_all_empty(db, clean_documents_integration_container):
     assert isinstance(all_concours, list)
     assert len(all_offers) == 0
     assert isinstance(all_offers, list)
+    assert len(all_metiers) == 0
+    assert isinstance(all_metiers, list)
 
 
 def test_upsert_batch_database_error(db, clean_documents_integration_container):

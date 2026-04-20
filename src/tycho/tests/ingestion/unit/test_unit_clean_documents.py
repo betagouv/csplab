@@ -16,6 +16,7 @@ from tests.fixtures.clean_test_factories import (
     create_test_corps_document,
     create_test_corps_document_fpt,
     create_test_corps_document_minarm,
+    create_test_metier_document,
 )
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
@@ -61,7 +62,9 @@ def clean_documents_container():
     return container
 
 
-@pytest.mark.parametrize("document_type", [DocumentType.CORPS, DocumentType.CONCOURS])
+@pytest.mark.parametrize(
+    "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.METIERS]
+)
 def test_clean_multiple_documents_success(clean_documents_container, document_type):
     usecase = clean_documents_container.clean_documents_usecase()
     # Create multiple documents
@@ -69,10 +72,14 @@ def test_clean_multiple_documents_success(clean_documents_container, document_ty
         documents = [
             create_test_corps_document(i) for i in range(1, THREE_DOCUMENTS_COUNT + 1)
         ]
-    else:  # DocumentType.CONCOURS
+    elif document_type == DocumentType.CONCOURS:
         documents = [
             create_test_concours_document(i)
             for i in range(1, THREE_DOCUMENTS_COUNT + 1)
+        ]
+    else:  # DocumentType.METIERS
+        documents = [
+            create_test_metier_document(i) for i in range(1, THREE_DOCUMENTS_COUNT + 1)
         ]
     # Add documents to repository
     repository = clean_documents_container.document_repository()
@@ -87,7 +94,9 @@ def test_clean_multiple_documents_success(clean_documents_container, document_ty
     assert result["errors"] == 0
 
 
-@pytest.mark.parametrize("document_type", [DocumentType.CORPS, DocumentType.CONCOURS])
+@pytest.mark.parametrize(
+    "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.METIERS]
+)
 def test_clean_documents_with_empty_repository(
     clean_documents_container, document_type
 ):
