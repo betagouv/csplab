@@ -1,5 +1,6 @@
 from typing import List, Protocol
 
+from domain.entities.document import Document
 from domain.entities.metier import Metier
 from domain.repositories.document_repository_interface import IUpsertResult
 
@@ -8,3 +9,13 @@ class IMetierRepository(Protocol):
     def upsert_batch(self, metiers: List[Metier]) -> IUpsertResult: ...
 
     def find_by_external_id(self, external_id: str) -> Metier: ...
+
+    def upsert_batch_rich_data(
+        self, raw_documents: List[Document]
+    ) -> IUpsertResult: ...
+
+    def get_pending_processing(self, limit: int = 1000) -> List[Metier]: ...
+
+    def mark_as_processed(self, metiers_list: List[Metier]) -> int: ...
+
+    def mark_as_pending(self, metiers_list: List[Metier]) -> int: ...

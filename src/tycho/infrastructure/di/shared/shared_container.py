@@ -10,6 +10,7 @@ from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.repositories.shared import (
     postgres_concours_repository,
     postgres_corps_repository,
+    postgres_metier_repository,
     postgres_offers_repository,
 )
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
@@ -42,6 +43,11 @@ class SharedContainer(containers.DeclarativeContainer):
 
     offers_repository = providers.Singleton(
         postgres_offers_repository.PostgresOffersRepository,
+        logger=logger_service,
+    )
+
+    metiers_repository = providers.Singleton(
+        postgres_metier_repository.PostgresMetierRepository,
         logger=logger_service,
     )
 
