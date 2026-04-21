@@ -38,7 +38,6 @@ def clean_documents_container():
     app_config = AppConfig.from_django_settings()
     logger_service = LoggerService()
 
-    # Override des services
     container.logger_service.override(logger_service)
     container.app_config.override(app_config)
     container.shared_container.app_config.override(app_config)
@@ -55,7 +54,6 @@ def clean_documents_container():
     in_memory_offers_repo = InMemoryOffersRepository()
     container.shared_container.offers_repository.override(in_memory_offers_repo)
 
-    # Le repository métier manquant !
     in_memory_metier_repo = InMemoryMetierRepository()
     container.shared_container.metiers_repository.override(in_memory_metier_repo)
 
