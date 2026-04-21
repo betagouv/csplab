@@ -85,7 +85,7 @@ class MetierModel(models.Model):
         return cls(
             id=metier.id,
             external_id=getattr(metier, "external_id", str(metier.id)),
-            libelle_court=metier.libelle,
+            libelle_court="",
             libelle_long=metier.libelle,
             definition_synthetique=metier.description,
             code_domaine_fonctionnel=str(metier.domaine_fonctionnel),
