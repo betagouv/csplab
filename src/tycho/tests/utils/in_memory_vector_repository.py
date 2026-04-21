@@ -72,7 +72,7 @@ class InMemoryVectorRepository(IVectorRepository):
                     self._documents[new_doc.id] = new_doc
                     created += 1
             except Exception as e:
-                self.logger.error(f"Unexpected error during search: {str(e)}")
+                self.logger.error("Unexpected error during search: %s", str(e))
                 raise ExternalApiError(f"Vector search failed: {str(e)}") from e
 
         return {"created": created, "updated": updated, "errors": errors}

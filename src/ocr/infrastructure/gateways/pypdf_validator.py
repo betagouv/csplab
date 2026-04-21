@@ -25,8 +25,8 @@ class PyPDFValidator(IPDFValidator):
             return True
 
         except PdfReadError as e:
-            logger.warning(f"Fichier PDF invalide: {e}")
+            logger.warning("Fichier PDF invalide: %s", e)
             return False
         except Exception as e:
-            logger.error(f"Erreur lors de la validation PDF: {e}")
+            logger.error("Erreur lors de la validation PDF: %s", e)
             return False

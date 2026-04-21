@@ -28,7 +28,7 @@ class PisteClient(AsyncHttpClient):
         self.access_token = None
         self.expires_at = 0
         self.logger.info("Initializing PisteClient")
-        self.logger.debug(f"OAuth URL: {self.config.oauth_base_url}")
+        self.logger.debug("OAuth URL: %s", self.config.oauth_base_url)
 
     async def _get_token(self):
         oauth_url = f"{self.config.oauth_base_url}api/oauth/token"
@@ -89,18 +89,18 @@ class PisteClient(AsyncHttpClient):
             headers = {}
         headers["Authorization"] = f"Bearer {self.access_token}"
 
-        self.logger.info(f"Making GET request to: {full_url}")
+        self.logger.info("Making GET request to: %s", full_url)
 
         try:
             response = await super().get(full_url, headers=headers, params=params)
-            self.logger.info(f"API response status: {response.status_code}")
+            self.logger.info("API response status: %d", response.status_code)
             response.raise_for_status()
             return response
         except httpx.HTTPStatusError as err:
-            error_msg = f"INGRES API error: {response.status_code}"
-            self.logger.error(error_msg)
+            error_msg = "INGRES API error: %d"
+            self.logger.error(error_msg, response.status_code)
             raise ExternalApiError(
-                error_msg,
+                f"INGRES API error: {response.status_code}",
                 status_code=response.status_code,
                 details={
                     "ingres_status": response.status_code,
@@ -123,20 +123,20 @@ class PisteClient(AsyncHttpClient):
             headers = {}
         headers["Authorization"] = f"Bearer {self.access_token}"
 
-        self.logger.info(f"Making POST request to: {full_url}")
+        self.logger.info("Making POST request to: %s", full_url)
 
         try:
             response = await super().post(
                 full_url, headers=headers, files=files, data=data, json=json
             )
-            self.logger.info(f"API response status: {response.status_code}")
+            self.logger.info("API response status: %d", response.status_code)
             response.raise_for_status()
             return response
         except httpx.HTTPStatusError as err:
-            error_msg = f"INGRES API error: {response.status_code}"
-            self.logger.error(error_msg)
+            error_msg = "INGRES API error: %d"
+            self.logger.error(error_msg, response.status_code)
             raise ExternalApiError(
-                error_msg,
+                f"INGRES API error: {response.status_code}",
                 status_code=response.status_code,
                 details={
                     "ingres_status": response.status_code,

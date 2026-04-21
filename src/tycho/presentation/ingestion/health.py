@@ -14,7 +14,7 @@ class HueyHealthView(APIView):
             HUEY.storage.conn.ping()  # pings the Redis connection used by Huey
             return Response({"status": "ok"}, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.error(f"Huey health check failed: {str(e)}")
+            logger.error("Huey health check failed: %s", str(e))
             return Response(
                 {"status": "Huey health check failed"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

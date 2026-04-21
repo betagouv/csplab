@@ -24,7 +24,7 @@ vector_size = int(os.getenv("TYCHO_EMBEDDING_DIMENSION", "1024"))
 
 
 def wait_for_qdrant(url: str, max_retries: int = 30, delay: int = 2) -> bool:
-    logger.info(f"🔍 Vérification de la disponibilité de Qdrant sur {url}...")
+    logger.info("🔍 Vérification de la disponibilité de Qdrant sur %s...", url)
 
     for attempt in range(max_retries):
         try:
@@ -47,7 +47,7 @@ def wait_for_qdrant(url: str, max_retries: int = 30, delay: int = 2) -> bool:
                 logger.error(error_msg)
                 return False
         except RequestException as e:
-            logger.error(f"❌ Erreur lors de la connexion à Qdrant: {e}")
+            logger.error("❌ Erreur lors de la connexion à Qdrant: %s", e)
             return False
 
     return False
@@ -64,7 +64,7 @@ def collection_exists(base_url: str, collection_name: str) -> bool:
 
 
 def create_collection(base_url: str, collection_name: str) -> bool:
-    logger.info(f"🔧 Création de la collection '{collection_name}'...")
+    logger.info("🔧 Création de la collection '%s'...", collection_name)
 
     # Configuration de la collection
     collection_config = {"vectors": {"size": vector_size, "distance": "Cosine"}}
@@ -86,18 +86,18 @@ def create_collection(base_url: str, collection_name: str) -> bool:
             logger.error(error_msg)
             return False
 
-        logger.info(f"✅ Collection '{collection_name}' créée avec succès")
+        logger.info("✅ Collection '%s' créée avec succès", collection_name)
         return True
 
     except RequestException as e:
-        logger.error(f"❌ Erreur lors de la création de la collection: {e}")
+        logger.error("❌ Erreur lors de la création de la collection: %s", e)
         return False
 
 
 def create_field_index(
     base_url: str, collection_name: str, field_name: str, field_type: str = "keyword"
 ) -> bool:
-    logger.info(f"🔧 Création de l'index pour le champ '{field_name}'...")
+    logger.info("🔧 Création de l'index pour le champ '%s'...", field_name)
 
     index_config = {"field_name": field_name, "field_schema": field_type}
 
@@ -117,7 +117,7 @@ def create_field_index(
             logger.info(warning_msg)
             return False
 
-        logger.info(f"✅ Index créé pour le champ '{field_name}'")
+        logger.info("✅ Index créé pour le champ '%s'", field_name)
         return True
 
     except RequestException as e:
@@ -146,7 +146,7 @@ def setup_collection_indexes(base_url: str, collection_name: str) -> None:
         if create_field_index(base_url, collection_name, field_name):
             success_count += 1
 
-    logger.info(f"✅ {success_count}/{len(all_indexes)} index créés avec succès")
+    logger.info("✅ %d/%d index créés avec succès", success_count, len(all_indexes))
 
 
 def main():
@@ -166,9 +166,9 @@ def main():
     COLLECTION_NAME = args.collection_name
 
     logger.info("🚀 Démarrage de la configuration automatique de Qdrant")
-    logger.info(f"📍 URL Qdrant: {QDRANT_URL}")
-    logger.info(f"📦 Collection: {COLLECTION_NAME}")
-    logger.info(f"📏 Dimension des vecteurs: {vector_size}")
+    logger.info("📍 URL Qdrant: %s", QDRANT_URL)
+    logger.info("📦 Collection: %s", COLLECTION_NAME)
+    logger.info("📏 Dimension des vecteurs: %d", vector_size)
 
     # Étape 1: Attendre que Qdrant soit disponible
     if not wait_for_qdrant(QDRANT_URL):
@@ -181,11 +181,11 @@ def main():
 
     # Étape 2: Vérifier si la collection existe
     if collection_exists(QDRANT_URL, COLLECTION_NAME):
-        logger.info(f"✅ La collection '{COLLECTION_NAME}' existe déjà")
+        logger.info("✅ La collection '%s' existe déjà", COLLECTION_NAME)
         logger.info("🎉 Configuration Qdrant terminée - aucune action nécessaire")
         sys.exit(0)
 
-    logger.info(f"📝 La collection '{COLLECTION_NAME}' n'existe pas")
+    logger.info("📝 La collection '%s' n'existe pas", COLLECTION_NAME)
 
     # Étape 3: Créer la collection
     if not create_collection(QDRANT_URL, COLLECTION_NAME):

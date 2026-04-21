@@ -105,10 +105,10 @@ class QdrantRepository(IVectorRepository):
             return results
 
         except UnexpectedResponse as e:
-            self.logger.error(f"Qdrant API error during search: {str(e)}")
+            self.logger.error("Qdrant API error during search: %s", str(e))
             raise ExternalApiError(f"Vector search failed: {str(e)}") from e
         except Exception as e:
-            self.logger.error(f"Unexpected error during search: {str(e)}")
+            self.logger.error("Unexpected error during search: %s", str(e))
             raise ExternalApiError(f"Vector search failed: {str(e)}") from e
 
     def upsert_batch(
@@ -148,7 +148,7 @@ class QdrantRepository(IVectorRepository):
                 "errors": [],
             }
         except Exception as e:
-            self.logger.error(f"Unexpected error during upsert: {str(e)}")
+            self.logger.error("Unexpected error during upsert: %s", str(e))
             raise ExternalApiError(str(e)) from e
 
     def delete_vectorized_documents(self, list_ids: List[UUID]) -> IDeleteResult:

@@ -46,7 +46,7 @@ class ConcoursUploadView(APIView):
         file_name = (
             request.FILES.get("file", {}).name if "file" in request.FILES else "no file"
         )
-        logger.info(f"CSV upload request received: {file_name}")
+        logger.info("CSV upload request received: %s", file_name)
 
         if "file" not in request.FILES:
             logger.warning("No file provided in upload request")
@@ -55,10 +55,10 @@ class ConcoursUploadView(APIView):
             )
 
         csv_file = request.FILES["file"]
-        logger.info(f"Processing CSV file: {csv_file.name} ({csv_file.size} bytes)")
+        logger.info("Processing CSV file: %s (%d bytes)", csv_file.name, csv_file.size)
 
         if not csv_file.name.endswith(".csv"):
-            logger.warning(f"Invalid file type: {csv_file.name}")
+            logger.warning("Invalid file type: %s", csv_file.name)
             return Response(
                 {"error": "File must be a CSV"}, status=status.HTTP_400_BAD_REQUEST
             )
@@ -70,7 +70,7 @@ class ConcoursUploadView(APIView):
             current_time = datetime.now()
 
             rows = df.to_dicts()
-            logger.info(f"CSV parsed successfully: {len(rows)} rows found")
+            logger.info("CSV parsed successfully: %d rows found", len(rows))
 
             for index, row_dict in enumerate(rows):
                 try:
@@ -163,13 +163,13 @@ class ConcoursUploadView(APIView):
             )
 
         except pl.exceptions.ComputeError as e:
-            logger.error(f"CSV parsing error: {str(e)}")
+            logger.error("CSV parsing error: %s", str(e))
             return Response(
                 {"error": "CSV parsing error"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
-            logger.error(f"Unexpected error during CSV upload: {str(e)}")
+            logger.error("Unexpected error during CSV upload: %s", str(e))
             return Response(
                 {"error": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

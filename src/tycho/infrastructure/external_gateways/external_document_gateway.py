@@ -34,7 +34,7 @@ class ExternalDocumentGateway(IDocumentGateway):
     async def fetch_by_type(
         self, document_type: DocumentType, start: int = 1, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
-        self.logger.info(f"Fetching documents of type {document_type}")
+        self.logger.info("Fetching documents of type %s", document_type)
 
         source = self._source.get(document_type)
         if not source:
@@ -104,7 +104,7 @@ class ExternalDocumentGateway(IDocumentGateway):
         if not isinstance(raw_documents, list):
             raise ValueError(f"Expected list of documents, got {type(raw_documents)}")
 
-        self.logger.info(f"Found {len(raw_documents)} documents")
+        self.logger.info("Found %d documents", len(raw_documents))
 
         has_more = False
         return cast(List[JsonDataType], raw_documents), has_more

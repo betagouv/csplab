@@ -189,7 +189,7 @@ class CorpsCleaner(IDocumentCleaner[Corps]):
                 existing_corps = self.corps_repository.find_by_code(row["id"])
                 corps.id = existing_corps.id
             except CorpsDoesNotExist:
-                self.logger.info(f"Creating new Corps with code {row['id']}")
+                self.logger.info("Creating new Corps with code %s", row["id"])
 
             corps_list.append(corps)
 

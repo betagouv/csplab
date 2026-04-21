@@ -21,14 +21,14 @@ def custom_exception_handler(exc, context):
     error_type = getattr(exc, "error_type", exc.__class__.__name__)
 
     if isinstance(exc, InfrastructureError):
-        infrastructure_logger.error(f"{error_type}: {exc.message}")
+        infrastructure_logger.error("%s: %s", error_type, exc.message)
     elif isinstance(exc, ApplicationError):
-        application_logger.error(f"{error_type}: {exc.message}")
+        application_logger.error("%s: %s", error_type, exc.message)
     elif isinstance(exc, DomainError):
-        domain_logger.error(f"{error_type}: {exc.message}")
+        domain_logger.error("%s: %s", error_type, exc.message)
     else:
         # Fallback logger for other custom exceptions
-        domain_logger.error(f"UNKNOWN_TYPE::{error_type}: {exc.message}")
+        domain_logger.error("UNKNOWN_TYPE::%s: %s", error_type, exc.message)
 
     status_code = getattr(exc, "status_code", status.HTTP_500_INTERNAL_SERVER_ERROR)
 
