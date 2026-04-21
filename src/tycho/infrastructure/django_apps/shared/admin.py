@@ -103,22 +103,15 @@ class MetierAdmin(admin.ModelAdmin):
         "id",
         "external_id",
         "code_emploi_csp",
-        "referenciel_metier_id",
-        "libelle_court",
         "libelle_long",
-        "code_domaine_fonctionnel",
         "libelle_domaine_fonctionnel",
-        "code_famille",
-        "libelle_famille",
-        "versants",
     )
-    list_filter = (
-        "referenciel_metier_id",
-        "code_domaine_fonctionnel",
+    list_filter = ("referenciel_metier_id", "libelle_domaine_fonctionnel")
+    search_fields = (
+        "id",
+        "external_id",
+        "code_emploi_csp",
+        "libelle_long",
         "libelle_domaine_fonctionnel",
-        "code_famille",
-        "libelle_famille",
-        "versants",
     )
-    search_fields = ("external_id", "code_emploi_csp", "libelle_court", "libelle_long")
     readonly_fields = [f.name for f in MetierModel._meta.get_fields()]
