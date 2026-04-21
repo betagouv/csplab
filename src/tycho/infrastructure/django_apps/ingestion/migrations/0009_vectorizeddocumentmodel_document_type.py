@@ -9,11 +9,4 @@ class Migration(migrations.Migration):
         ('ingestion', '0008_alter_corpsmodel_category'),
     ]
 
-    operations = [
-        migrations.AddField(
-            model_name='vectorizeddocumentmodel',
-            name='document_type',
-            field=models.CharField(choices=[('CORPS', 'CORPS'), ('GRADE', 'GRADE'), ('CONCOURS', 'CONCOURS')], db_index=True, default='CORPS', max_length=20),
-            preserve_default=False,
-        ),
-    ]
+    operations = []

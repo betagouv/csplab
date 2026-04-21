@@ -9,20 +9,4 @@ class Migration(migrations.Migration):
         ("shared", "0018_alter_vectorizeddocumentmodel_options_and_more"),
     ]
 
-    operations = [
-        migrations.RemoveIndex(
-            model_name="vectorizeddocumentmodel",
-            name="embedding_hnsw_idx",
-        ),
-        migrations.RemoveIndex(
-            model_name="vectorizeddocumentmodel",
-            name="doc_type_entity_idx",
-        ),
-        migrations.RemoveConstraint(
-            model_name="vectorizeddocumentmodel",
-            name="unique_id_document_type",
-        ),
-        migrations.DeleteModel(
-            name="VectorizedDocumentModel",
-        ),
-    ]
+    operations = []

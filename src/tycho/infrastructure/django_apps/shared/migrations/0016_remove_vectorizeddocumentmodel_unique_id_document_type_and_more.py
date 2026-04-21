@@ -9,15 +9,4 @@ class Migration(migrations.Migration):
         ("shared", "0015_corpsmodel_archived_at_corpsmodel_processed_at"),
     ]
 
-    operations = [
-        migrations.RemoveConstraint(
-            model_name="vectorizeddocumentmodel",
-            name="unique_id_document_type",
-        ),
-        migrations.AddConstraint(
-            model_name="vectorizeddocumentmodel",
-            constraint=models.UniqueConstraint(
-                fields=("entity_id", "document_type"), name="unique_id_document_type"
-            ),
-        ),
-    ]
+    operations = []

@@ -2,8 +2,6 @@
 
 import django.contrib.postgres.indexes
 import django.db.models.functions.comparison
-import pgvector.django.halfvec
-import pgvector.django.indexes
 from django.db import migrations, models
 
 
@@ -13,32 +11,4 @@ class Migration(migrations.Migration):
         ("shared", "0017_populate_processed_at"),
     ]
 
-    operations = [
-        migrations.AlterModelOptions(
-            name="vectorizeddocumentmodel",
-            options={
-                "verbose_name": "VectorizedDocument",
-                "verbose_name_plural": "VectorizedDocuments",
-            },
-        ),
-        migrations.AddIndex(
-            model_name="vectorizeddocumentmodel",
-            index=pgvector.django.indexes.HnswIndex(
-                django.contrib.postgres.indexes.OpClass(
-                    django.db.models.functions.comparison.Cast(
-                        "embedding",
-                        pgvector.django.halfvec.HalfVectorField(dimensions=3072),
-                    ),
-                    name="halfvec_cosine_ops",
-                ),
-                m=16,
-                name="embedding_hnsw_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="vectorizeddocumentmodel",
-            index=models.Index(
-                fields=["document_type", "entity_id"], name="doc_type_entity_idx"
-            ),
-        ),
-    ]
+    operations = []

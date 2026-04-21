@@ -15,9 +15,4 @@ class Migration(migrations.Migration):
             name='document_type',
             field=models.CharField(blank=True, choices=[('CORPS', 'CORPS'), ('GRADE', 'GRADE'), ('CONCOURS', 'CONCOURS'), ('CONCOURS_LAW', 'CONCOURS_LAW'), ('CONCOURS_LAW_DETAILS', 'CONCOURS_LAW_DETAILS')], max_length=25, null=True, verbose_name='Type de document'),
         ),
-        migrations.AlterField(
-            model_name='vectorizeddocumentmodel',
-            name='document_type',
-            field=models.CharField(choices=[('CORPS', 'CORPS'), ('GRADE', 'GRADE'), ('CONCOURS', 'CONCOURS'), ('CONCOURS_LAW', 'CONCOURS_LAW'), ('CONCOURS_LAW_DETAILS', 'CONCOURS_LAW_DETAILS')], db_index=True, max_length=20),
-        ),
     ]
