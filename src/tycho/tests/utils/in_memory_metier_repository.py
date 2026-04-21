@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from domain.entities.document import Document
 from domain.entities.metier import Metier
-from domain.exceptions.domain_errors import MetierDoesNotExist
+from domain.exceptions.metiers_error import MetierDoesNotExist
 from domain.repositories.document_repository_interface import (
     IUpsertError,
     IUpsertResult,
