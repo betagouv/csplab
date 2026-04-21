@@ -43,8 +43,8 @@ bootstrap: \
   run-postgres \
   run-redis \
   run-qdrant \
-  setup-qdrant \
   build \
+  setup-qdrant \
   migrate \
   create-superuser \
   jupytext--to-ipynb \
