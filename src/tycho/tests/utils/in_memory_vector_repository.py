@@ -8,7 +8,11 @@ from domain.repositories.document_repository_interface import (
     IUpsertError,
     IUpsertResult,
 )
-from domain.repositories.vector_repository_interface import IVectorRepository
+from domain.repositories.vector_repository_interface import (
+    IDeleteError,
+    IDeleteResult,
+    IVectorRepository,
+)
 from domain.services.logger_interface import ILogger
 from domain.value_objects.similarity_type import (
     SimilarityMetric,
@@ -112,6 +116,27 @@ class InMemoryVectorRepository(IVectorRepository):
             SimilarityResult(document=doc, score=score)
             for score, doc in scored_docs[:limit]
         ]
+
+    def delete_vectorized_documents(self, list_ids: List[UUID]) -> IDeleteResult:
+        deleted_count = 0
+        errors: List[IDeleteError] = []
+
+        for doc_id in list_ids:
+            if doc_id in self._documents:
+                del self._documents[doc_id]
+                deleted_count += 1
+            else:
+                error = IDeleteError(
+                    entity_id=doc_id,
+                    error="Document not found",
+                    exception=KeyError(f"Document with ID {doc_id} not found"),
+                )
+                errors.append(error)
+                self.logger.warning(
+                    f"Attempted to delete non-existent document ID: {doc_id}"
+                )
+
+        return {"deleted": deleted_count, "errors": errors}
 
     def _filter_documents(
         self, documents: List[VectorizedDocument], filters: Dict[str, Any]

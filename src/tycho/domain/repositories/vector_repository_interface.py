@@ -1,4 +1,5 @@
-from typing import Dict, List, Optional, Protocol
+from typing import Dict, List, Optional, Protocol, TypedDict
+from uuid import UUID
 
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
@@ -12,6 +13,17 @@ from domain.value_objects.similarity_type import SimilarityResult, SimilarityTyp
 from domain.value_objects.verse import Verse
 
 IFilters = Dict[str, List[Localisation | OpportunityType | Verse | Category]]
+
+
+class IDeleteError(TypedDict):
+    entity_id: UUID
+    error: str
+    exception: Exception
+
+
+class IDeleteResult(TypedDict):
+    deleted: int
+    errors: List[IDeleteError]
 
 
 class IVectorRepository(Protocol):
@@ -28,3 +40,5 @@ class IVectorRepository(Protocol):
         vectorized_documents: List[VectorizedDocument],
         document_type: DocumentType,
     ) -> IUpsertResult: ...
+
+    def delete_vectorized_documents(self, list_ids: List[UUID]) -> IDeleteResult: ...
