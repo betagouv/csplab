@@ -1,6 +1,6 @@
 from uuid import NAMESPACE_DNS, uuid4, uuid5
 
-from django.db import models
+from django.db import DatabaseError, models
 
 from domain.entities.metier import Metier
 from domain.value_objects.verse import Verse
@@ -21,8 +21,8 @@ class MetierModel(models.Model):
 
     id = models.UUIDField(primary_key=True)
 
-    external_id = models.CharField(max_length=8, unique=True, default="")
-    code_emploi_csp = models.CharField(max_length=50, null=True, blank=True)
+    external_id = models.CharField(max_length=8, unique=True)
+    code_emploi_csp = models.CharField(max_length=50)
 
     libelle_emploi_csp = models.CharField(max_length=200, null=True, blank=True)
     referenciel_metier_id = models.CharField(
@@ -96,6 +96,11 @@ class MetierModel(models.Model):
 
     @classmethod
     def _dto_to_model_data(cls, document: IngresMetiersDocument) -> dict:
+        if not document.definitions.emploiDeReferenceCSP.codeEmploiCSP:
+            raise DatabaseError(
+                f"Document {document.identifiant} has null/empty codeEmploiCSP"
+            )
+
         activites = []
         if document.competences.activitesDeLEr:
             for activite in document.competences.activitesDeLEr:
