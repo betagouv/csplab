@@ -82,7 +82,6 @@ class PostgresMetierRepository(IMetierRepository):
                                 "code_domaine_fonctionnel",
                                 "versants",
                                 "activites",
-                                "competences",
                                 "conditions_particulieres",
                                 "updated_at",
                             ],

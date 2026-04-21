@@ -42,7 +42,6 @@ class MetierModel(models.Model):
     conditions_particulieres = models.JSONField(default=list, null=True, blank=True)
 
     activites = models.JSONField(default=list)
-    competences = models.JSONField(default=list, null=True, blank=True)
 
     processing = models.BooleanField(default=False)
     processed_at = models.DateTimeField(null=True, blank=True)
@@ -73,7 +72,6 @@ class MetierModel(models.Model):
             domaine_fonctionnel=domaine_fonctionnel_uuid,
             versants=versants,
             activites=self.activites or [],
-            competences=[],
             conditions_particulieres=self.conditions_particulieres,
         )
 
@@ -93,7 +91,6 @@ class MetierModel(models.Model):
             code_domaine_fonctionnel=str(metier.domaine_fonctionnel),
             versants=versants,
             activites=metier.activites,
-            competences=[],
             conditions_particulieres=metier.conditions_particulieres,
         )
 
@@ -152,6 +149,5 @@ class MetierModel(models.Model):
             ),
             "versants": versants,
             "activites": activites,
-            "competences": [],  # TODO: ROME 4.0 skills to be added later
             "conditions_particulieres": conditions_particulieres,
         }
