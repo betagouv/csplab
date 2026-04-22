@@ -32,6 +32,9 @@ env = environ.Env(
     TYCHO_OCR_API_KEY=(str, "fake-ocr-api-key"),
     TYCHO_OCR_BASE_URL=(str, "https://fake-ocr.example.com"),
     TYCHO_OPIK_API_KEY=(str, "opik-api-key"),
+    TYCHO_TALENTSOFT_BACK_CLIENT_ID=(str, "fake-client-id"),
+    TYCHO_TALENTSOFT_BACK_CLIENT_SECRET=(str, "fake-client-secret"),
+    TYCHO_TALENTSOFT_BACK_BASE_URL=(str, "https://fake-talentsoft-back.example.com"),
     TYCHO_TALENTSOFT_CLIENT_ID=(str, "fake-client-id"),
     TYCHO_TALENTSOFT_CLIENT_SECRET=(str, "fake-client-secret"),
     TYCHO_TALENTSOFT_BASE_URL=(str, "https://fake-talentsoft.example.com"),
@@ -343,6 +346,10 @@ OPIK_API_KEY = env.str("OPIK_API_KEY")
 TALENTSOFT_BASE_URL = env.str("TALENTSOFT_BASE_URL")
 TALENTSOFT_CLIENT_ID = env.str("TALENTSOFT_CLIENT_ID")
 TALENTSOFT_CLIENT_SECRET = env.str("TALENTSOFT_CLIENT_SECRET")
+
+TALENTSOFT_BACK_BASE_URL = env.str("TALENTSOFT_BACK_BASE_URL")
+TALENTSOFT_BACK_CLIENT_ID = env.str("TALENTSOFT_BACK_CLIENT_ID")
+TALENTSOFT_BACK_CLIENT_SECRET = env.str("TALENTSOFT_BACK_CLIENT_SECRET")
 
 TALLY_FORM_ID_RESULTS = env.str("TALLY_FORM_ID_RESULTS")
 TALLY_FORM_ID_NO_RESULTS = env.str("TALLY_FORM_ID_NO_RESULTS")
