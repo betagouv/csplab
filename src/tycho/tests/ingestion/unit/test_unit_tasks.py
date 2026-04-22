@@ -10,9 +10,11 @@ from infrastructure.django_apps.ingestion.tasks import (
     clean_concours,
     clean_corps,
     clean_documents,
+    clean_metiers,
     clean_offers,
     load_corps,
     load_documents,
+    load_metiers,
     load_offers,
     vectorize_concours,
     vectorize_corps,
@@ -41,6 +43,14 @@ class TestLoadDocumentsTasks:
                 "usecase_name": "load_documents_usecase",
             },
             id="corps",
+        ),
+        pytest.param(
+            {
+                "task": load_metiers,
+                "kwargs": {"document_type": DocumentType.METIERS},
+                "usecase_name": "load_documents_usecase",
+            },
+            id="metiers",
         ),
         pytest.param(
             {
@@ -116,7 +126,9 @@ class TestLoadDocumentsTasks:
 
 
 class TestCleanTasks:
-    @pytest.mark.parametrize("task", [clean_corps, clean_concours, clean_offers])
+    @pytest.mark.parametrize(
+        "task", [clean_corps, clean_concours, clean_offers, clean_metiers]
+    )
     def test_periodic_task_does_not_call_usecase(self, mock_container, task):
         assert issubclass(task.task_class, PeriodicTask)
         task.call_local()
