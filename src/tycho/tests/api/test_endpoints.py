@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -28,12 +30,20 @@ def test_user_fixture(db, user_credentials):
     return User.objects.create_user(**user_credentials)
 
 
+@pytest.fixture(name="authenticated_client")
+def authenticated_client_fixture(api_client, test_user):
+    refresh = RefreshToken.for_user(test_user)
+    token = str(refresh.access_token)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return api_client
+
+
 class TestJWTEndpoints:
     def test_token_obtain_endpoint_exists(
         self, api_client, test_user, user_credentials
     ):
         response = api_client.post(
-            reverse("token_obtain_pair"),
+            reverse("api:token_obtain_pair"),
             {
                 "username": user_credentials["username"],
                 "password": user_credentials["password"],
@@ -49,8 +59,35 @@ class TestJWTEndpoints:
         refresh = RefreshToken.for_user(test_user)
 
         response = api_client.post(
-            reverse("token_refresh"), {"refresh": str(refresh)}, format="json"
+            reverse("api:token_refresh"), {"refresh": str(refresh)}, format="json"
         )
 
         assert response.status_code == status.HTTP_200_OK
         assert "access" in response.data
+
+
+class TestHueyHealthView:
+    url = reverse("api:health_huey")
+
+    def test_success_response(self, authenticated_client):
+        response = authenticated_client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_unauthenticated_access(self, api_client):
+        response = api_client.get(self.url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_redis_unavailable(self, authenticated_client):
+        with patch("huey.contrib.djhuey.HUEY.storage.conn.ping") as mocked_ping:
+            mocked_ping.side_effect = Exception("Redis connection refused")
+            response = authenticated_client.get(self.url)
+            assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+            assert response.data == {"status": "Huey health check failed"}
+
+
+class TestSchemaEndpoint:
+    def test_health_huey_view_is_excluded_from_schema(self, api_client):
+        response = api_client.get(reverse("api:schema"))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert reverse("api:health_huey") not in response.data.get("paths", {})

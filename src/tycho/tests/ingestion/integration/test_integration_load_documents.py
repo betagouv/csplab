@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
@@ -159,25 +157,6 @@ def authenticated_client_fixture(api_client, user):
     token = str(refresh.access_token)
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     return api_client
-
-
-class TestHueyHealthView:
-    url = reverse("ingestion:health_huey")
-
-    def test_success_response(self, authenticated_client):
-        response = authenticated_client.get(self.url)
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_unauthenticated_access(self, api_client):
-        response = api_client.get(self.url)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_redis_unavailable(self, authenticated_client):
-        with patch("huey.contrib.djhuey.HUEY.storage.conn.ping") as mocked_ping:
-            mocked_ping.side_effect = Exception("Redis connection refused")
-            response = authenticated_client.get(self.url)
-            assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-            assert response.data == {"status": "Huey health check failed"}
 
 
 @pytest.fixture(name="valid_csv_content")
