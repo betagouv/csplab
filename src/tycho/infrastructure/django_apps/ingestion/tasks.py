@@ -63,6 +63,11 @@ def clean_corps():
     clean_documents(DocumentType.CORPS)
 
 
+@db_periodic_task(crontab(day="1", hour="6"))
+def clean_metiers():
+    clean_documents(DocumentType.METIERS)
+
+
 @db_periodic_task(crontab(hour="6"))
 def clean_concours():
     clean_documents(DocumentType.CONCOURS)
