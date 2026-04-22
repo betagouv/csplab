@@ -10,36 +10,33 @@ from domain.exceptions.document_error import (
 from domain.interfaces.entity_interface import IEntity
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.corps_repository_interface import ICorpsRepository
+from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from infrastructure.gateways.ingestion.concours_cleaner import ConcoursCleaner
 from infrastructure.gateways.ingestion.corps_cleaner import CorpsCleaner
+from infrastructure.gateways.ingestion.metier_cleaner import MetierCleaner
 from infrastructure.gateways.ingestion.offers_cleaner import OffersCleaner
 
 
 class DocumentCleaner(IDocumentCleaner[IEntity]):
-    """Factory for creating appropriate document cleaners based on document type.
-
-    Implements IDocumentCleaner[IEntity] protocol.
-    """
-
     def __init__(
         self,
         logger: ILogger,
         corps_repository: ICorpsRepository,
         concours_repository: IConcoursRepository,
         offers_repository: IOffersRepository,
+        metiers_repository: IMetierRepository,
     ):
-        """Initialize the factory with available cleaners."""
         self._cleaners = {
             DocumentType.CORPS: CorpsCleaner(logger, corps_repository),
             DocumentType.CONCOURS: ConcoursCleaner(logger, concours_repository),
             DocumentType.OFFERS: OffersCleaner(logger, offers_repository),
+            DocumentType.METIERS: MetierCleaner(logger, metiers_repository),
         }
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[IEntity]:
-        """Clean documents using the appropriate cleaner based on document type."""
         if not raw_documents:
             return CleaningResult(entities=[], cleaning_errors=[])
 

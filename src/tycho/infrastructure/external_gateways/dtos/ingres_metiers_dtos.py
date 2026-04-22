@@ -50,6 +50,11 @@ class ActivitesDeLEr(BaseModel):
     commentaire: str
 
 
+class ConditionsParticulieresDExerciceDAcces(BaseModel):
+    dateEffet: str
+    commentaire: str
+
+
 class Specificites(BaseModel):
     specificitesFPE: Optional[Any] = None
     specificitesFPH: Optional[Any] = None
@@ -58,6 +63,9 @@ class Specificites(BaseModel):
 
 class Competences(BaseModel):
     activitesDeLEr: Optional[List[ActivitesDeLEr]] = None
+    conditionsParticulieresDExerciceDAcces: Optional[
+        List[ConditionsParticulieresDExerciceDAcces]
+    ] = None
     specificites: Specificites
 
 

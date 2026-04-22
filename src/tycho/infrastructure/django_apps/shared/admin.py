@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from infrastructure.django_apps.shared.models.concours import ConcoursModel
 from infrastructure.django_apps.shared.models.corps import CorpsModel
+from infrastructure.django_apps.shared.models.metier import MetierModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
 
 
@@ -94,3 +95,23 @@ class ConcoursAdmin(admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
+
+
+@admin.register(MetierModel)
+class MetierAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "external_id",
+        "code_emploi_csp",
+        "libelle_long",
+        "libelle_domaine_fonctionnel",
+    )
+    list_filter = ("referenciel_metier_id", "libelle_domaine_fonctionnel")
+    search_fields = (
+        "id",
+        "external_id",
+        "code_emploi_csp",
+        "libelle_long",
+        "libelle_domaine_fonctionnel",
+    )
+    readonly_fields = [f.name for f in MetierModel._meta.get_fields()]

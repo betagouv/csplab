@@ -4,16 +4,18 @@ from django.db import transaction
 
 from domain.entities.document import DocumentType
 from domain.interfaces.entity_interface import IEntity, IOfferEntity
+from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,
 )
+from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.repositories.repository_factory_interface import IRepositoryFactory
 from domain.services.document_cleaner_interface import IDocumentCleaner
 from domain.services.logger_interface import ILogger
 
 
-class CleanDocumentsUsecase:
+class CleanDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
     def __init__(
         self,
         document_repository: IDocumentRepository,
@@ -39,13 +41,13 @@ class CleanDocumentsUsecase:
 
         if document_type == DocumentType.OFFERS:
             return self._clean_offers(document_type, limit, results)
-        return self._clean_concours_or_corps(document_type, limit, results)
+        return self._clean_concours_or_corps_metiers(document_type, results)
 
     def _clean_offers(
         self, document_type: DocumentType, limit: int, results: Dict[str, Any]
     ) -> Dict[str, Any]:
         raw_documents = self.document_repository.get_pending_processing(
-            document_type=document_type.value,
+            document_type=document_type,
             limit=limit,
         )
 
@@ -92,8 +94,8 @@ class CleanDocumentsUsecase:
 
         return results
 
-    def _clean_concours_or_corps(
-        self, document_type: DocumentType, limit: int, results: Dict[str, Any]
+    def _clean_concours_or_corps_metiers(
+        self, document_type: DocumentType, results: Dict[str, Any]
     ) -> Dict[str, Any]:
         start = 0
         has_more = True
@@ -103,24 +105,42 @@ class CleanDocumentsUsecase:
                 document_type, start
             )
 
-            cleaning_result = self.document_cleaner.clean(raw_documents)
-            cleaned_entities = cleaning_result.entities
-
             repository = self.repository_factory.get_repository(document_type)
-            save_result: IUpsertResult = (
-                repository.upsert_batch(cast(List, cleaned_entities))
-                if cleaned_entities
-                else {"created": 0, "updated": 0, "errors": []}
-            )
 
-            results["processed"] += len(raw_documents)  # type: ignore
-            results["cleaned"] += len(cleaned_entities)  # type: ignore
-            results["created"] += save_result["created"]  # type: ignore
-            results["updated"] += save_result["updated"]  # type: ignore
+            if document_type == DocumentType.METIERS:
+                metier_repository = cast(IMetierRepository, repository)
+                save_result: IUpsertResult = metier_repository.upsert_batch_rich_data(
+                    raw_documents
+                )
 
-            cleaning_error_count = len(raw_documents) - len(cleaned_entities)
-            results["errors"] += cleaning_error_count + len(save_result["errors"])  # type: ignore
-            results["error_details"] += save_result["errors"]  # type: ignore[operator]
+                cleaned_count = save_result["created"] + save_result["updated"]
+
+                results["processed"] += len(raw_documents)  # type: ignore
+                results["cleaned"] += cleaned_count  # type: ignore
+                results["created"] += save_result["created"]  # type: ignore
+                results["updated"] += save_result["updated"]  # type: ignore
+                results["errors"] += len(save_result["errors"])  # type: ignore
+                results["error_details"] += save_result["errors"]  # type: ignore[operator]
+            else:
+                cleaning_result = self.document_cleaner.clean(raw_documents)
+                cleaned_entities = cleaning_result.entities
+
+                other_save_result: IUpsertResult = (
+                    repository.upsert_batch(cast(List, cleaned_entities))
+                    if cleaned_entities
+                    else {"created": 0, "updated": 0, "errors": []}
+                )
+
+                results["processed"] += len(raw_documents)  # type: ignore
+                results["cleaned"] += len(cleaned_entities)  # type: ignore
+                results["created"] += other_save_result["created"]  # type: ignore
+                results["updated"] += other_save_result["updated"]  # type: ignore
+
+                cleaning_error_count = len(raw_documents) - len(cleaned_entities)
+                results["errors"] += cleaning_error_count + len(
+                    other_save_result["errors"]
+                )  # type: ignore
+                results["error_details"] += other_save_result["errors"]  # type: ignore[operator]
 
             start += 1
 

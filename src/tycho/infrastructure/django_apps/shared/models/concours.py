@@ -77,5 +77,4 @@ class ConcoursModel(models.Model):
         )
 
     def __str__(self) -> str:
-        """String representation of ConcoursModel."""
         return f"Concours {self.nor_original} - {self.ministry}"
