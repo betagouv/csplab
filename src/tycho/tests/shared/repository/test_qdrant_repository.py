@@ -8,6 +8,7 @@ from tests.fixtures.shared_fixtures import create_shared_qdrant_repository
 DELETED_DOCUMENTS_COUNT = 2
 
 
+# TODO: delete this tests once future usecase archive offers is implemented and tested
 @pytest.mark.django_db
 def test_qdrant_repository(db):
     qdrant_repo = create_shared_qdrant_repository()
