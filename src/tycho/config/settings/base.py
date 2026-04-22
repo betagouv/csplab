@@ -243,13 +243,15 @@ MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
 # CSP
 # ---------------------------------------
 connect_src = [CSP.SELF, "*.sentry.io"]
-img_src = [CSP.SELF, "data:"]
+img_src = [CSP.SELF, "data:", "blob:", "https://cdn.redoc.ly"]
 script_src = [CSP.SELF, CSP.NONCE, "https://tally.so"]
 style_src = [
     CSP.SELF,
     CSP.NONCE,
     "https://fonts.googleapis.com",
     "'sha256-faU7yAF8NxuMTNEwVmBz+VcYeIoBQ2EMHW3WaVxCvnk='",  # DSFR inline style
+    "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # Redoc inline style
+    "'sha256-QMIg+bpjm3JdElJ388KYke01izlUW0UoNOeKjpMxdgc='",  # ReDoc inline style
 ]
 
 if MATOMO_BASE_URL:
@@ -267,6 +269,7 @@ SECURE_CSP = {
     "script-src-elem": script_src,
     "style-src": style_src,
     "style-src-elem": style_src,
+    "worker-src": [CSP.SELF, "blob:"],  # ReDoc web worker
 }
 
 # Django REST Framework
