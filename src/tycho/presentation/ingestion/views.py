@@ -27,6 +27,7 @@ from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
 )
+from presentation.ingestion import schemas
 from presentation.ingestion.pagination import OffersPagination
 from presentation.ingestion.schemas import ConcoursRowSchema
 from presentation.ingestion.serializers import (
@@ -197,6 +198,7 @@ class ConcoursUploadView(APIView):
 
 
 @extend_schema(
+    description=schemas.list_offers_view_description,
     parameters=[
         OpenApiParameter(
             "active",
@@ -221,6 +223,7 @@ class ConcoursUploadView(APIView):
     ],
     tags=["offres"],
     summary="Liste des offres",
+    examples=[schemas.list_offers_response_valid_example],
 )
 class OffersListView(ListAPIView):
     pagination_class = OffersPagination

@@ -313,6 +313,8 @@ SPECTACULAR_SETTINGS = {
     "PREPROCESSING_HOOKS": ["drf_spectacular.hooks.preprocess_exclude_path_format"],
     "TAGS": [
         {"name": "api", "description": "Authentication endpoints"},
+        {"name": "offres", "description": "Offres d'emploi de la Fonction Publique"},
+        {"name": "concours", "description": "Concours de la Fonction Publique"},
     ],
 }
 

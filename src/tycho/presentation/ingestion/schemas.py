@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
+from drf_spectacular.utils import OpenApiExample
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 MIN_NOR_LENGTH = 10
@@ -115,3 +116,41 @@ class ConcoursUploadResponse(BaseModel):
     created: int
     updated: int
     errors: Optional[list] = None
+
+
+list_offers_view_description = """
+# API de consultation des offres d'emploi de la Fonction Publique
+
+Cette API retourne la liste de offres correspondant à une recherche selon les 3
+critères suivants :
+
+- Candidature active / archivée
+- Mise à jour avant une date-heure
+- Mise à jour après une date-heure
+
+Cette API est à l’usage exclusif des personnes autorisées.
+
+# Permissions
+
+L’utilisation de cette API nécessite un token d’autorisation spécifique à chaque
+utilisateur.
+
+# Limitations
+
+L’interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+"""
+
+list_offers_response_valid_example = OpenApiExample(
+    "Exemple de liste d'offres d'emploi (réponse)",
+    response_only=True,
+    status_codes=[200],
+    value={
+        "external_id": "Versant_FPE-2026-999999",
+        "title": "Responsable de la Division des Affaires Financières H/F",
+        "organization": "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)",
+        "contract_type": "TITULAIRE_CONTRACTUEL",
+        "category": "A",
+        "publication_date": "2026-04-17T14:44:49.873000+00:00",
+        "offer_url": "https://test.com/offre-emploi/2026-999999/",
+    },
+)
