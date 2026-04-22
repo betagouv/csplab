@@ -18,7 +18,7 @@ from domain.value_objects.cv_processing_status import CVStatus
 class MatchCVToOpportunitiesUsecase(
     IUseCase[CVMetadata, List[Tuple[Concours | Offer, float]]],
 ):
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         postgres_cv_metadata_repository: ICVMetadataRepository,
         embedding_generator: IEmbeddingGenerator,
