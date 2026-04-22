@@ -4,6 +4,7 @@ import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
 from faker import Faker
+from pytest_django.asserts import assertTemplateUsed
 from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -83,6 +84,16 @@ class TestHueyHealthView:
             response = authenticated_client.get(self.url)
             assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
             assert response.data == {"status": "Huey health check failed"}
+
+
+class TestRedocView:
+    def test_views(self, db, api_client):
+        response = api_client.get(reverse("api:redoc"))
+
+        assert response.status_code == status.HTTP_200_OK
+        assertTemplateUsed(response, "api/redoc.html")
+        assert response.context["title"] == "ReDoc"
+        assert response.context["schema_url"] == reverse("api:schema")
 
 
 class TestSchemaEndpoint:
