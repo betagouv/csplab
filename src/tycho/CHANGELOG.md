@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] - 2026-04-22
+
+### <!-- 0 --> Breaking Changes
+
+- ✨(async) setup broker and queue ([#376](https://github.com/betagouv/csplab/pull/376))
+
+### <!-- 1 --> Added
+
+- 🔧(accessibility) add automated accessibility testing with pytest-playwright and axe-playwright-python ([#157](https://github.com/betagouv/csplab/pull/157))
+- 🔧(project) add port override ([#391](https://github.com/betagouv/csplab/pull/391))
+- ✨(tycho:domain) load metiers data ([#397](https://github.com/betagouv/csplab/pull/397))
+- ✨(tycho-ingestion) clean metiers ([#398](https://github.com/betagouv/csplab/pull/398))
+- ✨(tycho-ingestion) add task for clean metiers ([#414](https://github.com/betagouv/csplab/pull/414))
+
+### <!-- 2 --> Modified
+
+- ✨(candidate) send process uploaded cv usecase to tasks broker ([#377](https://github.com/betagouv/csplab/pull/377))
+- 🔧(tooling) disable periodic tasks in dev ([#390](https://github.com/betagouv/csplab/pull/390))
+- ✨(ingestion) enqueue periodiq vectorization and cleaning tasks ([#381](https://github.com/betagouv/csplab/pull/381))
+- ♻️(tycho:ingestion) use async http client ([#389](https://github.com/betagouv/csplab/pull/389))
+
+### <!-- 3 --> Removed
+
+- 🔥(notebook) good bye es ([#370](https://github.com/betagouv/csplab/pull/370))
+- 🔥(shared) remove VectorizedDocumentModel and pgvector_repository ([#385](https://github.com/betagouv/csplab/pull/385))
+- 🔥(shared) remove pgvector lib ([#386](https://github.com/betagouv/csplab/pull/386))
+
+### <!-- 4 --> Fixed
+
+- 🐛(candidate) make sure drawer opens after filtering occured ([#374](https://github.com/betagouv/csplab/pull/374))
+- 🐛(ingestion) let load_offers task call load_offers_usecase, instead of load_documents_usecase ([#393](https://github.com/betagouv/csplab/pull/393))
+- 🐛(tooling) make bootstrap work on fresh setup ([#399](https://github.com/betagouv/csplab/pull/399))
+
 ## [0.1.6] - 2026-04-07
 
 ### <!-- 1 --> Added
