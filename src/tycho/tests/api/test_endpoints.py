@@ -102,3 +102,14 @@ class TestSchemaEndpoint:
 
         assert response.status_code == status.HTTP_200_OK
         assert reverse("api:health_huey") not in response.data.get("paths", {})
+
+    def test_offer_list_is_in_schema(self, api_client):
+        response = api_client.get(reverse("api:schema"))
+
+        expected_url = reverse("ingestion:offers_list")
+
+        paths = response.data.get("paths", {})
+        assert expected_url in paths
+
+        operation = response.data["paths"][expected_url]["get"]
+        assert "offres" in operation.get("tags", [])

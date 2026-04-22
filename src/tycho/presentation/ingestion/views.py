@@ -2,17 +2,37 @@ from datetime import datetime
 
 import polars as pl
 from asgiref.sync import async_to_sync
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    extend_schema,
+)
 from pydantic import ValidationError
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
+from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
+from application.ingestion.usecases.list_offers import (
+    GetOffersCommand,
+    ListOffersUseCase,
+)
 from domain.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.repositories.shared.postgres_offers_repository import (
+    PostgresOffersRepository,
+)
+from presentation.ingestion.pagination import OffersPagination
 from presentation.ingestion.schemas import ConcoursRowSchema
+from presentation.ingestion.serializers import (
+    OfferFiltersSerializer,
+    OfferSerializer,
+)
 
 
 def format_validation_error(error: ValidationError) -> str:
@@ -174,3 +194,52 @@ class ConcoursUploadView(APIView):
                 {"error": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            "active",
+            OpenApiTypes.BOOL,
+            default=True,
+            description="active/archived offers selector",
+        ),
+        OpenApiParameter(
+            "after",
+            OpenApiTypes.DATETIME,
+            required=False,
+            description="offers updated after a datetime selector",
+        ),
+        OpenApiParameter(
+            "before",
+            OpenApiTypes.DATETIME,
+            required=False,
+            description="offers updated before a datetime selector",
+        ),
+        OpenApiParameter("page", OpenApiTypes.INT, default=1),
+        OpenApiParameter("size", OpenApiTypes.INT, default=api_settings.PAGE_SIZE),
+    ],
+    tags=["offres"],
+    summary="Liste des offres",
+)
+class OffersListView(ListAPIView):
+    pagination_class = OffersPagination
+    serializer_class = OfferSerializer
+
+    def get_queryset(self):
+        filters = OfferFiltersSerializer(data=self.request.query_params)
+        filters.is_valid(raise_exception=True)
+        params = filters.validated_data
+
+        result = self.usecase().execute(
+            GetOffersCommand(
+                active=params["active"],
+                after=params.get("after"),
+                before=params.get("before"),
+            ),
+        )
+        return result.offers
+
+    def usecase(self) -> ListOffersUseCase:
+        repo = PostgresOffersRepository(logger=LoggerService(__name__))
+        return ListOffersUseCase(offers_repository=repo)
