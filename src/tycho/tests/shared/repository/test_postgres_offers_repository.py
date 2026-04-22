@@ -228,3 +228,53 @@ def test_mark_as_pending(db, repository):
 
     undesired_model_objects = OfferModel.objects.get(processing=True)
     assert undesired_model_objects.id == undesired_offer.id
+
+
+class TestGetByStatusAndPeriod:
+    def test_returns_active_offers_by_status(self, db, repository):
+        offer = OfferFactory.create()
+        archived_offer = OfferFactory.create(archived_at=datetime(2025, 5, 5))
+
+        default_entities = repository.get_by_status_and_period()
+        assert len(default_entities) == 1
+        assert isinstance(default_entities[0], Offer)
+        assert default_entities[0].external_id == offer.external_id
+
+        active_entities = repository.get_by_status_and_period(active=True)
+        assert active_entities[0].external_id == offer.external_id
+
+        archived_entities = repository.get_by_status_and_period(active=False)
+        assert archived_entities[0].external_id == archived_offer.external_id
+
+    def test_returns_offers_by_period(self, db, repository):
+        old_offer = OfferFactory.create(updated_at=datetime(2020, 5, 5))
+        offer = OfferFactory.create(updated_at=datetime(2024, 5, 5))
+        new_offer = OfferFactory.create()
+
+        all_entities = repository.get_by_status_and_period()
+        assert [e.external_id for e in all_entities] == [
+            new_offer.external_id,
+            offer.external_id,
+            old_offer.external_id,
+        ]
+
+        old_entities = repository.get_by_status_and_period(before=datetime(2025, 1, 1))
+
+        assert [e.external_id for e in old_entities] == [
+            offer.external_id,
+            old_offer.external_id,
+        ]
+
+        new_entities = repository.get_by_status_and_period(after=datetime(2024, 1, 1))
+
+        assert [e.external_id for e in new_entities] == [
+            new_offer.external_id,
+            offer.external_id,
+        ]
+        entities_into_a_period = repository.get_by_status_and_period(
+            after=datetime(2024, 1, 1), before=datetime(2025, 1, 1)
+        )
+
+        assert [e.external_id for e in entities_into_a_period] == [
+            offer.external_id,
+        ]

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict, List
 from uuid import UUID
 
@@ -59,6 +60,14 @@ class InMemoryOffersRepository(IOffersRepository):
 
     def get_all(self) -> List[Offer]:
         return list(self._offers.values())
+
+    def get_by_status_and_period(
+        self,
+        active: bool = True,
+        after: datetime | None = None,
+        before: datetime | None = None,
+    ) -> list[Offer]:
+        return []
 
     def clear(self) -> None:
         self._offers.clear()

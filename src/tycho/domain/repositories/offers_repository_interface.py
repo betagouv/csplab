@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Protocol
 from uuid import UUID
 
@@ -13,6 +14,13 @@ class IOffersRepository(Protocol):
     def find_by_ids(self, offer_ids: List[UUID]) -> List[Offer]: ...
 
     def find_by_external_id(self, external_id: str) -> Offer: ...
+
+    def get_by_status_and_period(
+        self,
+        active: bool = True,
+        after: datetime | None = None,
+        before: datetime | None = None,
+    ) -> list[Offer]: ...
 
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]: ...
 
