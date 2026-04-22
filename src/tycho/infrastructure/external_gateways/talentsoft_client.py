@@ -1,14 +1,19 @@
 import asyncio
+from datetime import datetime
 from http import HTTPStatus
 from time import time
 from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 
 from pydantic import ValidationError
 
-from config.app_config import TalentsoftConfig
+from config.app_config import TalentsoftBackConfig, TalentsoftConfig
 from domain.services.async_http_client_interface import IAsyncHttpResponse
 from domain.services.logger_interface import ILogger
 from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.external_gateways.dtos.talentsoft_back_dtos import (
+    TalentsoftBackVacanciesResponse,
+    TalentsoftBackVacancy,
+)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
     TalentsoftDetailOffer,
@@ -21,6 +26,9 @@ from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
 TOKEN_ENDPOINT = "/api/token"  # noqa
 OFFERS_ENDPOINT = "/api/v2/offersummaries"
 DETAIL_OFFER_ENDPOINT = "/api/v2/offers/getoffer"
+
+VACANCIES_BACK_ENDPOINT = "/api/v1/vacancies"
+
 
 class BaseTalentsoftClient(AsyncHttpClient):
     api_name: str
@@ -194,3 +202,64 @@ class TalentsoftFrontClient(BaseTalentsoftClient):
             ) from e
 
         return offer
+
+
+class TalentsoftBackClient(BaseTalentsoftClient):
+    api_name = "Talentsoft Back API"
+    token_scope = True
+
+    def __init__(self, config: TalentsoftBackConfig, logger_service: ILogger, **kwargs):
+        super().__init__(
+            base_url=str(config.base_url),
+            client_id=config.client_id,
+            client_secret=config.client_secret,
+            logger=logger_service,
+            timeout=kwargs.get("timeout", 30),
+            max_retries=kwargs.get("max_retries", 2),
+        )
+
+    def extract_count_from_content_range(self, content_range: str) -> int:
+        count_str = content_range.rsplit("/", maxsplit=1)[-1]
+        try:
+            count = int(count_str)
+        except ValueError as e:
+            raise ExternalApiError(
+                f"Invalid contentRange structure: {e}", api_name=self.api_name
+            ) from e
+        return count
+
+    async def get_vacancies(
+        self,
+        update_date: datetime,
+        date_operator: str = "gt",
+        status: str = "Archived,Suspended",
+        limit: int = 1000,
+        offset: int = 1,
+    ) -> Tuple[List[TalentsoftBackVacancy], bool]:
+        url = f"{self.base_url}{VACANCIES_BACK_ENDPOINT}"
+        update_date_str = (
+            update_date.strftime("%Y-%m-%dT%H:%M:%S.")
+            + f"{update_date.microsecond // 10000:02d}"
+        )
+        filter = f"vacancyStatus::{status}|updateDate:{date_operator}:{update_date_str}"
+        params: dict[str, int | str] = {
+            "limit": limit,
+            "offset": offset,
+            "filter": filter,
+        }
+
+        response = await self._make_authenticated_request(url, params)
+
+        try:
+            typed_response = TalentsoftBackVacanciesResponse.model_validate(
+                response.json()
+            )
+            offers = typed_response.data
+            count = self.extract_count_from_content_range(typed_response.content_range)
+            has_more = True if count >= limit + offset else False
+        except ValidationError as e:
+            raise ExternalApiError(
+                f"Invalid response structure: {e}", api_name=self.api_name
+            ) from e
+
+        return offers, has_more

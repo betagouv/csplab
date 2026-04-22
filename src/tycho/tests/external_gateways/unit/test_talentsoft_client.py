@@ -1,12 +1,16 @@
+from datetime import datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from faker import Faker
 from pydantic import HttpUrl
 
-from config.app_config import TalentsoftConfig
+from config.app_config import TalentsoftBackConfig, TalentsoftConfig
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
+from infrastructure.external_gateways.talentsoft_client import (
+    TalentsoftBackClient,
+    TalentsoftFrontClient,
+)
 from tests.external_gateways.utils import (
     cached_token,
     detail_offer_response,
@@ -33,8 +37,14 @@ def talentsoft_client_fixture():
     return _make_client(TalentsoftFrontClient, TalentsoftConfig)
 
 
+@pytest.fixture(name="talentsoft_back_client")
+def talentsoft_back_client_fixture():
+    return _make_client(TalentsoftBackClient, TalentsoftBackConfig)
+
+
 CLIENT_API_NAMES = [
     ("talentsoft_client", "Talentsoft Front API"),
+    ("talentsoft_back_client", "Talentsoft Back API"),
 ]
 
 
@@ -283,3 +293,123 @@ class TestGetDetailOffer:
 
             assert exc_info.value.api_name == "Talentsoft Front API"
             assert mock_get.call_count == talentsoft_client.max_retries + 1
+
+
+@pytest.mark.asyncio
+class TestGetVacancies:
+    @pytest.mark.parametrize(
+        "kwargs,limit, offset, filter",
+        [
+            (
+                {"update_date": datetime(2026, 5, 17, 10, 30, 0)},
+                1000,
+                1,
+                "vacancyStatus::Archived,Suspended|updateDate:gt:2026-05-17T10:30:00.00",
+            ),
+            (
+                {
+                    "update_date": datetime(2025, 7, 16, 10, 30, 0),
+                    "limit": 20,
+                    "offset": 3,
+                    "date_operator": "lt",
+                    "status": "Published",
+                },
+                20,
+                3,
+                "vacancyStatus::Published|updateDate:lt:2025-07-16T10:30:00.00",
+            ),
+        ],
+    )
+    async def test_request_contains_default_params(
+        self, talentsoft_back_client, kwargs, limit, offset, filter
+    ):
+        return_value = {
+            "code": 200,
+            "status": "success",
+            "data": [],
+            "contentRange": "1000-10/500",
+        }
+        talentsoft_back_client.cached_token = cached_token()
+        mock_response = mocked_response(return_value=return_value)
+
+        with patch.object(
+            talentsoft_back_client, "get", new_callable=AsyncMock
+        ) as mock_get:
+            mock_get.return_value = mock_response
+            await talentsoft_back_client.get_vacancies(**kwargs)
+
+            mock_get.assert_called_once()
+            call_args = mock_get.call_args
+
+            assert call_args.args[0].endswith("/api/v1/vacancies")
+            assert call_args.kwargs["params"] == {
+                "limit": limit,
+                "offset": offset,
+                "filter": filter,
+            }
+
+    @pytest.mark.parametrize(
+        "contentRange,expected",
+        [("1000-10/1001", True), ("1000-10/1000", False)],
+    )
+    async def test_has_more(self, talentsoft_back_client, contentRange, expected):
+        return_value = {
+            "code": 200,
+            "status": "success",
+            "data": [],
+            "contentRange": contentRange,
+        }
+        talentsoft_back_client.cached_token = cached_token()
+        mock_response = mocked_response(return_value=return_value)
+
+        with patch.object(
+            talentsoft_back_client, "get", new_callable=AsyncMock
+        ) as mock_get:
+            mock_get.return_value = mock_response
+            offers, has_more = await talentsoft_back_client.get_vacancies(
+                update_date=datetime.now()
+            )
+            assert has_more is expected
+
+    @pytest.mark.parametrize("contentRange", ["100-10/invalid", "invalid"])
+    async def test_get_vacancies_raises_error_if_count_range_is_malformed(
+        self, talentsoft_back_client, contentRange
+    ):
+        return_value = {
+            "code": 200,
+            "status": "success",
+            "data": [],
+            "contentRange": contentRange,
+        }
+        talentsoft_back_client.cached_token = cached_token()
+        mock_response = mocked_response(return_value=return_value)
+
+        with patch.object(
+            talentsoft_back_client, "get", new_callable=AsyncMock
+        ) as mock_get:
+            mock_get.return_value = mock_response
+
+            with pytest.raises(
+                ExternalApiError, match="Invalid contentRange structure"
+            ) as exc_info:
+                await talentsoft_back_client.get_vacancies(update_date=datetime.now())
+
+            assert exc_info.value.api_name == "Talentsoft Back API"
+
+    async def test_get_vacancies_raises_error_if_response_is_malformed(
+        self, talentsoft_back_client
+    ):
+        talentsoft_back_client.cached_token = cached_token()
+        mock_response = mocked_response(return_value={"invalid": "response"})
+
+        with patch.object(
+            talentsoft_back_client, "get", new_callable=AsyncMock
+        ) as mock_get:
+            mock_get.return_value = mock_response
+
+            with pytest.raises(
+                ExternalApiError, match="Invalid response structure"
+            ) as exc_info:
+                await talentsoft_back_client.get_vacancies(update_date=datetime.now())
+
+            assert exc_info.value.api_name == "Talentsoft Back API"
