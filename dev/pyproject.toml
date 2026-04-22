@@ -16,9 +16,9 @@ name = "cz_customize"
 version = "0.1.0"
 
 [tool.commitizen.customize]
-message_template = "{{change_type}}({{scope}}) {{subject}}{% if body %}\n\n{{body}}{% endif %}{% if footer %}\n\n{{footer}}{% endif %}"
-example = "✨(auth) add support for HTTP basic auth"
-schema = "<emoji>(<scope>) <subject>"
+message_template = "{{change_type}}({{scope}}{% if layer %}-{{layer}}{% endif %}) {{subject}}{% if body %}\n\n{{body}}{% endif %}{% if footer %}\n\n{{footer}}{% endif %}"
+example = "✨(candidate-infrastructure) add support for HTTP basic auth or ✨(candidate) add new feature"
+schema = "<emoji>(<scope>[-layer]) <subject>"
 schema_pattern = "^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💎|🎉|✅|🔒️|🚧|💚|⬇️|⬆️|👷|♻️|🔧|🏗️|🤸|🧩|🖼️)\\([a-z0-9:-]+\\) [a-zA-Z:-].{1,50}"
 
 [[tool.commitizen.customize.questions]]
@@ -55,6 +55,11 @@ choices = [
 type = "input"
 name = "scope"
 message = "scope (candidate, ingestion, ocr, accessibility, tooling, notebook):"
+
+[[tool.commitizen.customize.questions]]
+type = "input"
+name = "layer"
+message = "layer (domain, usecase, infrastructure, presentation) - optional, press Enter to skip:"
 
 [[tool.commitizen.customize.questions]]
 type = "input"
