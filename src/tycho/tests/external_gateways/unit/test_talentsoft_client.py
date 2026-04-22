@@ -17,38 +17,43 @@ from tests.external_gateways.utils import (
 fake = Faker()
 
 
-@pytest.fixture(name="talentsoft_client")
-def talentsoft_client_fixture():
+def _make_client(client_class, config_class):
     logger_service = Mock()
     logger_service.get_logger.return_value = Mock()
-
-    config = TalentsoftConfig(
+    config = config_class(
         base_url=HttpUrl(fake.url()),
         client_id=fake.uuid4(),
         client_secret=fake.uuid4(),
     )
-
-    return TalentsoftFrontClient(
-        config=config,
-        logger_service=logger_service,
-        timeout=30,
-    )
+    return client_class(config=config, logger_service=logger_service, timeout=30)
 
 
+@pytest.fixture(name="talentsoft_client")
+def talentsoft_client_fixture():
+    return _make_client(TalentsoftFrontClient, TalentsoftConfig)
+
+
+CLIENT_API_NAMES = [
+    ("talentsoft_client", "Talentsoft Front API"),
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("client_fixture,api_name", CLIENT_API_NAMES)
 class TestGetAccessToken:
-    @pytest.mark.asyncio
-    async def test_cached_token_is_valid(self, talentsoft_client):
+    async def test_cached_token_is_valid(self, client_fixture, api_name, request):
+        client = request.getfixturevalue(client_fixture)
         valid_token = cached_token()
-        talentsoft_client.cached_token = valid_token
-        result = await talentsoft_client.get_access_token()
+        client.cached_token = valid_token
+        result = await client.get_access_token()
         assert result == valid_token.access_token
 
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize("cached_token", [None, cached_token(expire_in=-3600)])
+    @pytest.mark.parametrize("initial_token", [None, cached_token(expire_in=-3600)])
     async def test_new_cached_token_has_to_be_fetched(
-        self, talentsoft_client, cached_token
+        self, client_fixture, api_name, request, initial_token
     ):
-        talentsoft_client.cached_token = cached_token
+        client = request.getfixturevalue(client_fixture)
+        client.cached_token = initial_token
         expected_token = fake.uuid4()
         mock_response = mocked_response(
             return_value={
@@ -58,56 +63,52 @@ class TestGetAccessToken:
             },
         )
 
-        with patch.object(
-            talentsoft_client, "post", new_callable=AsyncMock
-        ) as mock_post:
+        with patch.object(client, "post", new_callable=AsyncMock) as mock_post:
             mock_post.return_value = mock_response
-            result = await talentsoft_client.get_access_token()
+            result = await client.get_access_token()
 
             assert result == expected_token
-            assert talentsoft_client.cached_token.access_token == expected_token
+            assert client.cached_token.access_token == expected_token
             mock_post.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_fetching_token_raises_403(self, talentsoft_client):
-        talentsoft_client.cached_token = None
+    async def test_fetching_token_raises_403(self, client_fixture, api_name, request):
+        client = request.getfixturevalue(client_fixture)
+        client.cached_token = None
         mock_response = mocked_response(status_code=403)
         mock_response.raise_for_status.side_effect = Exception("403 Forbidden")
 
-        with patch.object(
-            talentsoft_client, "post", new_callable=AsyncMock
-        ) as mock_post:
+        with patch.object(client, "post", new_callable=AsyncMock) as mock_post:
             mock_post.return_value = mock_response
 
             with pytest.raises(
                 ExternalApiError, match="Token request failed"
             ) as exc_info:
-                await talentsoft_client.get_access_token()
+                await client.get_access_token()
 
-            assert exc_info.value.api_name == "Talentsoft Front API"
+            assert exc_info.value.api_name == api_name
 
-    @pytest.mark.asyncio
-    async def test_fetching_returns_malformed_token(self, talentsoft_client):
-        talentsoft_client.cached_token = None
+    async def test_fetching_returns_malformed_token(
+        self, client_fixture, api_name, request
+    ):
+        client = request.getfixturevalue(client_fixture)
+        client.cached_token = None
         mock_response = mocked_response(
             return_value={"invalid": "response"},
         )
 
-        with patch.object(
-            talentsoft_client, "post", new_callable=AsyncMock
-        ) as mock_post:
+        with patch.object(client, "post", new_callable=AsyncMock) as mock_post:
             mock_post.return_value = mock_response
 
             with pytest.raises(
                 ExternalApiError, match="Invalid token response"
             ) as exc_info:
-                await talentsoft_client.get_access_token()
+                await client.get_access_token()
 
-            assert exc_info.value.api_name == "Talentsoft Front API"
+            assert exc_info.value.api_name == api_name
 
 
+@pytest.mark.asyncio
 class TestGetOffers:
-    @pytest.mark.asyncio
     async def test_get_all_handles_empty_data(self, talentsoft_client):
         mock_response = mocked_response(return_value={})
 
@@ -123,7 +124,6 @@ class TestGetOffers:
 
             assert exc_info.value.api_name == "Talentsoft Front API"
 
-    @pytest.mark.asyncio
     async def test_get_all_fails_due_to_unauthorized_token(self, talentsoft_client):
         response_data = offers_response()
 
@@ -166,7 +166,6 @@ class TestGetOffers:
             assert mock_get.call_count == 2  # noqa - First failed, second succeeded
             mock_post.assert_called_once()  # Token refresh called
 
-    @pytest.mark.asyncio
     async def test_get_all_fails_after_max_retries_attempts(self, talentsoft_client):
         failed_response = mocked_response(status_code=500)
         failed_response.raise_for_status.side_effect = Exception(
@@ -187,8 +186,8 @@ class TestGetOffers:
             assert mock_get.call_count == talentsoft_client.max_retries + 1
 
 
+@pytest.mark.asyncio
 class TestGetDetailOffer:
-    @pytest.mark.asyncio
     async def test_get_detail_raises_error_if_reference_is_missing(
         self, talentsoft_client
     ):
@@ -197,7 +196,6 @@ class TestGetDetailOffer:
 
         assert exc_info.value.api_name == "Talentsoft Front API"
 
-    @pytest.mark.asyncio
     async def test_get_detail_raises_error_if_reference_is_unknown(
         self, talentsoft_client
     ):
@@ -214,7 +212,6 @@ class TestGetDetailOffer:
 
             assert exc_info.value.api_name == "Talentsoft Front API"
 
-    @pytest.mark.asyncio
     async def test_get_detail_raises_error_if_response_is_malformed(
         self, talentsoft_client
     ):
@@ -231,7 +228,6 @@ class TestGetDetailOffer:
 
             assert exc_info.value.api_name == "Talentsoft Front API"
 
-    @pytest.mark.asyncio
     async def test_get_detail_fails_due_to_unauthorized_token(self, talentsoft_client):
         response_data = detail_offer_response()
 
@@ -269,7 +265,6 @@ class TestGetDetailOffer:
             assert mock_get.call_count == 2  # noqa - First failed, second succeeded
             mock_post.assert_called_once()  # Token refresh called
 
-    @pytest.mark.asyncio
     async def test_get_detail_fails_after_max_retries_attempts(self, talentsoft_client):
         failed_response = mocked_response(status_code=500)
         failed_response.raise_for_status.side_effect = Exception(
