@@ -1,5 +1,6 @@
 import logging
 
+from drf_spectacular.utils import extend_schema
 from huey.contrib.djhuey import HUEY
 from rest_framework import status
 from rest_framework.response import Response
@@ -8,6 +9,7 @@ from rest_framework.views import APIView
 logger = logging.getLogger(__name__)
 
 
+@extend_schema(exclude=True)
 class HueyHealthView(APIView):
     def get(self, request):
         try:
