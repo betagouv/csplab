@@ -97,8 +97,7 @@ class PisteClient(AsyncHttpClient):
             response.raise_for_status()
             return response
         except httpx.HTTPStatusError as err:
-            error_msg = "INGRES API error: %d"
-            self.logger.error(error_msg, response.status_code)
+            self.logger.error("INGRES API error: %d", response.status_code)
             raise ExternalApiError(
                 f"INGRES API error: {response.status_code}",
                 status_code=response.status_code,
