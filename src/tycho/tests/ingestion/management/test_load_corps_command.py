@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from django.core.management import call_command
 
-_CMD_MODULE = "infrastructure.django_apps.ingestion.management.commands.load_corps"
+_CMD_MODULE = "presentation.ingestion.management.commands.load_corps"
 
 
 @pytest.fixture

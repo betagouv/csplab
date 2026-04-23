@@ -8,9 +8,7 @@ from domain.entities.document import DocumentType
 
 VECTORIZE_LIMIT = 5
 
-_CMD_MODULE = (
-    "infrastructure.django_apps.ingestion.management.commands.vectorize_documents"
-)
+_CMD_MODULE = "presentation.ingestion.management.commands.vectorize_documents"
 
 
 @pytest.fixture
