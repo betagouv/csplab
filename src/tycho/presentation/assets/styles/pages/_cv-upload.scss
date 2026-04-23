@@ -1,13 +1,7 @@
 @use "../abstracts" as *;
 
-.csplab-cv-uploaded__actions {
-  display: flex;
-  flex-direction: column;
-  gap: $sp-2w;
-
+.csplab-upload-btn {
   @include md {
-    flex-direction: row;
-    align-items: center;
-    gap: $sp-3w;
+    min-width: 24rem;
   }
 }

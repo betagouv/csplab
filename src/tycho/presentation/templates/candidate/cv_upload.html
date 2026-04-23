@@ -30,14 +30,15 @@
         <div class="fr-container">
             <!-- Header -->
             <div class="fr-grid-row fr-grid-row--gutters">
-                <div class="fr-col-12 fr-col-md-6 fr-col-offset-md-2 fr-stack-3w">
-                    <h1>Analyse de profil</h1>
-                    <p class="fr-text--xl">
-                        Grâce à votre CV, découvrez en quelques secondes les concours et les offres d'emploi de la fonction publique les plus adaptés à votre profil.
+                <div class="fr-col-12 fr-col-md-6 fr-col-offset-md-2 fr-stack-3v">
+                    <h1 class="fr-h2">Importez votre CV</h1>
+                    <p class="fr-text--lg fr-hidden fr-unhidden-md">
+                        Découvrez les concours et les offres d'emploi de la fonction publique les plus adaptés à votre profil.
                     </p>
                 </div>
-                <div class="fr-col fr-col-6 fr-col-offset-3 fr-col-md-2 csplab-col-offset-md-0">
-                    <img src="{% static 'candidate/images/illustrations-csp/home-assis-11.svg' %}"
+                <div class="fr-col fr-col-6 fr-col-offset-3 fr-col-md-2 csplab-col-offset-md-0 csplab-relative fr-hidden fr-unhidden-md">
+                    <img class="csplab-absolute-center"
+                         src="{% static 'candidate/images/illustrations-csp/home-assis-11.svg' %}"
                          height="180"
                          width="180"
                          alt=""
@@ -45,16 +46,18 @@
                 </div>
             </div>
         </div>
-        <div class="fr-container fr-pt-3w fr-pb-12w">
-            <div class="fr-grid-row fr-grid-row--gutters">
+        <div class="fr-container fr-pt-md-5w fr-pb-5w fr-pb-md-12w">
+            <div class="fr-grid-row fr-grid-row--gutters fr">
                 <div class="fr-col-12 fr-col-md-8 fr-col-offset-md-2">
                     <!-- Upload section -->
                     <div class="fr-stack-2w">
-                        <hgroup class="fr-stack-1w">
-                            <h2 class="fr-h5">Ajouter votre CV</h2>
-                            <p class="fr-text--sm">Afin d'avoir un résultat pertinent, nous vous conseillons d'ajouter un CV à jour.</p>
-                        </hgroup>
-                        <form method="post" enctype="multipart/form-data" id="cv-upload-form">
+                        <p class="fr-text--xs fr-text-mention--grey">
+                            Nous vous conseillons d’importer un CV à jour, afin d’avoir un résultat pertinent. Le CV importé reste strictement confidentiel.
+                        </p>
+                        <form method="post"
+                              enctype="multipart/form-data"
+                              id="cv-upload-form"
+                              class="fr-stack-2w fr-mt-4w fr-mt-md-0">
                             {% csrf_token %}
                             {% include "components/file_upload.html" with field=form.cv_file dropzone_text="Glissez-déposez votre CV ou" %}
                             <!-- No-JS / mobile: hidden until file selected -->
@@ -64,6 +67,23 @@
                         </form>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="fr-container fr-mt-4w fr-mb-6w fr-hidden-md">
+        <div class="fr-grid-row fr-grid-row--gutters">
+            <div class="fr-col-12">
+                <p class="fr-text--lg">
+                    Découvrez les concours et les offres d'emploi de la fonction publique les plus adaptés à votre profil.
+                </p>
+            </div>
+            <div class="fr-col-6">
+                <img class=""
+                     src="{% static 'candidate/images/illustrations-csp/home-assis-11.svg' %}"
+                     height="180"
+                     width="180"
+                     alt=""
+                     aria-hidden="true">
             </div>
         </div>
     </div>
