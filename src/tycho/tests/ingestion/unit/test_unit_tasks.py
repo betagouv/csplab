@@ -6,7 +6,8 @@ from huey.api import PeriodicTask
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import DocumentType
-from infrastructure.django_apps.ingestion.tasks import (
+from infrastructure.exceptions.exceptions import TaskError
+from presentation.ingestion.tasks import (
     clean_concours,
     clean_corps,
     clean_documents,
@@ -21,7 +22,6 @@ from infrastructure.django_apps.ingestion.tasks import (
     vectorize_documents,
     vectorize_offers,
 )
-from infrastructure.exceptions.exceptions import TaskError
 
 
 @pytest.fixture

@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 
 from domain.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
-from infrastructure.django_apps.ingestion.tasks import clean_documents
+from presentation.ingestion.tasks import clean_documents
 
 
 class Command(BaseCommand):
