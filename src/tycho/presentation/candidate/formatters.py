@@ -14,7 +14,7 @@ CATEGORY_DISPLAY: dict[Category, str] = {
 }
 
 VERSE_DISPLAY: dict[Verse, str] = {
-    Verse.FPE: "Fonction publique d'État",
+    Verse.FPE: "Fonction publique de l'État",
     Verse.FPT: "Fonction publique Territoriale",
     Verse.FPH: "Fonction publique Hospitalière",
 }
@@ -38,7 +38,7 @@ def format_category_display(category: Category | None) -> str:
 
 
 def format_verse_display(verse: Verse | None) -> str:
-    """Format verse for display (e.g., 'Fonction publique d'État')."""
+    """Format verse for display (e.g., 'Fonction publique de l'État')."""
     if not verse:
         return ""
     return VERSE_DISPLAY.get(verse, "")
