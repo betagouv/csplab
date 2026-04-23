@@ -13,7 +13,12 @@ from qdrant_client.http.models import (
 from config.app_config import QdrantConfig
 from domain.entities.document import DocumentType
 from domain.entities.vectorized_document import VectorizedDocument
-from domain.repositories.vector_repository_interface import IFilters, IVectorRepository
+from domain.repositories.vector_repository_interface import (
+    IDeleteError,
+    IDeleteResult,
+    IFilters,
+    IVectorRepository,
+)
 from domain.services.logger_interface import ILogger
 from domain.value_objects.similarity_type import (
     SimilarityMetric,
@@ -145,6 +150,25 @@ class QdrantRepository(IVectorRepository):
         except Exception as e:
             self.logger.error(f"Unexpected error during upsert: {str(e)}")
             raise ExternalApiError(str(e)) from e
+
+    def delete_vectorized_documents(self, list_ids: List[UUID]) -> IDeleteResult:
+        deleted_count = 0
+        errors: List[IDeleteError] = []
+
+        for entity_id in list_ids:
+            try:
+                self.client.delete(
+                    collection_name=self.collection_name,
+                    points_selector=[str(entity_id)],
+                )
+                deleted_count += 1
+            except Exception as e:
+                self.logger.error(f"Error deleting document {entity_id}: {str(e)}")
+                errors.append(
+                    IDeleteError(entity_id=entity_id, error=str(e), exception=e)
+                )
+
+        return {"deleted": deleted_count, "errors": errors}
 
     def _build_filter(self, filters: Optional[Dict[str, Any]]) -> Optional[Filter]:
         # - `must=[]` : conditions AND
