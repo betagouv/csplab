@@ -1,5 +1,3 @@
-from typing import Literal
-
 from django.conf import settings
 from pydantic import BaseModel, HttpUrl
 
@@ -52,7 +50,6 @@ class OCRConfig(BaseModel):
 
 class AppConfig(BaseModel):
     # Embedding
-    embedding_type: Literal["ALBERT", "OPENAI"]
     embedding_dimension: int
 
     # Albert
@@ -89,7 +86,6 @@ class AppConfig(BaseModel):
     @classmethod
     def from_django_settings(cls) -> "AppConfig":
         return cls(
-            embedding_type=settings.EMBEDDING_TYPE,
             embedding_dimension=settings.EMBEDDING_DIMENSION,
             albert_api_base_url=settings.ALBERT_API_BASE_URL,
             albert_api_key=settings.ALBERT_API_KEY,
