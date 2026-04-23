@@ -6,11 +6,7 @@ from faker import Faker
 from config.app_config import AppConfig
 from domain.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
-from infrastructure.external_gateways.albert_embedding_generator import (
-    AlbertEmbeddingGenerator,
-)
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
-from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.ingestion.postgres_document_repository import (
     PostgresDocumentRepository,
@@ -221,21 +217,3 @@ def documents_integration_usecase_fixture(
     ingestion_integration_container,
 ):
     return ingestion_integration_container.load_documents_usecase()
-
-
-@pytest.fixture(name="ingestion_integration_container_albert")
-def ingestion_integration_container_albert_fixture(
-    db, test_app_config, talentsoft_front_client
-):
-    http_client = SyncHttpClient()
-    albert_embedding_generator = AlbertEmbeddingGenerator(
-        config=test_app_config.albert, http_client=http_client
-    )
-
-    # Use factory with Albert embedding generator
-    return _create_ingestion_container(
-        test_app_config,
-        talentsoft_front_client,
-        in_memory=False,
-        embedding_generator=albert_embedding_generator,
-    )

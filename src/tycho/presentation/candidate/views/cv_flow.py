@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from collections.abc import Sequence
 from uuid import UUID
@@ -124,10 +125,12 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         try:
             usecase = self.container.match_cv_to_opportunities_usecase()
             domain_filters = self._filters_mapper.to_domain(request.GET)
-            self._opportunities = usecase.execute(
-                cv_metadata=cv_metadata,
-                filters=domain_filters,
-                limit=settings.CV_MAX_OPPORTUNITIES,
+            self._opportunities = asyncio.run(
+                usecase.execute(
+                    cv_metadata=cv_metadata,
+                    filters=domain_filters,
+                    limit=settings.CV_MAX_OPPORTUNITIES,
+                )
             )
         except Exception:
             self._status = CVStatus.FAILED

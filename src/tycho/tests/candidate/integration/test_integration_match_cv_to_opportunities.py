@@ -12,10 +12,6 @@ from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.shared.models.concours import ConcoursModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
-from infrastructure.external_gateways.albert_embedding_generator import (
-    AlbertEmbeddingGenerator,
-)
-from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.offer_factory import OfferFactory
@@ -51,13 +47,6 @@ def _integration_candidate_container():
     # Add logger service to shared container
     logger_service = LoggerService()
     shared_container.logger_service.override(logger_service)
-
-    # Use mock embedding generator for consistent test results
-    http_client = SyncHttpClient()
-    embedding_generator = AlbertEmbeddingGenerator(
-        config=app_config.albert, http_client=http_client
-    )
-    shared_container.embedding_generator.override(embedding_generator)
 
     # Use shared Qdrant repository fixture
     shared_container.vector_repository.override(shared_qdrant_repository)

@@ -12,10 +12,6 @@ from domain.value_objects.similarity_type import SimilarityMetric, SimilarityTyp
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.albert_embedding_generator import (
-    AlbertEmbeddingGenerator,
-)
-from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_concours_repository import (
     PostgresConcoursRepository,
@@ -80,12 +76,6 @@ def vectorize_integration_container(db):
     container.logger_service.override(logger_service)
     container.app_config.override(app_config)
     container.shared_container.app_config.override(app_config)
-
-    http_client = SyncHttpClient()
-    albert_embedding_generator = AlbertEmbeddingGenerator(
-        config=app_config.albert, http_client=http_client
-    )
-    container.shared_container.embedding_generator.override(albert_embedding_generator)
 
     postgres_corps_repo = PostgresCorpsRepository(logger_service)
     container.shared_container.corps_repository.override(postgres_corps_repo)

@@ -31,7 +31,9 @@ class VectorizeDocumentsUsecase:
         self.logger = logger
         self.repository_factory = repository_factory
 
-    def execute(self, document_type: DocumentType, limit: int = 250) -> Dict[str, Any]:
+    async def execute(
+        self, document_type: DocumentType, limit: int = 250
+    ) -> Dict[str, Any]:
         self.logger.info(
             "Starting vectorization of %d document type: %s,", limit, document_type
         )
@@ -52,7 +54,8 @@ class VectorizeDocumentsUsecase:
 
         for source in sources:
             try:
-                vectorized_documents.append(self.vectorize_single_source(source))
+                vectorized_document = await self.vectorize_single_source(source)
+                vectorized_documents.append(vectorized_document)
                 successful_sources.append(source)
             except Exception as e:
                 self.logger.error("Failed to vectorize source: %s", str(e))
@@ -78,13 +81,13 @@ class VectorizeDocumentsUsecase:
 
         return results
 
-    def vectorize_single_source(
+    async def vectorize_single_source(
         self, source: Union[Document, IEntity]
     ) -> VectorizedDocument:
         content = self.text_extractor.extract_content(source)
         metadata = self.text_extractor.extract_metadata(source)
 
-        embedding = self.embedding_generator.generate_embedding(content)
+        embedding = await self.embedding_generator.generate_embedding(content)
 
         if isinstance(source, Document):
             entity_id = source.id

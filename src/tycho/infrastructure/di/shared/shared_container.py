@@ -3,7 +3,7 @@ from dependency_injector import containers, providers
 from infrastructure.external_gateways.albert_embedding_generator import (
     AlbertEmbeddingGenerator,
 )
-from infrastructure.gateways.shared.http_client import SyncHttpClient
+from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
 from infrastructure.repositories.shared import (
     postgres_concours_repository,
     postgres_corps_repository,
@@ -37,8 +37,7 @@ class SharedContainer(containers.DeclarativeContainer):
         logger=logger_service,
     )
 
-    # HTTP client for sync operations
-    http_client = providers.Singleton(SyncHttpClient)
+    http_client = providers.Singleton(AsyncHttpClient)
 
     embedding_generator = providers.Singleton(
         AlbertEmbeddingGenerator,

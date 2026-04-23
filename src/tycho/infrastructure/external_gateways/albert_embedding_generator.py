@@ -3,33 +3,33 @@ from typing import List
 from pydantic import ValidationError
 
 from config.app_config import AlbertConfig
+from domain.services.async_http_client_interface import IAsyncHttpClient
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
-from domain.services.http_client_interface import IHttpClient
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dtos.albert_types import AlbertEmbeddingResponse
 
 
 class AlbertEmbeddingGenerator(IEmbeddingGenerator):
-    def __init__(self, config: AlbertConfig, http_client: IHttpClient):
+    def __init__(self, config: AlbertConfig, http_client: IAsyncHttpClient):
         self.config = config
         self.http_client = http_client
 
-    def generate_embedding(self, text: str) -> List[float]:
+    async def generate_embedding(self, text: str) -> List[float]:
         if not text.strip():
             raise ValueError("Text content cannot be empty")
 
-        response = self.http_client.request(
-            method="POST",
-            url=f"{self.config.api_base_url}v1/embeddings",
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.config.api_key}",
-            },
-            json={
-                "input": text,
-                "model": "openweight-embeddings",
-            },
-        )
+        async with self.http_client as client:
+            response = await client.post(
+                url=f"{self.config.api_base_url}v1/embeddings",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self.config.api_key}",
+                },
+                json={
+                    "input": text,
+                    "model": "openweight-embeddings",
+                },
+            )
 
         try:
             response.raise_for_status()
