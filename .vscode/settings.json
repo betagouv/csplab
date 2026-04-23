@@ -34,7 +34,7 @@
   "python.testing.unittestEnabled": false,
   "python.testing.pytestArgs": ["."],
   "python.testing.cwd": "${workspaceFolder}/src/tycho",
-  "python.defaultInterpreterPath": "src/tycho/.venv/bin/python",
+  "python.defaultInterpreterPath": "${workspaceFolder}/src/tycho/.venv/bin/python",
   "python.terminal.activateEnvironment": true,
   "python.envFile": "${workspaceFolder}/env.d/tycho",
   "files.trimTrailingWhitespace": true,
