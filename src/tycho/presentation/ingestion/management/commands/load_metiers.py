@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
-from infrastructure.django_apps.ingestion.tasks import load_metiers
+from presentation.ingestion.tasks import load_metiers
 
 
 class Command(BaseCommand):

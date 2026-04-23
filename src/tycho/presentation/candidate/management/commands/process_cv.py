@@ -11,8 +11,6 @@ from infrastructure.di.candidate.candidate_factory import create_candidate_conta
 
 
 class Command(BaseCommand):
-    """Django management command to process a CV PDF file."""
-
     help = "Process a CV PDF file using ProcessUploadedCVUsecase"
 
     def __init__(self, *args, **kwargs):
@@ -34,7 +32,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Handle the command execution."""
         pdf_file_path = options["pdf_file"]
         verbose = options["verbose"]
 

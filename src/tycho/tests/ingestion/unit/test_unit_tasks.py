@@ -6,7 +6,8 @@ from huey.api import PeriodicTask
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import DocumentType
-from infrastructure.django_apps.ingestion.tasks import (
+from infrastructure.exceptions.exceptions import TaskError
+from presentation.ingestion.tasks import (
     clean_concours,
     clean_corps,
     clean_documents,
@@ -21,13 +22,12 @@ from infrastructure.django_apps.ingestion.tasks import (
     vectorize_documents,
     vectorize_offers,
 )
-from infrastructure.exceptions.exceptions import TaskError
 
 
 @pytest.fixture
 def mock_container():
     with patch(
-        "infrastructure.django_apps.ingestion.tasks.create_ingestion_container"
+        "presentation.ingestion.tasks.create_ingestion_container"
     ) as mock_factory:
         mock_container = MagicMock()
         mock_factory.return_value = mock_container
