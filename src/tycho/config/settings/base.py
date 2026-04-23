@@ -21,10 +21,6 @@ env = environ.Env(
     TYCHO_OCR_TYPE=(str, "ALBERT"),
     TYCHO_EMBEDDING_TYPE=(str, "ALBERT"),
     TYCHO_EMBEDDING_DIMENSION=(int, 1024),
-    TYCHO_OPENROUTER_API_KEY=(str, "fake-api-key"),
-    TYCHO_OPENROUTER_BASE_URL=(str, "https://api.openai.com/v1"),
-    TYCHO_OPENROUTER_EMBEDDING_MODEL=(str, "text-embedding-3-small"),
-    TYCHO_OPENROUTER_OCR_MODEL=(str, "openai/gpt-5.2"),
     TYCHO_ALBERT_API_BASE_URL=(str, "https://albert.api.etalab.gouv.fr"),
     TYCHO_ALBERT_API_KEY=(str, "albert-api-key"),
     TYCHO_ALBERT_MODEL=(str, "openweight-large"),
@@ -329,11 +325,6 @@ INGRES_CLIENT_SECRET = env.str("INGRES_CLIENT_SECRET")
 OCR_TYPE = env.str("OCR_TYPE")
 EMBEDDING_TYPE = env.str("EMBEDDING_TYPE")
 EMBEDDING_DIMENSION = env.int("EMBEDDING_DIMENSION")
-
-OPENROUTER_BASE_URL = env.str("OPENROUTER_BASE_URL")
-OPENROUTER_API_KEY = env.str("OPENROUTER_API_KEY")
-OPENROUTER_EMBEDDING_MODEL = env.str("OPENROUTER_EMBEDDING_MODEL")
-OPENROUTER_OCR_MODEL = env.str("OPENROUTER_OCR_MODEL")
 
 ALBERT_API_BASE_URL = env.str("ALBERT_API_BASE_URL")
 ALBERT_API_KEY = env.str("ALBERT_API_KEY")

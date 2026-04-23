@@ -58,12 +58,6 @@ class AppConfig(BaseModel):
     embedding_type: Literal["ALBERT", "OPENAI"]
     embedding_dimension: int
 
-    # OpenAI/OpenRouter
-    openrouter_api_key: str
-    openrouter_base_url: HttpUrl
-    openrouter_embedding_model: str
-    openrouter_ocr_model: str
-
     # Albert
     albert_api_base_url: HttpUrl
     albert_api_key: str
@@ -101,10 +95,6 @@ class AppConfig(BaseModel):
             ocr_type=settings.OCR_TYPE,
             embedding_type=settings.EMBEDDING_TYPE,
             embedding_dimension=settings.EMBEDDING_DIMENSION,
-            openrouter_api_key=settings.OPENROUTER_API_KEY,
-            openrouter_base_url=settings.OPENROUTER_BASE_URL,
-            openrouter_embedding_model=settings.OPENROUTER_EMBEDDING_MODEL,
-            openrouter_ocr_model=settings.OPENROUTER_OCR_MODEL,
             albert_api_base_url=settings.ALBERT_API_BASE_URL,
             albert_api_key=settings.ALBERT_API_KEY,
             albert_model=settings.ALBERT_MODEL,
@@ -123,15 +113,6 @@ class AppConfig(BaseModel):
             ocr_api_key=settings.OCR_API_KEY,
             ocr_base_url=settings.OCR_BASE_URL,
             opik_api_key=settings.OPIK_API_KEY,
-        )
-
-    @property
-    def openai(self) -> OpenAIConfig:
-        return OpenAIConfig(
-            api_key=self.openrouter_api_key,
-            base_url=self.openrouter_base_url,
-            embedding_model=self.openrouter_embedding_model,
-            ocr_model=self.openrouter_ocr_model,
         )
 
     @property
