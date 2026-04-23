@@ -15,4 +15,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.logger.info("Enqueuing load task for CORPS...")
         load_corps()
-        self.logger.info(self.style.SUCCESS("✅ Task enqueued successfully."))
+        self.logger.info("✅ Task enqueued successfully.")

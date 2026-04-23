@@ -32,4 +32,4 @@ class Command(BaseCommand):
 
         self.logger.info("Enqueuing load task for OFFERS...")
         load_offers(reload=reload, batch_size=batch_size)
-        self.logger.info(self.style.SUCCESS("✅ Task enqueued successfully."))
+        self.logger.info("✅ Task enqueued successfully.")

@@ -15,6 +15,11 @@ class Command(BaseCommand):
 
     help = "Process a CV PDF file using ProcessUploadedCVUsecase"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.container = create_candidate_container()
+        self.logger = self.container.logger_service()
+
     def add_arguments(self, parser):
         """Add command arguments."""
         parser.add_argument(
@@ -45,30 +50,28 @@ class Command(BaseCommand):
             with open(pdf_file_path, "rb") as f:
                 pdf_content = f.read()
 
-            self.stdout.write(f"Processing CV: {filename}")
-            self.stdout.write(f"File size: {len(pdf_content)} bytes")
+            self.logger.info("Processing CV: %s", filename)
+            self.logger.info("File size: %d bytes", len(pdf_content))
 
-            container = create_candidate_container()
-            usecase = container.process_uploaded_cv_usecase()
+            usecase = self.container.process_uploaded_cv_usecase()
 
             cv_id = usecase.execute(filename, pdf_content)
 
-            self.stdout.write(self.style.SUCCESS("✅ CV processed successfully!"))
-            self.stdout.write(f"CV ID: {cv_id}")
+            self.logger.info("CV processed successfully! CV ID: %s", cv_id)
 
             if verbose:
-                cv_repo = container.postgres_cv_metadata_repository()
+                cv_repo = self.container.postgres_cv_metadata_repository()
                 cv_metadata = cv_repo.find_by_id(cv_id)
 
                 if cv_metadata:
-                    self.stdout.write("\n📄 Extracted data:")
-                    self.stdout.write(
+                    self.logger.info("Extracted data:")
+                    self.logger.info(
                         json.dumps(
                             cv_metadata.extracted_text, indent=2, ensure_ascii=False
                         )
                     )
-                    self.stdout.write(f"\n🔍 Search query: {cv_metadata.search_query}")
-                    self.stdout.write(f"📅 Created at: {cv_metadata.created_at}")
+                    self.logger.info("Search query: %s", cv_metadata.search_query)
+                    self.logger.info("Created at: %s", cv_metadata.created_at)
 
         except CVError as e:
             raise CommandError(f"CV processing error: {e}") from e

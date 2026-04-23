@@ -34,4 +34,4 @@ class Command(BaseCommand):
             document_type.value,
         )
         clean_documents(document_type)
-        self.logger.info(self.style.SUCCESS("✅ Task enqueued successfully."))
+        self.logger.info("✅ Task enqueued successfully.")
