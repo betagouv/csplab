@@ -29,19 +29,19 @@ class ProcessUploadedCVUsecase:
         self._logger = logger
 
     async def execute(self, cv_uuid: UUID, pdf_content: bytes) -> CVMetadata:
-        self._logger.info(f"Starting CV processing for UUID: {cv_uuid}")
+        self._logger.info("Starting CV processing for UUID: %s", cv_uuid)
 
         # Retrieve existing CV metadata
         cv_metadata = await self._async_cv_metadata_repository.find_by_id(cv_uuid)
         if not cv_metadata:
-            self._logger.error(f"CV metadata not found for UUID: {cv_uuid}")
+            self._logger.error("CV metadata not found for UUID: %s", cv_uuid)
             raise CVNotFoundError(str(cv_uuid))
 
         extracted_text = None
         try:
             extracted_text = await self._ocr.extract_text(pdf_content)
         except Exception as e:
-            self._logger.error(f"Text extraction failed: {str(e)}")
+            self._logger.error("Text extraction failed: %s", str(e))
             cv_metadata.status = CVStatus.FAILED
             cv_metadata.updated_at = datetime.now(timezone.utc)
             await self._async_cv_metadata_repository.save(cv_metadata)
@@ -50,7 +50,7 @@ class ProcessUploadedCVUsecase:
         try:
             formatted_text = await self._text_formatter.format_text(extracted_text)
         except Exception as e:
-            self._logger.error(f"Text formatting failed: {str(e)}")
+            self._logger.error("Text formatting failed: %s", str(e))
             cv_metadata.status = CVStatus.FAILED
             cv_metadata.updated_at = datetime.now(timezone.utc)
             await self._async_cv_metadata_repository.save(cv_metadata)
@@ -85,5 +85,5 @@ class ProcessUploadedCVUsecase:
 
         # Save updated CV metadata
         saved_cv = await self._async_cv_metadata_repository.save(cv_metadata)
-        self._logger.info(f"CV metadata updated with status: {saved_cv.status}")
+        self._logger.info("CV metadata updated with status: %s", saved_cv.status)
         return saved_cv

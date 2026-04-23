@@ -133,7 +133,9 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             )
             offer.id = existing_offer.id  # Preserve existing ID for updates
         except OfferDoesNotExist:
-            self.logger.info(f"Creating new Offer with external_id {offer.external_id}")
+            self.logger.info(
+                "Creating new Offer with external_id %s", offer.external_id
+            )
 
         return offer
 

@@ -50,7 +50,9 @@ class PostgresCorpsRepository(ICorpsRepository):
                     updated += 1
 
             except Exception as e:
-                self.logger.error(f"Failed to save Corps entity {entity.id}: {str(e)}")
+                self.logger.error(
+                    "Failed to save Corps entity %s: %s", entity.id, str(e)
+                )
                 error_detail: IUpsertError = {
                     "entity_id": entity.id,
                     "error": str(e),

@@ -41,8 +41,9 @@ class MatchCVToOpportunitiesUsecase(
         limit: int = 5,
     ) -> List[Tuple[Concours | Offer, float]]:
         self._logger.info(
-            f"Starting opportunity matching for cv_uuid='{cv_metadata.id}',"
-            f"limit={limit}"
+            "Starting opportunity matching for cv_uuid='%s', limit=%d",
+            cv_metadata.id,
+            limit,
         )
 
         if cv_metadata.status == CVStatus.FAILED or not cv_metadata.search_query:
@@ -96,7 +97,7 @@ class MatchCVToOpportunitiesUsecase(
             [(offer, offers_scores_by_id[offer.id]) for offer in offers_list]
         )
 
-        self._logger.info(f"Returning {len(opportunities)} opportunities")
+        self._logger.info("Returning %d opportunities", len(opportunities))
 
         sorted_opportunities = sorted(opportunities, key=lambda x: x[1], reverse=True)
         return sorted_opportunities

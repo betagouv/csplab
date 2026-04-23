@@ -238,7 +238,9 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
                 existing_concours = self.concours_repository.find_by_nor(nor_original)
                 concours.id = existing_concours.id
             except ConcoursDoesNotExist:
-                self.logger.info(f"Creating new Concours with NOR {nor_original.value}")
+                self.logger.info(
+                    "Creating new Concours with NOR %s", nor_original.value
+                )
             concours_list.append(concours)
             counter += 1  # Increment counter for next concours
 
