@@ -4,11 +4,11 @@
             <h2 id="drawer-title" data-drawer-title class="fr-h4">{{ opportunity.title }}</h2>
             {% include "candidate/components/_opportunity_body.html" %}
         </div>
-        {% include "candidate/components/_opportunity_feedback.html" with opportunity_id=opportunity.opportunity_id opportunity_type=opportunity.opportunity_type %}
     </div>
 </div>
 <footer class="csplab-drawer__footer">
     <div class="fr-background-alt--grey fr-p-3w fr-stack-2w">
         {% include "candidate/components/_opportunity_cta.html" %}
+        {% include "candidate/components/_opportunity_feedback.html" with opportunity_id=opportunity.opportunity_id opportunity_type=opportunity.opportunity_type %}
     </div>
 </footer>

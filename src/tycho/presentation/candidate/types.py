@@ -50,5 +50,4 @@ class DrawerContext(TypedDict):
     category_display: str
     url: str
     accordions: list[AccordionItem]
-    cta_heading: str
     cta_label: str
