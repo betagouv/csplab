@@ -6,7 +6,7 @@ from django.core.management.base import CommandError
 
 from domain.entities.document import DocumentType
 
-_CMD_MODULE = "infrastructure.django_apps.ingestion.management.commands.clean_documents"
+_CMD_MODULE = "presentation.ingestion.management.commands.clean_documents"
 
 
 @pytest.fixture

@@ -1,5 +1,3 @@
-"""Candidate dependency injection container."""
-
 from dependency_injector import containers, providers
 
 from application.candidate.usecases.initialize_cv_metadata import (
@@ -9,7 +7,6 @@ from application.candidate.usecases.match_cv_to_opportunities import (
     MatchCVToOpportunitiesUsecase,
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
-from application.candidate.usecases.retrieve_corps import RetrieveCorpsUsecase
 from infrastructure.external_gateways.albert_text_formatter import AlbertTextFormatter
 from infrastructure.external_gateways.ocr_extractor import OCRExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
@@ -23,8 +20,6 @@ from infrastructure.repositories.candidate.postgres_cv_metadata_repository impor
 
 
 class CandidateContainer(containers.DeclarativeContainer):
-    """Candidate services container."""
-
     app_config: providers.Dependency = providers.Dependency()
     logger_service: providers.Dependency = providers.Dependency()
 
@@ -55,14 +50,6 @@ class CandidateContainer(containers.DeclarativeContainer):
         AsyncPostgresCVMetadataRepository
     )
     postgres_cv_metadata_repository = providers.Singleton(PostgresCVMetadataRepository)
-
-    retrieve_corps_usecase = providers.Factory(
-        RetrieveCorpsUsecase,
-        vector_repository=vector_repository,
-        embedding_generator=embedding_generator,
-        corps_repository=corps_repository,
-        logger=logger_service,
-    )
 
     initialize_cv_metadata_usecase = providers.Factory(
         InitializeCVMetadataUsecase,
