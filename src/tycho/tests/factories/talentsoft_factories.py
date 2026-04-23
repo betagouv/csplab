@@ -3,6 +3,12 @@ from typing import List, Optional
 from faker import Faker
 from polyfactory.factories.pydantic_factory import ModelFactory
 
+from infrastructure.external_gateways.dtos.talentsoft_back_dtos import (
+    TalentsoftBackCodedObject,
+    TalentsoftBackOrganisation,
+    TalentsoftBackVacanciesResponse,
+    TalentsoftBackVacancy,
+)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftCodedObject,
     TalentsoftCustomFields,
@@ -296,3 +302,126 @@ class TalentsoftOffersResponseFactory(ModelFactory[TalentsoftOffersResponse]):
     @classmethod
     def pagination(cls) -> TalentsoftPagination:
         return TalentsoftPaginationFactory.build()
+
+
+class TalentsoftBackCodedObjectFactory(ModelFactory[TalentsoftBackCodedObject]):
+    __model__ = TalentsoftBackCodedObject
+    __faker__ = _fake
+
+    id = None
+    label = None
+
+
+class TalentsoftBackOrganisationFactory(ModelFactory[TalentsoftBackOrganisation]):
+    __model__ = TalentsoftBackOrganisation
+    __faker__ = _fake
+
+    @classmethod
+    def id(cls) -> str:
+        return _fake.numerify("###")
+
+    @classmethod
+    def label(cls) -> str:
+        return _fake.company()
+
+
+class TalentsoftBackVacancyFactory(ModelFactory[TalentsoftBackVacancy]):
+    __model__ = TalentsoftBackVacancy
+    __faker__ = _fake
+
+    contractLength = None
+    address = None
+
+    @classmethod
+    def reference(cls) -> str:
+        return _fake.numerify("20##-#######")
+
+    @classmethod
+    def title(cls) -> str:
+        return _fake.job().upper()
+
+    @classmethod
+    def languageId(cls) -> int:
+        return 1
+
+    @classmethod
+    def status(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def jobTime(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def salaryRange(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def contractType(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def primaryProfile(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def geographicalArea(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def country(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def region(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def department(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def diploma(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def educationLevel(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def experienceLevel(cls) -> TalentsoftBackCodedObject:
+        return TalentsoftBackCodedObjectFactory.build()
+
+    @classmethod
+    def organisation(cls) -> TalentsoftBackOrganisation:
+        return TalentsoftBackOrganisationFactory.build()
+
+    @classmethod
+    def modificationDate(cls) -> str:
+        return _fake.date_time_this_year().strftime("%Y-%m-%dT%H:%M:%S")
+
+    @classmethod
+    def creationDate(cls) -> str:
+        return _fake.date_time_this_year().strftime("%Y-%m-%dT%H:%M:%S")
+
+    @classmethod
+    def vacancyUrl(cls) -> str:
+        ref = _fake.numerify("20##-#######")
+        return f"https://fake-ats.com/vacancy/{ref}"
+
+
+class TalentsoftBackVacanciesResponseFactory(
+    ModelFactory[TalentsoftBackVacanciesResponse]
+):
+    __model__ = TalentsoftBackVacanciesResponse
+
+    code = 200
+    status = "success"
+
+    @classmethod
+    def data(cls) -> List[TalentsoftBackVacancy]:
+        return TalentsoftBackVacancyFactory.batch(size=2)
+
+    @classmethod
+    def content_range(cls) -> str:
+        return "0-2/2"
