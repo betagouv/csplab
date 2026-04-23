@@ -39,7 +39,6 @@ fake = Faker()
 class TestIntegrationCorpsLoadDocumentsUseCase:
     @pytest.fixture(name="documents_integration_usecase")
     def documents_integration_usecase_fixture(self, test_app_config):
-
         container = IngestionContainer()
         logger_service = LoggerService()
 
@@ -163,7 +162,7 @@ def authenticated_client_fixture(api_client, user):
 
 
 class TestHueyHealthView:
-    url = reverse("ingestion:health-huey")
+    url = reverse("ingestion:health_huey")
 
     def test_success_response(self, authenticated_client):
         response = authenticated_client.get(self.url)
@@ -208,7 +207,7 @@ def make_csv_file(content, filename="test.csv"):
 
 
 class TestConcoursUploadView:
-    url = reverse("ingestion:concours-upload")
+    url = reverse("ingestion:concours_upload")
 
     def test_unauthenticated_access(self, api_client, valid_csv_content):
         response = api_client.post(
