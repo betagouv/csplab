@@ -1,14 +1,19 @@
 import asyncio
+from datetime import datetime
 from http import HTTPStatus
 from time import time
 from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 
 from pydantic import ValidationError
 
-from config.app_config import TalentsoftConfig
+from config.app_config import TalentsoftBackConfig, TalentsoftConfig
 from domain.services.async_http_client_interface import IAsyncHttpResponse
 from domain.services.logger_interface import ILogger
 from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.external_gateways.dtos.talentsoft_back_dtos import (
+    TalentsoftBackVacanciesResponse,
+    TalentsoftBackVacancy,
+)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
     TalentsoftDetailOffer,
@@ -22,24 +27,29 @@ TOKEN_ENDPOINT = "/api/token"  # noqa
 OFFERS_ENDPOINT = "/api/v2/offersummaries"
 DETAIL_OFFER_ENDPOINT = "/api/v2/offers/getoffer"
 
+VACANCIES_BACK_ENDPOINT = "/api/v1/vacancies"
 
-class TalentsoftFrontClient(AsyncHttpClient):
+
+class BaseTalentsoftClient(AsyncHttpClient):
+    api_name: str
+    token_scope: bool = False
+
     def __init__(
         self,
-        config: TalentsoftConfig,
-        logger_service: ILogger,
-        **kwargs,
+        base_url: str,
+        client_id: str,
+        client_secret: str,
+        logger: ILogger,
+        timeout: int = 30,
+        max_retries: int = 2,
     ):
-        timeout = kwargs.get("timeout", 30)
-        max_retries = kwargs.get("max_retries", 2)
-
         super().__init__(timeout=timeout)
-        self.base_url = str(config.base_url)
-        self.client_id = config.client_id
-        self.client_secret = config.client_secret
+        self.base_url = base_url
+        self.client_id = client_id
+        self.client_secret = client_secret
         self.max_retries = max_retries
+        self.logger = logger
         self.cached_token: Optional[CachedToken] = None
-        self.logger = logger_service
         self._token_lock = asyncio.Lock()
 
     async def _fetch_new_token(self) -> str:
@@ -48,30 +58,30 @@ class TalentsoftFrontClient(AsyncHttpClient):
             "Accept": "application/json",
             "Content-Type": "application/x-www-form-urlencoded",
         }
-        data = {
+        data: Dict[str, str] = {
             "grant_type": "client_credentials",
             "client_id": self.client_id,
             "client_secret": self.client_secret,
         }
+        if self.token_scope:
+            data["scope"] = "Customer"
 
         try:
             response = await self.post(url, headers=headers, data=data)
             response.raise_for_status()
             payload = response.json()
         except Exception as exc:
-            self.logger.error("Failed to fetch token from Talentsoft API Front")
+            self.logger.error("Failed to fetch token from %s", self.api_name)
             raise ExternalApiError(
-                message=f"Token request failed: {exc}", api_name="Talentsoft Front API"
+                message=f"Token request failed: {exc}", api_name=self.api_name
             ) from exc
 
         try:
-            typed_payload = cast(Dict[str, Any], payload)  # mypy
-            token_response = TalentsoftTokenResponse(**typed_payload)
+            token_response = TalentsoftTokenResponse(**cast(Dict[str, Any], payload))
         except ValidationError as exc:
             self.logger.error("Invalid token response format: %s", payload)
             raise ExternalApiError(
-                message=f"Invalid token response: {exc}",
-                api_name="Talentsoft Front API",
+                message=f"Invalid token response: {exc}", api_name=self.api_name
             ) from exc
 
         self.cached_token = CachedToken(
@@ -89,15 +99,10 @@ class TalentsoftFrontClient(AsyncHttpClient):
             return await self._fetch_new_token()
 
     def _build_auth_headers(self, token: str) -> Dict[str, str]:
-        return {
-            "Accept": "application/json",
-            "Authorization": f"Bearer {token}",
-        }
+        return {"Accept": "application/json", "Authorization": f"Bearer {token}"}
 
     async def _make_authenticated_request(
-        self,
-        url: str,
-        params: Mapping[str, int | str],
+        self, url: str, params: Mapping[str, int | str]
     ) -> IAsyncHttpResponse:
         token = await self.get_access_token()
 
@@ -124,21 +129,32 @@ class TalentsoftFrontClient(AsyncHttpClient):
             except Exception as exc:
                 if attempt == self.max_retries:
                     self.logger.error(
-                        "Failed to get response from Talentsoft API Front: %s", url
+                        "Failed to get response from %s: %s", self.api_name, url
                     )
                     raise ExternalApiError(
                         message=f"Request failed after retries: {exc}",
-                        api_name="Talentsoft Front API",
+                        api_name=self.api_name,
                     ) from exc
-
                 self.logger.warning(
                     "Request attempt %d failed, retrying: %s", attempt + 1, exc
                 )
 
-        # This should never be reached, but added for type safety
         raise ExternalApiError(
-            message="Unexpected end of retry loop",
-            api_name="Talentsoft Front API",
+            message="Unexpected end of retry loop", api_name=self.api_name
+        )
+
+
+class TalentsoftFrontClient(BaseTalentsoftClient):
+    api_name = "Talentsoft Front API"
+
+    def __init__(self, config: TalentsoftConfig, logger_service: ILogger, **kwargs):
+        super().__init__(
+            base_url=str(config.base_url),
+            client_id=config.client_id,
+            client_secret=config.client_secret,
+            logger=logger_service,
+            timeout=kwargs.get("timeout", 30),
+            max_retries=kwargs.get("max_retries", 2),
         )
 
     async def get_all(
@@ -155,7 +171,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
             pagination = typed_response.pagination
         except ValidationError as e:
             raise ExternalApiError(
-                f"Invalid response structure: {e}", api_name="Talentsoft Front API"
+                f"Invalid response structure: {e}", api_name=self.api_name
             ) from e
 
         has_more = pagination.hasMore
@@ -165,7 +181,7 @@ class TalentsoftFrontClient(AsyncHttpClient):
     async def get_detail(self, reference: str) -> TalentsoftDetailOffer:
         if not reference:
             raise ExternalApiError(
-                message="Reference is required", api_name="Talentsoft Front API"
+                message="Reference is required", api_name=self.api_name
             )
 
         url = f"{self.base_url}{DETAIL_OFFER_ENDPOINT}"
@@ -175,14 +191,75 @@ class TalentsoftFrontClient(AsyncHttpClient):
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise ExternalApiError(
                 message=f"Offer not found for reference: {reference}",
-                api_name="Talentsoft Front API",
+                api_name=self.api_name,
             )
 
         try:
             offer = TalentsoftDetailOffer.model_validate(response.json())
         except ValidationError as e:
             raise ExternalApiError(
-                f"Invalid response structure: {e}", api_name="Talentsoft Front API"
+                f"Invalid response structure: {e}", api_name=self.api_name
             ) from e
 
         return offer
+
+
+class TalentsoftBackClient(BaseTalentsoftClient):
+    api_name = "Talentsoft Back API"
+    token_scope = True
+
+    def __init__(self, config: TalentsoftBackConfig, logger_service: ILogger, **kwargs):
+        super().__init__(
+            base_url=str(config.base_url),
+            client_id=config.client_id,
+            client_secret=config.client_secret,
+            logger=logger_service,
+            timeout=kwargs.get("timeout", 30),
+            max_retries=kwargs.get("max_retries", 2),
+        )
+
+    def extract_count_from_content_range(self, content_range: str) -> int:
+        count_str = content_range.rsplit("/", maxsplit=1)[-1]
+        try:
+            count = int(count_str)
+        except ValueError as e:
+            raise ExternalApiError(
+                f"Invalid contentRange structure: {e}", api_name=self.api_name
+            ) from e
+        return count
+
+    async def get_vacancies(
+        self,
+        update_date: datetime,
+        date_operator: str = "gt",
+        status: str = "Archived,Suspended",
+        limit: int = 1000,
+        offset: int = 1,
+    ) -> Tuple[List[TalentsoftBackVacancy], bool]:
+        url = f"{self.base_url}{VACANCIES_BACK_ENDPOINT}"
+        update_date_str = (
+            update_date.strftime("%Y-%m-%dT%H:%M:%S.")
+            + f"{update_date.microsecond // 10000:02d}"
+        )
+        filter = f"vacancyStatus::{status}|updateDate:{date_operator}:{update_date_str}"
+        params: dict[str, int | str] = {
+            "limit": limit,
+            "offset": offset,
+            "filter": filter,
+        }
+
+        response = await self._make_authenticated_request(url, params)
+
+        try:
+            typed_response = TalentsoftBackVacanciesResponse.model_validate(
+                response.json()
+            )
+            offers = typed_response.data
+            count = self.extract_count_from_content_range(typed_response.content_range)
+            has_more = True if count >= limit + offset else False
+        except ValidationError as e:
+            raise ExternalApiError(
+                f"Invalid response structure: {e}", api_name=self.api_name
+            ) from e
+
+        return offers, has_more

@@ -25,6 +25,10 @@ TALENTSOFT_BASE_URL = "https://fake-talentsoft.example.com"
 TALENTSOFT_CLIENT_ID = "fake-client-id"
 TALENTSOFT_CLIENT_SECRET = "fake-client-secret"  # noqa S105
 
+TALENTSOFT_BACK_BASE_URL = "https://fake-talentsoft-back.example.com"
+TALENTSOFT_BACK_CLIENT_ID = "fake-client-id"
+TALENTSOFT_BACK_CLIENT_SECRET = "fake-client-secret"  # noqa S105
+
 SENTRY_DNS = "example.com"
 
 HUEY["immediate"] = False  # noqa: F405
