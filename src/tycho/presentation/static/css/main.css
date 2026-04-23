@@ -840,6 +840,13 @@ html[data-fr-js=true] .no-js-only {
   top: 0;
 }
 
+.csplab-absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .fr-alert {
   background-color: var(--background-default-grey);
 }
@@ -1215,16 +1222,9 @@ hr {
   gap: 2.5rem;
 }
 
-.csplab-cv-uploaded__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
 @media (min-width: 48em) {
-  .csplab-cv-uploaded__actions {
-    flex-direction: row;
-    align-items: center;
-    gap: 1.5rem;
+  .csplab-upload-btn {
+    min-width: 24rem;
   }
 }
 
@@ -1307,10 +1307,4 @@ hr {
   .csplab-processing .csplab-processing__message[data-message="1"] {
     opacity: 1;
   }
-}
-.corps-search {
-  margin-top: 1rem;
-}
-.corps-search #search-input-messages {
-  align-self: center;
 }
