@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from typing import Any, TypedDict
 
+from django.utils.functional import Promise
+
 
 class BreadcrumbLink(TypedDict):
     """Type definition for breadcrumb link."""
 
-    url: str
-    title: str
+    url: str | Promise
+    title: str | Promise
 
 
 class BreadcrumbMixin:
