@@ -182,7 +182,7 @@ class TestVectorizeTasks:
         mock_container.vectorize_documents_usecase.assert_not_called()
 
     def test_calls_usecase_and_logs(self, mock_container):
-        usecase = MagicMock()
+        usecase = AsyncMock()
         usecase.execute.return_value = {
             "vectorized": 9,
             "processed": 10,

@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Union, cast
 
+from asgiref.sync import async_to_sync
 from django.db import transaction
 
 from domain.entities.concours import Concours
@@ -9,6 +10,7 @@ from domain.entities.offer import Offer
 from domain.entities.vectorized_document import VectorizedDocument
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
 from domain.interfaces.entity_interface import IEntity
+from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.repository_factory_interface import IRepositoryFactory
 from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
@@ -16,7 +18,7 @@ from domain.services.logger_interface import ILogger
 from domain.services.text_extractor_interface import ITextExtractor
 
 
-class VectorizeDocumentsUsecase:
+class VectorizeDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
     def __init__(
         self,
         vector_repository: IVectorRepository,
@@ -31,9 +33,7 @@ class VectorizeDocumentsUsecase:
         self.logger = logger
         self.repository_factory = repository_factory
 
-    async def execute(
-        self, document_type: DocumentType, limit: int = 250
-    ) -> Dict[str, Any]:
+    def execute(self, document_type: DocumentType, limit: int = 250) -> Dict[str, Any]:
         self.logger.info(
             "Starting vectorization of %d document type: %s,", limit, document_type
         )
@@ -54,7 +54,9 @@ class VectorizeDocumentsUsecase:
 
         for source in sources:
             try:
-                vectorized_document = await self.vectorize_single_source(source)
+                vectorized_document = async_to_sync(self.vectorize_single_source)(
+                    source
+                )
                 vectorized_documents.append(vectorized_document)
                 successful_sources.append(source)
             except Exception as e:

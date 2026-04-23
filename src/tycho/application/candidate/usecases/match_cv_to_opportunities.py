@@ -1,11 +1,13 @@
 from typing import List, Optional, Tuple
 
+from asgiref.sync import async_to_sync
+
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
 from domain.entities.offer import Offer
 from domain.exceptions.cv_errors import CVProcessingFailedError
-from domain.interfaces.async_usecase_interface import IAsyncUseCase
+from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from domain.repositories.offers_repository_interface import IOffersRepository
@@ -16,7 +18,7 @@ from domain.value_objects.cv_processing_status import CVStatus
 
 
 class MatchCVToOpportunitiesUsecase(
-    IAsyncUseCase[CVMetadata, List[Tuple[Concours | Offer, float]]],
+    IUseCase[CVMetadata, List[Tuple[Concours | Offer, float]]],
 ):
     def __init__(
         self,
@@ -34,7 +36,7 @@ class MatchCVToOpportunitiesUsecase(
         self._offers_repository = offers_repository
         self._logger = logger
 
-    async def execute(
+    def execute(
         self,
         cv_metadata: CVMetadata,
         filters: Optional[IFilters] | None = None,
@@ -49,7 +51,7 @@ class MatchCVToOpportunitiesUsecase(
         if cv_metadata.status == CVStatus.FAILED or not cv_metadata.search_query:
             raise CVProcessingFailedError(str(cv_metadata.id), "CV processing failed")
 
-        query_embedding = await self._embedding_generator.generate_embedding(
+        query_embedding = async_to_sync(self._embedding_generator.generate_embedding)(
             cv_metadata.search_query
         )
 

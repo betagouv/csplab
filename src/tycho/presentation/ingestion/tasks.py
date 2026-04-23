@@ -32,7 +32,7 @@ def vectorize_documents(document_type: DocumentType):
     usecase = container.vectorize_documents_usecase()
 
     try:
-        result = asyncio.run(usecase.execute(document_type))
+        result = usecase.execute(document_type)
         logger.info(
             "✅ Vectorization completed: %d/%d documents of type %s vectorized",
             result["vectorized"],
