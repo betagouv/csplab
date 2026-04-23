@@ -1,4 +1,4 @@
-from typing import Required, TypedDict
+from typing import NotRequired, Required, TypedDict
 
 
 class FilterOption(TypedDict, total=False):
@@ -21,12 +21,14 @@ class _BaseCard(TypedDict):
 
 class ConcoursCard(_BaseCard):
     concours_id: str
+    ministry: str
     access_modalities: list[str]
 
 
 class OfferCard(_BaseCard):
     offer_id: str
     profile: str
+    organization: str
     location: str
     location_value: str
     contract_type_display: str
@@ -48,6 +50,9 @@ class DrawerContext(TypedDict):
     opportunity_type_display: str
     versant_display: str
     category_display: str
+    organization: NotRequired[str]
+    ministry: NotRequired[str]
+    location: NotRequired[str]
     url: str
     accordions: list[AccordionItem]
     cta_label: str

@@ -48,6 +48,7 @@ class ConcoursToTemplateMapper:
             "concours_id": str(concours.id),
             "title": concours.corps,
             "description": concours.grade,
+            "ministry": str(concours.ministry),
             "access_modalities": [str(m) for m in concours.access_modality]
             if concours.access_modality
             else [],
@@ -80,6 +81,7 @@ class ConcoursToTemplateMapper:
             ),
             "versant_display": format_verse_display(Verse.FPE),
             "category_display": format_category_display(concours.category),
+            "ministry": str(concours.ministry),
             "url": "#",
             "accordions": accordions,
             "cta_label": "Voir le concours",
@@ -98,6 +100,7 @@ class OfferToTemplateMapper:
             "description": offer.mission,
             "offer_id": str(offer.id),
             "profile": offer.profile,
+            "organization": offer.organization,
             "category_display": format_category_display(offer.category),
             "category_value": format_category_value(offer.category),
             "versant_display": format_verse_display(offer.verse),
@@ -140,6 +143,8 @@ class OfferToTemplateMapper:
             ),
             "versant_display": format_verse_display(offer.verse),
             "category_display": format_category_display(offer.category),
+            "organization": offer.organization,
+            "location": format_location_display(offer.localisation),
             "url": str(offer.offer_url) if offer.offer_url else "#",
             "accordions": accordions,
             "cta_label": "Voir l'offre",

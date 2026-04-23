@@ -20,11 +20,18 @@
                     {% endif %}
                 </ul>
             </div>
-            {% if offer.location %}
-                <div class="fr-card__end">
-                    <p class="fr-card__detail fr-icon-map-pin-2-line">
-                        <span class="fr-sr-only">Localisation :</span>{{ offer.location }}
-                    </p>
+            {% if offer.organization or offer.location %}
+                <div class="fr-card__end fr-stack-1w">
+                    {% if offer.organization %}
+                        <p class="fr-card__detail fr-icon-team-line">
+                            <span class="fr-sr-only">Organisation :</span>{{ offer.organization }}
+                        </p>
+                    {% endif %}
+                    {% if offer.location %}
+                        <p class="fr-card__detail fr-icon-map-pin-2-line">
+                            <span class="fr-sr-only">Localisation :</span>{{ offer.location }}
+                        </p>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>
