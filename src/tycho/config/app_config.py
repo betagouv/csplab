@@ -51,9 +51,6 @@ class OCRConfig(BaseModel):
 
 
 class AppConfig(BaseModel):
-    # OCR
-    ocr_type: Literal["ALBERT", "OPENAI"]
-
     # Embedding
     embedding_type: Literal["ALBERT", "OPENAI"]
     embedding_dimension: int
@@ -92,7 +89,6 @@ class AppConfig(BaseModel):
     @classmethod
     def from_django_settings(cls) -> "AppConfig":
         return cls(
-            ocr_type=settings.OCR_TYPE,
             embedding_type=settings.EMBEDDING_TYPE,
             embedding_dimension=settings.EMBEDDING_DIMENSION,
             albert_api_base_url=settings.ALBERT_API_BASE_URL,
