@@ -116,6 +116,27 @@ class PostgresOffersRepository(IOffersRepository):
         offer_models = OfferModel.objects.all()
         return [model.to_entity() for model in offer_models]
 
+    def get_by_status_and_period(
+        self,
+        active: bool = True,
+        after: datetime | None = None,
+        before: datetime | None = None,
+    ) -> list[Offer]:
+        qs = OfferModel.objects.all()
+
+        if active:
+            qs = qs.filter(archived_at__isnull=True)
+        else:
+            qs = qs.filter(archived_at__isnull=False)
+
+        if after:
+            qs = qs.filter(updated_at__gte=after)
+        if before:
+            qs = qs.filter(updated_at__lte=before)
+
+        qs = qs.order_by("-updated_at")
+        return [model.to_entity() for model in qs]
+
     @transaction.atomic
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]:
         qs = (
