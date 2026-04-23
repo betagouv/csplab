@@ -27,7 +27,7 @@ from presentation.ingestion.tasks import (
 @pytest.fixture
 def mock_container():
     with patch(
-        "infrastructure.django_apps.ingestion.tasks.create_ingestion_container"
+        "presentation.ingestion.tasks.create_ingestion_container"
     ) as mock_factory:
         mock_container = MagicMock()
         mock_factory.return_value = mock_container
