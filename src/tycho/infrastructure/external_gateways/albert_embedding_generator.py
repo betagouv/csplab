@@ -51,6 +51,9 @@ class AlbertEmbeddingGenerator(IEmbeddingGenerator):
                 f"Invalid Albert API response structure: {e}",
                 api_name="Albert",
             ) from e
+        except ExternalApiError:
+            # Re-raise ExternalApiError without modification
+            raise
         except Exception as e:
             raise ExternalApiError(
                 f"Albert API error: {response.status_code}",

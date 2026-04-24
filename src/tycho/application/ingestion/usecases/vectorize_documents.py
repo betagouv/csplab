@@ -54,9 +54,7 @@ class VectorizeDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
 
         for source in sources:
             try:
-                vectorized_document = async_to_sync(self.vectorize_single_source)(
-                    source
-                )
+                vectorized_document = self.vectorize_single_source(source)
                 vectorized_documents.append(vectorized_document)
                 successful_sources.append(source)
             except Exception as e:
@@ -83,13 +81,13 @@ class VectorizeDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
 
         return results
 
-    async def vectorize_single_source(
+    def vectorize_single_source(
         self, source: Union[Document, IEntity]
     ) -> VectorizedDocument:
         content = self.text_extractor.extract_content(source)
         metadata = self.text_extractor.extract_metadata(source)
 
-        embedding = await self.embedding_generator.generate_embedding(content)
+        embedding = async_to_sync(self.embedding_generator.generate_embedding)(content)
 
         if isinstance(source, Document):
             entity_id = source.id

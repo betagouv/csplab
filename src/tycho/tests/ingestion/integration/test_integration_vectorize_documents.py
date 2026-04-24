@@ -1,7 +1,9 @@
+from typing import Any, Dict
 from unittest.mock import patch
 
 import pytest
 from django.conf import settings
+from httpx import Headers
 from qdrant_client.http.exceptions import UnexpectedResponse
 
 from config.app_config import AppConfig
@@ -13,18 +15,6 @@ from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.gateways.shared.logger import LoggerService
-from infrastructure.repositories.shared.postgres_concours_repository import (
-    PostgresConcoursRepository,
-)
-from infrastructure.repositories.shared.postgres_corps_repository import (
-    PostgresCorpsRepository,
-)
-from infrastructure.repositories.shared.postgres_metier_repository import (
-    PostgresMetierRepository,
-)
-from infrastructure.repositories.shared.postgres_offers_repository import (
-    PostgresOffersRepository,
-)
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.corps_factory import CorpsFactory
 from tests.factories.offer_factory import OfferFactory
@@ -42,6 +32,24 @@ factories_mapper = {
     DocumentType.CONCOURS: ConcoursFactory(),
     DocumentType.OFFERS: OfferFactory(),
 }
+
+
+def mock_embedding_response(
+    httpx_mock,
+    config,
+    embedding_response: Dict[str, Any] | None = None,
+    status_code: int = 200,
+):
+    if not embedding_response:
+        embedding_response = MockApiResponseFactory.create_albert_embedding_response()
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{config.albert.api_base_url}v1/embeddings",
+        json=embedding_response,
+        status_code=status_code,
+        is_reusable=True,
+    )
 
 
 def assert_offer_pending(processing: bool):
@@ -66,40 +74,24 @@ def assert_error_result(result, *, expected_exception_message):
 
 
 @pytest.fixture
-def vectorize_integration_container(db):
+def vectorize_integration_container():
+    shared_qdrant_repository = create_shared_qdrant_repository()
 
     container = IngestionContainer()
 
-    # Setup shared container with real repositories
+    # Setup shared container with real repositories (except embedding generator)
     shared_container = SharedContainer()
 
-    # Add app config to shared container
     app_config = AppConfig.from_django_settings()
     shared_container.app_config.override(app_config)
 
-    # Add logger service to shared container
     logger_service = LoggerService()
     shared_container.logger_service.override(logger_service)
 
-    postgres_corps_repo = PostgresCorpsRepository(logger_service)
-    shared_container.corps_repository.override(postgres_corps_repo)
+    shared_container.vector_repository.override(shared_qdrant_repository)
 
-    postgres_concours_repo = PostgresConcoursRepository(logger_service)
-    shared_container.concours_repository.override(postgres_concours_repo)
-
-    postgres_offers_repo = PostgresOffersRepository(logger_service)
-    shared_container.offers_repository.override(postgres_offers_repo)
-
-    postgres_metier_repo = PostgresMetierRepository(logger_service)
-    shared_container.metiers_repository.override(postgres_metier_repo)
-
-    qdrant_repository = create_shared_qdrant_repository()
-    shared_container.vector_repository.override(qdrant_repository)
-
-    # Override the shared container in the main container
     container.shared_container.override(shared_container)
 
-    # Setup app config and logger for ingestion container too
     container.app_config.override(app_config)
     container.logger_service.override(logger_service)
 
@@ -107,7 +99,7 @@ def vectorize_integration_container(db):
 
 
 @pytest.fixture(name="offer_setup")
-def offer_setup_fixture(db, vectorize_integration_container):
+def offer_setup_fixture(vectorize_integration_container):
     document_type = DocumentType.OFFERS
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     repository = usecase.repository_factory.get_repository(document_type)
@@ -116,28 +108,18 @@ def offer_setup_fixture(db, vectorize_integration_container):
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
 )
 def test_vectorize_entity_integration(
-    db,
     document_type,
     vectorize_integration_container,
-    test_app_config,
     httpx_mock,
 ):
-    # Mock Albert API with httpx_mock
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+    test_app_config = vectorize_integration_container.app_config()
+    mock_embedding_response(httpx_mock, test_app_config)
 
-    # Use Albert container directly
     container = vectorize_integration_container
     usecase = container.vectorize_documents_usecase()
     documents = factories_mapper[document_type].create_batch(2)
@@ -164,20 +146,8 @@ def test_vectorize_entity_integration(
         assert round(result.score, 1) >= 0.0
 
 
-@pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_empty_list_integration(
-    db, vectorize_integration_container, test_app_config, httpx_mock
-):
-    # Mock Albert API with httpx_mock
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+@pytest.mark.django_db
+def test_vectorize_empty_list_integration(vectorize_integration_container):
 
     usecase = vectorize_integration_container.vectorize_documents_usecase()
 
@@ -187,19 +157,10 @@ def test_vectorize_empty_list_integration(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_limit(
-    db, vectorize_integration_container, test_app_config, httpx_mock
-):
-    # Mock Albert API with httpx_mock
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+@pytest.mark.django_db
+def test_vectorize_limit(vectorize_integration_container, httpx_mock):
+    test_app_config = vectorize_integration_container.app_config()
+    mock_embedding_response(httpx_mock, test_app_config)
 
     limit = 2
     OfferFactory.create_batch(limit + 1)
@@ -221,21 +182,10 @@ def test_vectorize_limit(
     assert OfferModel.objects.filter(processed_at__isnull=False).count() == limit
 
 
-@pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
+@pytest.mark.django_db
 def test_vectorize_get_pending_processing_error(
-    offer_setup, test_app_config, httpx_mock
+    offer_setup,
 ):
-    # Mock Albert API with httpx_mock
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
-
     usecase, repository, document_type = offer_setup
 
     with patch.object(
@@ -250,20 +200,8 @@ def test_vectorize_get_pending_processing_error(
     assert_offer_pending(processing=False)
 
 
-@pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_vectorize_single_source_error(
-    offer_setup, test_app_config, httpx_mock
-):
-    # Mock Albert API with httpx_mock
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+@pytest.mark.django_db
+def test_vectorize_vectorize_single_source_error(offer_setup):
 
     usecase, _, document_type = offer_setup
 
@@ -283,17 +221,12 @@ def test_vectorize_vectorize_single_source_error(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_upsert_batch_error(offer_setup, test_app_config, httpx_mock):
-    # Mock Albert API with httpx_mock
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+@pytest.mark.django_db
+def test_vectorize_upsert_batch_error(
+    offer_setup, vectorize_integration_container, httpx_mock
+):
+    test_app_config = vectorize_integration_container.app_config()
+    mock_embedding_response(httpx_mock, test_app_config)
 
     usecase, _, document_type = offer_setup
 
@@ -310,19 +243,12 @@ def test_vectorize_upsert_batch_error(offer_setup, test_app_config, httpx_mock):
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
+@pytest.mark.django_db
 def test_vectorize_qdrant_unsupported_similarity_metric(
-    db, vectorize_integration_container, test_app_config, httpx_mock
+    vectorize_integration_container, httpx_mock
 ):
-    # Mock Albert API
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+    test_app_config = vectorize_integration_container.app_config()
+    mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
     OfferFactory.create()
@@ -344,19 +270,12 @@ def test_vectorize_qdrant_unsupported_similarity_metric(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
+@pytest.mark.django_db
 def test_vectorize_qdrant_search_unexpected_response(
-    db, vectorize_integration_container, test_app_config, httpx_mock
+    vectorize_integration_container, httpx_mock
 ):
-    # Mock Albert API
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+    test_app_config = vectorize_integration_container.app_config()
+    mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
     OfferFactory.create()
@@ -371,7 +290,7 @@ def test_vectorize_qdrant_search_unexpected_response(
         status_code=500,
         reason_phrase="Internal Server Error",
         content=b"Qdrant server error",
-        headers={},
+        headers=Headers(),
     )
 
     with patch.object(
@@ -387,19 +306,12 @@ def test_vectorize_qdrant_search_unexpected_response(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
+@pytest.mark.django_db
 def test_vectorize_qdrant_search_general_error(
-    db, vectorize_integration_container, test_app_config, httpx_mock
+    vectorize_integration_container, httpx_mock
 ):
-    # Mock Albert API
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+    test_app_config = vectorize_integration_container.app_config()
+    mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
     OfferFactory.create()
@@ -422,19 +334,10 @@ def test_vectorize_qdrant_search_general_error(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_qdrant_upsert_error(
-    db, vectorize_integration_container, test_app_config, httpx_mock
-):
-    # Mock Albert API
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+@pytest.mark.django_db
+def test_vectorize_qdrant_upsert_error(vectorize_integration_container, httpx_mock):
+    test_app_config = vectorize_integration_container.app_config()
+    mock_embedding_response(httpx_mock, test_app_config)
 
     # Create a document to vectorize
     OfferFactory.create()
@@ -450,21 +353,8 @@ def test_vectorize_qdrant_upsert_error(
             usecase.execute(DocumentType.OFFERS)
 
 
-@pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_qdrant_empty_documents_upsert(
-    db, vectorize_integration_container, test_app_config, httpx_mock
-):
-    # Mock Albert API (won't be called)
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
-
+@pytest.mark.django_db
+def test_vectorize_qdrant_empty_documents_upsert(vectorize_integration_container):
     # Test empty documents list (ligne 108)
     vector_repo = vectorize_integration_container.vector_repository()
     result = vector_repo.upsert_batch([], DocumentType.OFFERS)
@@ -473,19 +363,12 @@ def test_vectorize_qdrant_empty_documents_upsert(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
+@pytest.mark.django_db
 def test_vectorize_qdrant_search_no_filters(
-    db, vectorize_integration_container, test_app_config, httpx_mock
+    vectorize_integration_container, httpx_mock
 ):
-    # Mock Albert API
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+    test_app_config = vectorize_integration_container.app_config()
+    mock_embedding_response(httpx_mock, test_app_config)
 
     OfferFactory.create()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
@@ -501,20 +384,8 @@ def test_vectorize_qdrant_search_no_filters(
     assert len(search_results) == 1
 
 
-@pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_albert_empty_text_error(
-    db, vectorize_integration_container, test_app_config, httpx_mock
-):
-    # Mock Albert API (won't be called due to empty text)
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+@pytest.mark.django_db
+def test_vectorize_albert_empty_text_error(vectorize_integration_container):
 
     OfferFactory.create()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
@@ -533,19 +404,15 @@ def test_vectorize_albert_empty_text_error(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
+@pytest.mark.django_db
 def test_vectorize_albert_invalid_response_error(
-    db, vectorize_integration_container, test_app_config, httpx_mock
+    vectorize_integration_container, httpx_mock
 ):
+    test_app_config = vectorize_integration_container.app_config()
+
     # Mock Albert API with invalid response structure
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
     invalid_response = {"invalid": "structure"}  # Missing required fields
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=invalid_response,
-        status_code=200,
-        is_reusable=True,
-    )
+    mock_embedding_response(httpx_mock, test_app_config, invalid_response)
 
     OfferFactory.create()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
@@ -562,18 +429,12 @@ def test_vectorize_albert_invalid_response_error(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_albert_http_error(
-    db, vectorize_integration_container, test_app_config, httpx_mock
-):
-    # Mock Albert API with HTTP error
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json={"error": "Internal server error"},
-        status_code=500,
-        is_reusable=True,
-    )
+@pytest.mark.django_db
+def test_vectorize_albert_http_error(vectorize_integration_container, httpx_mock):
+
+    test_app_config = vectorize_integration_container.app_config()
+    # Mock Albert API with HTTP 500 error
+    mock_embedding_response(httpx_mock, test_app_config, status_code=500)
 
     OfferFactory.create()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
@@ -587,21 +448,15 @@ def test_vectorize_albert_http_error(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_albert_empty_data_error(
-    db, vectorize_integration_container, test_app_config, httpx_mock
-):
-    # Mock Albert API with empty data using factory
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
+@pytest.mark.django_db
+def test_vectorize_albert_empty_data_error(vectorize_integration_container, httpx_mock):
+
+    test_app_config = vectorize_integration_container.app_config()
+    # Mock Albert API with empty data response using the factory
     empty_data_response = (
         MockApiResponseFactory.create_albert_embedding_response_empty_data()
     )
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=empty_data_response,
-        status_code=200,
-        is_reusable=True,
-    )
+    mock_embedding_response(httpx_mock, test_app_config, empty_data_response)
 
     OfferFactory.create()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
@@ -612,26 +467,18 @@ def test_vectorize_albert_empty_data_error(
     assert result["vectorized"] == 0
     assert result["errors"] == 1
     error_message = result["error_details"][0]["exception"]
-    assert (
-        "No embedding data in Albert API response" in error_message
-        or "Albert API error" in error_message
-    )
+    assert "No embedding data in Albert API response" in error_message
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_mark_as_processed_error(offer_setup, test_app_config, httpx_mock):
-    # Mock Albert API with httpx_mock
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+@pytest.mark.django_db
+def test_vectorize_mark_as_processed_error(offer_setup, httpx_mock):
 
     usecase, repository, document_type = offer_setup
+
+    # Mock Albert API for successful embedding generation
+    app_config = AppConfig.from_django_settings()
+    mock_embedding_response(httpx_mock, app_config)
 
     with patch.object(
         repository,
@@ -645,18 +492,8 @@ def test_vectorize_mark_as_processed_error(offer_setup, test_app_config, httpx_m
     assert_offer_pending(processing=True)
 
 
-@pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_mark_as_pending_error(offer_setup, test_app_config, httpx_mock):
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
-
+@pytest.mark.django_db
+def test_vectorize_mark_as_pending_error(offer_setup):
     usecase, repository, document_type = offer_setup
 
     with (
