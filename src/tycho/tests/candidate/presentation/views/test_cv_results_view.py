@@ -36,7 +36,7 @@ def test_cv_results_page_loads_correctly(
     assertTemplateUsed(response, "candidate/cv_results.html")
     assertContains(response, "Offres et concours les plus pertinents")
     assertContains(response, "fr-breadcrumb")
-    assertContains(response, 'id="opportunity-drawer-body"')
+    assertContains(response, "js/drawer.js")
 
 
 def test_cv_results_invalid_uuid_returns_404(client, db):

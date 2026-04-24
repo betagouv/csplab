@@ -10,7 +10,7 @@
   max-height: 100dvh;
   left: auto;
   right: 0;
-  top: 0;
+  top: $sp-4w;
   bottom: 0;
   background: transparent;
   overflow: visible;
@@ -21,6 +21,7 @@
     overlay 0.3s ease allow-discrete;
 
   @include md {
+    top: 0;
     width: 50%;
     max-width: 40rem;
   }

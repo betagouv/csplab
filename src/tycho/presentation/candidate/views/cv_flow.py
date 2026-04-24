@@ -211,7 +211,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
 
 
 class OfferDrawerView(BreadcrumbMixin, TemplateView):
-    template_name = "candidate/components/_opportunity_drawer_content.html"
+    template_name = "candidate/components/_opportunity_drawer.html"
     breadcrumb_current = "Détail de l'offre"
 
     def get_breadcrumb_data(self) -> dict:
@@ -235,7 +235,7 @@ class OfferDrawerView(BreadcrumbMixin, TemplateView):
 
     def get_template_names(self) -> list[str]:
         if self.request.headers.get("HX-Request"):
-            return ["candidate/components/_opportunity_drawer_content.html"]
+            return ["candidate/components/_opportunity_drawer.html"]
         return ["candidate/opportunity_detail.html"]
 
     def get_context_data(self, **kwargs: object) -> dict[str, object]:
@@ -254,7 +254,7 @@ class OfferDrawerView(BreadcrumbMixin, TemplateView):
 
 
 class ConcoursDrawerView(BreadcrumbMixin, TemplateView):
-    template_name = "candidate/components/_opportunity_drawer_content.html"
+    template_name = "candidate/components/_opportunity_drawer.html"
     breadcrumb_current = "Détail du concours"
 
     def get_breadcrumb_data(self) -> dict:
@@ -278,7 +278,7 @@ class ConcoursDrawerView(BreadcrumbMixin, TemplateView):
 
     def get_template_names(self) -> list[str]:
         if self.request.headers.get("HX-Request"):
-            return ["candidate/components/_opportunity_drawer_content.html"]
+            return ["candidate/components/_opportunity_drawer.html"]
         return ["candidate/opportunity_detail.html"]
 
     def get_context_data(self, **kwargs: object) -> dict[str, object]:

@@ -55,6 +55,7 @@ def test_htmx_request_returns_drawer_partial(
     )
 
     assert response.status_code == HTTPStatus.OK
+    assertTemplateUsed(response, "candidate/components/_opportunity_drawer.html")
     assertTemplateUsed(
         response, "candidate/components/_opportunity_drawer_content.html"
     )

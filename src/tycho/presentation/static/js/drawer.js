@@ -1,65 +1,50 @@
 class DrawerHandler {
-  /** @type {HTMLDialogElement} */
-  dialog;
-
-  /** @type {HTMLElement} */
-  body;
+  static DRAWER_SELECTOR = '[data-drawer]';
+  static TRIGGER_SELECTOR = '[data-drawer-open]';
+  static CLOSE_SELECTOR = '[data-drawer-close]';
+  static HISTORY_MARKER = 'csplabDrawerOpen';
 
   /** @type {HTMLElement|null} */
-  triggerElement;
+  lastTrigger;
 
-  /**
-   * @param {HTMLDialogElement} dialog
-   */
-  constructor(dialog) {
-    this.dialog = dialog;
-    this.body = dialog.querySelector('[data-drawer-body]');
-    this.triggerElement = null;
-
-    if (!this.body) return;
-
-    this.init();
+  constructor() {
+    this.lastTrigger = null;
   }
 
   init() {
-    this.markTriggers();
-    this.setupHtmxListeners();
-    this.setupClose();
-    this.setupFocusRestore();
-  }
-
-  markTriggers() {
-    const targetId = this.body.id;
-    if (!targetId) return;
-    document.querySelectorAll('[data-drawer-open]').forEach((el) => {
-      el.setAttribute('hx-get', el.getAttribute('href'));
-      el.setAttribute('hx-target', `#${targetId}`);
-      el.setAttribute('hx-swap', 'innerHTML');
-      el.setAttribute('aria-haspopup', 'dialog');
-      htmx.process(el);
+    this.markTriggers(document);
+    document.body.addEventListener('htmx:beforeRequest', (e) => this.handleBeforeRequest(e));
+    document.body.addEventListener('htmx:afterSwap', (e) => this.handleAfterSwap(e));
+    window.addEventListener('popstate', () => this.closeOpenDrawer());
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) this.closeOpenDrawer();
     });
   }
 
-  setupHtmxListeners() {
-    document.body.addEventListener('htmx:beforeRequest', (e) => this.handleBeforeRequest(e));
-    document.body.addEventListener('htmx:afterSwap', (e) => this.handleAfterSwap(e));
-    document.body.addEventListener('htmx:afterSettle', (e) => this.handleAfterSettle(e));
-  }
-
-  setupClose() {
-    this.dialog.addEventListener('click', (e) => this.handleClick(e));
-  }
-
-  setupFocusRestore() {
-    this.dialog.addEventListener('close', () => this.handleClose());
+  /**
+   * @param {ParentNode} root
+   */
+  markTriggers(root) {
+    const scope = root && root.querySelectorAll ? root : document;
+    scope.querySelectorAll(DrawerHandler.TRIGGER_SELECTOR).forEach((el) => {
+      if (el.hasAttribute('hx-get')) return;
+      const href = el.getAttribute('href');
+      if (!href) return;
+      el.setAttribute('hx-get', href);
+      el.setAttribute('hx-target', 'body');
+      el.setAttribute('hx-swap', 'beforeend');
+      el.setAttribute('aria-haspopup', 'dialog');
+      if (window.htmx) window.htmx.process(el);
+    });
   }
 
   /**
    * @param {CustomEvent} e
    */
   handleBeforeRequest(e) {
-    if (e.detail?.target === this.body) {
-      this.triggerElement = e.detail.elt || document.activeElement;
+    const trigger = e.detail?.elt;
+    if (trigger?.matches?.(DrawerHandler.TRIGGER_SELECTOR)) {
+      this.lastTrigger = trigger;
     }
   }
 
@@ -67,55 +52,68 @@ class DrawerHandler {
    * @param {CustomEvent} e
    */
   handleAfterSwap(e) {
-    if (e.detail?.target !== this.body) return;
-
-    const title = this.dialog.querySelector('[data-drawer-title]');
-    if (title) {
-      this.dialog.setAttribute('aria-labelledby', title.id);
-      this.dialog.removeAttribute('aria-label');
+    const trigger = e.detail?.requestConfig?.elt;
+    if (!trigger?.matches?.(DrawerHandler.TRIGGER_SELECTOR)) {
+      this.markTriggers(e.detail?.target);
+      return;
     }
+    const dialogs = document.querySelectorAll(DrawerHandler.DRAWER_SELECTOR);
+    const dialog = dialogs[dialogs.length - 1];
+    if (dialog) this.activateDrawer(dialog);
+  }
 
-    if (!this.dialog.open) {
-      this.dialog.showModal();
+  /**
+   * @param {HTMLDialogElement} dialog
+   */
+  activateDrawer(dialog) {
+    if (typeof dialog.showModal !== 'function') return;
+
+    dialog.showModal();
+
+    if (!history.state?.[DrawerHandler.HISTORY_MARKER]) {
+      history.pushState({ [DrawerHandler.HISTORY_MARKER]: true }, '', window.location.href);
     }
 
     requestAnimationFrame(() => {
-      const closeBtn = this.dialog.querySelector('[data-drawer-close]');
+      const closeBtn = dialog.querySelector(DrawerHandler.CLOSE_SELECTOR);
       if (closeBtn) closeBtn.focus();
     });
-  }
 
-  /**
-   * @param {MouseEvent} e
-   */
-  handleClick(e) {
-    if (e.target === this.dialog || e.target.closest('[data-drawer-close]')) {
-      if (this.dialog.open) {
-        this.dialog.close();
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog || e.target.closest?.(DrawerHandler.CLOSE_SELECTOR)) {
+        dialog.close();
       }
-    }
-  }
+    });
 
-  handleClose() {
-    if (this.triggerElement && typeof this.triggerElement.focus === 'function') {
-      this.triggerElement.focus();
-    }
-    this.triggerElement = null;
+    dialog.addEventListener('close', () => this.handleDialogClose(dialog));
   }
 
   /**
-   * @param {CustomEvent} e
+   * @param {HTMLDialogElement} dialog
    */
-  handleAfterSettle(e) {
-    if (e.detail?.target === this.body) return;
-    this.markTriggers();
+  handleDialogClose(dialog) {
+    if (history.state?.[DrawerHandler.HISTORY_MARKER]) {
+      history.back();
+    }
+    dialog.remove();
+    if (typeof this.lastTrigger?.focus === 'function') {
+      this.lastTrigger.focus();
+    }
+    this.lastTrigger = null;
+  }
+
+  closeOpenDrawer() {
+    const dialog = document.querySelector(`${DrawerHandler.DRAWER_SELECTOR}[open]`);
+    if (!dialog) return;
+    if (history.state?.[DrawerHandler.HISTORY_MARKER]) {
+      history.replaceState(null, '', window.location.href);
+    }
+    dialog.close();
   }
 }
 
+const drawerHandler = new DrawerHandler();
+
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('[data-drawer]').forEach((dialog) => {
-    if (typeof dialog.showModal === 'function') {
-      new DrawerHandler(dialog);
-    }
-  });
+  drawerHandler.init();
 });
