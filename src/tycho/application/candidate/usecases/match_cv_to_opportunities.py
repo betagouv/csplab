@@ -1,5 +1,7 @@
 from typing import List, Optional, Tuple
 
+from asgiref.sync import async_to_sync
+
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
@@ -49,7 +51,7 @@ class MatchCVToOpportunitiesUsecase(
         if cv_metadata.status == CVStatus.FAILED or not cv_metadata.search_query:
             raise CVProcessingFailedError(str(cv_metadata.id), "CV processing failed")
 
-        query_embedding = self._embedding_generator.generate_embedding(
+        query_embedding = async_to_sync(self._embedding_generator.generate_embedding)(
             cv_metadata.search_query
         )
 

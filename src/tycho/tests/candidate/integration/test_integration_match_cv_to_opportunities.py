@@ -1,5 +1,4 @@
 import pytest
-import responses
 from django.conf import settings
 from faker import Faker
 from pytest_django.asserts import assertNumQueries
@@ -12,10 +11,6 @@ from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.shared.models.concours import ConcoursModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
-from infrastructure.external_gateways.albert_embedding_generator import (
-    AlbertEmbeddingGenerator,
-)
-from infrastructure.gateways.shared.http_client import SyncHttpClient
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.offer_factory import OfferFactory
@@ -52,13 +47,6 @@ def _integration_candidate_container():
     logger_service = LoggerService()
     shared_container.logger_service.override(logger_service)
 
-    # Use mock embedding generator for consistent test results
-    http_client = SyncHttpClient()
-    embedding_generator = AlbertEmbeddingGenerator(
-        config=app_config.albert, http_client=http_client
-    )
-    shared_container.embedding_generator.override(embedding_generator)
-
     # Use shared Qdrant repository fixture
     shared_container.vector_repository.override(shared_qdrant_repository)
 
@@ -71,21 +59,22 @@ def _integration_candidate_container():
     return container
 
 
-@responses.activate
+@pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 @pytest.mark.django_db
 def test_execute_with_valid_cv_returns_opportunities(
     _integration_candidate_container,
+    httpx_mock,
 ):
     # Mock Albert API
     app_config = _integration_candidate_container.app_config()
     albert_url = f"{app_config.albert.api_base_url}v1/embeddings"
     mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    responses.add(
-        responses.POST,
-        albert_url,
+    httpx_mock.add_response(
+        method="POST",
+        url=albert_url,
         json=mock_response,
-        status=200,
-        content_type="application/json",
+        status_code=200,
+        is_reusable=True,
     )
 
     cv_metadata, cv_id = create_cv_metadata_completed()
@@ -153,19 +142,21 @@ def test_execute_with_valid_cv_returns_opportunities(
     assert sorted(similarities, reverse=True) == similarities
 
 
-@responses.activate
+@pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 @pytest.mark.django_db
-def test_vectorize_qdrant_search_empty_filters(_integration_candidate_container):
+def test_vectorize_qdrant_search_empty_filters(
+    _integration_candidate_container, httpx_mock
+):
     # Mock Albert API
     test_app_config = _integration_candidate_container.app_config()
     albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
     mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    responses.add(
-        responses.POST,
-        albert_url,
+    httpx_mock.add_response(
+        method="POST",
+        url=albert_url,
         json=mock_response,
-        status=200,
-        content_type="application/json",
+        status_code=200,
+        is_reusable=True,
     )
 
     cv_metadata, cv_id = create_cv_metadata_completed()
@@ -206,21 +197,23 @@ def test_vectorize_qdrant_search_empty_filters(_integration_candidate_container)
     assert sorted(similarities, reverse=True) == similarities
 
 
-@responses.activate
+@pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 @pytest.mark.django_db
-def test_vectorize_qdrant_search_list_filters(_integration_candidate_container):
+def test_vectorize_qdrant_search_list_filters(
+    _integration_candidate_container, httpx_mock
+):
     # Mock Albert API
 
     INDEX_REGION = 2
     test_app_config = _integration_candidate_container.app_config()
     albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
     mock_response = MockApiResponseFactory.create_albert_embedding_response()
-    responses.add(
-        responses.POST,
-        albert_url,
+    httpx_mock.add_response(
+        method="POST",
+        url=albert_url,
         json=mock_response,
-        status=200,
-        content_type="application/json",
+        status_code=200,
+        is_reusable=True,
     )
 
     cv_metadata, cv_id = create_cv_metadata_completed()
@@ -312,7 +305,10 @@ def test_vectorize_qdrant_search_list_filters(_integration_candidate_container):
     all_offers_and_concours = usecase.execute(
         cv_metadata,
         filters={
-            "document_type": [DocumentType.OFFERS.value, DocumentType.CONCOURS.value],
+            "document_type": [
+                DocumentType.OFFERS.value,
+                DocumentType.CONCOURS.value,
+            ],
         },
         limit=10,
     )
@@ -322,7 +318,10 @@ def test_vectorize_qdrant_search_list_filters(_integration_candidate_container):
     offers_and_concours_fpe = usecase.execute(
         cv_metadata,
         filters={
-            "document_type": [DocumentType.OFFERS.value, DocumentType.CONCOURS.value],
+            "document_type": [
+                DocumentType.OFFERS.value,
+                DocumentType.CONCOURS.value,
+            ],
             "verse": Verse.FPE.value,
         },
         limit=10,

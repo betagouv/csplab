@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock, call, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, call, patch
 
 import pytest
 from huey.api import PeriodicTask
@@ -182,7 +182,7 @@ class TestVectorizeTasks:
         mock_container.vectorize_documents_usecase.assert_not_called()
 
     def test_calls_usecase_and_logs(self, mock_container):
-        usecase = MagicMock()
+        usecase = Mock()
         usecase.execute.return_value = {
             "vectorized": 9,
             "processed": 10,

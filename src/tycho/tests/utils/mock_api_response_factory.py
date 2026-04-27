@@ -41,7 +41,7 @@ class MockApiResponseFactory:
     @staticmethod
     def create_albert_embedding_response_empty_data() -> Dict:
         return {
-            "data": [],  # Empty data array
+            "data": [],
             "model": "openweight-embeddings",
             "object": "list",
             "usage": {

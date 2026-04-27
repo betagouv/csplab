@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Union, cast
 
+from asgiref.sync import async_to_sync
 from django.db import transaction
 
 from domain.entities.concours import Concours
@@ -9,6 +10,7 @@ from domain.entities.offer import Offer
 from domain.entities.vectorized_document import VectorizedDocument
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
 from domain.interfaces.entity_interface import IEntity
+from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.repository_factory_interface import IRepositoryFactory
 from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
@@ -16,7 +18,7 @@ from domain.services.logger_interface import ILogger
 from domain.services.text_extractor_interface import ITextExtractor
 
 
-class VectorizeDocumentsUsecase:
+class VectorizeDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
     def __init__(
         self,
         vector_repository: IVectorRepository,
@@ -52,7 +54,8 @@ class VectorizeDocumentsUsecase:
 
         for source in sources:
             try:
-                vectorized_documents.append(self.vectorize_single_source(source))
+                vectorized_document = self.vectorize_single_source(source)
+                vectorized_documents.append(vectorized_document)
                 successful_sources.append(source)
             except Exception as e:
                 self.logger.error("Failed to vectorize source: %s", str(e))
@@ -84,7 +87,7 @@ class VectorizeDocumentsUsecase:
         content = self.text_extractor.extract_content(source)
         metadata = self.text_extractor.extract_metadata(source)
 
-        embedding = self.embedding_generator.generate_embedding(content)
+        embedding = async_to_sync(self.embedding_generator.generate_embedding)(content)
 
         if isinstance(source, Document):
             entity_id = source.id
