@@ -10,11 +10,11 @@ from application.ingestion.interfaces.load_operation_type import LoadOperationTy
 from application.ingestion.usecases import load_offers
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import InvalidDocumentTypeError
-from tests.external_gateways.utils import (
+from tests.factories.talentsoft_factories import TalentsoftDetailOfferFactory
+from tests.ingestion.unit.external_gateways.utils import (
     cached_token,
     offers_response,
 )
-from tests.factories.talentsoft_factories import TalentsoftDetailOfferFactory
 
 PORT = 6333
 MAX_ITERATIONS = 3
