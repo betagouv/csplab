@@ -22,7 +22,7 @@ urlpatterns = [
     path("test-500/", _raise_500_view),
 ]
 
-_URL_CONF = "tests.candidate.presentation.test_error_views"
+_URL_CONF = "tests.candidate.presentation.views.test_error_views"
 
 
 class TestErrorPages:
