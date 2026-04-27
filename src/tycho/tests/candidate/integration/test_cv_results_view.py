@@ -34,7 +34,7 @@ def test_cv_results_page_loads_correctly(
     )
     assert response.status_code == HTTPStatus.OK
     assertTemplateUsed(response, "candidate/cv_results.html")
-    assertContains(response, "Vos opportunités professionnelles")
+    assertContains(response, "Offres et concours les plus pertinents")
     assertContains(response, "fr-breadcrumb")
     assertContains(response, 'id="opportunity-drawer-body"')
 
@@ -59,7 +59,7 @@ def test_cv_results_htmx_request_returns_partial(
     )
     assert response.status_code == HTTPStatus.OK
     assertTemplateUsed(response, "candidate/components/_results_content.html")
-    assertContains(response, "opportunités")
+    assertContains(response, "Offres et concours")
 
 
 @pytest.mark.parametrize(
@@ -386,14 +386,14 @@ def test_cv_results_filter_bar_renders_tooltips(mock_execute, client, db):
             "status": CVStatus.COMPLETED,
             "is_htmx": False,
             "expected_template": "candidate/cv_results.html",
-            "expected_content": ["Vos opportunités professionnelles"],
+            "expected_content": ["Offres et concours les plus pertinents"],
             "unexpected_content": ['hx-trigger="load', 'hx-swap="outerHTML"'],
         },
         {
             "status": CVStatus.COMPLETED,
             "is_htmx": True,
             "expected_template": "candidate/components/_results_content.html",
-            "expected_content": ["Vos opportunités professionnelles"],
+            "expected_content": ["Offres et concours les plus pertinents"],
             "unexpected_content": ["<html", "<!DOCTYPE"],
         },
     ],
@@ -502,7 +502,7 @@ def test_cv_results_with_completed_cv_in_database_shows_results(
 
     assert response.status_code == HTTPStatus.OK
     assertTemplateUsed(response, "candidate/cv_results.html")
-    assertContains(response, "Vos opportunités professionnelles")
+    assertContains(response, "Offres et concours les plus pertinents")
 
 
 @patch(

@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 class CVUploadView(BreadcrumbMixin, FormView):
     template_name = "candidate/cv_upload.html"
     form_class = CVUploadForm
-    breadcrumb_current = "Recommandation de carrière"
+    breadcrumb_current = "Importer un CV"
     breadcrumb_links: list[BreadcrumbLink] = []
     success_url = reverse_lazy("candidate:cv_upload")  # TODO: change to next step URL
 
@@ -66,8 +66,10 @@ class CVUploadView(BreadcrumbMixin, FormView):
 
 
 class CVResultsView(BreadcrumbMixin, TemplateView):
-    breadcrumb_current = "Résultat de l'analyse du CV"
-    breadcrumb_links: list[BreadcrumbLink] = []
+    breadcrumb_current = "Résultat de l'analyse"
+    breadcrumb_links: list[BreadcrumbLink] = [
+        {"url": reverse_lazy("candidate:cv_upload"), "title": "Importer un CV"},
+    ]
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -211,7 +213,21 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
 class OfferDrawerView(BreadcrumbMixin, TemplateView):
     template_name = "candidate/components/_opportunity_drawer_content.html"
     breadcrumb_current = "Détail de l'offre"
-    breadcrumb_links: list[BreadcrumbLink] = []
+
+    def get_breadcrumb_data(self) -> dict:
+        cv_uuid = self.kwargs.get("cv_uuid")
+        return {
+            "links": [
+                {"url": reverse_lazy("candidate:cv_upload"), "title": "Importer un CV"},
+                {
+                    "url": reverse_lazy(
+                        "candidate:cv_results", kwargs={"cv_uuid": cv_uuid}
+                    ),
+                    "title": "Résultat de l'analyse",
+                },
+            ],
+            "current": self.breadcrumb_current,
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -240,7 +256,21 @@ class OfferDrawerView(BreadcrumbMixin, TemplateView):
 class ConcoursDrawerView(BreadcrumbMixin, TemplateView):
     template_name = "candidate/components/_opportunity_drawer_content.html"
     breadcrumb_current = "Détail du concours"
-    breadcrumb_links: list[BreadcrumbLink] = []
+
+    def get_breadcrumb_data(self) -> dict:
+        cv_uuid = self.kwargs.get("cv_uuid")
+        return {
+            "links": [
+                {"url": reverse_lazy("candidate:cv_upload"), "title": "Importer un CV"},
+                {
+                    "url": reverse_lazy(
+                        "candidate:cv_results", kwargs={"cv_uuid": cv_uuid}
+                    ),
+                    "title": "Résultat de l'analyse",
+                },
+            ],
+            "current": self.breadcrumb_current,
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

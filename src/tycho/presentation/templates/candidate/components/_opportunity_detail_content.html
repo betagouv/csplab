@@ -5,12 +5,12 @@
                 <h1 class="fr-h3">{{ opportunity.title }}</h1>
                 {% include "candidate/components/_opportunity_body.html" %}
             </div>
-            {% include "candidate/components/_opportunity_feedback.html" with opportunity_id=opportunity.opportunity_id opportunity_type=opportunity.opportunity_type %}
         </div>
     </div>
     <div class="fr-col-12 fr-col-md-4 fr-col-offset-md-1">
         <div class="fr-background-alt--grey fr-p-3w fr-stack-2w">
             {% include "candidate/components/_opportunity_cta.html" %}
+            {% include "candidate/components/_opportunity_feedback.html" with opportunity_id=opportunity.opportunity_id opportunity_type=opportunity.opportunity_type %}
         </div>
     </div>
 </div>

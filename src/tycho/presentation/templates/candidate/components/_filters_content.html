@@ -1,5 +1,7 @@
 <div class="fr-card fr-p-3w csplab-results__filters">
-    <h2 class="fr-h6">Filtrer les résultats</h2>
+    <h2 class="fr-h6">
+        <span class="fr-icon-equalizer-line fr-mr-1w fr-text--sm"></span>Affiner la recherche
+    </h2>
     <form id="{{ filter_prefix|default:'' }}filters-form"
           hx-get="{% url 'candidate:cv_results' cv_uuid %}"
           hx-target="#{{ results_target_id|default:'results-zone' }}"
