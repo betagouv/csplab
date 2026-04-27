@@ -87,9 +87,12 @@ class CleanDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
                 results["errors"] = len(cleaning_errors)  # type: ignore
                 results["error_details"] = cleaning_errors  # type: ignore[operator]
 
-            if cleaning_errors:
-                self.document_repository.mark_as_pending(
-                    cast(List, failed_raw_documents)
+            if cleaning_errors and failed_raw_documents:
+                error_msg = " | ".join(
+                    [str(err.get("error", "Unknown error")) for err in cleaning_errors]
+                )
+                self.document_repository.mark_as_failed(
+                    cast(List, failed_raw_documents), error_msg
                 )
 
         return results

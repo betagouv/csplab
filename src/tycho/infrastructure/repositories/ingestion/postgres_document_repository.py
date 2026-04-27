@@ -182,3 +182,11 @@ class PostgresDocumentRepository(IDocumentRepository):
             ).update(processing=False)
         except Exception as e:
             raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+    def mark_as_failed(self, raw_documents: List[Document], error_msg: str) -> int:
+        try:
+            return RawDocument.objects.filter(
+                id__in=[obj.id for obj in raw_documents]
+            ).update(processed_at=timezone.now(), processing=False, error_msg=error_msg)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
