@@ -105,3 +105,6 @@ class InMemoryDocumentRepository(IDocumentRepository):
 
     def mark_as_pending(self, raw_documents: List[Document]) -> int:
         return 0
+
+    def mark_as_failed(self, raw_documents: List[Document], error_msg: str) -> int:
+        return 0

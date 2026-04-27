@@ -147,3 +147,27 @@ class TestIntegrationLoadOffersUseCase:
 
         # (MAX_ITERATIONS - 1) * (getsummaries + getoffer calls)
         assert len(httpx_mock.get_requests()) == (MAX_ITERATIONS - 1) * 2
+
+    async def test_stops_after_max_pages(
+        self, db, httpx_mock, ingestion_integration_container
+    ):
+        usecase = ingestion_integration_container.load_offers_usecase()
+        client = ingestion_integration_container.talentsoft_front_client()
+        client.cached_token = cached_token()
+
+        max_pages = 2
+        for start in range(1, max_pages + 1):
+            mock_offersummaries_response(
+                client, httpx_mock, start=start, count_offers=1, has_more=True
+            )
+        mock_detail_offer_response(client, httpx_mock)
+
+        input_data = LoadDocumentsInput(
+            operation_type=LoadOperationType.FETCH_FROM_API,
+            kwargs={"document_type": DocumentType.OFFERS, "max_pages": max_pages},
+        )
+
+        await usecase.execute(input_data)
+
+        # max_pages * (offersummaries + getoffer)
+        assert len(httpx_mock.get_requests()) == max_pages * 2
