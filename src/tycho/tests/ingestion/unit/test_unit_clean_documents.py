@@ -6,6 +6,7 @@ from config.app_config import AppConfig
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.fixtures.clean_test_factories import (
     THREE_DOCUMENTS_COUNT,
@@ -32,30 +33,35 @@ OFFERS_ERROR_DOCUMENTS = 2
 
 @pytest.fixture
 def clean_documents_container():
-
     container = IngestionContainer()
 
-    app_config = AppConfig.from_django_settings()
-    logger_service = LoggerService()
+    shared_container = SharedContainer()
 
-    container.logger_service.override(logger_service)
-    container.app_config.override(app_config)
-    container.shared_container.app_config.override(app_config)
+    app_config = AppConfig.from_django_settings()
+    shared_container.app_config.override(app_config)
+
+    logger_service = LoggerService()
+    shared_container.logger_service.override(logger_service)
 
     in_memory_document_repo = InMemoryDocumentRepository()
     container.document_repository.override(in_memory_document_repo)
 
     in_memory_corps_repo = InMemoryCorpsRepository()
-    container.shared_container.corps_repository.override(in_memory_corps_repo)
+    shared_container.corps_repository.override(in_memory_corps_repo)
 
     in_memory_concours_repo = InMemoryConcoursRepository()
-    container.shared_container.concours_repository.override(in_memory_concours_repo)
+    shared_container.concours_repository.override(in_memory_concours_repo)
 
     in_memory_offers_repo = InMemoryOffersRepository()
-    container.shared_container.offers_repository.override(in_memory_offers_repo)
+    shared_container.offers_repository.override(in_memory_offers_repo)
 
     in_memory_metier_repo = InMemoryMetierRepository()
-    container.shared_container.metiers_repository.override(in_memory_metier_repo)
+    shared_container.metiers_repository.override(in_memory_metier_repo)
+
+    container.shared_container.override(shared_container)
+
+    container.app_config.override(app_config)
+    container.logger_service.override(logger_service)
 
     return container
 
