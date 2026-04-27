@@ -33,7 +33,7 @@ from tests.utils.pdf_test_utils import create_minimal_valid_pdf
 fake = Faker()
 
 
-@pytest.fixture(name="test_app_config", scope="session")
+@pytest.fixture(name="test_app_config")
 def test_app_config_fixture():
     return AppConfig.from_django_settings()
 
