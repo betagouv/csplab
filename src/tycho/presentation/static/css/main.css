@@ -1020,7 +1020,7 @@ hr {
   max-height: 100dvh;
   left: auto;
   right: 0;
-  top: 0;
+  top: 2rem;
   bottom: 0;
   background: transparent;
   overflow: visible;
@@ -1029,6 +1029,7 @@ hr {
 }
 @media (min-width: 48em) {
   .csplab-drawer {
+    top: 0;
     width: 50%;
     max-width: 40rem;
   }
