@@ -123,11 +123,12 @@ def load_metiers():
 
 
 @db_periodic_task(crontab(hour="5-21", minute="0"))
-def load_offers(reload=False, batch_size=100):
+def load_offers(reload=False, batch_size=100, max_pages=0):
     kwargs = {
         "document_type": DocumentType.OFFERS,
         "reload": reload,
         "batch_size": batch_size,
+        "max_pages": max_pages,
     }
     load_documents(kwargs, usecase_name="load_offers_usecase")
 
