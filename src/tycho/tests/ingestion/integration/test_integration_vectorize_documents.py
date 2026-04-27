@@ -107,17 +107,18 @@ def offer_setup_fixture(vectorize_integration_container):
     return usecase, repository, document_type
 
 
+@pytest.fixture(name="test_app_config")
+def test_app_config(vectorize_integration_container):
+    return vectorize_integration_container.app_config()
+
+
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 @pytest.mark.parametrize(
     "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
 )
 def test_vectorize_entity_integration(
-    db,
-    document_type,
-    vectorize_integration_container,
-    httpx_mock,
+    db, document_type, vectorize_integration_container, httpx_mock, test_app_config
 ):
-    test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
 
     container = vectorize_integration_container
@@ -156,8 +157,9 @@ def test_vectorize_empty_list_integration(db, vectorize_integration_container):
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_limit(db, vectorize_integration_container, httpx_mock):
-    test_app_config = vectorize_integration_container.app_config()
+def test_vectorize_limit(
+    db, vectorize_integration_container, httpx_mock, test_app_config
+):
     mock_embedding_response(httpx_mock, test_app_config)
 
     limit = 2
@@ -218,10 +220,7 @@ def test_vectorize_vectorize_single_source_error(db, offer_setup):
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_upsert_batch_error(
-    db, offer_setup, vectorize_integration_container, httpx_mock
-):
-    test_app_config = vectorize_integration_container.app_config()
+def test_vectorize_upsert_batch_error(db, offer_setup, httpx_mock, test_app_config):
     mock_embedding_response(httpx_mock, test_app_config)
 
     usecase, _, document_type = offer_setup
@@ -240,9 +239,8 @@ def test_vectorize_upsert_batch_error(
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 def test_vectorize_qdrant_unsupported_similarity_metric(
-    db, vectorize_integration_container, httpx_mock
+    db, vectorize_integration_container, httpx_mock, test_app_config
 ):
-    test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
@@ -266,9 +264,8 @@ def test_vectorize_qdrant_unsupported_similarity_metric(
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 def test_vectorize_qdrant_search_unexpected_response(
-    db, vectorize_integration_container, httpx_mock
+    db, vectorize_integration_container, httpx_mock, test_app_config
 ):
-    test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
@@ -301,9 +298,8 @@ def test_vectorize_qdrant_search_unexpected_response(
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 def test_vectorize_qdrant_search_general_error(
-    db, vectorize_integration_container, httpx_mock
+    db, vectorize_integration_container, httpx_mock, test_app_config
 ):
-    test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
@@ -327,8 +323,9 @@ def test_vectorize_qdrant_search_general_error(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_qdrant_upsert_error(db, vectorize_integration_container, httpx_mock):
-    test_app_config = vectorize_integration_container.app_config()
+def test_vectorize_qdrant_upsert_error(
+    db, vectorize_integration_container, httpx_mock, test_app_config
+):
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create a document to vectorize
@@ -355,9 +352,8 @@ def test_vectorize_qdrant_empty_documents_upsert(db, vectorize_integration_conta
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 def test_vectorize_qdrant_search_no_filters(
-    db, vectorize_integration_container, httpx_mock
+    db, vectorize_integration_container, httpx_mock, test_app_config
 ):
-    test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
 
     OfferFactory.create()
@@ -394,9 +390,8 @@ def test_vectorize_albert_empty_text_error(db, vectorize_integration_container):
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 def test_vectorize_albert_invalid_response_error(
-    db, vectorize_integration_container, httpx_mock
+    db, vectorize_integration_container, httpx_mock, test_app_config
 ):
-    test_app_config = vectorize_integration_container.app_config()
 
     # Mock Albert API with invalid response structure
     invalid_response = {"invalid": "structure"}  # Missing required fields
@@ -417,9 +412,10 @@ def test_vectorize_albert_invalid_response_error(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_vectorize_albert_http_error(db, vectorize_integration_container, httpx_mock):
+def test_vectorize_albert_http_error(
+    db, vectorize_integration_container, httpx_mock, test_app_config
+):
 
-    test_app_config = vectorize_integration_container.app_config()
     # Mock Albert API with HTTP 500 error
     mock_embedding_response(httpx_mock, test_app_config, status_code=500)
 
@@ -436,10 +432,8 @@ def test_vectorize_albert_http_error(db, vectorize_integration_container, httpx_
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 def test_vectorize_albert_empty_data_error(
-    db, vectorize_integration_container, httpx_mock
+    db, vectorize_integration_container, httpx_mock, test_app_config
 ):
-
-    test_app_config = vectorize_integration_container.app_config()
     # Mock Albert API with empty data response using the factory
     empty_data_response = (
         MockApiResponseFactory.create_albert_embedding_response_empty_data()
