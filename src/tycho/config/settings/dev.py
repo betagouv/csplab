@@ -47,3 +47,4 @@ SENTRY_DNS = "example.com"
 HUEY["immediate"] = False  # noqa: F405
 HUEY["consumer"]["periodic"] = False  # noqa: F405
 AUTH_PASSWORD_VALIDATORS = []
+REST_FRAMEWORK["DEFAULT_PERMISSION_CLASSES"] = []  # noqa: F405

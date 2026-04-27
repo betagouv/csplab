@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf_spectacular",
     "django_htmx",
     "huey.contrib.djhuey",
     "dsfr",
@@ -242,13 +243,15 @@ MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
 # CSP
 # ---------------------------------------
 connect_src = [CSP.SELF, "*.sentry.io"]
-img_src = [CSP.SELF, "data:"]
+img_src = [CSP.SELF, "data:", "blob:", "https://cdn.redoc.ly"]
 script_src = [CSP.SELF, CSP.NONCE, "https://tally.so"]
 style_src = [
     CSP.SELF,
     CSP.NONCE,
     "https://fonts.googleapis.com",
     "'sha256-faU7yAF8NxuMTNEwVmBz+VcYeIoBQ2EMHW3WaVxCvnk='",  # DSFR inline style
+    "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # Redoc inline style
+    "'sha256-QMIg+bpjm3JdElJ388KYke01izlUW0UoNOeKjpMxdgc='",  # ReDoc inline style
 ]
 
 if MATOMO_BASE_URL:
@@ -266,6 +269,7 @@ SECURE_CSP = {
     "script-src-elem": script_src,
     "style-src": style_src,
     "style-src-elem": style_src,
+    "worker-src": [CSP.SELF, "blob:"],  # ReDoc web worker
 }
 
 # Django REST Framework
@@ -279,11 +283,31 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 100,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "5/minute",
+        "user": "120/minute",
+    },
 }
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "CSPLab API",
+    "DESCRIPTION": "API for CSPLab",
+    "VERSION": "0.0.1",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "PREPROCESSING_HOOKS": ["drf_spectacular.hooks.preprocess_exclude_path_format"],
+    "TAGS": [
+        {"name": "api", "description": "Authentication endpoints"},
+    ],
 }
 
 _sentry_dsn = env.str("SENTRY_DSN")
