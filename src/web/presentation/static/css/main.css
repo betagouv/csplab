@@ -798,15 +798,6 @@ html[data-fr-js=true] .no-js-only {
   display: none !important;
 }
 
-/* On touch-only devices (mobile), always use the native uploader */
-@media (hover: none) and (pointer: coarse) {
-  html[data-fr-js=true] .no-js-only:not([hidden]) {
-    display: revert !important;
-  }
-  html[data-fr-js=true] .js-only {
-    display: none !important;
-  }
-}
 [hidden] {
   display: none !important;
 }
@@ -926,7 +917,28 @@ hr {
 .csplab-upload-wrapper {
   position: relative;
 }
+.csplab-upload-wrapper .csplab-upload-button {
+  display: inline-flex;
+  width: 100%;
+  justify-content: center;
+}
+@media (min-width: 48em) {
+  .csplab-upload-wrapper .csplab-upload-button {
+    display: none;
+  }
+}
+.csplab-upload-wrapper .csplab-upload-button.fr-btn--primary {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.csplab-upload-wrapper .csplab-upload-button.fr-btn--primary:hover {
+  background-color: var(--background-action-high-blue-france-hover);
+}
+.csplab-upload-wrapper .csplab-upload-button.fr-btn--primary:active {
+  background-color: var(--background-action-high-blue-france-active);
+}
 .csplab-upload-wrapper .csplab-dropzone {
+  display: none;
   position: relative;
   border: 1px dashed var(--border-action-high-blue-france);
   padding: 2rem;
@@ -934,11 +946,15 @@ hr {
   cursor: pointer;
   background-color: var(--background-default-grey);
   min-height: 10rem;
-  display: flex;
   flex-direction: column;
   gap: 1rem;
   align-items: center;
   justify-content: center;
+}
+@media (min-width: 48em) {
+  .csplab-upload-wrapper .csplab-dropzone {
+    display: flex;
+  }
 }
 .csplab-upload-wrapper .csplab-dropzone:hover {
   background-color: var(--background-default-grey-hover);
@@ -961,6 +977,10 @@ hr {
   text-underline-offset: 0.15em;
 }
 .csplab-upload-wrapper:has(input:focus-visible) .csplab-dropzone {
+  outline: 2px solid var(--border-action-high-blue-france);
+  outline-offset: 2px;
+}
+.csplab-upload-wrapper:has(input:focus-visible) .csplab-upload-button {
   outline: 2px solid var(--border-action-high-blue-france);
   outline-offset: 2px;
 }
