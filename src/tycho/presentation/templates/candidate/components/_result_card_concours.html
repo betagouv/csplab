@@ -22,11 +22,18 @@
                     {% endif %}
                 </ul>
             </div>
-            {% if concours.location %}
-                <div class="fr-card__end">
-                    <p class="fr-card__detail fr-icon-map-pin-2-line">
-                        <span class="fr-sr-only">Localisation :</span>{{ concours.location }}
-                    </p>
+            {% if concours.ministry or concours.location %}
+                <div class="fr-card__end fr-stack-1w">
+                    {% if concours.ministry %}
+                        <p class="fr-card__detail fr-icon-team-line">
+                            <span class="fr-sr-only">Ministère :</span>{{ concours.ministry }}
+                        </p>
+                    {% endif %}
+                    {% if concours.location %}
+                        <p class="fr-card__detail fr-icon-map-pin-2-line">
+                            <span class="fr-sr-only">Localisation :</span>{{ concours.location }}
+                        </p>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>
