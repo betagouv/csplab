@@ -3,7 +3,31 @@
 .csplab-upload-wrapper {
   position: relative;
 
+  .csplab-upload-button {
+    display: inline-flex;
+    width: 100%;
+    justify-content: center;
+
+    @include md {
+      display: none;
+    }
+  }
+
+  .csplab-upload-button.fr-btn--primary {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover {
+      background-color: var(--background-action-high-blue-france-hover);
+    }
+
+    &:active {
+      background-color: var(--background-action-high-blue-france-active);
+    }
+  }
+
   .csplab-dropzone {
+    display: none;
     position: relative;
     border: 1px dashed var(--border-action-high-blue-france);
     padding: $sp-4w;
@@ -11,11 +35,14 @@
     cursor: pointer;
     background-color: var(--background-default-grey);
     min-height: 10rem;
-    display: flex;
     flex-direction: column;
     gap: $sp-2w;
     align-items: center;
     justify-content: center;
+
+    @include md {
+      display: flex;
+    }
 
     &:hover {
       background-color: var(--background-default-grey-hover);
@@ -44,6 +71,11 @@
   }
 
   &:has(input:focus-visible) .csplab-dropzone {
+    outline: 2px solid var(--border-action-high-blue-france);
+    outline-offset: 2px;
+  }
+
+  &:has(input:focus-visible) .csplab-upload-button {
     outline: 2px solid var(--border-action-high-blue-france);
     outline-offset: 2px;
   }
