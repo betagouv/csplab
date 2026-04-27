@@ -108,11 +108,11 @@ def offer_setup_fixture(vectorize_integration_container):
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
 @pytest.mark.parametrize(
     "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
 )
 def test_vectorize_entity_integration(
+    db,
     document_type,
     vectorize_integration_container,
     httpx_mock,
@@ -146,8 +146,7 @@ def test_vectorize_entity_integration(
         assert round(result.score, 1) >= 0.0
 
 
-@pytest.mark.django_db
-def test_vectorize_empty_list_integration(vectorize_integration_container):
+def test_vectorize_empty_list_integration(db, vectorize_integration_container):
 
     usecase = vectorize_integration_container.vectorize_documents_usecase()
 
@@ -157,8 +156,7 @@ def test_vectorize_empty_list_integration(vectorize_integration_container):
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
-def test_vectorize_limit(vectorize_integration_container, httpx_mock):
+def test_vectorize_limit(db, vectorize_integration_container, httpx_mock):
     test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
 
@@ -182,8 +180,8 @@ def test_vectorize_limit(vectorize_integration_container, httpx_mock):
     assert OfferModel.objects.filter(processed_at__isnull=False).count() == limit
 
 
-@pytest.mark.django_db
 def test_vectorize_get_pending_processing_error(
+    db,
     offer_setup,
 ):
     usecase, repository, document_type = offer_setup
@@ -200,8 +198,7 @@ def test_vectorize_get_pending_processing_error(
     assert_offer_pending(processing=False)
 
 
-@pytest.mark.django_db
-def test_vectorize_vectorize_single_source_error(offer_setup):
+def test_vectorize_vectorize_single_source_error(db, offer_setup):
 
     usecase, _, document_type = offer_setup
 
@@ -221,9 +218,8 @@ def test_vectorize_vectorize_single_source_error(offer_setup):
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
 def test_vectorize_upsert_batch_error(
-    offer_setup, vectorize_integration_container, httpx_mock
+    db, offer_setup, vectorize_integration_container, httpx_mock
 ):
     test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
@@ -243,9 +239,8 @@ def test_vectorize_upsert_batch_error(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
 def test_vectorize_qdrant_unsupported_similarity_metric(
-    vectorize_integration_container, httpx_mock
+    db, vectorize_integration_container, httpx_mock
 ):
     test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
@@ -270,9 +265,8 @@ def test_vectorize_qdrant_unsupported_similarity_metric(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
 def test_vectorize_qdrant_search_unexpected_response(
-    vectorize_integration_container, httpx_mock
+    db, vectorize_integration_container, httpx_mock
 ):
     test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
@@ -306,9 +300,8 @@ def test_vectorize_qdrant_search_unexpected_response(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
 def test_vectorize_qdrant_search_general_error(
-    vectorize_integration_container, httpx_mock
+    db, vectorize_integration_container, httpx_mock
 ):
     test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
@@ -334,8 +327,7 @@ def test_vectorize_qdrant_search_general_error(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
-def test_vectorize_qdrant_upsert_error(vectorize_integration_container, httpx_mock):
+def test_vectorize_qdrant_upsert_error(db, vectorize_integration_container, httpx_mock):
     test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
 
@@ -353,8 +345,7 @@ def test_vectorize_qdrant_upsert_error(vectorize_integration_container, httpx_mo
             usecase.execute(DocumentType.OFFERS)
 
 
-@pytest.mark.django_db
-def test_vectorize_qdrant_empty_documents_upsert(vectorize_integration_container):
+def test_vectorize_qdrant_empty_documents_upsert(db, vectorize_integration_container):
     # Test empty documents list (ligne 108)
     vector_repo = vectorize_integration_container.vector_repository()
     result = vector_repo.upsert_batch([], DocumentType.OFFERS)
@@ -363,9 +354,8 @@ def test_vectorize_qdrant_empty_documents_upsert(vectorize_integration_container
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
 def test_vectorize_qdrant_search_no_filters(
-    vectorize_integration_container, httpx_mock
+    db, vectorize_integration_container, httpx_mock
 ):
     test_app_config = vectorize_integration_container.app_config()
     mock_embedding_response(httpx_mock, test_app_config)
@@ -384,8 +374,7 @@ def test_vectorize_qdrant_search_no_filters(
     assert len(search_results) == 1
 
 
-@pytest.mark.django_db
-def test_vectorize_albert_empty_text_error(vectorize_integration_container):
+def test_vectorize_albert_empty_text_error(db, vectorize_integration_container):
 
     OfferFactory.create()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
@@ -404,9 +393,8 @@ def test_vectorize_albert_empty_text_error(vectorize_integration_container):
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
 def test_vectorize_albert_invalid_response_error(
-    vectorize_integration_container, httpx_mock
+    db, vectorize_integration_container, httpx_mock
 ):
     test_app_config = vectorize_integration_container.app_config()
 
@@ -429,8 +417,7 @@ def test_vectorize_albert_invalid_response_error(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
-def test_vectorize_albert_http_error(vectorize_integration_container, httpx_mock):
+def test_vectorize_albert_http_error(db, vectorize_integration_container, httpx_mock):
 
     test_app_config = vectorize_integration_container.app_config()
     # Mock Albert API with HTTP 500 error
@@ -448,8 +435,9 @@ def test_vectorize_albert_http_error(vectorize_integration_container, httpx_mock
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
-def test_vectorize_albert_empty_data_error(vectorize_integration_container, httpx_mock):
+def test_vectorize_albert_empty_data_error(
+    db, vectorize_integration_container, httpx_mock
+):
 
     test_app_config = vectorize_integration_container.app_config()
     # Mock Albert API with empty data response using the factory
@@ -471,8 +459,7 @@ def test_vectorize_albert_empty_data_error(vectorize_integration_container, http
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
-def test_vectorize_mark_as_processed_error(offer_setup, httpx_mock):
+def test_vectorize_mark_as_processed_error(db, offer_setup, httpx_mock):
 
     usecase, repository, document_type = offer_setup
 
@@ -492,8 +479,7 @@ def test_vectorize_mark_as_processed_error(offer_setup, httpx_mock):
     assert_offer_pending(processing=True)
 
 
-@pytest.mark.django_db
-def test_vectorize_mark_as_pending_error(offer_setup):
+def test_vectorize_mark_as_pending_error(db, offer_setup):
     usecase, repository, document_type = offer_setup
 
     with (
