@@ -23,6 +23,8 @@ Le monorepo est organisé en services :
 - GNU Make
 - [uv](https://docs.astral.sh/uv/)
 - [Direnv](https://direnv.net/)
+- [poppler](https://poppler.freedesktop.org/) — requis pour le service OCR en local (géré automatiquement en production via l'`Aptfile`)
+- [tesseract](https://tesseract-ocr.github.io/tessdoc/Installation.html) avec le pack de langue française (`tesseract-lang` sur macOS, `tesseract-ocr-fra` sur Linux) — requis pour le service OCR en local (géré automatiquement en production via l'`Aptfile`)
 
 ### Optionnel
 
