@@ -9,7 +9,6 @@ from config.app_config import AppConfig
 from domain.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.ingres_corps_factories import (
     IngresCorpsApiResponseFactory,
@@ -17,12 +16,10 @@ from tests.factories.ingres_corps_factories import (
 from tests.factories.ingres_metiers_factories import (
     IngresMetiersApiResponseFactory,
 )
-from tests.fixtures.fixture_loader import load_fixture
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
 from tests.utils.in_memory_document_repository import InMemoryDocumentRepository
 from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
-from tests.utils.mock_embedding_generator import MockEmbeddingGenerator
 
 
 @pytest.fixture(name="corps_document")
@@ -95,7 +92,6 @@ def create_test_documents(
 def documents_ingestion_container():
     container = IngestionContainer()
 
-    # Setup shared container with real repositories (except embedding generator)
     shared_container = SharedContainer()
 
     app_config = AppConfig.from_django_settings()
@@ -103,19 +99,6 @@ def documents_ingestion_container():
 
     logger_service = LoggerService()
     shared_container.logger_service.override(logger_service)
-
-    # Use provided embedding generator or default to mock
-    embedding_fixtures = load_fixture("embedding_fixtures.json")
-    embedding_generator = MockEmbeddingGenerator(embedding_fixtures)
-
-    shared_container.embedding_generator.override(embedding_generator)
-
-    talentsoft_front_client = TalentsoftFrontClient(
-        config=app_config.talentsoft,
-        logger_service=logger_service,
-    )
-
-    container.talentsoft_front_client.override(talentsoft_front_client)
 
     in_memory_document_repo = InMemoryDocumentRepository()
     container.document_repository.override(in_memory_document_repo)
@@ -129,7 +112,7 @@ def documents_ingestion_container():
     in_memory_offers_repo = InMemoryOffersRepository()
     shared_container.offers_repository.override(in_memory_offers_repo)
 
-    shared_container.override(shared_container)
+    container.shared_container.override(shared_container)
 
     container.app_config.override(app_config)
     container.logger_service.override(logger_service)

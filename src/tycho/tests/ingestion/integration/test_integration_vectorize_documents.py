@@ -107,7 +107,7 @@ def offer_setup_fixture(vectorize_integration_container):
     return usecase, repository, document_type
 
 
-@pytest.fixture(name="test_app_config")
+@pytest.fixture
 def test_app_config(vectorize_integration_container):
     return vectorize_integration_container.app_config()
 
