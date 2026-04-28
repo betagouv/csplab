@@ -5,13 +5,21 @@ import pytest
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
+from config.app_config import AppConfig
 from domain.entities.document import Document, DocumentType
+from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.di.shared.shared_container import SharedContainer
+from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.ingres_corps_factories import (
     IngresCorpsApiResponseFactory,
 )
 from tests.factories.ingres_metiers_factories import (
     IngresMetiersApiResponseFactory,
 )
+from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
+from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
+from tests.utils.in_memory_document_repository import InMemoryDocumentRepository
+from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
 
 
 @pytest.fixture(name="corps_document")
@@ -80,6 +88,48 @@ def create_test_documents(
     return documents
 
 
+@pytest.fixture
+def documents_ingestion_container():
+    container = IngestionContainer()
+
+    shared_container = SharedContainer()
+
+    app_config = AppConfig.from_django_settings()
+    shared_container.app_config.override(app_config)
+
+    logger_service = LoggerService()
+    shared_container.logger_service.override(logger_service)
+
+    in_memory_document_repo = InMemoryDocumentRepository()
+    container.document_repository.override(in_memory_document_repo)
+
+    in_memory_corps_repo = InMemoryCorpsRepository()
+    shared_container.corps_repository.override(in_memory_corps_repo)
+
+    in_memory_concours_repo = InMemoryConcoursRepository()
+    shared_container.concours_repository.override(in_memory_concours_repo)
+
+    in_memory_offers_repo = InMemoryOffersRepository()
+    shared_container.offers_repository.override(in_memory_offers_repo)
+
+    container.shared_container.override(shared_container)
+
+    container.app_config.override(app_config)
+    container.logger_service.override(logger_service)
+
+    return container
+
+
+@pytest.fixture
+def test_app_config(documents_ingestion_container):
+    return documents_ingestion_container.app_config()
+
+
+@pytest.fixture
+def documents_usecase(documents_ingestion_container):
+    return documents_ingestion_container.load_documents_usecase()
+
+
 class TestCorpsDocumentsUsecase:
     async def test_execute_returns_zero_when_no_documents(
         self, documents_usecase, test_app_config, httpx_mock
@@ -112,7 +162,6 @@ class TestCorpsDocumentsUsecase:
     async def test_execute_creates_new_documents_when_none_exist(
         self,
         documents_usecase,
-        documents_ingestion_container,
         test_app_config,
         httpx_mock,
     ):
@@ -178,7 +227,6 @@ class TestMetiersDocumentsUsecase:
     async def test_execute_creates_new_documents_when_none_exist(
         self,
         documents_usecase,
-        documents_ingestion_container,
         test_app_config,
         httpx_mock,
     ):

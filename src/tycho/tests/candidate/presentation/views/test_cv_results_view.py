@@ -1,6 +1,7 @@
+from datetime import datetime, timezone
 from http import HTTPStatus
 from unittest.mock import patch
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from django.conf import settings
@@ -12,12 +13,53 @@ from pytest_django.asserts import (
     assertTemplateUsed,
 )
 
+from domain.entities.concours import Concours
+from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.cv_processing_status import CVStatus
+from domain.value_objects.ministry import Ministry
+from domain.value_objects.nor import NOR
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.cv_metadata_factory import CVMetadataFactory
 from tests.factories.offer_factory import OfferFactory
+
+
+@pytest.fixture(name="concours")
+def concours_fixture():
+    return [
+        Concours(
+            nor_original=NOR("MENA2400001A"),
+            nor_list=[NOR("MENA2400001A")],
+            category=Category.A,
+            ministry=Ministry.MAA,
+            access_modality=[AccessModality.CONCOURS_EXTERNE],
+            corps="Ingénieur des systèmes d'information",
+            grade="Ingénieur principal",
+            written_exam_date=datetime.now(timezone.utc),
+            open_position_number=10,
+        ),
+        Concours(
+            nor_original=NOR("AGRI2400002B"),
+            nor_list=[NOR("AGRI2400002B")],
+            category=Category.A,
+            ministry=Ministry.MAA,
+            access_modality=[AccessModality.CONCOURS_EXTERNE],
+            corps="Attaché d'administration",
+            grade="Attaché principal",
+            written_exam_date=datetime.now(timezone.utc),
+            open_position_number=5,
+        ),
+    ]
+
+
+@pytest.fixture(name="db_cv_uuid")
+def db_cv_uuid_fixture(status: CVStatus = CVStatus.COMPLETED) -> UUID:
+    cv_metadata = CVMetadataFactory.build(
+        status=status, search_query="Python developer"
+    )
+    CVMetadataModel.from_entity(cv_metadata).save()
+    return cv_metadata.id
 
 
 @patch(

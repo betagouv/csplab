@@ -1,7 +1,7 @@
 """Polyfactory for CVMetadata entity."""
 
-from datetime import UTC, datetime
-from uuid import uuid4
+from datetime import UTC, datetime, timezone
+from uuid import UUID, uuid4
 
 from polyfactory.factories import DataclassFactory
 
@@ -48,3 +48,26 @@ class CVMetadataFactory(DataclassFactory[CVMetadata]):
     def search_query(cls):
         """Default to None."""
         return None
+
+
+def create_cv_metadata_initial():
+    cv_id = UUID("00000000-0000-0000-0000-000000000001")
+    now = datetime.now(timezone.utc)
+    return CVMetadata(
+        id=cv_id,
+        filename="test_cv.pdf",
+        status=CVStatus.PENDING,
+        created_at=now,
+        updated_at=now,
+    ), cv_id
+
+
+def create_cv_metadata_completed():
+    cv_metadata, cv_id = create_cv_metadata_initial()
+    cv_metadata.status = CVStatus.COMPLETED
+    cv_metadata.search_query = "Python developer with Django experience"
+    cv_metadata.extracted_text = {
+        "experiences": ["Software Engineer"],
+        "skills": ["Python", "Django"],
+    }
+    return cv_metadata, cv_id

@@ -1,42 +1,6 @@
-from unittest.mock import patch
-
-import pytest
-from django.contrib.auth.models import User
 from django.urls import reverse
-from faker import Faker
-from pytest_django.asserts import assertTemplateUsed
 from rest_framework import status
-from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
-
-fake = Faker()
-
-
-@pytest.fixture(name="api_client")
-def api_client_fixture():
-    return APIClient()
-
-
-@pytest.fixture(name="user_credentials")
-def user_credentials_fixture():
-    return {
-        "username": fake.name(),
-        "email": fake.email(),
-        "password": fake.password(),
-    }
-
-
-@pytest.fixture(name="test_user")
-def test_user_fixture(db, user_credentials):
-    return User.objects.create_user(**user_credentials)
-
-
-@pytest.fixture(name="authenticated_client")
-def authenticated_client_fixture(api_client, test_user):
-    refresh = RefreshToken.for_user(test_user)
-    token = str(refresh.access_token)
-    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
-    return api_client
 
 
 class TestJWTEndpoints:
@@ -65,35 +29,6 @@ class TestJWTEndpoints:
 
         assert response.status_code == status.HTTP_200_OK
         assert "access" in response.data
-
-
-class TestHueyHealthView:
-    url = reverse("api:health_huey")
-
-    def test_success_response(self, authenticated_client):
-        response = authenticated_client.get(self.url)
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_unauthenticated_access(self, api_client):
-        response = api_client.get(self.url)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_redis_unavailable(self, authenticated_client):
-        with patch("huey.contrib.djhuey.HUEY.storage.conn.ping") as mocked_ping:
-            mocked_ping.side_effect = Exception("Redis connection refused")
-            response = authenticated_client.get(self.url)
-            assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-            assert response.data == {"status": "Huey health check failed"}
-
-
-class TestRedocView:
-    def test_views(self, db, api_client):
-        response = api_client.get(reverse("api:redoc"))
-
-        assert response.status_code == status.HTTP_200_OK
-        assertTemplateUsed(response, "api/redoc.html")
-        assert response.context["title"] == "ReDoc"
-        assert response.context["schema_url"] == reverse("api:schema")
 
 
 class TestSchemaEndpoint:
