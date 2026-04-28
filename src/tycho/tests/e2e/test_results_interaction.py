@@ -119,6 +119,42 @@ class TestResultsDrawer:
 
 
 @pytest.mark.e2e
+class TestResultsPersistence:
+    def test_user_refreshes_results_page_and_state_persists(
+        self, page: Page, live_server, transactional_db
+    ) -> None:
+        offer_entity = OfferFactory.build(title="Offre e2e refresh")
+        OfferModel.from_entity(offer_entity).save()
+
+        cv_metadata = CVMetadataFactory.build(
+            status=CVStatus.COMPLETED, search_query="dev"
+        )
+        CVMetadataModel.from_entity(cv_metadata).save()
+
+        results_url = reverse(
+            "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}
+        )
+
+        with patch(
+            "application.candidate.usecases.match_cv_to_opportunities."
+            "MatchCVToOpportunitiesUsecase.execute"
+        ) as mock_execute:
+            mock_execute.return_value = [(offer_entity, 0.9)]
+
+            page.goto(f"{live_server.url}{results_url}")
+            results = page.get_by_test_id("cv-results")
+            expect(results).to_be_visible()
+            expect(results).to_contain_text("Offre e2e refresh")
+
+            page.reload()
+
+            expect(page.get_by_test_id("cv-results")).to_be_visible()
+            expect(page.get_by_test_id("cv-results")).to_contain_text(
+                "Offre e2e refresh"
+            )
+
+
+@pytest.mark.e2e
 class TestResultsFilters:
     def test_user_narrows_results_by_selecting_category_filter(
         self, page: Page, live_server, transactional_db
