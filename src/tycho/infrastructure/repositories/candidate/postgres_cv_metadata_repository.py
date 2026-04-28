@@ -32,8 +32,8 @@ class PostgresCVMetadataRepository(ICVMetadataRepository):
         model.save()
         return model.to_entity()
 
-    def find_by_id(self, cv_id: UUID) -> Optional[CVMetadata]:
-        """Find CV metadata by ID.
+    def get_by_id(self, cv_id: UUID) -> Optional[CVMetadata]:
+        """Get CV metadata by ID.
 
         Args:
             cv_id: id of the CV metadata

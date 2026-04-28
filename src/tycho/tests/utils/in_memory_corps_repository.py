@@ -46,14 +46,14 @@ class InMemoryCorpsRepository(ICorpsRepository):
             "errors": errors,
         }
 
-    def find_by_id(self, corps_id: UUID) -> Corps:
-        """Find a Corps by its ID."""
+    def get_by_id(self, corps_id: UUID) -> Corps:
+        """Get a Corps by its ID."""
         if corps_id not in self._storage:
             raise CorpsDoesNotExist(corps_id)
         return self._storage[corps_id]
 
-    def find_by_code(self, code: str) -> Corps:
-        """Find a Corps by its code."""
+    def get_by_code(self, code: str) -> Corps:
+        """Get a Corps by its code."""
         for corps in self._storage.values():
             if corps.code == code:
                 return corps

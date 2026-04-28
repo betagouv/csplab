@@ -235,7 +235,7 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
             )
             # Check if Concours with this NOR already exists
             try:
-                existing_concours = self.concours_repository.find_by_nor(nor_original)
+                existing_concours = self.concours_repository.get_by_nor(nor_original)
                 concours.id = existing_concours.id
             except ConcoursDoesNotExist:
                 self.logger.info(

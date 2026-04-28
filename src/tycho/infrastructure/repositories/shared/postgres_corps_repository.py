@@ -62,14 +62,14 @@ class PostgresCorpsRepository(ICorpsRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_id(self, corps_id: UUID) -> Corps:
+    def get_by_id(self, corps_id: UUID) -> Corps:
         try:
             corps_model = CorpsModel.objects.get(id=corps_id)
             return corps_model.to_entity()
         except CorpsModel.DoesNotExist as e:
             raise CorpsDoesNotExist(corps_id) from e
 
-    def find_by_code(self, code: str) -> Corps:
+    def get_by_code(self, code: str) -> Corps:
         try:
             corps_model = CorpsModel.objects.get(code=code)
             return corps_model.to_entity()

@@ -157,7 +157,7 @@ async def test_execute_with_api_failure_saves_failed_status_to_database(
         await usecase.execute(cv_id, pdf_content)
 
     # Verify that CV metadata was saved with FAILED status
-    updated_cv = await repo.find_by_id(cv_id)
+    updated_cv = await repo.get_by_id(cv_id)
     assert updated_cv is not None
     assert updated_cv.status == CVStatus.FAILED
     assert updated_cv.updated_at > initial_cv.updated_at

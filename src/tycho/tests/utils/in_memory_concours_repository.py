@@ -42,17 +42,17 @@ class InMemoryConcoursRepository(IConcoursRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_id(self, concours_id: UUID) -> Concours:
-        """Find a Concours by its ID."""
+    def get_by_id(self, concours_id: UUID) -> Concours:
+        """Get a Concours by its ID."""
         if concours_id not in self._concours:
             raise ConcoursDoesNotExist(str(concours_id))
         return self._concours[concours_id]
 
-    def find_by_ids(self, concours_ids: List[UUID]) -> List[Concours]:
+    def get_by_ids(self, concours_ids: List[UUID]) -> List[Concours]:
         return []
 
-    def find_by_nor(self, nor) -> Concours:
-        """Find a Concours by its NOR."""
+    def get_by_nor(self, nor) -> Concours:
+        """Get a Concours by its NOR."""
         for concours in self._concours.values():
             if concours.nor_original == nor:
                 return concours

@@ -32,7 +32,7 @@ class ProcessUploadedCVUsecase:
         self._logger.info("Starting CV processing for UUID: %s", cv_uuid)
 
         # Retrieve existing CV metadata
-        cv_metadata = await self._async_cv_metadata_repository.find_by_id(cv_uuid)
+        cv_metadata = await self._async_cv_metadata_repository.get_by_id(cv_uuid)
         if not cv_metadata:
             self._logger.error("CV metadata not found for UUID: %s", cv_uuid)
             raise CVNotFoundError(str(cv_uuid))

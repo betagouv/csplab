@@ -14,12 +14,12 @@ class ICorpsRepository(Protocol):
         """Insert or update multiple Corps entities and return operation results."""
         ...
 
-    def find_by_id(self, corps_id: UUID) -> Corps:
-        """Find a Corps by its ID."""
+    def get_by_id(self, corps_id: UUID) -> Corps:
+        """Get a Corps by its ID."""
         ...
 
-    def find_by_code(self, code: str) -> Corps:
-        """Find a Corps by its code."""
+    def get_by_code(self, code: str) -> Corps:
+        """Get a Corps by its code."""
         ...
 
     def get_all(self) -> List[Corps]:

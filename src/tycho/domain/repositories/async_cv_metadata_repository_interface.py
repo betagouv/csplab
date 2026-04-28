@@ -23,8 +23,8 @@ class IAsyncCVMetadataRepository(Protocol):
         """
         ...
 
-    async def find_by_id(self, cv_id: UUID) -> Optional[CVMetadata]:
-        """Find CV metadata by ID asynchronously.
+    async def get_by_id(self, cv_id: UUID) -> Optional[CVMetadata]:
+        """Get CV metadata by ID asynchronously.
 
         Args:
             cv_id: id of the CV metadata

@@ -32,8 +32,8 @@ class AsyncPostgresCVMetadataRepository(IAsyncCVMetadataRepository):
         await model.asave()
         return model.to_entity()
 
-    async def find_by_id(self, cv_id: UUID) -> Optional[CVMetadata]:
-        """Find CV metadata by ID asynchronously using Django async ORM.
+    async def get_by_id(self, cv_id: UUID) -> Optional[CVMetadata]:
+        """Get CV metadata by ID asynchronously using Django async ORM.
 
         Args:
             cv_id: id of the CV metadata

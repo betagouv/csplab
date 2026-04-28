@@ -31,8 +31,8 @@ class AsyncInMemoryCVMetadataRepository(IAsyncCVMetadataRepository):
         self._storage[cv_metadata.id] = cv_metadata
         return cv_metadata
 
-    async def find_by_id(self, cv_id: UUID) -> Optional[CVMetadata]:
-        """Find CV metadata by ID in memory storage asynchronously.
+    async def get_by_id(self, cv_id: UUID) -> Optional[CVMetadata]:
+        """Get CV metadata by ID in memory storage asynchronously.
 
         Args:
             cv_id: id of the CV metadata

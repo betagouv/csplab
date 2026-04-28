@@ -128,7 +128,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             beginning_date=beginning_date,
         )
         try:
-            existing_offer = self.offers_repository.find_by_external_id(
+            existing_offer = self.offers_repository.get_by_external_id(
                 offer.external_id
             )
             offer.id = existing_offer.id  # Preserve existing ID for updates

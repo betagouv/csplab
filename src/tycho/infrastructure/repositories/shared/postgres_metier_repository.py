@@ -93,7 +93,7 @@ class PostgresMetierRepository(IMetierRepository):
             self.logger.error("Database error during bulk upsert: %s", str(e))
             raise DatabaseError("Database error during bulk upsert: %s", str(e)) from e
 
-    def find_by_external_id(self, external_id: str) -> Metier:
+    def get_by_external_id(self, external_id: str) -> Metier:
         try:
             metier_model = MetierModel.objects.get(external_id=external_id)
             return metier_model.to_entity()

@@ -62,18 +62,18 @@ class PostgresConcoursRepository(IConcoursRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_id(self, concours_id) -> Concours:
+    def get_by_id(self, concours_id) -> Concours:
         try:
             concours_model = ConcoursModel.objects.get(id=concours_id)
             return concours_model.to_entity()
         except ConcoursModel.DoesNotExist as e:
             raise ConcoursDoesNotExist(str(concours_id)) from e
 
-    def find_by_ids(self, concours_ids: List[UUID]) -> List[Concours]:
+    def get_by_ids(self, concours_ids: List[UUID]) -> List[Concours]:
         concours_list = ConcoursModel.objects.filter(id__in=concours_ids)
         return [concours.to_entity() for concours in concours_list]
 
-    def find_by_nor(self, nor) -> Concours:
+    def get_by_nor(self, nor) -> Concours:
         try:
             concours_model = ConcoursModel.objects.get(nor_original=nor.value)
             return concours_model.to_entity()

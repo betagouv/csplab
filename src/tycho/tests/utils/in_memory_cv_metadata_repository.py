@@ -29,8 +29,8 @@ class InMemoryCVMetadataRepository(ICVMetadataRepository):
         self._storage[cv_metadata.id] = cv_metadata
         return cv_metadata
 
-    def find_by_id(self, cv_id: UUID) -> Optional[CVMetadata]:
-        """Find CV metadata by ID in memory storage.
+    def get_by_id(self, cv_id: UUID) -> Optional[CVMetadata]:
+        """Get CV metadata by ID in memory storage.
 
         Args:
             cv_id: id of the CV metadata

@@ -172,17 +172,17 @@ def test_find_by_id_nonexistent(db, clean_documents_integration_container):
         clean_documents_integration_container.shared_container.corps_repository()
     )
     with pytest.raises(CorpsDoesNotExist):
-        corps_repository.find_by_id(99999)
+        corps_repository.get_by_id(99999)
     concours_repository = (
         clean_documents_integration_container.shared_container.concours_repository()
     )
     with pytest.raises(ConcoursDoesNotExist):
-        concours_repository.find_by_id(99999)
+        concours_repository.get_by_id(99999)
     offers_repository = (
         clean_documents_integration_container.shared_container.offers_repository()
     )
     with pytest.raises(OfferDoesNotExist):
-        offers_repository.find_by_id(99999)
+        offers_repository.get_by_id(99999)
 
 
 def test_repository_get_all_empty(db, clean_documents_integration_container):

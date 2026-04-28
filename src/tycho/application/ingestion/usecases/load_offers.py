@@ -51,7 +51,7 @@ class LoadOffersUsecase(IAsyncUseCase[LoadDocumentsInput, IUpsertResult]):
                 break
 
             existing_documents = await sync_to_async(
-                self.document_repository.find_by_external_ids
+                self.document_repository.get_by_external_ids
             )(document_type=document_type, documents=cast(List, fetched_documents))
 
             documents = self.document_repository.get_documents_to_upsert(

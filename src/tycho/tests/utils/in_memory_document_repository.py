@@ -14,13 +14,13 @@ class InMemoryDocumentRepository(IDocumentRepository):
         self._documents: List[Document] = []
         self._next_id = 1
 
-    def find_by_type(
+    def get_by_type(
         self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         has_more = False
         return [doc for doc in self._documents if doc.type == document_type], has_more
 
-    def find_by_external_ids(
+    def get_by_external_ids(
         self, document_type: DocumentType, documents: List[Document]
     ) -> List[Document]:
         return []

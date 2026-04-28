@@ -77,7 +77,7 @@ class MatchCVToOpportunitiesUsecase(
         concours_ids = [
             result.document.entity_id for result in concours_similarity_results
         ]
-        concours_list = self._concours_repository.find_by_ids(concours_ids)
+        concours_list = self._concours_repository.get_by_ids(concours_ids)
         concours_scores_by_id = {
             result.document.entity_id: result.score
             for result in concours_similarity_results
@@ -90,7 +90,7 @@ class MatchCVToOpportunitiesUsecase(
         )
 
         offers_ids = [result.document.entity_id for result in offers_similarity_results]
-        offers_list = self._offers_repository.find_by_ids(offers_ids)
+        offers_list = self._offers_repository.get_by_ids(offers_ids)
         offers_scores_by_id = {
             result.document.entity_id: result.score
             for result in offers_similarity_results

@@ -58,7 +58,7 @@ class Command(BaseCommand):
 
             if verbose:
                 cv_repo = self.container.postgres_cv_metadata_repository()
-                cv_metadata = cv_repo.find_by_id(cv_id)
+                cv_metadata = cv_repo.get_by_id(cv_id)
 
                 if cv_metadata:
                     self.logger.info("Extracted data:")
