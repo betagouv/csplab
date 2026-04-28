@@ -3,11 +3,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from django.urls import reverse
 from playwright.sync_api import Page, expect
 
+from domain.value_objects.category import Category
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
+from tests.factories.cv_metadata_factory import CVMetadataFactory
 from tests.factories.offer_factory import OfferFactory
 
 
@@ -64,6 +67,55 @@ class TestCandidateFlowKeyboard:
             expect(drawer.locator("[data-drawer-close]")).to_be_focused()
 
             # 5. Close drawer with Escape, focus returns to trigger
+            page.keyboard.press("Escape")
+            expect(drawer).not_to_be_visible()
+            expect(trigger).to_be_focused()
+
+    def test_focus_returns_to_trigger_after_filter_then_drawer_escape(
+        self,
+        page: Page,
+        live_server,
+        transactional_db,
+    ) -> None:
+        offer_a = OfferFactory.build(title="Offre alpha kbd", category=Category.A)
+        offer_b = OfferFactory.build(title="Offre beta kbd", category=Category.B)
+        OfferModel.from_entity(offer_a).save()
+        OfferModel.from_entity(offer_b).save()
+
+        cv_metadata = CVMetadataFactory.build(
+            status=CVStatus.COMPLETED, search_query="dev"
+        )
+        CVMetadataModel.from_entity(cv_metadata).save()
+
+        def fake_execute(*, cv_metadata, filters, limit):
+            if filters and "category" in filters:
+                return [(offer_a, 0.9)]
+            return [(offer_a, 0.9), (offer_b, 0.8)]
+
+        results_url = reverse(
+            "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}
+        )
+
+        with patch(
+            "application.candidate.usecases.match_cv_to_opportunities."
+            "MatchCVToOpportunitiesUsecase.execute",
+            side_effect=fake_execute,
+        ):
+            page.goto(f"{live_server.url}{results_url}")
+            results = page.get_by_test_id("cv-results")
+            expect(results).to_be_visible()
+
+            page.locator("label:has(#desktop-filter-category-a)").click()
+            expect(page).to_have_url(re.compile(r"filter-category=a"))
+            expect(results).not_to_contain_text("Offre beta kbd")
+
+            trigger = page.locator("[data-drawer-open]").first
+            trigger.focus()
+            page.keyboard.press("Enter")
+
+            drawer = page.get_by_test_id("opportunity-drawer")
+            expect(drawer).to_be_visible()
+
             page.keyboard.press("Escape")
             expect(drawer).not_to_be_visible()
             expect(trigger).to_be_focused()
