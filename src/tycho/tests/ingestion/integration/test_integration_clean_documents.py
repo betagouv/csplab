@@ -72,6 +72,12 @@ def assert_raw_document_pending(processing: bool):
     ).exists()
 
 
+def assert_raw_document_failed():
+    assert RawDocument.objects.filter(
+        processed_at__isnull=False, processing=False, error_msg__isnull=False
+    ).exists()
+
+
 def assert_no_offer_cleaned():
     assert not OfferModel.objects.exists()
 
@@ -312,7 +318,7 @@ def test_clean_offers_cleaner_error(db, raw_offer_setup):
     clean_documents_usecase.execute(document_type)
 
     assert_no_offer_cleaned()
-    assert_raw_document_pending(processing=False)
+    assert_raw_document_failed()
 
 
 def test_clean_offers_mark_as_processed_error(db, raw_offer_setup):
@@ -333,7 +339,7 @@ def test_clean_offers_mark_as_processed_error(db, raw_offer_setup):
     assert_raw_document_pending(processing=True)
 
 
-def test_clean_offers_mark_as_pending_error(db, raw_offer_setup):
+def test_clean_offers_mark_as_failed_error(db, raw_offer_setup):
     document_type = DocumentType.OFFERS
     clean_documents_usecase, document_repository, document = raw_offer_setup
     document.raw_data = {"data": "dummy"}
@@ -341,7 +347,7 @@ def test_clean_offers_mark_as_pending_error(db, raw_offer_setup):
 
     with patch.object(
         document_repository,
-        "mark_as_pending",
+        "mark_as_failed",
         side_effect=Exception(DB_ERROR),
     ) as mocked_method:
         with pytest.raises(Exception, match=DB_ERROR):

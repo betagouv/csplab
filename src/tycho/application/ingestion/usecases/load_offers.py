@@ -31,6 +31,7 @@ class LoadOffersUsecase(IAsyncUseCase[LoadDocumentsInput, IUpsertResult]):
         document_type = cast(DocumentType, input_data.kwargs.get("document_type"))
         reload = input_data.kwargs.get("reload", False)
         batch_size = input_data.kwargs.get("batch_size", 100)
+        max_pages = input_data.kwargs.get("max_pages", 0)
         if document_type != DocumentType.OFFERS:
             raise InvalidDocumentTypeError(document_type.value)
 
@@ -39,6 +40,8 @@ class LoadOffersUsecase(IAsyncUseCase[LoadDocumentsInput, IUpsertResult]):
         batch_result: IUpsertResult = {"created": 0, "updated": 0, "errors": []}
 
         while has_more and page < MAX_ITERATIONS:
+            if max_pages > 0 and page > max_pages:
+                break
             self.logger.info("LoadOffers, fetching page %d", page)
 
             fetched_documents, has_more = await self.document_gateway.fetch_by_type(

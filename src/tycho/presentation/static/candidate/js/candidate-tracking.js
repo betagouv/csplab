@@ -1,5 +1,5 @@
 class CandidateTrackingHandler {
-  static DRAWER_BODY_ID = 'opportunity-drawer-body';
+  static DRAWER_SELECTOR = '[data-drawer]';
   static PROCESSING_START_KEY = 'csplab-matomo-processing-start';
 
   /** @type {string|null} */
@@ -41,22 +41,22 @@ class CandidateTrackingHandler {
 
   setupDrawerTracking() {
     document.addEventListener('htmx:afterSwap', (e) => this.handleDrawerSwap(e));
-    const drawer = document.getElementById(CandidateTrackingHandler.DRAWER_BODY_ID)?.closest('dialog');
-    if (drawer) {
-      drawer.addEventListener('close', () => this.handleDrawerClose());
-    }
   }
 
   /**
    * @param {CustomEvent} e
    */
   handleDrawerSwap(e) {
-    if (e.detail.target?.id !== CandidateTrackingHandler.DRAWER_BODY_ID) return;
-    const feedback = e.detail.target.querySelector('[data-opportunity-type][data-opportunity-id]');
+    const target = e.detail.target;
+    if (!target || target.tagName !== 'BODY') return;
+    const drawer = target.querySelector(`${CandidateTrackingHandler.DRAWER_SELECTOR}:last-of-type`);
+    if (!drawer) return;
+    const feedback = drawer.querySelector('[data-opportunity-type][data-opportunity-id]');
     if (!feedback) return;
     const name = `${feedback.dataset.opportunityType}:${feedback.dataset.opportunityId}`;
     this.lastDrawerOpportunity = name;
     window.csplab.matomo.trackEvent('OpportunityDrawer', 'opened', name);
+    drawer.addEventListener('close', () => this.handleDrawerClose(), { once: true });
   }
 
   handleDrawerClose() {

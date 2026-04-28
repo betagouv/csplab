@@ -25,11 +25,18 @@ class Command(BaseCommand):
             default=100,
             help="Number of offers to fetch per batch (default: 100)",
         )
+        parser.add_argument(
+            "--max-pages",
+            type=int,
+            default=0,
+            help="Maximum number of pages to fetch (0 = no limit)",
+        )
 
     def handle(self, *args, **options):
         reload = options["reload"]
         batch_size = options["batch_size"]
+        max_pages = options["max_pages"]
 
         self.logger.info("Enqueuing load task for OFFERS...")
-        load_offers(reload=reload, batch_size=batch_size)
+        load_offers(reload=reload, batch_size=batch_size, max_pages=max_pages)
         self.logger.info("✅ Task enqueued successfully.")
