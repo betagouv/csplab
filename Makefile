@@ -296,6 +296,11 @@ test-a11y: ## run a11y tests with Playwright and axe-playwright-python
 	$(TYCHO_UV) pytest -m "accessibility" --numprocesses=logical --create-db --no-cov $(ARGS)
 .PHONY: test-a11y
 
+test-e2e: ## run e2e tests with Playwright (live_server + browser)
+	@echo 'test:e2e started…'
+	$(TYCHO_UV) pytest -m "e2e" --create-db --no-cov $(ARGS)
+.PHONY: test-e2e
+
 ## MANAGE docker services
 status: ## an alias for "docker compose ps"
 	@$(COMPOSE) ps

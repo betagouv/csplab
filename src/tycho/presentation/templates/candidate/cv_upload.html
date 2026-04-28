@@ -57,6 +57,7 @@
                         <form method="post"
                               enctype="multipart/form-data"
                               id="cv-upload-form"
+                              data-testid="cv-upload-form"
                               class="fr-stack-2w fr-mt-4w fr-mt-md-0">
                             {% csrf_token %}
                             {% include "components/file_upload.html" with field=form.cv_file dropzone_text="Glissez-déposez votre CV ou" %}
