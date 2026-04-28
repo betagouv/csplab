@@ -16,7 +16,6 @@ dependencies = [
     "drf-spectacular>=0.29.0",
     "gunicorn>=23.0.0,<24.0.0",
     "huey>=2.6.0",
-    "openai>=2.8.1,<3.0.0",
     "pelage>=0.6.0,<1.0.0",
     "polars>=1.0.0,<2.0.0",
     "psycopg[binary,pool]>=3.3.2,<3.4.0",

@@ -2,13 +2,6 @@ from django.conf import settings
 from pydantic import BaseModel, HttpUrl
 
 
-class OpenAIConfig(BaseModel):
-    api_key: str
-    base_url: HttpUrl
-    embedding_model: str
-    ocr_model: str
-
-
 class AlbertConfig(BaseModel):
     api_base_url: HttpUrl
     api_key: str
