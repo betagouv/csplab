@@ -12,7 +12,12 @@ from infrastructure.external_gateways.dtos.ingres_corps_dtos import (
 from infrastructure.external_gateways.dtos.ingres_metiers_dtos import (
     IngresMetiersApiResponse,
 )
-from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
+from infrastructure.external_gateways.talentsoft_client import (
+    TalentsoftBackClient,
+    TalentsoftFrontClient,
+)
+
+MAX_OFFSET = 100000
 
 
 class ExternalDocumentGateway(IDocumentGateway):
@@ -20,10 +25,12 @@ class ExternalDocumentGateway(IDocumentGateway):
         self,
         piste_client: IAsyncHttpClient,
         talentsoft_front_client: TalentsoftFrontClient,
+        talentsoft_back_client: TalentsoftBackClient,
         logger_service: ILogger,
     ):
         self.piste_client = piste_client
         self.talentsoft_front_client = talentsoft_front_client
+        self.talentsoft_back_client = talentsoft_back_client
         self.logger = logger_service
         self._source = {
             DocumentType.CORPS: self._fetch_ingres_api,
@@ -185,3 +192,48 @@ class ExternalDocumentGateway(IDocumentGateway):
                 type=document_type,
                 created_at=now,
             )
+
+    async def get_archived_documents_by_period(
+        self,
+        updated_after: datetime,
+    ) -> List[str]:
+        offset: int | None = 0
+        external_ids = []
+
+        async with self.talentsoft_back_client:
+            while offset is not None and offset < MAX_OFFSET:
+                try:
+                    (
+                        raw_documents,
+                        offset,
+                    ) = await self.talentsoft_back_client.get_vacancies(
+                        update_date=updated_after,
+                        date_operator="gt",
+                        offset=offset,
+                    )
+                except Exception as e:
+                    self.logger.error("Failed to fetch offers from Talentsoft: %s", e)
+                    return []
+
+                self.logger.info(
+                    "Found %d offers from Talentsoft Back API",
+                    len(raw_documents),
+                )
+
+                if not raw_documents:
+                    break
+
+                for raw_doc in raw_documents:
+                    reference = raw_doc.reference
+                    if reference is None:
+                        self.logger.warning(
+                            "Skipping raw_doc without reference: %s", raw_doc
+                        )
+                        continue
+
+                    versant_code_obj = raw_doc.salaryRange
+                    versant = versant_code_obj.id if versant_code_obj.id else "UNK"
+
+                    external_ids.append(f"{versant}-{reference}")
+
+            return external_ids
