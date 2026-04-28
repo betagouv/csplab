@@ -1,6 +1,7 @@
 from dependency_injector import containers, providers
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
+from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.load_offers import LoadOffersUsecase
@@ -53,10 +54,17 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger_service=logger_service,
     )
 
+    talentsoft_back_client = providers.Singleton(
+        talentsoft_client.TalentsoftBackClient,
+        config=providers.Callable(lambda cfg: cfg.talentsoft_back, app_config),
+        logger_service=logger_service,
+    )
+
     document_gateway = providers.Singleton(
         external_document_gateway.ExternalDocumentGateway,
         piste_client=piste_client,
         talentsoft_front_client=talentsoft_front_client,
+        talentsoft_back_client=talentsoft_back_client,
         logger_service=logger_service,
     )
 
@@ -125,4 +133,12 @@ class IngestionContainer(containers.DeclarativeContainer):
         embedding_generator=embedding_generator,
         logger=logger_service,
         repository_factory=repository_factory,
+    )
+
+    archive_offers_usecase = providers.Factory(
+        ArchiveOffersUsecase,
+        offers_repository=offers_repository,
+        document_gateway=document_gateway,
+        vector_repository=vector_repository,
+        logger=logger_service,
     )

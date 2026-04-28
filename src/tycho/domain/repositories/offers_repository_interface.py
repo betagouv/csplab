@@ -1,8 +1,21 @@
-from typing import List, Protocol
+from typing import List, Protocol, TypedDict
 from uuid import UUID
 
 from domain.entities.offer import Offer
 from domain.repositories.document_repository_interface import IUpsertResult
+
+
+class IArchiveError(TypedDict):
+    entity_id: UUID
+    error: str
+    exception: Exception
+
+
+class IArchiveResult(TypedDict):
+    fetched: int
+    vector_deleted: int
+    entity_archived: int
+    errors: List[IArchiveError]
 
 
 class IOffersRepository(Protocol):
