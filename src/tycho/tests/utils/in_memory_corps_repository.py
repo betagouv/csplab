@@ -1,5 +1,3 @@
-"""In-memory Corps repository implementation for testing."""
-
 from typing import Dict, List
 from uuid import UUID
 
@@ -13,14 +11,10 @@ from domain.repositories.document_repository_interface import (
 
 
 class InMemoryCorpsRepository(ICorpsRepository):
-    """In-memory implementation of Corps repository for testing."""
-
     def __init__(self) -> None:
-        """Initialize with empty storage."""
         self._storage: Dict[UUID, Corps] = {}
 
     def upsert_batch(self, corps: List[Corps]) -> IUpsertResult:
-        """Insert or update multiple Corps entities and return operation results."""
         created = 0
         updated = 0
         errors: List[IUpsertError] = []
@@ -47,24 +41,20 @@ class InMemoryCorpsRepository(ICorpsRepository):
         }
 
     def get_by_id(self, corps_id: UUID) -> Corps:
-        """Get a Corps by its ID."""
         if corps_id not in self._storage:
             raise CorpsDoesNotExist(corps_id)
         return self._storage[corps_id]
 
     def get_by_code(self, code: str) -> Corps:
-        """Get a Corps by its code."""
         for corps in self._storage.values():
             if corps.code == code:
                 return corps
         raise CorpsDoesNotExist(code)
 
     def get_all(self) -> List[Corps]:
-        """Get all Corps entities."""
         return list(self._storage.values())
 
     def clear(self) -> None:
-        """Clear all stored entities (for testing)."""
         self._storage.clear()
 
     def get_pending_processing(self, limit: int = 1000) -> List[Corps]:

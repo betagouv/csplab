@@ -224,12 +224,12 @@ class TestIntegrationLoadOffersUseCase:
 
         with patch.object(
             load_offers_usecase.document_repository,
-            "find_by_external_ids",
-            wraps=load_offers_usecase.document_repository.find_by_external_ids,
-        ) as repository_find_by_external_ids:
+            "get_by_external_ids",
+            wraps=load_offers_usecase.document_repository.get_by_external_ids,
+        ) as repository_get_by_external_ids:
             result = await load_offers_usecase.execute(input_data)
 
-        repository_find_by_external_ids.assert_not_called()
+        repository_get_by_external_ids.assert_not_called()
         assert result == {"created": 0, "updated": 0, "errors": []}
 
     async def test_stops_after_max_iterations(
