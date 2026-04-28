@@ -72,3 +72,6 @@ class InMemoryOffersRepository(IOffersRepository):
 
     def mark_as_pending(self, offers_list: List[Offer]) -> int:
         return 0
+
+    def mark_as_archived(self, offers_list: List[Offer]) -> int:
+        return 0
