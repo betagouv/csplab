@@ -60,8 +60,8 @@
                               class="fr-stack-2w fr-mt-4w fr-mt-md-0">
                             {% csrf_token %}
                             {% include "components/file_upload.html" with field=form.cv_file dropzone_text="Glissez-déposez votre CV ou" %}
-                            <!-- No-JS / mobile: hidden until file selected -->
-                            {% include "components/cv_upload_actions.html" with extra_classes="no-js-only" extra_attrs="data-nojs-actions hidden" %}
+                            <!-- No-JS fallback: submit always visible -->
+                            {% include "components/cv_upload_actions.html" with extra_classes="no-js-only" %}
                             <!-- JS: shown after file selection -->
                             {% include "components/cv_upload_actions.html" with extra_classes="js-only" extra_attrs="data-upload-actions hidden aria-hidden='true'" %}
                         </form>
