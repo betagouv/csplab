@@ -298,36 +298,35 @@ class TestGetDetailOffer:
 @pytest.mark.asyncio
 class TestGetVacancies:
     @pytest.mark.parametrize(
-        "kwargs,limit, offset, filter",
+        "kwargs, offset, filter",
         [
             (
-                {"update_date": datetime(2026, 5, 17, 10, 30, 0)},
-                1000,
-                1,
+                {
+                    "update_date": datetime(2026, 5, 17, 10, 30, 0),
+                },
+                0,
                 "vacancyStatus::Archived,Suspended|updateDate:gt:2026-05-17T10:30:00.00",
             ),
             (
                 {
                     "update_date": datetime(2025, 7, 16, 10, 30, 0),
-                    "limit": 20,
                     "offset": 3,
                     "date_operator": "lt",
                     "status": "Published",
                 },
-                20,
                 3,
                 "vacancyStatus::Published|updateDate:lt:2025-07-16T10:30:00.00",
             ),
         ],
     )
     async def test_request_contains_default_params(
-        self, talentsoft_back_client, kwargs, limit, offset, filter
+        self, talentsoft_back_client, kwargs, offset, filter
     ):
         return_value = {
             "code": 200,
             "status": "success",
             "data": [],
-            "contentRange": "1000-10/500",
+            "contentRange": "100-10/500",
         }
         talentsoft_back_client.cached_token = cached_token()
         mock_response = mocked_response(return_value=return_value)
@@ -343,16 +342,16 @@ class TestGetVacancies:
 
             assert call_args.args[0].endswith("/api/v1/vacancies")
             assert call_args.kwargs["params"] == {
-                "limit": limit,
                 "offset": offset,
                 "filter": filter,
+                "limit": 100,
             }
 
     @pytest.mark.parametrize(
         "contentRange,expected",
-        [("1000-10/1001", True), ("1000-10/1000", False)],
+        [("1000-10/1011", 1010), ("1000-10/1000", None)],
     )
-    async def test_has_more(self, talentsoft_back_client, contentRange, expected):
+    async def test_next_offset(self, talentsoft_back_client, contentRange, expected):
         return_value = {
             "code": 200,
             "status": "success",
@@ -366,10 +365,10 @@ class TestGetVacancies:
             talentsoft_back_client, "get", new_callable=AsyncMock
         ) as mock_get:
             mock_get.return_value = mock_response
-            offers, has_more = await talentsoft_back_client.get_vacancies(
+            offers, next_offset = await talentsoft_back_client.get_vacancies(
                 update_date=datetime.now()
             )
-            assert has_more is expected
+            assert next_offset == expected
 
     @pytest.mark.parametrize("contentRange", ["100-10/invalid", "invalid"])
     async def test_get_vacancies_raises_error_if_count_range_is_malformed(
