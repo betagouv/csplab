@@ -104,7 +104,7 @@ class CleanDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
         has_more = True
 
         while has_more:
-            raw_documents, has_more = self.document_repository.find_by_type(
+            raw_documents, has_more = self.document_repository.get_by_type(
                 document_type, start
             )
 

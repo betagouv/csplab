@@ -106,7 +106,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
     def _fetch_cv_data(self, request, cv_uuid: UUID) -> None:
         cv_metadata_repo = self.container.postgres_cv_metadata_repository()
         try:
-            cv_metadata = cv_metadata_repo.find_by_id(cv_uuid)
+            cv_metadata = cv_metadata_repo.get_by_id(cv_uuid)
         except Exception:
             self._status = CVStatus.FAILED
             return
@@ -244,7 +244,7 @@ class OfferDrawerView(BreadcrumbMixin, TemplateView):
 
         offers_repository = self.container.offers_repository()
         try:
-            offer = offers_repository.find_by_id(offer_id)
+            offer = offers_repository.get_by_id(offer_id)
             context["opportunity"] = OfferToTemplateMapper.map_for_drawer(offer)
         except OfferDoesNotExist:
             raise Http404("Offer not found") from None
@@ -287,7 +287,7 @@ class ConcoursDrawerView(BreadcrumbMixin, TemplateView):
 
         concours_repository = self.container.concours_repository()
         try:
-            concours = concours_repository.find_by_id(concours_id)
+            concours = concours_repository.get_by_id(concours_id)
             context["opportunity"] = ConcoursToTemplateMapper.map_for_drawer(concours)
         except ConcoursDoesNotExist:
             raise Http404("Concours not found") from None

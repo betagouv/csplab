@@ -14,7 +14,7 @@ from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 
 
 class PostgresDocumentRepository(IDocumentRepository):
-    def find_by_type(
+    def get_by_type(
         self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         offset = start * batch_size
@@ -30,7 +30,7 @@ class PostgresDocumentRepository(IDocumentRepository):
 
         return [raw_doc.to_entity() for raw_doc in raw_documents_to_return], has_more
 
-    def find_by_external_ids(
+    def get_by_external_ids(
         self, document_type: DocumentType, documents: List[Document]
     ) -> List[Document]:
         external_ids = [doc.external_id for doc in documents]

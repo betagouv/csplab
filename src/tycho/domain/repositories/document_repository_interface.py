@@ -16,11 +16,11 @@ class IUpsertResult(TypedDict):
 
 
 class IDocumentRepository(Protocol):
-    def find_by_type(
+    def get_by_type(
         self, document_type: DocumentType, start: int, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]: ...
 
-    def find_by_external_ids(
+    def get_by_external_ids(
         self, document_type: DocumentType, documents: List[Document]
     ) -> List[Document]: ...
 

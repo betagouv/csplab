@@ -32,7 +32,7 @@ def test_execute_creates_cv_metadata_with_pending_status(
     assert isinstance(uuid_obj, UUID)
 
     # Verify CV metadata was saved
-    saved_cv = cv_metadata_repository.find_by_id(uuid_obj)
+    saved_cv = cv_metadata_repository.get_by_id(uuid_obj)
     assert saved_cv is not None
     assert saved_cv.filename == filename
     assert saved_cv.status == CVStatus.PENDING
@@ -51,8 +51,8 @@ def test_execute_creates_unique_ids(usecase, cv_metadata_repository):
     assert cv_id1 != cv_id2
 
     # Verify both CVs exist with correct data
-    saved_cv1 = cv_metadata_repository.find_by_id(UUID(cv_id1))
-    saved_cv2 = cv_metadata_repository.find_by_id(UUID(cv_id2))
+    saved_cv1 = cv_metadata_repository.get_by_id(UUID(cv_id1))
+    saved_cv2 = cv_metadata_repository.get_by_id(UUID(cv_id2))
 
     assert saved_cv1.filename == filename1
     assert saved_cv2.filename == filename2
@@ -64,7 +64,7 @@ def test_execute_sets_timestamps(usecase, cv_metadata_repository):
 
     cv_id = usecase.execute(filename)
 
-    saved_cv = cv_metadata_repository.find_by_id(UUID(cv_id))
+    saved_cv = cv_metadata_repository.get_by_id(UUID(cv_id))
     assert saved_cv.created_at is not None
     assert saved_cv.updated_at is not None
     # Both timestamps should be very close (same execution)
@@ -77,6 +77,6 @@ def test_execute_with_empty_filename(usecase, cv_metadata_repository):
 
     cv_id = usecase.execute(filename)
 
-    saved_cv = cv_metadata_repository.find_by_id(UUID(cv_id))
+    saved_cv = cv_metadata_repository.get_by_id(UUID(cv_id))
     assert saved_cv.filename == ""
     assert saved_cv.status == CVStatus.PENDING

@@ -42,16 +42,16 @@ class InMemoryOffersRepository(IOffersRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_id(self, offer_id: UUID) -> Offer:
+    def get_by_id(self, offer_id: UUID) -> Offer:
         offer = self._offers.get(offer_id)
         if offer is None:
             raise OfferDoesNotExist(str(offer_id))
         return offer
 
-    def find_by_ids(self, offer_ids: List[UUID]) -> List[Offer]:
+    def get_by_ids(self, offer_ids: List[UUID]) -> List[Offer]:
         return []
 
-    def find_by_external_id(self, external_id: str) -> Offer:
+    def get_by_external_id(self, external_id: str) -> Offer:
         offer_id = self._external_id_index.get(external_id)
         if offer_id is None:
             raise OfferDoesNotExist(external_id)

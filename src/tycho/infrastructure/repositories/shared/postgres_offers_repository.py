@@ -94,18 +94,18 @@ class PostgresOffersRepository(IOffersRepository):
             self.logger.error("Database error during bulk upsert: %s", str(e))
             raise DatabaseError("Database error during bulk upsert: %s", str(e)) from e
 
-    def find_by_id(self, offer_id: UUID) -> Offer:
+    def get_by_id(self, offer_id: UUID) -> Offer:
         try:
             offer_model = OfferModel.objects.get(id=offer_id)
             return offer_model.to_entity()
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(offer_id) from e
 
-    def find_by_ids(self, offer_ids: List[UUID]) -> List[Offer]:
+    def get_by_ids(self, offer_ids: List[UUID]) -> List[Offer]:
         offers = OfferModel.objects.filter(id__in=offer_ids)
         return [offer.to_entity() for offer in offers]
 
-    def find_by_external_id(self, external_id: str) -> Offer:
+    def get_by_external_id(self, external_id: str) -> Offer:
         try:
             offer_model = OfferModel.objects.get(external_id=external_id)
             return offer_model.to_entity()

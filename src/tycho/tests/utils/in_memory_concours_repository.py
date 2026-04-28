@@ -1,5 +1,3 @@
-"""In-memory implementation of IConcoursRepository for testing purposes."""
-
 from typing import Dict, List
 from uuid import UUID
 
@@ -13,14 +11,10 @@ from domain.repositories.document_repository_interface import (
 
 
 class InMemoryConcoursRepository(IConcoursRepository):
-    """In-memory implementation of IConcoursRepository for testing."""
-
     def __init__(self):
-        """Initialize with empty storage."""
         self._concours: Dict[UUID, Concours] = {}
 
     def upsert_batch(self, concours_list: List[Concours]) -> IUpsertResult:
-        """Insert or update multiple Concours entities and return operation results."""
         created = 0
         updated = 0
         errors = []
@@ -42,28 +36,24 @@ class InMemoryConcoursRepository(IConcoursRepository):
 
         return {"created": created, "updated": updated, "errors": errors}
 
-    def find_by_id(self, concours_id: UUID) -> Concours:
-        """Find a Concours by its ID."""
+    def get_by_id(self, concours_id: UUID) -> Concours:
         if concours_id not in self._concours:
             raise ConcoursDoesNotExist(str(concours_id))
         return self._concours[concours_id]
 
-    def find_by_ids(self, concours_ids: List[UUID]) -> List[Concours]:
+    def get_by_ids(self, concours_ids: List[UUID]) -> List[Concours]:
         return []
 
-    def find_by_nor(self, nor) -> Concours:
-        """Find a Concours by its NOR."""
+    def get_by_nor(self, nor) -> Concours:
         for concours in self._concours.values():
             if concours.nor_original == nor:
                 return concours
         raise ConcoursDoesNotExist(str(nor))
 
     def get_all(self) -> List[Concours]:
-        """Get all Concours entities."""
         return list(self._concours.values())
 
     def clear(self) -> None:
-        """Clear all stored concours (for testing)."""
         self._concours.clear()
 
     def get_pending_processing(self, limit: int = 1000) -> List[Concours]:

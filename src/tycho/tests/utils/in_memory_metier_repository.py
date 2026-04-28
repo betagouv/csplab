@@ -44,7 +44,7 @@ class InMemoryMetierRepository(IMetierRepository):
             "errors": errors,
         }
 
-    def find_by_external_id(self, external_id: str) -> Metier:
+    def get_by_external_id(self, external_id: str) -> Metier:
         metier_id = self._external_id_index.get(external_id)
         if metier_id is None:
             raise MetierDoesNotExist(external_id)

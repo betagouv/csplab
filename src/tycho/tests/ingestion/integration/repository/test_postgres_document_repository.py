@@ -42,12 +42,12 @@ class TestFindByType:
     )
     def test_invalid_parameters(self, db, repository, start, batch_size):
         with pytest.raises(ValueError, match="Invalid start or batch_size values"):
-            repository.find_by_type(
+            repository.get_by_type(
                 DocumentType.OFFERS, start=start, batch_size=batch_size
             )
 
     def test_empty_results(self, db, repository):
-        documents, has_more = repository.find_by_type(
+        documents, has_more = repository.get_by_type(
             DocumentType.OFFERS, start=0, batch_size=10
         )
 
@@ -69,7 +69,7 @@ class TestFindByType:
         document_type = DocumentType.OFFERS
         RawDocumentFactory.create_batch(total_docs, document_type)
 
-        documents, has_more = repository.find_by_type(
+        documents, has_more = repository.get_by_type(
             document_type, start=start, batch_size=batch_size
         )
 
@@ -84,7 +84,7 @@ class TestFindByType:
             )
 
         for document_type in DocumentType:
-            docs, has_more = repository.find_by_type(
+            docs, has_more = repository.get_by_type(
                 document_type, start=0, batch_size=batch_size
             )
             assert len(docs) == nb_doc_per_type
@@ -99,7 +99,7 @@ class TestFindByType:
         RawDocumentFactory.create(document_type=document_type, external_id="uuid-1")
         RawDocumentFactory.create(document_type=document_type, external_id="uuid-2")
 
-        documents, _ = repository.find_by_type(document_type, start=0, batch_size=10)
+        documents, _ = repository.get_by_type(document_type, start=0, batch_size=10)
 
         # Should be ordered by database ID (insertion order)
         assert len(documents) == expected_document_count
@@ -109,7 +109,7 @@ class TestFindByType:
 
 class TestFindByExternalIds:
     def test_handle_empty_results(self, db, repository):
-        documents = repository.find_by_external_ids(
+        documents = repository.get_by_external_ids(
             document_type=DocumentType.OFFERS, documents=[]
         )
         assert documents == []
@@ -126,7 +126,7 @@ class TestFindByExternalIds:
             document_type=DocumentType.CONCOURS, external_id=external_id
         )
 
-        documents = repository.find_by_external_ids(
+        documents = repository.get_by_external_ids(
             document_type=DocumentType.OFFERS, documents=[raw_document.to_entity()]
         )
 
@@ -147,7 +147,7 @@ class TestFindByExternalIds:
             raw_document.to_entity() for raw_document in raw_documents_models
         ]
 
-        documents = repository.find_by_external_ids(
+        documents = repository.get_by_external_ids(
             document_type=DocumentType.OFFERS, documents=raw_documents[:2]
         )
 

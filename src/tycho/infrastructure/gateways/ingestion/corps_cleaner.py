@@ -186,7 +186,7 @@ class CorpsCleaner(IDocumentCleaner[Corps]):
             )
             # Check if Corps with this code already exists
             try:
-                existing_corps = self.corps_repository.find_by_code(row["id"])
+                existing_corps = self.corps_repository.get_by_code(row["id"])
                 corps.id = existing_corps.id
             except CorpsDoesNotExist:
                 self.logger.info("Creating new Corps with code %s", row["id"])
