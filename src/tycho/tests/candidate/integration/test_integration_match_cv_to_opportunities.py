@@ -13,11 +13,11 @@ from infrastructure.django_apps.shared.models.concours import ConcoursModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
-from tests.factories.offer_factory import OfferFactory
-from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
 
 # Import fixtures needed for this test
-from tests.fixtures.candidate_fixtures import create_cv_metadata_completed
+from tests.factories.cv_metadata_factory import create_cv_metadata_completed
+from tests.factories.offer_factory import OfferFactory
+from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
 from tests.fixtures.shared_fixtures import (
     create_shared_qdrant_repository,
 )
@@ -31,43 +31,43 @@ SIX_DOCUMENTS = 6
 
 
 @pytest.fixture
-def _integration_candidate_container():
+def candidate_container():
     shared_qdrant_repository = create_shared_qdrant_repository()
 
     container = CandidateContainer()
 
-    # Setup shared container with real repositories (except embedding generator)
     shared_container = SharedContainer()
 
-    # Add app config to shared container (MISSING BEFORE!)
     app_config = AppConfig.from_django_settings()
     shared_container.app_config.override(app_config)
 
-    # Add logger service to shared container
     logger_service = LoggerService()
     shared_container.logger_service.override(logger_service)
 
-    # Use shared Qdrant repository fixture
     shared_container.vector_repository.override(shared_qdrant_repository)
 
     container.shared_container.override(shared_container)
 
-    # Setup app config and logger for candidate container too
     container.app_config.override(app_config)
     container.logger_service.override(logger_service)
 
     return container
 
 
+@pytest.fixture
+def test_app_config(candidate_container):
+    return candidate_container.app_config()
+
+
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
 def test_execute_with_valid_cv_returns_opportunities(
-    _integration_candidate_container,
+    db,
+    candidate_container,
+    test_app_config,
     httpx_mock,
 ):
     # Mock Albert API
-    app_config = _integration_candidate_container.app_config()
-    albert_url = f"{app_config.albert.api_base_url}v1/embeddings"
+    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
     mock_response = MockApiResponseFactory.create_albert_embedding_response()
     httpx_mock.add_response(
         method="POST",
@@ -83,16 +83,14 @@ def test_execute_with_valid_cv_returns_opportunities(
     limit = len(offers) + len(concours) - 1
 
     # Setup CV metadata in real DB
-    cv_repo = _integration_candidate_container.postgres_cv_metadata_repository()
+    cv_repo = candidate_container.postgres_cv_metadata_repository()
     cv_repo.save(cv_metadata)
 
     # Populate concours data in real DB
-    concours_repo = (
-        _integration_candidate_container.shared_container.concours_repository()
-    )
+    concours_repo = candidate_container.shared_container.concours_repository()
     concours_repo.upsert_batch([ConcoursModel.to_entity(c) for c in concours])
 
-    offers_repo = _integration_candidate_container.shared_container.offers_repository()
+    offers_repo = candidate_container.shared_container.offers_repository()
     offers_repo.upsert_batch([OfferModel.to_entity(offer) for offer in offers])
 
     # Generate vectorized documents using VectorizedDocumentFactory
@@ -124,11 +122,11 @@ def test_execute_with_valid_cv_returns_opportunities(
         vectorized_offers.append(vectorized_doc)
 
     # Populate vector data in real DB
-    vector_repo = _integration_candidate_container.shared_container.vector_repository()
+    vector_repo = candidate_container.shared_container.vector_repository()
     vector_repo.upsert_batch(vectorized_concours, DocumentType.CONCOURS)
     vector_repo.upsert_batch(vectorized_offers, DocumentType.OFFERS)
 
-    usecase = _integration_candidate_container.match_cv_to_opportunities_usecase()
+    usecase = candidate_container.match_cv_to_opportunities_usecase()
     with assertNumQueries(
         1  # select ConcoursModel
         + 1  # select OfferModel
@@ -143,12 +141,10 @@ def test_execute_with_valid_cv_returns_opportunities(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
 def test_vectorize_qdrant_search_empty_filters(
-    _integration_candidate_container, httpx_mock
+    db, candidate_container, test_app_config, httpx_mock
 ):
     # Mock Albert API
-    test_app_config = _integration_candidate_container.app_config()
     albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
     mock_response = MockApiResponseFactory.create_albert_embedding_response()
     httpx_mock.add_response(
@@ -164,10 +160,10 @@ def test_vectorize_qdrant_search_empty_filters(
     offers = OfferFactory.create_batch(3)
 
     # Setup CV metadata in real DB
-    cv_repo = _integration_candidate_container.postgres_cv_metadata_repository()
+    cv_repo = candidate_container.postgres_cv_metadata_repository()
     cv_repo.save(cv_metadata)
 
-    offers_repo = _integration_candidate_container.shared_container.offers_repository()
+    offers_repo = candidate_container.shared_container.offers_repository()
     offers_repo.upsert_batch([OfferModel.to_entity(offer) for offer in offers])
 
     vectorized_offers = []
@@ -181,10 +177,10 @@ def test_vectorize_qdrant_search_empty_filters(
         vectorized_offers.append(vectorized_doc)
 
     # Populate vector data in real DB
-    vector_repo = _integration_candidate_container.shared_container.vector_repository()
+    vector_repo = candidate_container.shared_container.vector_repository()
     vector_repo.upsert_batch(vectorized_offers, DocumentType.OFFERS)
 
-    usecase = _integration_candidate_container.match_cv_to_opportunities_usecase()
+    usecase = candidate_container.match_cv_to_opportunities_usecase()
     with assertNumQueries(
         1  # select OfferModel
     ):
@@ -198,14 +194,12 @@ def test_vectorize_qdrant_search_empty_filters(
 
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-@pytest.mark.django_db
 def test_vectorize_qdrant_search_list_filters(
-    _integration_candidate_container, httpx_mock
+    db, candidate_container, test_app_config, httpx_mock
 ):
     # Mock Albert API
 
     INDEX_REGION = 2
-    test_app_config = _integration_candidate_container.app_config()
     albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
     mock_response = MockApiResponseFactory.create_albert_embedding_response()
     httpx_mock.add_response(
@@ -229,15 +223,13 @@ def test_vectorize_qdrant_search_list_filters(
         ConcoursFactory.create(category=Category.C),
     ]
 
-    cv_repo = _integration_candidate_container.postgres_cv_metadata_repository()
+    cv_repo = candidate_container.postgres_cv_metadata_repository()
     cv_repo.save(cv_metadata)
 
-    offers_repo = _integration_candidate_container.shared_container.offers_repository()
+    offers_repo = candidate_container.shared_container.offers_repository()
     offers_repo.upsert_batch([OfferModel.to_entity(offer) for offer in offers])
 
-    concours_repo = (
-        _integration_candidate_container.shared_container.concours_repository()
-    )
+    concours_repo = candidate_container.shared_container.concours_repository()
     concours_repo.upsert_batch([ConcoursModel.to_entity(c) for c in concours])
 
     vectorized_offers = []
@@ -270,7 +262,7 @@ def test_vectorize_qdrant_search_list_filters(
         )
         vectorized_offers.append(vectorized_doc)
 
-    vector_repo = _integration_candidate_container.shared_container.vector_repository()
+    vector_repo = candidate_container.shared_container.vector_repository()
 
     vector_repo.upsert_batch(vectorized_offers, DocumentType.OFFERS)
 
@@ -292,7 +284,7 @@ def test_vectorize_qdrant_search_list_filters(
 
     vector_repo.upsert_batch(vectorized_concours, DocumentType.CONCOURS)
 
-    usecase = _integration_candidate_container.match_cv_to_opportunities_usecase()
+    usecase = candidate_container.match_cv_to_opportunities_usecase()
     all_offers = usecase.execute(
         cv_metadata,
         filters={
