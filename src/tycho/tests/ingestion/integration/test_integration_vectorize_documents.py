@@ -41,7 +41,7 @@ def mock_embedding_response(
     status_code: int = 200,
 ):
     if not embedding_response:
-        embedding_response = MockApiResponseFactory.create_albert_embedding_response()
+        embedding_response = MockApiResponseFactory.create_embedding_response()
 
     httpx_mock.add_response(
         method="POST",
@@ -435,9 +435,7 @@ def test_vectorize_albert_empty_data_error(
     db, vectorize_integration_container, httpx_mock, test_app_config
 ):
     # Mock Albert API with empty data response using the factory
-    empty_data_response = (
-        MockApiResponseFactory.create_albert_embedding_response_empty_data()
-    )
+    empty_data_response = MockApiResponseFactory.create_embedding_response_empty_data()
     mock_embedding_response(httpx_mock, test_app_config, empty_data_response)
 
     OfferFactory.create()

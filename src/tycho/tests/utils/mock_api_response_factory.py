@@ -13,7 +13,7 @@ class MockApiResponseFactory:
         }
 
     @staticmethod
-    def create_albert_embedding_response(
+    def create_embedding_response(
         embedding_dimension: int = settings.EMBEDDING_DIMENSION,
         embedding_value: float = 0.1,
     ) -> Dict:
@@ -39,7 +39,7 @@ class MockApiResponseFactory:
         }
 
     @staticmethod
-    def create_albert_embedding_response_empty_data() -> Dict:
+    def create_embedding_response_empty_data() -> Dict:
         return {
             "data": [],
             "model": "openweight-embeddings",
@@ -53,24 +53,6 @@ class MockApiResponseFactory:
                 "requests": 1,
             },
             "id": "test-embedding-id",
-        }
-
-    @staticmethod
-    def create_openai_embedding_response(
-        embedding_dimension: int = settings.EMBEDDING_DIMENSION,
-        embedding_value: float = 0.1,
-    ) -> Dict:
-        return {
-            "object": "list",
-            "data": [
-                {
-                    "object": "embedding",
-                    "embedding": [embedding_value] * embedding_dimension,
-                    "index": 0,
-                }
-            ],
-            "model": "text-embedding-3-small",
-            "usage": {"prompt_tokens": 10, "total_tokens": 10},
         }
 
     @staticmethod
@@ -89,7 +71,7 @@ class MockApiResponseFactory:
         return {"invalid": "structure", "missing": "required_fields"}
 
     @staticmethod
-    def create_albert_formatter_response_with_content(
+    def create_formatter_response_with_content(
         content: str, response_id: str = "chatcmpl-test123"
     ) -> Dict:
         return {
@@ -130,7 +112,7 @@ class MockApiResponseFactory:
         }
 
     @staticmethod
-    def create_albert_formatter_response() -> Dict:
+    def create_formatter_response() -> Dict:
         cv_data = {
             "experiences": [
                 {
@@ -142,12 +124,12 @@ class MockApiResponseFactory:
             ],
             "skills": ["Python", "Django"],
         }
-        return MockApiResponseFactory.create_albert_formatter_response_with_content(
+        return MockApiResponseFactory.create_formatter_response_with_content(
             json.dumps(cv_data)
         )
 
     @staticmethod
-    def create_albert_formatter_error_response() -> Dict:
+    def create_formatter_error_response() -> Dict:
         return {
             "status_code": 401,
             "detail": "Invalid API key provided",
@@ -155,11 +137,11 @@ class MockApiResponseFactory:
         }
 
     @staticmethod
-    def create_albert_formatter_invalid_response() -> Dict:
+    def create_formatter_invalid_response() -> Dict:
         return {"invalid": "structure", "missing": "required_fields"}
 
     @staticmethod
-    def create_albert_formatter_empty_choices_response() -> Dict:
+    def create_formatter_empty_choices_response() -> Dict:
         return {
             "id": "chatcmpl-test123",
             "object": "chat.completion",
@@ -183,7 +165,7 @@ class MockApiResponseFactory:
         }
 
     @staticmethod
-    def create_albert_formatter_fenced_json_response() -> Dict:
+    def create_formatter_fenced_json_response() -> Dict:
         cv_data = {
             "experiences": [
                 {
@@ -197,13 +179,13 @@ class MockApiResponseFactory:
         }
 
         fenced_content = f"```json\n{json.dumps(cv_data)}\n```"
-        return MockApiResponseFactory.create_albert_formatter_response_with_content(
+        return MockApiResponseFactory.create_formatter_response_with_content(
             fenced_content, "chatcmpl-test456"
         )
 
     @staticmethod
-    def create_albert_formatter_invalid_fenced_json_response() -> Dict:
+    def create_formatter_invalid_fenced_json_response() -> Dict:
         invalid_fenced_content = '```json\n{"experiences": [invalid json here\n```'
-        return MockApiResponseFactory.create_albert_formatter_response_with_content(
+        return MockApiResponseFactory.create_formatter_response_with_content(
             invalid_fenced_content, "chatcmpl-test789"
         )

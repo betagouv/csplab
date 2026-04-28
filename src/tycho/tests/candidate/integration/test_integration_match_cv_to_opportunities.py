@@ -68,7 +68,7 @@ def test_execute_with_valid_cv_returns_opportunities(
 ):
     # Mock Albert API
     albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    mock_response = MockApiResponseFactory.create_embedding_response()
     httpx_mock.add_response(
         method="POST",
         url=albert_url,
@@ -146,7 +146,7 @@ def test_vectorize_qdrant_search_empty_filters(
 ):
     # Mock Albert API
     albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    mock_response = MockApiResponseFactory.create_embedding_response()
     httpx_mock.add_response(
         method="POST",
         url=albert_url,
@@ -201,7 +201,7 @@ def test_vectorize_qdrant_search_list_filters(
 
     INDEX_REGION = 2
     albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_albert_embedding_response()
+    mock_response = MockApiResponseFactory.create_embedding_response()
     httpx_mock.add_response(
         method="POST",
         url=albert_url,
