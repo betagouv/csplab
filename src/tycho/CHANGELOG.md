@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2026-04-28
+
+### <!-- 1 --> Added
+
+- 🔧(tooling) add optional layer in commit templates ([#417](https://github.com/betagouv/csplab/pull/417))
+- ✨(ingestion) add delete to vector repository ([#421](https://github.com/betagouv/csplab/pull/421))
+- 🔧(tooling) add make run-mvp for all mvp services at once ([#420](https://github.com/betagouv/csplab/pull/420))
+- ✨(ingestion-infrastructure) setup TalentsoftBackClient ([#425](https://github.com/betagouv/csplab/pull/425))
+- 💎(candidate-presentation) expose organisation or ministry in opportunity cards and drawers ([#443](https://github.com/betagouv/csplab/pull/443))
+- ✨(api) setup api documentation ([#396](https://github.com/betagouv/csplab/pull/396))
+
+### <!-- 2 --> Modified
+
+- 🎨(tooling) replace stdout with loggers ([#413](https://github.com/betagouv/csplab/pull/413))
+- 🔥(candidate-presentation) delete unused search corps feature ([#437](https://github.com/betagouv/csplab/pull/437))
+- 🎨(tooling) refactor logging to use lazy string interpolation ([#412](https://github.com/betagouv/csplab/pull/412))
+- 💎(candidate-presentation) update mvp cv styles and content ([#441](https://github.com/betagouv/csplab/pull/441))
+- ♻️(shared) embedding service async ([#442](https://github.com/betagouv/csplab/pull/442))
+- ♻️(shared) regorganize tests ([#451](https://github.com/betagouv/csplab/pull/451))
+- 💎(candidate-presentation) allow closing drawer modal from browser back navigation ([#444](https://github.com/betagouv/csplab/pull/444))
+- ♻️(tycho) make test containers independent ([#457](https://github.com/betagouv/csplab/pull/457))
+- ♻️(shared) rename find_by_xx methods to get_by_xx ([#458](https://github.com/betagouv/csplab/pull/458))
+
+### <!-- 3 --> Removed
+
+- 🔥(ingestion-infrastructure) remove unused config, dtos and lib ([#459](https://github.com/betagouv/csplab/pull/459))
+
+### <!-- 4 --> Fixed
+
+- 🐛(tycho:candidate) reflect active filters in UI on page load ([#380](https://github.com/betagouv/csplab/pull/380))
+- 🐛(tooling) fix vscode python interpreter path ([#439](https://github.com/betagouv/csplab/pull/439))
+- ✨(ingestion) Prevent failed documents from remaining in a pending state and being reprocessed ([#452](https://github.com/betagouv/csplab/pull/452))
+
 ## [0.1.7] - 2026-04-22
 
 ### <!-- 0 --> Breaking Changes
