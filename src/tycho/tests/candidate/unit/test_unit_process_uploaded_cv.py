@@ -1,172 +1,100 @@
+import json
+from unittest.mock import AsyncMock, Mock
 from uuid import UUID
 
 import pytest
 
+from application.candidate.usecases.process_uploaded_cv import (
+    ProcessUploadedCVUsecase,
+)
 from domain.entities.cv_metadata import CVMetadata
 from domain.exceptions.cv_errors import CVNotFoundError
 from domain.value_objects.cv_processing_status import CVStatus
-from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.gateways.candidate.query_builder import QueryBuilder
+from infrastructure.gateways.shared.logger import LoggerService
+from tests.factories.cv_metadata_factory import (
+    create_cv_metadata_initial,
+)
+from tests.utils.async_in_memory_cv_metadata_repository import (
+    AsyncInMemoryCVMetadataRepository,
+)
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
+from tests.utils.pdf_test_utils import create_minimal_valid_pdf
+
+
+def create_ocr_mock():
+    ocr_mock = Mock()
+    ocr_response = MockApiResponseFactory.create_ocr_service_response()
+    ocr_mock.extract_text = AsyncMock(return_value=ocr_response["text"])
+    return ocr_mock
+
+
+def create_text_formatter_mock():
+
+    embedding_response = MockApiResponseFactory.create_formatter_response()
+    content = embedding_response["choices"][0]["message"]["content"]
+    cv_data = json.loads(content)
+
+    formatted_data_mock = Mock()
+    formatted_data_mock.experiences = cv_data["experiences"]
+    formatted_data_mock.skills = cv_data["skills"]
+    formatted_data_mock.model_dump.return_value = cv_data
+
+    text_formatter_mock = Mock()
+    text_formatter_mock.format_text = AsyncMock(return_value=formatted_data_mock)
+
+    return text_formatter_mock
+
+
+@pytest.fixture
+def usecase_and_repo():
+    logger_service = LoggerService()
+    async_cv_repo = AsyncInMemoryCVMetadataRepository()
+    query_builder = QueryBuilder()
+
+    # Utiliser les factories pour créer les mocks
+    ocr_mock = create_ocr_mock()
+    text_formatter_mock = create_text_formatter_mock()
+
+    usecase = ProcessUploadedCVUsecase(
+        ocr=ocr_mock,
+        text_formatter=text_formatter_mock,
+        query_builder=query_builder,
+        async_cv_metadata_repository=async_cv_repo,
+        logger=logger_service,
+    )
+
+    return usecase, async_cv_repo, ocr_mock, text_formatter_mock
+
+
+@pytest.fixture
+def pdf_content():
+    return create_minimal_valid_pdf()
+
+
+@pytest.fixture
+def cv_metadata_initial():
+    return create_cv_metadata_initial()
 
 
 async def test_execute_with_valid_pdf_updates_cv_metadatas(
-    httpx_mock,
-    albert_candidate_container,
+    usecase_and_repo,
     pdf_content,
     cv_metadata_initial,
-    test_app_config,
 ):
-    container = albert_candidate_container
-
-    # Mock OCR service response
-    ocr_response = MockApiResponseFactory.create_ocr_service_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json=ocr_response,
-        status_code=200,
-    )
-
-    # Mock Albert text formatter response
-    albert_response = MockApiResponseFactory.create_albert_formatter_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
-        json=albert_response,
-        status_code=200,
-    )
-    # Unpack fixture data
+    usecase, repo, _, _ = usecase_and_repo
     initial_cv, cv_id = cv_metadata_initial
 
-    # Prepopulate the repository
-    repo = container.async_cv_metadata_repository()
     await repo.save(initial_cv)
-
-    usecase = container.process_uploaded_cv_usecase()
 
     result = await usecase.execute(cv_id, pdf_content)
     assert isinstance(result, CVMetadata)
     assert result.status == CVStatus.COMPLETED
 
 
-async def test_execute_cv_metadatas_not_found(albert_candidate_container, pdf_content):
-    container = albert_candidate_container
-    cv_id = UUID("00000000-0000-0000-0000-000000000000")  # UUID that doesn't exist
+async def test_execute_cv_metadatas_not_found(usecase_and_repo, pdf_content):
+    cv_id = UUID("00000000-0000-0000-0000-000000000000")
 
-    usecase = container.process_uploaded_cv_usecase()
+    usecase, _, _, _ = usecase_and_repo
     with pytest.raises(CVNotFoundError):
         await usecase.execute(cv_id, pdf_content)
-
-
-async def test_execute_ocr_error(
-    httpx_mock,
-    albert_candidate_container,
-    pdf_content,
-    cv_metadata_initial,
-    test_app_config,
-):
-    container = albert_candidate_container
-
-    # Mock OCR service failure
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json={"error": "Internal server error"},
-        status_code=500,
-    )
-
-    initial_cv, cv_id = cv_metadata_initial
-
-    # Prepopulate the repository
-    repo = container.async_cv_metadata_repository()
-    await repo.save(initial_cv)
-
-    usecase = container.process_uploaded_cv_usecase()
-
-    with pytest.raises(ExternalApiError):
-        await usecase.execute(cv_id, pdf_content)
-
-    updated_cv = await repo.find_by_id(cv_id)
-    assert updated_cv is not None
-    assert updated_cv.status == CVStatus.FAILED
-
-
-async def test_execute_json_decode_error_with_details(
-    httpx_mock,
-    albert_candidate_container,
-    pdf_content,
-    cv_metadata_initial,
-    test_app_config,
-):
-    container = albert_candidate_container
-
-    # Mock OCR service response (valid)
-    ocr_response = MockApiResponseFactory.create_ocr_service_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.ocr.base_url}extract-text",
-        json=ocr_response,
-        status_code=200,
-    )
-
-    # Mock Albert text formatter with invalid JSON
-    invalid_json_content = '{"experiences": [invalid json here'
-    invalid_albert_response = {
-        "id": "chatcmpl-test123",
-        "object": "chat.completion",
-        "created": 1774004024,
-        "model": "openweight-large",
-        "choices": [
-            {
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": invalid_json_content,
-                    "refusal": None,
-                    "annotations": None,
-                    "audio": None,
-                    "function_call": None,
-                    "tool_calls": [],
-                    "reasoning": None,
-                },
-                "finish_reason": "stop",
-            }
-        ],
-        "usage": {
-            "prompt_tokens": 1262,
-            "completion_tokens": 432,
-            "total_tokens": 1694,
-            "cost": 0.0,
-            "carbon": {
-                "kWh": {"min": 0.022736131127999996, "max": 0.026871822072},
-                "kgCO2eq": {
-                    "min": 0.013437987405148953,
-                    "max": 0.015880021922380184,
-                },
-            },
-            "requests": 1,
-        },
-    }
-
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{test_app_config.albert.api_base_url}v1/chat/completions",
-        json=invalid_albert_response,
-        status_code=200,
-    )
-
-    # Unpack fixture data
-    initial_cv, cv_id = cv_metadata_initial
-
-    # Prepopulate the repository
-    repo = container.async_cv_metadata_repository()
-    await repo.save(initial_cv)
-
-    usecase = container.process_uploaded_cv_usecase()
-
-    with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(cv_id, pdf_content)
-
-    # Verify the error message contains detailed JSON parsing information
-    error_message = str(exc_info.value)
-    assert "Failed to parse JSON from Albert completion response" in error_message

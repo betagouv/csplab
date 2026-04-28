@@ -9,24 +9,10 @@ from domain.exceptions.concours_errors import ConcoursDoesNotExist
 from domain.exceptions.corps_errors import CorpsDoesNotExist
 from domain.exceptions.offer_errors import OfferDoesNotExist
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
-from infrastructure.repositories.ingestion.postgres_document_repository import (
-    PostgresDocumentRepository,
-)
-from infrastructure.repositories.shared.postgres_concours_repository import (
-    PostgresConcoursRepository,
-)
-from infrastructure.repositories.shared.postgres_corps_repository import (
-    PostgresCorpsRepository,
-)
-from infrastructure.repositories.shared.postgres_metier_repository import (
-    PostgresMetierRepository,
-)
-from infrastructure.repositories.shared.postgres_offers_repository import (
-    PostgresOffersRepository,
-)
 from tests.fixtures.clean_test_factories import (
     create_test_concours_document,
     create_test_corps_document,
@@ -87,30 +73,18 @@ def clean_documents_integration_container(db):
 
     container = IngestionContainer()
 
+    shared_container = SharedContainer()
+
     app_config = AppConfig.from_django_settings()
+    shared_container.app_config.override(app_config)
+
     logger_service = LoggerService()
+    shared_container.logger_service.override(logger_service)
 
-    # Override des services
-    container.logger_service.override(logger_service)
+    container.shared_container.override(shared_container)
+
     container.app_config.override(app_config)
-    container.shared_container.app_config.override(app_config)
-
-    # Repositories Postgres
-    postgres_document_repo = PostgresDocumentRepository()
-    container.document_repository.override(postgres_document_repo)
-
-    postgres_corps_repo = PostgresCorpsRepository(logger_service)
-    container.shared_container.corps_repository.override(postgres_corps_repo)
-
-    postgres_concours_repo = PostgresConcoursRepository(logger_service)
-    container.shared_container.concours_repository.override(postgres_concours_repo)
-
-    postgres_offers_repo = PostgresOffersRepository(logger_service)
-    container.shared_container.offers_repository.override(postgres_offers_repo)
-
-    postgres_metier_repo = PostgresMetierRepository(logger_service)
-    container.shared_container.metiers_repository.override(postgres_metier_repo)
-
+    container.logger_service.override(logger_service)
     return container
 
 

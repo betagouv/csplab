@@ -1,16 +1,56 @@
 import os
 
+import pytest
 from django.conf import settings
+from django.contrib.auth.models import User
+from faker import Faker
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, PayloadSchemaType, VectorParams
+from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from config.app_config import AppConfig
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
 
+fake = Faker()
+
+
+@pytest.fixture(name="api_client")
+def api_client_fixture():
+    return APIClient()
+
+
+@pytest.fixture(name="user_credentials")
+def user_credentials_fixture():
+    return {
+        "username": fake.name(),
+        "email": fake.email(),
+        "password": fake.password(),
+    }
+
+
+@pytest.fixture(name="test_user")
+def test_user_fixture(db, user_credentials):
+    return User.objects.create_user(**user_credentials)
+
+
+@pytest.fixture(name="user")
+def user_fixture(db):
+    return User.objects.create_user(
+        username=fake.name(), email=fake.email(), password=fake.password()
+    )
+
+
+@pytest.fixture(name="authenticated_client")
+def authenticated_client_fixture(api_client, user):
+    refresh = RefreshToken.for_user(user)
+    token = str(refresh.access_token)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return api_client
+
 
 def create_collection(client: QdrantClient, collection_name: str):
-    # Créer la collection
     client.create_collection(
         collection_name=collection_name,
         vectors_config=VectorParams(
@@ -18,7 +58,6 @@ def create_collection(client: QdrantClient, collection_name: str):
         ),
     )
 
-    # Créer les index comme dans le script de setup
     indexes = [
         "document_type",
         "category",
