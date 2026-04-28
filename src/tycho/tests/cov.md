@@ -12,9 +12,9 @@
 | application/ingestion/interfaces/load\_documents\_input.py                         |        7 |        0 |    100% |
 | application/ingestion/interfaces/load\_operation\_type.py                          |        4 |        0 |    100% |
 | application/ingestion/usecases/\_\_init\_\_.py                                     |        0 |        0 |    100% |
-| application/ingestion/usecases/clean\_documents.py                                 |       72 |        0 |    100% |
+| application/ingestion/usecases/clean\_documents.py                                 |       73 |        0 |    100% |
 | application/ingestion/usecases/load\_documents.py                                  |       30 |        1 |     97% |
-| application/ingestion/usecases/load\_offers.py                                     |       46 |        4 |     91% |
+| application/ingestion/usecases/load\_offers.py                                     |       49 |        4 |     92% |
 | application/ingestion/usecases/vectorize\_documents.py                             |       70 |        4 |     94% |
 | domain/\_\_init\_\_.py                                                             |        0 |        0 |    100% |
 | domain/entities/\_\_init\_\_.py                                                    |        0 |        0 |    100% |
@@ -123,7 +123,6 @@
 | infrastructure/external\_gateways/dtos/albert\_types.py                            |       58 |        0 |    100% |
 | infrastructure/external\_gateways/dtos/ingres\_corps\_dtos.py                      |      135 |        0 |    100% |
 | infrastructure/external\_gateways/dtos/ingres\_metiers\_dtos.py                    |       55 |        0 |    100% |
-| infrastructure/external\_gateways/dtos/openai\_dtos.py                             |        8 |        8 |      0% |
 | infrastructure/external\_gateways/dtos/talentsoft\_back\_dtos.py                   |       35 |        0 |    100% |
 | infrastructure/external\_gateways/dtos/talentsoft\_dtos.py                         |      165 |        0 |    100% |
 | infrastructure/external\_gateways/external\_document\_gateway.py                   |       95 |       15 |     84% |
@@ -153,7 +152,7 @@
 | infrastructure/repositories/candidate/async\_postgres\_cv\_metadata\_repository.py |       20 |        1 |     95% |
 | infrastructure/repositories/candidate/postgres\_cv\_metadata\_repository.py        |       18 |        0 |    100% |
 | infrastructure/repositories/ingestion/\_\_init\_\_.py                              |        0 |        0 |    100% |
-| infrastructure/repositories/ingestion/postgres\_document\_repository.py            |       88 |       13 |     85% |
+| infrastructure/repositories/ingestion/postgres\_document\_repository.py            |       93 |       15 |     84% |
 | infrastructure/repositories/repository\_factory.py                                 |       25 |        0 |    100% |
 | infrastructure/repositories/shared/\_\_init\_\_.py                                 |        0 |        0 |    100% |
 | infrastructure/repositories/shared/postgres\_concours\_repository.py               |       67 |        6 |     91% |
@@ -187,4 +186,4 @@
 | presentation/pages/\_\_init\_\_.py                                                 |        0 |        0 |    100% |
 | presentation/pages/urls.py                                                         |        4 |        0 |    100% |
 | presentation/pages/views.py                                                        |        3 |        0 |    100% |
-| **TOTAL**                                                                          | **4381** |  **465** | **89%** |
+| **TOTAL**                                                                          | **4382** |  **459** | **90%** |
