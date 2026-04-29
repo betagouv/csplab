@@ -293,7 +293,7 @@ test-ocr: ## test ocr python sources
 
 test-a11y: ## run a11y tests with Playwright and axe-playwright-python
 	@echo 'test:a11y started…'
-	$(TYCHO_UV) pytest -m "accessibility" --numprocesses=logical --create-db --no-cov $(ARGS)
+	$(TYCHO_UV) pytest -m "accessibility" --create-db --no-cov $(ARGS)
 .PHONY: test-a11y
 
 ## MANAGE docker services
