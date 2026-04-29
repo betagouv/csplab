@@ -140,7 +140,7 @@
 | infrastructure/gateways/ingestion/load\_documents\_strategies.py                   |       20 |        1 |     95% |
 | infrastructure/gateways/ingestion/load\_documents\_strategy\_factory.py            |       16 |        2 |     88% |
 | infrastructure/gateways/ingestion/metier\_cleaner.py                               |       56 |       37 |     34% |
-| infrastructure/gateways/ingestion/offers\_cleaner.py                               |      125 |       26 |     79% |
+| infrastructure/gateways/ingestion/offers\_cleaner.py                               |      125 |       25 |     80% |
 | infrastructure/gateways/ingestion/pelage\_checks.py                                |       17 |        3 |     82% |
 | infrastructure/gateways/ingestion/text\_extractor.py                               |       47 |        7 |     85% |
 | infrastructure/gateways/shared/\_\_init\_\_.py                                     |        0 |        0 |    100% |

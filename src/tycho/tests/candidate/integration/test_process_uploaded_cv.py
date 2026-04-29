@@ -12,7 +12,7 @@ from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.cv_metadata_factory import create_cv_metadata_initial
+from tests.factories.cv_metadata_factory import CVMetadataFactory
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.pdf_test_utils import create_minimal_valid_pdf
 
@@ -82,8 +82,8 @@ def pdf_content():
 
 
 @pytest.fixture
-def cv_metadata_initial():
-    return create_cv_metadata_initial()
+def initial_cv():
+    return CVMetadataFactory.create_entity(status=CVStatus.PENDING)
 
 
 @pytest.fixture
@@ -98,15 +98,12 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
     httpx_mock,
     candidate_container,
     pdf_content,
-    cv_metadata_initial,
     test_app_config,
+    initial_cv,
 ):
 
     mock_ocr_response(httpx_mock, test_app_config)
     mock_llm_response(httpx_mock, test_app_config)
-
-    # Unpack fixture data
-    initial_cv, cv_id = cv_metadata_initial
 
     # Prepopulate the repository
     repo = candidate_container.async_cv_metadata_repository()
@@ -114,7 +111,7 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
 
     usecase = candidate_container.process_uploaded_cv_usecase()
 
-    result = await usecase.execute(cv_id, pdf_content)
+    result = await usecase.execute(initial_cv.id, pdf_content)
     assert isinstance(result, CVMetadata)
     assert result.status == CVStatus.COMPLETED
 
@@ -132,8 +129,8 @@ async def test_execute_with_api_failure_saves_failed_status_to_database(
     httpx_mock,
     candidate_container,
     pdf_content,
-    cv_metadata_initial,
     test_app_config,
+    initial_cv,
 ):
 
     # Mock OCR service failure
@@ -144,9 +141,6 @@ async def test_execute_with_api_failure_saves_failed_status_to_database(
         status_code=500,
     )
 
-    # Unpack fixture data
-    initial_cv, cv_id = cv_metadata_initial
-
     # Prepopulate the repository with PENDING status
     repo = candidate_container.async_cv_metadata_repository()
     await repo.save(initial_cv)
@@ -154,10 +148,10 @@ async def test_execute_with_api_failure_saves_failed_status_to_database(
     usecase = candidate_container.process_uploaded_cv_usecase()
 
     with pytest.raises(ExternalApiError):
-        await usecase.execute(cv_id, pdf_content)
+        await usecase.execute(initial_cv.id, pdf_content)
 
     # Verify that CV metadata was saved with FAILED status
-    updated_cv = await repo.get_by_id(cv_id)
+    updated_cv = await repo.get_by_id(initial_cv.id)
     assert updated_cv is not None
     assert updated_cv.status == CVStatus.FAILED
     assert updated_cv.updated_at > initial_cv.updated_at
@@ -168,8 +162,8 @@ async def test_execute_albert_fenced_json_response_success(
     httpx_mock,
     candidate_container,
     pdf_content,
-    cv_metadata_initial,
     test_app_config,
+    initial_cv,
 ):
 
     # Mock OCR service success
@@ -185,16 +179,12 @@ async def test_execute_albert_fenced_json_response_success(
         llm_response=albert_fenced_response,
     )
 
-    # Unpack fixture data
-    initial_cv, cv_id = cv_metadata_initial
-
-    # Prepopulate the repository
     repo = candidate_container.async_cv_metadata_repository()
     await repo.save(initial_cv)
 
     usecase = candidate_container.process_uploaded_cv_usecase()
 
-    result = await usecase.execute(cv_id, pdf_content)
+    result = await usecase.execute(initial_cv.id, pdf_content)
     assert isinstance(result, CVMetadata)
     assert result.status == CVStatus.COMPLETED
 
@@ -204,8 +194,8 @@ async def test_execute_albert_http_error_with_valid_error_response(
     httpx_mock,
     usecase_and_repo,
     pdf_content,
-    cv_metadata_initial,
     test_app_config,
+    initial_cv,
 ):
     mock_ocr_response(httpx_mock, test_app_config)
 
@@ -218,12 +208,11 @@ async def test_execute_albert_http_error_with_valid_error_response(
     )
 
     usecase, repo = usecase_and_repo
-    initial_cv, cv_id = cv_metadata_initial
 
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(cv_id, pdf_content)
+        await usecase.execute(initial_cv.id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "Invalid API key provided" in error_message
@@ -235,8 +224,8 @@ async def test_execute_albert_invalid_response_structure(
     httpx_mock,
     usecase_and_repo,
     pdf_content,
-    cv_metadata_initial,
     test_app_config,
+    initial_cv,
 ):
     mock_ocr_response(httpx_mock, test_app_config)
 
@@ -248,12 +237,11 @@ async def test_execute_albert_invalid_response_structure(
     )
 
     usecase, repo = usecase_and_repo
-    initial_cv, cv_id = cv_metadata_initial
 
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(cv_id, pdf_content)
+        await usecase.execute(initial_cv.id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "Invalid Albert completion response structure" in error_message
@@ -264,8 +252,8 @@ async def test_execute_albert_empty_choices_response(
     httpx_mock,
     usecase_and_repo,
     pdf_content,
-    cv_metadata_initial,
     test_app_config,
+    initial_cv,
 ):
     mock_ocr_response(httpx_mock, test_app_config)
 
@@ -279,12 +267,11 @@ async def test_execute_albert_empty_choices_response(
     )
 
     usecase, repo = usecase_and_repo
-    initial_cv, cv_id = cv_metadata_initial
 
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(cv_id, pdf_content)
+        await usecase.execute(initial_cv.id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "No completion choices returned from Albert API" in error_message
@@ -295,8 +282,8 @@ async def test_execute_albert_invalid_fenced_json_response(
     httpx_mock,
     usecase_and_repo,
     pdf_content,
-    cv_metadata_initial,
     test_app_config,
+    initial_cv,
 ):
     mock_ocr_response(httpx_mock, test_app_config)
 
@@ -310,12 +297,11 @@ async def test_execute_albert_invalid_fenced_json_response(
     )
 
     usecase, repo = usecase_and_repo
-    initial_cv, cv_id = cv_metadata_initial
 
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(cv_id, pdf_content)
+        await usecase.execute(initial_cv.id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "Failed to parse JSON from Albert completion response" in error_message
@@ -326,8 +312,8 @@ async def test_execute_ocr_http_error_with_valid_error_response(
     httpx_mock,
     usecase_and_repo,
     pdf_content,
-    cv_metadata_initial,
     test_app_config,
+    initial_cv,
 ):
     ocr_error_response = MockApiResponseFactory.create_ocr_service_error_response()
     mock_ocr_response(
@@ -338,12 +324,11 @@ async def test_execute_ocr_http_error_with_valid_error_response(
     )
 
     usecase, repo = usecase_and_repo
-    initial_cv, cv_id = cv_metadata_initial
 
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(cv_id, pdf_content)
+        await usecase.execute(initial_cv.id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "Invalid file format or corrupted PDF" in error_message
@@ -355,8 +340,8 @@ async def test_execute_ocr_http_error_with_invalid_error_response(
     httpx_mock,
     usecase_and_repo,
     pdf_content,
-    cv_metadata_initial,
     test_app_config,
+    initial_cv,
 ):
     mock_ocr_response(
         httpx_mock,
@@ -366,12 +351,11 @@ async def test_execute_ocr_http_error_with_invalid_error_response(
     )
 
     usecase, repo = usecase_and_repo
-    initial_cv, cv_id = cv_metadata_initial
 
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(cv_id, pdf_content)
+        await usecase.execute(initial_cv.id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "OCR service error: 500" in error_message
@@ -383,8 +367,8 @@ async def test_execute_ocr_invalid_success_response_structure(
     httpx_mock,
     usecase_and_repo,
     pdf_content,
-    cv_metadata_initial,
     test_app_config,
+    initial_cv,
 ):
     ocr_invalid_response = MockApiResponseFactory.create_ocr_service_invalid_response()
     mock_ocr_response(
@@ -394,12 +378,11 @@ async def test_execute_ocr_invalid_success_response_structure(
     )
 
     usecase, repo = usecase_and_repo
-    initial_cv, cv_id = cv_metadata_initial
 
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(cv_id, pdf_content)
+        await usecase.execute(initial_cv.id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "Failed to parse JSON response" in error_message

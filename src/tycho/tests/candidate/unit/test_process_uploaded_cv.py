@@ -13,7 +13,7 @@ from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.cv_metadata_factory import (
-    create_cv_metadata_initial,
+    CVMetadataFactory,
 )
 from tests.utils.async_in_memory_cv_metadata_repository import (
     AsyncInMemoryCVMetadataRepository,
@@ -72,22 +72,15 @@ def pdf_content():
     return create_minimal_valid_pdf()
 
 
-@pytest.fixture
-def cv_metadata_initial():
-    return create_cv_metadata_initial()
-
-
 async def test_execute_with_valid_pdf_updates_cv_metadatas(
-    process_uploaded_cv,
-    pdf_content,
-    cv_metadata_initial,
+    process_uploaded_cv, pdf_content
 ):
     usecase, repo, _, _ = process_uploaded_cv
-    initial_cv, cv_id = cv_metadata_initial
+    initial_cv = CVMetadataFactory.create_entity(status=CVStatus.PENDING)
 
     await repo.save(initial_cv)
 
-    result = await usecase.execute(cv_id, pdf_content)
+    result = await usecase.execute(initial_cv.id, pdf_content)
     assert isinstance(result, CVMetadata)
     assert result.status == CVStatus.COMPLETED
 

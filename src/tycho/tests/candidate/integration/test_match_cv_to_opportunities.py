@@ -6,6 +6,7 @@ from pytest_django.asserts import assertNumQueries
 from config.app_config import AppConfig
 from domain.entities.document import DocumentType
 from domain.value_objects.category import Category
+from domain.value_objects.cv_processing_status import CVStatus
 from domain.value_objects.verse import Verse
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
@@ -13,9 +14,7 @@ from infrastructure.django_apps.shared.models.concours import ConcoursModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
-
-# Import fixtures needed for this test
-from tests.factories.cv_metadata_factory import create_cv_metadata_completed
+from tests.factories.cv_metadata_factory import CVMetadataFactory
 from tests.factories.offer_factory import OfferFactory
 from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
 from tests.fixtures.shared_fixtures import (
@@ -76,17 +75,25 @@ def test_app_config(candidate_container):
     return candidate_container.app_config()
 
 
+@pytest.fixture
+def cv_metadata():
+    return CVMetadataFactory.create_entity(
+        status=CVStatus.COMPLETED,
+        search_query="Python developer with Django experience",
+        extracted_text={
+            "experiences": ["Software Engineer"],
+            "skills": ["Python", "Django"],
+        },
+    )
+
+
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 def test_execute_with_valid_cv_returns_opportunities(
-    db,
-    candidate_container,
-    test_app_config,
-    httpx_mock,
+    db, candidate_container, test_app_config, httpx_mock, cv_metadata
 ):
     # Mock Albert API
     mock_embedding_response(httpx_mock, test_app_config)
 
-    cv_metadata, cv_id = create_cv_metadata_completed()
     concours = ConcoursFactory.create_batch(2)
     offers = OfferFactory.create_batch(3)
     limit = len(offers) + len(concours) - 1
@@ -151,12 +158,11 @@ def test_execute_with_valid_cv_returns_opportunities(
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 def test_vectorize_qdrant_search_empty_filters(
-    db, candidate_container, test_app_config, httpx_mock
+    db, candidate_container, test_app_config, httpx_mock, cv_metadata
 ):
     # Mock Albert API
     mock_embedding_response(httpx_mock, test_app_config)
 
-    cv_metadata, cv_id = create_cv_metadata_completed()
     # Create test data like in the working test
     offers = OfferFactory.create_batch(3)
 
@@ -196,11 +202,10 @@ def test_vectorize_qdrant_search_empty_filters(
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 def test_vectorize_qdrant_search_list_filters(
-    db, candidate_container, test_app_config, httpx_mock
+    db, candidate_container, test_app_config, httpx_mock, cv_metadata
 ):
     mock_embedding_response(httpx_mock, test_app_config)
 
-    cv_metadata, cv_id = create_cv_metadata_completed()
     offers = [
         OfferFactory.create(verse=Verse.FPE),
         OfferFactory.create(verse=Verse.FPH),
