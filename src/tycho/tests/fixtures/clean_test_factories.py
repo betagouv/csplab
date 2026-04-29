@@ -43,46 +43,10 @@ def create_test_corps_document(doc_id: int = 1) -> Document:
     )
 
 
-def create_test_corps_document_fpt(doc_id: int = 1) -> Document:
-    raw_data = _load_corps_fixture_data(doc_id)
-    raw_data["corpsOuPseudoCorps"]["caracteristiques"]["natureFonctionPublique"][
-        "libelleNatureFoncPub"
-    ] = "FPT"
-    return _create_base_document(
-        DocumentType.CORPS, doc_id, f"corps_fpt_fixture_{doc_id}", raw_data
-    )
-
-
-def create_test_corps_document_minarm(doc_id: int = 1) -> Document:
-    raw_data = _load_corps_fixture_data(doc_id)
-    raw_data["corpsOuPseudoCorps"]["ministereEtInstitutionDeLaRepublique"] = [
-        {"libelleMinistere": "MINARM"}
-    ]
-    return _create_base_document(
-        DocumentType.CORPS, doc_id, f"corps_minarm_fixture_{doc_id}", raw_data
-    )
-
-
 def create_test_concours_document(doc_id: int = 1) -> Document:
     raw_data = _load_concours_fixture_data(doc_id)
     return _create_base_document(
         DocumentType.CONCOURS, doc_id, f"concours_fixture_{doc_id}", raw_data
-    )
-
-
-def create_test_concours_document_invalid_status(doc_id: int = 1) -> Document:
-    raw_data = _load_concours_fixture_data(doc_id)
-    raw_data["Statut"] = "INVALIDE"
-    return _create_base_document(
-        DocumentType.CONCOURS, doc_id, f"concours_invalid_fixture_{doc_id}", raw_data
-    )
-
-
-def create_test_concours_document_old_year(doc_id: int = 1) -> Document:
-    raw_data = _load_concours_fixture_data(doc_id)
-    raw_data["Année de référence"] = REFERENCE_YEAR
-    return _create_base_document(
-        DocumentType.CONCOURS, doc_id, f"concours_old_fixture_{doc_id}", raw_data
     )
 
 
