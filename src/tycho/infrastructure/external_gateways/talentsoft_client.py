@@ -1,4 +1,5 @@
 import asyncio
+import re
 from datetime import datetime
 from http import HTTPStatus
 from time import time
@@ -218,24 +219,27 @@ class TalentsoftBackClient(BaseTalentsoftClient):
             max_retries=kwargs.get("max_retries", 2),
         )
 
-    def extract_count_from_content_range(self, content_range: str) -> int:
-        count_str = content_range.rsplit("/", maxsplit=1)[-1]
-        try:
-            count = int(count_str)
-        except ValueError as e:
+    def extract_next_offset_from_content_range(self, content_range: str) -> int | None:
+        m = re.match(r"^(\d+)-(\d+)/(\d+)$", content_range)
+        if m:
+            offset, size, count = map(int, m.groups())
+        else:
             raise ExternalApiError(
-                f"Invalid contentRange structure: {e}", api_name=self.api_name
-            ) from e
-        return count
+                f"Invalid contentRange structure: {content_range}",
+                api_name=self.api_name,
+            )
+        next_offset = offset + size
+        if next_offset > count:
+            return None
+        return next_offset
 
     async def get_vacancies(
         self,
         update_date: datetime,
         date_operator: str = "gt",
         status: str = "Archived,Suspended",
-        limit: int = 1000,
-        offset: int = 1,
-    ) -> Tuple[List[TalentsoftBackVacancy], bool]:
+        offset: int = 0,
+    ) -> Tuple[List[TalentsoftBackVacancy], int | None]:
         url = f"{self.base_url}{VACANCIES_BACK_ENDPOINT}"
         update_date_str = (
             update_date.strftime("%Y-%m-%dT%H:%M:%S.")
@@ -243,9 +247,9 @@ class TalentsoftBackClient(BaseTalentsoftClient):
         )
         filter = f"vacancyStatus::{status}|updateDate:{date_operator}:{update_date_str}"
         params: dict[str, int | str] = {
-            "limit": limit,
             "offset": offset,
             "filter": filter,
+            "limit": 100,  # ts api seems to be limited to 100, 20 by default
         }
 
         response = await self._make_authenticated_request(url, params)
@@ -255,11 +259,12 @@ class TalentsoftBackClient(BaseTalentsoftClient):
                 response.json()
             )
             offers = typed_response.data
-            count = self.extract_count_from_content_range(typed_response.content_range)
-            has_more = True if count >= limit + offset else False
+            next_offset = self.extract_next_offset_from_content_range(
+                typed_response.content_range
+            )
         except ValidationError as e:
             raise ExternalApiError(
                 f"Invalid response structure: {e}", api_name=self.api_name
             ) from e
 
-        return offers, has_more
+        return offers, next_offset

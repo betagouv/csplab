@@ -112,6 +112,10 @@ class PostgresOffersRepository(IOffersRepository):
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(external_id) from e
 
+    def get_by_external_ids(self, external_ids: List[str]) -> List[Offer]:
+        offers = OfferModel.objects.filter(external_id__in=external_ids)
+        return [offer.to_entity() for offer in offers]
+
     def get_all(self) -> List[Offer]:
         offer_models = OfferModel.objects.all()
         return [model.to_entity() for model in offer_models]
@@ -146,5 +150,13 @@ class PostgresOffersRepository(IOffersRepository):
             return OfferModel.objects.filter(
                 id__in=[obj.id for obj in offers_list]
             ).update(processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+    def mark_as_archived(self, offers_list: List[Offer]) -> int:
+        try:
+            return OfferModel.objects.filter(
+                archived_at__isnull=True, id__in=[obj.id for obj in offers_list]
+            ).update(archived_at=timezone.now())
         except Exception as e:
             raise DatabaseError(f"Database error during update: {str(e)}") from e

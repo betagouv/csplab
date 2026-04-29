@@ -1,8 +1,21 @@
-from typing import List, Protocol
+from typing import List, Protocol, TypedDict
 from uuid import UUID
 
 from domain.entities.offer import Offer
 from domain.repositories.document_repository_interface import IUpsertResult
+
+
+class IArchiveError(TypedDict):
+    entity_id: UUID
+    error: str
+    exception: Exception
+
+
+class IArchiveResult(TypedDict):
+    fetched: int
+    vector_deleted: int
+    entity_archived: int
+    errors: List[IArchiveError]
 
 
 class IOffersRepository(Protocol):
@@ -14,8 +27,14 @@ class IOffersRepository(Protocol):
 
     def get_by_external_id(self, external_id: str) -> Offer: ...
 
+    def get_by_external_ids(self, external_ids: List[str]) -> List[Offer]: ...
+
+    def get_all(self) -> List[Offer]: ...
+
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]: ...
 
     def mark_as_processed(self, offers_list: List[Offer]) -> int: ...
 
     def mark_as_pending(self, offers_list: List[Offer]) -> int: ...
+
+    def mark_as_archived(self, offers_list: List[Offer]) -> int: ...

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Protocol, Tuple
 
 from domain.entities.document import Document, DocumentType
@@ -18,3 +19,8 @@ class IDocumentGateway(Protocol):
         fetched_documents: List[Document],
         existing_documents: List[Document],
     ) -> List[Document]: ...
+
+    async def get_archived_documents_by_period(
+        self,
+        updated_after: datetime,
+    ) -> List[str]: ...
