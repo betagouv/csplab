@@ -47,7 +47,7 @@ def create_text_formatter_mock():
 
 
 @pytest.fixture
-def usecase_and_repo():
+def process_uploaded_cv():
     logger_service = LoggerService()
     async_cv_repo = AsyncInMemoryCVMetadataRepository()
     query_builder = QueryBuilder()
@@ -78,11 +78,11 @@ def cv_metadata_initial():
 
 
 async def test_execute_with_valid_pdf_updates_cv_metadatas(
-    usecase_and_repo,
+    process_uploaded_cv,
     pdf_content,
     cv_metadata_initial,
 ):
-    usecase, repo, _, _ = usecase_and_repo
+    usecase, repo, _, _ = process_uploaded_cv
     initial_cv, cv_id = cv_metadata_initial
 
     await repo.save(initial_cv)
@@ -92,9 +92,9 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
     assert result.status == CVStatus.COMPLETED
 
 
-async def test_execute_cv_metadatas_not_found(usecase_and_repo, pdf_content):
+async def test_execute_cv_metadatas_not_found(process_uploaded_cv, pdf_content):
     cv_id = UUID("00000000-0000-0000-0000-000000000000")
 
-    usecase, _, _, _ = usecase_and_repo
+    usecase, _, _, _ = process_uploaded_cv
     with pytest.raises(CVNotFoundError):
         await usecase.execute(cv_id, pdf_content)
