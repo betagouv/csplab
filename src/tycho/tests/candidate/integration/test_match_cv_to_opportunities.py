@@ -28,6 +28,23 @@ fake = Faker()
 TWO_DOCUMENTS = 2
 THREE_DOCUMENTS = 3
 SIX_DOCUMENTS = 6
+INDEX_REGION = 2
+
+
+def mock_embedding_response(
+    httpx_mock,
+    config,
+    status_code: int = 200,
+):
+    albert_url = f"{config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_embedding_response()
+    httpx_mock.add_response(
+        method="POST",
+        url=albert_url,
+        json=mock_response,
+        status_code=status_code,
+        is_reusable=True,
+    )
 
 
 @pytest.fixture
@@ -67,15 +84,7 @@ def test_execute_with_valid_cv_returns_opportunities(
     httpx_mock,
 ):
     # Mock Albert API
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+    mock_embedding_response(httpx_mock, test_app_config)
 
     cv_metadata, cv_id = create_cv_metadata_completed()
     concours = ConcoursFactory.create_batch(2)
@@ -145,15 +154,7 @@ def test_vectorize_qdrant_search_empty_filters(
     db, candidate_container, test_app_config, httpx_mock
 ):
     # Mock Albert API
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+    mock_embedding_response(httpx_mock, test_app_config)
 
     cv_metadata, cv_id = create_cv_metadata_completed()
     # Create test data like in the working test
@@ -197,18 +198,7 @@ def test_vectorize_qdrant_search_empty_filters(
 def test_vectorize_qdrant_search_list_filters(
     db, candidate_container, test_app_config, httpx_mock
 ):
-    # Mock Albert API
-
-    INDEX_REGION = 2
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+    mock_embedding_response(httpx_mock, test_app_config)
 
     cv_metadata, cv_id = create_cv_metadata_completed()
     offers = [
