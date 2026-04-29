@@ -354,7 +354,7 @@ class TalentsoftBackVacancyFactory(ModelFactory[TalentsoftBackVacancy]):
 
     @classmethod
     def salaryRange(cls) -> TalentsoftBackCodedObject:
-        return TalentsoftBackCodedObjectFactory.build()
+        return TalentsoftBackCodedObjectFactory.build(id="FPT")
 
     @classmethod
     def contractType(cls) -> TalentsoftBackCodedObject:
@@ -423,5 +423,5 @@ class TalentsoftBackVacanciesResponseFactory(
         return TalentsoftBackVacancyFactory.batch(size=2)
 
     @classmethod
-    def content_range(cls) -> str:
+    def contentRange(cls) -> str:
         return "0-2/2"
