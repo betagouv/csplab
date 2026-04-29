@@ -22,8 +22,7 @@ def usecase(cv_metadata_repository):
     return InitializeCVMetadataUsecase(cv_metadata_repository)
 
 
-@pytest.mark.django_db
-def test_execute_creates_cv_metadata_in_database(usecase):
+def test_execute_creates_cv_metadata_in_database(db, usecase):
     filename = "integration_test_cv.pdf"
     initial_count = CVMetadataModel.objects.count()
 
