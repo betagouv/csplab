@@ -30,7 +30,6 @@ def create_ocr_mock():
 
 
 def create_text_formatter_mock():
-
     embedding_response = MockApiResponseFactory.create_formatter_response()
     content = embedding_response["choices"][0]["message"]["content"]
     cv_data = json.loads(content)

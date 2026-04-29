@@ -94,8 +94,8 @@ def test_execute_with_valid_cv_returns_opportunities(
     # Mock Albert API
     mock_embedding_response(httpx_mock, test_app_config)
 
-    concours = ConcoursFactory.create_batch(2)
-    offers = OfferFactory.create_batch(3)
+    concours = ConcoursFactory.create_model_batch(2)
+    offers = OfferFactory.create_model_batch(3)
     limit = len(offers) + len(concours) - 1
 
     # Setup CV metadata in real DB
@@ -117,7 +117,7 @@ def test_execute_with_valid_cv_returns_opportunities(
             "ministry": concours_entity.ministry.value,
             "access_modality": [],
         }
-        vectorized_doc = VectorizedDocumentFactory.create(
+        vectorized_doc = VectorizedDocumentFactory.create_entity(
             entity_id=concours_entity.id,
             document_type=DocumentType.CONCOURS,
             content=fake.sentence(),
@@ -129,7 +129,7 @@ def test_execute_with_valid_cv_returns_opportunities(
     vectorized_offers = []
     offer_entities = list(offers_repo.get_all())
     for offer_entity in offer_entities:
-        vectorized_doc = VectorizedDocumentFactory.create(
+        vectorized_doc = VectorizedDocumentFactory.create_entity(
             entity_id=offer_entity.id,
             document_type=DocumentType.OFFERS,
             content=fake.sentence(),
@@ -164,7 +164,7 @@ def test_vectorize_qdrant_search_empty_filters(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create test data like in the working test
-    offers = OfferFactory.create_batch(3)
+    offers = OfferFactory.create_model_batch(3)
 
     # Setup CV metadata in real DB
     cv_repo = candidate_container.postgres_cv_metadata_repository()
@@ -175,7 +175,7 @@ def test_vectorize_qdrant_search_empty_filters(
 
     vectorized_offers = []
     for offer_entity in offers_repo.get_all():
-        vectorized_doc = VectorizedDocumentFactory.create(
+        vectorized_doc = VectorizedDocumentFactory.create_entity(
             entity_id=offer_entity.id,
             document_type=DocumentType.OFFERS,
             content=fake.sentence(),
@@ -207,15 +207,15 @@ def test_vectorize_qdrant_search_list_filters(
     mock_embedding_response(httpx_mock, test_app_config)
 
     offers = [
-        OfferFactory.create(verse=Verse.FPE),
-        OfferFactory.create(verse=Verse.FPH),
-        OfferFactory.create(verse=Verse.FPT),
+        OfferFactory.create_model(verse=Verse.FPE),
+        OfferFactory.create_model(verse=Verse.FPH),
+        OfferFactory.create_model(verse=Verse.FPT),
     ]
 
     concours = [
-        ConcoursFactory.create(category=Category.A),
-        ConcoursFactory.create(category=Category.B),
-        ConcoursFactory.create(category=Category.C),
+        ConcoursFactory.create_model(category=Category.A),
+        ConcoursFactory.create_model(category=Category.B),
+        ConcoursFactory.create_model(category=Category.C),
     ]
 
     cv_repo = candidate_container.postgres_cv_metadata_repository()
@@ -248,7 +248,7 @@ def test_vectorize_qdrant_search_list_filters(
             "category": None,
             "localisation": localisation,
         }
-        vectorized_doc = VectorizedDocumentFactory.create(
+        vectorized_doc = VectorizedDocumentFactory.create_entity(
             entity_id=offer_entity.id,
             document_type=DocumentType.OFFERS,
             content=fake.sentence(),
@@ -268,7 +268,7 @@ def test_vectorize_qdrant_search_list_filters(
             "ministry": concours_entity.ministry.value,
             "access_modality": [],
         }
-        vectorized_doc = VectorizedDocumentFactory.create(
+        vectorized_doc = VectorizedDocumentFactory.create_entity(
             entity_id=concours_entity.id,
             document_type=DocumentType.CONCOURS,
             content=fake.sentence(),

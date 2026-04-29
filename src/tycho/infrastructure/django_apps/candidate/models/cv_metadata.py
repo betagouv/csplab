@@ -1,5 +1,3 @@
-"""Django model for CVMetadata entity."""
-
 from django.db import models
 
 from domain.entities.cv_metadata import CVMetadata

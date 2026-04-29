@@ -13,7 +13,7 @@ fake = Faker()
 
 class VectorizedDocumentFactory:
     @staticmethod
-    def create(
+    def create_entity(
         entity_id: Optional[UUID] = None,
         document_type: DocumentType = DocumentType.OFFERS,
         content: Optional[str] = None,
@@ -99,8 +99,8 @@ class VectorizedDocumentFactory:
         return entity
 
     @staticmethod
-    def create_batch(
+    def create_entity_batch(
         size: int,
         **kwargs,
     ) -> List[VectorizedDocument]:
-        return [VectorizedDocumentFactory.create(**kwargs) for _ in range(size)]
+        return [VectorizedDocumentFactory.create_entity(**kwargs) for _ in range(size)]

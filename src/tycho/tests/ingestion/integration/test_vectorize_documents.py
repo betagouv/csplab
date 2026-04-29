@@ -103,7 +103,7 @@ def offer_setup_fixture(vectorize_integration_container):
     document_type = DocumentType.OFFERS
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     repository = usecase.repository_factory.get_repository(document_type)
-    factories_mapper[document_type].create()
+    factories_mapper[document_type].create_model()
     return usecase, repository, document_type
 
 
@@ -123,7 +123,7 @@ def test_vectorize_entity_integration(
 
     container = vectorize_integration_container
     usecase = container.vectorize_documents_usecase()
-    documents = factories_mapper[document_type].create_batch(2)
+    documents = factories_mapper[document_type].create_model_batch(2)
 
     result = usecase.execute(document_type)
 
@@ -163,7 +163,7 @@ def test_vectorize_limit(
     mock_embedding_response(httpx_mock, test_app_config)
 
     limit = 2
-    OfferFactory.create_batch(limit + 1)
+    OfferFactory.create_model_batch(limit + 1)
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     result = usecase.execute(DocumentType.OFFERS, limit=limit)
 
@@ -244,7 +244,7 @@ def test_vectorize_qdrant_unsupported_similarity_metric(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
-    OfferFactory.create()
+    OfferFactory.create_model()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     usecase.execute(DocumentType.OFFERS)
 
@@ -269,7 +269,7 @@ def test_vectorize_qdrant_search_unexpected_response(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
-    OfferFactory.create()
+    OfferFactory.create_model()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     usecase.execute(DocumentType.OFFERS)
 
@@ -303,7 +303,7 @@ def test_vectorize_qdrant_search_general_error(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
-    OfferFactory.create()
+    OfferFactory.create_model()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     usecase.execute(DocumentType.OFFERS)
 
@@ -329,7 +329,7 @@ def test_vectorize_qdrant_upsert_error(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create a document to vectorize
-    OfferFactory.create()
+    OfferFactory.create_model()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
 
     # Test Exception from Qdrant upsert (lignes 143-145)
@@ -356,7 +356,7 @@ def test_vectorize_qdrant_search_no_filters(
 ):
     mock_embedding_response(httpx_mock, test_app_config)
 
-    OfferFactory.create()
+    OfferFactory.create_model()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     usecase.execute(DocumentType.OFFERS)
 
@@ -372,7 +372,7 @@ def test_vectorize_qdrant_search_no_filters(
 
 def test_vectorize_albert_empty_text_error(db, vectorize_integration_container):
 
-    OfferFactory.create()
+    OfferFactory.create_model()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
 
     with patch.object(
@@ -397,7 +397,7 @@ def test_vectorize_albert_invalid_response_error(
     invalid_response = {"invalid": "structure"}  # Missing required fields
     mock_embedding_response(httpx_mock, test_app_config, invalid_response)
 
-    OfferFactory.create()
+    OfferFactory.create_model()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     result = usecase.execute(DocumentType.OFFERS)
 
@@ -419,7 +419,7 @@ def test_vectorize_albert_http_error(
     # Mock Albert API with HTTP 500 error
     mock_embedding_response(httpx_mock, test_app_config, status_code=500)
 
-    OfferFactory.create()
+    OfferFactory.create_model()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     result = usecase.execute(DocumentType.OFFERS)
 
@@ -438,7 +438,7 @@ def test_vectorize_albert_empty_data_error(
     empty_data_response = MockApiResponseFactory.create_embedding_response_empty_data()
     mock_embedding_response(httpx_mock, test_app_config, empty_data_response)
 
-    OfferFactory.create()
+    OfferFactory.create_model()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     result = usecase.execute(DocumentType.OFFERS)
 

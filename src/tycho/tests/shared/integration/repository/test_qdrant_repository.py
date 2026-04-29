@@ -13,7 +13,7 @@ DELETED_DOCUMENTS_COUNT = 2
 def test_qdrant_repository(db):
     qdrant_repo = create_shared_qdrant_repository()
 
-    vectorized_documents = VectorizedDocumentFactory.create_batch(
+    vectorized_documents = VectorizedDocumentFactory.create_entity_batch(
         size=3,
         document_type=DocumentType.OFFERS,
         metadata={"category": "test", "source": "integration_test"},

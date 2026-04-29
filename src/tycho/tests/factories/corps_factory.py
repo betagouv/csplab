@@ -17,7 +17,7 @@ fake = Faker()
 
 class CorpsFactory:
     @staticmethod
-    def create(
+    def create_model(
         code: Optional[str] = None,
         category: Optional[Category] = None,
         ministry: Optional[str] = None,
@@ -80,8 +80,8 @@ class CorpsFactory:
         return corps
 
     @staticmethod
-    def create_batch(
+    def create_model_batch(
         size: int,
         **kwargs,
     ) -> List[CorpsModel]:
-        return [CorpsFactory.create(**kwargs) for _ in range(size)]
+        return [CorpsFactory.create_model(**kwargs) for _ in range(size)]

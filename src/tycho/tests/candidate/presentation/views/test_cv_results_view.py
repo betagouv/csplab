@@ -140,21 +140,21 @@ def test_cv_results_full_page_load_with_filter_params_returns_filtered_results(
     mock_execute, client, db, filter_test_case, db_cv_uuid
 ):
     # Create Concours models using the factory with valid data
-    concours_paris_model = ConcoursFactory.create(
+    concours_paris_model = ConcoursFactory.create_model(
         corps="Chef de projet transformation numérique",
         grade="Attaché principal",
         category=Category.A,
         open_position_number=5,
     )
 
-    concours_lyon_model = ConcoursFactory.create(
+    concours_lyon_model = ConcoursFactory.create_model(
         corps="Responsable des ressources humaines",
         grade="Attaché",
         category=Category.A,
         open_position_number=3,
     )
 
-    concours_tech_model = ConcoursFactory.create(
+    concours_tech_model = ConcoursFactory.create_model(
         corps="Technicien informatique",
         grade="Technicien",
         category=Category.B,
@@ -275,21 +275,21 @@ def test_cv_results_htmx_filter_returns_filtered_results(
     mock_execute, client, db, filter_test_case, db_cv_uuid
 ):
     # Create Concours models using the factory with valid data
-    concours_paris_model = ConcoursFactory.create(
+    concours_paris_model = ConcoursFactory.create_model(
         corps="Chef de projet transformation numérique",
         grade="Attaché principal",
         category=Category.A,
         open_position_number=5,
     )
 
-    concours_lyon_model = ConcoursFactory.create(
+    concours_lyon_model = ConcoursFactory.create_model(
         corps="Responsable des ressources humaines",
         grade="Attaché",
         category=Category.A,
         open_position_number=3,
     )
 
-    concours_tech_model = ConcoursFactory.create(
+    concours_tech_model = ConcoursFactory.create_model(
         corps="Technicien informatique",
         grade="Technicien",
         category=Category.B,
@@ -383,7 +383,7 @@ def test_cv_results_htmx_results_zone_target_returns_results_list_template(
     mock_execute, client, db, cv_metadata_completed
 ):
     CVMetadataModel.from_entity(cv_metadata_completed).save()
-    mock_execute.return_value = [(OfferFactory.build(title="Poste ciblé"), 0.9)]
+    mock_execute.return_value = [(OfferFactory.create_entity(title="Poste ciblé"), 0.9)]
 
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_completed.id}),
@@ -402,7 +402,7 @@ def test_cv_results_filter_bar_renders_tooltips(
     mock_execute, client, db, cv_metadata_completed
 ):
     CVMetadataModel.from_entity(cv_metadata_completed).save()
-    mock_execute.return_value = [(OfferFactory.build(title="Poste test"), 0.9)]
+    mock_execute.return_value = [(OfferFactory.create_entity(title="Poste test"), 0.9)]
 
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_completed.id})
@@ -437,7 +437,7 @@ def test_cv_processing_flow_pending_to_completed(
     model.status = CVStatus.COMPLETED.value
     model.save()
     mock_execute.return_value = [
-        (OfferFactory.build(title="Test opportunity"), 0.9),
+        (OfferFactory.create_model(title="Test opportunity"), 0.9),
     ]
     response_completed = client.get(url, {"poll": "1"}, HTTP_HX_REQUEST="true")
     assert response_completed.status_code == HTTPStatus.OK
@@ -617,7 +617,7 @@ def test_cv_results_with_results_includes_tally_modal(
     CVMetadataModel.from_entity(cv_metadata_completed).save()
 
     settings.TALLY_FORM_ID_RESULTS = "test-results-form"
-    mock_execute.return_value = [(OfferFactory.build(title="Poste test"), 0.9)]
+    mock_execute.return_value = [(OfferFactory.create_entity(title="Poste test"), 0.9)]
 
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_completed.id})
@@ -638,7 +638,8 @@ def test_cv_results_pagination_default_page(
     CVMetadataModel.from_entity(cv_metadata_completed).save()
     settings.CV_RESULTS_PER_PAGE = 2
     mock_execute.return_value = [
-        (OfferFactory.build(title=f"Opportunity {i}"), 0.9 - i * 0.01) for i in range(5)
+        (OfferFactory.create_entity(title=f"Opportunity {i}"), 0.9 - i * 0.01)
+        for i in range(5)
     ]
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_completed.id})
@@ -658,7 +659,8 @@ def test_cv_results_pagination_second_page(
     CVMetadataModel.from_entity(cv_metadata_completed).save()
     settings.CV_RESULTS_PER_PAGE = 2
     mock_execute.return_value = [
-        (OfferFactory.build(title=f"Opportunity {i}"), 0.9 - i * 0.01) for i in range(5)
+        (OfferFactory.create_entity(title=f"Opportunity {i}"), 0.9 - i * 0.01)
+        for i in range(5)
     ]
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_completed.id}),
@@ -679,7 +681,10 @@ def test_cv_results_pagination_with_filters(
     CVMetadataModel.from_entity(cv_metadata_completed).save()
     settings.CV_RESULTS_PER_PAGE = 1
     mock_execute.return_value = [
-        (OfferFactory.build(title=f"Paris {i}", department="75"), 0.9 - i * 0.01)
+        (
+            OfferFactory.create_entity(title=f"Paris {i}", department="75"),
+            0.9 - i * 0.01,
+        )
         for i in range(3)
     ]
     response = client.get(

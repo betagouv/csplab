@@ -9,7 +9,7 @@ from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 
 class RawDocumentFactory:
     @staticmethod
-    def create(
+    def create_model(
         external_id: Optional[str] = None,
         document_type: DocumentType = DocumentType.OFFERS,
         raw_data: Optional[Dict[str, Any]] = None,
@@ -54,7 +54,7 @@ class RawDocumentFactory:
         return raw_document
 
     @staticmethod
-    def create_batch(
+    def create_model_batch(
         count: int,
         document_type: DocumentType = DocumentType.OFFERS,
         **kwargs,
@@ -71,7 +71,7 @@ class RawDocumentFactory:
             raw_data["id"] = i
             raw_data["name"] = raw_data.get("name", f"{document_type.value} {i}")
 
-            doc = RawDocumentFactory.create(
+            doc = RawDocumentFactory.create_model(
                 external_id=external_id,
                 document_type=document_type,
                 raw_data=raw_data,

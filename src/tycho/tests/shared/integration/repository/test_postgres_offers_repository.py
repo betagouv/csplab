@@ -38,7 +38,7 @@ class TestFindByIds:
         assert repository.get_by_ids(ids) == []
 
     def test_return_correct_list_of_existing_ids(self, db, repository):
-        offer = OfferFactory.create_batch(3)
+        offer = OfferFactory.create_model_batch(3)
         expected_ids = [offer[i].id for i in range(2)]
 
         results = repository.get_by_ids(expected_ids)
@@ -50,9 +50,9 @@ class TestFindByIds:
 
 class TestUpsertBatch:
     def test_datetime_on_upsert(self, db, repository):
-        offer = OfferFactory.create()
-        offer_to_update = OfferFactory.create()
-        new_offer = OfferFactory.create(save_in_db=False)
+        offer = OfferFactory.create_model()
+        offer_to_update = OfferFactory.create_model()
+        new_offer = OfferFactory.create_model(save_in_db=False)
 
         offers = [
             OfferModel.to_entity(offer_to_update),
@@ -95,7 +95,9 @@ class TestUpsertBatch:
         assert result == {"created": 0, "updated": 0, "errors": []}
 
     def test_multiple_offers_success(self, db, repository):
-        offers = OfferFactory.create_batch(2) + [OfferFactory.create(save_in_db=False)]
+        offers = OfferFactory.create_model_batch(2) + [
+            OfferFactory.create_model(save_in_db=False)
+        ]
         entities = [OfferModel.to_entity(offer) for offer in offers]
 
         result = repository.upsert_batch(entities)
@@ -111,7 +113,7 @@ class TestUpsertBatch:
             assert OfferModel.to_entity(saved) == entity
 
     def test_updated_datas_are_stored(self, db, repository):
-        offer = OfferFactory.create(
+        offer = OfferFactory.create_model(
             verse=Verse.FPT,
             title="old title",
             profile="old  profile",
@@ -157,15 +159,15 @@ class TestUpsertBatch:
 
 class TestGetPendingProcessing:
     def test_excluded_items(self, db, repository):
-        OfferFactory.create(archived_at=NOW)
-        OfferFactory.create(processing=True)
-        OfferFactory.create(processed_at=NOW, updated_at=DAY_AGO)
+        OfferFactory.create_model(archived_at=NOW)
+        OfferFactory.create_model(processing=True)
+        OfferFactory.create_model(processed_at=NOW, updated_at=DAY_AGO)
 
         assert repository.get_pending_processing() == []
 
     def test_get_pending_items_with_logical_lock(self, db, repository):
-        never_processed = OfferFactory.create()
-        updated_after_processed = OfferFactory.create(
+        never_processed = OfferFactory.create_model()
+        updated_after_processed = OfferFactory.create_model(
             processed_at=DAY_AGO, updated_at=NOW
         )
 
@@ -180,7 +182,7 @@ class TestGetPendingProcessing:
             assert entity.processing
 
     def test_limit(self, db, repository):
-        OfferFactory.create_batch(2)
+        OfferFactory.create_model_batch(2)
 
         entities = repository.get_pending_processing(limit=1)
         assert len(entities) == 1
@@ -190,10 +192,10 @@ class TestGetPendingProcessing:
 
 def test_mark_as_processed(db, repository):
     offers = [
-        OfferFactory.create(processing=True).to_entity(),
-        OfferFactory.create(processing=False).to_entity(),
+        OfferFactory.create_model(processing=True).to_entity(),
+        OfferFactory.create_model(processing=False).to_entity(),
     ]
-    undesired_offer = OfferFactory.create(processing=True).to_entity()
+    undesired_offer = OfferFactory.create_model(processing=True).to_entity()
 
     count = repository.mark_as_processed(offers)
     assert count == len(offers)
@@ -213,10 +215,10 @@ def test_mark_as_processed(db, repository):
 
 def test_mark_as_pending(db, repository):
     offers = [
-        OfferFactory.create(processing=True).to_entity(),
-        OfferFactory.create(processing=False).to_entity(),
+        OfferFactory.create_model(processing=True).to_entity(),
+        OfferFactory.create_model(processing=False).to_entity(),
     ]
-    undesired_offer = OfferFactory.create(processing=True).to_entity()
+    undesired_offer = OfferFactory.create_model(processing=True).to_entity()
 
     count = repository.mark_as_pending(offers)
     assert count == len(offers)

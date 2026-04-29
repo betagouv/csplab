@@ -29,7 +29,7 @@ fake.add_provider(NorProvider)
 
 class ConcoursFactory:
     @staticmethod
-    def create(
+    def create_model(
         corps: Optional[str] = None,
         grade: Optional[str] = None,
         nor_original: Optional[str] = None,
@@ -101,8 +101,8 @@ class ConcoursFactory:
         return concours
 
     @staticmethod
-    def create_batch(
+    def create_model_batch(
         size: int,
         **kwargs,
     ) -> List[ConcoursModel]:
-        return [ConcoursFactory.create(**kwargs) for _ in range(size)]
+        return [ConcoursFactory.create_model(**kwargs) for _ in range(size)]
