@@ -17,10 +17,10 @@ from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.cv_metadata_factory import CVMetadataFactory
 from tests.factories.offer_factory import OfferFactory
 from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
-from tests.fixtures.shared_fixtures import (
+from tests.utils.mock_api_response_factory import MockApiResponseFactory
+from tests.utils.shared_fixtures import (
     create_shared_qdrant_repository,
 )
-from tests.utils.mock_api_response_factory import MockApiResponseFactory
 
 fake = Faker()
 

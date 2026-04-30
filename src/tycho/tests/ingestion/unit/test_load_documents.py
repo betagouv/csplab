@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -6,8 +5,9 @@ import pytest
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
-from domain.entities.document import Document, DocumentType
+from domain.entities.document import DocumentType
 from infrastructure.gateways.shared.logger import LoggerService
+from tests.factories.document_factory import DocumentFactory
 from tests.utils.in_memory_document_repository import InMemoryDocumentRepository
 
 TWO_DOCUMENTS_COUNT = 2
@@ -35,20 +35,9 @@ def load_documents():
 
 @pytest.fixture
 def sample_documents():
-    return [
-        Document(
-            external_id="doc_1",
-            raw_data={"name": "Document 1", "description": "First document"},
-            type=DocumentType.CORPS,
-            created_at=datetime.now(timezone.utc),
-        ),
-        Document(
-            external_id="doc_2",
-            raw_data={"name": "Document 2", "description": "Second document"},
-            type=DocumentType.CORPS,
-            created_at=datetime.now(timezone.utc),
-        ),
-    ]
+    return DocumentFactory.create_entity_batch(
+        count=TWO_DOCUMENTS_COUNT, document_type=DocumentType.CORPS
+    )
 
 
 async def test_execute_with_no_documents_returns_zero_counts(load_documents):
@@ -176,22 +165,14 @@ async def test_execute_with_upload_from_csv_operation(load_documents, sample_doc
     )
 
 
-async def test_execute_aggregates_results_from_multiple_batches(load_documents):
+async def test_execute_aggregates_results_from_multiple_batches(
+    load_documents, sample_documents
+):
     usecase, repo, _, strategy = load_documents
 
-    doc1 = Document(
-        external_id="new_doc",
-        raw_data={"name": "New Document"},
-        type=DocumentType.CORPS,
-        created_at=datetime.now(timezone.utc),
-    )
+    doc1 = sample_documents[0]
+    existing_doc = sample_documents[1]
 
-    existing_doc = Document(
-        external_id="existing_doc",
-        raw_data={"name": "Existing Document"},
-        type=DocumentType.CORPS,
-        created_at=datetime.now(timezone.utc),
-    )
     repo.upsert_batch([existing_doc], DocumentType.CORPS)
 
     strategy.load_documents.side_effect = [

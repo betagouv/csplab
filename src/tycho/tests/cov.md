@@ -72,7 +72,7 @@
 | domain/value\_objects/cv\_extraction\_types.py                                     |       10 |        0 |    100% |
 | domain/value\_objects/cv\_processing\_status.py                                    |        5 |        0 |    100% |
 | domain/value\_objects/department.py                                                |       17 |        1 |     94% |
-| domain/value\_objects/diploma.py                                                   |       14 |        6 |     57% |
+| domain/value\_objects/diploma.py                                                   |       14 |        3 |     79% |
 | domain/value\_objects/label.py                                                     |       22 |        6 |     73% |
 | domain/value\_objects/limit\_date.py                                               |       11 |        1 |     91% |
 | domain/value\_objects/localisation.py                                              |       11 |        1 |     91% |
@@ -134,13 +134,13 @@
 | infrastructure/gateways/candidate/\_\_init\_\_.py                                  |        0 |        0 |    100% |
 | infrastructure/gateways/candidate/query\_builder.py                                |       17 |        1 |     94% |
 | infrastructure/gateways/ingestion/\_\_init\_\_.py                                  |        0 |        0 |    100% |
-| infrastructure/gateways/ingestion/concours\_cleaner.py                             |      128 |       23 |     82% |
-| infrastructure/gateways/ingestion/corps\_cleaner.py                                |      125 |       21 |     83% |
+| infrastructure/gateways/ingestion/concours\_cleaner.py                             |      122 |       21 |     83% |
+| infrastructure/gateways/ingestion/corps\_cleaner.py                                |      125 |       18 |     86% |
 | infrastructure/gateways/ingestion/document\_cleaner.py                             |       28 |        2 |     93% |
 | infrastructure/gateways/ingestion/load\_documents\_strategies.py                   |       20 |        1 |     95% |
 | infrastructure/gateways/ingestion/load\_documents\_strategy\_factory.py            |       16 |        2 |     88% |
 | infrastructure/gateways/ingestion/metier\_cleaner.py                               |       56 |       37 |     34% |
-| infrastructure/gateways/ingestion/offers\_cleaner.py                               |      125 |       25 |     80% |
+| infrastructure/gateways/ingestion/offers\_cleaner.py                               |      125 |       26 |     79% |
 | infrastructure/gateways/ingestion/pelage\_checks.py                                |       17 |        3 |     82% |
 | infrastructure/gateways/ingestion/text\_extractor.py                               |       47 |        7 |     85% |
 | infrastructure/gateways/shared/\_\_init\_\_.py                                     |        0 |        0 |    100% |
@@ -183,7 +183,7 @@
 | presentation/ingestion/schemas.py                                                  |       77 |       17 |     78% |
 | presentation/ingestion/tasks.py                                                    |      104 |        4 |     96% |
 | presentation/ingestion/urls.py                                                     |        4 |        0 |    100% |
-| presentation/ingestion/views.py                                                    |       83 |       17 |     80% |
+| presentation/ingestion/views.py                                                    |      118 |       18 |     85% |
 | presentation/pages/\_\_init\_\_.py                                                 |        0 |        0 |    100% |
 | presentation/pages/urls.py                                                         |        4 |        0 |    100% |
 | presentation/pages/views.py                                                        |        3 |        0 |    100% |

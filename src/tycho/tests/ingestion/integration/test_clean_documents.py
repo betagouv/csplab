@@ -13,12 +13,9 @@ from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.fixtures.clean_test_factories import (
-    create_test_concours_document,
-    create_test_corps_document,
-    create_test_metier_document,
-    create_test_offer_document,
-)
+from tests.factories.concours_factory import ConcoursFactory
+from tests.factories.corps_factory import CorpsFactory
+from tests.factories.document_factory import DocumentFactory
 
 # Test constants
 DOCUMENTS_COUNT = 2
@@ -32,10 +29,18 @@ DOCUMENT_TYPE_MODEL_MAP = {
 }
 
 DOCUMENT_FACTORY_MAP = {
-    DocumentType.CORPS: create_test_corps_document,
-    DocumentType.CONCOURS: create_test_concours_document,
-    DocumentType.OFFERS: create_test_offer_document,
-    DocumentType.METIERS: create_test_metier_document,
+    DocumentType.CORPS: DocumentFactory.create_entity_batch(
+        document_type=DocumentType.CORPS, count=3
+    ),
+    DocumentType.CONCOURS: DocumentFactory.create_entity_batch(
+        document_type=DocumentType.CONCOURS, count=3
+    ),
+    DocumentType.OFFERS: DocumentFactory.create_entity_batch(
+        document_type=DocumentType.OFFERS, count=3
+    ),
+    DocumentType.METIERS: DocumentFactory.create_entity_batch(
+        document_type=DocumentType.METIERS, count=3
+    ),
 }
 
 DB_ERROR = "Database connection error"
@@ -92,7 +97,8 @@ def clean_documents_integration_container(db):
 def raw_offer_setup_fixture(db, clean_documents_integration_container):
     usecase = clean_documents_integration_container.clean_documents_usecase()
     repository = clean_documents_integration_container.document_repository()
-    document = DOCUMENT_FACTORY_MAP[DocumentType.OFFERS](1)
+    # Créer un nouveau document à chaque fois pour éviter la réutilisation
+    document = DocumentFactory.create_entity(document_type=DocumentType.OFFERS)
     return usecase, repository, document
 
 
@@ -133,7 +139,7 @@ def test_execute_updates_existing_entities(
     # Create raw document in database using repository
     document_repository = clean_documents_integration_container.document_repository()
 
-    document = DOCUMENT_FACTORY_MAP[document_type](1)
+    document = DOCUMENT_FACTORY_MAP[document_type][0]
 
     document_repository.upsert_batch([document], document_type)
 
@@ -224,11 +230,11 @@ def test_upsert_batch_database_error(db, clean_documents_integration_container):
         clean_documents_integration_container.shared_container.concours_repository()
     )
 
-    corps = create_test_corps_document(1)
+    corps = CorpsFactory.create_model()
     corps.name = None  # no QA
     result_corps = corps_repository.upsert_batch([corps])
 
-    concours = create_test_concours_document(1)
+    concours = ConcoursFactory.create_model()
     concours.nor_original = None  # no QA
     result_concours = concours_repository.upsert_batch([concours])
 

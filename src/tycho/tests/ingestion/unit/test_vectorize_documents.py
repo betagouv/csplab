@@ -68,11 +68,11 @@ def test_execute_with_single_entity_success(
     sample_source = None
     match document_type:
         case DocumentType.CORPS:
-            sample_source = CorpsFactory.create_model().to_entity()
+            sample_source = CorpsFactory.create_entity()
         case DocumentType.CONCOURS:
-            sample_source = ConcoursFactory.create_model().to_entity()
+            sample_source = ConcoursFactory.create_entity()
         case DocumentType.OFFERS:
-            sample_source = OfferFactory.create_model().to_entity()
+            sample_source = OfferFactory.create_entity()
 
     mock_source_repo.get_pending_processing.return_value = [sample_source]
 

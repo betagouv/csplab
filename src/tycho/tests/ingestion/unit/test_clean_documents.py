@@ -7,17 +7,14 @@ from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.fixtures.clean_test_factories import (
-    THREE_DOCUMENTS_COUNT,
-    create_test_concours_document,
-    create_test_corps_document,
-    create_test_metier_document,
-)
+from tests.factories.document_factory import DocumentFactory
 from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
 from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
 from tests.utils.in_memory_document_repository import InMemoryDocumentRepository
 from tests.utils.in_memory_metier_repository import InMemoryMetierRepository
 from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
+
+THREE_DOCUMENTS_COUNT = 3
 
 
 def mock_cleaning_result(entities, cleaning_errors):
@@ -88,21 +85,20 @@ def clean_documents():
     ],
 )
 def test_clean_multiple_documents_success(clean_documents, document_type):
-    usecase, document_repo, document_cleaner, _, repositories = clean_documents
+    usecase, document_repo, document_cleaner, _, _ = clean_documents
 
     if document_type == DocumentType.CORPS:
-        documents = [
-            create_test_corps_document(i) for i in range(1, THREE_DOCUMENTS_COUNT + 1)
-        ]
+        documents = DocumentFactory.create_entity_batch(
+            count=THREE_DOCUMENTS_COUNT, document_type=DocumentType.CORPS
+        )
     elif document_type == DocumentType.CONCOURS:
-        documents = [
-            create_test_concours_document(i)
-            for i in range(1, THREE_DOCUMENTS_COUNT + 1)
-        ]
+        documents = DocumentFactory.create_entity_batch(
+            count=THREE_DOCUMENTS_COUNT, document_type=DocumentType.CONCOURS
+        )
     else:
-        documents = [
-            create_test_metier_document(i) for i in range(1, THREE_DOCUMENTS_COUNT + 1)
-        ]
+        documents = DocumentFactory.create_entity_batch(
+            count=THREE_DOCUMENTS_COUNT, document_type=DocumentType.METIERS
+        )
 
     document_repo.upsert_batch(documents, document_type)
 
@@ -127,7 +123,7 @@ def test_clean_multiple_documents_success(clean_documents, document_type):
     ],
 )
 def test_clean_documents_with_empty_repository(clean_documents, document_type):
-    usecase, document_repo, document_cleaner, _, _ = clean_documents
+    usecase, _, document_cleaner, _, _ = clean_documents
 
     # Mock pour retourner des résultats vides
     document_cleaner.clean.return_value = mock_cleaning_result([], [])

@@ -1,1 +1,1 @@
-from tests.fixtures.shared_fixtures import *  # noqa: F403
+from tests.utils.shared_fixtures import *  # noqa: F403
