@@ -9,7 +9,6 @@ from infrastructure.django_apps.shared.models.offer import OfferModel
 @admin.register(OfferModel)
 class OfferAdmin(admin.ModelAdmin):
     list_display = (
-        "id",
         "external_id",
         "verse",
         "title",
@@ -18,8 +17,8 @@ class OfferAdmin(admin.ModelAdmin):
         "region",
         "department",
         "beginning_date",
-        "created_at",
-        "updated_at",
+        "processed_at",
+        "archived_at",
     )
     list_filter = (
         "verse",
@@ -28,6 +27,8 @@ class OfferAdmin(admin.ModelAdmin):
         "region",
         "created_at",
         "updated_at",
+        "processed_at",
+        "archived_at",
     )
     search_fields = ("external_id", "title", "profile", "mission", "organization")
     readonly_fields = [f.name for f in OfferModel._meta.get_fields()]
@@ -36,15 +37,22 @@ class OfferAdmin(admin.ModelAdmin):
 @admin.register(CorpsModel)
 class CorpsAdmin(admin.ModelAdmin):
     list_display = (
-        "id",
         "code",
         "short_label",
         "category",
         "ministry",
         "diploma_level",
         "access_modalities",
+        "processed_at",
+        "archived_at",
     )
-    list_filter = ("category", "ministry", "diploma_level")
+    list_filter = (
+        "category",
+        "ministry",
+        "diploma_level",
+        "processed_at",
+        "archived_at",
+    )
     search_fields = ("code", "short_label", "long_label")
     readonly_fields = [f.name for f in CorpsModel._meta.get_fields()]
 
@@ -65,7 +73,6 @@ class CorpsAdmin(admin.ModelAdmin):
 @admin.register(ConcoursModel)
 class ConcoursAdmin(admin.ModelAdmin):
     list_display = (
-        "id",
         "nor_original",
         "corps",
         "grade",
@@ -73,8 +80,16 @@ class ConcoursAdmin(admin.ModelAdmin):
         "ministry",
         "open_position_number",
         "written_exam_date",
+        "processed_at",
+        "archived_at",
     )
-    list_filter = ("category", "ministry", "written_exam_date")
+    list_filter = (
+        "category",
+        "ministry",
+        "written_exam_date",
+        "processed_at",
+        "archived_at",
+    )
     search_fields = ("nor_original", "corps", "grade")
     readonly_fields = [f.name for f in ConcoursModel._meta.get_fields()]
 
@@ -100,13 +115,19 @@ class ConcoursAdmin(admin.ModelAdmin):
 @admin.register(MetierModel)
 class MetierAdmin(admin.ModelAdmin):
     list_display = (
-        "id",
         "external_id",
         "code_emploi_csp",
         "libelle_long",
         "libelle_domaine_fonctionnel",
+        "processed_at",
+        "archived_at",
     )
-    list_filter = ("referenciel_metier_id", "libelle_domaine_fonctionnel")
+    list_filter = (
+        "referenciel_metier_id",
+        "libelle_domaine_fonctionnel",
+        "processed_at",
+        "archived_at",
+    )
     search_fields = (
         "id",
         "external_id",
