@@ -1,3 +1,4 @@
+from typing import cast
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -5,17 +6,20 @@ import pytest
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.repositories.vector_repository_interface import IVectorRepository
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.corps_factory import CorpsFactory
 from tests.factories.offer_factory import OfferFactory
-from tests.utils.in_memory_vector_repository import InMemoryVectorRepository
+from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 
 @pytest.fixture
 def vectorize_documents():
     logger_service = LoggerService()
-    vector_repo = InMemoryVectorRepository(logger_service)
+    vector_repo = cast(
+        IVectorRepository, create_interface_aware_mock(IVectorRepository)
+    )
 
     text_extractor = Mock()
     text_extractor.extract_content.return_value = "Extracted text content"

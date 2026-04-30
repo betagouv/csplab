@@ -1,3 +1,4 @@
+from typing import cast
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -6,13 +7,14 @@ from application.candidate.usecases.match_cv_to_opportunities import (
     MatchCVToOpportunitiesUsecase,
 )
 from domain.exceptions.cv_errors import CVProcessingFailedError
+from domain.repositories.concours_repository_interface import IConcoursRepository
+from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
+from domain.repositories.offers_repository_interface import IOffersRepository
+from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.cv_metadata_factory import CVMetadataFactory
-from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
-from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepository
-from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
-from tests.utils.in_memory_vector_repository import InMemoryVectorRepository
+from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 
 @pytest.fixture
@@ -24,10 +26,18 @@ def match_cv_to_opportunities():
     embedding_generator_mock.generate_embedding = AsyncMock(
         return_value=[0.1, 0.2, 0.3]
     )
-    concours_repo = InMemoryConcoursRepository()
-    offers_repo = InMemoryOffersRepository()
-    cv_repo = InMemoryCVMetadataRepository()
-    vector_repo = InMemoryVectorRepository(logger=logger_service)
+    concours_repo = cast(
+        IConcoursRepository, create_interface_aware_mock(IConcoursRepository)
+    )
+    offers_repo = cast(
+        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+    )
+    cv_repo = cast(
+        ICVMetadataRepository, create_interface_aware_mock(ICVMetadataRepository)
+    )
+    vector_repo = cast(
+        IVectorRepository, create_interface_aware_mock(IVectorRepository)
+    )
 
     usecase = MatchCVToOpportunitiesUsecase(
         postgres_cv_metadata_repository=cv_repo,

@@ -1,3 +1,4 @@
+from typing import cast
 from uuid import UUID
 
 import pytest
@@ -5,13 +6,16 @@ import pytest
 from application.candidate.usecases.initialize_cv_metadata import (
     InitializeCVMetadataUsecase,
 )
+from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from domain.value_objects.cv_processing_status import CVStatus
-from tests.utils.in_memory_cv_metadata_repository import InMemoryCVMetadataRepository
+from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 
 @pytest.fixture
 def cv_metadata_repository():
-    return InMemoryCVMetadataRepository()
+    return cast(
+        ICVMetadataRepository, create_interface_aware_mock(ICVMetadataRepository)
+    )
 
 
 @pytest.fixture

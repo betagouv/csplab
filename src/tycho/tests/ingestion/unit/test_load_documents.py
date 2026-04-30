@@ -1,3 +1,4 @@
+from typing import cast
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -6,9 +7,10 @@ from application.ingestion.interfaces.load_documents_input import LoadDocumentsI
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from domain.entities.document import DocumentType
+from domain.repositories.document_repository_interface import IDocumentRepository
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.document_factory import DocumentFactory
-from tests.utils.in_memory_document_repository import InMemoryDocumentRepository
+from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 TWO_DOCUMENTS_COUNT = 2
 
@@ -16,7 +18,7 @@ TWO_DOCUMENTS_COUNT = 2
 @pytest.fixture
 def load_documents():
     logger_service = LoggerService()
-    document_repo = InMemoryDocumentRepository()
+    document_repo = create_interface_aware_mock(IDocumentRepository)
 
     mock_strategy = Mock()
     mock_strategy.load_documents = AsyncMock()
@@ -26,7 +28,7 @@ def load_documents():
 
     usecase = LoadDocumentsUsecase(
         strategy_factory=strategy_factory,
-        document_repository=document_repo,
+        document_repository=cast(IDocumentRepository, document_repo),
         logger=logger_service,
     )
 

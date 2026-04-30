@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import cast
 from unittest.mock import Mock
 
 import pytest
@@ -6,13 +7,14 @@ import pytest
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.repositories.concours_repository_interface import IConcoursRepository
+from domain.repositories.corps_repository_interface import ICorpsRepository
+from domain.repositories.document_repository_interface import IDocumentRepository
+from domain.repositories.metier_repository_interface import IMetierRepository
+from domain.repositories.offers_repository_interface import IOffersRepository
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.document_factory import DocumentFactory
-from tests.utils.in_memory_concours_repository import InMemoryConcoursRepository
-from tests.utils.in_memory_corps_repository import InMemoryCorpsRepository
-from tests.utils.in_memory_document_repository import InMemoryDocumentRepository
-from tests.utils.in_memory_metier_repository import InMemoryMetierRepository
-from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
+from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 THREE_DOCUMENTS_COUNT = 3
 
@@ -27,17 +29,19 @@ def mock_cleaning_result(entities, cleaning_errors):
 @pytest.fixture
 def clean_documents():
     logger_service = LoggerService()
-    document_repo = InMemoryDocumentRepository()
+    document_repo = cast(
+        IDocumentRepository, create_interface_aware_mock(IDocumentRepository)
+    )
 
     document_cleaner = Mock()
     document_cleaner.clean.return_value = mock_cleaning_result([], [])
 
     repository_factory = Mock()
 
-    corps_repo = InMemoryCorpsRepository()
-    concours_repo = InMemoryConcoursRepository()
-    metier_repo = InMemoryMetierRepository()
-    offers_repo = InMemoryOffersRepository()
+    corps_repo = create_interface_aware_mock(ICorpsRepository)
+    concours_repo = create_interface_aware_mock(IConcoursRepository)
+    metier_repo = create_interface_aware_mock(IMetierRepository)
+    offers_repo = create_interface_aware_mock(IOffersRepository)
 
     def get_repository(document_type):
         if document_type == DocumentType.CORPS:
