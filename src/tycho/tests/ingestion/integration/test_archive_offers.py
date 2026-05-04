@@ -263,10 +263,11 @@ class TestArchiveOffers:
         client,
         httpx_mock,
     ):
-        vacancies = TalentsoftBackVacancyFactory.batch(2)
+        num_vacancies = 2
+        vacancies = TalentsoftBackVacancyFactory.batch(num_vacancies)
         response = TalentsoftBackVacanciesResponseFactory.build(
             data=vacancies,
-            contentRange="0-100/2",
+            contentRange=f"0-100/{num_vacancies}",
         )
 
         offers = [
@@ -276,22 +277,9 @@ class TestArchiveOffers:
             for vacancy in vacancies
         ]
 
-        delete_errors = [
-            {
-                "entity_id": offer.id,
-                "error": "Qdrant error",
-                "exception": Exception("Qdrant error"),
-            }
-            for offer in offers
-        ]
-        mock_vector_repo = MagicMock()
-        mock_vector_repo.delete_vectorized_documents.return_value = {
-            "deleted": 0,
-            "errors": delete_errors,
-        }
-        documents_integration_container.shared_container().vector_repository.override(
-            mock_vector_repo
-        )
+        shared_container = documents_integration_container.shared_container()
+        vector_repo = shared_container.vector_repository()
+        vector_repo.client.delete = MagicMock(side_effect=Exception("Qdrant error"))
 
         httpx_mock.add_response(
             method="GET",
@@ -304,9 +292,9 @@ class TestArchiveOffers:
             updated_after=datetime.now()
         )
 
-        assert result == {
-            "fetched": 2,
-            "vector_deleted": 0,
-            "entity_archived": 2,
-            "errors": delete_errors,
-        }
+        assert result["fetched"] == num_vacancies
+        assert result["vector_deleted"] == 0
+        assert result["entity_archived"] == num_vacancies
+        assert len(result["errors"]) == num_vacancies
+        assert all(e["error"] == "Qdrant error" for e in result["errors"])
+        assert {e["entity_id"] for e in result["errors"]} == {o.id for o in offers}
