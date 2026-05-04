@@ -1,73 +1,26 @@
-from typing import cast
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 
 import pytest
 
-from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
-from domain.repositories.vector_repository_interface import IVectorRepository
-from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.corps_factory import CorpsFactory
 from tests.factories.offer_factory import OfferFactory
-from tests.utils.interface_aware_mock import create_interface_aware_mock
-
-
-@pytest.fixture
-def vectorize_documents():
-    logger_service = LoggerService()
-    vector_repo = cast(
-        IVectorRepository, create_interface_aware_mock(IVectorRepository)
-    )
-
-    text_extractor = Mock()
-    text_extractor.extract_content.return_value = "Extracted text content"
-    text_extractor.extract_metadata.return_value = {"key": "value"}
-
-    embedding_generator = Mock()
-    embedding_generator.generate_embedding = AsyncMock(return_value=[0.1, 0.2, 0.3])
-
-    repository_factory = Mock()
-    mock_source_repo = Mock()
-    mock_source_repo.get_pending_processing.return_value = []
-    mock_source_repo.mark_as_processed.return_value = None
-    mock_source_repo.mark_as_pending.return_value = None
-    repository_factory.get_repository.return_value = mock_source_repo
-
-    usecase = VectorizeDocumentsUsecase(
-        vector_repository=vector_repo,
-        text_extractor=text_extractor,
-        embedding_generator=embedding_generator,
-        logger=logger_service,
-        repository_factory=repository_factory,
-    )
-
-    return (
-        usecase,
-        vector_repo,
-        text_extractor,
-        embedding_generator,
-        repository_factory,
-        mock_source_repo,
-    )
 
 
 @pytest.mark.parametrize(
     "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
 )
 def test_execute_with_single_entity_success(
-    db, vectorize_documents, document_type
+    db, vectorize_documents_usecase, document_type
 ):  # TO-DO make vectorize usecase independent from django ORM
 
-    (
-        usecase,
-        _,
-        text_extractor,
-        embedding_generator,
-        _,
-        mock_source_repo,
-    ) = vectorize_documents
+    text_extractor = vectorize_documents_usecase.text_extractor
+    embedding_generator = vectorize_documents_usecase.embedding_generator
+    mock_source_repo = (
+        vectorize_documents_usecase.repository_factory.get_repository.return_value
+    )
 
     sample_source = None
     match document_type:
@@ -80,7 +33,7 @@ def test_execute_with_single_entity_success(
 
     mock_source_repo.get_pending_processing.return_value = [sample_source]
 
-    result = usecase.execute(document_type)
+    result = vectorize_documents_usecase.execute(document_type)
 
     assert result["processed"] == 1
     assert result["vectorized"] == 1
@@ -95,35 +48,20 @@ def test_execute_with_single_entity_success(
     mock_source_repo.mark_as_processed.assert_called_once()
 
 
-def test_vectorize_single_source_with_unsupported_type(vectorize_documents):
-    (
-        usecase,
-        _,
-        _,
-        _,
-        _,
-        _,
-    ) = vectorize_documents
-
+def test_vectorize_single_source_with_unsupported_type(vectorize_documents_usecase):
     unsupported_source = Mock()
 
     with pytest.raises(UnsupportedDocumentTypeError):
-        usecase.vectorize_single_source(unsupported_source)
+        vectorize_documents_usecase.vectorize_single_source(unsupported_source)
 
 
-def test_vectorize_single_source_with_none_entity_id_raises_error(vectorize_documents):
-    (
-        usecase,
-        _,
-        _,
-        _,
-        _,
-        _,
-    ) = vectorize_documents
+def test_vectorize_single_source_with_none_entity_id_raises_error(
+    vectorize_documents_usecase,
+):
 
     source_with_none_id = Mock(spec=Document)
     source_with_none_id.id = None
     source_with_none_id.type = DocumentType.CORPS
 
     with pytest.raises(ValueError, match="Entity ID cannot be None"):
-        usecase.vectorize_single_source(source_with_none_id)
+        vectorize_documents_usecase.vectorize_single_source(source_with_none_id)

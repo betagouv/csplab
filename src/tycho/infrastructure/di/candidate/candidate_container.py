@@ -67,7 +67,7 @@ class CandidateContainer(containers.DeclarativeContainer):
 
     match_cv_to_opportunities_usecase = providers.Factory(
         MatchCVToOpportunitiesUsecase,
-        postgres_cv_metadata_repository=postgres_cv_metadata_repository,
+        cv_metadata_repository=postgres_cv_metadata_repository,
         embedding_generator=embedding_generator,
         vector_repository=vector_repository,
         concours_repository=concours_repository,

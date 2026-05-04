@@ -28,21 +28,6 @@ DOCUMENT_TYPE_MODEL_MAP = {
     DocumentType.METIERS: "MetierModel",
 }
 
-DOCUMENT_FACTORY_MAP = {
-    DocumentType.CORPS: DocumentFactory.create_entity_batch(
-        document_type=DocumentType.CORPS, count=3
-    ),
-    DocumentType.CONCOURS: DocumentFactory.create_entity_batch(
-        document_type=DocumentType.CONCOURS, count=3
-    ),
-    DocumentType.OFFERS: DocumentFactory.create_entity_batch(
-        document_type=DocumentType.OFFERS, count=3
-    ),
-    DocumentType.METIERS: DocumentFactory.create_entity_batch(
-        document_type=DocumentType.METIERS, count=3
-    ),
-}
-
 DB_ERROR = "Database connection error"
 
 
@@ -139,7 +124,9 @@ def test_execute_updates_existing_entities(
     # Create raw document in database using repository
     document_repository = clean_documents_integration_container.document_repository()
 
-    document = DOCUMENT_FACTORY_MAP[document_type][0]
+    document = DocumentFactory.create_entity_batch(
+        document_type=document_type, count=1
+    )[0]
 
     document_repository.upsert_batch([document], document_type)
 

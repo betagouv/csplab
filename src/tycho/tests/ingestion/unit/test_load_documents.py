@@ -1,38 +1,11 @@
-from typing import cast
-from unittest.mock import AsyncMock, Mock
-
 import pytest
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from domain.entities.document import DocumentType
-from domain.repositories.document_repository_interface import IDocumentRepository
-from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.document_factory import DocumentFactory
-from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 TWO_DOCUMENTS_COUNT = 2
-
-
-@pytest.fixture
-def load_documents():
-    logger_service = LoggerService()
-    document_repo = create_interface_aware_mock(IDocumentRepository)
-
-    mock_strategy = Mock()
-    mock_strategy.load_documents = AsyncMock()
-
-    strategy_factory = Mock()
-    strategy_factory.create.return_value = mock_strategy
-
-    usecase = LoadDocumentsUsecase(
-        strategy_factory=strategy_factory,
-        document_repository=cast(IDocumentRepository, document_repo),
-        logger=logger_service,
-    )
-
-    return usecase, document_repo, strategy_factory, mock_strategy
 
 
 @pytest.fixture
@@ -42,9 +15,9 @@ def sample_documents():
     )
 
 
-async def test_execute_with_no_documents_returns_zero_counts(load_documents):
-    usecase, _, factory, strategy = load_documents
-
+async def test_execute_with_no_documents_returns_zero_counts(load_documents_usecase):
+    strategy_factory = load_documents_usecase.strategy_factory
+    strategy = strategy_factory.create.return_value
     strategy.load_documents.return_value = ([], False)
 
     input_data = LoadDocumentsInput(
@@ -52,29 +25,32 @@ async def test_execute_with_no_documents_returns_zero_counts(load_documents):
         kwargs={"document_type": DocumentType.CORPS},
     )
 
-    result = await usecase.execute(input_data)
+    result = await load_documents_usecase.execute(input_data)
 
     assert result["created"] == 0
     assert result["updated"] == 0
     assert result["errors"] == []
 
-    factory.create.assert_called_once_with(LoadOperationType.FETCH_FROM_API)
+    strategy_factory.create.assert_called_once_with(LoadOperationType.FETCH_FROM_API)
     strategy.load_documents.assert_called_once_with(
         document_type=DocumentType.CORPS, start=1
     )
 
 
-async def test_execute_with_single_batch_documents(load_documents, sample_documents):
-    usecase, repo, _, strategy = load_documents
-
+async def test_execute_with_single_batch_documents(
+    load_documents_usecase, sample_documents
+):
+    strategy_factory = load_documents_usecase.strategy_factory
+    strategy = strategy_factory.create.return_value
     strategy.load_documents.return_value = (sample_documents, False)
+    repo = load_documents_usecase.document_repository
 
     input_data = LoadDocumentsInput(
         operation_type=LoadOperationType.FETCH_FROM_API,
         kwargs={"document_type": DocumentType.CORPS},
     )
 
-    result = await usecase.execute(input_data)
+    result = await load_documents_usecase.execute(input_data)
 
     assert result["created"] == len(sample_documents)
     assert result["updated"] == 0
@@ -83,9 +59,9 @@ async def test_execute_with_single_batch_documents(load_documents, sample_docume
     assert len(repo.get_by_type(DocumentType.CORPS, 0)) == len(sample_documents)
 
 
-async def test_execute_with_pagination_logic(load_documents, sample_documents):
-    usecase, _, _, strategy = load_documents
-
+async def test_execute_with_pagination_logic(load_documents_usecase, sample_documents):
+    strategy_factory = load_documents_usecase.strategy_factory
+    strategy = strategy_factory.create.return_value
     first_batch = sample_documents[:1]
     second_batch = sample_documents[1:]
 
@@ -99,7 +75,7 @@ async def test_execute_with_pagination_logic(load_documents, sample_documents):
         kwargs={"document_type": DocumentType.CORPS},
     )
 
-    result = await usecase.execute(input_data)
+    result = await load_documents_usecase.execute(input_data)
 
     assert result["created"] == len(sample_documents)
     assert result["updated"] == 0
@@ -114,8 +90,9 @@ async def test_execute_with_pagination_logic(load_documents, sample_documents):
     assert second_call.kwargs["start"] == TWO_DOCUMENTS_COUNT
 
 
-async def test_execute_sets_default_start_parameter(load_documents):
-    usecase, repo, factory, strategy = load_documents
+async def test_execute_sets_default_start_parameter(load_documents_usecase):
+    strategy_factory = load_documents_usecase.strategy_factory
+    strategy = strategy_factory.create.return_value
 
     strategy.load_documents.return_value = ([], False)
 
@@ -124,15 +101,16 @@ async def test_execute_sets_default_start_parameter(load_documents):
         kwargs={"document_type": DocumentType.CORPS},
     )
 
-    await usecase.execute(input_data)
+    await load_documents_usecase.execute(input_data)
 
     strategy.load_documents.assert_called_once_with(
         document_type=DocumentType.CORPS, start=1
     )
 
 
-async def test_execute_preserves_existing_start_parameter(load_documents):
-    usecase, _, _, strategy = load_documents
+async def test_execute_preserves_existing_start_parameter(load_documents_usecase):
+    strategy_factory = load_documents_usecase.strategy_factory
+    strategy = strategy_factory.create.return_value
 
     strategy.load_documents.return_value = ([], False)
 
@@ -141,15 +119,18 @@ async def test_execute_preserves_existing_start_parameter(load_documents):
         kwargs={"document_type": DocumentType.CORPS, "start": 5},
     )
 
-    await usecase.execute(input_data)
+    await load_documents_usecase.execute(input_data)
 
     strategy.load_documents.assert_called_once_with(
         document_type=DocumentType.CORPS, start=5
     )
 
 
-async def test_execute_with_upload_from_csv_operation(load_documents, sample_documents):
-    usecase, _, factory, strategy = load_documents
+async def test_execute_with_upload_from_csv_operation(
+    load_documents_usecase, sample_documents
+):
+    strategy_factory = load_documents_usecase.strategy_factory
+    strategy = strategy_factory.create.return_value
 
     strategy.load_documents.return_value = (sample_documents, False)
 
@@ -158,9 +139,9 @@ async def test_execute_with_upload_from_csv_operation(load_documents, sample_doc
         kwargs={"document_type": DocumentType.CORPS, "documents": sample_documents},
     )
 
-    await usecase.execute(input_data)
+    await load_documents_usecase.execute(input_data)
 
-    factory.create.assert_called_once_with(LoadOperationType.UPLOAD_FROM_CSV)
+    strategy_factory.create.assert_called_once_with(LoadOperationType.UPLOAD_FROM_CSV)
 
     strategy.load_documents.assert_called_once_with(
         document_type=DocumentType.CORPS, documents=sample_documents, start=1
@@ -168,9 +149,11 @@ async def test_execute_with_upload_from_csv_operation(load_documents, sample_doc
 
 
 async def test_execute_aggregates_results_from_multiple_batches(
-    load_documents, sample_documents
+    load_documents_usecase, sample_documents
 ):
-    usecase, repo, _, strategy = load_documents
+    strategy_factory = load_documents_usecase.strategy_factory
+    strategy = strategy_factory.create.return_value
+    repo = load_documents_usecase.document_repository
 
     doc1 = sample_documents[0]
     existing_doc = sample_documents[1]
@@ -187,7 +170,7 @@ async def test_execute_aggregates_results_from_multiple_batches(
         kwargs={"document_type": DocumentType.CORPS},
     )
 
-    result = await usecase.execute(input_data)
+    result = await load_documents_usecase.execute(input_data)
 
     assert result["created"] + result["updated"] == TWO_DOCUMENTS_COUNT
     assert result["errors"] == []

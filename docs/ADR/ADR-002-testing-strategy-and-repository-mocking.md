@@ -48,7 +48,7 @@ We adopt a three-tier testing strategy aligned with Clean Architecture principle
 - Management commands and CLI tools
 - Task queues and background jobs
 - User interface behavior and validation
-- Useacse are mocked here
+- Usecase are mocked here
 
 ## Rationale
 

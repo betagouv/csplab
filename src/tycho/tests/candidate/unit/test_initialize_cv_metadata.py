@@ -1,34 +1,15 @@
-from typing import cast
 from uuid import UUID
 
-import pytest
-
-from application.candidate.usecases.initialize_cv_metadata import (
-    InitializeCVMetadataUsecase,
-)
-from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from domain.value_objects.cv_processing_status import CVStatus
-from tests.utils.interface_aware_mock import create_interface_aware_mock
-
-
-@pytest.fixture
-def cv_metadata_repository():
-    return cast(
-        ICVMetadataRepository, create_interface_aware_mock(ICVMetadataRepository)
-    )
-
-
-@pytest.fixture
-def usecase(cv_metadata_repository):
-    return InitializeCVMetadataUsecase(cv_metadata_repository)
 
 
 def test_execute_creates_cv_metadata_with_pending_status(
-    usecase, cv_metadata_repository
+    initialize_cv_metadata_usecase,
 ):
     filename = "test_cv.pdf"
 
-    cv_id = usecase.execute(filename)
+    cv_id = initialize_cv_metadata_usecase.execute(filename)
+    cv_metadata_repository = initialize_cv_metadata_usecase.cv_metadata_repository
 
     # Verify UUID is returned as string
     assert isinstance(cv_id, str)
@@ -44,13 +25,15 @@ def test_execute_creates_cv_metadata_with_pending_status(
     assert saved_cv.search_query is None
 
 
-def test_execute_creates_unique_ids(usecase, cv_metadata_repository):
+def test_execute_creates_unique_ids(initialize_cv_metadata_usecase):
     filename1 = "cv1.pdf"
     filename2 = "cv2.pdf"
     expected_count = 2
 
-    cv_id1 = usecase.execute(filename1)
-    cv_id2 = usecase.execute(filename2)
+    cv_id1 = initialize_cv_metadata_usecase.execute(filename1)
+    cv_id2 = initialize_cv_metadata_usecase.execute(filename2)
+
+    cv_metadata_repository = initialize_cv_metadata_usecase.cv_metadata_repository
 
     assert cv_id1 != cv_id2
 
@@ -63,10 +46,11 @@ def test_execute_creates_unique_ids(usecase, cv_metadata_repository):
     assert cv_metadata_repository.count() == expected_count
 
 
-def test_execute_sets_timestamps(usecase, cv_metadata_repository):
+def test_execute_sets_timestamps(initialize_cv_metadata_usecase):
     filename = "timestamped_cv.pdf"
 
-    cv_id = usecase.execute(filename)
+    cv_id = initialize_cv_metadata_usecase.execute(filename)
+    cv_metadata_repository = initialize_cv_metadata_usecase.cv_metadata_repository
 
     saved_cv = cv_metadata_repository.get_by_id(UUID(cv_id))
     assert saved_cv.created_at is not None
@@ -76,10 +60,11 @@ def test_execute_sets_timestamps(usecase, cv_metadata_repository):
     assert time_diff < 1.0  # Less than 1 second difference
 
 
-def test_execute_with_empty_filename(usecase, cv_metadata_repository):
+def test_execute_with_empty_filename(initialize_cv_metadata_usecase):
     filename = ""
 
-    cv_id = usecase.execute(filename)
+    cv_id = initialize_cv_metadata_usecase.execute(filename)
+    cv_metadata_repository = initialize_cv_metadata_usecase.cv_metadata_repository
 
     saved_cv = cv_metadata_repository.get_by_id(UUID(cv_id))
     assert saved_cv.filename == ""
