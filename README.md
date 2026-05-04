@@ -51,7 +51,6 @@ make bootstrap
 make run-notebook
 ```
 
-```bash
 Pour installer les git hooks (pre-commit et commit-msg):
 
 ```bash
