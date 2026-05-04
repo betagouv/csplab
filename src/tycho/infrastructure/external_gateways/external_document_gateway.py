@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import List, Tuple, cast
 
 from domain.entities.document import Document, DocumentType
+from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.gateways.document_gateway_interface import IDocumentGateway
 from domain.services.async_http_client_interface import IAsyncHttpClient
 from domain.services.logger_interface import ILogger
@@ -120,9 +121,7 @@ class ExternalDocumentGateway(IDocumentGateway):
         self, document_type: DocumentType, start: int = 1, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         if document_type != DocumentType.OFFERS:
-            raise ValueError(
-                f"Talentsoft Front API: unsupported document type: {document_type}"
-            )
+            raise InvalidDocumentTypeError(document_type.value)
 
         # Manage connection at client level for better performance
         async with self.talentsoft_front_client:
@@ -169,9 +168,7 @@ class ExternalDocumentGateway(IDocumentGateway):
         self, document_type: DocumentType, external_id: str
     ) -> Document:
         if document_type != DocumentType.OFFERS:
-            raise ValueError(
-                f"Talentsoft Front API: unsupported document type: {document_type}"
-            )
+            raise InvalidDocumentTypeError(document_type.value)
 
         # external_id format is "{versant}-{reference}", e.g. "FPE-12345"
         # The reference is everything after the first "-"
