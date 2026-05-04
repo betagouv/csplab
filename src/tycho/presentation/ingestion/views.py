@@ -2,6 +2,10 @@ from datetime import datetime
 
 import polars as pl
 from asgiref.sync import async_to_sync
+from drf_spectacular.utils import (
+    PolymorphicProxySerializer,
+    extend_schema,
+)
 from pydantic import ValidationError
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -12,7 +16,18 @@ from application.ingestion.interfaces.load_documents_input import LoadDocumentsI
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from presentation.ingestion.openapi import (
+    CONCOURS_UPLOAD_DESCRIPTION,
+    CONCOURS_UPLOAD_EXAMPLES,
+)
 from presentation.ingestion.schemas import ConcoursRowSchema
+from presentation.ingestion.serializers import (
+    ConcoursUploadResponseSerializer,
+    FileErrorSerializer,
+    NoValidRowsErrorSerializer,
+    ServerErrorSerializer,
+    TokenErrorSerializer,
+)
 
 
 def format_validation_error(error: ValidationError) -> str:
@@ -39,6 +54,35 @@ def format_validation_error(error: ValidationError) -> str:
 class ConcoursUploadView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
+    @extend_schema(
+        summary="Upload et traitement d'un fichier CSV de concours GRECO",
+        description=CONCOURS_UPLOAD_DESCRIPTION,
+        examples=CONCOURS_UPLOAD_EXAMPLES,
+        tags=["concours"],
+        request={
+            "multipart/form-data": {
+                "type": "object",
+                "properties": {
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "description": "Fichier CSV contenant les données de concours",
+                    }
+                },
+                "required": ["file"],
+            }
+        },
+        responses={
+            201: ConcoursUploadResponseSerializer,
+            400: PolymorphicProxySerializer(
+                component_name="ConcoursUpload400Error",
+                serializers=[FileErrorSerializer, NoValidRowsErrorSerializer],
+                resource_type_field_name=None,
+            ),
+            401: TokenErrorSerializer,
+            500: ServerErrorSerializer,
+        },
+    )
     def post(self, request):
         container = create_ingestion_container()
         logger = container.logger_service()
