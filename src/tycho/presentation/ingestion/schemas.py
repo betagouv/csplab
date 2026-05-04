@@ -7,62 +7,44 @@ MIN_NOR_LENGTH = 10
 
 
 class ConcoursRowSchema(BaseModel):
-    nor: str = Field(..., alias="N° NOR", min_length=1)
-    nor_reference: Optional[str] = Field(None, alias="N° NOR de référence")
-    ministere: str = Field(..., alias="Ministère", min_length=1)
-    ministere_initial: Optional[str] = Field(None, alias="Ministère (saisie initiale)")
-    categorie: str = Field(..., alias="Catégorie", min_length=1)
-    corps: str = Field(..., alias="Corps", min_length=1)
-    grade: str = Field(..., alias="Grade", min_length=1)
-    corps_grade_initial: Optional[str] = Field(
-        None, alias="Corps/Grade (saisie initiale)"
-    )
-    direction_etablissement: Optional[str] = Field(
-        None, alias="Direction/Établissement"
-    )
-    annee_reference: int = Field(..., alias="Année de référence", ge=2015, le=2030)
-    statut: Optional[str] = Field(None, alias="Statut")
-    date_premiere_epreuve: Optional[str] = Field(None, alias="Date de première épreuve")
+    nor: str = Field(..., min_length=1)
+    nor_reference: Optional[str] = Field(None)
+    ministere: str = Field(..., min_length=1)
+    ministere_initial: Optional[str] = Field(None)
+    categorie: str = Field(..., min_length=1)
+    corps: str = Field(..., min_length=1)
+    grade: str = Field(..., min_length=1)
+    corps_grade_initial: Optional[str] = Field(None)
+    direction_etablissement: Optional[str] = Field(None)
+    annee_reference: int = Field(..., ge=2015, le=2030)
+    statut: Optional[str] = Field(None)
+    date_premiere_epreuve: Optional[str] = Field(None)
 
     # Modalités d'accès (colonnes booléennes)
-    national: Optional[bool] = Field(None, alias="National")
-    national_affectation_locale: Optional[bool] = Field(
-        None, alias="National à affectation locale"
-    )
-    deconcentre: Optional[bool] = Field(None, alias="Déconcentré")
-    externe: Optional[int] = Field(None, alias="Externe", ge=0)
-    interne: Optional[int] = Field(None, alias="Interne", ge=0)
-    troisieme_concours: Optional[int] = Field(None, alias="Troisieme Concours", ge=0)
-    unique: Optional[int] = Field(None, alias="Unique", ge=0)
-    examen_professionnel: Optional[int] = Field(
-        None, alias="Examen professionnel", ge=0
-    )
-    sans_concours_externe: Optional[int] = Field(
-        None, alias="Sans concours externe", ge=0
-    )
-    pacte: Optional[int] = Field(None, alias="Pacte", ge=0)
-    selection_professionnelle: Optional[int] = Field(
-        None, alias="Sélection professionnelle", ge=0
-    )
-    concours_special: Optional[int] = Field(None, alias="Concours spécial", ge=0)
-    concours_reserve: Optional[int] = Field(None, alias="Concours réservé", ge=0)
-    sans_concours_interne_reserve: Optional[int] = Field(
-        None, alias="Sans concours interne réservé", ge=0
-    )
-    examen_professionnalise_reserve: Optional[int] = Field(
-        None, alias="Examen professionnalisé réservé", ge=0
-    )
-    interne_exceptionnel: Optional[int] = Field(
-        None, alias="Interne exceptionnel", ge=0
-    )
-    apprenti_boeth: Optional[int] = Field(None, alias="Apprenti BOETH", ge=0)
-    promotion_boeth: Optional[int] = Field(None, alias="Promotion BOETH", ge=0)
-    autres: Optional[int] = Field(None, alias="Autres", ge=0)
+    national: Optional[bool] = Field(None)
+    national_affectation_locale: Optional[bool] = Field(None)
+    deconcentre: Optional[bool] = Field(None)
+    externe: Optional[int] = Field(None, ge=0)
+    interne: Optional[int] = Field(None, ge=0)
+    troisieme_concours: Optional[int] = Field(None, ge=0)
+    unique: Optional[int] = Field(None, ge=0)
+    examen_professionnel: Optional[int] = Field(None, ge=0)
+    sans_concours_externe: Optional[int] = Field(None, ge=0)
+    pacte: Optional[int] = Field(None, ge=0)
+    selection_professionnelle: Optional[int] = Field(None, ge=0)
+    concours_special: Optional[int] = Field(None, ge=0)
+    concours_reserve: Optional[int] = Field(None, ge=0)
+    sans_concours_interne_reserve: Optional[int] = Field(None, ge=0)
+    examen_professionnalise_reserve: Optional[int] = Field(None, ge=0)
+    interne_exceptionnel: Optional[int] = Field(None, ge=0)
+    apprenti_boeth: Optional[int] = Field(None, ge=0)
+    promotion_boeth: Optional[int] = Field(None, ge=0)
+    autres: Optional[int] = Field(None, ge=0)
 
     # Nombre de postes
-    nb_postes_acvg: Optional[int] = Field(None, alias="Nb postes ACVG", ge=0)
-    nb_postes_th: Optional[int] = Field(None, alias="Nb postes TH", ge=0)
-    nb_postes_total: int = Field(..., alias="Nb postes total", ge=0)
+    nb_postes_acvg: Optional[int] = Field(None, ge=0)
+    nb_postes_th: Optional[int] = Field(None, ge=0)
+    nb_postes_total: int = Field(..., ge=0)
 
     @field_validator("date_premiere_epreuve")
     @classmethod

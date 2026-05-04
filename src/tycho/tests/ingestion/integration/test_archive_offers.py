@@ -18,8 +18,8 @@ from tests.factories.talentsoft_factories import (
     TalentsoftBackVacancyFactory,
 )
 from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
-from tests.fixtures.shared_fixtures import create_shared_qdrant_repository
 from tests.ingestion.unit.external_gateways.utils import cached_token
+from tests.utils.shared_fixtures import create_shared_qdrant_repository
 
 
 @pytest.fixture(name="documents_integration_container")
@@ -93,24 +93,25 @@ class TestArchiveOffers:
         mock_contentRange = f"0-100/{TO_ARCHIVE + UNKNOWN + ARCHIVED}"
 
         offers_to_archive = [
-            OfferFactory.create(
+            OfferFactory.create_model(
                 external_id=f"{vacancy.salaryRange.id}-{vacancy.reference}"
             )
             for vacancy in vacancies_to_archive
         ]
         archived_offers = [
-            OfferFactory.create(
+            OfferFactory.create_model(
                 external_id=f"{vacancy.salaryRange.id}-{vacancy.reference}",
                 archived_at=datetime.now(),
             )
             for vacancy in archived_vacancies
         ]
-        active_offers = OfferFactory.create_batch(ACTIVE)
+        active_offers = OfferFactory.create_model_batch(ACTIVE)
         offers = offers_to_archive + active_offers
 
         vector_repo = documents_integration_container.vector_repository()
         vectorized_docs = [
-            VectorizedDocumentFactory.create(entity_id=offer.id) for offer in offers
+            VectorizedDocumentFactory.create_entity(entity_id=offer.id)
+            for offer in offers
         ]
         vector_repo.upsert_batch(vectorized_docs, DocumentType.OFFERS)
 
@@ -254,7 +255,7 @@ class TestArchiveOffers:
         mock_contentRange = f"0-100/{num_vacancies}"
 
         offers = [
-            OfferFactory.create(
+            OfferFactory.create_model(
                 external_id=f"{vacancy.salaryRange.id}-{vacancy.reference}"
             )
             for vacancy in vacancies

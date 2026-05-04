@@ -22,19 +22,19 @@ class MatchCVToOpportunitiesUsecase(
 ):
     def __init__(
         self,
-        postgres_cv_metadata_repository: ICVMetadataRepository,
+        cv_metadata_repository: ICVMetadataRepository,
         embedding_generator: IEmbeddingGenerator,
         vector_repository: IVectorRepository,
         concours_repository: IConcoursRepository,
         offers_repository: IOffersRepository,
         logger: ILogger,
     ):
-        self._postgres_cv_metadata_repository = postgres_cv_metadata_repository
-        self._embedding_generator = embedding_generator
-        self._vector_repository = vector_repository
-        self._concours_repository = concours_repository
-        self._offers_repository = offers_repository
-        self._logger = logger
+        self.cv_metadata_repository = cv_metadata_repository
+        self.embedding_generator = embedding_generator
+        self.vector_repository = vector_repository
+        self.concours_repository = concours_repository
+        self.offers_repository = offers_repository
+        self.logger = logger
 
     def execute(
         self,
@@ -42,7 +42,7 @@ class MatchCVToOpportunitiesUsecase(
         filters: Optional[IFilters] | None = None,
         limit: int = 5,
     ) -> List[Tuple[Concours | Offer, float]]:
-        self._logger.info(
+        self.logger.info(
             "Starting opportunity matching for cv_uuid='%s', limit=%d",
             cv_metadata.id,
             limit,
@@ -51,11 +51,11 @@ class MatchCVToOpportunitiesUsecase(
         if cv_metadata.status == CVStatus.FAILED or not cv_metadata.search_query:
             raise CVProcessingFailedError(str(cv_metadata.id), "CV processing failed")
 
-        query_embedding = async_to_sync(self._embedding_generator.generate_embedding)(
+        query_embedding = async_to_sync(self.embedding_generator.generate_embedding)(
             cv_metadata.search_query
         )
 
-        similarity_results = self._vector_repository.semantic_search(
+        similarity_results = self.vector_repository.semantic_search(
             query_embedding=query_embedding,
             limit=limit,
             filters=filters,
@@ -77,7 +77,7 @@ class MatchCVToOpportunitiesUsecase(
         concours_ids = [
             result.document.entity_id for result in concours_similarity_results
         ]
-        concours_list = self._concours_repository.get_by_ids(concours_ids)
+        concours_list = self.concours_repository.get_by_ids(concours_ids)
         concours_scores_by_id = {
             result.document.entity_id: result.score
             for result in concours_similarity_results
@@ -90,7 +90,7 @@ class MatchCVToOpportunitiesUsecase(
         )
 
         offers_ids = [result.document.entity_id for result in offers_similarity_results]
-        offers_list = self._offers_repository.get_by_ids(offers_ids)
+        offers_list = self.offers_repository.get_by_ids(offers_ids)
         offers_scores_by_id = {
             result.document.entity_id: result.score
             for result in offers_similarity_results
@@ -99,7 +99,7 @@ class MatchCVToOpportunitiesUsecase(
             [(offer, offers_scores_by_id[offer.id]) for offer in offers_list]
         )
 
-        self._logger.info("Returning %d opportunities", len(opportunities))
+        self.logger.info("Returning %d opportunities", len(opportunities))
 
         sorted_opportunities = sorted(opportunities, key=lambda x: x[1], reverse=True)
         return sorted_opportunities

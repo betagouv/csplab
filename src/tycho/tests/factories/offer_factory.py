@@ -19,7 +19,7 @@ from infrastructure.django_apps.shared.models.offer import OfferModel
 
 class OfferFactory:
     @staticmethod
-    def build(
+    def create_entity(
         title: str = "Test Offer Title",
         department: str = "75",
         category: Category = Category.A,
@@ -54,7 +54,7 @@ class OfferFactory:
         )
 
     @staticmethod
-    def create(
+    def create_model(
         external_id: Optional[str] = None,
         title: Optional[str] = None,
         profile: Optional[str] = None,
@@ -130,8 +130,8 @@ class OfferFactory:
         return offer_model
 
     @staticmethod
-    def create_batch(
+    def create_model_batch(
         size: int,
         **kwargs,
     ) -> List[OfferModel]:
-        return [OfferFactory.create(**kwargs) for _ in range(size)]
+        return [OfferFactory.create_model(**kwargs) for _ in range(size)]

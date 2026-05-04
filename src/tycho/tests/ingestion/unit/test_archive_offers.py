@@ -3,27 +3,13 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from tests.factories.offer_factory import OfferFactory
-from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
-from tests.utils.in_memory_vector_repository import InMemoryVectorRepository
-
-
-@pytest.fixture
-def usecase():
-    logger = MagicMock()
-    return ArchiveOffersUsecase(
-        offers_repository=InMemoryOffersRepository(),
-        document_gateway=MagicMock(),
-        vector_repository=InMemoryVectorRepository(logger),
-        logger=logger,
-    )
 
 
 class TestArchiveOffers:
     def setup_mocks(
         self,
-        usecase,
+        archive_offers_usecase,
         *,
         archived_ids=None,
         known_offers=None,
@@ -34,17 +20,19 @@ class TestArchiveOffers:
         delete_vectors_error=None,
         mark_archived_error=None,
     ):
-        usecase.document_gateway.get_archived_documents_by_period = AsyncMock(
-            return_value=archived_ids or [], side_effect=gateway_error
+        archive_offers_usecase.document_gateway.get_archived_documents_by_period = (
+            AsyncMock(return_value=archived_ids or [], side_effect=gateway_error)
         )
-        usecase.offers_repository.get_by_external_ids = MagicMock(
+        archive_offers_usecase.offers_repository.get_by_external_ids = MagicMock(
             return_value=known_offers or [], side_effect=get_by_ids_error
         )
-        usecase.vector_repository.delete_vectorized_documents = MagicMock(
-            return_value=vector_result or {"deleted": 0, "errors": []},
-            side_effect=delete_vectors_error,
+        archive_offers_usecase.vector_repository.delete_vectorized_documents = (
+            MagicMock(
+                return_value=vector_result or {"deleted": 0, "errors": []},
+                side_effect=delete_vectors_error,
+            )
         )
-        usecase.offers_repository.mark_as_archived = MagicMock(
+        archive_offers_usecase.offers_repository.mark_as_archived = MagicMock(
             return_value=archived_count, side_effect=mark_archived_error
         )
 
@@ -59,20 +47,22 @@ class TestArchiveOffers:
             ),
             pytest.param(
                 ["FPE-123"],
-                [OfferFactory.build(archived_at=datetime.now())],
+                [OfferFactory.create_entity(archived_at=datetime.now())],
                 id="offer_is_already_archived",
             ),
         ],
     )
     def test_usecase_returns_empty_result_when_nothing_to_archive(
         self,
-        usecase,
+        archive_offers_usecase,
         archived_ids,
         known_offers,
     ):
-        self.setup_mocks(usecase, archived_ids=archived_ids, known_offers=known_offers)
+        self.setup_mocks(
+            archive_offers_usecase, archived_ids=archived_ids, known_offers=known_offers
+        )
 
-        result = usecase.execute(updated_after=datetime.now())
+        result = archive_offers_usecase.execute(updated_after=datetime.now())
 
         expected_result = {
             "fetched": len(archived_ids),
@@ -82,16 +72,16 @@ class TestArchiveOffers:
         }
         assert result == expected_result
 
-    def test_fetched_external_ids_are_archived(self, usecase):
+    def test_fetched_external_ids_are_archived(self, archive_offers_usecase):
         self.setup_mocks(
-            usecase,
+            archive_offers_usecase,
             archived_ids=["FPE-123", "FPT-456"],
-            known_offers=[OfferFactory.build(), OfferFactory.build()],
+            known_offers=[OfferFactory.create_entity(), OfferFactory.create_entity()],
             vector_result={"deleted": 2, "errors": []},
             archived_count=2,
         )
 
-        result = usecase.execute(updated_after=datetime.now())
+        result = archive_offers_usecase.execute(updated_after=datetime.now())
 
         assert result == {
             "fetched": 2,
@@ -100,17 +90,17 @@ class TestArchiveOffers:
             "errors": [],
         }
 
-    def test_delete_vectorized_documents_returns_errors(self, usecase):
+    def test_delete_vectorized_documents_returns_errors(self, archive_offers_usecase):
         errors = ["Error deleting document d2d33b4d-da7d-4cac-bd51-59e76d3b45a2: msg"]
         self.setup_mocks(
-            usecase,
+            archive_offers_usecase,
             archived_ids=["FPE-123", "FPT-456"],
-            known_offers=[OfferFactory.build(), OfferFactory.build()],
+            known_offers=[OfferFactory.create_entity(), OfferFactory.create_entity()],
             vector_result={"deleted": 1, "errors": errors},
             archived_count=2,
         )
 
-        result = usecase.execute(updated_after=datetime.now())
+        result = archive_offers_usecase.execute(updated_after=datetime.now())
 
         assert result == {
             "fetched": 2,
@@ -144,15 +134,17 @@ class TestArchiveOffers:
             ),
         ],
     )
-    def test_execute_propagates_exceptions(self, usecase, errors, error_msg):
+    def test_execute_propagates_exceptions(
+        self, archive_offers_usecase, errors, error_msg
+    ):
         self.setup_mocks(
-            usecase,
+            archive_offers_usecase,
             archived_ids=["FPE-123"],
-            known_offers=[OfferFactory.build()],
+            known_offers=[OfferFactory.create_entity()],
             vector_result={"deleted": 1, "errors": []},
             archived_count=1,
             **errors,
         )
 
         with pytest.raises(Exception, match=error_msg):
-            usecase.execute(updated_after=datetime.now())
+            archive_offers_usecase.execute(updated_after=datetime.now())

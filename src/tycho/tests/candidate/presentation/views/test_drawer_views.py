@@ -10,7 +10,7 @@ from tests.factories.offer_factory import OfferFactory
 
 
 def _create_offer():
-    return OfferFactory.create(
+    return OfferFactory.create_model(
         title="Test Offer Title",
         profile="Test profile description",
         mission="Test mission description",
@@ -18,7 +18,7 @@ def _create_offer():
 
 
 def _create_concours():
-    return ConcoursFactory.create(
+    return ConcoursFactory.create_model(
         corps="Test Corps Title", grade="Test Grade Description"
     )
 

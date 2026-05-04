@@ -6,6 +6,7 @@ from pytest_django.asserts import assertNumQueries
 from config.app_config import AppConfig
 from domain.entities.document import DocumentType
 from domain.value_objects.category import Category
+from domain.value_objects.cv_processing_status import CVStatus
 from domain.value_objects.verse import Verse
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
@@ -13,21 +14,36 @@ from infrastructure.django_apps.shared.models.concours import ConcoursModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
-
-# Import fixtures needed for this test
-from tests.factories.cv_metadata_factory import create_cv_metadata_completed
+from tests.factories.cv_metadata_factory import CVMetadataFactory
 from tests.factories.offer_factory import OfferFactory
 from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
-from tests.fixtures.shared_fixtures import (
+from tests.utils.mock_api_response_factory import MockApiResponseFactory
+from tests.utils.shared_fixtures import (
     create_shared_qdrant_repository,
 )
-from tests.utils.mock_api_response_factory import MockApiResponseFactory
 
 fake = Faker()
 
 TWO_DOCUMENTS = 2
 THREE_DOCUMENTS = 3
 SIX_DOCUMENTS = 6
+INDEX_REGION = 2
+
+
+def mock_embedding_response(
+    httpx_mock,
+    config,
+    status_code: int = 200,
+):
+    albert_url = f"{config.albert.api_base_url}v1/embeddings"
+    mock_response = MockApiResponseFactory.create_embedding_response()
+    httpx_mock.add_response(
+        method="POST",
+        url=albert_url,
+        json=mock_response,
+        status_code=status_code,
+        is_reusable=True,
+    )
 
 
 @pytest.fixture
@@ -59,27 +75,27 @@ def test_app_config(candidate_container):
     return candidate_container.app_config()
 
 
-@pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
-def test_execute_with_valid_cv_returns_opportunities(
-    db,
-    candidate_container,
-    test_app_config,
-    httpx_mock,
-):
-    # Mock Albert API
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
+@pytest.fixture
+def cv_metadata():
+    return CVMetadataFactory.create_entity(
+        status=CVStatus.COMPLETED,
+        search_query="Python developer with Django experience",
+        extracted_text={
+            "experiences": ["Software Engineer"],
+            "skills": ["Python", "Django"],
+        },
     )
 
-    cv_metadata, cv_id = create_cv_metadata_completed()
-    concours = ConcoursFactory.create_batch(2)
-    offers = OfferFactory.create_batch(3)
+
+@pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
+def test_execute_with_valid_cv_returns_opportunities(
+    db, candidate_container, test_app_config, httpx_mock, cv_metadata
+):
+    # Mock Albert API
+    mock_embedding_response(httpx_mock, test_app_config)
+
+    concours = ConcoursFactory.create_model_batch(2)
+    offers = OfferFactory.create_model_batch(3)
     limit = len(offers) + len(concours) - 1
 
     # Setup CV metadata in real DB
@@ -101,7 +117,7 @@ def test_execute_with_valid_cv_returns_opportunities(
             "ministry": concours_entity.ministry.value,
             "access_modality": [],
         }
-        vectorized_doc = VectorizedDocumentFactory.create(
+        vectorized_doc = VectorizedDocumentFactory.create_entity(
             entity_id=concours_entity.id,
             document_type=DocumentType.CONCOURS,
             content=fake.sentence(),
@@ -113,7 +129,7 @@ def test_execute_with_valid_cv_returns_opportunities(
     vectorized_offers = []
     offer_entities = list(offers_repo.get_all())
     for offer_entity in offer_entities:
-        vectorized_doc = VectorizedDocumentFactory.create(
+        vectorized_doc = VectorizedDocumentFactory.create_entity(
             entity_id=offer_entity.id,
             document_type=DocumentType.OFFERS,
             content=fake.sentence(),
@@ -142,22 +158,13 @@ def test_execute_with_valid_cv_returns_opportunities(
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 def test_vectorize_qdrant_search_empty_filters(
-    db, candidate_container, test_app_config, httpx_mock
+    db, candidate_container, test_app_config, httpx_mock, cv_metadata
 ):
     # Mock Albert API
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
+    mock_embedding_response(httpx_mock, test_app_config)
 
-    cv_metadata, cv_id = create_cv_metadata_completed()
     # Create test data like in the working test
-    offers = OfferFactory.create_batch(3)
+    offers = OfferFactory.create_model_batch(3)
 
     # Setup CV metadata in real DB
     cv_repo = candidate_container.postgres_cv_metadata_repository()
@@ -168,7 +175,7 @@ def test_vectorize_qdrant_search_empty_filters(
 
     vectorized_offers = []
     for offer_entity in offers_repo.get_all():
-        vectorized_doc = VectorizedDocumentFactory.create(
+        vectorized_doc = VectorizedDocumentFactory.create_entity(
             entity_id=offer_entity.id,
             document_type=DocumentType.OFFERS,
             content=fake.sentence(),
@@ -195,32 +202,20 @@ def test_vectorize_qdrant_search_empty_filters(
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 def test_vectorize_qdrant_search_list_filters(
-    db, candidate_container, test_app_config, httpx_mock
+    db, candidate_container, test_app_config, httpx_mock, cv_metadata
 ):
-    # Mock Albert API
+    mock_embedding_response(httpx_mock, test_app_config)
 
-    INDEX_REGION = 2
-    albert_url = f"{test_app_config.albert.api_base_url}v1/embeddings"
-    mock_response = MockApiResponseFactory.create_embedding_response()
-    httpx_mock.add_response(
-        method="POST",
-        url=albert_url,
-        json=mock_response,
-        status_code=200,
-        is_reusable=True,
-    )
-
-    cv_metadata, cv_id = create_cv_metadata_completed()
     offers = [
-        OfferFactory.create(verse=Verse.FPE),
-        OfferFactory.create(verse=Verse.FPH),
-        OfferFactory.create(verse=Verse.FPT),
+        OfferFactory.create_model(verse=Verse.FPE),
+        OfferFactory.create_model(verse=Verse.FPH),
+        OfferFactory.create_model(verse=Verse.FPT),
     ]
 
     concours = [
-        ConcoursFactory.create(category=Category.A),
-        ConcoursFactory.create(category=Category.B),
-        ConcoursFactory.create(category=Category.C),
+        ConcoursFactory.create_model(category=Category.A),
+        ConcoursFactory.create_model(category=Category.B),
+        ConcoursFactory.create_model(category=Category.C),
     ]
 
     cv_repo = candidate_container.postgres_cv_metadata_repository()
@@ -253,7 +248,7 @@ def test_vectorize_qdrant_search_list_filters(
             "category": None,
             "localisation": localisation,
         }
-        vectorized_doc = VectorizedDocumentFactory.create(
+        vectorized_doc = VectorizedDocumentFactory.create_entity(
             entity_id=offer_entity.id,
             document_type=DocumentType.OFFERS,
             content=fake.sentence(),
@@ -273,7 +268,7 @@ def test_vectorize_qdrant_search_list_filters(
             "ministry": concours_entity.ministry.value,
             "access_modality": [],
         }
-        vectorized_doc = VectorizedDocumentFactory.create(
+        vectorized_doc = VectorizedDocumentFactory.create_entity(
             entity_id=concours_entity.id,
             document_type=DocumentType.CONCOURS,
             content=fake.sentence(),

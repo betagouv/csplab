@@ -9,7 +9,7 @@ from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.repositories.ingestion.postgres_document_repository import (
     PostgresDocumentRepository,
 )
-from tests.factories.raw_document_factory import RawDocumentFactory
+from tests.factories.document_factory import DocumentFactory
 
 fake = Faker()
 
@@ -67,7 +67,7 @@ class TestFindByType:
         total_docs = 5
         batch_size = 2
         document_type = DocumentType.OFFERS
-        RawDocumentFactory.create_batch(total_docs, document_type)
+        DocumentFactory.create_model_batch(total_docs, document_type)
 
         documents, has_more = repository.get_by_type(
             document_type, start=start, batch_size=batch_size
@@ -79,7 +79,7 @@ class TestFindByType:
     def test_filtering_with_mixed_document_type(self, db, repository):
         nb_doc_per_type = batch_size = 2
         for document_type in DocumentType:
-            RawDocumentFactory.create_batch(
+            DocumentFactory.create_model_batch(
                 nb_doc_per_type, document_type=document_type
             )
 
@@ -96,8 +96,8 @@ class TestFindByType:
         expected_document_count = 2
 
         # Create documents with specific external_ids in sequence
-        RawDocumentFactory.create(document_type=document_type, external_id="uuid-1")
-        RawDocumentFactory.create(document_type=document_type, external_id="uuid-2")
+        DocumentFactory.create_model(document_type=document_type, external_id="uuid-1")
+        DocumentFactory.create_model(document_type=document_type, external_id="uuid-2")
 
         documents, _ = repository.get_by_type(document_type, start=0, batch_size=10)
 
@@ -116,13 +116,13 @@ class TestFindByExternalIds:
 
     def test_ignore_other_document_type(self, db, repository):
         external_id = "uuid-1"
-        raw_document = RawDocumentFactory.create(
+        raw_document = DocumentFactory.create_model(
             document_type=DocumentType.OFFERS, external_id=external_id
         )
-        RawDocumentFactory.create(
+        DocumentFactory.create_model(
             document_type=DocumentType.CORPS, external_id=external_id
         )
-        RawDocumentFactory.create(
+        DocumentFactory.create_model(
             document_type=DocumentType.CONCOURS, external_id=external_id
         )
 
@@ -138,7 +138,7 @@ class TestFindByExternalIds:
 
     def test_find_correct_external_ids(self, db, repository):
         raw_documents_models = [
-            RawDocumentFactory.create(
+            DocumentFactory.create_model(
                 document_type=DocumentType.OFFERS, external_id=f"uuid-{i}"
             )
             for i in range(3)
@@ -156,9 +156,9 @@ class TestFindByExternalIds:
 
 class TestUpsertBatch:
     def test_datetime_on_upsert(self, db, repository):
-        raw_doc = RawDocumentFactory.create()
-        raw_doc_to_update = RawDocumentFactory.create()
-        new_raw_doc = RawDocumentFactory.create(save_in_db=False)
+        raw_doc = DocumentFactory.create_model()
+        raw_doc_to_update = DocumentFactory.create_model()
+        new_raw_doc = DocumentFactory.create_model(save_in_db=False)
 
         documents = [
             RawDocument.to_entity(raw_doc_to_update),
@@ -194,18 +194,18 @@ class TestUpsertBatch:
 
 class TestGetPendingProcessing:
     def test_excluded_items(self, db, repository):
-        RawDocumentFactory.create(document_type=DocumentType.CORPS)
-        RawDocumentFactory.create(document_type=DocumentType.CONCOURS)
-        RawDocumentFactory.create(processing=True)
-        RawDocumentFactory.create(processed_at=NOW, updated_at=DAY_AGO)
+        DocumentFactory.create_model(document_type=DocumentType.CORPS)
+        DocumentFactory.create_model(document_type=DocumentType.CONCOURS)
+        DocumentFactory.create_model(processing=True)
+        DocumentFactory.create_model(processed_at=NOW, updated_at=DAY_AGO)
 
         assert (
             repository.get_pending_processing(document_type=DocumentType.OFFERS) == []
         )
 
     def test_get_pending_items_with_logical_lock(self, db, repository):
-        never_processed = RawDocumentFactory.create()
-        updated_after_processed = RawDocumentFactory.create(
+        never_processed = DocumentFactory.create_model()
+        updated_after_processed = DocumentFactory.create_model(
             processed_at=DAY_AGO, updated_at=NOW
         )
 
@@ -220,7 +220,7 @@ class TestGetPendingProcessing:
             assert entity.processing
 
     def test_limit(self, db, repository):
-        RawDocumentFactory.create_batch(2)
+        DocumentFactory.create_model_batch(2)
 
         entities = repository.get_pending_processing(
             document_type=DocumentType.OFFERS, limit=1
@@ -232,10 +232,10 @@ class TestGetPendingProcessing:
 
 def test_mark_as_processed(db, repository):
     raw_documents = [
-        RawDocumentFactory.create(processing=True).to_entity(),
-        RawDocumentFactory.create(processing=False).to_entity(),
+        DocumentFactory.create_model(processing=True).to_entity(),
+        DocumentFactory.create_model(processing=False).to_entity(),
     ]
-    undesired_raw_document = RawDocumentFactory.create(processing=True).to_entity()
+    undesired_raw_document = DocumentFactory.create_model(processing=True).to_entity()
 
     count = repository.mark_as_processed(raw_documents)
     assert count == len(raw_documents)
@@ -255,10 +255,10 @@ def test_mark_as_processed(db, repository):
 
 def test_mark_as_pending(db, repository):
     raw_documents = [
-        RawDocumentFactory.create(processing=True).to_entity(),
-        RawDocumentFactory.create(processing=False).to_entity(),
+        DocumentFactory.create_model(processing=True).to_entity(),
+        DocumentFactory.create_model(processing=False).to_entity(),
     ]
-    undesired_raw_document = RawDocumentFactory.create(processing=True).to_entity()
+    undesired_raw_document = DocumentFactory.create_model(processing=True).to_entity()
 
     count = repository.mark_as_pending(raw_documents)
     assert count == len(raw_documents)
