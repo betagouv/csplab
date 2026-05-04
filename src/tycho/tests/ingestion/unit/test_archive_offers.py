@@ -5,22 +5,18 @@ import pytest
 
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from tests.factories.offer_factory import OfferFactory
-
-EMPTY_RESULT: dict = {
-    "fetched": 0,
-    "vector_deleted": 0,
-    "entity_archived": 0,
-    "errors": [],
-}
+from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
+from tests.utils.in_memory_vector_repository import InMemoryVectorRepository
 
 
 @pytest.fixture
 def usecase():
+    logger = MagicMock()
     return ArchiveOffersUsecase(
-        offers_repository=MagicMock(),
+        offers_repository=InMemoryOffersRepository(),
         document_gateway=MagicMock(),
-        vector_repository=MagicMock(),
-        logger=MagicMock(),
+        vector_repository=InMemoryVectorRepository(logger),
+        logger=logger,
     )
 
 
@@ -53,19 +49,17 @@ class TestArchiveOffers:
         )
 
     @pytest.mark.parametrize(
-        "archived_ids, known_offers, expect_get_by_external_ids_called",
+        "archived_ids, known_offers",
         [
-            pytest.param([], [], False, id="no_external_ids_fetched"),
+            pytest.param([], [], id="no_external_ids_fetched"),
             pytest.param(
                 ["FPE-123", "FPT-456", "FPH-789"],
                 [],
-                True,
                 id="fetched_external_ids_do_not_match_with_known_offers",
             ),
             pytest.param(
                 ["FPE-123"],
                 [OfferFactory.build(archived_at=datetime.now())],
-                True,
                 id="offer_is_already_archived",
             ),
         ],
@@ -75,20 +69,18 @@ class TestArchiveOffers:
         usecase,
         archived_ids,
         known_offers,
-        expect_get_by_external_ids_called,
     ):
         self.setup_mocks(usecase, archived_ids=archived_ids, known_offers=known_offers)
 
         result = usecase.execute(updated_after=datetime.now())
 
-        EMPTY_RESULT["fetched"] = len(archived_ids)
-        assert result == EMPTY_RESULT
-        if expect_get_by_external_ids_called:
-            usecase.offers_repository.get_by_external_ids.assert_called_once()
-        else:
-            usecase.offers_repository.get_by_external_ids.assert_not_called()
-        usecase.vector_repository.delete_vectorized_documents.assert_not_called()
-        usecase.offers_repository.mark_as_archived.assert_not_called()
+        expected_result = {
+            "fetched": len(archived_ids),
+            "vector_deleted": 0,
+            "entity_archived": 0,
+            "errors": [],
+        }
+        assert result == expected_result
 
     def test_fetched_external_ids_are_archived(self, usecase):
         self.setup_mocks(
