@@ -22,8 +22,8 @@ from tests.fixtures.shared_fixtures import create_shared_qdrant_repository
 from tests.ingestion.unit.external_gateways.utils import cached_token
 
 
-@pytest.fixture
-def documents_integration_container(db):
+@pytest.fixture(name="documents_integration_container")
+def documents_integration_container_fixture(db):
     shared_qdrant_repository = create_shared_qdrant_repository()
     container = IngestionContainer()
 
