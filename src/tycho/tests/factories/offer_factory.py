@@ -29,6 +29,7 @@ class OfferFactory:
         mission: str = "Test mission description",
         organization: str = "Test Organization",
         localisation: Localisation | None = None,
+        archived_at: datetime | None = None,
     ) -> Offer:
         return Offer(
             external_id=external_id or f"OFFER_{uuid4().hex[:8]}",
@@ -49,7 +50,7 @@ class OfferFactory:
             publication_date=datetime(2024, 1, 15, tzinfo=UTC),
             beginning_date=LimitDate(datetime(2024, 12, 31, tzinfo=UTC)),
             processed_at=None,
-            archived_at=None,
+            archived_at=archived_at,
         )
 
     @staticmethod

@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import List, Tuple, cast
 
 from domain.entities.document import Document, DocumentType
+from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.gateways.document_gateway_interface import IDocumentGateway
 from domain.services.async_http_client_interface import IAsyncHttpClient
 from domain.services.logger_interface import ILogger
@@ -12,7 +13,12 @@ from infrastructure.external_gateways.dtos.ingres_corps_dtos import (
 from infrastructure.external_gateways.dtos.ingres_metiers_dtos import (
     IngresMetiersApiResponse,
 )
-from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
+from infrastructure.external_gateways.talentsoft_client import (
+    TalentsoftBackClient,
+    TalentsoftFrontClient,
+)
+
+MAX_OFFSET = 100000
 
 
 class ExternalDocumentGateway(IDocumentGateway):
@@ -20,15 +26,17 @@ class ExternalDocumentGateway(IDocumentGateway):
         self,
         piste_client: IAsyncHttpClient,
         talentsoft_front_client: TalentsoftFrontClient,
+        talentsoft_back_client: TalentsoftBackClient,
         logger_service: ILogger,
     ):
         self.piste_client = piste_client
         self.talentsoft_front_client = talentsoft_front_client
+        self.talentsoft_back_client = talentsoft_back_client
         self.logger = logger_service
         self._source = {
             DocumentType.CORPS: self._fetch_ingres_api,
             DocumentType.METIERS: self._fetch_ingres_api,
-            DocumentType.OFFERS: self._fetch_talentsoft_api,
+            DocumentType.OFFERS: self._fetch_talentsoft_front_api,
         }
 
     async def fetch_by_type(
@@ -109,29 +117,20 @@ class ExternalDocumentGateway(IDocumentGateway):
         has_more = False
         return cast(List[JsonDataType], raw_documents), has_more
 
-    async def _fetch_offers(self, start: int, batch_size: int = 1000):
-        return await self.talentsoft_front_client.get_all(start=start, count=batch_size)
-
-    async def _fetch_talentsoft_api(
+    async def _fetch_talentsoft_front_api(
         self, document_type: DocumentType, start: int = 1, batch_size: int = 1000
     ) -> Tuple[List[Document], bool]:
         if document_type != DocumentType.OFFERS:
-            raise ValueError(
-                f"Talentsoft Front API: unsupported document type: {document_type}"
-            )
+            raise InvalidDocumentTypeError(document_type.value)
 
         # Manage connection at client level for better performance
         async with self.talentsoft_front_client:
             try:
-                raw_documents, has_more = await self._fetch_offers(start, batch_size)
+                raw_documents, has_more = await self.talentsoft_front_client.get_all(
+                    start=start, count=batch_size
+                )
             except Exception as e:
                 self.logger.error("Failed to fetch offers from Talentsoft: %s", e)
-                return [], False
-
-            if not isinstance(raw_documents, list):
-                self.logger.error(
-                    "Expected list of documents, got %s", type(raw_documents)
-                )
                 return [], False
 
             self.logger.info(
@@ -165,19 +164,19 @@ class ExternalDocumentGateway(IDocumentGateway):
 
             return documents, has_more
 
-    async def _fetch_detail_offer(self, reference: str):
-        return await self.talentsoft_front_client.get_detail(reference)
-
     async def get_detail(
         self, document_type: DocumentType, external_id: str
     ) -> Document:
+        if document_type != DocumentType.OFFERS:
+            raise InvalidDocumentTypeError(document_type.value)
+
         # external_id format is "{versant}-{reference}", e.g. "FPE-12345"
         # The reference is everything after the first "-"
         reference = external_id.split("-", 1)[-1]
 
         async with self.talentsoft_front_client:
             try:
-                raw_doc = await self._fetch_detail_offer(reference)
+                raw_doc = await self.talentsoft_front_client.get_detail(reference)
             except Exception as e:
                 self.logger.error(
                     "Failed to fetch detail %s %s: %s", document_type, external_id, e
@@ -190,3 +189,41 @@ class ExternalDocumentGateway(IDocumentGateway):
                 type=document_type,
                 created_at=now,
             )
+
+    async def get_archived_documents_by_period(
+        self,
+        updated_after: datetime,
+    ) -> List[str]:
+        offset: int | None = 0
+        external_ids = []
+
+        async with self.talentsoft_back_client:
+            while offset is not None and offset < MAX_OFFSET:
+                try:
+                    (
+                        raw_documents,
+                        offset,
+                    ) = await self.talentsoft_back_client.get_vacancies(
+                        update_date=updated_after,
+                        date_operator="gt",
+                        offset=offset,
+                    )
+                except Exception as e:
+                    self.logger.error("Failed to fetch offers from Talentsoft: %s", e)
+                    raise
+
+                self.logger.info(
+                    "Found %d offers from Talentsoft Back API",
+                    len(raw_documents),
+                )
+
+                if not raw_documents:
+                    break
+
+                for raw_doc in raw_documents:
+                    reference = raw_doc.reference
+                    versant_code_obj = raw_doc.salaryRange
+                    versant = versant_code_obj.id if versant_code_obj.id else "UNK"
+                    external_ids.append(f"{versant}-{reference}")
+
+            return external_ids
