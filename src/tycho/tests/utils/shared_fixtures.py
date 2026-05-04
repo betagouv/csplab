@@ -1,7 +1,7 @@
 import json
 import os
 from typing import cast
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 from asgiref.sync import sync_to_async
@@ -21,6 +21,7 @@ from application.candidate.usecases.match_cv_to_opportunities import (
     MatchCVToOpportunitiesUsecase,
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
+from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
@@ -40,6 +41,7 @@ from infrastructure.repositories.shared.qdrant_repository import QdrantRepositor
 from tests.utils.async_in_memory_cv_metadata_repository import (
     AsyncInMemoryCVMetadataRepository,
 )
+from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
 from tests.utils.interface_aware_mock import create_interface_aware_mock
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.pdf_test_utils import create_minimal_valid_pdf
@@ -318,4 +320,19 @@ def vectorize_documents_usecase():
         embedding_generator=embedding_generator,
         logger=logger_service,
         repository_factory=repository_factory,
+    )
+
+
+@pytest.fixture
+def archive_offers_usecase():
+    logger = MagicMock()
+    vector_repo = cast(
+        IVectorRepository, create_interface_aware_mock(IVectorRepository)
+    )
+
+    return ArchiveOffersUsecase(
+        offers_repository=InMemoryOffersRepository(),
+        document_gateway=MagicMock(),
+        vector_repository=vector_repo,
+        logger=logger,
     )
