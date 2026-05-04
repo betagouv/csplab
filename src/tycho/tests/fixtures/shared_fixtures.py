@@ -1,8 +1,10 @@
 import os
 
 import pytest
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import connections
 from faker import Faker
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, PayloadSchemaType, VectorParams
@@ -14,6 +16,15 @@ from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
 
 fake = Faker()
+
+
+@pytest.fixture(autouse=True)
+async def close_worker_thread_connections():
+    yield
+    # async ORM calls (via sync_to_async) open a DB connection in a worker thread.
+    # close_all() runs in that same thread via sync_to_async, closing the connection
+    # before the test database is dropped at session teardown.
+    await sync_to_async(connections.close_all)()
 
 
 @pytest.fixture(name="api_client")
