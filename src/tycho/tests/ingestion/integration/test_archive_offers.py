@@ -56,6 +56,26 @@ ARCHIVED = 3
 ACTIVE = 4
 
 
+def mock_talentsoft_back_response(
+    httpx_mock,
+    client,
+    mock_data: list | None = None,
+    mock_contentRange: str = "0-100/0",
+    status_code: int = 200,
+):
+    url = re.compile(rf"{re.escape(str(client.base_url))}/api/v1/vacancies")
+    mock_response = TalentsoftBackVacanciesResponseFactory.build(
+        data=mock_data if mock_data else [],
+        contentRange=mock_contentRange,
+    )
+    httpx_mock.add_response(
+        method="GET",
+        url=url,
+        json=mock_response.model_dump(by_alias=True),
+        status_code=status_code,
+    )
+
+
 class TestArchiveOffers:
     @pytest.mark.httpx_mock(
         should_mock=lambda request: "talentsoft" in str(request.url)
@@ -69,10 +89,8 @@ class TestArchiveOffers:
         vacancies_to_archive = TalentsoftBackVacancyFactory.batch(TO_ARCHIVE)
         unknown_vacancies = TalentsoftBackVacancyFactory.batch(UNKNOWN)
         archived_vacancies = TalentsoftBackVacancyFactory.batch(ARCHIVED)
-        response = TalentsoftBackVacanciesResponseFactory.build(
-            data=vacancies_to_archive + unknown_vacancies + archived_vacancies,
-            contentRange=f"0-100/{TO_ARCHIVE + UNKNOWN + ARCHIVED}",
-        )
+        mock_data = vacancies_to_archive + unknown_vacancies + archived_vacancies
+        mock_contentRange = f"0-100/{TO_ARCHIVE + UNKNOWN + ARCHIVED}"
 
         offers_to_archive = [
             OfferFactory.create(
@@ -96,12 +114,7 @@ class TestArchiveOffers:
         ]
         vector_repo.upsert_batch(vectorized_docs, DocumentType.OFFERS)
 
-        httpx_mock.add_response(
-            method="GET",
-            url=re.compile(rf"{re.escape(str(client.base_url))}/api/v1/vacancies"),
-            json=response.model_dump(by_alias=True),
-            status_code=200,
-        )
+        mock_talentsoft_back_response(httpx_mock, client, mock_data, mock_contentRange)
 
         result = documents_integration_container.archive_offers_usecase().execute(
             updated_after=datetime.now()
@@ -146,15 +159,10 @@ class TestArchiveOffers:
     ):
         iterations = [2, 2, 1]
         for i, count in enumerate(iterations):
-            response = TalentsoftBackVacanciesResponseFactory.build(
-                data=TalentsoftBackVacancyFactory.batch(count),
-                contentRange=f"{2 * i}-2/5",
-            )
-            httpx_mock.add_response(
-                method="GET",
-                url=re.compile(rf"{re.escape(str(client.base_url))}/api/v1/vacancies"),
-                json=response.model_dump(by_alias=True),
-                status_code=200,
+            mock_data = TalentsoftBackVacancyFactory.batch(count)
+            mock_contentRange = f"{2 * i}-2/5"
+            mock_talentsoft_back_response(
+                httpx_mock, client, mock_data, mock_contentRange
             )
 
         result = documents_integration_container.archive_offers_usecase().execute(
@@ -177,16 +185,9 @@ class TestArchiveOffers:
         client,
         httpx_mock,
     ):
-        response = TalentsoftBackVacanciesResponseFactory.build(
-            data=TalentsoftBackVacancyFactory.batch(2),
-            contentRange=f"{MAX_OFFSET}-100/{MAX_OFFSET * 2}",
-        )
-        httpx_mock.add_response(
-            method="GET",
-            url=re.compile(rf"{re.escape(str(client.base_url))}/api/v1/vacancies"),
-            json=response.model_dump(by_alias=True),
-            status_code=200,
-        )
+        mock_data = TalentsoftBackVacancyFactory.batch(2)
+        mock_contentRange = f"{MAX_OFFSET}-100/{MAX_OFFSET * 2}"
+        mock_talentsoft_back_response(httpx_mock, client, mock_data, mock_contentRange)
 
         result = documents_integration_container.archive_offers_usecase().execute(
             updated_after=datetime.now()
@@ -210,16 +211,9 @@ class TestArchiveOffers:
     ):
         vacancy_without_reference = TalentsoftBackVacancyFactory.build()
         vacancy_without_reference.reference = None
-        response = TalentsoftBackVacanciesResponseFactory.build(
-            data=[vacancy_without_reference],
-            contentRange="0-100/1",
-        )
-        httpx_mock.add_response(
-            method="GET",
-            url=re.compile(rf"{re.escape(str(client.base_url))}/api/v1/vacancies"),
-            json=response.model_dump(by_alias=True),
-            status_code=200,
-        )
+        mock_data = [vacancy_without_reference]
+        mock_contentRange = "0-100/1"
+        mock_talentsoft_back_response(httpx_mock, client, mock_data, mock_contentRange)
 
         with pytest.raises(Exception, match="Invalid response structure"):
             documents_integration_container.archive_offers_usecase().execute(
@@ -232,16 +226,7 @@ class TestArchiveOffers:
     def test_get_vacancies_returns_empty_list(
         self, documents_integration_container, client, httpx_mock
     ):
-        response = TalentsoftBackVacanciesResponseFactory.build(
-            data=[],
-            contentRange="0-100/0",
-        )
-        httpx_mock.add_response(
-            method="GET",
-            url=re.compile(rf"{re.escape(str(client.base_url))}/api/v1/vacancies"),
-            json=response.model_dump(by_alias=True),
-            status_code=200,
-        )
+        mock_talentsoft_back_response(httpx_mock, client)
 
         result = documents_integration_container.archive_offers_usecase().execute(
             updated_after=datetime.now()
@@ -265,10 +250,8 @@ class TestArchiveOffers:
     ):
         num_vacancies = 2
         vacancies = TalentsoftBackVacancyFactory.batch(num_vacancies)
-        response = TalentsoftBackVacanciesResponseFactory.build(
-            data=vacancies,
-            contentRange=f"0-100/{num_vacancies}",
-        )
+        mock_data = vacancies
+        mock_contentRange = f"0-100/{num_vacancies}"
 
         offers = [
             OfferFactory.create(
@@ -281,12 +264,7 @@ class TestArchiveOffers:
         vector_repo = shared_container.vector_repository()
         vector_repo.client.delete = MagicMock(side_effect=Exception("Qdrant error"))
 
-        httpx_mock.add_response(
-            method="GET",
-            url=re.compile(rf"{re.escape(str(client.base_url))}/api/v1/vacancies"),
-            json=response.model_dump(by_alias=True),
-            status_code=200,
-        )
+        mock_talentsoft_back_response(httpx_mock, client, mock_data, mock_contentRange)
 
         result = documents_integration_container.archive_offers_usecase().execute(
             updated_after=datetime.now()
