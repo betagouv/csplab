@@ -167,7 +167,7 @@ def archive_offers_periodic(reload=False):
 
 
 @db_task()
-def archive_offers(updated_after: datetime, updated_before: datetime):
+def archive_offers(updated_after: datetime):
     container = create_ingestion_container()
     logger = container.logger_service()
     usecase = container.archive_offers_usecase()
