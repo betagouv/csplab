@@ -22,60 +22,60 @@ class ProcessUploadedCVUsecase:
         async_cv_metadata_repository: IAsyncCVMetadataRepository,
         logger: ILogger,
     ):
-        self._ocr = ocr
-        self._text_formatter = text_formatter
-        self._query_builder = query_builder
-        self._async_cv_metadata_repository = async_cv_metadata_repository
-        self._logger = logger
+        self.ocr = ocr
+        self.text_formatter = text_formatter
+        self.query_builder = query_builder
+        self.async_cv_metadata_repository = async_cv_metadata_repository
+        self.logger = logger
 
     async def execute(self, cv_uuid: UUID, pdf_content: bytes) -> CVMetadata:
-        self._logger.info("Starting CV processing for UUID: %s", cv_uuid)
+        self.logger.info("Starting CV processing for UUID: %s", cv_uuid)
 
         # Retrieve existing CV metadata
-        cv_metadata = await self._async_cv_metadata_repository.get_by_id(cv_uuid)
+        cv_metadata = await self.async_cv_metadata_repository.get_by_id(cv_uuid)
         if not cv_metadata:
-            self._logger.error("CV metadata not found for UUID: %s", cv_uuid)
+            self.logger.error("CV metadata not found for UUID: %s", cv_uuid)
             raise CVNotFoundError(str(cv_uuid))
 
         extracted_text = None
         try:
-            extracted_text = await self._ocr.extract_text(pdf_content)
+            extracted_text = await self.ocr.extract_text(pdf_content)
         except Exception as e:
-            self._logger.error("Text extraction failed: %s", str(e))
+            self.logger.error("Text extraction failed: %s", str(e))
             cv_metadata.status = CVStatus.FAILED
             cv_metadata.updated_at = datetime.now(timezone.utc)
-            await self._async_cv_metadata_repository.save(cv_metadata)
+            await self.async_cv_metadata_repository.save(cv_metadata)
             raise e
 
         try:
-            formatted_text = await self._text_formatter.format_text(extracted_text)
+            formatted_text = await self.text_formatter.format_text(extracted_text)
         except Exception as e:
-            self._logger.error("Text formatting failed: %s", str(e))
+            self.logger.error("Text formatting failed: %s", str(e))
             cv_metadata.status = CVStatus.FAILED
             cv_metadata.updated_at = datetime.now(timezone.utc)
-            await self._async_cv_metadata_repository.save(cv_metadata)
+            await self.async_cv_metadata_repository.save(cv_metadata)
             raise e
 
         if not formatted_text or (
             not formatted_text.experiences and not formatted_text.skills
         ):
-            self._logger.error("No structured content found in PDF")
+            self.logger.error("No structured content found in PDF")
             cv_metadata.status = CVStatus.FAILED
             cv_metadata.updated_at = datetime.now(timezone.utc)
-            await self._async_cv_metadata_repository.save(cv_metadata)
+            await self.async_cv_metadata_repository.save(cv_metadata)
             raise TextExtractionError(
                 cv_metadata.filename, "No structured content found in PDF"
             )
 
-        self._logger.info(
+        self.logger.info(
             "Text extraction successful, experiences: %d, skills: %d",
             len(formatted_text.experiences),
             len(formatted_text.skills),
         )
         formatted_text_dict = formatted_text.model_dump()
-        search_query = self._query_builder.build_query(formatted_text_dict)
+        search_query = self.query_builder.build_query(formatted_text_dict)
 
-        self._logger.info("Search query built successfully")
+        self.logger.info("Search query built successfully")
 
         # Update existing CV metadata
         cv_metadata.extracted_text = formatted_text_dict
@@ -84,6 +84,6 @@ class ProcessUploadedCVUsecase:
         cv_metadata.updated_at = datetime.now(timezone.utc)
 
         # Save updated CV metadata
-        saved_cv = await self._async_cv_metadata_repository.save(cv_metadata)
-        self._logger.info("CV metadata updated with status: %s", saved_cv.status)
+        saved_cv = await self.async_cv_metadata_repository.save(cv_metadata)
+        self.logger.info("CV metadata updated with status: %s", saved_cv.status)
         return saved_cv

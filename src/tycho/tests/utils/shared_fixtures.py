@@ -1,0 +1,338 @@
+import json
+import os
+from typing import cast
+from unittest.mock import AsyncMock, MagicMock, Mock
+
+import pytest
+from asgiref.sync import sync_to_async
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.db import connections
+from faker import Faker
+from qdrant_client import QdrantClient
+from qdrant_client.http.models import Distance, PayloadSchemaType, VectorParams
+from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from application.candidate.usecases.initialize_cv_metadata import (
+    InitializeCVMetadataUsecase,
+)
+from application.candidate.usecases.match_cv_to_opportunities import (
+    MatchCVToOpportunitiesUsecase,
+)
+from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
+from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
+from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
+from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
+from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
+from config.app_config import AppConfig
+from domain.entities.document import DocumentType
+from domain.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.repositories.concours_repository_interface import IConcoursRepository
+from domain.repositories.corps_repository_interface import ICorpsRepository
+from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
+from domain.repositories.document_repository_interface import IDocumentRepository
+from domain.repositories.metier_repository_interface import IMetierRepository
+from domain.repositories.offers_repository_interface import IOffersRepository
+from domain.repositories.vector_repository_interface import IVectorRepository
+from infrastructure.gateways.candidate.query_builder import QueryBuilder
+from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
+from tests.utils.async_in_memory_cv_metadata_repository import (
+    AsyncInMemoryCVMetadataRepository,
+)
+from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
+from tests.utils.interface_aware_mock import create_interface_aware_mock
+from tests.utils.mock_api_response_factory import MockApiResponseFactory
+from tests.utils.pdf_test_utils import create_minimal_valid_pdf
+
+fake = Faker()
+
+
+@pytest.fixture(autouse=True)
+async def close_worker_thread_connections():
+    yield
+    # async ORM calls (via sync_to_async) open a DB connection in a worker thread.
+    # close_all() runs in that same thread via sync_to_async, closing the connection
+    # before the test database is dropped at session teardown.
+    await sync_to_async(connections.close_all)()
+
+
+@pytest.fixture(name="api_client")
+def api_client_fixture():
+    return APIClient()
+
+
+@pytest.fixture(name="user_credentials")
+def user_credentials_fixture():
+    return {
+        "username": fake.name(),
+        "email": fake.email(),
+        "password": fake.password(),
+    }
+
+
+@pytest.fixture(name="test_user")
+def test_user_fixture(db, user_credentials):
+    return User.objects.create_user(**user_credentials)
+
+
+@pytest.fixture(name="user")
+def user_fixture(db):
+    return User.objects.create_user(
+        username=fake.name(), email=fake.email(), password=fake.password()
+    )
+
+
+@pytest.fixture(name="authenticated_client")
+def authenticated_client_fixture(api_client, user):
+    refresh = RefreshToken.for_user(user)
+    token = str(refresh.access_token)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return api_client
+
+
+def create_collection(client: QdrantClient, collection_name: str):
+    client.create_collection(
+        collection_name=collection_name,
+        vectors_config=VectorParams(
+            size=settings.EMBEDDING_DIMENSION, distance=Distance.COSINE
+        ),
+    )
+
+    indexes = [
+        "document_type",
+        "category",
+        "verse",
+        "localisation.region",
+        "localisation.country",
+        "localisation.department",
+    ]
+
+    for field_name in indexes:
+        client.create_payload_index(
+            collection_name=collection_name,
+            field_name=field_name,
+            field_schema=PayloadSchemaType.KEYWORD,
+        )
+
+
+def create_shared_qdrant_repository():
+    app_config = AppConfig.from_django_settings()
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER", "master")
+    collection_name = f"fonction_publique_test_{worker_id}"
+    client = QdrantClient(url=app_config.qdrant.url)
+
+    try:
+        client.delete_collection(collection_name=collection_name)
+    except Exception:
+        logger_service = LoggerService()
+        logger_service.warning(
+            f"Collection {collection_name} does not exist, skipping deletion."
+        )
+        pass
+
+    create_collection(client, collection_name)
+
+    logger_service = LoggerService()
+    qdrant_repo = QdrantRepository(app_config.qdrant, logger_service)
+    qdrant_repo.collection_name = collection_name
+    return qdrant_repo
+
+
+@pytest.fixture
+def match_cv_to_opportunities_usecase():
+
+    logger_service = LoggerService()
+
+    embedding_generator_mock = Mock()
+    embedding_generator_mock.generate_embedding = AsyncMock(
+        return_value=[0.1, 0.2, 0.3]
+    )
+    concours_repo = cast(
+        IConcoursRepository, create_interface_aware_mock(IConcoursRepository)
+    )
+    offers_repo = cast(
+        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+    )
+    cv_repo = cast(
+        ICVMetadataRepository, create_interface_aware_mock(ICVMetadataRepository)
+    )
+    vector_repo = cast(
+        IVectorRepository, create_interface_aware_mock(IVectorRepository)
+    )
+
+    return MatchCVToOpportunitiesUsecase(
+        cv_metadata_repository=cv_repo,
+        embedding_generator=embedding_generator_mock,
+        vector_repository=vector_repo,
+        concours_repository=concours_repo,
+        offers_repository=offers_repo,
+        logger=logger_service,
+    )
+
+
+@pytest.fixture
+def process_uploaded_cv_usecase():
+    logger_service = LoggerService()
+    async_cv_repo = AsyncInMemoryCVMetadataRepository()
+    query_builder = QueryBuilder()
+
+    # Utiliser les factories pour créer les mocks
+    ocr_mock = create_ocr_mock()
+    text_formatter_mock = create_text_formatter_mock()
+
+    return ProcessUploadedCVUsecase(
+        ocr=ocr_mock,
+        text_formatter=text_formatter_mock,
+        query_builder=query_builder,
+        async_cv_metadata_repository=async_cv_repo,
+        logger=logger_service,
+    )
+
+
+@pytest.fixture
+def pdf_content():
+    return create_minimal_valid_pdf()
+
+
+def create_ocr_mock():
+    ocr_mock = Mock()
+    ocr_response = MockApiResponseFactory.create_ocr_service_response()
+    ocr_mock.extract_text = AsyncMock(return_value=ocr_response["text"])
+    return ocr_mock
+
+
+def create_text_formatter_mock():
+    embedding_response = MockApiResponseFactory.create_formatter_response()
+    content = embedding_response["choices"][0]["message"]["content"]
+    cv_data = json.loads(content)
+
+    formatted_data_mock = Mock()
+    formatted_data_mock.experiences = cv_data["experiences"]
+    formatted_data_mock.skills = cv_data["skills"]
+    formatted_data_mock.model_dump.return_value = cv_data
+
+    text_formatter_mock = Mock()
+    text_formatter_mock.format_text = AsyncMock(return_value=formatted_data_mock)
+
+    return text_formatter_mock
+
+
+@pytest.fixture
+def initialize_cv_metadata_usecase():
+    cv_metadata_repository = cast(
+        ICVMetadataRepository, create_interface_aware_mock(ICVMetadataRepository)
+    )
+    return InitializeCVMetadataUsecase(cv_metadata_repository)
+
+
+@pytest.fixture
+def load_documents_usecase():
+    logger_service = LoggerService()
+    document_repo = create_interface_aware_mock(IDocumentRepository)
+
+    mock_strategy = Mock()
+    mock_strategy.load_documents = AsyncMock()
+
+    strategy_factory = Mock()
+    strategy_factory.create.return_value = mock_strategy
+
+    return LoadDocumentsUsecase(
+        strategy_factory=strategy_factory,
+        document_repository=cast(IDocumentRepository, document_repo),
+        logger=logger_service,
+    )
+
+
+def mock_cleaning_result(entities, cleaning_errors):
+    mock_result = Mock()
+    mock_result.entities = entities
+    mock_result.cleaning_errors = cleaning_errors
+    return mock_result
+
+
+@pytest.fixture
+def clean_documents_usecase():
+    logger_service = LoggerService()
+    document_repo = cast(
+        IDocumentRepository, create_interface_aware_mock(IDocumentRepository)
+    )
+
+    document_cleaner = Mock()
+    document_cleaner.clean.return_value = mock_cleaning_result([], [])
+
+    repository_factory = Mock()
+
+    corps_repo = create_interface_aware_mock(ICorpsRepository)
+    concours_repo = create_interface_aware_mock(IConcoursRepository)
+    metier_repo = create_interface_aware_mock(IMetierRepository)
+    offers_repo = create_interface_aware_mock(IOffersRepository)
+
+    def get_repository(document_type):
+        if document_type == DocumentType.CORPS:
+            return corps_repo
+        elif document_type == DocumentType.CONCOURS:
+            return concours_repo
+        elif document_type == DocumentType.METIERS:
+            return metier_repo
+        elif document_type == DocumentType.OFFERS:
+            return offers_repo
+        else:
+            raise UnsupportedDocumentTypeError(
+                f"Unsupported document type: {document_type}"
+            )
+
+    repository_factory.get_repository.side_effect = get_repository
+
+    return CleanDocumentsUsecase(
+        document_repository=document_repo,
+        document_cleaner=document_cleaner,
+        repository_factory=repository_factory,
+        logger=logger_service,
+    )
+
+
+@pytest.fixture
+def vectorize_documents_usecase():
+    logger_service = LoggerService()
+    vector_repo = cast(
+        IVectorRepository, create_interface_aware_mock(IVectorRepository)
+    )
+
+    text_extractor = Mock()
+    text_extractor.extract_content.return_value = "Extracted text content"
+    text_extractor.extract_metadata.return_value = {"key": "value"}
+
+    embedding_generator = Mock()
+    embedding_generator.generate_embedding = AsyncMock(return_value=[0.1, 0.2, 0.3])
+
+    repository_factory = Mock()
+    mock_source_repo = Mock()
+    mock_source_repo.get_pending_processing.return_value = []
+    mock_source_repo.mark_as_processed.return_value = None
+    mock_source_repo.mark_as_pending.return_value = None
+    repository_factory.get_repository.return_value = mock_source_repo
+
+    return VectorizeDocumentsUsecase(
+        vector_repository=vector_repo,
+        text_extractor=text_extractor,
+        embedding_generator=embedding_generator,
+        logger=logger_service,
+        repository_factory=repository_factory,
+    )
+
+
+@pytest.fixture
+def archive_offers_usecase():
+    logger = MagicMock()
+    vector_repo = cast(
+        IVectorRepository, create_interface_aware_mock(IVectorRepository)
+    )
+
+    return ArchiveOffersUsecase(
+        offers_repository=InMemoryOffersRepository(),
+        document_gateway=MagicMock(),
+        vector_repository=vector_repo,
+        logger=logger,
+    )

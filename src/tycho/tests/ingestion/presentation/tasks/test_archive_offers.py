@@ -27,5 +27,5 @@ def test_periodic_task_does_not_call_usecase(usecase):
 
 def test_task_calls_usecase(usecase):
     updated_after = datetime(2026, 1, 1)
-    archive_offers.call_local(updated_after=updated_after, updated_before=None)
+    archive_offers.call_local(updated_after=updated_after)
     usecase.execute.assert_called_once_with(updated_after)

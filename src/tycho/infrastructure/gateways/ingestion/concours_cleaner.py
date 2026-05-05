@@ -45,120 +45,103 @@ ACCESS_MODALITY_MAPPING = {
 
 
 class ConcoursCleaner(IDocumentCleaner[Concours]):
-    """Adapter for cleaning raw documents of type CONCOURS into Concours entities."""
-
     def __init__(self, logger: ILogger, concours_repository: IConcoursRepository):
-        """Initialize with logger and concours repository dependencies."""
         self.logger = logger
         self.concours_repository = concours_repository
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[Concours]:
-        """Clean raw documents and return cleaning result with entities and errors."""
+        if not raw_documents:
+            return CleaningResult(entities=[], cleaning_errors=[])
+
         for document in raw_documents:
             if document.type != DocumentType.CONCOURS:
                 raise InvalidDocumentTypeError(document.type.value)
 
-        if not raw_documents:
-            return CleaningResult(entities=[], cleaning_errors=[])
-
         concours_data = []
         for document in raw_documents:
-            parsed_data = self._parse_concours_data(document.raw_data)
-            if parsed_data:
-                concours_data.append(parsed_data)
-
-        if not concours_data:
-            return CleaningResult(entities=[], cleaning_errors=[])
+            concours_data.append(document.raw_data)
 
         df = pl.DataFrame(concours_data, infer_schema_length=None)
+
         df_filtered = self._apply_filters(df)
+
         df_processed = self._process_concours_data(df_filtered)
+
         concours_list = self._dataframe_to_concours(df_processed)
 
         return CleaningResult(entities=concours_list, cleaning_errors=[])
 
-    def _parse_concours_data(self, raw_data: dict) -> Optional[dict]:
-        """Parse raw concours data into structured format."""
-        return raw_data
-
     def _apply_filters(self, df: pl.DataFrame) -> pl.DataFrame:
-        """Apply filters based on notebook logic."""
-        df = df.filter(pl.col("Statut") == "VALIDE")
-        df = df.filter(pl.col("Année de référence") > REFERENCE_YEAR)
-        df = df.filter(pl.col("Ministère") != "Ministère des Armées")
+        df = df.filter(pl.col("statut") == "VALIDE")
+        df = df.filter(pl.col("annee_reference") > REFERENCE_YEAR)
+        df = df.filter(pl.col("ministere") != "Ministère des Armées")
 
-        required_cols = ["N° NOR", "Année de référence", "Corps", "Catégorie"]
+        required_cols = ["nor", "annee_reference", "corps", "categorie"]
+
         for col in required_cols:
             df = df.filter(pl.col(col).is_not_null())
         return df
 
     def _process_concours_data(self, df: pl.DataFrame) -> pl.DataFrame:
-        """Process concours data with deduplication and aggregation."""
-        # Step 1: create concours_id_temp
         df = df.with_columns(
             [
-                pl.when(pl.col("N° NOR de référence").is_not_null())
-                .then(pl.col("N° NOR de référence"))
-                .otherwise(pl.col("N° NOR"))
+                pl.when(pl.col("nor_reference").is_not_null())
+                .then(pl.col("nor_reference"))
+                .otherwise(pl.col("nor"))
                 .alias("concours_id_temp")
             ]
         )
 
-        # Step 2: Identify concours_id with several corps
         multi_corps_ids = (
             df.group_by("concours_id_temp")
-            .agg(pl.col("Corps").n_unique().alias("nb_corps"))
+            .agg(pl.col("corps").n_unique().alias("nb_corps"))
             .filter(pl.col("nb_corps") > 1)
             .select("concours_id_temp")
             .to_series()
             .to_list()
         )
 
-        # Step 3: create concours_id final
         df = df.with_columns(
             [
                 pl.when(pl.col("concours_id_temp").is_in(multi_corps_ids))
-                .then(pl.col("N° NOR"))
+                .then(pl.col("nor"))
                 .otherwise(pl.col("concours_id_temp"))
                 .alias("concours_id")
             ]
         ).drop("concours_id_temp")
 
-        # Step 4: Add NOR sort key for chronological ordering
         df = df.with_columns(
             [
-                pl.col("N° NOR")
+                pl.col("nor")
                 .map_elements(self._extract_nor_sort_key, return_dtype=pl.Int64)
                 .alias("nor_sort_key")
             ]
         )
 
-        # Step 5: Deduplication and aggregation
         df_dedup = (
             df.sort("nor_sort_key", descending=True)
             .group_by("concours_id")
-            .agg([pl.all().first(), pl.col("N° NOR").alias("all_nors_in_concours")])
+            .agg([pl.all().first(), pl.col("nor").alias("all_nors_in_concours")])
             .drop("nor_sort_key")
         )
 
-        # Step 6: Process access modalities
         access_modality_cols = [
-            "Externe",
-            "Interne",
-            "Troisieme Concours",
-            "Unique",
-            "Examen professionnel",
-            "Sans concours externe",
-            "Pacte",
-            "Sélection professionnelle",
-            "Concours spécial",
-            "Concours réservé",
-            "Sans concours interne réservé",
-            "Examen professionnalisé réservé",
-            "Interne exceptionnel",
-            "Apprenti BOETH",
-            "Promotion BOETH",
-            "Autres",
+            "externe",
+            "interne",
+            "troisieme_concours",
+            "unique",
+            "examen_professionnel",
+            "sans_concours_externe",
+            "pacte",
+            "selection_professionnelle",
+            "concours_special",
+            "concours_reserve",
+            "sans_concours_interne_reserve",
+            "examen_professionnalise_reserve",
+            "interne_exceptionnel",
+            "apprenti_boeth",
+            "promotion_boeth",
+            "autres",
         ]
 
         df_final = df_dedup.with_columns(
@@ -184,13 +167,13 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
         df_final = df_final.select(
             [
                 "concours_id",
-                "Ministère",
-                "Catégorie",
-                "Corps",
-                "Grade",
+                "ministere",
+                "categorie",
+                "corps",
+                "grade",
                 "all_nors_in_concours",
-                "Nb postes total",
-                "Date de première épreuve",
+                "nb_postes_total",
+                "date_premiere_epreuve",
                 "mod_access",
             ]
         )
@@ -198,29 +181,28 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
         return df_final
 
     def _dataframe_to_concours(self, df: pl.DataFrame) -> List[Concours]:
-        """Convert processed DataFrame back to Concours entities."""
         if len(df) == 0:
             return []
 
         concours_list: List[Concours] = []
         counter = 0
         for row in df.to_dicts():
-            category = self._map_category(row["Catégorie"])
+            category = self._map_category(row["categorie"])
             if category is None:
                 self.logger.warning(
                     f"Catégorie manquante pour {row.get('concours_id', 'unknown')}"
                 )
                 continue
 
-            ministry = self._map_ministry(row["Ministère"])
+            ministry = self._map_ministry(row["ministere"])
             access_modalities = self._map_access_modalities(row["mod_access"])
 
             nor_original = NOR(row["concours_id"])
             nor_list = [NOR(nor) for nor in row["all_nors_in_concours"]]
 
-            written_exam_date = self._parse_date(row.get("Date de première épreuve"))
+            written_exam_date = self._parse_date(row.get("date_premiere_epreuve"))
 
-            open_position_number = int(row.get("Nb postes total", 0) or 0)
+            open_position_number = int(row.get("nb_postes_total", 0) or 0)
 
             concours = Concours(
                 nor_original=nor_original,
@@ -228,8 +210,8 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
                 category=category,
                 ministry=ministry,
                 access_modality=access_modalities,
-                corps=row["Corps"],
-                grade=row.get("Grade") or "",
+                corps=row["corps"],
+                grade=row.get("grade") or "",
                 written_exam_date=written_exam_date,
                 open_position_number=open_position_number,
             )
@@ -247,7 +229,6 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
         return concours_list
 
     def _extract_nor_sort_key(self, nor_value: str) -> int:
-        """Extract sorting key from NOR for chronological ordering."""
         if not nor_value or len(nor_value) != DECEMBER:
             return 0
         try:
@@ -258,7 +239,6 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
             return 0
 
     def _parse_date(self, date_str: Optional[str]) -> Optional[datetime]:
-        """Parse date string to timezone-aware datetime."""
         if not date_str:
             return None
         try:
@@ -267,7 +247,6 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
             return None
 
     def _map_category(self, category_str: Optional[str]) -> Optional[Category]:
-        """Map category string to Category enum."""
         if not category_str:
             return None
 
@@ -284,7 +263,6 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
             return Category.HORS_CATEGORIE
 
     def _map_ministry(self, ministry_str: Optional[str]) -> Ministry:
-        """Map ministry string to Ministry enum."""
         if not ministry_str:
             raise InvalidMinistryError("Unknown minnistry")
 
@@ -316,7 +294,6 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
     def _map_access_modalities(
         self, access_mod_list: List[str]
     ) -> List[AccessModality]:
-        """Map access modality strings to AccessModality."""
         modalities = []
         for mod_str in access_mod_list:
             # Use mapping dictionary, default to AU_CHOIX if not found

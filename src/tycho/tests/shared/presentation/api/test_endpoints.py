@@ -1,3 +1,4 @@
+import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -32,8 +33,14 @@ class TestJWTEndpoints:
 
 
 class TestSchemaEndpoint:
-    def test_health_huey_view_is_excluded_from_schema(self, api_client):
+    @pytest.mark.parametrize(
+        "name, expected_in_schema",
+        [
+            ("api:health_huey", False),
+            ("ingestion:concours_upload", True),
+        ],
+    )
+    def test_schema_path_visibility(self, api_client, name, expected_in_schema):
         response = api_client.get(reverse("api:schema"))
-
         assert response.status_code == status.HTTP_200_OK
-        assert reverse("api:health_huey") not in response.data.get("paths", {})
+        assert (reverse(name) in response.data.get("paths", {})) == expected_in_schema
