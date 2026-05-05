@@ -7,7 +7,9 @@ Ce répertoire contient les commandes Django pour orchestrer les use cases d'ing
 ### 1. Charger les documents
 
 ```bash
-./bin/manage load_documents --type CORPS
+./bin/manage load_corps
+./bin/manage load_metiers
+./bin/manage load_offers
 ```
 
 Utilise `LoadDocumentsUsecase` pour récupérer et persister les documents depuis l'API externe.
@@ -38,7 +40,7 @@ Pour exécuter le pipeline complet d'ingestion :
 
 ```bash
 # 1. Charger les documents depuis l'API
-./bin/manage load_documents --type CORPS
+./bin/manage load_corps
 
 # 2. Nettoyer et transformer en entités
 ./bin/manage clean_documents --type CORPS
