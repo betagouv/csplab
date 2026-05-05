@@ -306,7 +306,11 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "PREPROCESSING_HOOKS": ["drf_spectacular.hooks.preprocess_exclude_path_format"],
     "TAGS": [
-        {"name": "api", "description": "Authentication endpoints"},
+        {"name": "token", "description": "Gestion de l'authentification"},
+        {
+            "name": "concours",
+            "description": "Ingestion des concours par import de fichiers CSV",
+        },
     ],
 }
 

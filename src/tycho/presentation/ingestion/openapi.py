@@ -1,0 +1,160 @@
+from drf_spectacular.utils import OpenApiExample
+
+CONCOURS_UPLOAD_DESCRIPTION = (
+    "Permet d'uploader un fichier CSV contenant des données de concours GRECO "
+    "afin de les importer dans le système.\n\n"
+    "**Format attendu :**\n"
+    "- Encodage : UTF-8\n"
+    "- Séparateur : point-virgule (`;`)\n\n"
+    "**Colonnes obligatoires :**\n"
+    "- `N° NOR` — identifiant unique de l'arrêté (utilisé comme clé d'upsert)\n"
+    "- `Corps`\n"
+    "- `Grade`\n"
+    "- `Ministère`\n\n"
+    "**Traitement :**\n"
+    "- Validation ligne par ligne selon le schéma `ConcoursRowSchema`\n"
+    "- Les lignes valides sont créées ou mises à jour (upsert par `N° NOR`)\n"
+    "- Les lignes invalides sont ignorées et remontées dans `validation_errors`\n\n"
+    "**Codes de retour :**\n"
+    "- `201 Created` — au moins une ligne valide a été traitée avec succès\n"
+    "- `400 Bad Request` — fichier absent, format invalide, ou aucune ligne valide\n"
+    "- `401 Unauthorized` — token JWT manquant ou invalide\n"
+    "- `500 Internal Server Error` — erreur inattendue côté serveur\n\n"
+    "**Authentification :** Token JWT requis."
+)
+
+CONCOURS_UPLOAD_EXAMPLES = [
+    OpenApiExample(
+        "Success - full import",
+        summary="Toutes les lignes sont valides",
+        description="Aucune erreur de validation, toutes les lignes ont été importées.",
+        value={
+            "status": "success",
+            "message": "Successfully processed 5185 valid concours records",
+            "total_rows": 5185,
+            "valid_rows": 5185,
+            "invalid_rows": 0,
+            "created": 5185,
+            "updated": 0,
+            "validation_errors": None,
+        },
+        response_only=True,
+        status_codes=["201"],
+    ),
+    OpenApiExample(
+        "Success - partial import with errors",
+        summary="Import partiel avec des lignes invalides",
+        description=(
+            "Certaines lignes ont échoué la validation mais les lignes valides "
+            "ont quand même été persistées. Le champ `validation_errors` détaille "
+            "chaque ligne rejetée."
+        ),
+        value={
+            "status": "success",
+            "message": "Successfully processed 5162 valid concours records",
+            "total_rows": 5185,
+            "valid_rows": 5162,
+            "invalid_rows": 23,
+            "created": 5100,
+            "updated": 62,
+            "validation_errors": [
+                {"row": 4, "error": "Le champ 'Corps' est requis"},
+                {"row": 17, "error": "Le champ 'Grade' est requis"},
+                {
+                    "row": 156,
+                    "error": "Le champ 'date_ouverture' doit être au format JJ/MM/AAAA",
+                },
+            ],
+        },
+        response_only=True,
+        status_codes=["201"],
+    ),
+    OpenApiExample(
+        "Success - update only",
+        summary="Mise à jour de concours existants",
+        description="Toutes les lignes correspondent à des enregistrements existants",
+        value={
+            "status": "success",
+            "message": "Successfully processed 120 valid concours records",
+            "total_rows": 120,
+            "valid_rows": 120,
+            "invalid_rows": 0,
+            "created": 0,
+            "updated": 120,
+            "validation_errors": None,
+        },
+        response_only=True,
+        status_codes=["201"],
+    ),
+    OpenApiExample(
+        "Error - no file provided",
+        summary="Aucun fichier dans la requête",
+        description="Le champ `file` est absent du corps de la requête multipart.",
+        value={"error": "No file provided"},
+        response_only=True,
+        status_codes=["400"],
+    ),
+    OpenApiExample(
+        "Error - wrong file type",
+        summary="Fichier non CSV",
+        description="Le fichier uploadé n'a pas l'extension `.csv`.",
+        value={"error": "File must be a CSV"},
+        response_only=True,
+        status_codes=["400"],
+    ),
+    OpenApiExample(
+        "Error - no valid rows",
+        summary="Aucune ligne valide après validation",
+        description=(
+            "Toutes les lignes ont échoué la validation. "
+            "Aucune donnée n'a été persistée."
+        ),
+        value={
+            "error": "No valid rows found",
+            "validation_errors": [
+                {"row": 1, "error": "Le champ 'N° NOR' est requis"},
+                {"row": 2, "error": "Le champ 'Corps' est requis"},
+                {"row": 3, "error": "Le champ 'Grade' doit être >= 1"},
+            ],
+        },
+        response_only=True,
+        status_codes=["400"],
+    ),
+    OpenApiExample(
+        "Error - malformed CSV",
+        summary="Fichier CSV mal formé",
+        description=(
+            "Le fichier ne peut pas être parsé,"
+            "vérifiez le séparateur (`;`) et l'encodage (UTF-8)."
+        ),
+        value={"error": "CSV parsing error"},
+        response_only=True,
+        status_codes=["400"],
+    ),
+    OpenApiExample(
+        "Error - invalid token",
+        summary="Token JWT invalide ou expiré",
+        description="Le token dans le header `Authorization` est invalide ou expiré.",
+        value={
+            "detail": "Le jeton fourni n'est pas valide.",
+            "code": "token_not_valid",
+            "messages": [
+                {
+                    "token_class": "AccessToken",
+                    "token_type": "access",
+                    "message": "Token is invalid or expired",
+                }
+            ],
+        },
+        response_only=True,
+        status_codes=["401"],
+    ),
+    OpenApiExample(
+        "Error - unexpected server error",
+        summary="Erreur serveur inattendue",
+        description="Une erreur inattendue s'est produite côté serveur.",
+        value={"error": "Unexpected error"},
+        response_only=True,
+        status_codes=["500"],
+    ),
+]
