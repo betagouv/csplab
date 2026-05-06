@@ -131,6 +131,14 @@ def test_cv_results_htmx_request_returns_partial(
                 "Responsable des ressources humaines",
             ],
         },
+        {
+            "filters": {"filter-category": "aplus"},
+            "expected_titles": ["Directeur de projet numérique"],
+            "excluded_titles": [
+                "Chef de projet transformation numérique",
+                "Technicien informatique",
+            ],
+        },
     ],
 )
 @patch(
@@ -161,16 +169,25 @@ def test_cv_results_full_page_load_with_filter_params_returns_filtered_results(
         open_position_number=2,
     )
 
+    concours_aplus_model = ConcoursFactory.create_model(
+        corps="Directeur de projet numérique",
+        grade="Administrateur",
+        category=Category.APLUS,
+        open_position_number=1,
+    )
+
     # Convert models to entities
     concours_paris = concours_paris_model.to_entity()
     concours_lyon = concours_lyon_model.to_entity()
     concours_tech = concours_tech_model.to_entity()
+    concours_aplus = concours_aplus_model.to_entity()
 
     # Mock the usecase to return filtered results based on the test case
     all_opportunities = [
         (concours_paris, 0.9),
         (concours_lyon, 0.8),
         (concours_tech, 0.7),
+        (concours_aplus, 0.6),
     ]
 
     # Filter opportunities based on the test filters
@@ -195,7 +212,11 @@ def test_cv_results_full_page_load_with_filter_params_returns_filtered_results(
         # Filter by category
         if "filter-category" in filters and filters["filter-category"]:
             category_filter = filters["filter-category"]
-            category_mapping = {"a": Category.A, "b": Category.B}
+            category_mapping = {
+                "aplus": Category.APLUS,
+                "a": Category.A,
+                "b": Category.B,
+            }
             if opportunity.category != category_mapping.get(category_filter):
                 include = False
 
@@ -229,6 +250,14 @@ def test_cv_results_full_page_load_with_filter_params_returns_filtered_results(
             "filters": {"filter-location": "69"},
             "expected_titles": ["Responsable des ressources humaines"],
             "excluded_titles": ["Chef de projet transformation numérique"],
+        },
+        {
+            "filters": {"filter-category": "aplus"},
+            "expected_titles": ["Directeur de projet numérique"],
+            "excluded_titles": [
+                "Chef de projet transformation numérique",
+                "Technicien informatique",
+            ],
         },
         {
             "filters": {"filter-category": "b"},
@@ -296,16 +325,25 @@ def test_cv_results_htmx_filter_returns_filtered_results(
         open_position_number=2,
     )
 
+    concours_aplus_model = ConcoursFactory.create_model(
+        corps="Directeur de projet numérique",
+        grade="Administrateur",
+        category=Category.APLUS,
+        open_position_number=1,
+    )
+
     # Convert models to entities
     concours_paris = concours_paris_model.to_entity()
     concours_lyon = concours_lyon_model.to_entity()
     concours_tech = concours_tech_model.to_entity()
+    concours_aplus = concours_aplus_model.to_entity()
 
     # Mock the usecase to return filtered results based on the test case
     all_opportunities = [
         (concours_paris, 0.9),
         (concours_lyon, 0.8),
         (concours_tech, 0.7),
+        (concours_aplus, 0.6),
     ]
 
     # Filter opportunities based on the test filters
@@ -330,7 +368,11 @@ def test_cv_results_htmx_filter_returns_filtered_results(
         # Filter by category
         if "filter-category" in filters and filters["filter-category"]:
             category_filter = filters["filter-category"]
-            category_mapping = {"a": Category.A, "b": Category.B}
+            category_mapping = {
+                "aplus": Category.APLUS,
+                "a": Category.A,
+                "b": Category.B,
+            }
             if opportunity.category != category_mapping.get(category_filter):
                 include = False
 

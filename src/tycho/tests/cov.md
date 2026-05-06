@@ -110,7 +110,7 @@
 | infrastructure/django\_apps/shared/models/\_\_init\_\_.py                          |        0 |        0 |    100% |
 | infrastructure/django\_apps/shared/models/concours.py                              |       36 |        2 |     94% |
 | infrastructure/django\_apps/shared/models/corps.py                                 |       38 |        1 |     97% |
-| infrastructure/django\_apps/shared/models/metier.py                                |       68 |       10 |     85% |
+| infrastructure/django\_apps/shared/models/metier.py                                |       68 |        7 |     90% |
 | infrastructure/django\_apps/shared/models/offer.py                                 |       69 |        1 |     99% |
 | infrastructure/exceptions/\_\_init\_\_.py                                          |        0 |        0 |    100% |
 | infrastructure/exceptions/exceptions.py                                            |       24 |        7 |     71% |
@@ -140,7 +140,7 @@
 | infrastructure/gateways/ingestion/load\_documents\_strategies.py                   |       20 |        1 |     95% |
 | infrastructure/gateways/ingestion/load\_documents\_strategy\_factory.py            |       16 |        2 |     88% |
 | infrastructure/gateways/ingestion/metier\_cleaner.py                               |       56 |       37 |     34% |
-| infrastructure/gateways/ingestion/offers\_cleaner.py                               |      125 |       26 |     79% |
+| infrastructure/gateways/ingestion/offers\_cleaner.py                               |      125 |       25 |     80% |
 | infrastructure/gateways/ingestion/pelage\_checks.py                                |       17 |        3 |     82% |
 | infrastructure/gateways/ingestion/text\_extractor.py                               |       47 |        7 |     85% |
 | infrastructure/gateways/shared/\_\_init\_\_.py                                     |        0 |        0 |    100% |
@@ -166,7 +166,7 @@
 | presentation/api/views.py                                                          |       22 |        0 |    100% |
 | presentation/candidate/\_\_init\_\_.py                                             |        0 |        0 |    100% |
 | presentation/candidate/apps.py                                                     |        5 |        0 |    100% |
-| presentation/candidate/filter\_config.py                                           |       58 |       13 |     78% |
+| presentation/candidate/filter\_config.py                                           |       58 |       14 |     76% |
 | presentation/candidate/formatters.py                                               |       30 |        2 |     93% |
 | presentation/candidate/forms/\_\_init\_\_.py                                       |        0 |        0 |    100% |
 | presentation/candidate/forms/cv\_flow.py                                           |       31 |        1 |     97% |
@@ -180,11 +180,13 @@
 | presentation/context\_processors.py                                                |        7 |        0 |    100% |
 | presentation/ingestion/\_\_init\_\_.py                                             |        0 |        0 |    100% |
 | presentation/ingestion/apps.py                                                     |        5 |        0 |    100% |
+| presentation/ingestion/openapi.py                                                  |        3 |        0 |    100% |
 | presentation/ingestion/schemas.py                                                  |       77 |       11 |     86% |
+| presentation/ingestion/serializers.py                                              |       28 |        0 |    100% |
 | presentation/ingestion/tasks.py                                                    |      104 |        4 |     96% |
 | presentation/ingestion/urls.py                                                     |        4 |        0 |    100% |
-| presentation/ingestion/views.py                                                    |      118 |       18 |     85% |
+| presentation/ingestion/views.py                                                    |      122 |       18 |     85% |
 | presentation/pages/\_\_init\_\_.py                                                 |        0 |        0 |    100% |
 | presentation/pages/urls.py                                                         |        4 |        0 |    100% |
 | presentation/pages/views.py                                                        |        3 |        0 |    100% |
-| **TOTAL**                                                                          | **4493** |  **472** | **89%** |
+| **TOTAL**                                                                          | **4528** |  **469** | **90%** |
