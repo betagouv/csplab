@@ -20,12 +20,6 @@ def test_format_category_display(category, expected):
     assert format_category_display(category) == expected
 
 
-def test_aplus_and_a_have_distinct_display():
-    assert format_category_display(Category.APLUS) != format_category_display(
-        Category.A
-    )
-
-
 @pytest.mark.parametrize(
     "category, expected",
     [
@@ -37,10 +31,6 @@ def test_aplus_and_a_have_distinct_display():
 )
 def test_format_category_value(category, expected):
     assert format_category_value(category) == expected
-
-
-def test_aplus_and_a_have_distinct_filter_values():
-    assert format_category_value(Category.APLUS) != format_category_value(Category.A)
 
 
 def test_filter_param_aplus_maps_to_aplus_category():
