@@ -106,10 +106,8 @@ class PostgresMetierRepository(IMetierRepository):
         metier_models = MetierModel.objects.all()
         return [model.to_entity() for model in metier_models]
 
-    def get_pending_processing(self, limit: int = 1000) -> List[Metier]:
-        metier_models = MetierModel.objects.filter(
-            processing=False, processed_at__isnull=True
-        )[:limit]
+    def filter_by(self, predicate: Dict[str, str], limit: int = 1000) -> List[Metier]:
+        metier_models = MetierModel.objects.filter(**predicate)[:limit]
         return [model.to_entity() for model in metier_models]
 
     def mark_as_processed(self, metiers_list: List[Metier]) -> int:

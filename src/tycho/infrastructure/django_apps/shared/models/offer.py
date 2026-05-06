@@ -40,6 +40,7 @@ class OfferModel(models.Model):
     )
     organization = models.CharField(max_length=500)
     offer_url = models.URLField(null=True, blank=True)
+    code_emploi_csp = models.CharField(max_length=50, null=True, blank=True)
 
     # Localisation fields stored separately
     country = models.CharField(max_length=3, null=True, blank=True)

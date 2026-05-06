@@ -10,6 +10,7 @@ from infrastructure.django_apps.shared.models.offer import OfferModel
 class OfferAdmin(admin.ModelAdmin):
     list_display = (
         "external_id",
+        "code_emploi_csp",
         "verse",
         "title",
         "category",
@@ -30,7 +31,14 @@ class OfferAdmin(admin.ModelAdmin):
         "processed_at",
         "archived_at",
     )
-    search_fields = ("external_id", "title", "profile", "mission", "organization")
+    search_fields = (
+        "external_id",
+        "title",
+        "profile",
+        "mission",
+        "organization",
+        "code_emploi_csp",
+    )
     readonly_fields = [f.name for f in OfferModel._meta.get_fields()]
 
 
