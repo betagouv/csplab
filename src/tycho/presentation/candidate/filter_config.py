@@ -18,7 +18,7 @@ FILTER_PARAM_OPPORTUNITY_TYPE = "filter-opportunity_type"
 EXCLUDED_CATEGORIES: frozenset[Category] = frozenset({Category.HORS_CATEGORIE})
 
 CATEGORY_FILTER_VALUE: dict[Category, str] = {
-    Category.APLUS: "a",
+    Category.APLUS: "aplus",
     Category.A: "a",
     Category.B: "b",
     Category.C: "c",

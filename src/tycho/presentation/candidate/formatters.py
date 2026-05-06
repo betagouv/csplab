@@ -7,7 +7,7 @@ from domain.value_objects.opportunity_type import OpportunityType
 from domain.value_objects.verse import Verse
 
 CATEGORY_DISPLAY: dict[Category, str] = {
-    Category.APLUS: "Catégorie A",
+    Category.APLUS: "Catégorie A+",
     Category.A: "Catégorie A",
     Category.B: "Catégorie B",
     Category.C: "Catégorie C",
