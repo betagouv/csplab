@@ -134,13 +134,13 @@
 | infrastructure/gateways/candidate/\_\_init\_\_.py                                  |        0 |        0 |    100% |
 | infrastructure/gateways/candidate/query\_builder.py                                |       17 |        1 |     94% |
 | infrastructure/gateways/ingestion/\_\_init\_\_.py                                  |        0 |        0 |    100% |
-| infrastructure/gateways/ingestion/concours\_cleaner.py                             |      122 |       18 |     85% |
+| infrastructure/gateways/ingestion/concours\_cleaner.py                             |      122 |       19 |     84% |
 | infrastructure/gateways/ingestion/corps\_cleaner.py                                |      125 |       18 |     86% |
 | infrastructure/gateways/ingestion/document\_cleaner.py                             |       28 |        2 |     93% |
 | infrastructure/gateways/ingestion/load\_documents\_strategies.py                   |       20 |        1 |     95% |
 | infrastructure/gateways/ingestion/load\_documents\_strategy\_factory.py            |       16 |        2 |     88% |
 | infrastructure/gateways/ingestion/metier\_cleaner.py                               |       56 |       37 |     34% |
-| infrastructure/gateways/ingestion/offers\_cleaner.py                               |      125 |       25 |     80% |
+| infrastructure/gateways/ingestion/offers\_cleaner.py                               |      127 |       22 |     83% |
 | infrastructure/gateways/ingestion/pelage\_checks.py                                |       17 |        3 |     82% |
 | infrastructure/gateways/ingestion/text\_extractor.py                               |       47 |        7 |     85% |
 | infrastructure/gateways/shared/\_\_init\_\_.py                                     |        0 |        0 |    100% |
@@ -189,4 +189,4 @@
 | presentation/pages/\_\_init\_\_.py                                                 |        0 |        0 |    100% |
 | presentation/pages/urls.py                                                         |        4 |        0 |    100% |
 | presentation/pages/views.py                                                        |        3 |        0 |    100% |
-| **TOTAL**                                                                          | **4528** |  **469** | **90%** |
+| **TOTAL**                                                                          | **4530** |  **467** | **90%** |
