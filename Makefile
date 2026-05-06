@@ -164,14 +164,14 @@ dev: ## run tycho with sass watch and browser auto-reload
 .PHONY: dev
 
 run-mvp: ## run tycho + ocr + huey with unified logs
-	@echo "🚀 Démarrage des services frontend (tycho + ocr + huey)..."
+	@echo "🚀 Démarrage des services frontend tycho + ocr..."
+	@echo "   Huey is immediate, without periodic task in dev"
 	@echo "   Appuyez sur Ctrl+C pour arrêter tous les services"
 	@echo "   Tycho: http://localhost:8000"
 	@echo "   OCR: http://localhost:8001"
 	@trap 'kill 0' EXIT; \
 	bin/manage runserver & \
 	$(OCR_UV) uvicorn api.main:app --reload --port=8001 & \
-	bin/manage run_huey & \
 	wait
 .PHONY: run-mvp
 
