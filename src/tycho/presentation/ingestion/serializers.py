@@ -40,3 +40,23 @@ class ConcoursUploadResponseSerializer(serializers.Serializer):
     created = serializers.IntegerField()
     updated = serializers.IntegerField()
     validation_errors = ValidationErrorSerializer(many=True, allow_null=True)
+
+
+class ListOffersResponseSerializer(serializers.Serializer):
+    external_id = serializers.CharField()
+    title = serializers.CharField()
+    organization = serializers.CharField()
+    contract_type = serializers.CharField(allow_null=True)
+    category = serializers.CharField(allow_null=True)
+    publication_date = serializers.DateTimeField()
+    offer_url = serializers.CharField(allow_null=True)
+    archived_at = serializers.DateTimeField(allow_null=True)
+
+
+class ListOffersFiltersSerializer(serializers.Serializer):
+    active = serializers.BooleanField(default=True)
+    external_id_contains = serializers.CharField(default=None)
+
+
+class ListOffersErrorSerializer(serializers.Serializer):
+    error = serializers.CharField
