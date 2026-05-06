@@ -23,11 +23,13 @@ class OfferFactory:
         title: str = "Test Offer Title",
         department: str = "75",
         category: Category = Category.A,
+        contract_type: ContractType | None = None,
         verse: Verse = Verse.FPE,
         external_id: str | None = None,
         profile: str = "Test profile description",
         mission: str = "Test mission description",
         organization: str = "Test Organization",
+        offer_url: HttpUrl | None = None,
         localisation: Localisation | None = None,
         archived_at: datetime | None = None,
     ) -> Offer:
@@ -38,9 +40,9 @@ class OfferFactory:
             profile=profile,
             mission=mission,
             category=category,
-            contract_type=None,
+            contract_type=contract_type,
             organization=organization,
-            offer_url=None,
+            offer_url=offer_url,
             localisation=localisation
             or Localisation(
                 country=Country("FRA"),
