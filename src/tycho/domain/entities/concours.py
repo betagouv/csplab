@@ -1,5 +1,3 @@
-"""Concours entity for clean concours storage."""
-
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional
@@ -14,8 +12,6 @@ from domain.value_objects.nor import NOR
 
 @dataclass
 class Concours(IEntity):
-    """Concours entity."""
-
     nor_original: NOR
     nor_list: List[NOR]
     category: Category
