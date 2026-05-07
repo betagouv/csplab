@@ -126,4 +126,8 @@ jobs:
           echo "Creating test collection..."
           uv run python config/setup-qdrant.py --collection-name fonction_publique_test
       - name: Test with pytest
-        run: uv run pytest .
+        run: uv run pytest -m "not accessibility and not e2e" .
+      - name: Install Playwright browser
+        run: uv run playwright install --with-deps chromium
+      - name: Test Tycho suite with coverage
+        run: uv run pytest -m "e2e" .
