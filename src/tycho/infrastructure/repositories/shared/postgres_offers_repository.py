@@ -85,6 +85,7 @@ class PostgresOffersRepository(IOffersRepository):
                                 "publication_date",
                                 "beginning_date",
                                 "updated_at",
+                                "archived_at",
                             ],
                         )
 
