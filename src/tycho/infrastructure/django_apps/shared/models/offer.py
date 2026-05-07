@@ -102,6 +102,7 @@ class OfferModel(models.Model):
             processing=self.processing,
             processed_at=self.processed_at,
             archived_at=self.archived_at,
+            family_code=self.code_emploi_csp,
         )
 
     @classmethod
@@ -143,6 +144,7 @@ class OfferModel(models.Model):
             country=country,
             region=region,
             department=department,
+            code_emploi_csp=offer.family_code,
             publication_date=offer.publication_date,
             beginning_date=beginning_date,
             processing=offer.processing,

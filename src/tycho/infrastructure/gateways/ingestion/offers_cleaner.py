@@ -80,7 +80,6 @@ class OffersCleaner(IDocumentCleaner[Offer]):
     def _map_talentsoft_to_offer(
         self, talentsoft_offer: TalentsoftDetailOffer
     ) -> Offer:
-        self.logger.info(f">>>>>>>>>>>MAPPING_OFFER: {talentsoft_offer.reference}")
         # Extract verse from salaryRange if available
         ts_verse = (
             talentsoft_offer.salaryRange.clientCode
@@ -117,13 +116,10 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             else None
         )
 
-        # Debug logging for offerFamilyCategory
+        family_code_value = None
+
         if talentsoft_offer.offerFamilyCategory:
             family_code_value = talentsoft_offer.offerFamilyCategory.clientCode
-            self.logger.info(f">>>>>>>>>>>FAMILY_CODE_FOUND: {family_code_value}")
-        else:
-            self.logger.info(">>>>>>>>>>>FAMILY_CODE_IS_NULL")
-            family_code_value = None
 
         offer = Offer(
             external_id=f"{ts_verse}-{talentsoft_offer.reference}"
