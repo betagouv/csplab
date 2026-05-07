@@ -1,27 +1,25 @@
 import os
 
 from pydantic import HttpUrl
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env")
+
     api_key: str
     sentry_dsn: HttpUrl | None = None
     sentry_profiles_sample_rate: float | None = 0.1
     sentry_traces_sample_rate: float | None = 0.1
 
-    class Config:
-        env_file = ".env"
-
 
 class TestSettings(Settings):
+    model_config = SettingsConfigDict(env_file=None)
+
     api_key: str = "test-api-key-for-development"
     sentry_dsn: HttpUrl | None = None
     sentry_profiles_sample_rate: float | None = 0.0
     sentry_traces_sample_rate: float | None = 0.0
-
-    class Config:
-        env_file = None  # Don't load from .env in tests
 
 
 def get_settings() -> Settings:
