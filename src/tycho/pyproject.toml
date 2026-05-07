@@ -96,6 +96,7 @@ testpaths = [
 ]
 markers = [
     "accessibility: marks tests as accessibility tests (may require browser)",
+    "e2e: marks tests as end-to-end browser tests (Playwright, requires live_server)",
     "functional: marks tests as functional tests requiring browser",
 ]
 
