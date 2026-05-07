@@ -54,13 +54,9 @@ def test_execute_get_offer_details_no_metiers(
     metier_repo = get_opportunity_details_usecase.metier_repository
     metier_repo.upsert_batch([metier])
 
-    metiers = metier_repo.get_all()
-
     result_offer, result_metiers = get_opportunity_details_usecase.execute(
         opportunity_type=OpportunityType.OFFER, opportunity_id=offer.id
     )
-
-    print(">>>>>>>>>>>>>>>>", metiers)
 
     assert result_offer.id == offer.id
     assert len(result_metiers) == 0

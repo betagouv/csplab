@@ -4,7 +4,6 @@ from uuid import UUID
 from domain.entities.concours import Concours
 from domain.entities.metier import Metier
 from domain.entities.offer import Offer
-from domain.exceptions.metiers_error import MetierDoesNotExist
 from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.metier_repository_interface import IMetierRepository
@@ -42,10 +41,7 @@ class GetOpportunityDetails(
                 f"cannot fetch related metiers"
             )
             return offer, []
-        try:
-            metiers = self.metier_repository.filter_by(
-                {"offer_family_code": offer.family_code}
-            )
-            return offer, metiers
-        except MetierDoesNotExist:
-            return offer, []
+        metiers = self.metier_repository.filter_by(
+            {"offer_family_code": offer.family_code}
+        )
+        return offer, metiers
