@@ -292,6 +292,10 @@ test-tycho: ## test tycho python sources
 
 test-ocr: ## test ocr python sources
 	@echo 'test:ocr started…'
+	@if [ ! -d "tests/cov" ]; then \
+		echo '⚠️  Coverage directory not found. Creating directory structure...'; \
+		mkdir -p tests/cov; \
+	fi
 	$(OCR_UV) pytest $(ARGS)
 .PHONY: test-ocr
 
