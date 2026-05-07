@@ -1,14 +1,7 @@
-"""PDF utilities for testing."""
-
 import pymupdf
 
 
 def create_minimal_valid_pdf() -> bytes:
-    """Create a minimal valid PDF for testing.
-
-    Returns:
-        bytes: A valid PDF document as bytes
-    """
     doc = pymupdf.open()
     page = doc.new_page()
 
@@ -24,14 +17,6 @@ def create_minimal_valid_pdf() -> bytes:
 
 
 def create_large_pdf(size_mb: int = 6) -> bytes:
-    """Create a large PDF for testing size limits.
-
-    Args:
-        size_mb: Target size in MB
-
-    Returns:
-        bytes: A large PDF document as bytes
-    """
     doc = pymupdf.open()
 
     target_size = size_mb * 1024 * 1024
