@@ -283,6 +283,10 @@ test: \
 
 test-tycho: ## test tycho python sources
 	@echo 'test:tycho started…'
+	@if [ ! -d "src/tests/cov" ]; then \
+		echo '⚠️  Coverage directory not found. Creating directory structure...'; \
+		mkdir -p src/tests/cov; \
+	fi
 	$(TYCHO_UV) pytest --numprocesses=logical --create-db $(ARGS)
 .PHONY: test-tycho
 
