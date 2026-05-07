@@ -125,7 +125,7 @@
 | infrastructure/external\_gateways/dtos/ingres\_corps\_dtos.py                      |      135 |        0 |    100% |
 | infrastructure/external\_gateways/dtos/ingres\_metiers\_dtos.py                    |       55 |        2 |     96% |
 | infrastructure/external\_gateways/dtos/talentsoft\_back\_dtos.py                   |       35 |        0 |    100% |
-| infrastructure/external\_gateways/dtos/talentsoft\_dtos.py                         |      165 |        0 |    100% |
+| infrastructure/external\_gateways/dtos/talentsoft\_dtos.py                         |      167 |        0 |    100% |
 | infrastructure/external\_gateways/external\_document\_gateway.py                   |      112 |       20 |     82% |
 | infrastructure/external\_gateways/ocr\_extractor.py                                |       35 |        0 |    100% |
 | infrastructure/external\_gateways/piste\_client.py                                 |       72 |       26 |     64% |
@@ -134,7 +134,7 @@
 | infrastructure/gateways/candidate/\_\_init\_\_.py                                  |        0 |        0 |    100% |
 | infrastructure/gateways/candidate/query\_builder.py                                |       17 |        1 |     94% |
 | infrastructure/gateways/ingestion/\_\_init\_\_.py                                  |        0 |        0 |    100% |
-| infrastructure/gateways/ingestion/concours\_cleaner.py                             |      122 |       19 |     84% |
+| infrastructure/gateways/ingestion/concours\_cleaner.py                             |      122 |       20 |     84% |
 | infrastructure/gateways/ingestion/corps\_cleaner.py                                |      125 |       18 |     86% |
 | infrastructure/gateways/ingestion/document\_cleaner.py                             |       28 |        2 |     93% |
 | infrastructure/gateways/ingestion/load\_documents\_strategies.py                   |       20 |        1 |     95% |
@@ -189,4 +189,4 @@
 | presentation/pages/\_\_init\_\_.py                                                 |        0 |        0 |    100% |
 | presentation/pages/urls.py                                                         |        4 |        0 |    100% |
 | presentation/pages/views.py                                                        |        3 |        0 |    100% |
-| **TOTAL**                                                                          | **4530** |  **467** | **90%** |
+| **TOTAL**                                                                          | **4532** |  **468** | **90%** |
