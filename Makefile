@@ -308,9 +308,22 @@ test-cov-tycho: ## run tycho tests with detailed HTML coverage report
 	@open src/tycho/tests/cov/cov_html/index.html
 .PHONY: test-cov-tycho
 
+test-cov-ocr: ## run ocr tests with detailed HTML coverage report
+	@echo 'test:cov-ocr started…'
+	@echo 'Generating detailed HTML coverage report for ocr…'
+	@if [ ! -f "src/ocr/tests/cov/cov_html/index.html" ]; then \
+		echo '⚠️  Coverage report not found. Creating directory structure...'; \
+		mkdir -p src/ocr/tests/cov/cov_html; \
+	fi
+	$(OCR_UV) pytest --cov=. --cov-report=html:tests/cov/cov_html --cov-report=term-missing $(ARGS)
+	@echo '✅ Coverage report generated in src/ocr/tests/cov/cov_html/'
+	@open src/ocr/tests/cov/cov_html/index.html
+.PHONY: test-cov-ocr
+
 test-cov: ## run tests with detailed HTML coverage report for all services
 test-cov: \
-  test-cov-tycho
+  test-cov-tycho \
+  test-cov-ocr
 .PHONY: test-cov
 
 ## MANAGE docker services
