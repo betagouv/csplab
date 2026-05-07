@@ -8,14 +8,6 @@ from playwright.sync_api import Page, expect
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from tests.factories.offer_factory import OfferFactory
-from tests.utils.pdf_test_utils import create_minimal_valid_pdf
-
-
-@pytest.fixture(name="cv_pdf_path")
-def cv_pdf_path_fixture(tmp_path: Path) -> Path:
-    pdf_file = tmp_path / "cv.pdf"
-    pdf_file.write_bytes(create_minimal_valid_pdf())
-    return pdf_file
 
 
 @pytest.mark.e2e
