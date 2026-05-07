@@ -156,6 +156,19 @@ class TestUpsertBatch:
         saved_offer = OfferModel.objects.get()
         assert OfferModel.to_entity(saved_offer) == entity
 
+    def test_upsert_unarchives_archived_offer(self, db, repository):
+        archived_offer = OfferFactory.create_model(archived_at=NOW)
+        assert archived_offer.archived_at is not None
+
+        entity = OfferModel.to_entity(archived_offer)
+        entity.archived_at = None
+
+        result = repository.upsert_batch([entity])
+        assert result == {"created": 0, "updated": 1, "errors": []}
+
+        archived_offer.refresh_from_db()
+        assert archived_offer.archived_at is None
+
 
 class TestGetPendingProcessing:
     def test_excluded_items(self, db, repository):
