@@ -11,7 +11,9 @@ from infrastructure.external_gateways.dtos.talentsoft_back_dtos import (
 )
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftCodedObject,
+    TalentsoftCustomCodeTable,
     TalentsoftCustomFields,
+    TalentsoftDescriptionCustomFields,
     TalentsoftDetailOffer,
     TalentsoftGeolocation,
     TalentsoftLink,
@@ -117,6 +119,19 @@ class TalentsoftOfferFactory(ModelFactory[TalentsoftOffer]):
         ]
 
     @classmethod
+    def customFields(cls) -> TalentsoftCustomFields:
+        value = _fake.random_element(
+            elements=["CAT-AEF", "CAT-ESD", "CAT-ES", "CAT-A", "CAT-B", "CAT-C"]
+        )
+        return TalentsoftCustomFieldsFactory.build(
+            description=TalentsoftDescriptionCustomFieldsFactory.build(
+                customCodeTable1=TalentsoftCustomCodeTableFactory.build(
+                    clientCode=value
+                )
+            )
+        )
+
+    @classmethod
     def _links(cls) -> List[TalentsoftLink]:
         return TalentsoftLinkFactory.batch(size=1)
 
@@ -155,6 +170,23 @@ class TalentsoftOrganisationFactory(ModelFactory[TalentsoftOrganisation]):
 class TalentsoftCustomFieldsFactory(ModelFactory[TalentsoftCustomFields]):
     __model__ = TalentsoftCustomFields
     __faker__ = _fake
+
+
+class TalentsoftDescriptionCustomFieldsFactory(
+    ModelFactory[TalentsoftDescriptionCustomFields]
+):
+    __model__ = TalentsoftDescriptionCustomFields
+    __faker__ = _fake
+
+
+class TalentsoftCustomCodeTableFactory(ModelFactory[TalentsoftCustomCodeTable]):
+    __model__ = TalentsoftCustomCodeTable
+    __faker__ = _fake
+
+    code = 1
+    clientCode = "code"
+    label = "label"
+    active = True
 
 
 class TalentsoftDetailOfferFactory(ModelFactory[TalentsoftDetailOffer]):

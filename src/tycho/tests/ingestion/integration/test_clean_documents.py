@@ -16,6 +16,12 @@ from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.corps_factory import CorpsFactory
 from tests.factories.document_factory import DocumentFactory
+from tests.factories.talentsoft_factories import (
+    TalentsoftCustomCodeTableFactory,
+    TalentsoftCustomFieldsFactory,
+    TalentsoftDescriptionCustomFieldsFactory,
+    TalentsoftOfferFactory,
+)
 
 # Test constants
 DOCUMENTS_COUNT = 2
@@ -323,3 +329,45 @@ def test_clean_offers_mark_as_failed_error(db, raw_offer_setup):
 
     assert_no_offer_cleaned()
     assert_raw_document_pending(processing=True)
+
+
+@pytest.mark.parametrize(
+    "category, expected",
+    [
+        ("CAT-AEF", "APLUS"),
+        ("CAT-ESD", "APLUS"),
+        ("CAT-ES", "APLUS"),
+        ("CAT-A", "A"),
+        ("CAT-B", "B"),
+        ("CAT-C", "C"),
+    ],
+)
+def test_execute_clean_offers_with_category(
+    db, clean_documents_integration_container, category, expected
+):
+    usecase = clean_documents_integration_container.clean_documents_usecase()
+    document_repository = clean_documents_integration_container.document_repository()
+
+    offer_dto = TalentsoftOfferFactory.build(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            description=TalentsoftDescriptionCustomFieldsFactory.build(
+                customCodeTable1=TalentsoftCustomCodeTableFactory.build(
+                    clientCode=category
+                )
+            )
+        )
+    )
+
+    document = DocumentFactory.create_entity(
+        document_type=DocumentType.OFFERS, raw_data=offer_dto.model_dump()
+    )
+
+    document_repository.upsert_batch([document], DocumentType.OFFERS)
+
+    result = usecase.execute(DocumentType.OFFERS)
+
+    assert result["created"] == 1
+
+    cleaned_offer = OfferModel.objects.first()
+    assert cleaned_offer is not None
+    assert cleaned_offer.category == expected

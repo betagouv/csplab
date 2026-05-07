@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from time import time
 from typing import List, Optional
 
@@ -82,6 +84,8 @@ class TalentsoftOffer(BaseModel):
     # Optional redirect URLs
     urlRedirectionEmployee: Optional[str] = None
     urlRedirectionApplicant: Optional[str] = None
+
+    customFields: Optional[TalentsoftCustomFields] = None
 
 
 class TalentsoftPagination(BaseModel):

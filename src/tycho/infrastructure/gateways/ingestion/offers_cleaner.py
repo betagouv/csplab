@@ -220,7 +220,9 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             return None  # todo: test
 
     def _parse_category(self, category_code: Optional[str]) -> Optional[Category]:
-        if category_code in ["CAT-A", "CAT-AEF"]:
+        if category_code in ["CAT-AEF", "CAT-ESD", "CAT-ES"]:
+            return Category.APLUS
+        elif category_code == "CAT-A":
             return Category.A
         elif category_code == "CAT-B":
             return Category.B
