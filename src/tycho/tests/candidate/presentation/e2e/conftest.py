@@ -3,6 +3,8 @@ import os
 import pytest
 from django.db import connections
 
+from tests.utils.pdf_test_utils import cv_pdf_path  # noqa F401
+
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 

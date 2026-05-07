@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import pymupdf
+import pytest
 
 
 def create_minimal_valid_pdf() -> bytes:
@@ -14,6 +17,13 @@ def create_minimal_valid_pdf() -> bytes:
     doc.close()
 
     return pdf_bytes
+
+
+@pytest.fixture
+def cv_pdf_path(tmp_path: Path) -> Path:
+    pdf_file = tmp_path / "cv.pdf"
+    pdf_file.write_bytes(create_minimal_valid_pdf())
+    return pdf_file
 
 
 def create_large_pdf(size_mb: int = 6) -> bytes:
