@@ -1,0 +1,22 @@
+| Name                                            |    Stmts |     Miss |   Cover |
+|------------------------------------------------ | -------: | -------: | ------: |
+| api/\_\_init\_\_.py                             |        0 |        0 |    100% |
+| api/\_sentry.py                                 |       20 |       20 |      0% |
+| api/auth.py                                     |        9 |        0 |    100% |
+| api/config.py                                   |       22 |        0 |    100% |
+| api/main.py                                     |       18 |        2 |     89% |
+| api/routes.py                                   |       19 |        0 |    100% |
+| application/\_\_init\_\_.py                     |        0 |        0 |    100% |
+| application/usecases/\_\_init\_\_.py            |        0 |        0 |    100% |
+| application/usecases/extract\_text\_usecase.py  |        6 |        0 |    100% |
+| domain/\_\_init\_\_.py                          |        0 |        0 |    100% |
+| domain/interfaces/\_\_init\_\_.py               |        0 |        0 |    100% |
+| domain/interfaces/pdf\_extractor.py             |        2 |        0 |    100% |
+| domain/interfaces/pdf\_validator.py             |        2 |        0 |    100% |
+| infrastructure/\_\_init\_\_.py                  |        0 |        0 |    100% |
+| infrastructure/di/\_\_init\_\_.py               |        0 |        0 |    100% |
+| infrastructure/di/container.py                  |        8 |        0 |    100% |
+| infrastructure/gateways/\_\_init\_\_.py         |        0 |        0 |    100% |
+| infrastructure/gateways/pypdf\_validator.py     |       22 |        5 |     77% |
+| infrastructure/gateways/tesseract\_extractor.py |       10 |        0 |    100% |
+| **TOTAL**                                       |  **138** |   **27** | **80%** |
