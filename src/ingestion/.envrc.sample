@@ -1,0 +1,2 @@
+uv sync --locked # use the existing uv.lock without updating dependancies
+source .venv/bin/activate

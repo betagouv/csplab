@@ -28,6 +28,7 @@ setup: ## copy example env files to local files
 	@cp src/tycho/.envrc.sample src/tycho/.envrc
 	@cp src/notebook/.envrc.sample src/notebook/.envrc
 	@cp src/ocr/.envrc.sample src/ocr/.envrc
+	@cp src/ingestion/.envrc.sample src/ingestion/.envrc
 	@cp env.d/tycho-example env.d/tycho
 	@cp env.d/ocr-example env.d/ocr
 	@cp env.d/notebook-example env.d/notebook
