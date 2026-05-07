@@ -11,6 +11,10 @@
     {
       "name": "Notebook",
       "path": "./src/notebook"
+    },
+    {
+      "name": "Ingestion",
+      "path": "./src/ingestion"
     }
   ]
 }
