@@ -284,7 +284,7 @@ test: \
 test-tycho: ## test tycho python sources
 	@echo 'test:tycho started…'
 	$(TYCHO_UV) pytest --numprocesses=logical --create-db -m "not accessibility and not e2e" $(ARGS)
-	$(TYCHO_UV) pytest -m "e2e" --create-db $(ARGS)
+	$(TYCHO_UV) pytest --numprocesses=logical --create-db -m "e2e" $(ARGS)
 .PHONY: test-tycho
 
 test-ocr: ## test ocr python sources
