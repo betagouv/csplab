@@ -7,8 +7,12 @@ class DrawerHandler {
   /** @type {HTMLElement|null} */
   lastTrigger;
 
+  /** @type {string|null} */
+  lastTriggerId;
+
   constructor() {
     this.lastTrigger = null;
+    this.lastTriggerId = null;
   }
 
   init() {
@@ -30,6 +34,7 @@ class DrawerHandler {
       if (el.hasAttribute('hx-get')) return;
       const href = el.getAttribute('href');
       if (!href) return;
+      if (!el.dataset.triggerId) el.dataset.triggerId = href;
       el.setAttribute('hx-get', href);
       el.setAttribute('hx-target', 'body');
       el.setAttribute('hx-swap', 'beforeend');
@@ -45,6 +50,7 @@ class DrawerHandler {
     const trigger = e.detail?.elt;
     if (trigger?.matches?.(DrawerHandler.TRIGGER_SELECTOR)) {
       this.lastTrigger = trigger;
+      this.lastTriggerId = trigger.dataset.triggerId || null;
     }
   }
 
@@ -67,6 +73,8 @@ class DrawerHandler {
    */
   activateDrawer(dialog) {
     if (typeof dialog.showModal !== 'function') return;
+    if (dialog.dataset.drawerActivated === 'true') return;
+    dialog.dataset.drawerActivated = 'true';
 
     dialog.showModal();
 
@@ -93,13 +101,22 @@ class DrawerHandler {
    */
   handleDialogClose(dialog) {
     if (history.state?.[DrawerHandler.HISTORY_MARKER]) {
-      history.back();
+      history.replaceState(null, '', window.location.href);
     }
     dialog.remove();
-    if (typeof this.lastTrigger?.focus === 'function') {
-      this.lastTrigger.focus();
-    }
+    const triggerId = this.lastTriggerId;
+    const fallback = this.lastTrigger;
     this.lastTrigger = null;
+    this.lastTriggerId = null;
+    const live = triggerId
+      ? document.querySelector(
+          `[data-trigger-id="${CSS.escape(triggerId)}"]`,
+        )
+      : null;
+    const target = live && document.contains(live) ? live : fallback;
+    if (target && document.contains(target) && typeof target.focus === 'function') {
+      target.focus();
+    }
   }
 
   closeOpenDrawer() {
