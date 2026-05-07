@@ -37,6 +37,7 @@ setup: ## copy example env files to local files
 	@cd src/tycho && direnv allow
 	@cd src/ocr && direnv allow
 	@cd src/notebook && direnv allow
+	@cd src/ingestion && direnv allow
 	@echo "✅ Environment files copied. Please edit env.d/* with your actual values."
 .PHONY: setup
 
