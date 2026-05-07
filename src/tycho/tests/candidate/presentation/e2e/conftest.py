@@ -20,3 +20,8 @@ def browser_context_args(browser_context_args: dict) -> dict:
         **browser_context_args,
         "locale": "fr-FR",
     }
+
+
+@pytest.fixture(scope="session")
+def _fast_polling(settings) -> None:
+    settings.CV_PROCESSING_POLL_INTERVAL = 1
