@@ -58,7 +58,7 @@ def create_interface_aware_mock(interface_class):
 
                 return sync_auto_generated_method
 
-        def _get_return_value(self, return_type, args, **kwargs):
+        def _get_return_value(self, return_type, args, **kwargs):  # noqa
             if return_type is None or return_type is type(None):
                 return self._handle_none_return_type(args)
 

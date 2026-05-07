@@ -23,7 +23,7 @@ def test_upsert_batch_stores_entities(metier_repository_mock, sample_metiers):
     metier_repository_mock.upsert_batch(sample_metiers)
 
     all_metiers = metier_repository_mock.get_all()
-    assert len(all_metiers) == 3
+    assert len(all_metiers) == len(sample_metiers)
 
     stored_codes = {m.offer_family_code for m in all_metiers}
     expected_codes = {"ERJUR011", "ERJUR022", "ERTRA033"}
@@ -61,7 +61,7 @@ def test_get_all_returns_all_stored_entities(metier_repository_mock, sample_meti
 
     all_metiers = metier_repository_mock.get_all()
 
-    assert len(all_metiers) == 3
+    assert len(all_metiers) == len(sample_metiers)
     stored_codes = {m.offer_family_code for m in all_metiers}
     expected_codes = {"ERJUR011", "ERJUR022", "ERTRA033"}
     assert stored_codes == expected_codes

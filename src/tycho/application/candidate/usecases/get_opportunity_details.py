@@ -4,7 +4,6 @@ from uuid import UUID
 from domain.entities.concours import Concours
 from domain.entities.metier import Metier
 from domain.entities.offer import Offer
-from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.repositories.offers_repository_interface import IOffersRepository
@@ -12,9 +11,7 @@ from domain.services.logger_interface import ILogger
 from domain.value_objects.opportunity_type import OpportunityType
 
 
-class GetOpportunityDetails(
-    IUseCase[Tuple[OpportunityType, UUID], Tuple[Offer, list[Metier]] | Concours]
-):
+class GetOpportunityDetails:
     def __init__(
         self,
         offer_repository: IOffersRepository,

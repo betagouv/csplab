@@ -10,9 +10,7 @@ IPredicate = Dict[str, str]
 class IMetierRepository(Protocol):
     def upsert_batch(self, metiers: List[Metier]) -> IUpsertResult: ...
 
-    def get_by_external_id(
-        self, external_id_key: str, external_id_value: str
-    ) -> Metier: ...
+    def get_by_external_id(self, external_id: str) -> Metier: ...
 
     def get_all(self) -> List[Metier]: ...
 
@@ -21,10 +19,10 @@ class IMetierRepository(Protocol):
     ) -> IUpsertResult: ...
 
     def filter_by(
-        self, predicate: IPredicate, limit: int = 1000
-    ) -> List[
-        Metier
-    ]: ...  # for example {"status": "processing"}, {"offer_family_code": "ERLOG005"}
+        self, predicate: IPredicate
+    ) -> List[Metier]: ...  # for example {"offer_family_code": "ERLOG005"}
+
+    def get_pending_processing(self, limit=1000) -> List[Metier]: ...
 
     def mark_as_processed(self, metiers_list: List[Metier]) -> int: ...
 
