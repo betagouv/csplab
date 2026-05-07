@@ -353,6 +353,22 @@ test-e2e: ## run e2e tests with Playwright (live_server + browser)
 	@echo 'test:e2e started…'
 	$(TYCHO_UV) pytest -m "e2e" --create-db --no-cov $(ARGS)
 .PHONY: test-e2e
+test-cov-tycho: ## run tycho tests with detailed HTML coverage report
+	@echo 'test:cov-tycho started…'
+	@echo 'Generating detailed HTML coverage report for tycho…'
+	@if [ ! -f "src/tycho/tests/cov/cov_html/index.html" ]; then \
+		echo '⚠️  Coverage report not found. Creating directory structure...'; \
+		mkdir -p src/tycho/tests/cov/cov_html; \
+	fi
+	$(TYCHO_UV) pytest --cov=src --cov-report=html:tests/cov/cov_html --cov-report=term-missing --numprocesses=logical --create-db $(ARGS)
+	@echo '✅ Coverage report generated in src/tycho/tests/cov/cov_html/'
+	@open src/tycho/tests/cov/cov_html/index.html
+.PHONY: test-cov-tycho
+
+test-cov: ## run tests with detailed HTML coverage report for all services
+test-cov: \
+  test-cov-tycho
+.PHONY: test-cov
 
 ## MANAGE docker services
 status: ## an alias for "docker compose ps"
