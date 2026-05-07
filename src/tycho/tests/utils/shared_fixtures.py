@@ -14,6 +14,7 @@ from qdrant_client.http.models import Distance, PayloadSchemaType, VectorParams
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from application.candidate.usecases.get_opportunity_details import GetOpportunityDetails
 from application.candidate.usecases.initialize_cv_metadata import (
     InitializeCVMetadataUsecase,
 )
@@ -348,4 +349,24 @@ def list_offers_usecase():
     return ListOffersUseCase(
         offers_repository=offers_repo,
         logger=logger,
+    )
+
+
+@pytest.fixture
+def get_opportunity_details_usecase():
+    logger = MagicMock()
+    offer_repository = cast(
+        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+    )
+    concours_repository = cast(
+        IConcoursRepository, create_interface_aware_mock(IConcoursRepository)
+    )
+    metier_repository = cast(
+        IMetierRepository, create_interface_aware_mock(IMetierRepository)
+    )
+    return GetOpportunityDetails(
+        logger=logger,
+        offer_repository=offer_repository,
+        concours_repository=concours_repository,
+        metier_repository=metier_repository,
     )

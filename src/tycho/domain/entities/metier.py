@@ -10,11 +10,11 @@ from domain.value_objects.verse import Verse
 class Metier(IEntity):
     libelle: str
     description: str
-    domaine_fonctionnel: UUID
+    domaine_fonctionnel_id: UUID
     versants: List[Verse]
     activites: Optional[List[str]] = None
     conditions_particulieres: Optional[str] = None
     offer_family_code: Optional[str] = (
-        None  # not unique by metier, but can be used to link offers to metiers
+        None  # not unique by metier, but can be used to link an offers to sevral metiers
     )
     id: UUID = field(default_factory=uuid4)

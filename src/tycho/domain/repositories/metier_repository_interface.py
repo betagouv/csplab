@@ -24,7 +24,7 @@ class IMetierRepository(Protocol):
         self, predicate: IPredicate, limit: int = 1000
     ) -> List[
         Metier
-    ]: ...  #  for example {"status": "processing"}, {"family_code": "ERLOG005"}, etc.
+    ]: ...  # for example {"status": "processing"}, {"offer_family_code": "ERLOG005"}
 
     def mark_as_processed(self, metiers_list: List[Metier]) -> int: ...
 
