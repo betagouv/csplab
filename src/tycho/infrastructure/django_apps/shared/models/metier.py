@@ -34,7 +34,7 @@ class MetierModel(models.Model):
 
     code_domaine_fonctionnel = models.CharField(max_length=3)
     libelle_domaine_fonctionnel = models.CharField(max_length=200)
-    code_famille = models.CharField(max_length=6)
+    code_famille = models.CharField(max_length=8)
     libelle_famille = models.CharField(max_length=200)
 
     versants = models.JSONField(default=list, null=True, blank=True)
@@ -73,6 +73,7 @@ class MetierModel(models.Model):
             versants=versants,
             activites=self.activites or [],
             conditions_particulieres=self.conditions_particulieres,
+            offer_family_code=self.code_famille,
         )
 
     @classmethod

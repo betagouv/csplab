@@ -11,17 +11,17 @@ from domain.services.logger_interface import ILogger
 from domain.value_objects.opportunity_type import OpportunityType
 
 
-class GetOpportunityDetails:
+class GetOpportunityDetailsUsecase:
     def __init__(
         self,
-        offer_repository: IOffersRepository,
+        offers_repository: IOffersRepository,
         concours_repository: IConcoursRepository,
-        metier_repository: IMetierRepository,
+        metiers_repository: IMetierRepository,
         logger: ILogger,
     ):
-        self.offer_repository = offer_repository
+        self.offers_repository = offers_repository
         self.concours_repository = concours_repository
-        self.metier_repository = metier_repository
+        self.metiers_repository = metiers_repository
         self.logger = logger
 
     def execute(
@@ -31,14 +31,14 @@ class GetOpportunityDetails:
         if opportunity_type == OpportunityType.CONCOURS:
             return self.concours_repository.get_by_id(opportunity_id)
 
-        offer = self.offer_repository.get_by_id(opportunity_id)
+        offer = self.offers_repository.get_by_id(opportunity_id)
         if offer.family_code is None:
             self.logger.warning(
                 f"Offer with id {offer.id} has no family code"
                 f"cannot fetch related metiers"
             )
             return offer, []
-        metiers = self.metier_repository.filter_by(
+        metiers = self.metiers_repository.filter_by(
             {"offer_family_code": offer.family_code}
         )
         return offer, metiers

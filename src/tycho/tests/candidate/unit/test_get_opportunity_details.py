@@ -8,11 +8,11 @@ def test_execute_get_offer_details(
     get_opportunity_details_usecase,
 ):
     offer = OfferFactory.create_entity(family_code="ERJUR011")
-    offer_repo = get_opportunity_details_usecase.offer_repository
+    offer_repo = get_opportunity_details_usecase.offers_repository
     offer_repo.upsert_batch([offer])
 
     metier = MetierFactory.create_entity(offer_family_code="ERJUR011")
-    metier_repo = get_opportunity_details_usecase.metier_repository
+    metier_repo = get_opportunity_details_usecase.metiers_repository
     metier_repo.upsert_batch([metier])
 
     result_offer, result_metiers = get_opportunity_details_usecase.execute(
@@ -28,11 +28,11 @@ def test_execute_get_offer_details_no_family_code(
     get_opportunity_details_usecase,
 ):
     offer = OfferFactory.create_entity(family_code=None)
-    offer_repo = get_opportunity_details_usecase.offer_repository
+    offer_repo = get_opportunity_details_usecase.offers_repository
     offer_repo.upsert_batch([offer])
 
     metier = MetierFactory.create_entity(offer_family_code="ERJUR011")
-    metier_repo = get_opportunity_details_usecase.metier_repository
+    metier_repo = get_opportunity_details_usecase.metiers_repository
     metier_repo.upsert_batch([metier])
 
     result_offer, result_metiers = get_opportunity_details_usecase.execute(
@@ -47,11 +47,11 @@ def test_execute_get_offer_details_no_metiers(
     get_opportunity_details_usecase,
 ):
     offer = OfferFactory.create_entity(family_code="ERJUR011")
-    offer_repo = get_opportunity_details_usecase.offer_repository
+    offer_repo = get_opportunity_details_usecase.offers_repository
     offer_repo.upsert_batch([offer])
 
     metier = MetierFactory.create_entity(offer_family_code="ERJUR022")
-    metier_repo = get_opportunity_details_usecase.metier_repository
+    metier_repo = get_opportunity_details_usecase.metiers_repository
     metier_repo.upsert_batch([metier])
 
     result_offer, result_metiers = get_opportunity_details_usecase.execute(

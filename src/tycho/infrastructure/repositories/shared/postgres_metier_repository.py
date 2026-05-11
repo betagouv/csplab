@@ -107,7 +107,14 @@ class PostgresMetierRepository(IMetierRepository):
         return [model.to_entity() for model in metier_models]
 
     def filter_by(self, predicate: Dict[str, str], limit: int = 1000) -> List[Metier]:
-        metier_models = MetierModel.objects.filter(**predicate)[:limit]
+        field_mapping = {"offer_family_code": "code_famille"}
+
+        mapped_predicate = {}
+        for key, value in predicate.items():
+            mapped_key = field_mapping.get(key, key)
+            mapped_predicate[mapped_key] = value
+
+        metier_models = MetierModel.objects.filter(**mapped_predicate)[:limit]
         return [model.to_entity() for model in metier_models]
 
     def mark_as_processed(self, metiers_list: List[Metier]) -> int:

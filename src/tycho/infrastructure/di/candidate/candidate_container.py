@@ -1,5 +1,8 @@
 from dependency_injector import containers, providers
 
+from application.candidate.usecases.get_opportunity_details import (
+    GetOpportunityDetailsUsecase,
+)
 from application.candidate.usecases.initialize_cv_metadata import (
     InitializeCVMetadataUsecase,
 )
@@ -28,6 +31,7 @@ class CandidateContainer(containers.DeclarativeContainer):
     corps_repository = shared_container.corps_repository
     concours_repository = shared_container.concours_repository
     offers_repository = shared_container.offers_repository
+    metiers_repository = shared_container.metiers_repository
     embedding_generator = shared_container.embedding_generator
     vector_repository = shared_container.vector_repository
 
@@ -72,5 +76,13 @@ class CandidateContainer(containers.DeclarativeContainer):
         vector_repository=vector_repository,
         concours_repository=concours_repository,
         offers_repository=offers_repository,
+        logger=logger_service,
+    )
+
+    get_opportunity_details_usecase = providers.Factory(
+        GetOpportunityDetailsUsecase,
+        offers_repository=offers_repository,
+        concours_repository=concours_repository,
+        metiers_repository=metiers_repository,
         logger=logger_service,
     )

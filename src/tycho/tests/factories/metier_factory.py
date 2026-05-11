@@ -6,6 +6,7 @@ from polyfactory.factories import DataclassFactory
 
 from domain.entities.metier import Metier
 from domain.value_objects.verse import Verse
+from infrastructure.django_apps.shared.models.metier import MetierModel
 
 fake = Faker()
 
@@ -72,4 +73,66 @@ class MetierFactory(DataclassFactory[Metier]):
             activites=activites,
             conditions_particulieres=conditions_particulieres,
             offer_family_code=offer_family_code,
+        )
+
+    @staticmethod
+    def create_model(
+        id: Optional[UUID] = None,
+        external_id: Optional[str] = None,
+        libelle_long: Optional[str] = None,
+        definition_synthetique: Optional[str] = None,
+        code_domaine_fonctionnel: Optional[str] = None,
+        versants: Optional[List[Verse]] = None,
+        activites: Optional[List[str]] = None,
+        conditions_particulieres: Optional[str] = None,
+        code_famille: Optional[str] = None,
+    ) -> MetierModel:
+        if id is None:
+            id = uuid4()
+
+        if external_id is None:
+            external_id = str(id)[:8]
+
+        if libelle_long is None:
+            libelle_long = fake.word()
+
+        if definition_synthetique is None:
+            definition_synthetique = fake.sentence()
+
+        if code_domaine_fonctionnel is None:
+            code_domaine_fonctionnel = fake.random_element(["JUR", "TRA", "MED"])
+
+        if versants is None:
+            versants = [Verse.FPE, Verse.FPT]
+
+        if activites is None:
+            activites = []
+            activites.append(
+                fake.sentence(),
+            )
+
+        if conditions_particulieres is None:
+            conditions_particulieres = fake.sentence()
+
+        if code_famille is None:
+            code_famille = fake.bothify("????????").upper()
+
+        versants_values = [verse.value for verse in versants] if versants else None
+
+        return MetierModel(
+            id=id,
+            external_id=external_id,
+            code_emploi_csp="",
+            libelle_emploi_csp=None,
+            referenciel_metier_id=None,
+            libelle_court="",
+            libelle_long=libelle_long,
+            definition_synthetique=definition_synthetique,
+            code_domaine_fonctionnel=code_domaine_fonctionnel,
+            libelle_domaine_fonctionnel="",
+            code_famille=code_famille,
+            libelle_famille="",
+            versants=versants_values,
+            conditions_particulieres=conditions_particulieres,
+            activites=activites,
         )
