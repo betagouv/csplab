@@ -1,6 +1,5 @@
 from typing import Dict, List, Protocol
 
-from domain.entities.document import Document
 from domain.entities.metier import Metier
 from domain.repositories.document_repository_interface import IUpsertResult
 
@@ -13,10 +12,6 @@ class IMetierRepository(Protocol):
     def get_by_external_id(self, external_id: str) -> Metier: ...
 
     def get_all(self) -> List[Metier]: ...
-
-    def upsert_batch_rich_data(
-        self, raw_documents: List[Document]
-    ) -> IUpsertResult: ...
 
     def filter_by(
         self, predicate: IPredicate

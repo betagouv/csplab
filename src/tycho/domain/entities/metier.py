@@ -8,12 +8,13 @@ from domain.value_objects.verse import Verse
 
 @dataclass
 class Metier(IEntity):
+    external_id: str
     libelle: str
     description: str
-    domaine_fonctionnel_id: UUID
+    domaine_fonctionnel_code: str
     versants: List[Verse]
     activites: Optional[List[str]] = None
-    conditions_particulieres: Optional[str] = None
+    conditions_particulieres: Optional[List[str]] = None
     offer_family_code: Optional[str] = (
         None  # not unique by metier, but can be used to link an offer to some metiers
     )

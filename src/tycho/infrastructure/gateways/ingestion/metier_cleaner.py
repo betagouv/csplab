@@ -1,5 +1,5 @@
 from typing import Dict, List
-from uuid import NAMESPACE_DNS, UUID, uuid5
+from uuid import NAMESPACE_DNS, UUID, uuid4, uuid5
 
 from domain.entities.document import Document, DocumentType
 from domain.entities.metier import Metier
@@ -7,7 +7,7 @@ from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
-from infrastructure.django_apps.shared.models.metier import MetierModel
+from domain.value_objects.verse import Verse
 from infrastructure.external_gateways.dtos.ingres_metiers_dtos import (
     IngresMetiersDocument,
 )
@@ -67,9 +67,7 @@ class MetierCleaner(IDocumentCleaner[Metier]):
 
         for document in metiers_data:
             try:
-                model_data = MetierModel._dto_to_model_data(document)
-                model = MetierModel(**model_data)
-                entity = model.to_entity()
+                entity = self._dto_to_entity(document)
                 entities.append(entity)
             except Exception as e:
                 error_msg = (
@@ -79,3 +77,48 @@ class MetierCleaner(IDocumentCleaner[Metier]):
                 errors.append(error_msg)
 
         return entities, errors
+
+    def _dto_to_entity(self, document: IngresMetiersDocument) -> Metier:
+
+        # Extraction des activités
+        activites = []
+        if document.competences.activitesDeLEr:
+            for activite in document.competences.activitesDeLEr:
+                if activite.commentaire:
+                    activites_list = [
+                        act.strip()
+                        for act in activite.commentaire.split("!N!")
+                        if act.strip()
+                    ]
+                    activites.extend(activites_list)
+
+        # Extraction des versants
+        versants = []
+        if document.definitions.fonctionPublique.PFE == "1":
+            versants.append(Verse.FPE)
+        if document.definitions.fonctionPublique.FPT == "1":
+            versants.append(Verse.FPT)
+        if document.definitions.fonctionPublique.FPH == "1":
+            versants.append(Verse.FPH)
+
+        # Extraction des conditions particulières
+        conditions_particulieres = []
+        if document.competences.conditionsParticulieresDExerciceDAcces:
+            for (
+                condition
+            ) in document.competences.conditionsParticulieresDExerciceDAcces:
+                if condition.commentaire:
+                    conditions_particulieres.append(condition.commentaire)
+
+        return Metier(
+            id=uuid4(),
+            external_id=document.identifiant,
+            libelle=document.definitions.libelles.libelleLong,
+            description=document.definitions.definitionSynthetiqueDeLEr.definition
+            or "",
+            domaine_fonctionnel_code=document.definitions.domaineFonctionnel_Famille.codeDomaineFonctionnel,
+            versants=versants,
+            activites=activites,
+            conditions_particulieres=conditions_particulieres,
+            offer_family_code=document.definitions.domaineFonctionnel_Famille.codeFamille,
+        )

@@ -124,23 +124,23 @@ class ConcoursAdmin(admin.ModelAdmin):
 class MetierAdmin(admin.ModelAdmin):
     list_display = (
         "external_id",
-        "code_emploi_csp",
         "libelle_long",
-        "libelle_domaine_fonctionnel",
+        "code_domaine_fonctionnel",
+        "offer_family_code",
         "processed_at",
         "archived_at",
     )
     list_filter = (
-        "referenciel_metier_id",
-        "libelle_domaine_fonctionnel",
+        "code_domaine_fonctionnel",
+        "offer_family_code",
         "processed_at",
         "archived_at",
     )
     search_fields = (
         "id",
         "external_id",
-        "code_emploi_csp",
         "libelle_long",
-        "libelle_domaine_fonctionnel",
+        "code_domaine_fonctionnel",
+        "offer_family_code",
     )
     readonly_fields = [f.name for f in MetierModel._meta.get_fields()]

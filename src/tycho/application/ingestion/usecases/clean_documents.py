@@ -9,7 +9,6 @@ from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,
 )
-from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.repositories.repository_factory_interface import IRepositoryFactory
 from domain.services.document_cleaner_interface import IDocumentCleaner
 from domain.services.logger_interface import ILogger
@@ -110,40 +109,29 @@ class CleanDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
 
             repository = self.repository_factory.get_repository(document_type)
 
-            if document_type == DocumentType.METIERS:
-                metier_repository = cast(IMetierRepository, repository)
-                save_result: IUpsertResult = metier_repository.upsert_batch_rich_data(
-                    raw_documents
-                )
+            # Flux unifié pour tous les types de documents
+            cleaning_result = self.document_cleaner.clean(raw_documents)
+            cleaned_entities = cleaning_result.entities
+            cleaning_errors = cleaning_result.cleaning_errors
 
-                cleaned_count = save_result["created"] + save_result["updated"]
+            save_result: IUpsertResult = (
+                repository.upsert_batch(cast(List, cleaned_entities))
+                if cleaned_entities
+                else {"created": 0, "updated": 0, "errors": []}
+            )
 
-                results["processed"] += len(raw_documents)  # type: ignore
-                results["cleaned"] += cleaned_count  # type: ignore
-                results["created"] += save_result["created"]  # type: ignore
-                results["updated"] += save_result["updated"]  # type: ignore
-                results["errors"] += len(save_result["errors"])  # type: ignore
-                results["error_details"] += save_result["errors"]  # type: ignore[operator]
-            else:
-                cleaning_result = self.document_cleaner.clean(raw_documents)
-                cleaned_entities = cleaning_result.entities
+            results["processed"] += len(raw_documents)  # type: ignore
+            results["cleaned"] += len(cleaned_entities)  # type: ignore
+            results["created"] += save_result["created"]  # type: ignore
+            results["updated"] += save_result["updated"]  # type: ignore
 
-                other_save_result: IUpsertResult = (
-                    repository.upsert_batch(cast(List, cleaned_entities))
-                    if cleaned_entities
-                    else {"created": 0, "updated": 0, "errors": []}
-                )
+            # Compter les erreurs de nettoyage + erreurs de sauvegarde
+            total_errors = len(cleaning_errors) + len(save_result["errors"])
+            results["errors"] += total_errors  # type: ignore
 
-                results["processed"] += len(raw_documents)  # type: ignore
-                results["cleaned"] += len(cleaned_entities)  # type: ignore
-                results["created"] += other_save_result["created"]  # type: ignore
-                results["updated"] += other_save_result["updated"]  # type: ignore
-
-                cleaning_error_count = len(raw_documents) - len(cleaned_entities)
-                results["errors"] += cleaning_error_count + len(
-                    other_save_result["errors"]
-                )  # type: ignore
-                results["error_details"] += other_save_result["errors"]  # type: ignore[operator]
+            # Combiner les erreurs de nettoyage et de sauvegarde
+            all_errors = cleaning_errors + save_result["errors"]
+            results["error_details"] += all_errors  # type: ignore[operator]
 
             start += 1
 
