@@ -1,6 +1,5 @@
 import logging
 
-from django.urls import reverse_lazy
 from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema
 from huey.contrib.djhuey import HUEY
@@ -16,7 +15,7 @@ class RedocView(TemplateView):
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(
-            title="ReDoc", schema_url=reverse_lazy("api:schema"), **kwargs
+            title="ReDoc", schema_url="/static/api/schema.yaml", **kwargs
         )
 
 
