@@ -1,14 +1,10 @@
-"""PDF utilities for testing."""
+from pathlib import Path
 
 import pymupdf
+import pytest
 
 
 def create_minimal_valid_pdf() -> bytes:
-    """Create a minimal valid PDF for testing.
-
-    Returns:
-        bytes: A valid PDF document as bytes
-    """
     doc = pymupdf.open()
     page = doc.new_page()
 
@@ -23,15 +19,14 @@ def create_minimal_valid_pdf() -> bytes:
     return pdf_bytes
 
 
+@pytest.fixture
+def cv_pdf_path(tmp_path: Path) -> Path:
+    pdf_file = tmp_path / "cv.pdf"
+    pdf_file.write_bytes(create_minimal_valid_pdf())
+    return pdf_file
+
+
 def create_large_pdf(size_mb: int = 6) -> bytes:
-    """Create a large PDF for testing size limits.
-
-    Args:
-        size_mb: Target size in MB
-
-    Returns:
-        bytes: A large PDF document as bytes
-    """
     doc = pymupdf.open()
 
     target_size = size_mb * 1024 * 1024

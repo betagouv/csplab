@@ -329,7 +329,9 @@ test: \
 
 test-tycho: ## test tycho python sources
 	@echo 'test:tycho started…'
-	$(TYCHO_UV) pytest --numprocesses=logical --create-db $(ARGS)
+
+	$(TYCHO_UV) pytest --numprocesses=logical --create-db -m "not accessibility and not e2e" --cov-append --exitfirst $(ARGS)
+	$(TYCHO_UV) pytest --numprocesses=logical -m "e2e" --cov-append --cov-report markdown:tests/cov.md --exitfirst $(ARGS)
 .PHONY: test-tycho
 
 test-ocr: ## test ocr python sources
@@ -344,8 +346,13 @@ test-ingestion: ## test ingestion python sources
 
 test-a11y: ## run a11y tests with Playwright and axe-playwright-python
 	@echo 'test:a11y started…'
-	$(TYCHO_UV) pytest -m "accessibility" --numprocesses=logical --create-db --no-cov $(ARGS)
+	$(TYCHO_UV) pytest -m "accessibility" --create-db --no-cov $(ARGS)
 .PHONY: test-a11y
+
+test-e2e: ## run e2e tests with Playwright (live_server + browser)
+	@echo 'test:e2e started…'
+	$(TYCHO_UV) pytest -m "e2e" --create-db --no-cov $(ARGS)
+.PHONY: test-e2e
 
 ## MANAGE docker services
 status: ## an alias for "docker compose ps"

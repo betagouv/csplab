@@ -19,15 +19,18 @@
 {% endblock footer_description %}
 {% block footer_links %}
     <li class="fr-footer__bottom-item">
-        <a class="fr-footer__bottom-link" href="#">Accessibilité : non conforme</a>
+        <a class="fr-footer__bottom-link" href="{% url 'pages:accessibility' %}">Accessibilité : non conforme</a>
     </li>
     <li class="fr-footer__bottom-item">
-        <a class="fr-footer__bottom-link" href="#">Mentions légales</a>
+        <a class="fr-footer__bottom-link" href="{% url 'pages:legal_notices' %}">Mentions légales</a>
     </li>
     <li class="fr-footer__bottom-item">
-        <a class="fr-footer__bottom-link" href="#">Données personnelles</a>
+        <a class="fr-footer__bottom-link" href="{% url 'pages:privacy' %}">Données personnelles</a>
     </li>
     <li class="fr-footer__bottom-item">
         <a class="fr-footer__bottom-link" href="#">Gestion des cookies</a>
+    </li>
+    <li class="fr-footer__bottom-item">
+        <a class="fr-footer__bottom-link" href="{% url 'pages:terms' %}">Conditions générales d'utilisation</a>
     </li>
 {% endblock footer_links %}

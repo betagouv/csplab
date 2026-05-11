@@ -64,7 +64,7 @@
 | domain/services/text\_formatter\_interface.py                                      |        3 |        0 |    100% |
 | domain/types.py                                                                    |        2 |        0 |    100% |
 | domain/value\_objects/\_\_init\_\_.py                                              |        0 |        0 |    100% |
-| domain/value\_objects/access\_modality.py                                          |       21 |        0 |    100% |
+| domain/value\_objects/access\_modality.py                                          |       21 |        1 |     95% |
 | domain/value\_objects/category.py                                                  |        9 |        0 |    100% |
 | domain/value\_objects/competence.py                                                |        6 |        6 |      0% |
 | domain/value\_objects/contract\_type.py                                            |        7 |        1 |     86% |
@@ -134,7 +134,7 @@
 | infrastructure/gateways/candidate/\_\_init\_\_.py                                  |        0 |        0 |    100% |
 | infrastructure/gateways/candidate/query\_builder.py                                |       17 |        1 |     94% |
 | infrastructure/gateways/ingestion/\_\_init\_\_.py                                  |        0 |        0 |    100% |
-| infrastructure/gateways/ingestion/concours\_cleaner.py                             |      122 |       20 |     84% |
+| infrastructure/gateways/ingestion/concours\_cleaner.py                             |      122 |       17 |     86% |
 | infrastructure/gateways/ingestion/corps\_cleaner.py                                |      125 |       18 |     86% |
 | infrastructure/gateways/ingestion/document\_cleaner.py                             |       28 |        2 |     93% |
 | infrastructure/gateways/ingestion/load\_documents\_strategies.py                   |       20 |        1 |     95% |
@@ -170,7 +170,7 @@
 | presentation/candidate/formatters.py                                               |       30 |        2 |     93% |
 | presentation/candidate/forms/\_\_init\_\_.py                                       |        0 |        0 |    100% |
 | presentation/candidate/forms/cv\_flow.py                                           |       31 |        1 |     97% |
-| presentation/candidate/mappers.py                                                  |       89 |        9 |     90% |
+| presentation/candidate/mappers.py                                                  |       89 |        8 |     91% |
 | presentation/candidate/mixins.py                                                   |       15 |        0 |    100% |
 | presentation/candidate/presenters.py                                               |       44 |        0 |    100% |
 | presentation/candidate/tasks.py                                                    |        9 |        0 |    100% |
@@ -189,4 +189,4 @@
 | presentation/pages/\_\_init\_\_.py                                                 |        0 |        0 |    100% |
 | presentation/pages/urls.py                                                         |        4 |        0 |    100% |
 | presentation/pages/views.py                                                        |        3 |        0 |    100% |
-| **TOTAL**                                                                          | **4532** |  **468** | **90%** |
+| **TOTAL**                                                                          | **4532** |  **465** | **90%** |
