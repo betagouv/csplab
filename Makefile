@@ -333,8 +333,8 @@ test-tycho: ## test tycho python sources
 		echo '⚠️  Coverage directory not found. Creating directory structure...'; \
 		mkdir -p src/tests/cov; \
 	fi
-	$(TYCHO_UV) pytest --numprocesses=logical --create-db -m "not accessibility and not e2e" --cov-append --exitfirst $(ARGS)
-	$(TYCHO_UV) pytest --numprocesses=logical -m "e2e" --cov-append --cov-report markdown:tests/cov.md --exitfirst $(ARGS)
+	$(TYCHO_UV) pytest --numprocesses=logical --create-db -m "not accessibility and not e2e" --no-cov --exitfirst $(ARGS)
+	$(TYCHO_UV) pytest --numprocesses=logical -m "e2e" --no-cov --exitfirst $(ARGS)
 .PHONY: test-tycho
 
 test-ocr: ## test ocr python sources
@@ -343,7 +343,7 @@ test-ocr: ## test ocr python sources
 		echo '⚠️  Coverage directory not found. Creating directory structure...'; \
 		mkdir -p tests/cov; \
 	fi
-	$(OCR_UV) pytest $(ARGS)
+	$(OCR_UV) pytest --no-cov $(ARGS)
 .PHONY: test-ocr
 
 test-ingestion: ## test ingestion python sources
