@@ -121,6 +121,17 @@ class PostgresOffersRepository(IOffersRepository):
         offer_models = OfferModel.objects.all()
         return [model.to_entity() for model in offer_models]
 
+    def get_filtered(
+        self, active: bool = True, external_id_contains: str | None = None
+    ) -> list[Offer]:
+        qs = OfferModel.objects.filter(archived_at__isnull=active)
+
+        if external_id_contains:
+            qs = qs.filter(external_id__contains=external_id_contains)
+
+        qs = qs.order_by("-updated_at")
+        return [model.to_entity() for model in qs]
+
     @transaction.atomic
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]:
         qs = (

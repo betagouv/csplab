@@ -330,14 +330,13 @@ test: \
 
 test-tycho: ## test tycho python sources
 	@echo 'test:tycho started…'
-
-	$(TYCHO_UV) pytest --numprocesses=logical --create-db -m "not accessibility and not e2e" --cov-append --exitfirst $(ARGS)
-	$(TYCHO_UV) pytest --numprocesses=logical -m "e2e" --cov-append --cov-report markdown:tests/cov.md --exitfirst $(ARGS)
+	$(TYCHO_UV) pytest --numprocesses=logical --create-db -m "not accessibility and not e2e" --no-cov --exitfirst $(ARGS)
+	$(TYCHO_UV) pytest --numprocesses=logical -m "e2e" --no-cov --exitfirst $(ARGS)
 .PHONY: test-tycho
 
 test-ocr: ## test ocr python sources
 	@echo 'test:ocr started…'
-	$(OCR_UV) pytest $(ARGS)
+	$(OCR_UV) pytest --no-cov $(ARGS)
 .PHONY: test-ocr
 
 test-ingestion: ## test ingestion python sources
@@ -354,6 +353,38 @@ test-e2e: ## run e2e tests with Playwright (live_server + browser)
 	@echo 'test:e2e started…'
 	$(TYCHO_UV) pytest -m "e2e" --create-db --no-cov $(ARGS)
 .PHONY: test-e2e
+
+test-cov-tycho: ## run tycho tests with detailed HTML coverage report
+	@echo 'test:cov-tycho started…'
+	@echo 'Generating detailed HTML coverage report for tycho…'
+	@if [ ! -f "src/tycho/tests/cov_html/index.html" ]; then \
+		echo '⚠️  Coverage report not found. Creating directory structure...'; \
+		mkdir -p src/tycho/tests/cov_html; \
+	fi
+	# Run tests in two phases like test-tycho to avoid event loop conflicts
+	$(TYCHO_UV) pytest --cov=application --cov=domain --cov=infrastructure --cov=presentation --numprocesses=logical --create-db -m "not accessibility and not e2e" --cov-append --exitfirst $(ARGS)
+	$(TYCHO_UV) pytest --cov=application --cov=domain --cov=infrastructure --cov=presentation --numprocesses=logical -m "e2e" --cov-append --cov-report=html:tests/cov_html --cov-report=term-missing --exitfirst $(ARGS)
+	@echo '✅ Coverage report generated in src/tycho/tests/cov_html/'
+	@open src/tycho/tests/cov_html/index.html
+.PHONY: test-cov-tycho
+
+test-cov-ocr: ## run ocr tests with detailed HTML coverage report
+	@echo 'test:cov-ocr started…'
+	@echo 'Generating detailed HTML coverage report for ocr…'
+	@if [ ! -f "src/ocr/tests/cov_html/index.html" ]; then \
+		echo '⚠️  Coverage report not found. Creating directory structure...'; \
+		mkdir -p src/ocr/tests/cov_html; \
+	fi
+	$(OCR_UV) pytest --cov=. --cov-report=html:tests/cov_html --cov-report=term-missing $(ARGS)
+	@echo '✅ Coverage report generated in src/ocr/tests/cov_html/'
+	@open src/ocr/tests/cov_html/index.html
+.PHONY: test-cov-ocr
+
+test-cov: ## run tests with detailed HTML coverage report for all services
+test-cov: \
+  test-cov-tycho \
+  test-cov-ocr
+.PHONY: test-cov
 
 ## MANAGE docker services
 status: ## an alias for "docker compose ps"

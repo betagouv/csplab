@@ -3,6 +3,7 @@ from dependency_injector import containers, providers
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
+from application.ingestion.usecases.list_offers import ListOffersUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.load_offers import LoadOffersUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
@@ -140,5 +141,11 @@ class IngestionContainer(containers.DeclarativeContainer):
         offers_repository=offers_repository,
         document_gateway=document_gateway,
         vector_repository=vector_repository,
+        logger=logger_service,
+    )
+
+    list_offers_usecase = providers.Factory(
+        ListOffersUseCase,
+        offers_repository=offers_repository,
         logger=logger_service,
     )

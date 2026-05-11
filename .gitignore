@@ -74,6 +74,11 @@ scripts/*.csv
 *.csv
 .coverage
 
+# Coverage reports
+*/tests/cov.md
+tests/cov.md
+cov.md
+
 # Docker Compose local overrides
 docker-compose.override.yml
 
