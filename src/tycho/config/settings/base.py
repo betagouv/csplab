@@ -311,6 +311,7 @@ SPECTACULAR_SETTINGS = {
             "name": "concours",
             "description": "Ingestion des concours par import de fichiers CSV",
         },
+        {"name": "offres", "description": "Offres d'emploi de la Fonction Publique"},
     ],
 }
 

@@ -2,16 +2,16 @@ from datetime import datetime
 
 import polars as pl
 from asgiref.sync import async_to_sync
-from drf_spectacular.utils import (
-    PolymorphicProxySerializer,
-    extend_schema,
-)
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema
 from pydantic import ValidationError
 from rest_framework import status
+from rest_framework.exceptions import NotFound
+from rest_framework.generics import ListAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import Document, DocumentType
@@ -19,11 +19,17 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_DESCRIPTION,
     CONCOURS_UPLOAD_EXAMPLES,
+    LIST_OFFERS_DESCRIPTION,
+    LIST_OFFERS_EXAMPLES,
 )
+from presentation.ingestion.pagination import ListOffersPagination
 from presentation.ingestion.schemas import ConcoursRowSchema
 from presentation.ingestion.serializers import (
     ConcoursUploadResponseSerializer,
     FileErrorSerializer,
+    ListOffersErrorSerializer,
+    ListOffersFiltersSerializer,
+    ListOffersResponseSerializer,
     NoValidRowsErrorSerializer,
     ServerErrorSerializer,
     TokenErrorSerializer,
@@ -312,3 +318,48 @@ class ConcoursUploadView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+@extend_schema(
+    summary="Liste des offres",
+    description=LIST_OFFERS_DESCRIPTION,
+    examples=LIST_OFFERS_EXAMPLES,
+    tags=["offres"],
+    responses={
+        200: ListOffersResponseSerializer,
+        400: ListOffersErrorSerializer,
+        401: TokenErrorSerializer,
+        500: ServerErrorSerializer,
+    },
+)
+class OffersListView(ListAPIView):
+    pagination_class = ListOffersPagination
+    serializer_class = ListOffersResponseSerializer
+    usecase = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = create_ingestion_container()
+        self.logger = self.container.logger_service()
+        if self.usecase is None:
+            self.usecase = self.container.list_offers_usecase()
+
+    def get_queryset(self):
+        filters = ListOffersFiltersSerializer(data=self.request.query_params)
+        filters.is_valid(raise_exception=True)
+        input_data = GetFilteredOffersInput(**filters.validated_data)
+        result = self.usecase.execute(input_data)
+        return result.offers
+
+    def list(self, request, *args, **kwargs):
+        try:
+            return super().list(request, *args, **kwargs)
+        except NotFound:
+            serializer = ListOffersErrorSerializer({"error": "Page not found"})
+            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            self.logger.error("Unexpected error in OffersListView: %s", str(e))
+            serializer = ServerErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

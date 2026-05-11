@@ -158,3 +158,91 @@ CONCOURS_UPLOAD_EXAMPLES = [
         status_codes=["500"],
     ),
 ]
+
+LIST_OFFERS_DESCRIPTION = """
+# API de consultation des offres d'emploi de la Fonction Publique
+
+Cette API retourne la liste de offres correspondant à une recherche selon les 2
+critères suivants :
+
+- Candidature active / archivée
+- Référence externe de la candidature contient une chaîne de caractère spécifique
+
+Cette API est à l’usage exclusif des personnes autorisées.
+
+# Permissions
+
+L’utilisation de cette API nécessite un token d’autorisation spécifique à chaque
+utilisateur.
+
+# Limitations
+
+L’interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+"""
+
+LIST_OFFERS_EXAMPLES = [
+    OpenApiExample(
+        "Success - active offers",
+        summary="Liste des offres d'emploi actives",
+        description=(
+            "Les offres d'emploi sans date d'archivagesont retournées paginées"
+        ),
+        value={
+            "external_id": "Versant_FPE-2026-999999",
+            "title": "Responsable de la Division des Affaires Financières H/F",
+            "organization": "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)",
+            "contract_type": "TITULAIRE_CONTRACTUEL",
+            "category": "A",
+            "publication_date": "2026-04-17T14:44:49.873000+00:00",
+            "offer_url": "https://test.com/offre-emploi/2026-999999/",
+            "archived_at": None,
+        },
+        response_only=True,
+        status_codes=["200"],
+    ),
+    OpenApiExample(
+        "Success - archived offers",
+        summary="Liste des offres d'emploi archivées",
+        description=(
+            "Les offres d'emploi avec une date d'archivagesont retournées paginées"
+        ),
+        value={
+            "external_id": "Versant_FPE-2026-999999",
+            "title": "Responsable de la Division des Affaires Financières H/F",
+            "organization": "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)",
+            "contract_type": "TITULAIRE_CONTRACTUEL",
+            "category": "A",
+            "publication_date": "2026-04-17T14:44:49.873000+00:00",
+            "offer_url": "https://test.com/offre-emploi/2026-999999/",
+            "archived_at": "2026-05-17T12:42:42.873000+00:00",
+        },
+        response_only=True,
+        status_codes=["200"],
+    ),
+    OpenApiExample(
+        "Error - invalid token",
+        summary="Token JWT invalide ou expiré",
+        description="Le token dans le header `Authorization` est invalide ou expiré.",
+        value={
+            "detail": "Le jeton fourni n'est pas valide.",
+            "code": "token_not_valid",
+            "messages": [
+                {
+                    "token_class": "AccessToken",
+                    "token_type": "access",
+                    "message": "Token is invalid or expired",
+                }
+            ],
+        },
+        response_only=True,
+        status_codes=["401"],
+    ),
+    OpenApiExample(
+        "Error - unexpected server error",
+        summary="Erreur serveur inattendue",
+        description="Une erreur inattendue s'est produite côté serveur.",
+        value={"error": "Unexpected error"},
+        response_only=True,
+        status_codes=["500"],
+    ),
+]

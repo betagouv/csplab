@@ -23,6 +23,7 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
+from application.ingestion.usecases.list_offers import ListOffersUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from config.app_config import AppConfig
@@ -142,7 +143,6 @@ def create_shared_qdrant_repository():
 
 @pytest.fixture
 def match_cv_to_opportunities_usecase():
-
     logger_service = LoggerService()
 
     embedding_generator_mock = Mock()
@@ -334,5 +334,18 @@ def archive_offers_usecase():
         offers_repository=InMemoryOffersRepository(),
         document_gateway=MagicMock(),
         vector_repository=vector_repo,
+        logger=logger,
+    )
+
+
+@pytest.fixture
+def list_offers_usecase():
+    logger = MagicMock()
+    offers_repo = cast(
+        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+    )
+
+    return ListOffersUseCase(
+        offers_repository=offers_repo,
         logger=logger,
     )
