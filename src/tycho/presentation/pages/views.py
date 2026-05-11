@@ -1,4 +1,4 @@
-"""Home page view."""
+"""Static page views."""
 
 from django.views.generic import TemplateView
 
@@ -13,3 +13,9 @@ class TermsView(TemplateView):
     """Terms and conditions page."""
 
     template_name = "pages/terms.html"
+
+
+class AccessibilityView(TemplateView):
+    """Accessibility statement page."""
+
+    template_name = "pages/accessibility.html"
