@@ -17,14 +17,14 @@ The following script can be used to subscribe to `vacancy_*` events.
 cd src/tycho
 
 CALLBACK_URL="https://csplab-worker.osc-fr1.scalingo.io/webhooks/talentsoft"
-EVENTS="vacancy_new vacancy_update vacancy_deleted vacancy_status"
+EVENTS=(vacancy_new vacancy_update vacancy_deleted vacancy_status)
 
 # Get an OAuth token
-TOKEN=$(curl -s -d "client_id=${TYCHO_TALENTSOFT_BACK_CLIENT_ID}&client_secret=${TYCHO_TALENTSOFT_BACK_CLIENT_SECRET}&grant_type=client_credentials&scope=Customer" -X POST "${TYCHO_TALENTSOFT_BACK_BASE_URL}api/token" | jq .access_token)
+TOKEN=$(curl -s -d "client_id=${TYCHO_TALENTSOFT_BACK_CLIENT_ID}&client_secret=${TYCHO_TALENTSOFT_BACK_CLIENT_SECRET}&grant_type=client_credentials&scope=Customer" -X POST "${TYCHO_TALENTSOFT_BACK_BASE_URL}api/token" | jq -r '.access_token')
 
 # Subscribe $CALLBACK_URL to these events
-for event in $EVENTS; do
-    echo "Registering $event..."
+for event in "${EVENTS[@]}"; do
+    echo "Registering $event…"
     curl -s -o /dev/null -w "%{http_code}" \
       -H "Authorization: Bearer ${TOKEN}" \
       -H "Content-Type: application/json" \
