@@ -15,7 +15,7 @@ def verify_talentsoft_signature(request: Request) -> None:
     settings = get_settings()
 
     client_id = request.query_params.get("client_id")
-    expires = request.query_params.get("expires")
+    expires = request.headers.get("x-ts-rec-expires")
     signature = request.query_params.get("signature")
 
     if not client_id or not expires or not signature:

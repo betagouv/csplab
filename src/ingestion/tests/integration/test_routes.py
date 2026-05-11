@@ -17,6 +17,8 @@ WEBHOOK_PATH = "/webhooks/talentsoft"
 @pytest.fixture
 def test_client(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
+    monkeypatch.delenv("TALENTSOFT_CLIENT_ID", raising=False)
+    monkeypatch.delenv("TALENTSOFT_CLIENT_SECRET", raising=False)
     app = create_app()
     return TestClient(app)
 
@@ -37,7 +39,8 @@ def _make_signature(
     body: bytes = b"",
     ts_rec_headers: dict[str, str] | None = None,
 ) -> str:
-    expires = next(v for k, v in query_items if k == "expires")
+    all_ts_rec = ts_rec_headers or {}
+    expires = next(v for k, v in all_ts_rec.items() if k.lower() == "x-ts-rec-expires")
 
     content_md5 = (
         base64.b64encode(hashlib.md5(body).digest()).decode()  # noqa: S324
@@ -47,7 +50,7 @@ def _make_signature(
 
     canonicalized_headers_list = sorted(
         (name.lower(), value.strip())
-        for name, value in (ts_rec_headers or {}).items()
+        for name, value in all_ts_rec.items()
         if name.lower().startswith("x-ts-rec-")
     )
     canonicalized_headers = "".join(
@@ -75,10 +78,14 @@ def _make_signature(
     return urllib.parse.quote(base64.b64encode(digest).decode("utf-8"))
 
 
-def _valid_query_items(expires: int | None = None) -> list[tuple[str, str]]:
+def _valid_query_items() -> list[tuple[str, str]]:
+    return [("client_id", TALENTSOFT_CLIENT_ID)]
+
+
+def _valid_ts_rec_headers(expires: int | None = None) -> dict[str, str]:
     if expires is None:
         expires = int(time.time()) + 300
-    return [("client_id", TALENTSOFT_CLIENT_ID), ("expires", str(expires))]
+    return {"X-TS-REC-Expires": str(expires)}
 
 
 @pytest.mark.asyncio
@@ -91,10 +98,15 @@ async def test_health_endpoint(test_client):
 @pytest.mark.asyncio
 async def test_talentsoft_webhook_valid_signature(talentsoft_client):
     query_items = _valid_query_items()
-    signature = _make_signature(WEBHOOK_PATH, query_items)
+    ts_rec_headers = _valid_ts_rec_headers()
+    signature = _make_signature(
+        WEBHOOK_PATH, query_items, ts_rec_headers=ts_rec_headers
+    )
     query_items.append(("signature", signature))
 
-    response = talentsoft_client.post(WEBHOOK_PATH, params=query_items)
+    response = talentsoft_client.post(
+        WEBHOOK_PATH, params=query_items, headers=ts_rec_headers
+    )
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
@@ -106,8 +118,13 @@ async def test_talentsoft_webhook_valid_signature_with_content_type_and_md5(
     body = b'{"event": "candidate.created"}'
     content_type = "application/json"
     query_items = _valid_query_items()
+    ts_rec_headers = _valid_ts_rec_headers()
     signature = _make_signature(
-        WEBHOOK_PATH, query_items, content_type=content_type, body=body
+        WEBHOOK_PATH,
+        query_items,
+        content_type=content_type,
+        body=body,
+        ts_rec_headers=ts_rec_headers,
     )
     query_items.append(("signature", signature))
     content_md5 = base64.b64encode(hashlib.md5(body).digest()).decode()  # noqa: S324
@@ -116,7 +133,11 @@ async def test_talentsoft_webhook_valid_signature_with_content_type_and_md5(
         WEBHOOK_PATH,
         params=query_items,
         content=body,
-        headers={"Content-Type": content_type, "Content-MD5": content_md5},
+        headers={
+            "Content-Type": content_type,
+            "Content-MD5": content_md5,
+            **ts_rec_headers,
+        },
     )
     assert response.status_code == 200
 
@@ -127,6 +148,7 @@ async def test_talentsoft_webhook_valid_signature_with_ts_rec_headers(
 ):
     query_items = _valid_query_items()
     ts_rec_headers = {
+        "X-TS-REC-Expires": str(int(time.time()) + 300),
         "X-TS-REC-Event": "candidate.created",
         "X-TS-REC-TraceId": "abc123",
     }
@@ -151,25 +173,32 @@ async def test_talentsoft_webhook_missing_signature_params(talentsoft_client):
 @pytest.mark.asyncio
 async def test_talentsoft_webhook_expired_signature(talentsoft_client):
     past_expires = int(time.time()) - 60
-    query_items = _valid_query_items(expires=past_expires)
-    signature = _make_signature(WEBHOOK_PATH, query_items)
+    query_items = _valid_query_items()
+    ts_rec_headers = _valid_ts_rec_headers(expires=past_expires)
+    signature = _make_signature(
+        WEBHOOK_PATH, query_items, ts_rec_headers=ts_rec_headers
+    )
     query_items.append(("signature", signature))
 
-    response = talentsoft_client.post(WEBHOOK_PATH, params=query_items)
+    response = talentsoft_client.post(
+        WEBHOOK_PATH, params=query_items, headers=ts_rec_headers
+    )
     assert response.status_code == 403
     assert response.json()["detail"] == "Signature has expired"
 
 
 @pytest.mark.asyncio
 async def test_talentsoft_webhook_invalid_client_id(talentsoft_client):
-    query_items = [
-        ("client_id", "wrong_client"),
-        ("expires", str(int(time.time()) + 300)),
-    ]
-    signature = _make_signature(WEBHOOK_PATH, query_items)
+    query_items = [("client_id", "wrong_client")]
+    ts_rec_headers = _valid_ts_rec_headers()
+    signature = _make_signature(
+        WEBHOOK_PATH, query_items, ts_rec_headers=ts_rec_headers
+    )
     query_items.append(("signature", signature))
 
-    response = talentsoft_client.post(WEBHOOK_PATH, params=query_items)
+    response = talentsoft_client.post(
+        WEBHOOK_PATH, params=query_items, headers=ts_rec_headers
+    )
     assert response.status_code == 403
     assert response.json()["detail"] == "Invalid client_id"
 
@@ -179,7 +208,9 @@ async def test_talentsoft_webhook_invalid_signature(talentsoft_client):
     query_items = _valid_query_items()
     query_items.append(("signature", "invalidsignature"))
 
-    response = talentsoft_client.post(WEBHOOK_PATH, params=query_items)
+    response = talentsoft_client.post(
+        WEBHOOK_PATH, params=query_items, headers=_valid_ts_rec_headers()
+    )
     assert response.status_code == 403
     assert response.json()["detail"] == "Invalid signature"
 
@@ -189,6 +220,8 @@ async def test_talentsoft_webhook_unconfigured_credentials(test_client):
     query_items = _valid_query_items()
     query_items.append(("signature", "any"))
 
-    response = test_client.post(WEBHOOK_PATH, params=query_items)
+    response = test_client.post(
+        WEBHOOK_PATH, params=query_items, headers=_valid_ts_rec_headers()
+    )
     assert response.status_code == 500
     assert response.json()["detail"] == "TalentSoft credentials not configured"
