@@ -32,6 +32,7 @@ setup: ## copy example env files to local files
 	@cp env.d/tycho-example env.d/tycho
 	@cp env.d/ocr-example env.d/ocr
 	@cp env.d/notebook-example env.d/notebook
+	@cp env.d/ingestion-example env.d/ingestion
 	@cp env.d/postgresql-example env.d/postgresql
 	@cp env.d/redis-example env.d/redis
 	@cd src/tycho && direnv allow
