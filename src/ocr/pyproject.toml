@@ -47,7 +47,6 @@ ocr = { path = ".", editable = true }
 [tool.setuptools.packages.find]
 include = ["api*", "domain*", "application*", "infrastructure*"]
 [tool.pytest.ini_options]
-addopts = "--cov=api --cov=domain --cov=application --cov=infrastructure --cov-report markdown:tests/cov/cov.md"
 asyncio_mode = "auto"
 python_files = [
     "test_*.py",
