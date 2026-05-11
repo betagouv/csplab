@@ -7,6 +7,7 @@ COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
 
 TYCHO_UV = cd src/tycho && direnv exec .
 OCR_UV = cd src/ocr && direnv exec .
+INGESTION_UV = cd src/ingestion && direnv exec .
 NOTEBOOK_UV = cd src/notebook && direnv exec .
 DEV_UV = cd dev && direnv exec .
 
@@ -27,6 +28,7 @@ setup: ## copy example env files to local files
 	@cp src/tycho/.envrc.sample src/tycho/.envrc
 	@cp src/notebook/.envrc.sample src/notebook/.envrc
 	@cp src/ocr/.envrc.sample src/ocr/.envrc
+	@cp src/ingestion/.envrc.sample src/ingestion/.envrc
 	@cp env.d/tycho-example env.d/tycho
 	@cp env.d/ocr-example env.d/ocr
 	@cp env.d/notebook-example env.d/notebook
@@ -35,6 +37,7 @@ setup: ## copy example env files to local files
 	@cd src/tycho && direnv allow
 	@cd src/ocr && direnv allow
 	@cd src/notebook && direnv allow
+	@cd src/ingestion && direnv allow
 	@echo "✅ Environment files copied. Please edit env.d/* with your actual values."
 .PHONY: setup
 
@@ -64,7 +67,8 @@ build: \
   build-dev \
   build-tycho \
   build-ocr \
-  build-notebook
+  build-notebook \
+  build-ingestion
 .PHONY: build
 
 build-dev: ## build development environment image
@@ -74,6 +78,10 @@ build-dev: ## build development environment image
 build-notebook: ### setup notebook kernels natively
 	@$(NOTEBOOK_UV) uv sync --locked
 .PHONY: build-notebook
+
+build-ingestion: ### setup ingestion API
+	@$(INGESTION_UV) uv sync --locked
+.PHONY: build-ingestion
 
 build-tycho: ## build tycho image
 	# not using @ which suppress the command's echoing in terminal
@@ -154,24 +162,30 @@ run-ocr: ## run the ocr service
 	$(OCR_UV) uvicorn api.main:app --reload --port=8001
 .PHONY: run-ocr
 
+run-ingestion: ## run the ingestion service
+	$(INGESTION_UV) uvicorn api.main:app --reload --port=8002
+.PHONY: run-ingestion
+
 dev: ## run tycho with sass watch and browser auto-reload
 	@rm -rf src/tycho/static_collected/
-	@echo "🚀 Starting development server with auto-reload..."
+	@echo "🚀 Starting development server with auto-reload…"
 	@echo "   Press Ctrl+C to stop all processes"
 	@trap 'kill 0' EXIT; \
 	bin/sass watch & \
 	bin/manage runserver
 .PHONY: dev
 
-run-mvp: ## run tycho + ocr + huey with unified logs
-	@echo "🚀 Démarrage des services frontend tycho + ocr..."
+run-mvp: ## run tycho + ocr + ingestion + huey with unified logs
+	@echo "🚀 Démarrage des services frontend tycho + ocr + ingestion…"
 	@echo "   Huey is immediate, without periodic task in dev"
 	@echo "   Appuyez sur Ctrl+C pour arrêter tous les services"
 	@echo "   Tycho: http://localhost:8000"
 	@echo "   OCR: http://localhost:8001"
+	@echo "   Ingestion: http://localhost:8002"
 	@trap 'kill 0' EXIT; \
 	bin/manage runserver & \
-	$(OCR_UV) uvicorn api.main:app --reload --port=8001 & \
+	make run-ocr & \
+	make run-ingestion & \
 	wait
 .PHONY: run-mvp
 
@@ -181,14 +195,16 @@ lint: ## lint all sources
 lint: \
   lint-notebook \
   lint-tycho \
-  lint-ocr
+  lint-ocr \
+  lint-ingestion
 .PHONY: lint
 
 lint-fix: ## lint and fix all sources
 lint-fix: \
   lint-notebook-fix \
   lint-tycho-fix \
-  lint-ocr-fix
+  lint-ocr-fix \
+  lint-ingestion-fix
 .PHONY: lint-fix
 
 # -- Per-service linting
@@ -251,6 +267,12 @@ lint-ocr: \
   lint-ocr-mypy
 .PHONY: lint-ocr
 
+lint-ingestion: ## lint ingestion python sources
+lint-ingestion: \
+  lint-ingestion-ruff \
+  lint-ingestion-mypy
+.PHONY: lint-ingestion
+
 lint-ocr-fix: ## lint and fix ocr python sources
 lint-ocr-fix: \
   lint-ocr-ruff-fix \
@@ -274,11 +296,35 @@ lint-ocr-mypy: ## lint ocr python sources with mypy
 	$(OCR_UV) mypy .
 .PHONY: lint-ocr-mypy
 
+lint-ingestion-fix: ## lint and fix ingestion python sources
+lint-ingestion-fix: \
+  lint-ingestion-ruff-fix \
+  lint-ingestion-mypy
+.PHONY: lint-ingestion-fix
+
+lint-ingestion-ruff: ## lint ingestion python sources with ruff (check only, like CI)
+	@echo 'lint:ingestion-ruff started…'
+	$(INGESTION_UV) ruff check .
+	$(INGESTION_UV) ruff format --check .
+.PHONY: lint-ingestion-ruff
+
+lint-ingestion-ruff-fix: ## lint and fix ingestion python sources with ruff
+	@echo 'lint:ingestion-ruff-fix started…'
+	$(INGESTION_UV) ruff check --fix .
+	$(INGESTION_UV) ruff format .
+.PHONY: lint-ingestion-ruff-fix
+
+lint-ingestion-mypy: ## lint ingestion python sources with mypy
+	@echo 'lint:ingestion-mypy started…'
+	$(INGESTION_UV) mypy .
+.PHONY: lint-ingestion-mypy
+
 ## TEST
 test: ## test all services
 test: \
   test-tycho \
-  test-ocr
+  test-ocr \
+  test-ingestion
 .PHONY: test
 
 test-tycho: ## test tycho python sources
@@ -292,6 +338,11 @@ test-ocr: ## test ocr python sources
 	@echo 'test:ocr started…'
 	$(OCR_UV) pytest $(ARGS)
 .PHONY: test-ocr
+
+test-ingestion: ## test ingestion python sources
+	@echo 'test:ingestion started…'
+	$(INGESTION_UV) pytest $(ARGS)
+.PHONY: test-ingestion
 
 test-a11y: ## run a11y tests with Playwright and axe-playwright-python
 	@echo 'test:a11y started…'
