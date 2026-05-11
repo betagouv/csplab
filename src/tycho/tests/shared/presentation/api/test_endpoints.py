@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import pytest
+import yaml
 from django.urls import reverse
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -38,9 +41,11 @@ class TestSchemaEndpoint:
         [
             ("api:health_huey", False),
             ("ingestion:concours_upload", True),
+            ("ingestion:offers_list, True"),
         ],
     )
-    def test_schema_path_visibility(self, api_client, name, expected_in_schema):
-        response = api_client.get(reverse("api:schema"))
-        assert response.status_code == status.HTTP_200_OK
-        assert (reverse(name) in response.data.get("paths", {})) == expected_in_schema
+    def tet_schema_path_visibility(self, name, expected_in_schema):
+        schema_path = Path("presentation/static/api/schema.yaml")
+        schema = yaml.safe_load(schema_path.read_text())
+        paths = schema.get("paths", {})
+        assert (reverse(name) in paths) == expected_in_schema
