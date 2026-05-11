@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     sentry_profiles_sample_rate: float | None = 0.1
     sentry_traces_sample_rate: float | None = 0.1
 
+    talentsoft_client_id: str | None = None
+    talentsoft_client_secret: str | None = None
+
 
 class TestSettings(Settings):
     model_config = SettingsConfigDict(env_file=None)
