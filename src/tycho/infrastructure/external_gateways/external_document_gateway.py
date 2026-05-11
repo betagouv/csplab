@@ -175,19 +175,29 @@ class ExternalDocumentGateway(IDocumentGateway):
         reference = external_id.split("-", 1)[-1]
 
         async with self.talentsoft_front_client:
+            now = datetime.now(timezone.utc)
             try:
                 raw_doc = await self.talentsoft_front_client.get_detail(reference)
+                raw_data = raw_doc.model_dump()
+                error_msg = None
+                processed_at = None
             except Exception as e:
                 self.logger.error(
                     "Failed to fetch detail %s %s: %s", document_type, external_id, e
                 )
-                raise
-            now = datetime.now(timezone.utc)
+                # QUICK Fix, do not raise anymore
+                # add error_msg
+                # set processed_at to exclude it from cleaning
+                raw_data = {}
+                error_msg = str(e)
+                processed_at = now
             return Document(
                 external_id=external_id,
-                raw_data=raw_doc.model_dump(),
+                raw_data=raw_data,
                 type=document_type,
                 created_at=now,
+                error_msg=error_msg,
+                processed_at=processed_at,
             )
 
     async def get_archived_documents_by_period(
