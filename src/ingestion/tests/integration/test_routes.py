@@ -75,7 +75,7 @@ def _make_signature(
 
     secret = TALENTSOFT_CLIENT_SECRET.encode("utf-8")
     digest = hmac.new(secret, string_to_sign.encode("utf-8"), hashlib.sha1).digest()
-    return urllib.parse.quote(base64.b64encode(digest).decode("utf-8"))
+    return base64.b64encode(digest).decode("utf-8")
 
 
 def _valid_query_items() -> list[tuple[str, str]]:
@@ -213,6 +213,31 @@ async def test_talentsoft_webhook_invalid_signature(talentsoft_client):
     )
     assert response.status_code == 403
     assert response.json()["detail"] == "Invalid signature"
+
+
+@pytest.mark.asyncio
+async def test_talentsoft_webhook_signature_with_raw_plus(talentsoft_client):
+    # Talentsoft sends the signature with unencoded '+' in the URL.
+    # Find an expires value that produces a '+' in the base64 signature.
+    query_items = _valid_query_items()
+    ts_rec_headers = None
+    signature = None
+    for offset in range(1000):
+        expires = int(time.time()) + 300 + offset
+        headers = _valid_ts_rec_headers(expires=expires)
+        sig = _make_signature(WEBHOOK_PATH, query_items, ts_rec_headers=headers)
+        if "+" in sig:
+            ts_rec_headers = headers
+            signature = sig
+            break
+    assert signature is not None and "+" in signature
+
+    # Build the URL with a raw '+' (not %2B) to replicate Talentsoft's behavior.
+    raw_query = urllib.parse.urlencode(query_items) + "&signature=" + signature
+    response = talentsoft_client.post(
+        f"{WEBHOOK_PATH}?{raw_query}", headers=ts_rec_headers
+    )
+    assert response.status_code == 200
 
 
 @pytest.mark.asyncio

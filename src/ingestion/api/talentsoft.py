@@ -16,7 +16,12 @@ def verify_talentsoft_signature(request: Request) -> None:
 
     client_id = request.query_params.get("client_id")
     expires = request.headers.get("x-ts-rec-expires")
-    signature = request.query_params.get("signature")
+    # Extract signature from the raw query string: request.query_params decodes
+    # '+' as space (form-encoding), corrupting base64 signatures that contain '+'.
+    signature = None
+    for part in request.url.query.split("&"):
+        if part.startswith("signature="):
+            signature = urllib.parse.unquote(part[len("signature=") :])
 
     if not client_id or not expires or not signature:
         raise HTTPException(status_code=403, detail="Missing signature parameters")
@@ -76,6 +81,5 @@ def verify_talentsoft_signature(request: Request) -> None:
     digest = hmac.new(secret, string_to_sign.encode("utf-8"), hashlib.sha1).digest()
     computed = base64.b64encode(digest).decode("utf-8")
 
-    received = urllib.parse.unquote(signature)
-    if not hmac.compare_digest(computed, received):
+    if not hmac.compare_digest(computed, signature):
         raise HTTPException(status_code=403, detail="Invalid signature")
