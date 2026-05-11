@@ -25,3 +25,9 @@ class PrivacyView(TemplateView):
     """Privacy policy page."""
 
     template_name = "pages/privacy.html"
+
+
+class LegalNoticesView(TemplateView):
+    """Legal notices page."""
+
+    template_name = "pages/legal_notices.html"
