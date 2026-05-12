@@ -1,11 +1,12 @@
 import logging
 
-import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
+from pydantic import ValidationError
 
-from api.config import get_settings
+from api.dependencies import get_archive_offer_use_case
 from api.talentsoft import verify_talentsoft_signature
-from api.webhook import TalentsoftWebhookPayload, should_archive
+from application.use_cases.archive_offer import ArchiveOfferUseCase
+from presentation.dtos.talentsoft_webhook import TalentsoftWebhookPayload, should_archive
 
 logger = logging.getLogger(__name__)
 
@@ -20,14 +21,21 @@ def health():
 @public_router.post(
     "/webhooks/talentsoft", dependencies=[Depends(verify_talentsoft_signature)]
 )
-async def talentsoft_webhook(request: Request):
+async def talentsoft_webhook(
+    request: Request,
+    use_case: ArchiveOfferUseCase = Depends(get_archive_offer_use_case),
+):
     body = await request.body()
     logger.info("TalentSoft webhook received", extra={"body": body.decode()})
 
     if not body:
         return {"status": "ok"}
 
-    payload = TalentsoftWebhookPayload.model_validate_json(body)
+    try:
+        payload = TalentsoftWebhookPayload.model_validate_json(body)
+    except ValidationError:
+        logger.warning("Unrecognised TalentSoft webhook payload, ignoring")
+        return {"status": "ok"}
 
     if not should_archive(payload):
         return {"status": "ok"}
@@ -36,15 +44,5 @@ async def talentsoft_webhook(request: Request):
         logger.warning("Archive event received without reference, skipping")
         return {"status": "ok"}
 
-    settings = get_settings()
-    if not settings.web_base_url or not settings.web_api_key:
-        raise HTTPException(status_code=500, detail="Web service not configured")
-
-    url = f"{settings.web_base_url}/api/offers/{payload.reference}/archive"
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            url, headers={"Authorization": f"Api-Key {settings.web_api_key}"}
-        )
-        response.raise_for_status()
-
+    await use_case.execute(payload.reference)
     return {"status": "ok"}
