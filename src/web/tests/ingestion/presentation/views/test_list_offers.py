@@ -121,11 +121,11 @@ def test_returns_error_500(mock_container, authenticated_client):
 @patch("presentation.ingestion.views.IngestionPagination.page_size", new=2)
 @patch("presentation.ingestion.views.create_ingestion_container")
 def test_pagination_page_arg(mock_container, authenticated_client):
-    num_offers = 3
+    num_offers = 5
     offers = [OfferFactory.create_entity() for _ in range(num_offers)]
 
     _make_paginated_mock(
-        mock_container, num_offers=len(offers), offers_slice=offers[2:]
+        mock_container, num_offers=len(offers), offers_slice=offers[2:4]
     )
 
     response = authenticated_client.get(URL, {"page": 2, "dummy": "arg", "active": 1})
@@ -134,18 +134,25 @@ def test_pagination_page_arg(mock_container, authenticated_client):
     data = response.json()
 
     assert data["count"] == num_offers
-    assert len(data["results"]) == 1
+    assert len(data["results"]) == 2  # noqa
 
-    parsed = urlparse(data["previous"])
-    assert parsed.path == "/api/data/offers/"
-    assert parse_qs(parsed.query) == {
+    parsed_previous = urlparse(data["previous"])
+    assert parsed_previous.path == "/api/data/offers/"
+    assert parse_qs(parsed_previous.query) == {
         "page": ["1"],
         "dummy": ["arg"],
         "active": ["1"],
         "size": ["2"],
     }
 
-    assert data["next"] is None
+    parsed_next = urlparse(data["next"])
+    assert parsed_next.path == "/api/data/offers/"
+    assert parse_qs(parsed_next.query) == {
+        "page": ["3"],
+        "dummy": ["arg"],
+        "active": ["1"],
+        "size": ["2"],
+    }
 
 
 @patch("presentation.ingestion.views.IngestionPagination.page_size", new=2)
