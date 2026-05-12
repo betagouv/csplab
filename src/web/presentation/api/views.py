@@ -69,12 +69,11 @@ class ArchiveOffersView(APIView):
 
     def post(self, request, reference: str):
         container = create_ingestion_container()
-        offers_repository = container.offers_repository()
+        use_case = container.archive_offer_by_reference_usecase()
         try:
-            offer = offers_repository.get_by_reference(reference)
+            use_case.execute(reference)
         except OfferDoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        offers_repository.mark_as_archived([offer])
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
 
 

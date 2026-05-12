@@ -6,7 +6,10 @@ from pydantic import ValidationError
 from api.dependencies import get_archive_offer_use_case
 from api.talentsoft import verify_talentsoft_signature
 from application.use_cases.archive_offer import ArchiveOfferUseCase
-from presentation.dtos.talentsoft_webhook import TalentsoftWebhookPayload, should_archive
+from presentation.dtos.talentsoft_webhook import (
+    TalentsoftWebhookPayload,
+    should_archive,
+)
 
 logger = logging.getLogger(__name__)
 

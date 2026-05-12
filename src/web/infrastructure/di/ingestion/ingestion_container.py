@@ -1,6 +1,9 @@
 from dependency_injector import containers, providers
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
+from application.ingestion.usecases.archive_offer_by_reference import (
+    ArchiveOfferByReferenceUseCase,
+)
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.list_offers import ListOffersUseCase
@@ -148,4 +151,9 @@ class IngestionContainer(containers.DeclarativeContainer):
         ListOffersUseCase,
         offers_repository=offers_repository,
         logger=logger_service,
+    )
+
+    archive_offer_by_reference_usecase = providers.Factory(
+        ArchiveOfferByReferenceUseCase,
+        offers_repository=offers_repository,
     )
