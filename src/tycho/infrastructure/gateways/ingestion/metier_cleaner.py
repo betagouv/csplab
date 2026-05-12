@@ -120,5 +120,5 @@ class MetierCleaner(IDocumentCleaner[Metier]):
             versants=versants,
             activites=activites,
             conditions_particulieres=conditions_particulieres,
-            offer_family_code=document.definitions.domaineFonctionnel_Famille.codeFamille,
+            offer_family_code=document.definitions.emploiDeReferenceCSP.codeEmploiCSP,
         )
