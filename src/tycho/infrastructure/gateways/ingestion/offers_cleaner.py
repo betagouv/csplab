@@ -55,7 +55,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             try:
                 offer = self._map_talentsoft_to_offer(talentsoft_offer)
                 offers_list.append(offer)
-                self.logger.info(
+                self.logger.debug(
                     f"Successfully processed offer {talentsoft_offer.reference}"
                 )
             except (ValueError, ValidationError) as e:
