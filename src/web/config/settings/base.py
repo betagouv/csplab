@@ -26,6 +26,7 @@ env = environ.Env(
     WEB_OCR_API_KEY=(str, "fake-ocr-api-key"),
     WEB_OCR_BASE_URL=(str, "https://fake-ocr.example.com"),
     WEB_OPIK_API_KEY=(str, "opik-api-key"),
+    WEB_INGESTION_API_KEY=(str, "fake-ingestion-api-key"),
     WEB_TALENTSOFT_BACK_CLIENT_ID=(str, "fake-client-id"),
     WEB_TALENTSOFT_BACK_CLIENT_SECRET=(str, "fake-client-secret"),
     WEB_TALENTSOFT_BACK_BASE_URL=(str, "https://fake-talentsoft-back.example.com"),
@@ -371,6 +372,8 @@ TALENTSOFT_BACK_CLIENT_SECRET = env.str("TALENTSOFT_BACK_CLIENT_SECRET")
 
 TALLY_FORM_ID_RESULTS = env.str("TALLY_FORM_ID_RESULTS")
 TALLY_FORM_ID_NO_RESULTS = env.str("TALLY_FORM_ID_NO_RESULTS")
+
+INGESTION_API_KEY = env.str("INGESTION_API_KEY")
 
 # Qdrant vector database
 QDRANT_URL = env.str("QDRANT_URL")

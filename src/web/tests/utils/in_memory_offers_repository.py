@@ -1,3 +1,5 @@
+from dataclasses import replace
+from datetime import UTC, datetime
 from typing import Dict, List
 from uuid import UUID
 
@@ -57,6 +59,12 @@ class InMemoryOffersRepository(IOffersRepository):
             raise OfferDoesNotExist(external_id)
         return self._offers[offer_id]
 
+    def get_by_reference(self, reference: str) -> Offer:
+        for offer in self._offers.values():
+            if offer.external_id.endswith(f"-{reference}"):
+                return offer
+        raise OfferDoesNotExist(reference)
+
     def get_by_external_ids(selk, external_ids: List[str]) -> List[Offer]:
         return []
 
@@ -77,4 +85,12 @@ class InMemoryOffersRepository(IOffersRepository):
         return 0
 
     def mark_as_archived(self, offers_list: List[Offer]) -> int:
-        return 0
+        count = 0
+        for offer in offers_list:
+            if offer.id in self._offers and self._offers[offer.id].archived_at is None:
+                archived = replace(
+                    self._offers[offer.id], archived_at=datetime.now(UTC)
+                )
+                self._offers[offer.id] = archived
+                count += 1
+        return count

@@ -26,6 +26,8 @@ TALENTSOFT_BACK_BASE_URL = "https://fake-talentsoft-back.example.com"
 TALENTSOFT_BACK_CLIENT_ID = "fake-client-id"
 TALENTSOFT_BACK_CLIENT_SECRET = "fake-client-secret"  # noqa S105
 
+INGESTION_API_KEY = "test-ingestion-api-key"
+
 SENTRY_DNS = "example.com"
 
 HUEY["immediate"] = False  # noqa: F405

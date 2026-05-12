@@ -286,6 +286,42 @@ paths:
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
+  /api/offers/{reference}/archive/:
+    post:
+      operationId: offers_archive_create
+      description: Archive une offre selon sa référence. Accepte une authentification
+        JWT ou par clé d'API.
+      summary: Archiver une offre par référence
+      parameters:
+      - in: path
+        name: reference
+        schema:
+          type: string
+        required: true
+      tags:
+      - offres
+      security:
+      - jwtAuth: []
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchiveOfferSuccess'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchiveOfferUnauthorized'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchiveOfferNotFound'
+          description: ''
   /api/token/:
     post:
       operationId: token_create
@@ -342,6 +378,27 @@ paths:
           description: ''
 components:
   schemas:
+    ArchiveOfferNotFound:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
+    ArchiveOfferSuccess:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+      - status
+    ArchiveOfferUnauthorized:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     ConcoursUpload400Error:
       oneOf:
       - $ref: '#/components/schemas/FileError'
@@ -531,6 +588,11 @@ components:
       - error
       - row
   securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'API key authentication. Use the format: `Api-Key <key>`.'
     jwtAuth:
       type: http
       scheme: bearer
