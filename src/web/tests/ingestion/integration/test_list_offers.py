@@ -81,7 +81,31 @@ def test_list_offers_result(
         input_data=input_data
     )
 
-    assert {offer.external_id for offer in result.offers} == {
+    assert {offer.external_id for offer in result.page._qs} == {
+        offers[key].external_id for key in expected_keys
+    }
+
+
+@pytest.mark.parametrize(
+    "offset,limit,expected_keys",
+    [
+        pytest.param(0, 1, ["active_other"], id="sliced"),
+        pytest.param(0, 2, ["active_expected", "active_other"], id="sliced_all"),
+        pytest.param(10, 10, [], id="sliced_out_of_bounds"),
+    ],
+)
+def test_list_offers_page_slice(
+    documents_integration_container, offers, offset, limit, expected_keys
+):
+    input_data = GetFilteredOffersInput(active=True, external_id_contains=None)
+    result = documents_integration_container.list_offers_usecase().execute(
+        input_data=input_data
+    )
+
+    assert result.page.count() == len(["active_expected", "active_other"])
+
+    sliced = list(result.page.slice(offset=offset, limit=limit))
+    assert {offer.external_id for offer in sliced} == {
         offers[key].external_id for key in expected_keys
     }
 
@@ -90,7 +114,7 @@ def test_get_filtered_raises_error(db, documents_integration_container):
     shared_container = documents_integration_container.shared_container()
     offers_repo = shared_container.offers_repository()
 
-    offers_repo.get_filtered = MagicMock(side_effect=Exception("db error"))
+    offers_repo.get_filtered_qs = MagicMock(side_effect=Exception("db error"))
 
     with pytest.raises(Exception, match="db error"):
         input_data = GetFilteredOffersInput(active=True, external_id_contains=None)
