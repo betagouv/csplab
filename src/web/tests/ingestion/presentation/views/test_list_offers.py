@@ -137,7 +137,7 @@ def test_pagination_page_arg(mock_container, authenticated_client):
     assert len(data["results"]) == 2  # noqa
 
     parsed_previous = urlparse(data["previous"])
-    assert parsed_previous.path == "/api/data/offers/"
+    assert parsed_previous.path == URL
     assert parse_qs(parsed_previous.query) == {
         "page": ["1"],
         "dummy": ["arg"],
@@ -146,7 +146,7 @@ def test_pagination_page_arg(mock_container, authenticated_client):
     }
 
     parsed_next = urlparse(data["next"])
-    assert parsed_next.path == "/api/data/offers/"
+    assert parsed_next.path == URL
     assert parse_qs(parsed_next.query) == {
         "page": ["3"],
         "dummy": ["arg"],
@@ -171,7 +171,7 @@ def test_pagination_out_of_bond(mock_container, authenticated_client):
     assert data["results"] == []
 
     parsed = urlparse(data["previous"])
-    assert parsed.path == "/api/data/offers/"
+    assert parsed.path == URL
     assert parse_qs(parsed.query) == {
         "page": ["2"],
         "size": ["2"],
