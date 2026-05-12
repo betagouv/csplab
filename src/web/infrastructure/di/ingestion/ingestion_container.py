@@ -156,4 +156,5 @@ class IngestionContainer(containers.DeclarativeContainer):
     archive_offer_by_reference_usecase = providers.Factory(
         ArchiveOfferByReferenceUseCase,
         offers_repository=offers_repository,
+        vector_repository=vector_repository,
     )
