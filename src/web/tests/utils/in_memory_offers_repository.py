@@ -60,9 +60,6 @@ class InMemoryOffersRepository(IOffersRepository):
         return self._offers[offer_id]
 
     def get_by_reference(self, reference: str) -> Offer:
-        for offer in self._offers.values():
-            if offer.external_id.endswith(f"-{reference}"):
-                return offer
         raise OfferDoesNotExist(reference)
 
     def get_by_external_ids(selk, external_ids: List[str]) -> List[Offer]:
