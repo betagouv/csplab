@@ -24,7 +24,8 @@ def mock_container(use_case):
     container = MagicMock()
     container.archive_offer_by_reference_usecase.return_value = use_case
     with patch(
-        "presentation.api.views.create_ingestion_container", return_value=container
+        "presentation.ingestion.views.create_ingestion_container",
+        return_value=container,
     ):
         yield container
 

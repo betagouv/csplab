@@ -1,27 +1,11 @@
 import logging
 
 from django.views.generic import TemplateView
-from drf_spectacular.utils import (
-    PolymorphicProxySerializer,
-    extend_schema,
-    extend_schema_view,
-    inline_serializer,
-)
+from drf_spectacular.utils import extend_schema
 from huey.contrib.djhuey import HUEY
-from rest_framework import serializers as drf_serializers
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
-
-from domain.exceptions.offer_errors import OfferDoesNotExist
-from infrastructure.authentication.api_key_authentication import (
-    ApiKeyAuthentication,
-    UserRateThrottleExceptApiKey,
-)
-from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
-from presentation.ingestion.serializers import TokenErrorSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -33,56 +17,6 @@ class RedocView(TemplateView):
         return super().get_context_data(
             title="ReDoc", schema_url="/static/api/schema.yaml", **kwargs
         )
-
-
-class ArchiveOfferSuccessSerializer(drf_serializers.Serializer):
-    status = drf_serializers.CharField()
-
-
-@extend_schema_view(
-    post=extend_schema(
-        request=None,
-        summary="Archiver une offre par référence",
-        description=(
-            "Archive une offre selon sa référence. "
-            "Accepte une authentification JWT ou par clé d'API."
-        ),
-        tags=["offres"],
-        responses={
-            200: ArchiveOfferSuccessSerializer,
-            401: PolymorphicProxySerializer(
-                component_name="ArchiveOffer401Error",
-                serializers=[
-                    TokenErrorSerializer,
-                    inline_serializer(
-                        name="ArchiveOfferUnauthorized",
-                        fields={"detail": drf_serializers.CharField()},
-                    ),
-                ],
-                resource_type_field_name=None,
-            ),
-            404: inline_serializer(
-                name="ArchiveOfferNotFound",
-                fields={"detail": drf_serializers.CharField()},
-            ),
-        },
-    )
-)
-class ArchiveOffersView(APIView):
-    authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
-    permission_classes = [IsAuthenticated]
-    throttle_classes = [UserRateThrottleExceptApiKey]
-
-    serializer_class = ArchiveOfferSuccessSerializer
-
-    def post(self, request, reference: str):
-        container = create_ingestion_container()
-        use_case = container.archive_offer_by_reference_usecase()
-        try:
-            use_case.execute(reference)
-        except OfferDoesNotExist:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        return Response({"status": "ok"}, status=status.HTTP_200_OK)
 
 
 @extend_schema(exclude=True)

@@ -4,7 +4,8 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from presentation.api.views import ArchiveOffersView, HueyHealthView, RedocView
+from presentation.api.views import HueyHealthView, RedocView
+from presentation.ingestion.views import ArchiveOffersView
 
 app_name = "api"
 
