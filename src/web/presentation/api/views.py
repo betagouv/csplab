@@ -64,8 +64,7 @@ class ArchiveOffersView(APIView):
     permission_classes = [IsAuthenticated]
     throttle_classes = [UserRateThrottleExceptApiKey]
 
-    def get_serializer_class(self):
-        return ArchiveOfferSuccessSerializer
+    serializer_class = ArchiveOfferSuccessSerializer
 
     def post(self, request, reference: str):
         container = create_ingestion_container()
