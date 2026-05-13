@@ -57,6 +57,9 @@ class InMemoryOffersRepository(IOffersRepository):
             raise OfferDoesNotExist(external_id)
         return self._offers[offer_id]
 
+    def get_by_reference(self, reference: str) -> Offer:
+        raise OfferDoesNotExist(reference)
+
     def get_by_external_ids(selk, external_ids: List[str]) -> List[Offer]:
         return []
 

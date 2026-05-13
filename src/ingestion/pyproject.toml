@@ -37,7 +37,7 @@ url = "https://pypi.org/simple"
 ingestion = { path = ".", editable = true }
 
 [tool.setuptools.packages.find]
-include = ["api*"]
+include = ["api*", "application*", "presentation*"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 python_files = [
@@ -74,6 +74,9 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "api/routes.py" = [
+    "B008", # Function call in argument defaults (acceptable for FastAPI)
+]
+"api/dependencies.py" = [
     "B008", # Function call in argument defaults (acceptable for FastAPI)
 ]
 "**/tests/*" = [
