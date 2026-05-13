@@ -26,6 +26,7 @@ class OfferFactory:
         contract_type: ContractType | None = None,
         verse: Verse = Verse.FPE,
         external_id: str | None = None,
+        family_code: str | None = None,
         profile: str = "Test profile description",
         mission: str = "Test mission description",
         organization: str = "Test Organization",
@@ -53,6 +54,7 @@ class OfferFactory:
             beginning_date=LimitDate(datetime(2024, 12, 31, tzinfo=UTC)),
             processed_at=None,
             archived_at=archived_at,
+            family_code=family_code,
         )
 
     @staticmethod
@@ -72,6 +74,7 @@ class OfferFactory:
         country: Optional[str] = None,
         region: Optional[str] = None,
         department: Optional[str] = None,
+        family_code: Optional[str] = None,
         updated_at: Optional[datetime] = None,
         processing: bool = False,
         processed_at: Optional[datetime] = None,
@@ -111,6 +114,7 @@ class OfferFactory:
             organization=organization or "Test Organization",
             offer_url=offer_url,
             localisation=localisation,
+            family_code=family_code,
             publication_date=publication_date,
             beginning_date=beginning_date,
             processing=processing,

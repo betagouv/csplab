@@ -49,10 +49,15 @@ class OffersCleaner(IDocumentCleaner[Offer]):
                 cleaning_errors.append({"entity_id": reference, "error": e})
 
         offers_list = []
+        self.logger.info(f"Processing {len(validated_offers)} validated offers")
         for talentsoft_offer in validated_offers:
+            self.logger.info(f"Processing offer {talentsoft_offer.reference}")
             try:
                 offer = self._map_talentsoft_to_offer(talentsoft_offer)
                 offers_list.append(offer)
+                self.logger.debug(
+                    f"Successfully processed offer {talentsoft_offer.reference}"
+                )
             except (ValueError, ValidationError) as e:
                 error_msg = (
                     f"Validation failed for offer{talentsoft_offer.reference}: {e}"
@@ -111,6 +116,11 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             else None
         )
 
+        family_code_value = None
+
+        if talentsoft_offer.offerFamilyCategory:
+            family_code_value = talentsoft_offer.offerFamilyCategory.clientCode
+
         offer = Offer(
             external_id=f"{ts_verse}-{talentsoft_offer.reference}"
             if ts_verse
@@ -126,6 +136,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             localisation=localisation,
             publication_date=publication_date,
             beginning_date=beginning_date,
+            family_code=family_code_value,
         )
         try:
             existing_offer = self.offers_repository.get_by_external_id(

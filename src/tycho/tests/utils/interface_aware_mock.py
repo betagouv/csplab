@@ -46,19 +46,19 @@ def create_interface_aware_mock(interface_class):
             if is_async:
 
                 async def async_auto_generated_method(*args, **kwargs):
-                    result = self._get_return_value(return_type, args)
+                    result = self._get_return_value(return_type, args, **kwargs)
                     return result
 
                 return async_auto_generated_method
             else:
 
                 def sync_auto_generated_method(*args, **kwargs):
-                    result = self._get_return_value(return_type, args)
+                    result = self._get_return_value(return_type, args, **kwargs)
                     return result
 
                 return sync_auto_generated_method
 
-        def _get_return_value(self, return_type, args):
+        def _get_return_value(self, return_type, args, **kwargs):  # noqa
             if return_type is None or return_type is type(None):
                 return self._handle_none_return_type(args)
 
@@ -69,6 +69,27 @@ def create_interface_aware_mock(interface_class):
             if origin is tuple:
                 return (list(self._storage.values()), False)
             if origin is list:
+                filters = None
+                if len(args) >= OPTIONAL_UNION_LENGTH and isinstance(args[1], dict):
+                    filters = args[1]
+                elif len(args) >= 1 and isinstance(args[0], dict):
+                    filters = args[0]
+
+                if filters:
+                    filtered_results = []
+                    for entity in self._storage.values():
+                        match = True
+                        for key, value in filters.items():
+                            if (
+                                not hasattr(entity, key)
+                                or getattr(entity, key) != value
+                            ):
+                                match = False
+                                break
+                        if match:
+                            filtered_results.append(entity)
+                    return filtered_results
+
                 return list(self._storage.values())
 
             if origin is type(Union) or str(origin) == "typing.Union":
@@ -78,7 +99,7 @@ def create_interface_aware_mock(interface_class):
                     and type(None) in args_types
                 ):
                     actual_type = next(t for t in args_types if t is not type(None))
-                    return self._get_return_value(actual_type, args)
+                    return self._get_return_value(actual_type, args, **kwargs)
 
             return (
                 self._handle_typed_dict_return(return_type, args)

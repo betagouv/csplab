@@ -40,6 +40,7 @@ class OfferModel(models.Model):
     )
     organization = models.CharField(max_length=500)
     offer_url = models.URLField(null=True, blank=True)
+    code_emploi_csp = models.CharField(max_length=50, null=True, blank=True)
 
     # Localisation fields stored separately
     country = models.CharField(max_length=3, null=True, blank=True)
@@ -101,6 +102,7 @@ class OfferModel(models.Model):
             processing=self.processing,
             processed_at=self.processed_at,
             archived_at=self.archived_at,
+            family_code=self.code_emploi_csp,
         )
 
     @classmethod
@@ -142,6 +144,7 @@ class OfferModel(models.Model):
             country=country,
             region=region,
             department=department,
+            code_emploi_csp=offer.family_code,
             publication_date=offer.publication_date,
             beginning_date=beginning_date,
             processing=offer.processing,
