@@ -20,7 +20,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger("qdrant-setup")
-vector_size = int(os.getenv("TYCHO_EMBEDDING_DIMENSION", "1024"))
+vector_size = int(os.getenv("WEB_EMBEDDING_DIMENSION", "1024"))
 
 
 def wait_for_qdrant(url: str, max_retries: int = 30, delay: int = 2) -> bool:

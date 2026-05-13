@@ -1,2 +1,2 @@
-dotenv ../../env.d/tycho
+dotenv ../../env.d/web
 source .venv/bin/activate

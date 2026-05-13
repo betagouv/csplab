@@ -9,7 +9,7 @@ from domain.services.logger_interface import ILogger
 class LoggerService(ILogger):
     """Centralized logger service."""
 
-    def __init__(self, name: str = "tycho"):
+    def __init__(self, name: str = "web"):
         """Initialize logger service.
 
         Args:
@@ -26,7 +26,7 @@ class LoggerService(ILogger):
         Returns:
             Configured logger instance
         """
-        return logging.getLogger(f"tycho.{module_name}")
+        return logging.getLogger(f"web.{module_name}")
 
     def info(self, message: str, *args: Any) -> None:
         """Log info message."""
