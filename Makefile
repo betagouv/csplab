@@ -5,7 +5,7 @@ SHELL := /bin/bash
 COMPOSE                 = docker compose
 COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
 
-TYCHO_UV = cd src/tycho && direnv exec .
+WEB_UV = cd src/web && direnv exec .
 OCR_UV = cd src/ocr && direnv exec .
 INGESTION_UV = cd src/ingestion && direnv exec .
 NOTEBOOK_UV = cd src/notebook && direnv exec .
@@ -25,17 +25,17 @@ default: help
 
 ### BOOTSTRAP
 setup: ## copy example env files to local files
-	@cp src/tycho/.envrc.sample src/tycho/.envrc
+	@cp src/web/.envrc.sample src/web/.envrc
 	@cp src/notebook/.envrc.sample src/notebook/.envrc
 	@cp src/ocr/.envrc.sample src/ocr/.envrc
 	@cp src/ingestion/.envrc.sample src/ingestion/.envrc
-	@cp env.d/tycho-example env.d/tycho
+	@cp env.d/web-example env.d/web
 	@cp env.d/ocr-example env.d/ocr
 	@cp env.d/notebook-example env.d/notebook
 	@cp env.d/ingestion-example env.d/ingestion
 	@cp env.d/postgresql-example env.d/postgresql
 	@cp env.d/redis-example env.d/redis
-	@cd src/tycho && direnv allow
+	@cd src/web && direnv allow
 	@cd src/ocr && direnv allow
 	@cd src/notebook && direnv allow
 	@cd src/ingestion && direnv allow
@@ -66,7 +66,7 @@ git-hooks: \
 build: ## build services image
 build: \
   build-dev \
-  build-tycho \
+  build-web \
   build-ocr \
   build-notebook \
   build-ingestion
@@ -84,17 +84,17 @@ build-ingestion: ### setup ingestion API
 	@$(INGESTION_UV) uv sync --locked
 .PHONY: build-ingestion
 
-build-tycho: ## build tycho image
+build-web: ## build web image
 	# not using @ which suppress the command's echoing in terminal
-	$(TYCHO_UV) uv sync --group dev --locked
-.PHONY: build-tycho
+	$(WEB_UV) uv sync --group dev --locked
+.PHONY: build-web
 
 build-ocr:
 	$(OCR_UV) uv sync --group dev --locked
 .PHONY: build-ocr
 playwright-install: ## install Playwright browsers
 	@echo 'Installing Playwright browsers…'
-	$(TYCHO_UV) uv run playwright install chromium
+	$(WEB_UV) uv run playwright install chromium
 .PHONY: playwright-install
 
 jupytext--to-md: ## convert local ipynb files into md
@@ -110,19 +110,19 @@ logs: ## display all services logs (follow mode)
 	@$(COMPOSE) logs -f
 .PHONY: logs
 
-migrate: ## migrate tycho database
-	@echo "Migrating tycho database…"
+migrate: ## migrate web database
+	@echo "Migrating web database…"
 	@bin/manage migrate
 .PHONY: migrate
 
-create-superuser: ## create tycho super user
-	@echo "Creating tycho super user…"
+create-superuser: ## create web super user
+	@echo "Creating web super user…"
 	@bin/manage createsuperuser --noinput || true
 .PHONY: create-superuser
 
 setup-qdrant: ## setup qdrant collection if not exists
 	@echo "Setting up Qdrant collection…"
-	@$(TYCHO_UV) python config/setup-qdrant.py
+	@$(WEB_UV) python config/setup-qdrant.py
 .PHONY: setup-qdrant
 
 ### SASS
@@ -151,9 +151,9 @@ run-redis: ## run the redis service
 	set -a && source env.d/redis && $(COMPOSE_UP) redis
 .PHONY: run-redis
 
-run-tycho: ## run the tycho service
+run-web: ## run the web service
 	@bin/manage runserver
-.PHONY: run-tycho
+.PHONY: run-web
 
 run-huey: ## run the task queue
 	@bin/manage run_huey
@@ -167,8 +167,8 @@ run-ingestion: ## run the ingestion service
 	$(INGESTION_UV) uvicorn api.main:app --reload --port=8002
 .PHONY: run-ingestion
 
-dev: ## run tycho with sass watch and browser auto-reload
-	@rm -rf src/tycho/static_collected/
+dev: ## run web with sass watch and browser auto-reload
+	@rm -rf src/web/static_collected/
 	@echo "🚀 Starting development server with auto-reload…"
 	@echo "   Press Ctrl+C to stop all processes"
 	@trap 'kill 0' EXIT; \
@@ -176,11 +176,11 @@ dev: ## run tycho with sass watch and browser auto-reload
 	bin/manage runserver
 .PHONY: dev
 
-run-mvp: ## run tycho + ocr + ingestion + huey with unified logs
-	@echo "🚀 Démarrage des services frontend tycho + ocr + ingestion…"
+run-mvp: ## run web + ocr + ingestion + huey with unified logs
+	@echo "🚀 Démarrage des services frontend web + ocr + ingestion…"
 	@echo "   Huey is immediate, without periodic task in dev"
 	@echo "   Appuyez sur Ctrl+C pour arrêter tous les services"
-	@echo "   Tycho: http://localhost:8000"
+	@echo "   Web: http://localhost:8000"
 	@echo "   OCR: http://localhost:8001"
 	@echo "   Ingestion: http://localhost:8002"
 	@trap 'kill 0' EXIT; \
@@ -195,7 +195,7 @@ run-mvp: ## run tycho + ocr + ingestion + huey with unified logs
 lint: ## lint all sources
 lint: \
   lint-notebook \
-  lint-tycho \
+  lint-web \
   lint-ocr \
   lint-ingestion
 .PHONY: lint
@@ -203,7 +203,7 @@ lint: \
 lint-fix: ## lint and fix all sources
 lint-fix: \
   lint-notebook-fix \
-  lint-tycho-fix \
+  lint-web-fix \
   lint-ocr-fix \
   lint-ingestion-fix
 .PHONY: lint-fix
@@ -221,46 +221,46 @@ lint-notebook-fix: ## lint and fix notebook python sources
 	$(NOTEBOOK_UV) ruff format . || true
 .PHONY: lint-notebook-fix
 
-lint-tycho: ## lint tycho python sources
-lint-tycho: \
-  lint-tycho-ruff \
-  lint-tycho-djlint \
-  lint-tycho-mypy
-.PHONY: lint-tycho
+lint-web: ## lint web python sources
+lint-web: \
+  lint-web-ruff \
+  lint-web-djlint \
+  lint-web-mypy
+.PHONY: lint-web
 
-lint-tycho-fix: ## lint and fix tycho python sources
-lint-tycho-fix: \
-  lint-tycho-ruff-fix \
-  lint-tycho-djlint-fix \
-  lint-tycho-mypy
-.PHONY: lint-tycho-fix
+lint-web-fix: ## lint and fix web python sources
+lint-web-fix: \
+  lint-web-ruff-fix \
+  lint-web-djlint-fix \
+  lint-web-mypy
+.PHONY: lint-web-fix
 
-lint-tycho-ruff: ## lint tycho python sources with ruff (check only, like CI)
-	@echo 'lint:tycho-ruff started…'
-	$(TYCHO_UV) ruff check .
-	$(TYCHO_UV) ruff format --check .
-.PHONY: lint-tycho-ruff
+lint-web-ruff: ## lint web python sources with ruff (check only, like CI)
+	@echo 'lint:web-ruff started…'
+	$(WEB_UV) ruff check .
+	$(WEB_UV) ruff format --check .
+.PHONY: lint-web-ruff
 
-lint-tycho-ruff-fix: ## lint and fix tycho python sources with ruff
-	@echo 'lint:tycho-ruff-fix started…'
-	$(TYCHO_UV) ruff check --fix .
-	$(TYCHO_UV) ruff format .
-.PHONY: lint-tycho-ruff-fix
+lint-web-ruff-fix: ## lint and fix web python sources with ruff
+	@echo 'lint:web-ruff-fix started…'
+	$(WEB_UV) ruff check --fix .
+	$(WEB_UV) ruff format .
+.PHONY: lint-web-ruff-fix
 
-lint-tycho-djlint: ## lint tycho template sources with djlint
-	@echo 'lint:tycho-djlint started…'
-	$(TYCHO_UV) djlint presentation/templates --check
-.PHONY: lint-tycho-djlint
+lint-web-djlint: ## lint web template sources with djlint
+	@echo 'lint:web-djlint started…'
+	$(WEB_UV) djlint presentation/templates --check
+.PHONY: lint-web-djlint
 
-lint-tycho-djlint-fix: ## lint and fix tycho template sources with djlint
-	@echo 'lint:tycho-djlint-fix started…'
-	$(TYCHO_UV) djlint presentation/templates --reformat
-.PHONY: lint-tycho-djlint-fix
+lint-web-djlint-fix: ## lint and fix web template sources with djlint
+	@echo 'lint:web-djlint-fix started…'
+	$(WEB_UV) djlint presentation/templates --reformat
+.PHONY: lint-web-djlint-fix
 
-lint-tycho-mypy: ## lint tycho python sources with mypy
-	@echo 'lint:tycho-mypy started…'
-	$(TYCHO_UV) mypy .
-.PHONY: lint-tycho-mypy
+lint-web-mypy: ## lint web python sources with mypy
+	@echo 'lint:web-mypy started…'
+	$(WEB_UV) mypy .
+.PHONY: lint-web-mypy
 
 lint-ocr: ## lint ocr python sources
 lint-ocr: \
@@ -323,16 +323,16 @@ lint-ingestion-mypy: ## lint ingestion python sources with mypy
 ## TEST
 test: ## test all services
 test: \
-  test-tycho \
+  test-web \
   test-ocr \
   test-ingestion
 .PHONY: test
 
-test-tycho: ## test tycho python sources
-	@echo 'test:tycho started…'
-	$(TYCHO_UV) pytest --numprocesses=logical --create-db -m "not accessibility and not e2e" --no-cov --exitfirst $(ARGS)
-	$(TYCHO_UV) pytest --numprocesses=logical -m "e2e" --no-cov --exitfirst $(ARGS)
-.PHONY: test-tycho
+test-web: ## test web python sources
+	@echo 'test:web started…'
+	$(WEB_UV) pytest --numprocesses=logical --create-db -m "not accessibility and not e2e" --no-cov --exitfirst $(ARGS)
+	$(WEB_UV) pytest --numprocesses=logical -m "e2e" --no-cov --exitfirst $(ARGS)
+.PHONY: test-web
 
 test-ocr: ## test ocr python sources
 	@echo 'test:ocr started…'
@@ -346,27 +346,27 @@ test-ingestion: ## test ingestion python sources
 
 test-a11y: ## run a11y tests with Playwright and axe-playwright-python
 	@echo 'test:a11y started…'
-	$(TYCHO_UV) pytest -m "accessibility" --create-db --no-cov $(ARGS)
+	$(WEB_UV) pytest -m "accessibility" --create-db --no-cov $(ARGS)
 .PHONY: test-a11y
 
 test-e2e: ## run e2e tests with Playwright (live_server + browser)
 	@echo 'test:e2e started…'
-	$(TYCHO_UV) pytest -m "e2e" --create-db --no-cov $(ARGS)
+	$(WEB_UV) pytest -m "e2e" --create-db --no-cov $(ARGS)
 .PHONY: test-e2e
 
-test-cov-tycho: ## run tycho tests with detailed HTML coverage report
-	@echo 'test:cov-tycho started…'
-	@echo 'Generating detailed HTML coverage report for tycho…'
-	@if [ ! -f "src/tycho/tests/cov_html/index.html" ]; then \
+test-cov-web: ## run web tests with detailed HTML coverage report
+	@echo 'test:cov-web started…'
+	@echo 'Generating detailed HTML coverage report for web…'
+	@if [ ! -f "src/web/tests/cov_html/index.html" ]; then \
 		echo '⚠️  Coverage report not found. Creating directory structure...'; \
-		mkdir -p src/tycho/tests/cov_html; \
+		mkdir -p src/web/tests/cov_html; \
 	fi
-	# Run tests in two phases like test-tycho to avoid event loop conflicts
-	$(TYCHO_UV) pytest --cov=application --cov=domain --cov=infrastructure --cov=presentation --numprocesses=logical --create-db -m "not accessibility and not e2e" --cov-append --exitfirst $(ARGS)
-	$(TYCHO_UV) pytest --cov=application --cov=domain --cov=infrastructure --cov=presentation --numprocesses=logical -m "e2e" --cov-append --cov-report=html:tests/cov_html --cov-report=term-missing --exitfirst $(ARGS)
-	@echo '✅ Coverage report generated in src/tycho/tests/cov_html/'
-	@open src/tycho/tests/cov_html/index.html
-.PHONY: test-cov-tycho
+	# Run tests in two phases like test-web to avoid event loop conflicts
+	$(WEB_UV) pytest --cov=application --cov=domain --cov=infrastructure --cov=presentation --numprocesses=logical --create-db -m "not accessibility and not e2e" --cov-append --exitfirst $(ARGS)
+	$(WEB_UV) pytest --cov=application --cov=domain --cov=infrastructure --cov=presentation --numprocesses=logical -m "e2e" --cov-append --cov-report=html:tests/cov_html --cov-report=term-missing --exitfirst $(ARGS)
+	@echo '✅ Coverage report generated in src/web/tests/cov_html/'
+	@open src/web/tests/cov_html/index.html
+.PHONY: test-cov-web
 
 test-cov-ocr: ## run ocr tests with detailed HTML coverage report
 	@echo 'test:cov-ocr started…'
@@ -382,7 +382,7 @@ test-cov-ocr: ## run ocr tests with detailed HTML coverage report
 
 test-cov: ## run tests with detailed HTML coverage report for all services
 test-cov: \
-  test-cov-tycho \
+  test-cov-web \
   test-cov-ocr
 .PHONY: test-cov
 
