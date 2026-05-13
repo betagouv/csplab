@@ -2,6 +2,7 @@ import logging
 
 from django.views.generic import TemplateView
 from drf_spectacular.utils import (
+    PolymorphicProxySerializer,
     extend_schema,
     extend_schema_view,
     inline_serializer,
@@ -20,6 +21,7 @@ from infrastructure.authentication.api_key_authentication import (
     UserRateThrottleExceptApiKey,
 )
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from presentation.ingestion.serializers import TokenErrorSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +50,16 @@ class ArchiveOfferSuccessSerializer(drf_serializers.Serializer):
         tags=["offres"],
         responses={
             200: ArchiveOfferSuccessSerializer,
-            401: inline_serializer(
-                name="ArchiveOfferUnauthorized",
-                fields={"detail": drf_serializers.CharField()},
+            401: PolymorphicProxySerializer(
+                component_name="ArchiveOffer401Error",
+                serializers=[
+                    TokenErrorSerializer,
+                    inline_serializer(
+                        name="ArchiveOfferUnauthorized",
+                        fields={"detail": drf_serializers.CharField()},
+                    ),
+                ],
+                resource_type_field_name=None,
             ),
             404: inline_serializer(
                 name="ArchiveOfferNotFound",

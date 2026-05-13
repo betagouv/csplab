@@ -314,7 +314,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ArchiveOfferUnauthorized'
+                $ref: '#/components/schemas/ArchiveOffer401Error'
           description: ''
         '404':
           content:
@@ -378,6 +378,10 @@ paths:
           description: ''
 components:
   schemas:
+    ArchiveOffer401Error:
+      oneOf:
+      - $ref: '#/components/schemas/TokenError'
+      - $ref: '#/components/schemas/ArchiveOfferUnauthorized'
     ArchiveOfferNotFound:
       type: object
       properties:
