@@ -52,11 +52,11 @@ class TestUpsertBatch:
     def test_datetime_on_upsert(self, db, repository):
         offer = OfferFactory.create_model()
         offer_to_update = OfferFactory.create_model()
-        new_offer = OfferFactory.create_model(save_in_db=False)
+        new_offer_entity = OfferFactory.create_entity()
 
         offers = [
             OfferModel.to_entity(offer_to_update),
-            OfferModel.to_entity(new_offer),
+            new_offer_entity,
         ]
 
         timestamps = {
@@ -69,7 +69,9 @@ class TestUpsertBatch:
 
         OfferModel.objects.get(external_id=offer.external_id)
         OfferModel.objects.get(external_id=offer_to_update.external_id)
-        assert not OfferModel.objects.filter(external_id=new_offer.external_id).exists()
+        assert not OfferModel.objects.filter(
+            external_id=new_offer_entity.external_id
+        ).exists()
 
         repository.upsert_batch(offers)
 
@@ -83,7 +85,9 @@ class TestUpsertBatch:
         assert offer_to_update.created_at == created_at
         assert offer_to_update.updated_at > updated_at
 
-        assert OfferModel.objects.filter(external_id=new_offer.external_id).exists()
+        assert OfferModel.objects.filter(
+            external_id=new_offer_entity.external_id
+        ).exists()
 
     def test_upsert_raises_error(self, db, repository):
         with pytest.raises(DatabaseError):
@@ -95,10 +99,10 @@ class TestUpsertBatch:
         assert result == {"created": 0, "updated": 0, "errors": []}
 
     def test_multiple_offers_success(self, db, repository):
-        offers = OfferFactory.create_model_batch(2) + [
-            OfferFactory.create_model(save_in_db=False)
+        offers = OfferFactory.create_model_batch(2)
+        entities = [OfferModel.to_entity(offer) for offer in offers] + [
+            OfferFactory.create_entity()
         ]
-        entities = [OfferModel.to_entity(offer) for offer in offers]
 
         result = repository.upsert_batch(entities)
 

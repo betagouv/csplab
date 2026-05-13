@@ -72,7 +72,9 @@ def test_call_without_arg(mock_container, authenticated_client):
         assert result["publication_date"] == "2024-01-15T00:00:00Z"
         assert result["offer_url"] == offer.offer_url
         if offer.archived_at:
-            assert result["archived_at"] == offer.archived_at.isoformat() + "Z"
+            assert result["archived_at"] == offer.archived_at.isoformat(
+                timespec="microseconds"
+            ).replace("+00:00", "Z")
         else:
             assert result["archived_at"] is None
 
