@@ -1,5 +1,3 @@
-from dataclasses import replace
-from datetime import UTC, datetime
 from typing import Dict, List
 from uuid import UUID
 
@@ -82,12 +80,4 @@ class InMemoryOffersRepository(IOffersRepository):
         return 0
 
     def mark_as_archived(self, offers_list: List[Offer]) -> int:
-        count = 0
-        for offer in offers_list:
-            if offer.id in self._offers and self._offers[offer.id].archived_at is None:
-                archived = replace(
-                    self._offers[offer.id], archived_at=datetime.now(UTC)
-                )
-                self._offers[offer.id] = archived
-                count += 1
-        return count
+        return 0
