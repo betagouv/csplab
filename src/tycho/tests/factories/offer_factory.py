@@ -20,38 +20,53 @@ from infrastructure.django_apps.shared.models.offer import OfferModel
 class OfferFactory:
     @staticmethod
     def create_entity(
-        title: str = "Test Offer Title",
+        title: str | None = None,
         department: str = "75",
-        category: Category = Category.A,
+        region: str | None = None,
+        country: str | None = None,
+        category: Category | None = None,
         contract_type: ContractType | None = None,
-        verse: Verse = Verse.FPE,
+        verse: Verse | None = None,
         external_id: str | None = None,
+        profile: str | None = None,
+        mission: str | None = None,
+        organization: str | None = None,
         family_code: str | None = None,
-        profile: str = "Test profile description",
-        mission: str = "Test mission description",
-        organization: str = "Test Organization",
         offer_url: HttpUrl | None = None,
         localisation: Localisation | None = None,
+        publication_date: datetime | None = None,
+        beginning_date: LimitDate | None = None,
         archived_at: datetime | None = None,
     ) -> Offer:
-        return Offer(
-            external_id=external_id or f"OFFER_{uuid4().hex[:8]}",
-            verse=verse,
-            title=title,
-            profile=profile,
-            mission=mission,
-            category=category,
-            contract_type=contract_type,
-            organization=organization,
-            offer_url=offer_url,
-            localisation=localisation
-            or Localisation(
+        if archived_at:
+            archived_at = timezone.make_aware(archived_at)
+
+        if localisation is None and country and region and department:
+            localisation = Localisation(
+                country=Country(country),
+                region=Region(code=region),
+                department=Department(code=department),
+            )
+        else:
+            localisation = Localisation(
                 country=Country("FRA"),
                 region=Region(code="11"),
                 department=Department(code=department),
-            ),
-            publication_date=datetime(2024, 1, 15, tzinfo=UTC),
-            beginning_date=LimitDate(datetime(2024, 12, 31, tzinfo=UTC)),
+            )
+        return Offer(
+            external_id=external_id or f"OFFER_{uuid4().hex[:8]}",
+            verse=verse or Verse.FPE,
+            title=title or "Test Offer Title",
+            profile=profile or "Test profile description",
+            mission=mission or "Test mission description",
+            category=category or Category.A,
+            contract_type=contract_type,
+            organization=organization or "Test Organization",
+            offer_url=offer_url,
+            localisation=localisation,
+            publication_date=publication_date or datetime(2024, 1, 15, tzinfo=UTC),
+            beginning_date=beginning_date
+            or LimitDate(datetime(2024, 12, 31, tzinfo=UTC)),
             processed_at=None,
             archived_at=archived_at,
             family_code=family_code,
@@ -79,59 +94,37 @@ class OfferFactory:
         processing: bool = False,
         processed_at: Optional[datetime] = None,
         archived_at: Optional[datetime] = None,
-        save_in_db: Optional[bool] = True,
     ) -> OfferModel:
-        if external_id is None:
-            external_id = (
-                f"test_offer_{timezone.make_aware(datetime.now()).timestamp()}"
-            )
-
-        if publication_date is None:
-            publication_date = timezone.make_aware(datetime.now())
-
         if processed_at:
             processed_at = timezone.make_aware(processed_at)
 
-        if archived_at:
-            archived_at = timezone.make_aware(archived_at)
-
-        if localisation is None and country and region and department:
-            localisation = Localisation(
-                country=Country(country),
-                region=Region(code=region),
-                department=Department(code=department),
-            )
-
-        offer = Offer(
-            id=uuid4(),
+        offer = OfferFactory.create_entity(
             external_id=external_id,
             verse=verse,
-            title=title or "Test Offer Title",
-            profile=profile or "Test profile description",
-            mission=mission or "Test mission description",
+            title=title,
+            profile=profile,
+            mission=mission,
             category=category,
             contract_type=contract_type,
-            organization=organization or "Test Organization",
+            organization=organization,
             offer_url=offer_url,
             localisation=localisation,
             family_code=family_code,
             publication_date=publication_date,
             beginning_date=beginning_date,
-            processing=processing,
-            processed_at=processed_at,
             archived_at=archived_at,
         )
 
         offer_model = OfferModel.from_entity(offer)
+        offer_model.processing = processing
+        offer_model.processed_at = processed_at
+        offer_model.save()
 
-        if save_in_db:
-            offer_model.save()
-
-            if updated_at:
-                OfferModel.objects.filter(id=offer.id).update(
-                    updated_at=timezone.make_aware(updated_at)
-                )
-                offer_model.refresh_from_db()
+        if updated_at:
+            OfferModel.objects.filter(id=offer.id).update(
+                updated_at=timezone.make_aware(updated_at)
+            )
+            offer_model.refresh_from_db()
 
         return offer_model
 
