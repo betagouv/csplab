@@ -50,10 +50,7 @@ def test_execute_get_offer_details(db, candidate_container):
     offers_repo = candidate_container.shared_container.offers_repository()
     offers_repo.upsert_batch([offer])
 
-    metier_repo = candidate_container.shared_container.metiers_repository()
-    metier_model = MetierFactory.create_model(offer_family_code="ERJUR011")
-    metier = metier_model.to_entity()
-    metier_repo.upsert_batch([metier])
+    MetierFactory.create_model(offer_family_code="ERJUR011")
 
     usecase = candidate_container.get_opportunity_details_usecase()
     result_offer, result_metiers = usecase.execute(

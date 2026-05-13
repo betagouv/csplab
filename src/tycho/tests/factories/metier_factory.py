@@ -84,54 +84,28 @@ class MetierFactory(DataclassFactory[Metier]):
     def create_model(
         id: Optional[UUID] = None,
         external_id: Optional[str] = None,
-        libelle_long: Optional[str] = None,
-        definition_synthetique: Optional[str] = None,
-        code_domaine_fonctionnel: Optional[str] = None,
-        offer_family_code: Optional[str] = None,
+        libelle: Optional[str] = None,
+        description: Optional[str] = None,
+        domaine_fonctionnel_code: Optional[str] = None,
         versants: Optional[List[Verse]] = None,
         activites: Optional[List[str]] = None,
         conditions_particulieres: Optional[List[str]] = None,
+        offer_family_code: Optional[str] = None,
     ) -> MetierModel:
-        if id is None:
-            id = uuid4()
 
-        if external_id is None:
-            external_id = str(id)[:8]
-
-        if libelle_long is None:
-            libelle_long = fake.word()
-
-        if definition_synthetique is None:
-            definition_synthetique = fake.sentence()
-
-        if code_domaine_fonctionnel is None:
-            code_domaine_fonctionnel = fake.random_element(["JUR", "TRA", "MED"])
-
-        if offer_family_code is None:
-            offer_family_code = fake.bothify("????????").upper()
-
-        if versants is None:
-            versants = [Verse.FPE, Verse.FPT]
-
-        if activites is None:
-            activites = []
-            activites.append(
-                fake.sentence(),
-            )
-
-        if conditions_particulieres is None:
-            conditions_particulieres = [fake.sentence()]
-
-        versants_values = [verse.value for verse in versants] if versants else None
-
-        return MetierModel(
-            id=id,
-            external_id=external_id,
-            libelle_long=libelle_long,
-            definition_synthetique=definition_synthetique,
-            code_domaine_fonctionnel=code_domaine_fonctionnel,
-            offer_family_code=offer_family_code,
-            versants=versants_values,
-            conditions_particulieres=conditions_particulieres,
-            activites=activites,
+        metier = MetierFactory.create_entity(
+            id,
+            external_id,
+            libelle,
+            description,
+            domaine_fonctionnel_code,
+            versants,
+            activites,
+            conditions_particulieres,
+            offer_family_code,
         )
+
+        metier_model = MetierModel.from_entity(metier)
+        metier_model.save()
+
+        return metier_model
