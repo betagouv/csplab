@@ -8,10 +8,6 @@ from drf_spectacular.utils import (
     inline_serializer,
 )
 from huey.contrib.djhuey import HUEY
-from infrastructure.authentication.api_key_authentication import (
-    ApiKeyAuthentication,
-    UserRateThrottleExceptApiKey,
-)
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -20,6 +16,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from domain.exceptions.offer_errors import OfferDoesNotExist
+from infrastructure.authentication.api_key_authentication import (
+    ApiKeyAuthentication,
+    UserRateThrottleExceptApiKey,
+)
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.ingestion.serializers import TokenErrorSerializer
 
