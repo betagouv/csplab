@@ -16,17 +16,18 @@ from domain.value_objects.verse import Verse
 @dataclass
 class Offer(IEntity):
     external_id: str
-    verse: Optional[Verse]
     title: str
     profile: str
     mission: str
+    organization: str
+    verse: Optional[Verse]
     category: Optional[Category]
     contract_type: Optional[ContractType]
-    organization: str
     offer_url: Optional[HttpUrl]
     localisation: Optional[Localisation]
     publication_date: datetime
     beginning_date: Optional[LimitDate]
+    family_code: Optional[str] = None
     processing: bool = False
     processed_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None

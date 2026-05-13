@@ -1,8 +1,9 @@
-from typing import List, Protocol
+from typing import Dict, List, Protocol
 
-from domain.entities.document import Document
 from domain.entities.metier import Metier
 from domain.repositories.document_repository_interface import IUpsertResult
+
+IPredicate = Dict[str, str]
 
 
 class IMetierRepository(Protocol):
@@ -12,9 +13,9 @@ class IMetierRepository(Protocol):
 
     def get_all(self) -> List[Metier]: ...
 
-    def upsert_batch_rich_data(
-        self, raw_documents: List[Document]
-    ) -> IUpsertResult: ...
+    def filter_by(
+        self, predicate: IPredicate
+    ) -> List[Metier]: ...  # for example {"offer_family_code": "ERLOG005"}
 
     def get_pending_processing(self, limit: int = 1000) -> List[Metier]: ...
 

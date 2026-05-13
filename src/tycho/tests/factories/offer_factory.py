@@ -31,6 +31,7 @@ class OfferFactory:
         profile: str | None = None,
         mission: str | None = None,
         organization: str | None = None,
+        family_code: str | None = None,
         offer_url: HttpUrl | None = None,
         localisation: Localisation | None = None,
         publication_date: datetime | None = None,
@@ -68,6 +69,7 @@ class OfferFactory:
             or LimitDate(datetime(2024, 12, 31, tzinfo=UTC)),
             processed_at=None,
             archived_at=archived_at,
+            family_code=family_code,
         )
 
     @staticmethod
@@ -87,6 +89,7 @@ class OfferFactory:
         country: Optional[str] = None,
         region: Optional[str] = None,
         department: Optional[str] = None,
+        family_code: Optional[str] = None,
         updated_at: Optional[datetime] = None,
         processing: bool = False,
         processed_at: Optional[datetime] = None,
@@ -106,6 +109,7 @@ class OfferFactory:
             organization=organization,
             offer_url=offer_url,
             localisation=localisation,
+            family_code=family_code,
             publication_date=publication_date,
             beginning_date=beginning_date,
             archived_at=archived_at,

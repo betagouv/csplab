@@ -44,8 +44,7 @@ def test_clean_multiple_documents_success(clean_documents_usecase, document_type
 
     document_repo.upsert_batch(documents, document_type)
 
-    if document_type != DocumentType.METIERS:
-        document_cleaner.clean.return_value = mock_cleaning_result(documents, [])
+    document_cleaner.clean.return_value = mock_cleaning_result(documents, [])
 
     result = clean_documents_usecase.execute(document_type)
 
