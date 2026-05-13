@@ -23,10 +23,10 @@ For CI or command-line usage without installing extensions:
 
 ```bash
 # Lint (requires postcss-scss for SCSS syntax support)
-npx --yes -p stylelint -p postcss-scss stylelint --custom-syntax postcss-scss "src/tycho/presentation/assets/**/*.scss"
+npx --yes -p stylelint -p postcss-scss stylelint --custom-syntax postcss-scss "src/web/presentation/assets/**/*.scss"
 
 # Format
-npx --yes prettier --write "src/tycho/presentation/assets/**/*.scss"
+npx --yes prettier --write "src/web/presentation/assets/**/*.scss"
 ```
 
 No `package.json` required. Node.js downloads tools ephemerally.

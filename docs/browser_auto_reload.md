@@ -12,8 +12,8 @@ Starts Django server + Sass watch mode with auto-reload.
 
 ## Configuration
 
-- [config/settings/dev.py](../src/tycho/config/settings/dev.py) - Django settings
-- [config/urls.py](../src/tycho/config/urls.py) - `__reload__/` endpoint
+- [config/settings/dev.py](../src/web/config/settings/dev.py) - Django settings
+- [config/urls.py](../src/web/config/urls.py) - `__reload__/` endpoint
 - [Makefile](../../Makefile) - `dev` target runs both processes
 
 ## Details
