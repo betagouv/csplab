@@ -3,8 +3,8 @@
 set -eo pipefail
 
 # Configuration
-SCSS_DIR="${SCSS_DIR:-src/tycho/presentation/assets/styles}"
-CSS_DIR="${CSS_DIR:-src/tycho/presentation/static/css}"
+SCSS_DIR="${SCSS_DIR:-src/web/presentation/assets/styles}"
+CSS_DIR="${CSS_DIR:-src/web/presentation/static/css}"
 SOURCE_MAP="${SOURCE_MAP:-false}"
 
 # Check if sass is installed
