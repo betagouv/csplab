@@ -2,7 +2,7 @@ from django.conf import settings
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.throttling import UserRateThrottle
+from rest_framework.throttling import SimpleRateThrottle, UserRateThrottle
 
 
 class _IngestionApiKeyUser:
@@ -32,6 +32,18 @@ class ApiKeyAuthenticationScheme(OpenApiAuthenticationExtension):
             "name": "Authorization",
             "description": "API key authentication. Use the format: `Api-Key <key>`.",
         }
+
+
+class ApiKeyRateThrottle(SimpleRateThrottle):
+    scope = "api_key"
+
+    def get_cache_key(self, request, view):
+        if isinstance(request.user, _IngestionApiKeyUser):
+            return self.cache_format % {
+                "scope": self.scope,
+                "ident": "ingestion-api-key",
+            }
+        return None
 
 
 class UserRateThrottleExceptApiKey(UserRateThrottle):

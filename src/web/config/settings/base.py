@@ -288,10 +288,12 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
+        "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
         "anon": "5/minute",
         "user": "120/minute",
+        "api_key": "2000/hour",
     },
 }
 
