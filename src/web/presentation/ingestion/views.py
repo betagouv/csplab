@@ -249,14 +249,7 @@ class ConcoursUploadView(APIView):
                 cleaned_row[k] = v
 
         validated_row = ConcoursRowSchema(**cleaned_row)
-
-        # Convert back to CSV format for raw_data storage
-        python_data = validated_row.model_dump()
-        raw_data = {}
-        python_to_csv = {v: k for k, v in CSV_TO_PYTHON_MAPPING.items()}
-        for python_name, value in python_data.items():
-            csv_name = python_to_csv.get(python_name, python_name)
-            raw_data[csv_name] = value
+        raw_data = validated_row.model_dump()
 
         # Use nor as external_id for CONCOURS
         nor_value = validated_row.nor

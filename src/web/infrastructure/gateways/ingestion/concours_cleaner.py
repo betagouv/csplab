@@ -22,43 +22,6 @@ from domain.value_objects.nor import NOR
 REFERENCE_YEAR = 2024
 DECEMBER = 12
 
-COLUMN_RENAME = {
-    "N° NOR": "nor",
-    "N° NOR de référence": "nor_reference",
-    "Ministère": "ministere",
-    "Ministère (saisie initiale)": "ministere_initial",
-    "Catégorie": "categorie",
-    "Corps": "corps",
-    "Grade": "grade",
-    "Corps/Grade (saisie initiale)": "corps_grade_initial",
-    "Direction/Établissement": "direction_etablissement",
-    "Année de référence": "annee_reference",
-    "Statut": "statut",
-    "Date de première épreuve": "date_premiere_epreuve",
-    "National": "national",
-    "National à affectation locale": "national_affectation_locale",
-    "Déconcentré": "deconcentre",
-    "Externe": "externe",
-    "Interne": "interne",
-    "Troisieme Concours": "troisieme_concours",
-    "Unique": "unique",
-    "Examen professionnel": "examen_professionnel",
-    "Sans concours externe": "sans_concours_externe",
-    "Pacte": "pacte",
-    "Sélection professionnelle": "selection_professionnelle",
-    "Concours spécial": "concours_special",
-    "Concours réservé": "concours_reserve",
-    "Sans concours interne réservé": "sans_concours_interne_reserve",
-    "Examen professionnalisé réservé": "examen_professionnalise_reserve",
-    "Interne exceptionnel": "interne_exceptionnel",
-    "Apprenti BOETH": "apprenti_boeth",
-    "Promotion BOETH": "promotion_boeth",
-    "Autres": "autres",
-    "Nb postes ACVG": "nb_postes_acvg",
-    "Nb postes TH": "nb_postes_th",
-    "Nb postes total": "nb_postes_total",
-}
-
 # Mapping from raw data access modality strings to AccessModality enum values
 ACCESS_MODALITY_MAPPING = {
     "Externe": AccessModality.CONCOURS_EXTERNE,
@@ -99,8 +62,6 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
             concours_data.append(document.raw_data)
 
         df = pl.DataFrame(concours_data, infer_schema_length=None)
-
-        df = df.rename({k: v for k, v in COLUMN_RENAME.items() if k in df.columns})
 
         df_filtered = self._apply_filters(df)
 
@@ -183,8 +144,6 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
             "autres",
         ]
 
-        col_to_label = {v: k for k, v in COLUMN_RENAME.items()}
-
         df_final = df_dedup.with_columns(
             [
                 pl.concat_list(
@@ -195,7 +154,7 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
                             & (pl.col(col).cast(pl.Utf8) != "")
                             & (pl.col(col).cast(pl.Utf8) != "null")
                         )
-                        .then(pl.lit(col_to_label[col]))
+                        .then(pl.lit(col))
                         .otherwise(None)
                         for col in access_modality_cols
                     ]
