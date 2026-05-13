@@ -1,5 +1,5 @@
 [project]
-name = "tycho"
+name = "web"
 version = "0.1.0"
 description = "The CSPLab Monolith"
 readme = "README.md"
@@ -66,11 +66,11 @@ name = "pypi"
 url = "https://pypi.org/simple"
 
 [tool.uv.sources]
-tycho = { path = ".", editable = true }
+web = { path = ".", editable = true }
 
 [tool.hatch.build.targets.wheel]
 packages = [
-  "tycho",
+  "web",
 ]
 
 # Third party packages configuration
@@ -90,7 +90,7 @@ python_files = [
 ]
 testpaths = [
     "tests",
-    "tycho/tests",
+    "web/tests",
 ]
 markers = [
     "accessibility: marks tests as accessibility tests (may require browser)",

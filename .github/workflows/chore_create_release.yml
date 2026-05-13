@@ -34,7 +34,7 @@ jobs:
         uses: orhun/git-cliff-action@v4
         id: git_cliff
         with:
-          config: src/tycho/cliff.toml
+          config: src/web/cliff.toml
           args: -vv --latest --bump --unreleased
 
       - name: Set up Git

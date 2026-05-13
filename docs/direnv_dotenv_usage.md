@@ -74,7 +74,7 @@ source .venv/bin/activate
 When `.env` is located somewhere else, reference it explicitly:
 
 ```text
-dotenv ../../env.d/tycho
+dotenv ../../env.d/web
 source .venv/bin/activate
 ```
 

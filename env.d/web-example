@@ -1,0 +1,43 @@
+PORT=8000
+
+# Django
+
+WEB_DEBUG=1
+WEB_ALLOWED_HOSTS=\*
+WEB_SECRET_KEY=the_secret_key_for_local_dev_only_1234
+
+# database
+WEB_DATABASE_URL=psql://web:pass@localhost:5432/web
+
+#redis
+WEB_REDIS_URL=redis://localhost:6379
+
+# Third-party integrations
+
+WEB_SENTRY_DSN=
+WEB_INGRES_CLIENT_ID=
+WEB_INGRES_CLIENT_SECRET=
+WEB_PISTE_OAUTH_BASE_URL=https://sandbox-oauth.piste.gouv.fr
+WEB_INGRES_BASE_URL=https://sandbox-api.piste.gouv.fr/cisirh/ingres-nomenclatures/v2/nomenclatures
+
+# superuser
+
+DJANGO_SUPERUSER_USERNAME=admin
+DJANGO_SUPERUSER_PASSWORD=admin
+DJANGO_SUPERUSER_EMAIL=admin@example.com
+
+WEB_VECTOR_DB_TYPE=QDRANT
+WEB_QDRANT_URL=http://localhost:6333
+WEB_QDRANT_API_KEY=
+WEB_EMBEDDING_DIMENSION=1024
+
+WEB_ALBERT_API_BASE_URL=https://albert.api.etalab.gouv.fr
+WEB_ALBERT_API_KEY=
+WEB_ALBERT_MODEL=openweight-large
+
+WEB_OCR_API_KEY=verysecretkey
+WEB_OCR_BASE_URL=http://localhost:8001
+
+WEB_TALENTSOFT_CLIENT_ID=
+WEB_TALENTSOFT_CLIENT_SECRET=
+WEB_TALENTSOFT_BASE_URL=

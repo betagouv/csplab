@@ -1,6 +1,6 @@
 # -- Back end
 
-src/tycho/static_collected/
+src/web/static_collected/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

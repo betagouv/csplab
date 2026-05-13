@@ -1,4 +1,4 @@
-name: Tycho
+name: Web
 
 on:
   push:
@@ -7,17 +7,17 @@ on:
     branches: ["main"]
     types: [opened, synchronize, reopened, edited]
     paths:
-      - "src/tycho/**"
+      - "src/web/**"
 
 permissions:
   contents: read
 
 jobs:
-  build-tycho:
+  build-web:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./src/tycho
+        working-directory: ./src/web
     steps:
       - uses: actions/checkout@v5
       - name: Install uv
@@ -28,19 +28,19 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version-file: "./src/tycho/.python-version"
+          python-version-file: "./src/web/.python-version"
       - name: Install the project
         run: uv sync --locked --all-extras --dev
 
-  lint-tycho:
-    needs: build-tycho
+  lint-web:
+    needs: build-web
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./src/tycho
+        working-directory: ./src/web
     env:
-      TYCHO_SECRET_KEY: the_secret_key
-      TYCHO_DATABASE_URL: psql://tycho:pass@localhost:5432/tycho
+      WEB_SECRET_KEY: the_secret_key
+      WEB_DATABASE_URL: psql://web:pass@localhost:5432/web
       DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
       - uses: actions/checkout@v5
@@ -52,7 +52,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version-file: "./src/tycho/.python-version"
+          python-version-file: "./src/web/.python-version"
       - name: Lint with Ruff
         run: uv run ruff check .
       - name: Lint format with Ruff
@@ -60,14 +60,14 @@ jobs:
       - name: Lint with MyPy
         run: uv run mypy .
 
-  test-tycho:
-    needs: build-tycho
+  test-web:
+    needs: build-web
     runs-on: ubuntu-latest
     services:
       postgresql:
         image: pgvector/pgvector:pg16
         env:
-          POSTGRES_DB: tycho
+          POSTGRES_DB: web
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: pass
           TEST: true
@@ -88,12 +88,12 @@ jobs:
           - 6379:6379
     defaults:
       run:
-        working-directory: ./src/tycho
+        working-directory: ./src/web
     env:
-      TYCHO_SECRET_KEY: the_secret_key
-      TYCHO_DATABASE_URL: psql://postgres:pass@localhost:5432/tycho
-      TYCHO_QDRANT_URL: http://localhost:6333
-      TYCHO_VECTOR_DB_TYPE: QDRANT
+      WEB_SECRET_KEY: the_secret_key
+      WEB_DATABASE_URL: psql://postgres:pass@localhost:5432/web
+      WEB_QDRANT_URL: http://localhost:6333
+      WEB_VECTOR_DB_TYPE: QDRANT
       DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
       - uses: actions/checkout@v5
@@ -105,7 +105,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version-file: "./src/tycho/.python-version"
+          python-version-file: "./src/web/.python-version"
       - name: Install dependencies
         run: uv sync --locked --all-extras --dev
       - name: Wait for Qdrant to be ready
@@ -129,7 +129,7 @@ jobs:
         run: uv run pytest -m "not accessibility and not e2e" .
       - name: Install Playwright browser
         run: uv run playwright install --with-deps chromium
-      - name: Test Tycho suite with coverage
+      - name: Test Web suite with coverage
         run: uv run pytest -m "e2e" .
       - name: Generate schema
         run: uv run python manage.py spectacular --file presentation/static/schema.yaml --validate

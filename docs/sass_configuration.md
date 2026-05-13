@@ -30,8 +30,8 @@ assets/styles/
 └── pages/              # Page-specific styles
 ```
 
-- **Sources**: `src/tycho/presentation/assets/styles/`
-- **Compiled**: `src/tycho/presentation/static/css/main.css`
+- **Sources**: `src/web/presentation/assets/styles/`
+- **Compiled**: `src/web/presentation/static/css/main.css`
 
 The compiled CSS is committed to the repository.
 

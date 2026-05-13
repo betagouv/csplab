@@ -59,7 +59,7 @@ def sentry_init(dsn, traces_sample_rate, profiles_sample_rate):
             HttpxIntegration(),
             HueyIntegration(),
             # Hardcoded CACHES.*.KEY_PREFIX to not depend on Django being setup
-            RedisIntegration(cache_prefixes=["tycho:"]),
+            RedisIntegration(cache_prefixes=["web:"]),
         ],
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
