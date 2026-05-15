@@ -263,7 +263,6 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
 
     @staticmethod
     def _normalize(text: str) -> str:
-        """Normalize text: lowercase + remove accents."""
         nfkd = unicodedata.normalize("NFKD", text)
         return nfkd.encode("ascii", "ignore").decode("ascii").lower()
 
