@@ -6,6 +6,7 @@ from django.utils.safestring import mark_safe
 
 from domain.entities.concours import Concours
 from domain.entities.document import DocumentType
+from domain.entities.metier import Metier
 from domain.entities.offer import Offer
 from domain.interfaces.mapper_interface import IToDomainMapper
 from domain.repositories.vector_repository_interface import IFilters
@@ -112,7 +113,7 @@ class OfferToTemplateMapper:
         }
 
     @staticmethod
-    def map_for_drawer(offer: Offer) -> DrawerContext:
+    def map_for_drawer(offer: Offer, metiers: list[Metier]) -> DrawerContext:
         accordions: list[AccordionItem] = []
         if offer.mission:
             accordions.append(
@@ -131,6 +132,16 @@ class OfferToTemplateMapper:
                     "title": "Profil recherch\u00e9",
                     "content": mark_safe(  # noqa: S308
                         linebreaks(offer.profile, autoescape=True)
+                    ),
+                }
+            )
+        if metiers:
+            accordions.append(
+                {
+                    "id": "drawer-metiers-content",
+                    "title": "Métier correspondant",
+                    "content": mark_safe(  # noqa: S308
+                        linebreaks(metiers[0].libelle, autoescape=True)
                     ),
                 }
             )
