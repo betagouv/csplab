@@ -1,20 +1,16 @@
-"""Document text extractor service for content extraction."""
-
 from typing import Any, Dict, Union
 
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import Document
+from domain.entities.metier import Metier
 from domain.entities.offer import Offer
 from domain.interfaces.entity_interface import IEntity
 from domain.services.text_extractor_interface import ITextExtractor
 
 
 class TextExtractor(ITextExtractor):
-    """Service for extracting text content and metadata from documents or entities."""
-
     def extract_content(self, source: Union[Document, IEntity]) -> str:
-        """Extract text content from a document or clean entity."""
         if isinstance(source, Document):
             return self._extract_from_document(source)
         elif isinstance(source, Corps):
@@ -23,13 +19,14 @@ class TextExtractor(ITextExtractor):
             return self._extract_from_concours(source)
         elif isinstance(source, Offer):
             return self._extract_from_offer(source)
+        elif isinstance(source, Metier):
+            return self._extract_from_metier(source)
         else:
             raise NotImplementedError(
                 f"Content extraction not implemented for {type(source)}"
             )
 
     def extract_metadata(self, source: Union[Document, IEntity]) -> Dict[str, Any]:
-        """Extract metadata from a document or clean entity."""
         if isinstance(source, Document):
             return self._extract_metadata_from_document(source)
         elif isinstance(source, Corps):
@@ -38,29 +35,27 @@ class TextExtractor(ITextExtractor):
             return self._extract_metadata_from_concours(source)
         elif isinstance(source, Offer):
             return self._extract_metadata_from_offer(source)
+        elif isinstance(source, Metier):
+            return self._extract_metadata_from_metier(source)
         else:
             raise NotImplementedError(
                 f"Metadata extraction not implemented for {type(source)}"
             )
 
     def _extract_from_document(self, document: Document) -> str:
-        """Extract content from raw document."""
         raise NotImplementedError(
             f"Content extraction not implemented for document type {document.type}"
         )
 
     def _extract_from_corps(self, corps: Corps) -> str:
-        """Extract content from Corps entity."""
         return corps.label.value
 
     def _extract_metadata_from_document(self, document: Document) -> Dict[str, Any]:
-        """Extract metadata from raw document."""
         raise NotImplementedError(
             f"Metadata extraction not implemented for document type {document.type}"
         )
 
     def _extract_metadata_from_corps(self, corps: Corps) -> Dict[str, Any]:
-        """Extract metadata from Corps entity."""
         return {
             "category": corps.category.value if corps.category else None,
             "access_mod": [am.value for am in corps.access_modalities],
@@ -68,11 +63,9 @@ class TextExtractor(ITextExtractor):
         }
 
     def _extract_from_concours(self, concours: Concours) -> str:
-        """Extract content from Concours entity."""
         return f"{concours.corps} {concours.grade}".strip()
 
     def _extract_metadata_from_concours(self, concours: Concours) -> Dict[str, Any]:
-        """Extract metadata from Concours entity."""
         return {
             "category": concours.category.value,
             "ministry": concours.ministry.value,
@@ -80,11 +73,9 @@ class TextExtractor(ITextExtractor):
         }
 
     def _extract_from_offer(self, offer: Offer) -> str:
-        """Extract content from Offer entity."""
         return f"{offer.title}"
 
     def _extract_metadata_from_offer(self, offer: Offer) -> Dict[str, Any]:
-        """Extract metadata from Offer entity."""
         localisation_data = None
         if offer.localisation:
             localisation_data = {
@@ -97,4 +88,12 @@ class TextExtractor(ITextExtractor):
             "category": offer.category.value if offer.category else None,
             "verse": offer.verse.value if offer.verse else None,
             "localisation": localisation_data,
+        }
+
+    def _extract_from_metier(self, metier: Metier) -> str:
+        return f"{metier.libelle}"
+
+    def _extract_metadata_from_metier(self, metier: Metier) -> Dict[str, Any]:
+        return {
+            "versants": metier.versants,
         }
