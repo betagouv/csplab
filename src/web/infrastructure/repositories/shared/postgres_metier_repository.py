@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Dict, List
 
 from django.db import DatabaseError, transaction
+from django.db.models import F, Q
 from django.utils import timezone
 
 from domain.entities.metier import Metier
@@ -94,6 +95,23 @@ class PostgresMetierRepository(IMetierRepository):
             raise MetierDoesNotExist(
                 f"Metier with external_id {external_id} not found"
             ) from e
+
+    @transaction.atomic
+    def get_pending_processing(self, limit: int = 1000) -> List[Metier]:
+        qs = (
+            MetierModel.objects.filter(archived_at__isnull=True, processing=False)
+            .filter(Q(processed_at__isnull=True) | Q(updated_at__gt=F("processed_at")))
+            .select_for_update(of=("self",), skip_locked=True)[:limit]
+        )
+
+        for obj in qs:
+            obj.processing = True
+        try:
+            MetierModel.objects.bulk_update(qs, ["processing"])
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+        return [model.to_entity() for model in qs]
 
     def get_all(self) -> List[Metier]:
         metier_models = MetierModel.objects.all()

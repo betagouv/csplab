@@ -109,3 +109,10 @@ class MetierFactory(DataclassFactory[Metier]):
         metier_model.save()
 
         return metier_model
+
+    @staticmethod
+    def create_model_batch(
+        size: int,
+        **kwargs,
+    ) -> List[MetierModel]:
+        return [MetierFactory.create_model(**kwargs) for _ in range(size)]

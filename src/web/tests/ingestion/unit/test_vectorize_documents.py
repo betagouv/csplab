@@ -6,11 +6,18 @@ from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.corps_factory import CorpsFactory
+from tests.factories.metier_factory import MetierFactory
 from tests.factories.offer_factory import OfferFactory
 
 
 @pytest.mark.parametrize(
-    "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
+    "document_type",
+    [
+        DocumentType.CORPS,
+        DocumentType.CONCOURS,
+        DocumentType.OFFERS,
+        DocumentType.METIERS,
+    ],
 )
 def test_execute_with_single_entity_success(
     db, vectorize_documents_usecase, document_type
@@ -30,6 +37,8 @@ def test_execute_with_single_entity_success(
             sample_source = ConcoursFactory.create_entity()
         case DocumentType.OFFERS:
             sample_source = OfferFactory.create_entity()
+        case DocumentType.METIERS:
+            sample_source = MetierFactory.create_entity()
 
     mock_source_repo.get_pending_processing.return_value = [sample_source]
 
