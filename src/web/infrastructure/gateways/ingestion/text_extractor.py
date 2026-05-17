@@ -11,9 +11,7 @@ from domain.services.text_extractor_interface import ITextExtractor
 
 class TextExtractor(ITextExtractor):
     def extract_content(self, source: Union[Document, IEntity]) -> str:
-        if isinstance(source, Document):
-            return self._extract_from_document(source)
-        elif isinstance(source, Corps):
+        if isinstance(source, Corps):
             return self._extract_from_corps(source)
         elif isinstance(source, Concours):
             return self._extract_from_concours(source)
@@ -27,9 +25,7 @@ class TextExtractor(ITextExtractor):
             )
 
     def extract_metadata(self, source: Union[Document, IEntity]) -> Dict[str, Any]:
-        if isinstance(source, Document):
-            return self._extract_metadata_from_document(source)
-        elif isinstance(source, Corps):
+        if isinstance(source, Corps):
             return self._extract_metadata_from_corps(source)
         elif isinstance(source, Concours):
             return self._extract_metadata_from_concours(source)
@@ -41,11 +37,6 @@ class TextExtractor(ITextExtractor):
             raise NotImplementedError(
                 f"Metadata extraction not implemented for {type(source)}"
             )
-
-    def _extract_from_document(self, document: Document) -> str:
-        raise NotImplementedError(
-            f"Content extraction not implemented for document type {document.type}"
-        )
 
     def _extract_from_corps(self, corps: Corps) -> str:
         return corps.label.value
