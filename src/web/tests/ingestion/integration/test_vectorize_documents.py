@@ -17,6 +17,7 @@ from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.corps_factory import CorpsFactory
+from tests.factories.metier_factory import MetierFactory
 from tests.factories.offer_factory import OfferFactory
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.shared_fixtures import create_shared_qdrant_repository
@@ -31,6 +32,7 @@ factories_mapper = {
     DocumentType.CORPS: CorpsFactory(),
     DocumentType.CONCOURS: ConcoursFactory(),
     DocumentType.OFFERS: OfferFactory(),
+    DocumentType.METIERS: MetierFactory(),
 }
 
 
@@ -114,7 +116,13 @@ def test_app_config(vectorize_integration_container):
 
 @pytest.mark.httpx_mock(should_mock=lambda request: "albert" in str(request.url))
 @pytest.mark.parametrize(
-    "document_type", [DocumentType.CORPS, DocumentType.CONCOURS, DocumentType.OFFERS]
+    "document_type",
+    [
+        DocumentType.CORPS,
+        DocumentType.CONCOURS,
+        DocumentType.OFFERS,
+        DocumentType.METIERS,
+    ],
 )
 def test_vectorize_entity_integration(
     db, document_type, vectorize_integration_container, httpx_mock, test_app_config

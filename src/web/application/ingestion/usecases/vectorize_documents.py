@@ -6,6 +6,7 @@ from django.db import transaction
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
+from domain.entities.metier import Metier
 from domain.entities.offer import Offer
 from domain.entities.vectorized_document import VectorizedDocument
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
@@ -101,6 +102,9 @@ class VectorizeDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
         elif isinstance(source, Offer):
             entity_id = source.id
             document_type = DocumentType.OFFERS
+        elif isinstance(source, Metier):
+            entity_id = source.id
+            document_type = DocumentType.METIERS
         else:
             raise UnsupportedDocumentTypeError(type(source).__name__)
 
