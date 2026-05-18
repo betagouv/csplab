@@ -8,3 +8,10 @@ class ContractType(Enum):
 
     def __str__(self):
         return self.value
+
+
+class ContractKind(Enum):
+    CDD = "CDD"
+    CDI = "CDI"
+    VACATION = "Vacation"
+    STAGE = "Stage"
