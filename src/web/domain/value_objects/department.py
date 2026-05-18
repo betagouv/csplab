@@ -1,13 +1,9 @@
-"""French Department value object."""
-
 from typing import ClassVar
 
 from pydantic import BaseModel, field_validator
 
 
 class Department(BaseModel):
-    """French Department value object with validation."""
-
     code: str
 
     NAMES: ClassVar[dict[str, str]] = {
@@ -123,16 +119,13 @@ class Department(BaseModel):
     @field_validator("code")
     @classmethod
     def validate_department_code(cls, v: str) -> str:
-        """Validate French department code."""
         if v not in cls.VALID_CODES:
             raise ValueError(f"Invalid French department code: {v}")
         return v
 
     def __str__(self) -> str:
-        """Return string representation."""
         return self.code
 
     @property
     def name(self) -> str:
-        """Return the display name for this department."""
         return self.NAMES.get(self.code, self.code)
