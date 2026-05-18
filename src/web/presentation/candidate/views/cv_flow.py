@@ -14,6 +14,7 @@ from domain.entities.offer import Offer
 from domain.exceptions.concours_errors import ConcoursDoesNotExist
 from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.value_objects.cv_processing_status import CVStatus
+from domain.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.forms.cv_flow import CVUploadForm
 from presentation.candidate.mappers import (
@@ -242,10 +243,12 @@ class OfferDrawerView(BreadcrumbMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         offer_id = self.kwargs.get("offer_id")
 
-        offers_repository = self.container.offers_repository()
+        usecase = self.container.get_opportunity_details_usecase()
         try:
-            offer = offers_repository.get_by_id(offer_id)
-            context["opportunity"] = OfferToTemplateMapper.map_for_drawer(offer)
+            offer, metiers = usecase.execute(OpportunityType.OFFER, offer_id)
+            context["opportunity"] = OfferToTemplateMapper.map_for_drawer(
+                offer, metiers
+            )
         except OfferDoesNotExist:
             raise Http404("Offer not found") from None
 
