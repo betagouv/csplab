@@ -96,6 +96,14 @@ class PostgresMetierRepository(IMetierRepository):
                 f"Metier with external_id {external_id} not found"
             ) from e
 
+    def get_all(self) -> List[Metier]:
+        metier_models = MetierModel.objects.all()
+        return [model.to_entity() for model in metier_models]
+
+    def filter_by(self, predicate: Dict[str, str], limit: int = 1000) -> List[Metier]:
+        metier_models = MetierModel.objects.filter(**predicate)[:limit]
+        return [model.to_entity() for model in metier_models]
+
     @transaction.atomic
     def get_pending_processing(self, limit: int = 1000) -> List[Metier]:
         qs = (
@@ -113,22 +121,18 @@ class PostgresMetierRepository(IMetierRepository):
 
         return [model.to_entity() for model in qs]
 
-    def get_all(self) -> List[Metier]:
-        metier_models = MetierModel.objects.all()
-        return [model.to_entity() for model in metier_models]
-
-    def filter_by(self, predicate: Dict[str, str], limit: int = 1000) -> List[Metier]:
-        metier_models = MetierModel.objects.filter(**predicate)[:limit]
-        return [model.to_entity() for model in metier_models]
-
     def mark_as_processed(self, metiers_list: List[Metier]) -> int:
-        metier_ids = [metier.id for metier in metiers_list]
-        return MetierModel.objects.filter(id__in=metier_ids).update(
-            processing=False, processed_at=timezone.now()
-        )
+        try:
+            return MetierModel.objects.filter(
+                id__in=[obj.id for obj in metiers_list]
+            ).update(processed_at=timezone.now(), processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
 
     def mark_as_pending(self, metiers_list: List[Metier]) -> int:
-        metier_ids = [metier.id for metier in metiers_list]
-        return MetierModel.objects.filter(id__in=metier_ids).update(
-            processing=True, processed_at=None
-        )
+        try:
+            return MetierModel.objects.filter(
+                id__in=[obj.id for obj in metiers_list]
+            ).update(processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
