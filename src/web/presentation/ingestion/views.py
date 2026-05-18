@@ -5,8 +5,6 @@ from asgiref.sync import async_to_sync
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema
 from pydantic import ValidationError
 from rest_framework import status
-from rest_framework.exceptions import NotFound
-from rest_framework.generics import ListAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,7 +20,7 @@ from presentation.ingestion.openapi import (
     LIST_OFFERS_DESCRIPTION,
     LIST_OFFERS_EXAMPLES,
 )
-from presentation.ingestion.pagination import ListOffersPagination
+from presentation.ingestion.pagination import IngestionPagination
 from presentation.ingestion.schemas import ConcoursRowSchema
 from presentation.ingestion.serializers import (
     ConcoursUploadResponseSerializer,
@@ -325,8 +323,7 @@ class ConcoursUploadView(APIView):
         500: ServerErrorSerializer,
     },
 )
-class OffersListView(ListAPIView):
-    pagination_class = ListOffersPagination
+class OffersListView(APIView):
     serializer_class = ListOffersResponseSerializer
     usecase = None
 
@@ -337,19 +334,19 @@ class OffersListView(ListAPIView):
         if self.usecase is None:
             self.usecase = self.container.list_offers_usecase()
 
-    def get_queryset(self):
-        filters = ListOffersFiltersSerializer(data=self.request.query_params)
-        filters.is_valid(raise_exception=True)
-        input_data = GetFilteredOffersInput(**filters.validated_data)
-        result = self.usecase.execute(input_data)
-        return result.offers
-
-    def list(self, request, *args, **kwargs):
+    def get(self, request):
         try:
-            return super().list(request, *args, **kwargs)
-        except NotFound:
-            serializer = ListOffersErrorSerializer({"error": "Page not found"})
-            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+            filters = ListOffersFiltersSerializer(data=self.request.query_params)
+            filters.is_valid(raise_exception=True)
+            input_data = GetFilteredOffersInput(**filters.validated_data)
+
+            result = self.usecase.execute(input_data)
+
+            paginator = IngestionPagination()
+            items = paginator.paginate(result.page, request)
+            return paginator.get_paginated_response(
+                ListOffersResponseSerializer(items, many=True).data
+            )
         except Exception as e:
             self.logger.error("Unexpected error in OffersListView: %s", str(e))
             serializer = ServerErrorSerializer({"error": "Unexpected error"})
