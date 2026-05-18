@@ -130,7 +130,7 @@ class PostgresOffersRepository(IOffersRepository):
         offer_models = OfferModel.objects.all()
         return [model.to_entity() for model in offer_models]
 
-    def get_filtered_qs(
+    def get_filtered(
         self, active: bool, external_id_contains: str | None
     ) -> IPage[Offer]:
         qs = OfferModel.objects.filter(archived_at__isnull=active)

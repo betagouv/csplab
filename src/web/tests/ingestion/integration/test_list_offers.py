@@ -114,7 +114,7 @@ def test_get_filtered_raises_error(db, documents_integration_container):
     shared_container = documents_integration_container.shared_container()
     offers_repo = shared_container.offers_repository()
 
-    offers_repo.get_filtered_qs = MagicMock(side_effect=Exception("db error"))
+    offers_repo.get_filtered = MagicMock(side_effect=Exception("db error"))
 
     with pytest.raises(Exception, match="db error"):
         input_data = GetFilteredOffersInput(active=True, external_id_contains=None)

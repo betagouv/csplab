@@ -34,7 +34,7 @@ class IOffersRepository(Protocol):
 
     def get_all(self) -> List[Offer]: ...
 
-    def get_filtered_qs(
+    def get_filtered(
         self, active: bool, external_id_contains: str | None
     ) -> IPage[Offer]: ...
 

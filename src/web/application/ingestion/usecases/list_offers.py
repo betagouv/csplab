@@ -17,7 +17,7 @@ class ListOffersUseCase(IUseCase[GetFilteredOffersInput, ListOffersQuerySetResul
         self.logger = logger
 
     def execute(self, input_data: GetFilteredOffersInput) -> ListOffersQuerySetResult:
-        page = self.offers_repository.get_filtered_qs(
+        page = self.offers_repository.get_filtered(
             active=input_data.active,
             external_id_contains=input_data.external_id_contains,
         )
