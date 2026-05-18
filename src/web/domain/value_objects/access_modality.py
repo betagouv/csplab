@@ -1,11 +1,7 @@
-"""Access modality value object."""
-
 from enum import Enum
 
 
 class AccessModality(Enum):
-    """Represent access modality for a Corps Entity."""
-
     CONCOURS_EXTERNE = "Concours externe"
     TROISIEME_CONCOURS = "3ème concours"
     TROISIEME_CONCOURS_EXCEPT = "3ème concours except"
@@ -25,5 +21,4 @@ class AccessModality(Enum):
     AU_CHOIX = "Au choix"
 
     def __str__(self) -> str:
-        """Return the access modality value."""
         return self.value

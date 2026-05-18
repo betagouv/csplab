@@ -1,5 +1,3 @@
-"""Localisation value object."""
-
 from dataclasses import dataclass
 
 from domain.value_objects.area import GeographicalArea
