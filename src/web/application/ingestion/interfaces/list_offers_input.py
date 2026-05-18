@@ -11,6 +11,6 @@ class GetFilteredOffersInput:
     external_id_contains: Optional[str]
 
 
-class ListOffersQuerySetResult:
+class ListOffersPageResult:
     def __init__(self, page: IPage[Offer]):
         self.page = page
