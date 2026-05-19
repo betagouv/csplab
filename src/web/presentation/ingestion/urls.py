@@ -3,6 +3,7 @@ from django.urls import path
 from presentation.ingestion.views import (
     ArchiveOffersView,
     ConcoursUploadView,
+    MetiersListView,
     OffersListView,
 )
 
@@ -16,4 +17,5 @@ urlpatterns = [
         ArchiveOffersView.as_view(),
         name="offers_archive",
     ),
+    path("metiers/", MetiersListView.as_view(), name="metiers_list"),
 ]
