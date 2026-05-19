@@ -9,6 +9,7 @@ from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.list_offers import ListOffersUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.load_offers import LoadOffersUsecase
+from application.ingestion.usecases.upsert_offers import UpsertOffersUseCase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from domain.interfaces.async_usecase_interface import IAsyncUseCase
 from domain.interfaces.entity_interface import IEntity
@@ -157,4 +158,11 @@ class IngestionContainer(containers.DeclarativeContainer):
         ArchiveOfferByReferenceUseCase,
         offers_repository=offers_repository,
         vector_repository=vector_repository,
+        logger=logger_service,
+    )
+
+    upsert_offers_usecase = providers.Factory(
+        UpsertOffersUseCase,
+        offers_repository=offers_repository,
+        logger=logger_service,
     )
