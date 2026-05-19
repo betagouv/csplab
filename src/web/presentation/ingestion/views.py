@@ -31,6 +31,8 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_DESCRIPTION,
     CONCOURS_UPLOAD_EXAMPLES,
+    LIST_METIERS_DESCRIPTION,
+    LIST_METIERS_EXAMPLES,
     LIST_OFFERS_DESCRIPTION,
     LIST_OFFERS_EXAMPLES,
 )
@@ -328,8 +330,8 @@ class ConcoursUploadView(APIView):
 
 @extend_schema(
     summary="Liste des métiers",
-    description=None,
-    examples=None,
+    description=LIST_METIERS_DESCRIPTION,
+    examples=LIST_METIERS_EXAMPLES,
     tags=["metiers"],
     responses={
         200: ListMetiersResponseSerializer,

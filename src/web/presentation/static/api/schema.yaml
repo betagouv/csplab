@@ -161,7 +161,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/GenericError'
               examples:
                 Error-UnexpectedServerError:
                   value:
@@ -169,45 +169,29 @@ paths:
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
-  /api/data/offers/:
+  /api/data/metiers/:
     get:
-      operationId: data_offers_list
+      operationId: data_metiers_retrieve
       description: |2
 
-        # API de consultation des offres d'emploi de la Fonction Publique
+        # API de consultation des métiers de la Fonction Publique
 
-        Cette API retourne la liste de offres correspondant à une recherche selon les 2
-        critères suivants :
+        Cette API retourne la liste paginées des métiers. Les métiers peuvent être filtrés
+        selon leur code de domaine fonctionnel (`domain`).
 
-        - Candidature active / archivée
-        - Référence externe de la candidature contient une chaîne de caractère spécifique
-
-        Cette API est à l’usage exclusif des personnes autorisées.
+        Cette API est à l'usage exclusif des personnes autorisées.
 
         # Permissions
 
-        L’utilisation de cette API nécessite un token d’autorisation spécifique à chaque
+        L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
         utilisateur.
 
         # Limitations
 
-        L’interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
-      summary: Liste des offres
-      parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: size
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
+        L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+      summary: Liste des métiers
       tags:
-      - offres
+      - metiers
       security:
       - jwtAuth: []
       responses:
@@ -215,47 +199,62 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedListOffersResponseList'
+                $ref: '#/components/schemas/ListMetiersResponse'
               examples:
-                Success-ActiveOffers:
+                Success-All:
                   value:
-                    count: 123
-                    next: http://api.example.org/accounts/?page=4
-                    previous: http://api.example.org/accounts/?page=2
-                    results:
-                    - external_id: Versant_FPE-2026-999999
-                      title: Responsable de la Division des Affaires Financières H/F
-                      organization: Ecole Nationale Supérieure de Techniques Avancées
-                        (ENSTA)
-                      contract_type: TITULAIRE_CONTRACTUEL
-                      category: A
-                      publication_date: '2026-04-17T14:44:49.873000+00:00'
-                      offer_url: https://test.com/offre-emploi/2026-999999/
-                      archived_at: null
-                  summary: Liste des offres d'emploi actives
-                  description: Les offres d'emploi sans date d'archivagesont retournées
-                    paginées
-                Success-ArchivedOffers:
+                    libelle: Cheffe / Chef de projet politique de la ville
+                    description: Mettre en oeuvre les orientations stratégiques en
+                      matièrede développement social et de redynamisation des espaces
+                      urbains desQuartiers Politique de la Ville
+                    domaine_fonctionnel_code: AMT
+                    versants:
+                    - FPT
+                    activites:
+                    - Animer et participer aux instances techniques etde pilotage
+                      de la politique de la ville
+                    - Instruire les programmations d'actions :suivi administratif,
+                      financier et opérationnel
+                    - Assurer un rôle de conseil et d'information auprèsdes différents
+                      interlocuteurs
+                    conditions_particulieres: []
+                    offer_family_code: ERAMT001
+                  summary: Liste de tous les métiers
+                  description: Les métiers sont retournés paginés
+                Success-Filtered:
                   value:
-                    count: 123
-                    next: http://api.example.org/accounts/?page=4
-                    previous: http://api.example.org/accounts/?page=2
-                    results:
-                    - external_id: Versant_FPE-2026-999999
-                      title: Responsable de la Division des Affaires Financières H/F
-                      organization: Ecole Nationale Supérieure de Techniques Avancées
-                        (ENSTA)
-                      contract_type: TITULAIRE_CONTRACTUEL
-                      category: A
-                      publication_date: '2026-04-17T14:44:49.873000+00:00'
-                      offer_url: https://test.com/offre-emploi/2026-999999/
-                      archived_at: '2026-05-17T12:42:42.873000+00:00'
-                  summary: Liste des offres d'emploi archivées
-                  description: Les offres d'emploi avec une date d'archivagesont retournées
-                    paginées
+                    libelle: Personne ressource en santé et protection animales
+                    description: Mobilise sa compétence dans la gestion et le suivi
+                      de la santé et dela protection animale en appui aux services
+                      territoriaux de l'État
+                    domaine_fonctionnel_code: AGR
+                    versants:
+                    - FPE
+                    activites:
+                    - Mettre en oeuvre la compétence technique et scientifique dansson
+                      domaine de compétence par un appui ponctuel à un servicedépartemental
+                      confronté à une situation particulière
+                    - Apporter un appui dans l'élaboration des normes,des instructions
+                      et des méthodes d'inspection
+                    conditions_particulieres:
+                    - Déplacements nationaux et internationaux
+                    offer_family_code: ERAGR001
+                  summary: Liste des métiers correspondants à un code domaine fonctionnel
+                  description: Les métiers possédant ce code domaine fonctionnle sont
+                    retournés paginés
           description: ''
         '400':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+              examples:
+                Error-MalformedPayload:
+                  value:
+                    error: string
+                  summary: Données invalides
+                  description: Les données passées dans le payload sont incorrectes
+          description: ''
         '401':
           content:
             application/json:
@@ -278,7 +277,107 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/GenericError'
+              examples:
+                Error-UnexpectedServerError:
+                  value:
+                    error: Unexpected error
+                  summary: Erreur serveur inattendue
+                  description: Une erreur inattendue s'est produite côté serveur.
+          description: ''
+  /api/data/offers/:
+    get:
+      operationId: data_offers_retrieve
+      description: |2
+
+        # API de consultation des offres d'emploi de la Fonction Publique
+
+        Cette API retourne la liste de offres correspondant à une recherche selon les 2
+        critères suivants :
+
+        - Candidature active / archivée
+        - Référence externe de la candidature contient une chaîne de caractère spécifique
+
+        Cette API est à l’usage exclusif des personnes autorisées.
+
+        # Permissions
+
+        L’utilisation de cette API nécessite un token d’autorisation spécifique à chaque
+        utilisateur.
+
+        # Limitations
+
+        L’interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+      summary: Liste des offres
+      tags:
+      - offres
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOffersResponse'
+              examples:
+                Success-ActiveOffers:
+                  value:
+                    external_id: Versant_FPE-2026-999999
+                    title: Responsable de la Division des Affaires Financières H/F
+                    organization: Ecole Nationale Supérieure de Techniques Avancées
+                      (ENSTA)
+                    contract_type: TITULAIRE_CONTRACTUEL
+                    category: A
+                    publication_date: '2026-04-17T14:44:49.873000+00:00'
+                    offer_url: https://test.com/offre-emploi/2026-999999/
+                    archived_at: null
+                  summary: Liste des offres d'emploi actives
+                  description: Les offres d'emploi sans date d'archivagesont retournées
+                    paginées
+                Success-ArchivedOffers:
+                  value:
+                    external_id: Versant_FPE-2026-999999
+                    title: Responsable de la Division des Affaires Financières H/F
+                    organization: Ecole Nationale Supérieure de Techniques Avancées
+                      (ENSTA)
+                    contract_type: TITULAIRE_CONTRACTUEL
+                    category: A
+                    publication_date: '2026-04-17T14:44:49.873000+00:00'
+                    offer_url: https://test.com/offre-emploi/2026-999999/
+                    archived_at: '2026-05-17T12:42:42.873000+00:00'
+                  summary: Liste des offres d'emploi archivées
+                  description: Les offres d'emploi avec une date d'archivagesont retournées
+                    paginées
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+              examples:
+                Error-InvalidToken:
+                  value:
+                    detail: Le jeton fourni n'est pas valide.
+                    code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid or expired
+                  summary: Token JWT invalide ou expiré
+                  description: Le token dans le header `Authorization` est invalide
+                    ou expiré.
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
               examples:
                 Error-UnexpectedServerError:
                   value:
@@ -405,7 +504,7 @@ components:
       - detail
     ConcoursUpload400Error:
       oneOf:
-      - $ref: '#/components/schemas/FileError'
+      - $ref: '#/components/schemas/GenericError'
       - $ref: '#/components/schemas/NoValidRowsError'
     ConcoursUploadResponse:
       type: object
@@ -438,13 +537,47 @@ components:
       - updated
       - valid_rows
       - validation_errors
-    FileError:
+    GenericError:
       type: object
       properties:
         error:
           type: string
       required:
       - error
+    ListMetiersResponse:
+      type: object
+      properties:
+        libelle:
+          type: string
+        description:
+          type: string
+        domaine_fonctionnel_code:
+          type: string
+        versants:
+          type: array
+          items:
+            type: string
+        activites:
+          type: array
+          items:
+            type: string
+          nullable: true
+        conditions_particulieres:
+          type: array
+          items:
+            type: string
+          nullable: true
+        offer_family_code:
+          type: string
+          nullable: true
+      required:
+      - activites
+      - conditions_particulieres
+      - description
+      - domaine_fonctionnel_code
+      - libelle
+      - offer_family_code
+      - versants
     ListOffersResponse:
       type: object
       properties:
@@ -491,36 +624,6 @@ components:
       required:
       - error
       - validation_errors
-    PaginatedListOffersResponseList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/ListOffersResponse'
-    ServerError:
-      type: object
-      properties:
-        error:
-          type: string
-      required:
-      - error
     TokenError:
       type: object
       properties:
@@ -584,10 +687,10 @@ components:
     ValidationError:
       type: object
       properties:
-        row:
-          type: integer
         error:
           type: string
+        row:
+          type: integer
       required:
       - error
       - row
@@ -608,3 +711,5 @@ tags:
   description: Ingestion des concours par import de fichiers CSV
 - name: offres
   description: Offres d'emploi de la Fonction Publique
+- name: metiers
+  description: Métiers du Référentiel des Métiers de la Fonction Publique
