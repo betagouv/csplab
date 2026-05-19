@@ -15,7 +15,7 @@ from domain.repositories.document_repository_interface import (
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.services.logger_interface import ILogger
 from infrastructure.django_apps.shared.models.offer import OfferModel
-from infrastructure.mappers.offer_queryset_page import OfferQuerySetPage
+from infrastructure.mappers.queryset_page import QuerySetPage
 
 
 class PostgresOffersRepository(IOffersRepository):
@@ -138,7 +138,7 @@ class PostgresOffersRepository(IOffersRepository):
         if external_id_contains:
             qs = qs.filter(external_id__contains=external_id_contains)
 
-        return OfferQuerySetPage(qs.order_by("-updated_at"))
+        return QuerySetPage(qs.order_by("-updated_at"))
 
     @transaction.atomic
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]:
