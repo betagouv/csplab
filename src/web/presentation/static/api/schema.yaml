@@ -161,7 +161,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/GenericError'
               examples:
                 Error-UnexpectedServerError:
                   value:
@@ -171,7 +171,7 @@ paths:
           description: ''
   /api/data/offers/:
     get:
-      operationId: data_offers_list
+      operationId: data_offers_retrieve
       description: |2
 
         # API de consultation des offres d'emploi de la Fonction Publique
@@ -193,19 +193,6 @@ paths:
 
         L’interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
       summary: Liste des offres
-      parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: size
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
       tags:
       - offres
       security:
@@ -215,47 +202,43 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedListOffersResponseList'
+                $ref: '#/components/schemas/ListOffersResponse'
               examples:
                 Success-ActiveOffers:
                   value:
-                    count: 123
-                    next: http://api.example.org/accounts/?page=4
-                    previous: http://api.example.org/accounts/?page=2
-                    results:
-                    - external_id: Versant_FPE-2026-999999
-                      title: Responsable de la Division des Affaires Financières H/F
-                      organization: Ecole Nationale Supérieure de Techniques Avancées
-                        (ENSTA)
-                      contract_type: TITULAIRE_CONTRACTUEL
-                      category: A
-                      publication_date: '2026-04-17T14:44:49.873000+00:00'
-                      offer_url: https://test.com/offre-emploi/2026-999999/
-                      archived_at: null
+                    external_id: Versant_FPE-2026-999999
+                    title: Responsable de la Division des Affaires Financières H/F
+                    organization: Ecole Nationale Supérieure de Techniques Avancées
+                      (ENSTA)
+                    contract_type: TITULAIRE_CONTRACTUEL
+                    category: A
+                    publication_date: '2026-04-17T14:44:49.873000+00:00'
+                    offer_url: https://test.com/offre-emploi/2026-999999/
+                    archived_at: null
                   summary: Liste des offres d'emploi actives
                   description: Les offres d'emploi sans date d'archivagesont retournées
                     paginées
                 Success-ArchivedOffers:
                   value:
-                    count: 123
-                    next: http://api.example.org/accounts/?page=4
-                    previous: http://api.example.org/accounts/?page=2
-                    results:
-                    - external_id: Versant_FPE-2026-999999
-                      title: Responsable de la Division des Affaires Financières H/F
-                      organization: Ecole Nationale Supérieure de Techniques Avancées
-                        (ENSTA)
-                      contract_type: TITULAIRE_CONTRACTUEL
-                      category: A
-                      publication_date: '2026-04-17T14:44:49.873000+00:00'
-                      offer_url: https://test.com/offre-emploi/2026-999999/
-                      archived_at: '2026-05-17T12:42:42.873000+00:00'
+                    external_id: Versant_FPE-2026-999999
+                    title: Responsable de la Division des Affaires Financières H/F
+                    organization: Ecole Nationale Supérieure de Techniques Avancées
+                      (ENSTA)
+                    contract_type: TITULAIRE_CONTRACTUEL
+                    category: A
+                    publication_date: '2026-04-17T14:44:49.873000+00:00'
+                    offer_url: https://test.com/offre-emploi/2026-999999/
+                    archived_at: '2026-05-17T12:42:42.873000+00:00'
                   summary: Liste des offres d'emploi archivées
                   description: Les offres d'emploi avec une date d'archivagesont retournées
                     paginées
           description: ''
         '400':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
         '401':
           content:
             application/json:
@@ -278,13 +261,70 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/GenericError'
               examples:
                 Error-UnexpectedServerError:
                   value:
                     error: Unexpected error
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
+          description: ''
+  /api/data/offers/upsert/:
+    post:
+      operationId: data_offers_upsert_create
+      description: |2
+
+        # API d'ingestion d'offres d'emploi de la Fonction Publique
+
+        Cette API permet de créer ou mettre à jour des offres d'emploi, en masse, via un payload JSON.
+
+        - Les offres sont identifiées par son champ `reference` (clé d'upsert).
+        - Une offre existante est mise à jour, une offre inconnue est créée.
+
+        # Permissions
+
+        L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque utilisateur.
+
+        # Limitations
+
+        L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+      summary: Ajouter/mettre à jour une offre d'emploi
+      tags:
+      - offres
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/OffersInput'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpsertOffersResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
           description: ''
   /api/offers/{reference}/archive/:
     post:
@@ -403,9 +443,44 @@ components:
           type: string
       required:
       - detail
+    AreaCodeEnum:
+      enum:
+      - AF
+      - EU
+      - AS
+      - NA
+      - SA
+      - AN
+      - AU
+      type: string
+      description: |-
+        * `AF` - Africa
+        * `EU` - Europe
+        * `AS` - Asia
+        * `NA` - North America
+        * `SA` - South America
+        * `AN` - Antarctica
+        * `AU` - Australia
+    BlankEnum:
+      enum:
+      - ''
+    CategoryEnum:
+      enum:
+      - APLUS
+      - A
+      - B
+      - C
+      - HORS_CATEGORIE
+      type: string
+      description: |-
+        * `APLUS` - APLUS
+        * `A` - A
+        * `B` - B
+        * `C` - C
+        * `HORS_CATEGORIE` - HORS_CATEGORIE
     ConcoursUpload400Error:
       oneOf:
-      - $ref: '#/components/schemas/FileError'
+      - $ref: '#/components/schemas/GenericError'
       - $ref: '#/components/schemas/NoValidRowsError'
     ConcoursUploadResponse:
       type: object
@@ -438,13 +513,442 @@ components:
       - updated
       - valid_rows
       - validation_errors
-    FileError:
+    ConditionsInput:
+      type: object
+      properties:
+        salary_civil_servant:
+          type: string
+          maxLength: 100
+        salary_contractor:
+          type: string
+          maxLength: 100
+        job_beginning_date:
+          type: string
+          format: date-time
+          nullable: true
+        job_end_date:
+          type: string
+          format: date-time
+          nullable: true
+        contract_duration:
+          type: string
+        working_time:
+          type: boolean
+        open_to_military:
+          type: boolean
+        working_place:
+          type: boolean
+        management:
+          type: boolean
+        additionnal_infos:
+          type: string
+          maxLength: 1500
+        legal_basis:
+          type: string
+          maxLength: 1500
+        vacancy_notice_url:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - additionnal_infos
+      - contract_duration
+      - job_beginning_date
+      - job_end_date
+      - legal_basis
+      - management
+      - open_to_military
+      - salary_civil_servant
+      - salary_contractor
+      - vacancy_notice_url
+      - working_place
+      - working_time
+    ContactsInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    ContractKindEnum:
+      enum:
+      - CDD
+      - CDI
+      - Vacation
+      - Stage
+      type: string
+      description: |-
+        * `CDD` - CDD
+        * `CDI` - CDI
+        * `Vacation` - Vacation
+        * `Stage` - Stage
+    ContractTypeEnum:
+      enum:
+      - TITULAIRE_CONTRACTUEL
+      - CONTRACTUELS
+      - TERRITORIAL
+      type: string
+      description: |-
+        * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+        * `CONTRACTUELS` - CONTRACTUELS
+        * `TERRITORIAL` - TERRITORIAL
+    CriteriaInput:
+      type: object
+      properties:
+        education_level:
+          oneOf:
+          - $ref: '#/components/schemas/EducationLevelEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        experience_level:
+          oneOf:
+          - $ref: '#/components/schemas/ExperienceLevelEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        specializations:
+          type: array
+          items:
+            type: string
+          nullable: true
+        national_diploma:
+          type: string
+        required_documents:
+          type: array
+          items:
+            type: string
+          nullable: true
+        expected_skills:
+          type: array
+          items:
+            type: string
+          nullable: true
+        language:
+          type: array
+          items:
+            $ref: '#/components/schemas/LanguageInput'
+          nullable: true
+      required:
+      - education_level
+      - expected_skills
+      - experience_level
+      - language
+      - national_diploma
+      - required_documents
+      - specializations
+    DepartmentCodeEnum:
+      enum:
+      - '93'
+      - '973'
+      - '62'
+      - '25'
+      - '78'
+      - '95'
+      - SPM
+      - '42'
+      - '57'
+      - '84'
+      - '85'
+      - '68'
+      - '975'
+      - '988'
+      - '40'
+      - '51'
+      - '67'
+      - WLF
+      - '75'
+      - '79'
+      - '29'
+      - '70'
+      - '58'
+      - '34'
+      - '63'
+      - '06'
+      - '33'
+      - '83'
+      - '36'
+      - '72'
+      - '10'
+      - '82'
+      - '05'
+      - '46'
+      - '17'
+      - '74'
+      - '986'
+      - '32'
+      - '13'
+      - '52'
+      - '69'
+      - '55'
+      - '971'
+      - '88'
+      - '89'
+      - '24'
+      - '59'
+      - '38'
+      - '80'
+      - 2B
+      - '974'
+      - '14'
+      - '03'
+      - 09
+      - '31'
+      - '65'
+      - '28'
+      - '91'
+      - '26'
+      - '77'
+      - '43'
+      - '07'
+      - '30'
+      - '56'
+      - '35'
+      - '61'
+      - '92'
+      - '48'
+      - '04'
+      - '972'
+      - '81'
+      - '87'
+      - '45'
+      - '11'
+      - '54'
+      - '15'
+      - '16'
+      - '41'
+      - '01'
+      - '19'
+      - '44'
+      - '02'
+      - '49'
+      - '94'
+      - '60'
+      - '90'
+      - '47'
+      - '66'
+      - '71'
+      - '53'
+      - 2A
+      - '73'
+      - '22'
+      - '86'
+      - '27'
+      - '39'
+      - '987'
+      - '18'
+      - '976'
+      - '21'
+      - 08
+      - '12'
+      - '64'
+      - '23'
+      - '76'
+      - '37'
+      - '50'
+      type: string
+      description: |-
+        * `93` - 93
+        * `973` - 973
+        * `62` - 62
+        * `25` - 25
+        * `78` - 78
+        * `95` - 95
+        * `SPM` - SPM
+        * `42` - 42
+        * `57` - 57
+        * `84` - 84
+        * `85` - 85
+        * `68` - 68
+        * `975` - 975
+        * `988` - 988
+        * `40` - 40
+        * `51` - 51
+        * `67` - 67
+        * `WLF` - WLF
+        * `75` - 75
+        * `79` - 79
+        * `29` - 29
+        * `70` - 70
+        * `58` - 58
+        * `34` - 34
+        * `63` - 63
+        * `06` - 06
+        * `33` - 33
+        * `83` - 83
+        * `36` - 36
+        * `72` - 72
+        * `10` - 10
+        * `82` - 82
+        * `05` - 05
+        * `46` - 46
+        * `17` - 17
+        * `74` - 74
+        * `986` - 986
+        * `32` - 32
+        * `13` - 13
+        * `52` - 52
+        * `69` - 69
+        * `55` - 55
+        * `971` - 971
+        * `88` - 88
+        * `89` - 89
+        * `24` - 24
+        * `59` - 59
+        * `38` - 38
+        * `80` - 80
+        * `2B` - 2B
+        * `974` - 974
+        * `14` - 14
+        * `03` - 03
+        * `09` - 09
+        * `31` - 31
+        * `65` - 65
+        * `28` - 28
+        * `91` - 91
+        * `26` - 26
+        * `77` - 77
+        * `43` - 43
+        * `07` - 07
+        * `30` - 30
+        * `56` - 56
+        * `35` - 35
+        * `61` - 61
+        * `92` - 92
+        * `48` - 48
+        * `04` - 04
+        * `972` - 972
+        * `81` - 81
+        * `87` - 87
+        * `45` - 45
+        * `11` - 11
+        * `54` - 54
+        * `15` - 15
+        * `16` - 16
+        * `41` - 41
+        * `01` - 01
+        * `19` - 19
+        * `44` - 44
+        * `02` - 02
+        * `49` - 49
+        * `94` - 94
+        * `60` - 60
+        * `90` - 90
+        * `47` - 47
+        * `66` - 66
+        * `71` - 71
+        * `53` - 53
+        * `2A` - 2A
+        * `73` - 73
+        * `22` - 22
+        * `86` - 86
+        * `27` - 27
+        * `39` - 39
+        * `987` - 987
+        * `18` - 18
+        * `976` - 976
+        * `21` - 21
+        * `08` - 08
+        * `12` - 12
+        * `64` - 64
+        * `23` - 23
+        * `76` - 76
+        * `37` - 37
+        * `50` - 50
+    DescriptionInput:
+      type: object
+      properties:
+        mission:
+          type: string
+          maxLength: 3000
+        profile:
+          type: string
+          maxLength: 3000
+        employer:
+          type: string
+          maxLength: 3000
+        additionnal:
+          type: string
+          maxLength: 1500
+      required:
+      - additionnal
+      - employer
+      - mission
+      - profile
+    EducationLevelEnum:
+      enum:
+      - Brevet
+      - b
+      - c
+      - d
+      - e
+      - f
+      - g
+      - Doctorant
+      type: string
+      description: |-
+        * `Brevet` - Brevet
+        * `b` - b
+        * `c` - c
+        * `d` - d
+        * `e` - e
+        * `f` - f
+        * `g` - g
+        * `Doctorant` - Doctorant
+    ExperienceLevelEnum:
+      enum:
+      - Débutant
+      - Confirmé
+      - Expert
+      type: string
+      description: |-
+        * `Débutant` - Débutant
+        * `Confirmé` - Confirmé
+        * `Expert` - Expert
+    GenericError:
       type: object
       properties:
         error:
           type: string
       required:
       - error
+    IdentityInput:
+      type: object
+      properties:
+        reference:
+          type: string
+        source:
+          type: string
+        verse:
+          $ref: '#/components/schemas/VerseEnum'
+      required:
+      - reference
+      - source
+      - verse
+    LanguageInput:
+      type: object
+      properties:
+        language_iso_code:
+          type: string
+          maxLength: 2
+        level:
+          $ref: '#/components/schemas/LevelEnum'
+      required:
+      - language_iso_code
+      - level
+    LevelEnum:
+      enum:
+      - A1
+      - A2
+      - B1
+      - B2
+      - C1
+      - C2
+      type: string
+      description: |-
+        * `A1` - A1
+        * `A2` - A2
+        * `B1` - B1
+        * `B2` - B2
+        * `C1` - C1
+        * `C2` - C2
     ListOffersResponse:
       type: object
       properties:
@@ -479,6 +983,42 @@ components:
       - organization
       - publication_date
       - title
+    LocalisationInput:
+      type: object
+      properties:
+        area_code:
+          $ref: '#/components/schemas/AreaCodeEnum'
+        country_code:
+          type: string
+          maxLength: 3
+          minLength: 3
+        region_code:
+          oneOf:
+          - $ref: '#/components/schemas/RegionCodeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        department_code:
+          oneOf:
+          - $ref: '#/components/schemas/DepartmentCodeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        offer_location_label:
+          type: string
+          maxLength: 500
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+      required:
+      - area_code
+      - country_code
+      - department_code
+      - latitude
+      - longitude
+      - offer_location_label
+      - region_code
     NoValidRowsError:
       type: object
       properties:
@@ -491,36 +1031,173 @@ components:
       required:
       - error
       - validation_errors
-    PaginatedListOffersResponseList:
+    OffersInput:
       type: object
-      required:
-      - count
-      - results
       properties:
-        count:
-          type: integer
-          example: 123
-        next:
+        identity:
+          $ref: '#/components/schemas/IdentityInput'
+        title:
           type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
+          maxLength: 150
+        long_title:
           type: string
-          nullable: true
+          maxLength: 1500
+        organization:
+          $ref: '#/components/schemas/OrganizationInput'
+        offer_url:
+          type: string
           format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
+          nullable: true
+        application_url:
+          type: string
+          format: uri
+          nullable: true
+        profession:
+          $ref: '#/components/schemas/ProfessionInput'
+        category:
           type: array
           items:
-            $ref: '#/components/schemas/ListOffersResponse'
-    ServerError:
+            oneOf:
+            - $ref: '#/components/schemas/CategoryEnum'
+            - $ref: '#/components/schemas/BlankEnum'
+        contract_type:
+          $ref: '#/components/schemas/ContractTypeEnum'
+        contract_kind:
+          type: array
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/ContractKindEnum'
+            - $ref: '#/components/schemas/BlankEnum'
+        status:
+          type: boolean
+        description:
+          $ref: '#/components/schemas/DescriptionInput'
+        localisation:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocalisationInput'
+          nullable: true
+        criteria:
+          allOf:
+          - $ref: '#/components/schemas/CriteriaInput'
+          nullable: true
+        conditions:
+          allOf:
+          - $ref: '#/components/schemas/ConditionsInput'
+          nullable: true
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactsInput'
+          nullable: true
+        publication:
+          $ref: '#/components/schemas/PublicationInput'
+      required:
+      - application_url
+      - category
+      - conditions
+      - contacts
+      - contract_kind
+      - contract_type
+      - criteria
+      - description
+      - identity
+      - localisation
+      - long_title
+      - offer_url
+      - organization
+      - profession
+      - publication
+      - status
+      - title
+    OrganizationInput:
       type: object
       properties:
-        error:
+        organization_name:
+          type: string
+        organization_siret:
+          type: string
+          maxLength: 15
+      required:
+      - organization_name
+      - organization_siret
+    ProfessionInput:
+      type: object
+      properties:
+        profession_domain:
+          type: string
+          maxLength: 3
+        profession_detail:
           type: string
       required:
-      - error
+      - profession_detail
+      - profession_domain
+    PublicationInput:
+      type: object
+      properties:
+        publication_start_date:
+          type: string
+          format: date-time
+        publication_end_date:
+          type: string
+          format: date-time
+        application_end_date:
+          type: string
+          format: date-time
+          nullable: true
+        vacancy_start_date:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - application_end_date
+      - publication_end_date
+      - publication_start_date
+      - vacancy_start_date
+    RegionCodeEnum:
+      enum:
+      - '93'
+      - '94'
+      - '03'
+      - DOM
+      - '53'
+      - '28'
+      - '84'
+      - TOM
+      - '27'
+      - '75'
+      - '32'
+      - '52'
+      - '04'
+      - '76'
+      - '11'
+      - '24'
+      - '01'
+      - '06'
+      - '44'
+      - '02'
+      type: string
+      description: |-
+        * `93` - 93
+        * `94` - 94
+        * `03` - 03
+        * `DOM` - DOM
+        * `53` - 53
+        * `28` - 28
+        * `84` - 84
+        * `TOM` - TOM
+        * `27` - 27
+        * `75` - 75
+        * `32` - 32
+        * `52` - 52
+        * `04` - 04
+        * `76` - 76
+        * `11` - 11
+        * `24` - 24
+        * `01` - 01
+        * `06` - 06
+        * `44` - 44
+        * `02` - 02
     TokenError:
       type: object
       properties:
@@ -581,6 +1258,22 @@ components:
       required:
       - access
       - refresh
+    UpsertOffersResponse:
+      type: object
+      properties:
+        created:
+          type: integer
+        updated:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - created
+      - errors
+      - updated
     ValidationError:
       type: object
       properties:
@@ -591,6 +1284,16 @@ components:
       required:
       - error
       - row
+    VerseEnum:
+      enum:
+      - FPT
+      - FPE
+      - FPH
+      type: string
+      description: |-
+        * `FPT` - FPT
+        * `FPE` - FPE
+        * `FPH` - FPH
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
