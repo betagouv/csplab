@@ -30,12 +30,12 @@ def test_upsert_batch_stores_entities(metier_repository_mock, sample_metiers):
     assert stored_codes == expected_codes
 
 
-def test_filter_by_with_matching_offer_family_code(
+def test_get_filtered_with_matching_offer_family_code(
     metier_repository_mock, sample_metiers
 ):
     metier_repository_mock.upsert_batch(sample_metiers)
 
-    filtered_metiers = metier_repository_mock.filter_by(
+    filtered_metiers = metier_repository_mock.get_filtered(
         {"offer_family_code": "ERJUR011"}
     )
 
@@ -43,12 +43,12 @@ def test_filter_by_with_matching_offer_family_code(
     assert filtered_metiers[0].offer_family_code == "ERJUR011"
 
 
-def test_filter_by_with_non_matching_offer_family_code(
+def test_get_filtered_with_non_matching_offer_family_code(
     metier_repository_mock, sample_metiers
 ):
     metier_repository_mock.upsert_batch(sample_metiers)
 
-    filtered_metiers = metier_repository_mock.filter_by(
+    filtered_metiers = metier_repository_mock.get_filtered(
         {"offer_family_code": "NONEXISTENT"}
     )
 
