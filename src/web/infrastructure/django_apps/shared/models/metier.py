@@ -11,7 +11,7 @@ class MetierModel(models.Model):
     external_id = models.CharField(max_length=8, unique=True)
     libelle_long = models.CharField(max_length=500)
     definition_synthetique = models.TextField(null=True, blank=True)
-    code_domaine_fonctionnel = models.CharField(max_length=3)
+    domaine_fonctionnel_code = models.CharField(max_length=3)
     offer_family_code = models.CharField(max_length=8)
     versants = models.JSONField(default=list, null=True, blank=True)
     conditions_particulieres = models.JSONField(default=list, null=True, blank=True)
@@ -41,7 +41,7 @@ class MetierModel(models.Model):
             external_id=self.external_id,
             libelle=self.libelle_long,
             description=self.definition_synthetique or "",
-            domaine_fonctionnel_code=self.code_domaine_fonctionnel,
+            domaine_fonctionnel_code=self.domaine_fonctionnel_code,
             versants=versants,
             activites=self.activites or [],
             conditions_particulieres=self.conditions_particulieres or [],
@@ -60,7 +60,7 @@ class MetierModel(models.Model):
             external_id=metier.external_id,
             libelle_long=metier.libelle,
             definition_synthetique=metier.description,
-            code_domaine_fonctionnel=metier.domaine_fonctionnel_code,
+            domaine_fonctionnel_code=metier.domaine_fonctionnel_code,
             offer_family_code=metier.offer_family_code or "",
             versants=versants,
             activites=metier.activites,
