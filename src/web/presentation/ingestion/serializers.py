@@ -91,7 +91,7 @@ class OrganizationInputSerializer(serializers.Serializer):
 
 class ProfessionInputSerializer(serializers.Serializer):
     profession_domain = serializers.CharField(max_length=3)  # code domaine fonctionnel
-    profession_detail = serializers.CharField()
+    profession_detail = serializers.CharField(max_length=8)
 
 
 class DescriptionInputSerializer(serializers.Serializer):

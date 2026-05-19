@@ -1129,6 +1129,7 @@ components:
           maxLength: 3
         profession_detail:
           type: string
+          maxLength: 8
       required:
       - profession_detail
       - profession_domain
