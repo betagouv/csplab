@@ -38,7 +38,7 @@ class GetOpportunityDetailsUsecase:
                 f"cannot fetch related metiers"
             )
             return offer, []
-        metiers = self.metiers_repository.filter_by(
+        metiers = self.metiers_repository.get_filtered(
             {"offer_family_code": offer.family_code}
         )
         return offer, metiers

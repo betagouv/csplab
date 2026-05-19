@@ -100,7 +100,9 @@ class PostgresMetierRepository(IMetierRepository):
         metier_models = MetierModel.objects.all()
         return [model.to_entity() for model in metier_models]
 
-    def filter_by(self, predicate: Dict[str, str], limit: int = 1000) -> List[Metier]:
+    def get_filtered(
+        self, predicate: Dict[str, str], limit: int = 1000
+    ) -> List[Metier]:
         metier_models = MetierModel.objects.filter(**predicate)[:limit]
         return [model.to_entity() for model in metier_models]
 
