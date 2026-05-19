@@ -11,7 +11,7 @@ from drf_spectacular.utils import (
 from pydantic import ValidationError
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -19,6 +19,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
+from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.offer_errors import OfferDoesNotExist
 from infrastructure.authentication.api_key_authentication import (
@@ -31,19 +32,20 @@ from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_EXAMPLES,
     LIST_OFFERS_DESCRIPTION,
     LIST_OFFERS_EXAMPLES,
+    UPSERT_OFFERS_DESCRIPTION,
 )
 from presentation.ingestion.pagination import IngestionPagination
 from presentation.ingestion.schemas import ConcoursRowSchema
 from presentation.ingestion.serializers import (
     ArchiveOfferSuccessSerializer,
     ConcoursUploadResponseSerializer,
-    FileErrorSerializer,
-    ListOffersErrorSerializer,
+    GenericErrorSerializer,
     ListOffersFiltersSerializer,
     ListOffersResponseSerializer,
     NoValidRowsErrorSerializer,
-    ServerErrorSerializer,
+    OffersInputSerializer,
     TokenErrorSerializer,
+    UpsertOffersResponseSerializer,
 )
 
 # Mapping from CSV column names to Python field names
@@ -140,11 +142,11 @@ class ConcoursUploadView(APIView):
             201: ConcoursUploadResponseSerializer,
             400: PolymorphicProxySerializer(
                 component_name="ConcoursUpload400Error",
-                serializers=[FileErrorSerializer, NoValidRowsErrorSerializer],
+                serializers=[GenericErrorSerializer, NoValidRowsErrorSerializer],
                 resource_type_field_name=None,
             ),
             401: TokenErrorSerializer,
-            500: ServerErrorSerializer,
+            500: GenericErrorSerializer,
         },
     )
     def post(self, request):
@@ -331,9 +333,9 @@ class ConcoursUploadView(APIView):
     tags=["offres"],
     responses={
         200: ListOffersResponseSerializer,
-        400: ListOffersErrorSerializer,
+        400: GenericErrorSerializer,
         401: TokenErrorSerializer,
-        500: ServerErrorSerializer,
+        500: GenericErrorSerializer,
     },
 )
 class OffersListView(APIView):
@@ -362,7 +364,7 @@ class OffersListView(APIView):
             )
         except Exception as e:
             self.logger.error("Unexpected error in OffersListView: %s", str(e))
-            serializer = ServerErrorSerializer({"error": "Unexpected error"})
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
@@ -411,3 +413,43 @@ class ArchiveOffersView(APIView):
         except OfferDoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
+@extend_schema(
+    summary="Ajouter/mettre à jour une offre d'emploi",
+    description=UPSERT_OFFERS_DESCRIPTION,
+    tags=["offres"],
+    request=OffersInputSerializer(many=True),
+    responses={
+        201: UpsertOffersResponseSerializer,
+        400: GenericErrorSerializer,
+        401: TokenErrorSerializer,
+        500: GenericErrorSerializer,
+    },
+)
+class OffersUpsertView(APIView):
+    parser_classes = [JSONParser]
+    serializer_class = OffersInputSerializer
+
+    def post(self, request):
+        container = create_ingestion_container()
+        logger = container.logger_service()
+
+        serializer = OffersInputSerializer(data=request.data, many=True)
+        if not serializer.is_valid():
+            logger.warning("OffersUpsertView: validation errors %s", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            datas = serializer.validated_data
+            offers = [
+                OffersInputSerializer(data=data).to_domain_from_validated(data)
+                for data in datas
+            ]
+            usecase = container.upsert_offer_usecase()
+            result = usecase.execute(UpsertOffersInput(offers=offers))
+            return Response(result, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.error("OffersUpsertView: unexpected error %s", str(e))
+            return Response(
+                {"error": "Unexpected error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
