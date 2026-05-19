@@ -72,7 +72,7 @@ class PostgresMetierRepository(IMetierRepository):
                             fields=[
                                 "libelle_long",
                                 "definition_synthetique",
-                                "code_domaine_fonctionnel",
+                                "domaine_fonctionnel_code",
                                 "offer_family_code",
                                 "versants",
                                 "activites",
