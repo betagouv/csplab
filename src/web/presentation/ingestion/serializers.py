@@ -60,3 +60,7 @@ class ListOffersFiltersSerializer(serializers.Serializer):
 
 class ListOffersErrorSerializer(serializers.Serializer):
     error = serializers.CharField
+
+
+class ArchiveOfferSuccessSerializer(serializers.Serializer):
+    status = serializers.CharField()

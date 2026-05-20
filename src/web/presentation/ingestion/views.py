@@ -2,17 +2,29 @@ from datetime import datetime
 
 import polars as pl
 from asgiref.sync import async_to_sync
-from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema
+from drf_spectacular.utils import (
+    PolymorphicProxySerializer,
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
 from pydantic import ValidationError
+from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import Document, DocumentType
+from domain.exceptions.offer_errors import OfferDoesNotExist
+from infrastructure.authentication.api_key_authentication import (
+    ApiKeyAuthentication,
+    UserRateThrottleExceptApiKey,
+)
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_DESCRIPTION,
@@ -23,6 +35,7 @@ from presentation.ingestion.openapi import (
 from presentation.ingestion.pagination import IngestionPagination
 from presentation.ingestion.schemas import ConcoursRowSchema
 from presentation.ingestion.serializers import (
+    ArchiveOfferSuccessSerializer,
     ConcoursUploadResponseSerializer,
     FileErrorSerializer,
     ListOffersErrorSerializer,
@@ -353,3 +366,48 @@ class OffersListView(APIView):
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+@extend_schema_view(
+    post=extend_schema(
+        request=None,
+        summary="Archiver une offre par référence",
+        description=(
+            "Archive une offre selon sa référence. "
+            "Accepte une authentification JWT ou par clé d'API."
+        ),
+        tags=["offres"],
+        responses={
+            200: ArchiveOfferSuccessSerializer,
+            401: PolymorphicProxySerializer(
+                component_name="ArchiveOffer401Error",
+                serializers=[
+                    TokenErrorSerializer,
+                    inline_serializer(
+                        name="ArchiveOfferUnauthorized",
+                        fields={"detail": drf_serializers.CharField()},
+                    ),
+                ],
+                resource_type_field_name=None,
+            ),
+            404: inline_serializer(
+                name="ArchiveOfferNotFound",
+                fields={"detail": drf_serializers.CharField()},
+            ),
+        },
+    )
+)
+class ArchiveOffersView(APIView):
+    authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
+    throttle_classes = [UserRateThrottleExceptApiKey]
+
+    serializer_class = ArchiveOfferSuccessSerializer
+
+    def post(self, request, reference: str):
+        container = create_ingestion_container()
+        use_case = container.archive_offer_by_reference_usecase()
+        try:
+            use_case.execute(reference)
+        except OfferDoesNotExist:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"status": "ok"}, status=status.HTTP_200_OK)
