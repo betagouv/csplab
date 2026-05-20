@@ -10,6 +10,7 @@ from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
+from domain.value_objects.area import get_talentsoft_area
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
 from domain.value_objects.country import Country
@@ -96,6 +97,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
 
         # Map localisation from geographical arrays
         localisation = self._map_localisation_from_arrays(
+            talentsoft_offer.geographicalLocation,
             talentsoft_offer.country,
             talentsoft_offer.region,
             talentsoft_offer.department,
@@ -179,15 +181,21 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         return None  # Unknown contract type
 
     def _map_localisation_from_arrays(
-        self, countries: List, regions: List, departments: List
+        self, areas: List, countries: List, regions: List, departments: List
     ) -> Optional[Localisation]:
         # Extract first element from each array if available
+        area_code = areas[0].clientCode if areas else None
         country_code = countries[0].clientCode if countries else None
         region_code = regions[0].clientCode if regions else None
         department_code = departments[0].clientCode if departments else None
 
-        if not country_code or not region_code or not department_code:
+        if not country_code or not region_code or not department_code or not area_code:
             return None  # todo: test
+
+        area = get_talentsoft_area(area_code)
+
+        if area is None:
+            return None
 
         # Transform TalentSoft codes to INSEE codes
         # Region codes: R24 -> 24, _TS_CO_Region_DOM -> DOM, _TS_CO_Region_TOM -> TOM
@@ -206,6 +214,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             insee_department_code = department_code
 
         return Localisation(
+            area=area,
             country=Country(country_code),
             region=Region(code=insee_region_code),
             department=Department(code=insee_department_code),

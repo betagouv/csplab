@@ -2,6 +2,7 @@ from django.db import models
 from pydantic import HttpUrl
 
 from domain.entities.offer import Offer
+from domain.value_objects.area import GeographicalArea
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
 from domain.value_objects.country import Country
@@ -43,6 +44,7 @@ class OfferModel(models.Model):
     code_emploi_csp = models.CharField(max_length=50, null=True, blank=True)
 
     # Localisation fields stored separately
+    area = models.CharField(max_length=2, null=True, blank=True)
     country = models.CharField(max_length=3, null=True, blank=True)
     region = models.CharField(max_length=3, null=True, blank=True)
     department = models.CharField(max_length=3, null=True, blank=True)
@@ -68,8 +70,11 @@ class OfferModel(models.Model):
     def to_entity(self) -> Offer:
         # Build localisation if both region and department are present
         localisation = None
-        if self.region and self.department and self.country:
+
+        # TODO : how do we handle location abroad (wo departement nor region) ?
+        if self.region and self.department and self.country and self.area:
             localisation = Localisation(
+                area=GeographicalArea(self.area),
                 country=Country(self.country),
                 region=Region(code=self.region),
                 department=Department(code=self.department),
@@ -108,10 +113,12 @@ class OfferModel(models.Model):
     @classmethod
     def from_entity(cls, offer: Offer) -> "OfferModel":
         # Extract localisation fields
+        area = None
         country = None
         region = None
         department = None
         if offer.localisation:
+            area = offer.localisation.area.value
             country = str(offer.localisation.country)  # Use ISO-3 code (e.g., "FRA")
             region = offer.localisation.region.code
             department = offer.localisation.department.code
@@ -141,6 +148,7 @@ class OfferModel(models.Model):
             contract_type=contract_type,
             organization=offer.organization,
             offer_url=offer_url,
+            area=area,
             country=country,
             region=region,
             department=department,
