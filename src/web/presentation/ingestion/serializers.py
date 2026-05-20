@@ -67,11 +67,11 @@ class ApiKeyErrorSerializer(serializers.Serializer):
 
 
 class SourceSerializer(serializers.Serializer):
-    id = serializers.UUIDField()
+    source_id = serializers.UUIDField()
     type = serializers.CharField(source="type.value")
     client_id_front = serializers.CharField()
     client_id_back = serializers.CharField()
-    base_url = serializers.CharField()
+    base_url = serializers.URLField()
 
 
 class ArchiveOfferSuccessSerializer(serializers.Serializer):

@@ -12,7 +12,6 @@ from pydantic import ValidationError
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -32,13 +31,10 @@ from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_EXAMPLES,
     LIST_OFFERS_DESCRIPTION,
     LIST_OFFERS_EXAMPLES,
-    LIST_SOURCES_DESCRIPTION,
-    LIST_SOURCES_EXAMPLES,
 )
 from presentation.ingestion.pagination import IngestionPagination
 from presentation.ingestion.schemas import ConcoursRowSchema
 from presentation.ingestion.serializers import (
-    ApiKeyErrorSerializer,
     ArchiveOfferSuccessSerializer,
     ConcoursUploadResponseSerializer,
     FileErrorSerializer,
@@ -373,20 +369,9 @@ class OffersListView(APIView):
             )
 
 
-@extend_schema(
-    summary="Liste des sources",
-    description=LIST_SOURCES_DESCRIPTION,
-    examples=LIST_SOURCES_EXAMPLES,
-    tags=["sources"],
-    responses={
-        200: SourceSerializer(many=True),
-        401: ApiKeyErrorSerializer,
-        500: ServerErrorSerializer,
-    },
-)
+@extend_schema(exclude=True)
 class SourcesListView(APIView):
     authentication_classes = [ApiKeyAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:

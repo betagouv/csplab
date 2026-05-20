@@ -15,6 +15,7 @@ class SourceFactory:
     ) -> Source:
         return Source(
             id=uuid4(),
+            source_id=uuid4(),
             type=source_type,
             client_id_front=client_id_front,
             client_id_back=client_id_back,
