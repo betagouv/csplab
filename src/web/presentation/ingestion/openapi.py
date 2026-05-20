@@ -1,5 +1,18 @@
 from drf_spectacular.utils import OpenApiExample
 
+_API_COMMON_FOOTER = """
+Cette API est à l'usage exclusif des personnes autorisées.
+
+# Permissions
+
+L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
+utilisateur.
+
+# Limitations
+
+L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+"""
+
 CONCOURS_UPLOAD_DESCRIPTION = (
     "Permet d'uploader un fichier CSV contenant des données de concours GRECO "
     "afin de les importer dans le système.\n\n"
@@ -159,7 +172,8 @@ CONCOURS_UPLOAD_EXAMPLES = [
     ),
 ]
 
-LIST_OFFERS_DESCRIPTION = """
+LIST_OFFERS_DESCRIPTION = (
+    """
 # API de consultation des offres d'emploi de la Fonction Publique
 
 Cette API retourne la liste de offres correspondant à une recherche selon les 2
@@ -168,17 +182,9 @@ critères suivants :
 - Candidature active / archivée
 - Référence externe de la candidature contient une chaîne de caractère spécifique
 
-Cette API est à l’usage exclusif des personnes autorisées.
-
-# Permissions
-
-L’utilisation de cette API nécessite un token d’autorisation spécifique à chaque
-utilisateur.
-
-# Limitations
-
-L’interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
 """
+    + _API_COMMON_FOOTER
+)
 
 LIST_OFFERS_EXAMPLES = [
     OpenApiExample(
@@ -247,23 +253,16 @@ LIST_OFFERS_EXAMPLES = [
     ),
 ]
 
-LIST_METIERS_DESCRIPTION = """
+LIST_METIERS_DESCRIPTION = (
+    """
 # API de consultation des métiers de la Fonction Publique
 
 Cette API retourne la liste paginées des métiers. Les métiers peuvent être filtrés
 selon leur code de domaine fonctionnel (`domain`).
 
-Cette API est à l'usage exclusif des personnes autorisées.
-
-# Permissions
-
-L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
-utilisateur.
-
-# Limitations
-
-L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
 """
+    + _API_COMMON_FOOTER
+)
 
 LIST_METIERS_EXAMPLES = [
     OpenApiExample(
