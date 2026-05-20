@@ -6,6 +6,7 @@ from django.utils import timezone
 from pydantic import HttpUrl
 
 from domain.entities.offer import Offer
+from domain.value_objects.area import GeographicalArea
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
 from domain.value_objects.country import Country
@@ -24,6 +25,7 @@ class OfferFactory:
         department: str = "75",
         region: str | None = None,
         country: str | None = None,
+        area: str | None = None,
         category: Category | None = None,
         contract_type: ContractType | None = None,
         verse: Verse | None = None,
@@ -43,12 +45,14 @@ class OfferFactory:
 
         if localisation is None and country and region and department:
             localisation = Localisation(
+                area=GeographicalArea(area) if area else GeographicalArea.EU,
                 country=Country(country),
                 region=Region(code=region),
                 department=Department(code=department),
             )
         else:
             localisation = Localisation(
+                area=GeographicalArea.EU,
                 country=Country("FRA"),
                 region=Region(code="11"),
                 department=Department(code=department),
@@ -86,9 +90,6 @@ class OfferFactory:
         publication_date: Optional[datetime] = None,
         beginning_date: Optional[LimitDate] = None,
         localisation: Optional[Localisation] = None,
-        country: Optional[str] = None,
-        region: Optional[str] = None,
-        department: Optional[str] = None,
         family_code: Optional[str] = None,
         updated_at: Optional[datetime] = None,
         processing: bool = False,
