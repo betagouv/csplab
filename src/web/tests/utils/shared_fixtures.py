@@ -96,6 +96,12 @@ def authenticated_client_fixture(api_client, user):
     return api_client
 
 
+@pytest.fixture(name="api_key_client")
+def api_key_client_fixture(api_client):
+    api_client.credentials(HTTP_AUTHORIZATION="Api-Key test-ingestion-api-key")
+    return api_client
+
+
 def create_collection(client: QdrantClient, collection_name: str):
     client.create_collection(
         collection_name=collection_name,

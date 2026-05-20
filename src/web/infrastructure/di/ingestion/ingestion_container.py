@@ -7,6 +7,7 @@ from application.ingestion.usecases.archive_offer_by_reference import (
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.list_offers import ListOffersUseCase
+from application.ingestion.usecases.list_sources import ListSourcesUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.load_offers import LoadOffersUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
@@ -26,7 +27,10 @@ from infrastructure.gateways.ingestion import (
 )
 from infrastructure.gateways.ingestion.document_cleaner import DocumentCleaner
 from infrastructure.gateways.ingestion.text_extractor import TextExtractor
-from infrastructure.repositories.ingestion import postgres_document_repository
+from infrastructure.repositories.ingestion import (
+    postgres_document_repository,
+    postgres_source_repository,
+)
 from infrastructure.repositories.repository_factory import RepositoryFactory
 
 
@@ -74,6 +78,10 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     document_repository = providers.Singleton(
         postgres_document_repository.PostgresDocumentRepository,
+    )
+
+    source_repository = providers.Singleton(
+        postgres_source_repository.PostgresSourceRepository,
     )
 
     repository_factory = providers.Singleton(
@@ -157,4 +165,9 @@ class IngestionContainer(containers.DeclarativeContainer):
         ArchiveOfferByReferenceUseCase,
         offers_repository=offers_repository,
         vector_repository=vector_repository,
+    )
+
+    list_sources_usecase = providers.Factory(
+        ListSourcesUseCase,
+        source_repository=source_repository,
     )

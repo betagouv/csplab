@@ -180,6 +180,55 @@ utilisateur.
 L’interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
 """
 
+LIST_SOURCES_DESCRIPTION = """
+# API de consultation des sources d'ingestion
+
+Cette API retourne la liste complète des sources configurées sans pagination.
+
+# Permissions
+
+L'utilisation de cette API nécessite une clé API dans le header `Authorization`.
+Format attendu : `Api-Key <clé>`.
+"""
+
+LIST_SOURCES_EXAMPLES = [
+    OpenApiExample(
+        "Success - list of sources",
+        summary="Liste des sources",
+        description="La liste complète des sources d'ingestion configurées.",
+        value=[
+            {
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "type": "talentsoft",
+                "client_id_front": "client_front_123",
+                "client_id_back": "client_back_456",
+                "base_url": "https://example.talentsoft.com",
+            }
+        ],
+        response_only=True,
+        status_codes=["200"],
+    ),
+    OpenApiExample(
+        "Error - missing or invalid API key",
+        summary="Clé API absente ou invalide",
+        description=(
+            "Le header `Authorization` est absent ou la clé API est invalide. "
+            "Format attendu : `Api-Key <clé>`."
+        ),
+        value={"detail": "Invalid API key."},
+        response_only=True,
+        status_codes=["401"],
+    ),
+    OpenApiExample(
+        "Error - unexpected server error",
+        summary="Erreur serveur inattendue",
+        description="Une erreur inattendue s'est produite côté serveur.",
+        value={"error": "Unexpected error"},
+        response_only=True,
+        status_codes=["500"],
+    ),
+]
+
 LIST_OFFERS_EXAMPLES = [
     OpenApiExample(
         "Success - active offers",

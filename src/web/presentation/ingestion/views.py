@@ -6,6 +6,7 @@ from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema
 from pydantic import ValidationError
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -13,16 +14,20 @@ from application.ingestion.interfaces.list_offers_input import GetFilteredOffers
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.entities.document import Document, DocumentType
+from infrastructure.authentication.api_key_authentication import ApiKeyAuthentication
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_DESCRIPTION,
     CONCOURS_UPLOAD_EXAMPLES,
     LIST_OFFERS_DESCRIPTION,
     LIST_OFFERS_EXAMPLES,
+    LIST_SOURCES_DESCRIPTION,
+    LIST_SOURCES_EXAMPLES,
 )
 from presentation.ingestion.pagination import IngestionPagination
 from presentation.ingestion.schemas import ConcoursRowSchema
 from presentation.ingestion.serializers import (
+    ApiKeyErrorSerializer,
     ConcoursUploadResponseSerializer,
     FileErrorSerializer,
     ListOffersErrorSerializer,
@@ -30,6 +35,7 @@ from presentation.ingestion.serializers import (
     ListOffersResponseSerializer,
     NoValidRowsErrorSerializer,
     ServerErrorSerializer,
+    SourceSerializer,
     TokenErrorSerializer,
 )
 
@@ -352,4 +358,31 @@ class OffersListView(APIView):
             serializer = ServerErrorSerializer({"error": "Unexpected error"})
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+@extend_schema(
+    summary="Liste des sources",
+    description=LIST_SOURCES_DESCRIPTION,
+    examples=LIST_SOURCES_EXAMPLES,
+    tags=["sources"],
+    responses={
+        200: SourceSerializer(many=True),
+        401: ApiKeyErrorSerializer,
+        500: ServerErrorSerializer,
+    },
+)
+class SourcesListView(APIView):
+    authentication_classes = [ApiKeyAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            container = create_ingestion_container()
+            sources = container.list_sources_usecase().execute()
+            return Response(SourceSerializer(sources, many=True).data)
+        except Exception:
+            return Response(
+                {"error": "Unexpected error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

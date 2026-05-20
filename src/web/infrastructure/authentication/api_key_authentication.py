@@ -20,6 +20,10 @@ class ApiKeyAuthentication(BaseAuthentication):
             raise AuthenticationFailed("Invalid API key.")
         return (_IngestionApiKeyUser(), None)
 
+    def authenticate_header(self, request):
+        # See https://www.django-rest-framework.org/api-guide/authentication/#custom-authentication
+        return "Api-Key"
+
 
 class ApiKeyAuthenticationScheme(OpenApiAuthenticationExtension):
     target_class = ApiKeyAuthentication
