@@ -1,7 +1,6 @@
-"""Concours cleaner adapter."""
-
+import unicodedata
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import polars as pl
 from django.utils import timezone
@@ -262,34 +261,51 @@ class ConcoursCleaner(IDocumentCleaner[Concours]):
         else:
             return Category.HORS_CATEGORIE
 
+    @staticmethod
+    def _normalize(text: str) -> str:
+        nfkd = unicodedata.normalize("NFKD", text)
+        return nfkd.encode("ascii", "ignore").decode("ascii").lower()
+
     def _map_ministry(self, ministry_str: Optional[str]) -> Ministry:
         if not ministry_str:
-            raise InvalidMinistryError("Unknown minnistry")
+            raise InvalidMinistryError("Unknown ministry")
 
-        # Direct mappings for known ministry names
-        ministry_mappings = {
-            "Météo France": Ministry.METEO_FRANCE,
-            "Ministère de la Culture": Ministry.MC,
-            "Ministère de l'Europe et des Affaires Etrangères": Ministry.MEAE,
-            "Premier ministre": Ministry.PREMIER_MINISTRE,
-            "Ministère de l'Économie, des Finances et de la Souveraineté industrielle et numérique": Ministry.MEF,  # noqa: E501
-            "Ministère de l'Agriculture et de la Souveraineté alimentaire": Ministry.MAA,  # noqa: E501
-            "Ministère de la Transition écologique et de la Cohésion des territoires": Ministry.MTE,  # noqa: E501
-            "Ministère de l'Enseignement supérieur et de la Recherche": Ministry.MESRI,
-            "Ministère de l'Education Nationale et de la Jeunesse": Ministry.MEN,
-            "Ministère du Travail, du Plein emploi et de l'Insertion": Ministry.MTEI,
-            "Ministère de la Justice": Ministry.MJ,
-            "Ministère Solidarités et Santé": Ministry.MSS,
-            "Ministère de l'Intérieur et des Outre-mer": Ministry.MI,
-            "Conseil d'Etat": Ministry.CONSEIL_ETAT,
-            "Caisse des Dépôts et Consignations": Ministry.CAISSE_DES_DEPOTS_ET_CONSIGNATIONS,  # noqa: E501
-            "Cour des comptes": Ministry.COUR_COMPTES,
+        # Fuzzy matching by normalized keywords for robustness
+        # against case, accent and wording variations
+        ministry_keywords: Dict[Ministry, Tuple[str, ...]] = {
+            Ministry.METEO_FRANCE: ("meteo",),
+            Ministry.MC: ("culture",),
+            Ministry.MEAE: ("europe", "etrangeres"),
+            Ministry.PREMIER_MINISTRE: ("premier",),
+            Ministry.MEF: ("economie", "finances"),
+            Ministry.MAA: ("agriculture", "alimentaire"),
+            Ministry.MTE: ("ecologique", "cohesion"),
+            Ministry.MESRI: ("recherche", "enseignement superieur"),
+            Ministry.MEN: ("education", "jeunesse"),
+            Ministry.MTEI: ("travail", "plein emploi", "insertion"),
+            Ministry.MJ: ("justice",),
+            Ministry.MSS: ("sante", "solidarites"),
+            Ministry.MI: ("interieur",),
+            Ministry.CONSEIL_ETAT: ("conseil d'etat", "conseil"),
+            Ministry.CAISSE_DES_DEPOTS_ET_CONSIGNATIONS: ("caisse", "depots"),
+            Ministry.COUR_COMPTES: ("cour", "comptes"),
+            Ministry.MAA: ("armees",),
         }
 
-        if ministry_str in ministry_mappings:
-            return ministry_mappings[ministry_str]
-        else:
-            raise InvalidMinistryError("Unknown minnistry")
+        normalized_input = self._normalize(ministry_str)
+        best_match: Optional[Ministry] = None
+        best_score = 0
+
+        for ministry, keywords in ministry_keywords.items():
+            score = sum(1 for kw in keywords if kw in normalized_input)
+            if score > best_score:
+                best_score = score
+                best_match = ministry
+
+        if best_match is not None and best_score > 0:
+            return best_match
+
+        raise InvalidMinistryError(f"Unknown ministry: {ministry_str}")
 
     def _map_access_modalities(
         self, access_mod_list: List[str]

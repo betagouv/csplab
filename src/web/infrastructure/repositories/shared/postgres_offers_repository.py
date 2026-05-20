@@ -8,12 +8,14 @@ from django.utils import timezone
 
 from domain.entities.offer import Offer
 from domain.exceptions.offer_errors import OfferDoesNotExist
+from domain.interfaces.page_interface import IPage
 from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.services.logger_interface import ILogger
 from infrastructure.django_apps.shared.models.offer import OfferModel
+from infrastructure.mappers.offer_queryset_page import OfferQuerySetPage
 
 
 class PostgresOffersRepository(IOffersRepository):
@@ -129,15 +131,14 @@ class PostgresOffersRepository(IOffersRepository):
         return [model.to_entity() for model in offer_models]
 
     def get_filtered(
-        self, active: bool = True, external_id_contains: str | None = None
-    ) -> list[Offer]:
+        self, active: bool, external_id_contains: str | None
+    ) -> IPage[Offer]:
         qs = OfferModel.objects.filter(archived_at__isnull=active)
 
         if external_id_contains:
             qs = qs.filter(external_id__contains=external_id_contains)
 
-        qs = qs.order_by("-updated_at")
-        return [model.to_entity() for model in qs]
+        return OfferQuerySetPage(qs.order_by("-updated_at"))
 
     @transaction.atomic
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]:

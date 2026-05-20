@@ -132,4 +132,6 @@ jobs:
       - name: Test Web suite with coverage
         run: uv run pytest -m "e2e" .
       - name: Generate schema
-        run: uv run python manage.py spectacular --file presentation/static/schema.yaml --validate
+        run: uv run python manage.py spectacular --file presentation/static/schema.yaml --validate --fail-on-warn
+      - name: Check schema is up to date
+        run: git diff --exit-code presentation/static/schema.yaml

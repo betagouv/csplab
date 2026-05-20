@@ -1075,8 +1075,11 @@ hr {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  margin: -1rem;
   padding: 1rem;
+}
+
+.csplab-drawer__footer {
+  flex-shrink: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

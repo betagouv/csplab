@@ -1,6 +1,8 @@
+from datetime import datetime
 from typing import List, Optional
 from uuid import UUID, uuid4
 
+from django.utils import timezone
 from faker import Faker
 from polyfactory.factories import DataclassFactory
 
@@ -91,6 +93,10 @@ class MetierFactory(DataclassFactory[Metier]):
         activites: Optional[List[str]] = None,
         conditions_particulieres: Optional[List[str]] = None,
         offer_family_code: Optional[str] = None,
+        processing: bool = False,
+        processed_at: Optional[datetime] = None,
+        archived_at: Optional[datetime] = None,
+        updated_at: Optional[datetime] = None,
     ) -> MetierModel:
 
         metier = MetierFactory.create_entity(
@@ -106,6 +112,24 @@ class MetierFactory(DataclassFactory[Metier]):
         )
 
         metier_model = MetierModel.from_entity(metier)
+        metier_model.processing = processing
+        metier_model.processed_at = processed_at
+        metier_model.archived_at = archived_at
+        metier_model.updated_at = updated_at
+
         metier_model.save()
 
+        if updated_at is not None:
+            MetierModel.objects.filter(pk=metier_model.pk).update(
+                updated_at=timezone.make_aware(updated_at)
+            )
+            metier_model.refresh_from_db()
+
         return metier_model
+
+    @staticmethod
+    def create_model_batch(
+        size: int,
+        **kwargs,
+    ) -> List[MetierModel]:
+        return [MetierFactory.create_model(**kwargs) for _ in range(size)]

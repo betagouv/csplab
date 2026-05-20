@@ -1,11 +1,7 @@
-"""Ministry value object."""
-
 from enum import Enum
 
 
 class Ministry(Enum):
-    """Enumeration of ministry types."""
-
     MAA = "MAA"
     MESRI = "MESRI"
     MEF = "MEF"
@@ -29,5 +25,4 @@ class Ministry(Enum):
     IGN = "IGN"
 
     def __str__(self):
-        """Return string representation."""
         return self.value

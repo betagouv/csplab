@@ -13,7 +13,7 @@ class IMetierRepository(Protocol):
 
     def get_all(self) -> List[Metier]: ...
 
-    def filter_by(
+    def get_filtered(
         self, predicate: IPredicate
     ) -> List[Metier]: ...  # for example {"offer_family_code": "ERLOG005"}
 

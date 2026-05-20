@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Dict, List
 
 from django.db import DatabaseError, transaction
+from django.db.models import F, Q
 from django.utils import timezone
 
 from domain.entities.metier import Metier
@@ -99,18 +100,41 @@ class PostgresMetierRepository(IMetierRepository):
         metier_models = MetierModel.objects.all()
         return [model.to_entity() for model in metier_models]
 
-    def filter_by(self, predicate: Dict[str, str], limit: int = 1000) -> List[Metier]:
+    def get_filtered(
+        self, predicate: Dict[str, str], limit: int = 1000
+    ) -> List[Metier]:
         metier_models = MetierModel.objects.filter(**predicate)[:limit]
         return [model.to_entity() for model in metier_models]
 
-    def mark_as_processed(self, metiers_list: List[Metier]) -> int:
-        metier_ids = [metier.id for metier in metiers_list]
-        return MetierModel.objects.filter(id__in=metier_ids).update(
-            processing=False, processed_at=timezone.now()
+    @transaction.atomic
+    def get_pending_processing(self, limit: int = 1000) -> List[Metier]:
+        qs = (
+            MetierModel.objects.filter(archived_at__isnull=True, processing=False)
+            .filter(Q(processed_at__isnull=True) | Q(updated_at__gt=F("processed_at")))
+            .select_for_update(of=("self",), skip_locked=True)[:limit]
         )
 
+        for obj in qs:
+            obj.processing = True
+        try:
+            MetierModel.objects.bulk_update(qs, ["processing"])
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
+        return [model.to_entity() for model in qs]
+
+    def mark_as_processed(self, metiers_list: List[Metier]) -> int:
+        try:
+            return MetierModel.objects.filter(
+                id__in=[obj.id for obj in metiers_list]
+            ).update(processed_at=timezone.now(), processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e
+
     def mark_as_pending(self, metiers_list: List[Metier]) -> int:
-        metier_ids = [metier.id for metier in metiers_list]
-        return MetierModel.objects.filter(id__in=metier_ids).update(
-            processing=True, processed_at=None
-        )
+        try:
+            return MetierModel.objects.filter(
+                id__in=[obj.id for obj in metiers_list]
+            ).update(processing=False)
+        except Exception as e:
+            raise DatabaseError(f"Database error during update: {str(e)}") from e

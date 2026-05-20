@@ -17,6 +17,11 @@ def vectorize_corps():
     vectorize_documents(DocumentType.CORPS)
 
 
+@db_periodic_task(crontab(day="1", hour="7"))
+def vectorize_metiers():
+    vectorize_documents(DocumentType.METIERS)
+
+
 @db_periodic_task(crontab(hour="7"))
 def vectorize_concours():
     vectorize_documents(DocumentType.CONCOURS)

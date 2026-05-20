@@ -2,6 +2,7 @@ from typing import List, Protocol, TypedDict
 from uuid import UUID
 
 from domain.entities.offer import Offer
+from domain.interfaces.page_interface import IPage
 from domain.repositories.document_repository_interface import IUpsertResult
 
 
@@ -35,7 +36,7 @@ class IOffersRepository(Protocol):
 
     def get_filtered(
         self, active: bool, external_id_contains: str | None
-    ) -> list[Offer]: ...
+    ) -> IPage[Offer]: ...
 
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]: ...
 
