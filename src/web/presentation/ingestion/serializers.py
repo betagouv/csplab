@@ -72,3 +72,7 @@ class SourceSerializer(serializers.Serializer):
     client_id_front = serializers.CharField()
     client_id_back = serializers.CharField()
     base_url = serializers.CharField()
+
+
+class ArchiveOfferSuccessSerializer(serializers.Serializer):
+    status = serializers.CharField()

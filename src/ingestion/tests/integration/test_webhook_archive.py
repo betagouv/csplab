@@ -20,7 +20,7 @@ async def test_vacancy_status_archived_calls_archive(
 ):
     httpx_mock.add_response(
         method="POST",
-        url=f"{WEB_BASE_URL}/api/offers/{REFERENCE}/archive",
+        url=f"{WEB_BASE_URL}/api/data/offers/{REFERENCE}/archive",
         status_code=200,
     )
     payload = {
@@ -40,7 +40,7 @@ async def test_vacancy_status_archived_calls_archive(
 async def test_vacancy_deleted_calls_archive(talentsoft_client, httpx_mock: HTTPXMock):
     httpx_mock.add_response(
         method="POST",
-        url=f"{WEB_BASE_URL}/api/offers/{REFERENCE}/archive",
+        url=f"{WEB_BASE_URL}/api/data/offers/{REFERENCE}/archive",
         status_code=200,
     )
     payload = {"event_type": "vacancy_deleted", "reference": REFERENCE}
