@@ -11,7 +11,7 @@ REFERENCE = "12345"
 
 
 def make_url(reference: str = REFERENCE) -> str:
-    return reverse("api:offers_archive", kwargs={"reference": reference})
+    return reverse("ingestion:offers_archive", kwargs={"reference": reference})
 
 
 @pytest.fixture

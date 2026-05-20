@@ -24,7 +24,7 @@ async def test_execute_posts_to_archive_endpoint(
 ):
     httpx_mock.add_response(
         method="POST",
-        url=f"{WEB_BASE_URL}/api/offers/{REFERENCE}/archive",
+        url=f"{WEB_BASE_URL}/api/data/offers/{REFERENCE}/archive",
         status_code=200,
     )
     await use_case.execute(REFERENCE)
@@ -32,7 +32,7 @@ async def test_execute_posts_to_archive_endpoint(
     requests = httpx_mock.get_requests()
     assert len(requests) == 1
     assert requests[0].url == httpx.URL(
-        f"{WEB_BASE_URL}/api/offers/{REFERENCE}/archive"
+        f"{WEB_BASE_URL}/api/data/offers/{REFERENCE}/archive"
     )
     assert requests[0].headers["authorization"] == f"Api-Key {WEB_API_KEY}"
 
@@ -43,7 +43,7 @@ async def test_execute_raises_on_error_response(
 ):
     httpx_mock.add_response(
         method="POST",
-        url=f"{WEB_BASE_URL}/api/offers/{REFERENCE}/archive",
+        url=f"{WEB_BASE_URL}/api/data/offers/{REFERENCE}/archive",
         status_code=500,
     )
     with pytest.raises(httpx.HTTPStatusError):

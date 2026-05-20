@@ -13,7 +13,7 @@ class ArchiveOfferUseCase:
         self._web_api_key = web_api_key
 
     async def execute(self, reference: str) -> None:
-        url = f"{self._web_base_url}/api/offers/{reference}/archive"
+        url = f"{self._web_base_url}/api/data/offers/{reference}/archive"
         response = await self._client.post(
             url,
             headers={"Authorization": f"Api-Key {self._web_api_key}"},

@@ -5,7 +5,6 @@ from rest_framework_simplejwt.views import (
 )
 
 from presentation.api.views import HueyHealthView, RedocView
-from presentation.ingestion.views import ArchiveOffersView
 
 app_name = "api"
 
@@ -14,9 +13,4 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("health/huey/", HueyHealthView.as_view(), name="health_huey"),
     path("schema/redoc/", RedocView.as_view(), name="redoc"),
-    path(
-        "offers/<str:reference>/archive/",
-        ArchiveOffersView.as_view(),
-        name="offers_archive",
-    ),
 ]
