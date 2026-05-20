@@ -7,6 +7,7 @@ from faker import Faker
 from pydantic import HttpUrl
 
 from domain.entities.offer import Offer
+from domain.value_objects.area import GeographicalArea
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
 from domain.value_objects.country import Country
@@ -126,9 +127,12 @@ class TestUpsertBatch:
             contract_type=ContractType.CONTRACTUELS,
             organization="old organization",
             offer_url="https://fake.url/old",
-            country="FRA",
-            region="28",
-            department="14",
+            localisation=Localisation(
+                area=GeographicalArea("EU"),
+                country=Country("FRA"),
+                region=Region(code="28"),
+                department=Department(code="14"),
+            ),
             publication_date=datetime(2025, 5, 17),
             beginning_date=LimitDate(datetime(2025, 6, 17)),
         )
@@ -144,6 +148,7 @@ class TestUpsertBatch:
             "organization": "organization",
             "offer_url": HttpUrl("https://fake.url/offer"),
             "localisation": Localisation(
+                area=GeographicalArea("AM"),
                 country=Country("GUF"),
                 region=Region(code="03"),
                 department=Department(code="973"),
