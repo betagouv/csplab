@@ -180,7 +180,7 @@ LIST_OFFERS_DESCRIPTION = (
     """
 # API de consultation des offres d'emploi de la Fonction Publique
 
-Cette API retourne la liste de offres correspondant à une recherche selon les 2
+Cette API retourne la liste des offres correspondant à une recherche selon les 2
 critères suivants :
 
 - Candidature active / archivée
@@ -195,7 +195,7 @@ LIST_OFFERS_EXAMPLES = [
         "Success - active offers",
         summary="Liste des offres d'emploi actives",
         description=(
-            "Les offres d'emploi sans date d'archivagesont retournées paginées"
+            "Les offres d'emploi sans date d'archivage sont retournées paginées"
         ),
         value={
             "external_id": "Versant_FPE-2026-999999",
@@ -214,7 +214,7 @@ LIST_OFFERS_EXAMPLES = [
         "Success - archived offers",
         summary="Liste des offres d'emploi archivées",
         description=(
-            "Les offres d'emploi avec une date d'archivagesont retournées paginées"
+            "Les offres d'emploi avec une date d'archivage sont retournées paginées"
         ),
         value={
             "external_id": "Versant_FPE-2026-999999",
@@ -237,7 +237,7 @@ LIST_METIERS_DESCRIPTION = (
     """
 # API de consultation des métiers de la Fonction Publique
 
-Cette API retourne la liste paginées des métiers. Les métiers peuvent être filtrés
+Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
 selon leur code de domaine fonctionnel (`domain`).
 
 """
@@ -282,7 +282,7 @@ LIST_METIERS_EXAMPLES = [
         "Success - filtered",
         summary="Liste des métiers correspondants à un code domaine fonctionnel",
         description=(
-            "Les métiers possédant ce code domaine fonctionnle sont retournés paginés"
+            "Les métiers possédant ce code domaine fonctionnel sont retournés paginés"
         ),
         value={
             "libelle": "Personne ressource en santé et protection animales",
