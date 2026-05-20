@@ -19,17 +19,3 @@ class GeographicalArea(Enum):
 
     def __str__(self):
         return self.value
-
-
-TALENTSOFT_TO_AREA: dict[str, GeographicalArea] = {
-    "_TS_CO_GeographicalArea_Afrique": GeographicalArea.AF,
-    "_TS_CO_GeographicalArea_AmriquesCaraibe": GeographicalArea.AM,
-    "_TS_CO_GeographicalArea_Asie": GeographicalArea.AS,
-    "_TS_CO_GeographicalArea_Europe": GeographicalArea.EU,
-    "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord": GeographicalArea.AF,
-    "_TS_CO_GeographicalArea_Ocanie": GeographicalArea.AU,
-}
-
-
-def get_talentsoft_area(code: str) -> GeographicalArea | None:
-    return TALENTSOFT_TO_AREA.get(code)

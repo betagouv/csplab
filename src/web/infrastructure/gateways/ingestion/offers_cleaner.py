@@ -10,7 +10,7 @@ from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
-from domain.value_objects.area import get_talentsoft_area
+from domain.value_objects.area import GeographicalArea
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
 from domain.value_objects.country import Country
@@ -22,6 +22,15 @@ from domain.value_objects.verse import Verse
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftDetailOffer,
 )
+
+_TALENTSOFT_TO_AREA: dict[str, GeographicalArea] = {
+    "_TS_CO_GeographicalArea_Afrique": GeographicalArea.AF,
+    "_TS_CO_GeographicalArea_AmriquesCaraibe": GeographicalArea.AM,
+    "_TS_CO_GeographicalArea_Asie": GeographicalArea.AS,
+    "_TS_CO_GeographicalArea_Europe": GeographicalArea.EU,
+    "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord": GeographicalArea.AF,
+    "_TS_CO_GeographicalArea_Ocanie": GeographicalArea.AU,
+}
 
 
 class OffersCleaner(IDocumentCleaner[Offer]):
@@ -192,7 +201,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         if not country_code or not region_code or not department_code or not area_code:
             return None  # todo: test
 
-        area = get_talentsoft_area(area_code)
+        area = _TALENTSOFT_TO_AREA.get(area_code)
 
         if area is None:
             return None
