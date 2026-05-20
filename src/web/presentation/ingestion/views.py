@@ -12,7 +12,6 @@ from pydantic import ValidationError
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -400,7 +399,6 @@ class OffersListView(APIView):
 )
 class ArchiveOffersView(APIView):
     authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
-    permission_classes = [IsAuthenticated]
     throttle_classes = [UserRateThrottleExceptApiKey]
 
     serializer_class = ArchiveOfferSuccessSerializer
