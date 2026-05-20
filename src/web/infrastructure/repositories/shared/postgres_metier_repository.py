@@ -7,12 +7,14 @@ from django.utils import timezone
 
 from domain.entities.metier import Metier
 from domain.exceptions.metiers_error import MetierDoesNotExist
+from domain.interfaces.page_interface import IPage
 from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.services.logger_interface import ILogger
 from infrastructure.django_apps.shared.models.metier import MetierModel
+from infrastructure.mappers.queryset_page import QuerySetPage
 
 
 class PostgresMetierRepository(IMetierRepository):
@@ -72,7 +74,7 @@ class PostgresMetierRepository(IMetierRepository):
                             fields=[
                                 "libelle_long",
                                 "definition_synthetique",
-                                "code_domaine_fonctionnel",
+                                "domaine_fonctionnel_code",
                                 "offer_family_code",
                                 "versants",
                                 "activites",
@@ -99,6 +101,10 @@ class PostgresMetierRepository(IMetierRepository):
     def get_all(self) -> List[Metier]:
         metier_models = MetierModel.objects.all()
         return [model.to_entity() for model in metier_models]
+
+    def get_filtered_slice(self, predicate: Dict[str, str]) -> IPage[Metier]:
+        qs = MetierModel.objects.filter(**predicate)
+        return QuerySetPage(qs.order_by("offer_family_code"))
 
     def get_filtered(
         self, predicate: Dict[str, str], limit: int = 1000

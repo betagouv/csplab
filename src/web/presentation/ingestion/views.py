@@ -11,11 +11,13 @@ from drf_spectacular.utils import (
 from pydantic import ValidationError
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
@@ -29,6 +31,8 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_DESCRIPTION,
     CONCOURS_UPLOAD_EXAMPLES,
+    LIST_METIERS_DESCRIPTION,
+    LIST_METIERS_EXAMPLES,
     LIST_OFFERS_DESCRIPTION,
     LIST_OFFERS_EXAMPLES,
 )
@@ -37,12 +41,12 @@ from presentation.ingestion.schemas import ConcoursRowSchema
 from presentation.ingestion.serializers import (
     ArchiveOfferSuccessSerializer,
     ConcoursUploadResponseSerializer,
-    FileErrorSerializer,
-    ListOffersErrorSerializer,
+    GenericErrorSerializer,
+    ListMetiersFiltersSerializer,
+    ListMetiersResponseSerializer,
     ListOffersFiltersSerializer,
     ListOffersResponseSerializer,
     NoValidRowsErrorSerializer,
-    ServerErrorSerializer,
     TokenErrorSerializer,
 )
 
@@ -140,11 +144,11 @@ class ConcoursUploadView(APIView):
             201: ConcoursUploadResponseSerializer,
             400: PolymorphicProxySerializer(
                 component_name="ConcoursUpload400Error",
-                serializers=[FileErrorSerializer, NoValidRowsErrorSerializer],
+                serializers=[GenericErrorSerializer, NoValidRowsErrorSerializer],
                 resource_type_field_name=None,
             ),
             401: TokenErrorSerializer,
-            500: ServerErrorSerializer,
+            500: GenericErrorSerializer,
         },
     )
     def post(self, request):
@@ -325,15 +329,65 @@ class ConcoursUploadView(APIView):
 
 
 @extend_schema(
+    summary="Liste des métiers",
+    description=LIST_METIERS_DESCRIPTION,
+    examples=LIST_METIERS_EXAMPLES,
+    tags=["metiers"],
+    responses={
+        200: ListMetiersResponseSerializer,
+        400: GenericErrorSerializer,
+        401: TokenErrorSerializer,
+        500: GenericErrorSerializer,
+    },
+)
+class MetiersListView(APIView):
+    serializer_class = ListMetiersResponseSerializer
+    usecase = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = create_ingestion_container()
+        self.logger = self.container.logger_service()
+        if self.usecase is None:
+            self.usecase = self.container.list_metiers_usecase()
+
+    def get(self, request):
+        try:
+            filters = ListMetiersFiltersSerializer(data=self.request.query_params)
+            filters.is_valid(raise_exception=True)
+            input_data = GetFilteredMetiersInput(**filters.validated_data)
+
+            result = self.usecase.execute(input_data)
+
+            paginator = IngestionPagination()
+            items = paginator.paginate(result.page, request)
+            return paginator.get_paginated_response(
+                ListMetiersResponseSerializer(items, many=True).data
+            )
+        except DRFValidationError as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(
+                serializer.data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            self.logger.error("Unexpected error in MetiersListView: %s", str(e))
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+@extend_schema(
     summary="Liste des offres",
     description=LIST_OFFERS_DESCRIPTION,
     examples=LIST_OFFERS_EXAMPLES,
     tags=["offres"],
     responses={
         200: ListOffersResponseSerializer,
-        400: ListOffersErrorSerializer,
+        400: GenericErrorSerializer,
         401: TokenErrorSerializer,
-        500: ServerErrorSerializer,
+        500: GenericErrorSerializer,
     },
 )
 class OffersListView(APIView):
@@ -362,7 +416,7 @@ class OffersListView(APIView):
             )
         except Exception as e:
             self.logger.error("Unexpected error in OffersListView: %s", str(e))
-            serializer = ServerErrorSerializer({"error": "Unexpected error"})
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

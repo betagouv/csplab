@@ -1,5 +1,46 @@
 from drf_spectacular.utils import OpenApiExample
 
+_EXAMPLE_INVALID_TOKEN = OpenApiExample(
+    "Error - invalid token",
+    summary="Token JWT invalide ou expiré",
+    description="Le token dans le header `Authorization` est invalide ou expiré.",
+    value={
+        "detail": "Le jeton fourni n'est pas valide.",
+        "code": "token_not_valid",
+        "messages": [
+            {
+                "token_class": "AccessToken",
+                "token_type": "access",
+                "message": "Token is invalid or expired",
+            }
+        ],
+    },
+    response_only=True,
+    status_codes=["401"],
+)
+
+_EXAMPLE_SERVER_ERROR = OpenApiExample(
+    "Error - unexpected server error",
+    summary="Erreur serveur inattendue",
+    description="Une erreur inattendue s'est produite côté serveur.",
+    value={"error": "Unexpected error"},
+    response_only=True,
+    status_codes=["500"],
+)
+
+_API_COMMON_FOOTER = """
+Cette API est à l'usage exclusif des personnes autorisées.
+
+# Permissions
+
+L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
+utilisateur.
+
+# Limitations
+
+L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+"""
+
 CONCOURS_UPLOAD_DESCRIPTION = (
     "Permet d'uploader un fichier CSV contenant des données de concours GRECO "
     "afin de les importer dans le système.\n\n"
@@ -131,61 +172,30 @@ CONCOURS_UPLOAD_EXAMPLES = [
         response_only=True,
         status_codes=["400"],
     ),
-    OpenApiExample(
-        "Error - invalid token",
-        summary="Token JWT invalide ou expiré",
-        description="Le token dans le header `Authorization` est invalide ou expiré.",
-        value={
-            "detail": "Le jeton fourni n'est pas valide.",
-            "code": "token_not_valid",
-            "messages": [
-                {
-                    "token_class": "AccessToken",
-                    "token_type": "access",
-                    "message": "Token is invalid or expired",
-                }
-            ],
-        },
-        response_only=True,
-        status_codes=["401"],
-    ),
-    OpenApiExample(
-        "Error - unexpected server error",
-        summary="Erreur serveur inattendue",
-        description="Une erreur inattendue s'est produite côté serveur.",
-        value={"error": "Unexpected error"},
-        response_only=True,
-        status_codes=["500"],
-    ),
+    _EXAMPLE_INVALID_TOKEN,
+    _EXAMPLE_SERVER_ERROR,
 ]
 
-LIST_OFFERS_DESCRIPTION = """
+LIST_OFFERS_DESCRIPTION = (
+    """
 # API de consultation des offres d'emploi de la Fonction Publique
 
-Cette API retourne la liste de offres correspondant à une recherche selon les 2
+Cette API retourne la liste des offres correspondant à une recherche selon les 2
 critères suivants :
 
 - Candidature active / archivée
 - Référence externe de la candidature contient une chaîne de caractère spécifique
 
-Cette API est à l’usage exclusif des personnes autorisées.
-
-# Permissions
-
-L’utilisation de cette API nécessite un token d’autorisation spécifique à chaque
-utilisateur.
-
-# Limitations
-
-L’interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
 """
+    + _API_COMMON_FOOTER
+)
 
 LIST_OFFERS_EXAMPLES = [
     OpenApiExample(
         "Success - active offers",
         summary="Liste des offres d'emploi actives",
         description=(
-            "Les offres d'emploi sans date d'archivagesont retournées paginées"
+            "Les offres d'emploi sans date d'archivage sont retournées paginées"
         ),
         value={
             "external_id": "Versant_FPE-2026-999999",
@@ -204,7 +214,7 @@ LIST_OFFERS_EXAMPLES = [
         "Success - archived offers",
         summary="Liste des offres d'emploi archivées",
         description=(
-            "Les offres d'emploi avec une date d'archivagesont retournées paginées"
+            "Les offres d'emploi avec une date d'archivage sont retournées paginées"
         ),
         value={
             "external_id": "Versant_FPE-2026-999999",
@@ -219,30 +229,94 @@ LIST_OFFERS_EXAMPLES = [
         response_only=True,
         status_codes=["200"],
     ),
+    _EXAMPLE_INVALID_TOKEN,
+    _EXAMPLE_SERVER_ERROR,
+]
+
+LIST_METIERS_DESCRIPTION = (
+    """
+# API de consultation des métiers de la Fonction Publique
+
+Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
+selon leur code de domaine fonctionnel (`domain`).
+
+"""
+    + _API_COMMON_FOOTER
+)
+
+LIST_METIERS_EXAMPLES = [
     OpenApiExample(
-        "Error - invalid token",
-        summary="Token JWT invalide ou expiré",
-        description="Le token dans le header `Authorization` est invalide ou expiré.",
+        "Success - all",
+        summary="Liste de tous les métiers",
+        description=("Les métiers sont retournés paginés"),
         value={
-            "detail": "Le jeton fourni n'est pas valide.",
-            "code": "token_not_valid",
-            "messages": [
-                {
-                    "token_class": "AccessToken",
-                    "token_type": "access",
-                    "message": "Token is invalid or expired",
-                }
+            "libelle": "Cheffe / Chef de projet politique de la ville",
+            "description": (
+                "Mettre en oeuvre les orientations stratégiques en matière"
+                "de développement social et de redynamisation des espaces urbains des"
+                "Quartiers Politique de la Ville"
+            ),
+            "domaine_fonctionnel_code": "AMT",
+            "versants": ["FPT"],
+            "activites": [
+                (
+                    "Animer et participer aux instances techniques et"
+                    "de pilotage de la politique de la ville"
+                ),
+                (
+                    "Instruire les programmations d'actions :"
+                    "suivi administratif, financier et opérationnel"
+                ),
+                (
+                    "Assurer un rôle de conseil et d'information auprès"
+                    "des différents interlocuteurs"
+                ),
             ],
+            "conditions_particulieres": [],
+            "offer_family_code": "ERAMT001",
         },
         response_only=True,
-        status_codes=["401"],
+        status_codes=["200"],
     ),
     OpenApiExample(
-        "Error - unexpected server error",
-        summary="Erreur serveur inattendue",
-        description="Une erreur inattendue s'est produite côté serveur.",
-        value={"error": "Unexpected error"},
+        "Success - filtered",
+        summary="Liste des métiers correspondants à un code domaine fonctionnel",
+        description=(
+            "Les métiers possédant ce code domaine fonctionnel sont retournés paginés"
+        ),
+        value={
+            "libelle": "Personne ressource en santé et protection animales",
+            "description": (
+                "Mobilise sa compétence dans la gestion et le suivi de la santé et de"
+                "la protection animale en appui aux services territoriaux de l'État"
+            ),
+            "domaine_fonctionnel_code": "AGR",
+            "versants": ["FPE"],
+            "activites": [
+                (
+                    "Mettre en oeuvre la compétence technique et scientifique dans"
+                    "son domaine de compétence par un appui ponctuel à un service"
+                    "départemental confronté à une situation particulière"
+                ),
+                (
+                    "Apporter un appui dans l'élaboration des normes,"
+                    "des instructions et des méthodes d'inspection"
+                ),
+            ],
+            "conditions_particulieres": ["Déplacements nationaux et internationaux"],
+            "offer_family_code": "ERAGR001",
+        },
         response_only=True,
-        status_codes=["500"],
+        status_codes=["200"],
     ),
+    OpenApiExample(
+        "Error - malformed payload",
+        summary="Données invalides",
+        description=("Les données passées dans le payload sont incorrectes"),
+        value={"error": "string"},
+        response_only=True,
+        status_codes=["400"],
+    ),
+    _EXAMPLE_INVALID_TOKEN,
+    _EXAMPLE_SERVER_ERROR,
 ]

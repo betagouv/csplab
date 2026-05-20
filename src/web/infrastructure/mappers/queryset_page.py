@@ -1,8 +1,11 @@
-from domain.entities.offer import Offer
+from typing import Generic, TypeVar
+
 from domain.interfaces.page_interface import IPage
 
+T = TypeVar("T")
 
-class OfferQuerySetPage(IPage[Offer]):
+
+class QuerySetPage(IPage[T], Generic[T]):
     def __init__(self, qs):
         self._qs = qs
 

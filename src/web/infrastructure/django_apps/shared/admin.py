@@ -125,13 +125,13 @@ class MetierAdmin(admin.ModelAdmin):
     list_display = (
         "external_id",
         "libelle_long",
-        "code_domaine_fonctionnel",
+        "domaine_fonctionnel_code",
         "offer_family_code",
         "processed_at",
         "archived_at",
     )
     list_filter = (
-        "code_domaine_fonctionnel",
+        "domaine_fonctionnel_code",
         "offer_family_code",
         "processed_at",
         "archived_at",
@@ -140,7 +140,7 @@ class MetierAdmin(admin.ModelAdmin):
         "id",
         "external_id",
         "libelle_long",
-        "code_domaine_fonctionnel",
+        "domaine_fonctionnel_code",
         "offer_family_code",
     )
     readonly_fields = [f.name for f in MetierModel._meta.get_fields()]
