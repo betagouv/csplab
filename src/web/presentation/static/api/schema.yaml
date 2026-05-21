@@ -265,68 +265,6 @@ paths:
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
-  /api/data/sources/:
-    get:
-      operationId: data_sources_list
-      description: |2
-
-        # API de consultation des sources d'ingestion
-
-        Cette API retourne la liste complète des sources configurées sans pagination.
-
-        # Permissions
-
-        L'utilisation de cette API nécessite une clé API dans le header `Authorization`.
-        Format attendu : `Api-Key <clé>`.
-      summary: Liste des sources
-      tags:
-      - sources
-      security:
-      - ApiKeyAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Source'
-              examples:
-                Success-ListOfSources:
-                  value:
-                  - - id: 550e8400-e29b-41d4-a716-446655440000
-                      type: talentsoft
-                      client_id_front: client_front_123
-                      client_id_back: client_back_456
-                      base_url: https://example.talentsoft.com
-                  summary: Liste des sources
-                  description: La liste complète des sources d'ingestion configurées.
-          description: ''
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiKeyError'
-              examples:
-                Error-MissingOrInvalidAPIKey:
-                  value:
-                    detail: Invalid API key.
-                  summary: Clé API absente ou invalide
-                  description: 'Le header `Authorization` est absent ou la clé API
-                    est invalide. Format attendu : `Api-Key <clé>`.'
-          description: ''
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServerError'
-              examples:
-                Error-UnexpectedServerError:
-                  value:
-                    error: Unexpected error
-                  summary: Erreur serveur inattendue
-                  description: Une erreur inattendue s'est produite côté serveur.
-          description: ''
   /api/data/offres/archiver:
     post:
       operationId: data_offres_archiver_create
@@ -475,13 +413,6 @@ paths:
           description: ''
 components:
   schemas:
-    ApiKeyError:
-      type: object
-      properties:
-        detail:
-          type: string
-      required:
-      - detail
     ArchiveOffer401Error:
       oneOf:
       - $ref: '#/components/schemas/TokenError'
@@ -619,26 +550,6 @@ components:
           type: string
       required:
       - error
-    Source:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        type:
-          type: string
-        client_id_front:
-          type: string
-        client_id_back:
-          type: string
-        base_url:
-          type: string
-      required:
-      - base_url
-      - client_id_back
-      - client_id_front
-      - id
-      - type
     TokenError:
       type: object
       properties:
