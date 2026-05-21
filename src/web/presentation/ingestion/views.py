@@ -443,8 +443,7 @@ class OffersUpsertView(APIView):
         try:
             datas = serializer.validated_data
             offers = [
-                OffersInputSerializer(data=data).to_domain_from_validated(data)
-                for data in datas
+                OffersInputSerializer.to_domain_from_validated(data) for data in datas
             ]
             usecase = container.upsert_offer_usecase()
             result = usecase.execute(UpsertOffersInput(offers=offers))
