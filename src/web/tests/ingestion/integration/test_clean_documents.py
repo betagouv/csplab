@@ -17,6 +17,7 @@ from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.corps_factory import CorpsFactory
 from tests.factories.document_factory import DocumentFactory
 from tests.factories.talentsoft_factories import (
+    TalentsoftCodedObjectFactory,
     TalentsoftCustomCodeTableFactory,
     TalentsoftCustomFieldsFactory,
     TalentsoftDescriptionCustomFieldsFactory,
@@ -66,7 +67,6 @@ def assert_no_offer_cleaned():
 
 @pytest.fixture
 def clean_documents_integration_container(db):
-
     container = IngestionContainer()
 
     shared_container = SharedContainer()
@@ -371,3 +371,95 @@ def test_execute_clean_offers_with_category(
     cleaned_offer = OfferModel.objects.first()
     assert cleaned_offer is not None
     assert cleaned_offer.category == expected
+
+
+@pytest.mark.parametrize(
+    (
+        "area, country, region, department,"
+        "expected_area, expected_country, expected_region, expected_department"
+    ),
+    [
+        ("_TS_CO_GeographicalArea_Europe", "FRA", "R24", "41", "EU", "FRA", "24", "41"),
+        ("_TS_CO_GeographicalArea_Europe", "FRA", "R11", "75", "EU", "FRA", "11", "75"),
+        (
+            "_TS_CO_GeographicalArea_Afrique",
+            "FRA",
+            "_TS_CO_Region_DOM",
+            "971",
+            "AF",
+            "FRA",
+            "DOM",
+            "971",
+        ),
+        (
+            "_TS_CO_GeographicalArea_AmriquesCaraibe",
+            "FRA",
+            "_TS_CO_Region_TOM",
+            "987",
+            "AM",
+            "FRA",
+            "TOM",
+            "987",
+        ),
+        (
+            "_TS_CO_GeographicalArea_Ocanie",
+            "FRA",
+            "R84",
+            "_TS_CO_Department_NouvelleCaldonie988",
+            "OC",
+            "FRA",
+            "84",
+            "988",
+        ),
+    ],
+)
+def test_execute_clean_offers_with_geographical_area(
+    db,
+    clean_documents_integration_container,
+    area,
+    country,
+    region,
+    department,
+    expected_area,
+    expected_country,
+    expected_region,
+    expected_department,
+):
+    usecase = clean_documents_integration_container.clean_documents_usecase()
+    document_repository = clean_documents_integration_container.document_repository()
+
+    offer_dto = TalentsoftOfferFactory.build(
+        geographicalLocation=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode=area, type="offerGeographicalLocation"
+            )
+        ],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode=country, type="offerCountry")
+        ],
+        region=[
+            TalentsoftCodedObjectFactory.build(clientCode=region, type="offerRegion")
+        ],
+        department=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode=department, type="offerDepartment"
+            )
+        ],
+    )
+
+    document = DocumentFactory.create_entity(
+        document_type=DocumentType.OFFERS, raw_data=offer_dto.model_dump()
+    )
+
+    document_repository.upsert_batch([document], DocumentType.OFFERS)
+
+    result = usecase.execute(DocumentType.OFFERS)
+
+    assert result["created"] == 1
+
+    cleaned_offer = OfferModel.objects.first()
+    assert cleaned_offer is not None
+    assert cleaned_offer.area == expected_area
+    assert cleaned_offer.country == expected_country
+    assert cleaned_offer.region == expected_region
+    assert cleaned_offer.department == expected_department
