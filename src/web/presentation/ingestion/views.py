@@ -413,6 +413,8 @@ class ArchiveOffersView(APIView):
         except OfferDoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
+
+
 @extend_schema(
     summary="Ajouter/mettre à jour une offre d'emploi",
     description=UPSERT_OFFERS_DESCRIPTION,

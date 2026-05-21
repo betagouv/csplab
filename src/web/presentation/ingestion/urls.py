@@ -4,8 +4,6 @@ from presentation.ingestion.views import (
     ArchiveOffersView,
     ConcoursUploadView,
     OffersListView,
-    ConcoursUploadView,
-    OffersListView,
     OffersUpsertView,
 )
 
