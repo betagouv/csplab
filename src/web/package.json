@@ -1,0 +1,11 @@
+{
+  "name": "csplab-web",
+  "private": true,
+  "workspaces": ["presentation/frontend"],
+  "scripts": {
+    "build": "npm run build --workspace=presentation/frontend"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

@@ -135,26 +135,27 @@ sass-watch: ## watch and compile SCSS files on changes
 .PHONY: sass-watch
 
 ### FRONTEND (Vue/Vite)
-FRONTEND_DIR = src/web/presentation/frontend
+WEB_DIR = src/web
+FRONTEND_WORKSPACE = presentation/frontend
 
-frontend-install: ## install frontend dependencies
-	cd $(FRONTEND_DIR) && npm install
+frontend-install: ## install frontend dependencies (via npm workspaces)
+	cd $(WEB_DIR) && npm install
 .PHONY: frontend-install
 
 frontend-dev: ## run frontend dev server (Vite HMR)
-	cd $(FRONTEND_DIR) && npm run dev
+	cd $(WEB_DIR) && npm run dev --workspace=$(FRONTEND_WORKSPACE)
 .PHONY: frontend-dev
 
 frontend-build: ## build frontend for production
-	cd $(FRONTEND_DIR) && npm run build
+	cd $(WEB_DIR) && npm run build --workspace=$(FRONTEND_WORKSPACE)
 .PHONY: frontend-build
 
 frontend-lint: ## lint frontend sources
-	cd $(FRONTEND_DIR) && npm run lint
+	cd $(WEB_DIR) && npm run lint --workspace=$(FRONTEND_WORKSPACE)
 .PHONY: frontend-lint
 
 frontend-lint-fix: ## lint and fix frontend sources
-	cd $(FRONTEND_DIR) && npm run lint:fix
+	cd $(WEB_DIR) && npm run lint:fix --workspace=$(FRONTEND_WORKSPACE)
 .PHONY: frontend-lint-fix
 
 ### RUN
