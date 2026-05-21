@@ -134,4 +134,4 @@ jobs:
       - name: Generate schema
         run: uv run python manage.py spectacular --file presentation/static/api/schema.yaml --validate --fail-on-warn
       - name: Check schema is up to date
-        run: git diff --exit-code src/web/presentation/static/api/schema.yaml
+        run: git diff --exit-code presentation/static/api/schema.yaml
