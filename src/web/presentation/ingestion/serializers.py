@@ -6,7 +6,7 @@ from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractKind, ContractType
 from domain.value_objects.country import Country
 from domain.value_objects.department import Department
-from domain.value_objects.education_level import EducationLevel
+from domain.value_objects.diploma import Diploma
 from domain.value_objects.experience_level import ExperienceLevel
 from domain.value_objects.language_level import LanguageLevel
 from domain.value_objects.limit_date import LimitDate
@@ -78,6 +78,8 @@ class ListOffersErrorSerializer(serializers.Serializer):
 
 class ArchiveOfferSuccessSerializer(serializers.Serializer):
     status = serializers.CharField()
+
+
 class IdentityInputSerializer(serializers.Serializer):
     reference = serializers.CharField()
     source = serializers.CharField()
@@ -141,8 +143,8 @@ class LanguageInputSerializer(serializers.Serializer):
 
 
 class CriteriaInputSerializer(serializers.Serializer):
-    education_level = serializers.ChoiceField(
-        choices=[(c.value, c.value) for c in EducationLevel], allow_blank=True
+    education_level = serializers.IntegerField(
+        min_value=Diploma.MIN_DIPLOMA_LEVEL, max_value=Diploma.MAX_DIPLOMA_LEVEL
     )
     experience_level = serializers.ChoiceField(
         choices=[(c.value, c.value) for c in ExperienceLevel], allow_blank=True
