@@ -7,7 +7,7 @@ class TalentsoftWebhookPayload(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     event_type: str
-    reference: str | None = None
+    reference: str
     status_id: str | None = Field(None, alias="statusId")
 
 
