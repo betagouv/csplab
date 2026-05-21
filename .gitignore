@@ -93,3 +93,4 @@ ARCHITECTURE*
 .vscode/**
 !.vscode/settings.json
 !.vscode/extensions.json
+**/iframe_figures/
