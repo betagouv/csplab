@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import ValidationError
 
 from api.dependencies import get_archive_offer_use_case
@@ -26,9 +26,9 @@ def health():
 )
 async def talentsoft_webhook(
     request: Request,
+    client_id: str = Query(...),
     use_case: ArchiveOfferUseCase = Depends(get_archive_offer_use_case),
 ):
-    client_id = request.query_params.get("client_id")
     body = await request.body()
     if not body:
         return {"status": "ok"}
@@ -51,7 +51,9 @@ async def talentsoft_webhook(
         )
         return {"status": "ok"}
 
-    await use_case.execute(payload.reference)
+    # `source_id` will not be `client_id` soon
+    # https://github.com/betagouv/csplab/issues/573 is required
+    await use_case.execute(reference=payload.reference, source_id=client_id)
     logger.info(
         "Handled event type %s for reference %s",
         payload.event_type,

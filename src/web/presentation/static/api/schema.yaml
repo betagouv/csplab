@@ -171,7 +171,7 @@ paths:
           description: ''
   /api/data/offers/:
     get:
-      operationId: data_offers_list
+      operationId: data_offers_retrieve
       description: |2
 
         # API de consultation des offres d'emploi de la Fonction Publique
@@ -193,19 +193,6 @@ paths:
 
         L’interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
       summary: Liste des offres
-      parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: size
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
       tags:
       - offres
       security:
@@ -215,41 +202,33 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedListOffersResponseList'
+                $ref: '#/components/schemas/ListOffersResponse'
               examples:
                 Success-ActiveOffers:
                   value:
-                    count: 123
-                    next: http://api.example.org/accounts/?page=4
-                    previous: http://api.example.org/accounts/?page=2
-                    results:
-                    - external_id: Versant_FPE-2026-999999
-                      title: Responsable de la Division des Affaires Financières H/F
-                      organization: Ecole Nationale Supérieure de Techniques Avancées
-                        (ENSTA)
-                      contract_type: TITULAIRE_CONTRACTUEL
-                      category: A
-                      publication_date: '2026-04-17T14:44:49.873000+00:00'
-                      offer_url: https://test.com/offre-emploi/2026-999999/
-                      archived_at: null
+                    external_id: Versant_FPE-2026-999999
+                    title: Responsable de la Division des Affaires Financières H/F
+                    organization: Ecole Nationale Supérieure de Techniques Avancées
+                      (ENSTA)
+                    contract_type: TITULAIRE_CONTRACTUEL
+                    category: A
+                    publication_date: '2026-04-17T14:44:49.873000+00:00'
+                    offer_url: https://test.com/offre-emploi/2026-999999/
+                    archived_at: null
                   summary: Liste des offres d'emploi actives
                   description: Les offres d'emploi sans date d'archivagesont retournées
                     paginées
                 Success-ArchivedOffers:
                   value:
-                    count: 123
-                    next: http://api.example.org/accounts/?page=4
-                    previous: http://api.example.org/accounts/?page=2
-                    results:
-                    - external_id: Versant_FPE-2026-999999
-                      title: Responsable de la Division des Affaires Financières H/F
-                      organization: Ecole Nationale Supérieure de Techniques Avancées
-                        (ENSTA)
-                      contract_type: TITULAIRE_CONTRACTUEL
-                      category: A
-                      publication_date: '2026-04-17T14:44:49.873000+00:00'
-                      offer_url: https://test.com/offre-emploi/2026-999999/
-                      archived_at: '2026-05-17T12:42:42.873000+00:00'
+                    external_id: Versant_FPE-2026-999999
+                    title: Responsable de la Division des Affaires Financières H/F
+                    organization: Ecole Nationale Supérieure de Techniques Avancées
+                      (ENSTA)
+                    contract_type: TITULAIRE_CONTRACTUEL
+                    category: A
+                    publication_date: '2026-04-17T14:44:49.873000+00:00'
+                    offer_url: https://test.com/offre-emploi/2026-999999/
+                    archived_at: '2026-05-17T12:42:42.873000+00:00'
                   summary: Liste des offres d'emploi archivées
                   description: Les offres d'emploi avec une date d'archivagesont retournées
                     paginées
@@ -286,20 +265,39 @@ paths:
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
-  /api/offers/{reference}/archive/:
+  /api/data/offres/archiver:
     post:
-      operationId: offers_archive_create
-      description: Archive une offre selon sa référence. Accepte une authentification
-        JWT ou par clé d'API.
+      operationId: data_offres_archiver_create
+      description: |-
+        Archive une offre selon sa référence et l'identifiant de la source.
+
+        **Corps de la requête :**
+        - `reference` — référence de l'offre à archiver (ex. `2026-999999`)
+        - `source_id` — identifiant de la source ayant émis la demande (ex. identifiant de l'instance Talentsoft)
+
+        **Codes de retour :**
+        - `200 OK` — l'offre a été archivée avec succès
+        - `400 Bad Request` — corps de la requête invalide ou champ manquant
+        - `401 Unauthorized` — authentification manquante ou invalide
+        - `404 Not Found` — aucune offre trouvée pour cette référence
+
+        **Authentification :** Token JWT ou clé d'API requis.
       summary: Archiver une offre par référence
-      parameters:
-      - in: path
-        name: reference
-        schema:
-          type: string
-        required: true
       tags:
       - offres
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArchiveOfferRequest'
+            examples:
+              Success:
+                value:
+                  reference: 2026-999999
+                  source_id: talentsoft-client-1
+                summary: Offre archivée avec succès
+                description: L'offre correspondant à la référence a été archivée.
+        required: true
       security:
       - jwtAuth: []
       - ApiKeyAuth: []
@@ -309,18 +307,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArchiveOfferSuccess'
+              examples:
+                Success:
+                  value:
+                    status: ok
+                  summary: Offre archivée avec succès
+                  description: L'offre correspondant à la référence a été archivée.
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchiveOfferBadRequest'
+              examples:
+                Error-MissingField:
+                  value:
+                    reference:
+                    - This field is required.
+                  summary: Champ obligatoire manquant
+                  description: Le champ `reference` ou `source_id` est absent du corps.
           description: ''
         '401':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArchiveOffer401Error'
+              examples:
+                Error-InvalidToken:
+                  value:
+                    detail: Le jeton fourni n'est pas valide.
+                    code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid or expired
+                  summary: Token JWT invalide ou expiré
+                  description: Le token dans le header `Authorization` est invalide
+                    ou expiré.
           description: ''
         '404':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArchiveOfferNotFound'
+              examples:
+                Error-NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Offre introuvable
+                  description: Aucune offre ne correspond à la référence fournie.
           description: ''
   /api/token/:
     post:
@@ -382,6 +417,13 @@ components:
       oneOf:
       - $ref: '#/components/schemas/TokenError'
       - $ref: '#/components/schemas/ArchiveOfferUnauthorized'
+    ArchiveOfferBadRequest:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     ArchiveOfferNotFound:
       type: object
       properties:
@@ -389,6 +431,16 @@ components:
           type: string
       required:
       - detail
+    ArchiveOfferRequest:
+      type: object
+      properties:
+        reference:
+          type: string
+        source_id:
+          type: string
+      required:
+      - reference
+      - source_id
     ArchiveOfferSuccess:
       type: object
       properties:
@@ -491,29 +543,6 @@ components:
       required:
       - error
       - validation_errors
-    PaginatedListOffersResponseList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/ListOffersResponse'
     ServerError:
       type: object
       properties:

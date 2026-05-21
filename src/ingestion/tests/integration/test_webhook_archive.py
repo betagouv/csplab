@@ -12,17 +12,14 @@ from tests.integration.conftest import (
 )
 
 REFERENCE = "2019-1234"
+ARCHIVE_URL = f"{WEB_BASE_URL}/api/data/offres/archiver"
 
 
 @pytest.mark.asyncio
 async def test_vacancy_status_archived_calls_archive(
     talentsoft_client, httpx_mock: HTTPXMock
 ):
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{WEB_BASE_URL}/api/data/offers/{REFERENCE}/archive",
-        status_code=200,
-    )
+    httpx_mock.add_response(method="POST", url=ARCHIVE_URL, status_code=200)
     payload = {
         "event_type": "vacancy_status",
         "reference": REFERENCE,
@@ -38,11 +35,7 @@ async def test_vacancy_status_archived_calls_archive(
 
 @pytest.mark.asyncio
 async def test_vacancy_deleted_calls_archive(talentsoft_client, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(
-        method="POST",
-        url=f"{WEB_BASE_URL}/api/data/offers/{REFERENCE}/archive",
-        status_code=200,
-    )
+    httpx_mock.add_response(method="POST", url=ARCHIVE_URL, status_code=200)
     payload = {"event_type": "vacancy_deleted", "reference": REFERENCE}
     response = make_signed_request(talentsoft_client, payload)
     assert response.status_code == 200
