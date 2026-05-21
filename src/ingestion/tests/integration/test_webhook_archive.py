@@ -74,16 +74,6 @@ async def test_other_event_type_does_not_call_archive(
 
 
 @pytest.mark.asyncio
-async def test_archive_without_reference_does_not_call(
-    talentsoft_client, httpx_mock: HTTPXMock
-):
-    payload = {"event_type": "vacancy_deleted"}
-    response = make_signed_request(talentsoft_client, payload)
-    assert response.status_code == 200
-    assert httpx_mock.get_requests() == []
-
-
-@pytest.mark.asyncio
 async def test_web_service_not_configured_returns_500(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("TALENTSOFT_CLIENT_ID", TALENTSOFT_CLIENT_ID)

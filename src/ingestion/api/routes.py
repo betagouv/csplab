@@ -28,24 +28,34 @@ async def talentsoft_webhook(
     request: Request,
     use_case: ArchiveOfferUseCase = Depends(get_archive_offer_use_case),
 ):
+    client_id = request.query_params.get("client_id")
     body = await request.body()
-    logger.info("TalentSoft webhook received", extra={"body": body.decode()})
-
     if not body:
         return {"status": "ok"}
 
     try:
         payload = TalentsoftWebhookPayload.model_validate_json(body)
     except ValidationError:
-        logger.warning("Unrecognised TalentSoft webhook payload, ignoring")
+        logger.warning(
+            "Unrecognised TalentSoft webhook payload, ignoring",
+            extra={"body": body.decode(), "client_id": client_id},
+        )
         return {"status": "ok"}
 
     if not should_archive(payload):
-        return {"status": "ok"}
-
-    if not payload.reference:
-        logger.warning("Archive event received without reference, skipping")
+        logger.info(
+            "Unhandled event type %s for reference %s",
+            payload.event_type,
+            payload.reference,
+            extra={"client_id": client_id},
+        )
         return {"status": "ok"}
 
     await use_case.execute(payload.reference)
+    logger.info(
+        "Handled event type %s for reference %s",
+        payload.event_type,
+        payload.reference,
+        extra={"client_id": client_id},
+    )
     return {"status": "ok"}
