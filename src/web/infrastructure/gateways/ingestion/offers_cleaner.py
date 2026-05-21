@@ -24,12 +24,12 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
 )
 
 _TALENTSOFT_TO_AREA: dict[str, GeographicalArea] = {
-    "_TS_CO_GeographicalArea_Afrique": GeographicalArea.AF,
-    "_TS_CO_GeographicalArea_AmriquesCaraibe": GeographicalArea.AM,
-    "_TS_CO_GeographicalArea_Asie": GeographicalArea.AS,
-    "_TS_CO_GeographicalArea_Europe": GeographicalArea.EU,
-    "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord": GeographicalArea.AF,
-    "_TS_CO_GeographicalArea_Ocanie": GeographicalArea.AU,
+    "_TS_CO_GeographicalArea_Afrique": GeographicalArea.AFRIQUE,
+    "_TS_CO_GeographicalArea_AmriquesCaraibe": GeographicalArea.AMERIQUE,
+    "_TS_CO_GeographicalArea_Asie": GeographicalArea.ASIE,
+    "_TS_CO_GeographicalArea_Europe": GeographicalArea.EUROPE,
+    "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord": GeographicalArea.AFRIQUE,
+    "_TS_CO_GeographicalArea_Ocanie": GeographicalArea.OCEANIE,
 }
 
 

@@ -71,7 +71,6 @@ class OfferModel(models.Model):
         # Build localisation if both region and department are present
         localisation = None
 
-        # TODO : how do we handle location abroad (wo departement nor region) ?
         if self.region and self.department and self.country and self.area:
             localisation = Localisation(
                 area=GeographicalArea(self.area),

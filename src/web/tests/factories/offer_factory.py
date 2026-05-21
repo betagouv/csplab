@@ -45,14 +45,14 @@ class OfferFactory:
 
         if localisation is None and country and region and department:
             localisation = Localisation(
-                area=GeographicalArea(area) if area else GeographicalArea.EU,
+                area=GeographicalArea(area) if area else GeographicalArea.EUROPE,
                 country=Country(country),
                 region=Region(code=region),
                 department=Department(code=department),
             )
         else:
             localisation = Localisation(
-                area=GeographicalArea.EU,
+                area=GeographicalArea.EUROPE,
                 country=Country("FRA"),
                 region=Region(code="11"),
                 department=Department(code=department),

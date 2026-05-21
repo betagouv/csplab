@@ -7,6 +7,13 @@ from domain.value_objects.country import Country
 from domain.value_objects.department import Department
 from domain.value_objects.region import Region
 
+# TODO : Redefine Localisation as follow
+# - geographical_area: GeographicalArea
+# - country: Country
+# - coordinates: Coordinates
+# - city: Optional[str]
+# - subdivision: Optional[Subdivision] #for France only
+
 
 @dataclass(frozen=True)
 class Localisation:
