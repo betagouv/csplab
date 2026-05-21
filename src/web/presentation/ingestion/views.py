@@ -27,6 +27,8 @@ from infrastructure.authentication.api_key_authentication import (
 )
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.ingestion.openapi import (
+    ARCHIVE_OFFER_DESCRIPTION,
+    ARCHIVE_OFFER_EXAMPLES,
     CONCOURS_UPLOAD_DESCRIPTION,
     CONCOURS_UPLOAD_EXAMPLES,
     LIST_OFFERS_DESCRIPTION,
@@ -35,6 +37,7 @@ from presentation.ingestion.openapi import (
 from presentation.ingestion.pagination import IngestionPagination
 from presentation.ingestion.schemas import ConcoursRowSchema
 from presentation.ingestion.serializers import (
+    ArchiveOfferRequestSerializer,
     ArchiveOfferSuccessSerializer,
     ConcoursUploadResponseSerializer,
     FileErrorSerializer,
@@ -370,15 +373,17 @@ class OffersListView(APIView):
 
 @extend_schema_view(
     post=extend_schema(
-        request=None,
+        request={"application/json": ArchiveOfferRequestSerializer},
         summary="Archiver une offre par référence",
-        description=(
-            "Archive une offre selon sa référence. "
-            "Accepte une authentification JWT ou par clé d'API."
-        ),
+        description=ARCHIVE_OFFER_DESCRIPTION,
+        examples=ARCHIVE_OFFER_EXAMPLES,
         tags=["offres"],
         responses={
             200: ArchiveOfferSuccessSerializer,
+            400: inline_serializer(
+                name="ArchiveOfferBadRequest",
+                fields={"detail": drf_serializers.CharField()},
+            ),
             401: PolymorphicProxySerializer(
                 component_name="ArchiveOffer401Error",
                 serializers=[
@@ -403,7 +408,11 @@ class ArchiveOffersView(APIView):
 
     serializer_class = ArchiveOfferSuccessSerializer
 
-    def post(self, request, reference: str):
+    def post(self, request):
+        serializer = ArchiveOfferRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        reference = serializer.validated_data["reference"]
         container = create_ingestion_container()
         use_case = container.archive_offer_by_reference_usecase()
         try:

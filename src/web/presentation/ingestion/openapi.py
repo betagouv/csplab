@@ -159,6 +159,73 @@ CONCOURS_UPLOAD_EXAMPLES = [
     ),
 ]
 
+ARCHIVE_OFFER_DESCRIPTION = (
+    "Archive une offre selon sa référence et l'identifiant de la source.\n\n"
+    "**Corps de la requête :**\n"
+    "- `reference` — référence de l'offre à archiver (ex. `2026-999999`)\n"
+    "- `source_id` — identifiant de la source ayant émis la demande"
+    " (ex. identifiant de l'instance Talentsoft)\n\n"
+    "**Codes de retour :**\n"
+    "- `200 OK` — l'offre a été archivée avec succès\n"
+    "- `400 Bad Request` — corps de la requête invalide ou champ manquant\n"
+    "- `401 Unauthorized` — authentification manquante ou invalide\n"
+    "- `404 Not Found` — aucune offre trouvée pour cette référence\n\n"
+    "**Authentification :** Token JWT ou clé d'API requis."
+)
+
+ARCHIVE_OFFER_EXAMPLES = [
+    OpenApiExample(
+        "Success",
+        summary="Offre archivée avec succès",
+        description="L'offre correspondant à la référence a été archivée.",
+        value={"reference": "2026-999999", "source_id": "talentsoft-client-1"},
+        request_only=True,
+        status_codes=["200"],
+    ),
+    OpenApiExample(
+        "Success",
+        summary="Offre archivée avec succès",
+        description="L'offre correspondant à la référence a été archivée.",
+        value={"status": "ok"},
+        response_only=True,
+        status_codes=["200"],
+    ),
+    OpenApiExample(
+        "Error - missing field",
+        summary="Champ obligatoire manquant",
+        description="Le champ `reference` ou `source_id` est absent du corps.",
+        value={"reference": ["This field is required."]},
+        response_only=True,
+        status_codes=["400"],
+    ),
+    OpenApiExample(
+        "Error - not found",
+        summary="Offre introuvable",
+        description="Aucune offre ne correspond à la référence fournie.",
+        value={"detail": "Not found."},
+        response_only=True,
+        status_codes=["404"],
+    ),
+    OpenApiExample(
+        "Error - invalid token",
+        summary="Token JWT invalide ou expiré",
+        description="Le token dans le header `Authorization` est invalide ou expiré.",
+        value={
+            "detail": "Le jeton fourni n'est pas valide.",
+            "code": "token_not_valid",
+            "messages": [
+                {
+                    "token_class": "AccessToken",
+                    "token_type": "access",
+                    "message": "Token is invalid or expired",
+                }
+            ],
+        },
+        response_only=True,
+        status_codes=["401"],
+    ),
+]
+
 LIST_OFFERS_DESCRIPTION = """
 # API de consultation des offres d'emploi de la Fonction Publique
 
