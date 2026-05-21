@@ -327,20 +327,39 @@ paths:
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
-  /api/offers/{reference}/archive/:
+  /api/data/offres/archiver:
     post:
-      operationId: offers_archive_create
-      description: Archive une offre selon sa référence. Accepte une authentification
-        JWT ou par clé d'API.
+      operationId: data_offres_archiver_create
+      description: |-
+        Archive une offre selon sa référence et l'identifiant de la source.
+
+        **Corps de la requête :**
+        - `reference` — référence de l'offre à archiver (ex. `2026-999999`)
+        - `source_id` — identifiant de la source ayant émis la demande (ex. identifiant de l'instance Talentsoft)
+
+        **Codes de retour :**
+        - `200 OK` — l'offre a été archivée avec succès
+        - `400 Bad Request` — corps de la requête invalide ou champ manquant
+        - `401 Unauthorized` — authentification manquante ou invalide
+        - `404 Not Found` — aucune offre trouvée pour cette référence
+
+        **Authentification :** Token JWT ou clé d'API requis.
       summary: Archiver une offre par référence
-      parameters:
-      - in: path
-        name: reference
-        schema:
-          type: string
-        required: true
       tags:
       - offres
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArchiveOfferRequest'
+            examples:
+              Success:
+                value:
+                  reference: 2026-999999
+                  source_id: talentsoft-client-1
+                summary: Offre archivée avec succès
+                description: L'offre correspondant à la référence a été archivée.
+        required: true
       security:
       - jwtAuth: []
       - ApiKeyAuth: []
@@ -350,18 +369,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArchiveOfferSuccess'
+              examples:
+                Success:
+                  value:
+                    status: ok
+                  summary: Offre archivée avec succès
+                  description: L'offre correspondant à la référence a été archivée.
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchiveOfferBadRequest'
+              examples:
+                Error-MissingField:
+                  value:
+                    reference:
+                    - This field is required.
+                  summary: Champ obligatoire manquant
+                  description: Le champ `reference` ou `source_id` est absent du corps.
           description: ''
         '401':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArchiveOffer401Error'
+              examples:
+                Error-InvalidToken:
+                  value:
+                    detail: Le jeton fourni n'est pas valide.
+                    code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid or expired
+                  summary: Token JWT invalide ou expiré
+                  description: Le token dans le header `Authorization` est invalide
+                    ou expiré.
           description: ''
         '404':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArchiveOfferNotFound'
+              examples:
+                Error-NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Offre introuvable
+                  description: Aucune offre ne correspond à la référence fournie.
           description: ''
   /api/token/:
     post:
@@ -430,6 +486,13 @@ components:
       oneOf:
       - $ref: '#/components/schemas/TokenError'
       - $ref: '#/components/schemas/ArchiveOfferUnauthorized'
+    ArchiveOfferBadRequest:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     ArchiveOfferNotFound:
       type: object
       properties:
@@ -437,6 +500,16 @@ components:
           type: string
       required:
       - detail
+    ArchiveOfferRequest:
+      type: object
+      properties:
+        reference:
+          type: string
+        source_id:
+          type: string
+      required:
+      - reference
+      - source_id
     ArchiveOfferSuccess:
       type: object
       properties:

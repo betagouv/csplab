@@ -74,5 +74,10 @@ class SourceSerializer(serializers.Serializer):
     base_url = serializers.URLField()
 
 
+class ArchiveOfferRequestSerializer(serializers.Serializer):
+    reference = serializers.CharField()
+    source_id = serializers.CharField()
+
+
 class ArchiveOfferSuccessSerializer(serializers.Serializer):
     status = serializers.CharField()
