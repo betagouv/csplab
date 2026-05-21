@@ -1,5 +1,3 @@
-"""Country value object."""
-
 from pydantic_extra_types.country import CountryAlpha3
 
 

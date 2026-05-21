@@ -4,6 +4,7 @@ from presentation.ingestion.views import (
     ArchiveOffersView,
     ConcoursUploadView,
     OffersListView,
+    OffersUpsertView,
 )
 
 app_name = "ingestion"
@@ -16,4 +17,5 @@ urlpatterns = [
         ArchiveOffersView.as_view(),
         name="offers_archive",
     ),
+    path("offers/upsert/", OffersUpsertView.as_view(), name="offers_upsert"),
 ]

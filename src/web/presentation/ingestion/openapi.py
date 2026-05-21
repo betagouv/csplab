@@ -246,3 +246,22 @@ LIST_OFFERS_EXAMPLES = [
         status_codes=["500"],
     ),
 ]
+
+UPSERT_OFFERS_DESCRIPTION = """
+# API d'ingestion d'offres d'emploi de la Fonction Publique
+
+Cette API permet de créer ou mettre à jour des offres d'emploi, en masse, \
+via un payload JSON.
+
+- Les offres sont identifiées par son champ `reference` (clé d'upsert).
+- Une offre existante est mise à jour, une offre inconnue est créée.
+
+# Permissions
+
+L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque \
+utilisateur.
+
+# Limitations
+
+L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+"""
