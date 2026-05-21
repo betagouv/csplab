@@ -136,26 +136,26 @@ sass-watch: ## watch and compile SCSS files on changes
 
 ### FRONTEND (Vue/Vite)
 WEB_DIR = src/web
-FRONTEND_WORKSPACE = presentation/frontend
+FRONTEND_FILTER = csplab-frontend
 
-frontend-install: ## install frontend dependencies (via npm workspaces)
-	cd $(WEB_DIR) && npm install
+frontend-install: ## install frontend dependencies (pnpm)
+	cd $(WEB_DIR) && pnpm install
 .PHONY: frontend-install
 
 frontend-dev: ## run frontend dev server (Vite HMR)
-	cd $(WEB_DIR) && npm run dev --workspace=$(FRONTEND_WORKSPACE)
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) dev
 .PHONY: frontend-dev
 
 frontend-build: ## build frontend for production
-	cd $(WEB_DIR) && npm run build --workspace=$(FRONTEND_WORKSPACE)
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) build
 .PHONY: frontend-build
 
 frontend-lint: ## lint frontend sources
-	cd $(WEB_DIR) && npm run lint --workspace=$(FRONTEND_WORKSPACE)
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) lint
 .PHONY: frontend-lint
 
 frontend-lint-fix: ## lint and fix frontend sources
-	cd $(WEB_DIR) && npm run lint:fix --workspace=$(FRONTEND_WORKSPACE)
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) lint:fix
 .PHONY: frontend-lint-fix
 
 ### RUN

@@ -32,7 +32,7 @@ src/web/presentation/
 ### Prérequis
 
 - Node.js 22.x
-- npm (inclus avec Node.js)
+- pnpm (`brew install pnpm` ou `npm install -g pnpm`)
 
 ### Installation
 
@@ -79,28 +79,32 @@ Le build inclut une vérification TypeScript (`vue-tsc --noEmit`).
 
 Le déploiement utilise le **multi-buildpack** :
 
-1. **Node.js buildpack** : `npm ci` + `npm run build`
+1. **Node.js buildpack** : détecte `pnpm-lock.yaml`, exécute `pnpm install` + `pnpm run build`
 2. **Python buildpack** : installe Django, lance gunicorn
 
 Fichiers de config :
 - `src/web/.buildpacks` : liste des buildpacks
-- `src/web/package.json` : workspace npm avec script `build`
+- `src/web/package.json` : script `build` pour Scalingo
+- `src/web/pnpm-workspace.yaml` : config workspaces
 
 Le build frontend s'exécute avant `collectstatic`, les assets sont donc inclus dans les fichiers statiques Django.
 
-## npm Workspaces
+## pnpm Workspaces
 
-Le projet utilise npm workspaces pour gérer les dépendances :
+Le projet utilise pnpm workspaces pour gérer les dépendances :
 
 ```
 src/web/
 ├── package.json          # Workspace root (config Scalingo)
-├── package-lock.json     # Lockfile unique
+├── pnpm-workspace.yaml   # Config workspaces
+├── pnpm-lock.yaml        # Lockfile unique
 └── presentation/frontend/
     └── package.json      # Workspace (deps Vue/Vite)
 ```
 
-Toutes les commandes npm s'exécutent depuis `src/web/` avec `--workspace=presentation/frontend`.
+Toutes les commandes pnpm s'exécutent depuis `src/web/` avec `--filter csplab-frontend`.
+
+**Sécurité :** pnpm bloque les scripts postinstall par défaut. Pour approuver un build (ex: esbuild) : `pnpm approve-builds <package>`.
 
 ## Template Django et Vite
 

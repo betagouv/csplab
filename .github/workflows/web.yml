@@ -31,16 +31,20 @@ jobs:
           python-version-file: "./src/web/.python-version"
       - name: Install the project
         run: uv sync --locked --all-extras --dev
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-          cache-dependency-path: src/web/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: src/web/pnpm-lock.yaml
       - name: Install frontend dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Build frontend
-        run: npm run build
+        run: pnpm run build
 
   lint-web:
     needs: build-web
@@ -69,18 +73,22 @@ jobs:
         run: uv run ruff format --check .
       - name: Lint with MyPy
         run: uv run mypy .
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-          cache-dependency-path: src/web/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: src/web/pnpm-lock.yaml
       - name: Install frontend dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Lint frontend
-        run: npm run lint --workspace=presentation/frontend
+        run: pnpm --filter csplab-frontend lint
       - name: TypeScript check
-        run: npm run build --workspace=presentation/frontend
+        run: pnpm --filter csplab-frontend build
 
   test-web:
     needs: build-web

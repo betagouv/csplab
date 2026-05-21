@@ -1,11 +1,11 @@
 {
   "name": "csplab-web",
   "private": true,
-  "workspaces": ["presentation/frontend"],
+  "packageManager": "pnpm@11.1.3",
   "scripts": {
-    "build": "npm run build --workspace=presentation/frontend"
+    "build": "pnpm --filter csplab-frontend build"
   },
   "engines": {
-    "node": "22.x"
+    "node": ">=22"
   }
 }
