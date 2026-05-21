@@ -48,3 +48,8 @@ HUEY["immediate"] = True  # noqa: F405
 HUEY["consumer"]["periodic"] = False  # noqa: F405
 AUTH_PASSWORD_VALIDATORS = []
 REST_FRAMEWORK["DEFAULT_PERMISSION_CLASSES"] = []  # noqa: F405
+
+# CSP overrides for Vite dev server
+SECURE_CSP["script-src"] = [*SECURE_CSP["script-src"], "http://localhost:5173"]  # noqa: F405
+SECURE_CSP["script-src-elem"] = [*SECURE_CSP["script-src-elem"], "http://localhost:5173"]  # noqa: F405
+SECURE_CSP["connect-src"] = [*SECURE_CSP["connect-src"], "http://localhost:5173", "ws://localhost:5173"]  # noqa: F405

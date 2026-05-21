@@ -15,7 +15,7 @@
 </head>
 <body>
   <div id="ats-app"></div>
-  <script>
+  <script nonce="{{ request.csp_nonce }}">
     window.__ATS_CONFIG__ = {
       csrfToken: "{{ csrf_token }}",
       user: {{ user_json|safe }},
