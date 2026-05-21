@@ -53,5 +53,21 @@
   "prettier.enable": true,
   "emmet.includeLanguages": {
     "django-html": "html"
-  }
+  },
+  "eslint.useFlatConfig": true,
+  "[vue][typescript][javascript][json][jsonc]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "never"
+    }
+  },
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+    "vue",
+    "json",
+    "jsonc"
+  ]
 }

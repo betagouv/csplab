@@ -1,0 +1,4 @@
+packages:
+  - presentation/frontend
+allowBuilds:
+  esbuild: true

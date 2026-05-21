@@ -1,0 +1,25 @@
+{
+  "name": "csplab-frontend",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "vue": "^3.5",
+    "vue-router": "^4.4"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.13",
+    "@types/node": "^22",
+    "@vitejs/plugin-vue": "^5.2",
+    "eslint": "^9.28",
+    "typescript": "~5.8",
+    "vite": "^6.3",
+    "vue-tsc": "^2.2"
+  }
+}
