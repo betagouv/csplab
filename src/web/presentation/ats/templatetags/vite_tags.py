@@ -27,12 +27,6 @@ def _load_manifest() -> dict:
 
 @register.simple_tag
 def vite_asset(entry: str) -> str:
-    """
-    Retourne l'URL de l'asset Vite avec hash pour cache-busting.
-
-    Usage: {% vite_asset 'src/app/main.ts' %}
-    Retourne: /static/frontend/assets/main-CRHELEG8.js
-    """
     manifest = _load_manifest()
 
     if entry not in manifest:
@@ -44,11 +38,6 @@ def vite_asset(entry: str) -> str:
 
 @register.simple_tag
 def vite_css(entry: str) -> str:
-    """
-    Retourne les balises <link> pour les CSS associés à un entry point.
-
-    Usage: {% vite_css 'src/app/main.ts' %}
-    """
     manifest = _load_manifest()
 
     if entry not in manifest:

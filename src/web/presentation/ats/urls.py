@@ -1,7 +1,7 @@
 from django.urls import re_path
 
-from . import views
+from presentation.ats.views import base
 
 urlpatterns = [
-    re_path(r"^.*$", views.base, name="ats_base"),
+    re_path(r"^.*$", base, name="ats_base"),
 ]
