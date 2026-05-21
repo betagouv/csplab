@@ -5,6 +5,7 @@ src/web/static_collected/
 # -- Front end
 
 node_modules/
+src/web/presentation/static/frontend/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

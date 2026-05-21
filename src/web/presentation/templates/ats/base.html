@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite_tags %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -9,8 +9,8 @@
     <script type="module" src="http://localhost:5173/@vite/client"></script>
     <script type="module" src="http://localhost:5173/src/app/main.ts"></script>
   {% else %}
-    <link rel="stylesheet" href="{% static 'frontend/assets/main.css' %}">
-    <script type="module" src="{% static 'frontend/assets/main.js' %}"></script>
+    {% vite_css 'src/app/main.ts' %}
+    <script type="module" src="{% vite_asset 'src/app/main.ts' %}"></script>
   {% endif %}
 </head>
 <body>
