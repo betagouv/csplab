@@ -73,6 +73,8 @@ jobs:
         run: uv run ruff format --check .
       - name: Lint with MyPy
         run: uv run mypy .
+      - name: Lint web templates with djlint
+        run: uv run djlint presentation/templates --check
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
