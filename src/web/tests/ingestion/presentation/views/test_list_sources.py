@@ -54,7 +54,8 @@ def test_response_shape(mock_container, api_key_client):
         source_type=SourceType.TALENTSOFT,
         client_id_front="front_x",
         client_id_back="back_x",
-        base_url="https://example.talentsoft.com",
+        base_url_front="https://front.talentsoft.com",
+        base_url_back="https://back.talentsoft.com",
     )
     usecase = mock_container.return_value.list_sources_usecase.return_value
     usecase.execute.return_value = [source]
@@ -67,7 +68,8 @@ def test_response_shape(mock_container, api_key_client):
         "type": SourceType.TALENTSOFT.value,
         "client_id_front": "front_x",
         "client_id_back": "back_x",
-        "base_url": "https://example.talentsoft.com",
+        "base_url_front": "https://front.talentsoft.com",
+        "base_url_back": "https://back.talentsoft.com",
     }
 
 

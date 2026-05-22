@@ -12,4 +12,5 @@ class Source(IEntity):
     type: SourceType
     client_id_front: str
     client_id_back: str
-    base_url: str
+    base_url_front: str
+    base_url_back: str

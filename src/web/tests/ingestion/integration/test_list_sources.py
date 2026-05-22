@@ -45,7 +45,8 @@ def test_returns_correct_source_entity_fields(ingestion_container):
         source_type=SourceType.TALENTSOFT,
         client_id_front="my_front_id",
         client_id_back="my_back_id",
-        base_url="https://example.talentsoft.com",
+        base_url_front="https://front.talentsoft.com",
+        base_url_back="https://back.talentsoft.com",
     )
 
     result = ingestion_container.list_sources_usecase().execute()
@@ -57,4 +58,5 @@ def test_returns_correct_source_entity_fields(ingestion_container):
     assert source.type == SourceType.TALENTSOFT
     assert source.client_id_front == "my_front_id"
     assert source.client_id_back == "my_back_id"
-    assert source.base_url == "https://example.talentsoft.com"
+    assert source.base_url_front == "https://front.talentsoft.com"
+    assert source.base_url_back == "https://back.talentsoft.com"

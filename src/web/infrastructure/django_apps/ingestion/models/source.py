@@ -14,7 +14,8 @@ class SourceModel(models.Model):
     )
     client_id_front = models.CharField(max_length=255)
     client_id_back = models.CharField(max_length=255)
-    base_url = models.URLField(max_length=255)
+    base_url_front = models.URLField(max_length=255)
+    base_url_back = models.URLField(max_length=255)
 
     class Meta:
         db_table = "source"
@@ -28,7 +29,8 @@ class SourceModel(models.Model):
             type=SourceType(self.type),
             client_id_front=self.client_id_front,
             client_id_back=self.client_id_back,
-            base_url=self.base_url,
+            base_url_front=self.base_url_front,
+            base_url_back=self.base_url_back,
         )
 
     @classmethod
@@ -39,8 +41,9 @@ class SourceModel(models.Model):
             type=source.type.value,
             client_id_front=source.client_id_front,
             client_id_back=source.client_id_back,
-            base_url=source.base_url,
+            base_url_front=source.base_url_front,
+            base_url_back=source.base_url_back,
         )
 
     def __str__(self) -> str:
-        return f"{self.type} - {self.base_url}"
+        return f"{self.type} - {self.base_url_front}"

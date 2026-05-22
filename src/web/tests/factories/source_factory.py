@@ -11,7 +11,8 @@ class SourceFactory:
         source_type: SourceType = SourceType.TALENTSOFT,
         client_id_front: str = "client_front",
         client_id_back: str = "client_back",
-        base_url: str = "https://example.talentsoft.com",
+        base_url_front: str = "https://front.talentsoft.com",
+        base_url_back: str = "https://back.talentsoft.com",
     ) -> Source:
         return Source(
             id=uuid4(),
@@ -19,7 +20,8 @@ class SourceFactory:
             type=source_type,
             client_id_front=client_id_front,
             client_id_back=client_id_back,
-            base_url=base_url,
+            base_url_front=base_url_front,
+            base_url_back=base_url_back,
         )
 
     @staticmethod
