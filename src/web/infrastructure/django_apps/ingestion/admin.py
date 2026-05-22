@@ -3,6 +3,21 @@
 from django.contrib import admin
 
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
+from infrastructure.django_apps.ingestion.models.source import SourceModel
+
+
+@admin.register(SourceModel)
+class SourceAdmin(admin.ModelAdmin):
+    list_display = (
+        "source_id",
+        "type",
+        "base_url",
+        "client_id_front",
+        "client_id_back",
+    )
+    list_filter = ("type",)
+    search_fields = ("source_id", "base_url", "client_id_front", "client_id_back")
+    readonly_fields = ("id", "source_id")
 
 
 @admin.register(RawDocument)
