@@ -27,6 +27,7 @@ from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCV
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.list_offers import ListOffersUseCase
+from application.ingestion.usecases.list_sources import ListSourcesUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from config.app_config import AppConfig
@@ -38,6 +39,7 @@ from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepo
 from domain.repositories.document_repository_interface import IDocumentRepository
 from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.repositories.offers_repository_interface import IOffersRepository
+from domain.repositories.source_repository_interface import ISourceRepository
 from domain.repositories.vector_repository_interface import IVectorRepository
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.logger import LoggerService
@@ -93,6 +95,12 @@ def authenticated_client_fixture(api_client, user):
     refresh = RefreshToken.for_user(user)
     token = str(refresh.access_token)
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return api_client
+
+
+@pytest.fixture(name="api_key_client")
+def api_key_client_fixture(api_client):
+    api_client.credentials(HTTP_AUTHORIZATION="Api-Key test-ingestion-api-key")
     return api_client
 
 
@@ -351,6 +359,17 @@ def list_offers_usecase():
     return ListOffersUseCase(
         offers_repository=offers_repo,
         logger=logger,
+    )
+
+
+@pytest.fixture
+def list_sources_usecase():
+    source_repo = cast(
+        ISourceRepository, create_interface_aware_mock(ISourceRepository)
+    )
+
+    return ListSourcesUseCase(
+        source_repository=source_repo,
     )
 
 

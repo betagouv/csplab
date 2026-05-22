@@ -46,6 +46,7 @@ from presentation.ingestion.serializers import (
     ListOffersResponseSerializer,
     NoValidRowsErrorSerializer,
     ServerErrorSerializer,
+    SourceSerializer,
     TokenErrorSerializer,
 )
 
@@ -368,6 +369,22 @@ class OffersListView(APIView):
             serializer = ServerErrorSerializer({"error": "Unexpected error"})
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+@extend_schema(exclude=True)
+class SourcesListView(APIView):
+    authentication_classes = [ApiKeyAuthentication]
+
+    def get(self, request):
+        try:
+            container = create_ingestion_container()
+            sources = container.list_sources_usecase().execute()
+            return Response(SourceSerializer(sources, many=True).data)
+        except Exception:
+            return Response(
+                {"error": "Unexpected error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 

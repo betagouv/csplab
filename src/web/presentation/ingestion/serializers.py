@@ -62,6 +62,18 @@ class ListOffersErrorSerializer(serializers.Serializer):
     error = serializers.CharField
 
 
+class ApiKeyErrorSerializer(serializers.Serializer):
+    detail = serializers.CharField()
+
+
+class SourceSerializer(serializers.Serializer):
+    source_id = serializers.UUIDField()
+    type = serializers.CharField(source="type.value")
+    client_id_front = serializers.CharField()
+    client_id_back = serializers.CharField()
+    base_url = serializers.URLField()
+
+
 class ArchiveOfferRequestSerializer(serializers.Serializer):
     reference = serializers.CharField()
     source_id = serializers.CharField()
