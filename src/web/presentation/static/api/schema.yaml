@@ -294,7 +294,7 @@ paths:
               Success:
                 value:
                   reference: 2026-999999
-                  source_id: talentsoft-client-1
+                  source_id: 12345678-1234-4234-b234-123456789abc
                 summary: Offre archivée avec succès
                 description: L'offre correspondant à la référence a été archivée.
         required: true
