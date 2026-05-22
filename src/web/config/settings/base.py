@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     "infrastructure.django_apps.candidate",
     "presentation.ingestion",
     "presentation.candidate",
+    "presentation.ats",
 ]
 
 MIDDLEWARE = [

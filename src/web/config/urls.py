@@ -10,6 +10,7 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path("admin/", admin.site.urls),
     path("candidate/", include("presentation.candidate.urls")),
     path("api/data/", include("presentation.ingestion.urls")),
+    path("ats/", include("presentation.ats.urls")),
 ]
 
 if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:

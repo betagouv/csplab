@@ -1,0 +1,11 @@
+{
+  "name": "csplab-web",
+  "private": true,
+  "packageManager": "pnpm@11.1.3",
+  "scripts": {
+    "build": "pnpm --filter csplab-frontend build"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

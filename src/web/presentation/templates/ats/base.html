@@ -1,0 +1,25 @@
+{% load static vite_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATS - CSPLab</title>
+  {% if debug %}
+    <script type="module" src="http://localhost:5173/@vite/client"></script>
+    <script type="module" src="http://localhost:5173/src/app/main.ts"></script>
+  {% else %}
+    {% vite_css 'src/app/main.ts' %}
+    <script type="module" src="{% vite_asset 'src/app/main.ts' %}"></script>
+  {% endif %}
+</head>
+<body>
+  <div id="ats-app"></div>
+  <script nonce="{{ request.csp_nonce }}">
+    window.__ATS_CONFIG__ = {
+      csrfToken: "{{ csrf_token }}",
+      user: {{ user_json|safe }},
+    };
+  </script>
+</body>
+</html>

@@ -134,6 +134,30 @@ sass-watch: ## watch and compile SCSS files on changes
 	@bin/sass watch
 .PHONY: sass-watch
 
+### FRONTEND (Vue/Vite)
+WEB_DIR = src/web
+FRONTEND_FILTER = csplab-frontend
+
+frontend-install: ## install frontend dependencies (pnpm)
+	cd $(WEB_DIR) && pnpm install
+.PHONY: frontend-install
+
+frontend-dev: ## run frontend dev server (Vite HMR)
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) dev
+.PHONY: frontend-dev
+
+frontend-build: ## build frontend for production
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) build
+.PHONY: frontend-build
+
+frontend-lint: ## lint frontend sources
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) lint
+.PHONY: frontend-lint
+
+frontend-lint-fix: ## lint and fix frontend sources
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) lint:fix
+.PHONY: frontend-lint-fix
+
 ### RUN
 run-notebook: ## run the notebook service
 	$(NOTEBOOK_UV) jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
