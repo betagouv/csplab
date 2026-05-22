@@ -178,7 +178,10 @@ ARCHIVE_OFFER_EXAMPLES = [
         "Success",
         summary="Offre archivée avec succès",
         description="L'offre correspondant à la référence a été archivée.",
-        value={"reference": "2026-999999", "source_id": "talentsoft-client-1"},
+        value={
+            "reference": "2026-999999",
+            "source_id": "12345678-1234-4234-b234-123456789abc",
+        },
         request_only=True,
         status_codes=["200"],
     ),
