@@ -1,0 +1,9 @@
+from typing import Protocol
+
+from domain.source import Source
+
+
+class ISourcesRegistry(Protocol):
+    def load(self, sources: list[Source]) -> None: ...
+    def get_by_client_id_back(self, client_id_back: str) -> Source | None: ...
+    def __len__(self) -> int: ...

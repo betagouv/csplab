@@ -1,9 +1,12 @@
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
 from api.config import get_settings
-from api.routes import public_router
+from api.routes import get_http_client, public_router
+from application.use_cases.load_sources import LoadSourcesUseCase
+from infrastructure.sources_registry import SourcesRegistry
 
 _SKIP_LOG_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {
     "message",
@@ -41,7 +44,23 @@ def create_app():
             profiles_sample_rate=settings.sentry_profiles_sample_rate,
         )
 
-    app = FastAPI(title="Ingestion Microservice", version="0.1.0")
+    registry = SourcesRegistry()
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        if settings.web_base_url and settings.web_api_key:
+            async with asynccontextmanager(get_http_client)() as client:
+                use_case = LoadSourcesUseCase(
+                    client=client,
+                    web_base_url=settings.web_base_url,
+                    web_api_key=settings.web_api_key,
+                    registry=registry,
+                )
+                await use_case.execute()
+        yield
+
+    app = FastAPI(title="Ingestion Microservice", version="0.1.0", lifespan=lifespan)
+    app.state.sources_registry = registry
     app.include_router(public_router)
 
     return app

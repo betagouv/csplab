@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from httpx import Response
 
 from api.main import create_app
+from domain.source import Source
 
 TALENTSOFT_BACK_CLIENT_ID = "test_back_client_id"
 TALENTSOFT_BACK_CLIENT_SECRET = "test_back_client_secret"
@@ -20,6 +21,7 @@ TALENTSOFT_FRONT_BASE_URL = "https://talentsoft-front.example.com"
 WEB_BASE_URL = "https://web.example.com"
 WEB_API_KEY = "test-web-api-key"
 WEBHOOK_PATH = "/webhooks/talentsoft"
+SOURCE_ID = "11111111-2222-3333-4444-555555555555"
 
 
 @pytest.fixture
@@ -43,6 +45,20 @@ def talentsoft_client(monkeypatch):
     monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()
+
+    # Pre-populate the sources registry (the lifespan doesn't run in test mode)
+    app.state.sources_registry.load(
+        [
+            Source(
+                source_id=SOURCE_ID,
+                type="talentsoft",
+                client_id_front="test_client_id_front",
+                client_id_back=TALENTSOFT_BACK_CLIENT_ID,
+                base_url_front="https://front.talentsoft.com",
+                base_url_back="https://back.talentsoft.com",
+            )
+        ]
+    )
     return TestClient(app)
 
 
