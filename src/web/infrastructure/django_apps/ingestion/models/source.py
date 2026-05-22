@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.db import models
 
 from domain.entities.source import Source
@@ -14,8 +16,8 @@ class SourceModel(models.Model):
     )
     client_id_front = models.CharField(max_length=255)
     client_id_back = models.CharField(max_length=255)
-    base_url_front = models.URLField(max_length=255)
-    base_url_back = models.URLField(max_length=255)
+    base_url_front = models.URLField()
+    base_url_back = models.URLField()
 
     class Meta:
         db_table = "source"
@@ -24,7 +26,6 @@ class SourceModel(models.Model):
 
     def to_entity(self) -> Source:
         return Source(
-            id=self.id,
             source_id=self.source_id,
             type=SourceType(self.type),
             client_id_front=self.client_id_front,
@@ -36,7 +37,7 @@ class SourceModel(models.Model):
     @classmethod
     def from_entity(cls, source: Source) -> "SourceModel":
         return cls(
-            id=source.id,
+            id=uuid4(),
             source_id=source.source_id,
             type=source.type.value,
             client_id_front=source.client_id_front,

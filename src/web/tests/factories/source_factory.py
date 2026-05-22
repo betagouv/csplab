@@ -1,27 +1,31 @@
+from typing import Optional
 from uuid import uuid4
+
+from faker import Faker
 
 from domain.entities.source import Source
 from domain.value_objects.source_type import SourceType
 from infrastructure.django_apps.ingestion.models.source import SourceModel
 
+fake = Faker()
+
 
 class SourceFactory:
     @staticmethod
     def create_entity(
-        source_type: SourceType = SourceType.TALENTSOFT,
+        type: SourceType = SourceType.TALENTSOFT,
         client_id_front: str = "client_front",
         client_id_back: str = "client_back",
-        base_url_front: str = "https://front.talentsoft.com",
-        base_url_back: str = "https://back.talentsoft.com",
+        base_url_front: Optional[str] = None,
+        base_url_back: Optional[str] = None,
     ) -> Source:
         return Source(
-            id=uuid4(),
             source_id=uuid4(),
-            type=source_type,
+            type=type,
             client_id_front=client_id_front,
             client_id_back=client_id_back,
-            base_url_front=base_url_front,
-            base_url_back=base_url_back,
+            base_url_front=base_url_front or fake.url(),
+            base_url_back=base_url_back or fake.url(),
         )
 
     @staticmethod
