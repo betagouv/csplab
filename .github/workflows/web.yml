@@ -8,6 +8,8 @@ on:
     types: [opened, synchronize, reopened, edited]
     paths:
       - "src/web/**"
+      - ".github/workflows/web.yml"
+      - ".github/actions/**"
 
 permissions:
   contents: read
