@@ -15,26 +15,14 @@ permissions:
 jobs:
   build-ocr:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/ocr
     steps:
-      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-uv-python
+        with:
+          service-path: src/ocr
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y poppler-utils tesseract-ocr tesseract-ocr-fra
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: "0.9.7"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "./src/ocr/.python-version"
-      - name: Install the project
-        run: uv sync --locked --all-extras --dev
 
   lint-ocr:
     needs: build-ocr
@@ -43,18 +31,9 @@ jobs:
       run:
         working-directory: ./src/ocr
     steps:
-      - uses: actions/checkout@v5
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: ./.github/actions/setup-uv-python
         with:
-          version: "0.9.7"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "./src/ocr/.python-version"
-      - name: Install the project
-        run: uv sync --locked --all-extras --dev
+          service-path: src/ocr
       - name: Lint with Ruff
         run: uv run ruff check .
       - name: Lint format with Ruff
@@ -71,21 +50,12 @@ jobs:
     env:
       API_KEY: test-api-key-for-development
     steps:
-      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-uv-python
+        with:
+          service-path: src/ocr
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y poppler-utils tesseract-ocr tesseract-ocr-fra
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: "0.9.7"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "./src/ocr/.python-version"
-      - name: Install the project
-        run: uv sync --locked --all-extras --dev
       - name: Test with pytest
         run: uv run pytest .

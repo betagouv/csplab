@@ -1,0 +1,28 @@
+name: Set up uv and Python
+description: Checkout, install uv, set up Python, and install project dependencies.
+
+inputs:
+  service-path:
+    description: Relative path to the service directory (e.g. src/ocr)
+    required: true
+  uv-version:
+    description: uv version to install
+    default: "0.9.7"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v5
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        version: ${{ inputs.uv-version }}
+        enable-cache: true
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version-file: ${{ inputs.service-path }}/.python-version
+    - name: Install the project
+      shell: bash
+      working-directory: ${{ inputs.service-path }}
+      run: uv sync --locked --all-extras --dev
