@@ -1,0 +1,158 @@
+import pytest
+from fastapi.testclient import TestClient
+from pytest_httpx import HTTPXMock
+
+from api.main import create_app
+from tests.integration.conftest import (
+    TALENTSOFT_BASE_URL,
+    TALENTSOFT_CLIENT_ID,
+    TALENTSOFT_CLIENT_SECRET,
+    WEB_API_KEY,
+    WEB_BASE_URL,
+    make_signed_request,
+)
+
+REFERENCE = "2024-VACANCY-001"
+TOKEN_URL = f"{TALENTSOFT_BASE_URL}/api/token"
+DETAIL_OFFER_URL = f"{TALENTSOFT_BASE_URL}/api/v2/offers/getoffer"
+
+
+def _coded_object():
+    return {
+        "code": 1,
+        "clientCode": "CODE",
+        "label": "Label",
+        "active": True,
+        "type": "type",
+        "parentType": "",
+    }
+
+
+def _detail_offer_payload(reference: str = REFERENCE) -> dict:
+    return {
+        "reference": reference,
+        "isTopOffer": False,
+        "title": "Software Engineer",
+        "organisationName": "ACME Corp",
+        "organisationDescription": "A great company",
+        "organisationLogoUrl": "https://example.com/logo.png",
+        "modificationDate": "2024-01-01",
+        "startPublicationDate": "2024-01-01",
+        "offerUrl": "https://example.com/offer",
+        "offerFamilyCategory": _coded_object(),
+        "contractTypeCountry": _coded_object(),
+    }
+
+
+def _mock_token_response(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        method="POST",
+        url=TOKEN_URL,
+        json={
+            "access_token": "test-access-token",
+            "token_type": "Bearer",
+            "expires_in": 3600,
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_vacancy_new_fetches_offer_details(
+    talentsoft_client, httpx_mock: HTTPXMock
+):
+    _mock_token_response(httpx_mock)
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{DETAIL_OFFER_URL}?reference={REFERENCE}&sort=modificationDate",
+        json=_detail_offer_payload(),
+    )
+
+    payload = {"event_type": "vacancy_new", "reference": REFERENCE}
+    response = make_signed_request(talentsoft_client, payload)
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+    requests = httpx_mock.get_requests()
+    # token request + detail request
+    assert len(requests) == 2
+    token_req, detail_req = requests
+    assert TOKEN_URL in str(token_req.url)
+    assert "reference=" + REFERENCE in str(detail_req.url)
+    assert "Bearer test-access-token" in detail_req.headers["authorization"]
+
+
+@pytest.mark.asyncio
+async def test_vacancy_update_fetches_offer_details(
+    talentsoft_client, httpx_mock: HTTPXMock
+):
+    _mock_token_response(httpx_mock)
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{DETAIL_OFFER_URL}?reference={REFERENCE}&sort=modificationDate",
+        json=_detail_offer_payload(),
+    )
+
+    payload = {"event_type": "vacancy_update", "reference": REFERENCE}
+    response = make_signed_request(talentsoft_client, payload)
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+    assert len(httpx_mock.get_requests()) == 2
+
+
+@pytest.mark.asyncio
+async def test_vacancy_new_talentsoft_not_configured_returns_500(monkeypatch):
+    monkeypatch.setenv("TESTING", "true")
+    monkeypatch.setenv("TALENTSOFT_CLIENT_ID", TALENTSOFT_CLIENT_ID)
+    monkeypatch.setenv("TALENTSOFT_CLIENT_SECRET", TALENTSOFT_CLIENT_SECRET)
+    monkeypatch.delenv("TALENTSOFT_BASE_URL", raising=False)
+    monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
+    monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
+    app = create_app()
+    client = TestClient(app, raise_server_exceptions=False)
+
+    payload = {"event_type": "vacancy_new", "reference": REFERENCE}
+    response = make_signed_request(client, payload)
+
+    assert response.status_code == 500
+    assert response.json()["detail"] == "Talentsoft client not configured"
+
+
+@pytest.mark.asyncio
+async def test_vacancy_new_talentsoft_api_error_propagates(
+    monkeypatch, httpx_mock: HTTPXMock
+):
+    monkeypatch.setenv("TESTING", "true")
+    monkeypatch.setenv("TALENTSOFT_CLIENT_ID", TALENTSOFT_CLIENT_ID)
+    monkeypatch.setenv("TALENTSOFT_CLIENT_SECRET", TALENTSOFT_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BASE_URL", TALENTSOFT_BASE_URL)
+    monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
+    monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
+    app = create_app()
+    client = TestClient(app, raise_server_exceptions=False)
+
+    # The client has max_retries=2, so it will attempt 3 GET requests total.
+    _mock_token_response(httpx_mock)
+    for _ in range(3):
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{DETAIL_OFFER_URL}?reference={REFERENCE}&sort=modificationDate",
+            status_code=500,
+        )
+
+    payload = {"event_type": "vacancy_new", "reference": REFERENCE}
+    response = make_signed_request(client, payload)
+
+    assert response.status_code == 500
+
+
+@pytest.mark.asyncio
+async def test_other_event_type_does_not_call_talentsoft(
+    talentsoft_client, httpx_mock: HTTPXMock
+):
+    payload = {"event_type": "candidate_created", "reference": REFERENCE}
+    response = make_signed_request(talentsoft_client, payload)
+
+    assert response.status_code == 200
+    assert httpx_mock.get_requests() == []

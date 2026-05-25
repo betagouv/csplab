@@ -167,3 +167,17 @@ async def test_talentsoft_webhook_unconfigured_credentials(test_client):
     )
     assert response.status_code == 500
     assert response.json()["detail"] == "TalentSoft credentials not configured"
+
+
+@pytest.mark.asyncio
+async def test_talentsoft_webhook_invalid_expires_parameter(talentsoft_client):
+    query_items = valid_query_items()
+    ts_rec_headers = {"X-TS-REC-Expires": "not-a-number"}
+    signature = make_signature(WEBHOOK_PATH, query_items, ts_rec_headers=ts_rec_headers)
+    query_items.append(("signature", signature))
+
+    response = talentsoft_client.post(
+        WEBHOOK_PATH, params=query_items, headers=ts_rec_headers
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Invalid expires parameter"

@@ -14,9 +14,12 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "faker>=40.19.1",
     "mypy>=1.19.1",
+    "polyfactory>=3.3.0",
     "pytest>=9.0.2",
     "pytest-asyncio>=1.3.0",
+    "pytest-cov>=7.1.0",
     "pytest-httpx>=0.36.0",
     "pytest-xdist>=3.8.0",
     "python-dateutil>=2.9.0.post0",
@@ -37,7 +40,7 @@ url = "https://pypi.org/simple"
 ingestion = { path = ".", editable = true }
 
 [tool.setuptools.packages.find]
-include = ["api*", "application*", "presentation*"]
+include = ["api*", "application*", "infrastructure*", "presentation*"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 python_files = [
@@ -105,3 +108,10 @@ module = [
     "environ"
 ]
 ignore_missing_imports = true
+
+[tool.coverage.run]
+omit = [
+    ".venv/*",
+    "tests/*",
+    "*/__init__.py",
+]

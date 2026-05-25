@@ -404,10 +404,23 @@ test-cov-ocr: ## run ocr tests with detailed HTML coverage report
 	@open src/ocr/tests/cov_html/index.html
 .PHONY: test-cov-ocr
 
+test-cov-ingestion: ## run ingestion tests with detailed HTML coverage report
+	@echo 'test:cov-ingestion started…'
+	@echo 'Generating detailed HTML coverage report for ingestion…'
+	@if [ ! -f "src/ingestion/tests/cov_html/index.html" ]; then \
+		echo '⚠️  Coverage report not found. Creating directory structure...'; \
+		mkdir -p src/ingestion/tests/cov_html; \
+	fi
+	$(INGESTION_UV) pytest --cov=. --cov-report=html:tests/cov_html --cov-report=term-missing $(ARGS)
+	@echo '✅ Coverage report generated in src/ingestion/tests/cov_html/'
+	@open src/ingestion/tests/cov_html/index.html
+.PHONY: test-cov-ingestion
+
 test-cov: ## run tests with detailed HTML coverage report for all services
 test-cov: \
   test-cov-web \
-  test-cov-ocr
+  test-cov-ocr \
+  test-cov-ingestion
 .PHONY: test-cov
 
 ## MANAGE docker services
