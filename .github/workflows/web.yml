@@ -21,6 +21,7 @@ jobs:
       run:
         working-directory: ./src/web
     steps:
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/web
@@ -43,6 +44,7 @@ jobs:
       WEB_DATABASE_URL: psql://web:pass@localhost:5432/web
       DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/web
@@ -100,6 +102,7 @@ jobs:
       WEB_VECTOR_DB_TYPE: QDRANT
       DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/web

@@ -18,6 +18,7 @@ jobs:
   build-ocr:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/ocr
@@ -33,6 +34,7 @@ jobs:
       run:
         working-directory: ./src/ocr
     steps:
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/ocr
@@ -52,6 +54,7 @@ jobs:
     env:
       API_KEY: test-api-key-for-development
     steps:
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/ocr
