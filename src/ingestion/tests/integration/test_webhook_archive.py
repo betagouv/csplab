@@ -12,7 +12,7 @@ from tests.integration.conftest import (
 )
 
 REFERENCE = "2019-1234"
-ARCHIVE_URL = f"{WEB_BASE_URL}/api/data/offres/archiver"
+ARCHIVE_URL = f"{WEB_BASE_URL}/api/v1/offres/archiver"
 
 
 @pytest.mark.asyncio
