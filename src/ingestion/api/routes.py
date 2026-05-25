@@ -44,9 +44,10 @@ async def talentsoft_webhook(
 
     if not should_archive(payload):
         logger.info(
-            "Unhandled event type %s for reference %s",
+            "Unhandled event type %s for reference %s and status_id %s",
             payload.event_type,
             payload.reference,
+            payload.status_id,
             extra={"client_id": client_id},
         )
         return {"status": "ok"}
