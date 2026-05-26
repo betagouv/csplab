@@ -30,6 +30,10 @@ async def talentsoft_webhook(
     use_case: ArchiveOfferUseCase = Depends(get_archive_offer_use_case),
 ):
     body = await request.body()
+    logger.debug(
+        "Received TalentSoft webhook body",
+        extra={"body": body.decode(), "client_id": client_id},
+    )
     if not body:
         return {"status": "ok"}
 
