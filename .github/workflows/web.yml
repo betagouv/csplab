@@ -8,6 +8,8 @@ on:
     types: [opened, synchronize, reopened, edited]
     paths:
       - "src/web/**"
+      - ".github/workflows/web.yml"
+      - ".github/actions/**"
 
 permissions:
   contents: read
@@ -20,27 +22,12 @@ jobs:
         working-directory: ./src/web
     steps:
       - uses: actions/checkout@v5
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: ./.github/actions/setup-uv-python
         with:
-          version: "0.9.7"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
+          service-path: src/web
+      - uses: ./.github/actions/setup-pnpm-node
         with:
-          python-version-file: "./src/web/.python-version"
-      - name: Install the project
-        run: uv sync --locked --all-extras --dev
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "pnpm"
-          cache-dependency-path: src/web/pnpm-lock.yaml
+          lock-file-path: src/web/pnpm-lock.yaml
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
       - name: Build frontend
@@ -58,15 +45,9 @@ jobs:
       DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
       - uses: actions/checkout@v5
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: ./.github/actions/setup-uv-python
         with:
-          version: "0.9.7"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "./src/web/.python-version"
+          service-path: src/web
       - name: Lint with Ruff
         run: uv run ruff check .
       - name: Lint format with Ruff
@@ -75,16 +56,9 @@ jobs:
         run: uv run mypy .
       - name: Lint web templates with djlint
         run: uv run djlint presentation/templates --check
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/setup-pnpm-node
         with:
-          version: 11
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "pnpm"
-          cache-dependency-path: src/web/pnpm-lock.yaml
+          lock-file-path: src/web/pnpm-lock.yaml
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
       - name: Lint frontend
@@ -129,17 +103,9 @@ jobs:
       DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
       - uses: actions/checkout@v5
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: ./.github/actions/setup-uv-python
         with:
-          version: "0.9.7"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "./src/web/.python-version"
-      - name: Install dependencies
-        run: uv sync --locked --all-extras --dev
+          service-path: src/web
       - name: Wait for Qdrant to be ready
         run: |
           echo "Waiting for Qdrant to be ready..."
