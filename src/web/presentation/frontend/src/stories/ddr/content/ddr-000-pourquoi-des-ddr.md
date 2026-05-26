@@ -12,7 +12,7 @@ Accepté
 
 ## Contexte
 
-L'équipe souhaite s'appuyer sur un format analogue aux ADR (Architecture Decision Records), utilisés pour documenter les décisions d'architecture technique, afin d'expliciter et consigner certaines décisions de design qui structure le frontend. Versionnée dans le repo mais aussi presentée dans un book, elles permettront d'être partagées avec les parties prenantes non techniques et de servir de référence pour les revues et les discussions d'implémentation.
+L'équipe souhaite s'appuyer sur un format analogue aux ADR (Architecture Decision Records), utilisés pour documenter les décisions d'architecture technique, afin d'expliciter et consigner certaines décisions de design qui structurent le frontend. Versionnée dans le repo mais aussi presentée dans un book, elles permettront d'être partagées avec les parties prenantes non techniques et de servir de référence pour les revues et les discussions d'implémentation.
 
 ## Décision
 
