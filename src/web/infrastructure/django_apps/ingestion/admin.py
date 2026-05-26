@@ -11,12 +11,19 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = (
         "source_id",
         "type",
-        "base_url",
+        "base_url_front",
+        "base_url_back",
         "client_id_front",
         "client_id_back",
     )
     list_filter = ("type",)
-    search_fields = ("source_id", "base_url", "client_id_front", "client_id_back")
+    search_fields = (
+        "source_id",
+        "base_url_front",
+        "base_url_back",
+        "client_id_front",
+        "client_id_back",
+    )
     readonly_fields = ("id", "source_id")
 
 
