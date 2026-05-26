@@ -211,25 +211,63 @@ export interface CreateCandidateDto {
 
 ## CSS
 
-### Approach: Scoped + Utility Classes
+- `<style scoped lang="scss">` by default
+- BEM light for elements and modifiers ( `__element`, `--modifier`)
+- CSS variables for tokens (colors, spacing)
+- No global styles except reset/tokens
+
+### SCSS Nesting
+
+Limit nesting to **2 levels max**. Use `&` for modifiers and pseudo-classes.
 
 ```vue
-<style scoped>
+<style scoped lang="scss">
+// Good: 2 levels max
 .candidate-card {
   padding: var(--spacing-md);
   border-radius: var(--radius-sm);
-}
 
-.candidate-card--highlighted {
-  border: 2px solid var(--color-primary);
+  .header {
+    display: flex;
+  }
+
+  &--highlighted {
+    border: 2px solid var(--color-primary);
+  }
+
+  &:hover {
+    background: var(--color-hover);
+  }
 }
 </style>
 ```
 
-- `<style scoped>` by default
-- BEM light for modifiers (`--modifier`)
-- CSS variables for tokens (colors, spacing)
-- No global styles except reset/tokens
+```scss
+// Bad: too deep
+.candidate-card {
+  .header {
+    .title {
+      .icon {
+        // 4 levels
+      }
+    }
+  }
+}
+```
+
+Use BEM or flat classes instead of deep nesting:
+
+```scss
+// Prefer this
+.candidate-card {
+}
+.candidate-card__header {
+}
+.candidate-card__title {
+}
+.candidate-card__icon {
+}
+```
 
 ## Naming (What ESLint Doesn't Cover)
 
