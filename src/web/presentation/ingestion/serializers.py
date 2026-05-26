@@ -1,5 +1,26 @@
 from rest_framework import serializers
 
+from domain.entities.offer import Offer
+from domain.interfaces.mapper_interface import ISerializerToDomainMapper
+from domain.value_objects.area import GeographicalArea
+from domain.value_objects.category import Category
+from domain.value_objects.contract_type import ContractKind, ContractType
+from domain.value_objects.country import Country
+from domain.value_objects.department import Department
+from domain.value_objects.diploma import Diploma
+from domain.value_objects.experience_level import ExperienceLevel
+from domain.value_objects.language_level import LanguageLevel
+from domain.value_objects.limit_date import LimitDate
+from domain.value_objects.localisation import Localisation
+from domain.value_objects.offer_conditions import (
+    JobVacancy,
+    Management,
+    OpenToMilitary,
+    WorkingPlace,
+    WorkingTime,
+)
+from domain.value_objects.region import Region
+from domain.value_objects.verse import Verse
 
 class GenericErrorSerializer(serializers.Serializer):
     error = serializers.CharField()
@@ -92,3 +113,199 @@ class ListMetiersResponseSerializer(serializers.Serializer):
 
 class ListMetiersFiltersSerializer(serializers.Serializer):
     domain = serializers.CharField(default=None, max_length=3)
+
+
+class IdentityInputSerializer(serializers.Serializer):
+    reference = serializers.CharField()
+    source = serializers.CharField()
+    versant = serializers.ChoiceField(choices=[v.value for v in Verse])
+
+
+class OrganizationInputSerializer(serializers.Serializer):
+    nom = serializers.CharField()
+    siret = serializers.CharField(max_length=15, allow_blank=True)
+
+
+class ProfessionInputSerializer(serializers.Serializer):
+    domaine = serializers.CharField(max_length=3)  # code domaine fonctionnel
+    metier = serializers.CharField(max_length=8)
+
+
+class DescriptionInputSerializer(serializers.Serializer):
+    mission = serializers.CharField(max_length=3000)
+    profil = serializers.CharField(max_length=3000)
+    employeur = serializers.CharField(max_length=3000)
+    complements = serializers.CharField(max_length=1500, allow_blank=True)
+
+
+class LocalisationInputSerializer(serializers.Serializer, ISerializerToDomainMapper):
+    zone_geographique = serializers.ChoiceField(
+        choices=[(c.value, c.name) for c in GeographicalArea]
+    )
+    pays = serializers.CharField(max_length=3, min_length=3)
+    region = serializers.ChoiceField(choices=list(Region.VALID_CODES), allow_blank=True)
+    departement = serializers.ChoiceField(
+        choices=list(Department.VALID_CODES), allow_blank=True
+    )
+    localisation_label = serializers.CharField(max_length=500, allow_blank=True)
+    latitude = serializers.FloatField(allow_null=True)
+    longitude = serializers.FloatField(allow_null=True)
+
+    def validate(self, data):
+        if data.get("pays") == "FRA" and not (
+            data.get("region") and data.get("departement")
+        ):
+            raise serializers.ValidationError(
+                "La region et le departement sont obligatoires"
+                "pour une offre localisées en France."
+            )
+        return data
+
+    @staticmethod
+    def to_domain(data: dict) -> Localisation:
+        return Localisation(
+            area=GeographicalArea(data["zone_geographique"]),
+            country=Country(data["pays"]),
+            region=Region(code=data["region"]),
+            department=Department(code=data["departement"]),
+        )
+
+
+class LanguageInputSerializer(serializers.Serializer):
+    iso_code = serializers.CharField(max_length=2)
+    niveau = serializers.ChoiceField(choices=[(c.name, c.value) for c in LanguageLevel])
+
+
+class CriteriaInputSerializer(serializers.Serializer):
+    diplome_niveau = serializers.IntegerField(
+        min_value=Diploma.MIN_DIPLOMA_LEVEL, max_value=Diploma.MAX_DIPLOMA_LEVEL
+    )
+    experience = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in ExperienceLevel], required=False
+    )
+    specialisations = serializers.ListField(
+        child=serializers.CharField(), required=False
+    )
+    diplome = serializers.CharField(required=False)
+    documents_requis = serializers.ListField(
+        child=serializers.CharField(), required=False
+    )
+    competences_requises = serializers.ListField(
+        child=serializers.CharField(), required=False
+    )
+    langues = LanguageInputSerializer(many=True, required=False)
+
+
+class ConditionsInputSerializer(serializers.Serializer):
+    salaire_titulaire = serializers.CharField(
+        max_length=100, allow_blank=True, required=False
+    )
+    salaire_contractuel = serializers.CharField(
+        max_length=100, allow_blank=True, required=False
+    )
+    debut_contrat = serializers.DateTimeField(allow_null=True, required=False)
+    fin_contrat = serializers.DateTimeField(allow_null=True, required=False)
+    duree_contrat = serializers.CharField(allow_blank=True, required=False)
+    temps_travail = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in WorkingTime]
+    )
+    ouvert_aux_militaires = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in OpenToMilitary]
+    )
+    lieu_de_travail = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in WorkingPlace],
+    )
+    management = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in Management],
+    )
+    complements = serializers.CharField(max_length=1500, required=False)
+    bases_legales = serializers.CharField(max_length=1500, required=False)
+    note_ouverture_poste_url = serializers.URLField(required=False)
+
+
+class ContactsInputSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PublicationInputSerializer(serializers.Serializer):
+    debut_publication = serializers.DateTimeField()
+    fin_publication = serializers.DateTimeField()
+    fin_candidature = serializers.DateTimeField(allow_null=True, required=False)
+    debut_vacance_poste = serializers.DateTimeField(allow_null=True, required=False)
+
+
+class OffersInputSerializer(serializers.Serializer, ISerializerToDomainMapper):
+    identification = IdentityInputSerializer()
+
+    # general infos
+    titre = serializers.CharField(max_length=150)
+    titre_long = serializers.CharField(max_length=1500)
+    organisation = OrganizationInputSerializer()
+    url_offre = serializers.URLField(allow_null=True)
+    url_candidature = serializers.URLField(allow_null=True)
+
+    # classification
+    profession = ProfessionInputSerializer()
+    categories = serializers.MultipleChoiceField(
+        choices=[(c.name, c.value) for c in Category], allow_blank=True
+    )
+    type_contrat = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in ContractType]
+    )
+    forme_contrat = serializers.MultipleChoiceField(
+        choices=[(c.name, c.value) for c in ContractKind], allow_blank=True
+    )
+    vacance_poste = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in JobVacancy], allow_blank=True
+    )
+
+    description = DescriptionInputSerializer()
+    localisation = LocalisationInputSerializer(many=True, allow_null=True)
+    criteres = CriteriaInputSerializer(allow_null=True)
+    conditions = ConditionsInputSerializer(allow_null=True)
+    contacts = ContactsInputSerializer(many=True, allow_null=True)
+    publication = PublicationInputSerializer()
+
+    @staticmethod
+    def to_domain(data: dict) -> Offer:
+        # todo handle multiple categories offers later
+        category = (
+            Category(sorted(data["categories"])[0]) if data.get("categories") else None
+        )
+        conditions = data.get("conditions", {})
+        debut_contrat = conditions.get("debut_contrat") if conditions else None
+
+        localisations = data.get("localisation", [])
+        localisation = localisations[0] if localisations else None
+
+        return Offer(
+            external_id=f"{data['identification']['versant']}-{data['identification']['reference']}",
+            title=data["titre"],
+            profile=data["description"]["profil"],
+            mission=data["description"]["mission"],
+            organization=data["organisation"]["nom"],
+            publication_date=data["publication"]["debut_publication"],
+            verse=Verse(data["identification"]["versant"]),
+            category=category,
+            contract_type=ContractType(data["type_contrat"]),
+            offer_url=data.get("url_offre"),
+            localisation=LocalisationInputSerializer.to_domain(localisation)
+            if localisation
+            else None,
+            beginning_date=LimitDate(debut_contrat) if debut_contrat else None,
+            family_code=data["profession"]["metier"],
+        )
+
+
+class UpsertOffersRequestSerializer(serializers.Serializer):
+    offres = serializers.ListField(
+        child=serializers.DictField(),
+        min_length=1,
+        max_length=100,
+    )
+
+
+class UpsertOffersResponseSerializer(serializers.Serializer):
+    created = serializers.IntegerField()
+    updated = serializers.IntegerField()
+    errors = serializers.ListField(child=serializers.DictField())

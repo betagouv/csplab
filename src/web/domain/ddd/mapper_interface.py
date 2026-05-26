@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Generic, Optional, Protocol, TypeVar
 
 DomainType_contra = TypeVar("DomainType_contra", contravariant=True)
@@ -17,3 +18,9 @@ class IToDomainMapper(Protocol, Generic[SpecificType_contra, DomainType_co]):
     def to_domain(
         self, infrastructure_object: Optional[SpecificType_contra]
     ) -> Optional[DomainType_co]: ...
+
+
+class ISerializerToDomainMapper:
+    @staticmethod
+    @abstractmethod
+    def to_domain(data: dict): ...
