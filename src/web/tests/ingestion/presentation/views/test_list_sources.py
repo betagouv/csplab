@@ -3,7 +3,6 @@ from unittest.mock import patch
 from django.urls import reverse
 from rest_framework import status
 
-from domain.value_objects.source_type import SourceType
 from tests.factories.source_factory import SourceFactory
 
 URL = reverse("ingestion:sources_list")
@@ -50,12 +49,7 @@ def test_returns_all_sources(mock_container, api_key_client):
 
 @patch("presentation.ingestion.views.create_ingestion_container")
 def test_response_shape(mock_container, api_key_client):
-    source = SourceFactory.create_entity(
-        source_type=SourceType.TALENTSOFT,
-        client_id_front="front_x",
-        client_id_back="back_x",
-        base_url="https://example.talentsoft.com",
-    )
+    source = SourceFactory.create_entity()
     usecase = mock_container.return_value.list_sources_usecase.return_value
     usecase.execute.return_value = [source]
 
@@ -64,10 +58,11 @@ def test_response_shape(mock_container, api_key_client):
     assert response.status_code == status.HTTP_200_OK
     assert response.json()[0] == {
         "source_id": str(source.source_id),
-        "type": SourceType.TALENTSOFT.value,
-        "client_id_front": "front_x",
-        "client_id_back": "back_x",
-        "base_url": "https://example.talentsoft.com",
+        "type": source.type.value,
+        "client_id_front": source.client_id_front,
+        "client_id_back": source.client_id_back,
+        "base_url_front": source.base_url_front,
+        "base_url_back": source.base_url_back,
     }
 
 
