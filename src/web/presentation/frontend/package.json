@@ -7,7 +7,9 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "vue": "^3.5",
@@ -15,9 +17,15 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.13",
+    "@storybook/addon-docs": "^8.6",
+    "@storybook/vue3": "^8.6",
+    "@storybook/vue3-vite": "^8.6",
     "@types/node": "^22",
     "@vitejs/plugin-vue": "^5.2",
     "eslint": "^9.28",
+    "eslint-plugin-storybook": "^0.11.1",
+    "remark-gfm": "^4.0.1",
+    "storybook": "^8.6",
     "typescript": "~5.8",
     "vite": "^6.3",
     "vue-tsc": "^2.2"

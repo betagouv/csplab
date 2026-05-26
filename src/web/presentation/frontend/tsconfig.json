@@ -2,19 +2,37 @@
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "preserve",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "useDefineForClassFields": true,
     "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["src/*"],
-      "@/app/*": ["src/app/*"],
-      "@/features/*": ["src/features/*"],
-      "@/components/*": ["src/components/*"],
-      "@/composables/*": ["src/composables/*"],
-      "@/types/*": ["src/types/*"],
-      "@/utils/*": ["src/utils/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@/app/*": [
+        "src/app/*"
+      ],
+      "@/features/*": [
+        "src/features/*"
+      ],
+      "@/components/*": [
+        "src/components/*"
+      ],
+      "@/composables/*": [
+        "src/composables/*"
+      ],
+      "@/types/*": [
+        "src/types/*"
+      ],
+      "@/utils/*": [
+        "src/utils/*"
+      ]
     },
     "resolveJsonModule": true,
     "strict": true,
@@ -25,6 +43,14 @@
     "isolatedModules": true,
     "skipLibCheck": true
   },
-  "references": [{ "path": "./tsconfig.node.json" }],
-  "include": ["src/**/*.ts", "src/**/*.vue"]
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    ".storybook/preview.ts"
+  ]
 }
