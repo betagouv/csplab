@@ -10,7 +10,7 @@ WEB_BASE_URL = "https://web.example.com"
 WEB_API_KEY = "test-api-key"
 REFERENCE = "2019-1234"
 SOURCE_ID = "talentsoft-client-1"
-ARCHIVE_URL = f"{WEB_BASE_URL}/api/data/offres/archiver"
+ARCHIVE_URL = f"{WEB_BASE_URL}/api/v1/offres/archiver"
 
 
 @pytest.fixture
