@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     web_base_url: str | None = None
     web_api_key: str | None = None
 
+    log_level: str = "INFO"
+
 
 class TestSettings(Settings):
     model_config = SettingsConfigDict(env_file=None)

@@ -25,7 +25,7 @@ class _PlaintextFormatter(logging.Formatter):
 
 _handler = logging.StreamHandler()
 _handler.setFormatter(_PlaintextFormatter())
-logging.basicConfig(level=logging.INFO, handlers=[_handler])
+logging.basicConfig(level=get_settings().log_level.upper(), handlers=[_handler])
 
 
 def create_app():

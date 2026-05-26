@@ -37,6 +37,10 @@ async def talentsoft_webhook(
     ),
 ):
     body = await request.body()
+    logger.debug(
+        "Received TalentSoft webhook body",
+        extra={"body": body.decode(), "client_id": client_id},
+    )
     if not body:
         return _OK
 
