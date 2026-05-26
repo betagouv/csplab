@@ -2,37 +2,37 @@
 
 ## Architecture
 
-Le frontend est une SPA Vue.js encapsulée dans un template Django (architecture **AppShell**). Le code Vue est découplé de la logique métier Django.
+The frontend is a Vue.js SPA embedded in a Django template (**AppShell** architecture). Vue code is decoupled from Django business logic.
 
 ```
 src/web/presentation/
-├── ats/                          # Bounded context Django
-│   ├── views.py                  # Vue base() servant l'AppShell
+├── ats/                          # Django bounded context
+│   ├── views.py                  # base() view serving the AppShell
 │   ├── urls.py                   # Routes /ats/*
-│   └── templatetags/vite_tags.py # Tags Django pour assets Vite
+│   └── templatetags/vite_tags.py # Django tags for Vite assets
 │
-├── frontend/                     # Code source Vue/Vite
+├── frontend/                     # Vue/Vite source code
 │   ├── src/
-│   │   ├── app/                  # Point d'entrée (main.ts, App.vue)
-│   │   ├── features/             # Modules métier (ats/, ...)
-│   │   ├── components/           # Composants UI réutilisables
-│   │   ├── composables/          # Hooks Vue
-│   │   ├── types/                # Types TypeScript
+│   │   ├── app/                  # Entry point (main.ts, App.vue)
+│   │   ├── features/             # Business modules (ats/, ...)
+│   │   ├── components/           # Reusable UI components
+│   │   ├── composables/          # Vue hooks
+│   │   ├── types/                # TypeScript types
 │   │   └── utils/                # Helpers
 │   ├── vite.config.ts
 │   ├── tsconfig.json
 │   └── package.json
 │
-├── templates/ats/base.html       # Template Django AppShell
+├── templates/ats/base.html       # Django AppShell template
 └── static/frontend/              # Build output (gitignored)
 ```
 
-## Développement local
+## Local Development
 
-### Prérequis
+### Prerequisites
 
 - Node.js 22.x
-- pnpm (`brew install pnpm` ou `npm install -g pnpm`)
+- pnpm (`brew install pnpm` or `npm install -g pnpm`)
 
 ### Installation
 
@@ -40,105 +40,107 @@ src/web/presentation/
 make frontend-install
 ```
 
-### Lancer le dev server
+### Run the dev server
 
-Deux terminaux nécessaires :
+Two terminals required:
 
 ```bash
-# Terminal 1 : Django
+# Terminal 1: Django
 make run-web
 
-# Terminal 2 : Vite (HMR)
+# Terminal 2: Vite (HMR)
 make frontend-dev
 ```
 
-Accéder à http://localhost:8000/ats/
+Open http://localhost:8000/ats/
 
 ### Hot Module Replacement (HMR)
 
-En mode dev, le template Django charge les assets depuis le serveur Vite (`localhost:5173`). Les modifications dans `src/` sont reflétées instantanément sans refresh.
+In dev mode, the Django template loads assets from the Vite server (`localhost:5173`). Changes in `src/` are reflected instantly without a full page refresh.
 
-## Build production
+## Production Build
 
 ```bash
 make frontend-build
 ```
 
-Génère les assets dans `presentation/static/frontend/` avec cache-busting (hash dans les noms de fichiers).
+Outputs assets to `presentation/static/frontend/` with cache-busting (hashed filenames).
 
 ## Lint & TypeScript
 
 ```bash
-make frontend-lint      # Vérifier
-make frontend-lint-fix  # Corriger automatiquement
+make frontend-lint      # Check
+make frontend-lint-fix  # Auto-fix
 ```
 
-Le build inclut une vérification TypeScript (`vue-tsc --noEmit`).
+The build includes a TypeScript check (`vue-tsc --noEmit`).
 
-## Déploiement (Scalingo)
+## Deployment (Scalingo)
 
-Le déploiement utilise le **multi-buildpack** :
+Deployment uses the **multi-buildpack** setup:
 
-1. **Node.js buildpack** : détecte `pnpm-lock.yaml`, exécute `pnpm install` + `pnpm run build`
-2. **Python buildpack** : installe Django, lance gunicorn
+1. **Node.js buildpack**: detects `pnpm-lock.yaml`, runs `pnpm install` + `pnpm run build`
+2. **Python buildpack**: installs Django, runs gunicorn
 
-Fichiers de config :
-- `src/web/.buildpacks` : liste des buildpacks
-- `src/web/package.json` : script `build` pour Scalingo
-- `src/web/pnpm-workspace.yaml` : config workspaces
+Config files:
+- `src/web/.buildpacks`: buildpack list
+- `src/web/package.json`: `build` script for Scalingo
+- `src/web/pnpm-workspace.yaml`: workspace config
 
-Le build frontend s'exécute avant `collectstatic`, les assets sont donc inclus dans les fichiers statiques Django.
+The frontend build runs before `collectstatic`, so assets are included in Django static files.
 
 ## pnpm Workspaces
 
-Le projet utilise pnpm workspaces pour gérer les dépendances :
+The project uses pnpm workspaces for dependencies:
 
 ```
 src/web/
-├── package.json          # Workspace root (config Scalingo)
-├── pnpm-workspace.yaml   # Config workspaces
-├── pnpm-lock.yaml        # Lockfile unique
+├── package.json          # Workspace root (Scalingo config)
+├── pnpm-workspace.yaml   # Workspace config
+├── pnpm-lock.yaml        # Single lockfile
 └── presentation/frontend/
-    └── package.json      # Workspace (deps Vue/Vite)
+    └── package.json      # Workspace (Vue/Vite deps)
 ```
 
-Toutes les commandes pnpm s'exécutent depuis `src/web/` avec `--filter csplab-frontend`.
+All pnpm commands run from `src/web/` with `--filter csplab-frontend`.
 
-**Sécurité :** pnpm bloque les scripts postinstall par défaut. Pour approuver un build (ex: esbuild) : `pnpm approve-builds <package>`.
+**Security:** pnpm blocks postinstall scripts by default. To approve a build (e.g. esbuild): `pnpm approve-builds <package>`.
 
-## Template Django et Vite
+## Django Template and Vite
 
-Le template `ats/base.html` utilise des tags Django personnalisés pour charger les assets Vite :
+The `ats/base.html` template uses custom Django tags to load Vite assets:
 
 ```html
 {% load vite_tags %}
 
 {% if debug %}
-  <!-- Dev : charge depuis Vite HMR -->
+  <!-- Dev: load from Vite HMR -->
   <script type="module" src="http://localhost:5173/src/app/main.ts"></script>
 {% else %}
-  <!-- Prod : charge depuis static avec hash -->
+  <!-- Prod: load from static with hash -->
   {% vite_css 'src/app/main.ts' %}
   <script type="module" src="{% vite_asset 'src/app/main.ts' %}"></script>
 {% endif %}
 ```
 
-Les tags `{% vite_asset %}` et `{% vite_css %}` lisent le `manifest.json` généré par Vite pour résoudre les noms de fichiers avec hash.
+The `{% vite_asset %}` and `{% vite_css %}` tags read Vite's `manifest.json` to resolve hashed filenames.
 
 ## CSP (Content Security Policy)
 
-En mode dev, la CSP autorise `localhost:5173` pour le HMR. Configuration dans `config/settings/dev.py`.
+In dev mode, CSP allows `localhost:5173` for HMR. Configured in `config/settings/dev.py`.
 
-## Structure des features
+## Feature Structure
 
-Chaque feature métier est un module dans `src/features/` :
+Each business feature is a module under `src/features/`:
 
 ```
 src/features/
 └── ats/
     ├── HomeView.vue
-    ├── components/       # Composants spécifiques ATS
-    └── composables/      # Hooks spécifiques ATS
+    ├── components/       # ATS-specific components
+    └── composables/      # ATS-specific hooks
 ```
 
-Les composants partagés vont dans `src/components/`.
+Shared components go in `src/components/`.
+
+For coding conventions, see [frontend_conventions.md](./frontend_conventions.md).
