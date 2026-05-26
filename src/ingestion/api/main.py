@@ -4,9 +4,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from api.config import get_settings
-from api.routes import get_http_client, public_router
-from application.use_cases.load_sources import LoadSourcesUseCase
-from infrastructure.sources_registry import SourcesRegistry
+from api.routes import public_router
+from infrastructure.di.container import Container
 
 _SKIP_LOG_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {
     "message",
@@ -44,23 +43,24 @@ def create_app():
             profiles_sample_rate=settings.sentry_profiles_sample_rate,
         )
 
-    registry = SourcesRegistry()
+    container = Container()
+    container.config.web_base_url.from_value(settings.web_base_url)
+    container.config.web_api_key.from_value(settings.web_api_key)
+    container.config.talentsoft_client_id.from_value(settings.talentsoft_client_id)
+    container.config.talentsoft_client_secret.from_value(
+        settings.talentsoft_client_secret
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         if settings.web_base_url and settings.web_api_key:
-            async with asynccontextmanager(get_http_client)() as client:
-                use_case = LoadSourcesUseCase(
-                    client=client,
-                    web_base_url=settings.web_base_url,
-                    web_api_key=settings.web_api_key,
-                    registry=registry,
-                )
-                await use_case.execute()
+            use_case = container.load_sources_use_case()
+            await use_case.execute()
         yield
+        await container.http_client().aclose()
 
     app = FastAPI(title="Ingestion Microservice", version="0.1.0", lifespan=lifespan)
-    app.state.sources_registry = registry
+    app.state.container = container
     app.include_router(public_router)
 
     return app

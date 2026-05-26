@@ -1,7 +1,7 @@
 import logging
 from collections.abc import AsyncGenerator
 
-import httpx
+from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import ValidationError
 
@@ -10,6 +10,7 @@ from api.talentsoft import verify_talentsoft_signature
 from application.interfaces.sources_registry import ISourcesRegistry
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
+from infrastructure.di.container import Container
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
@@ -25,28 +26,6 @@ logger = logging.getLogger(__name__)
 public_router = APIRouter()
 
 _OK = {"status": "ok"}
-
-
-async def get_http_client() -> AsyncGenerator[httpx.AsyncClient, None]:
-    async with httpx.AsyncClient() as client:
-        yield client
-
-
-def get_sources_registry(request: Request) -> ISourcesRegistry:
-    return request.app.state.sources_registry
-
-
-def get_archive_offer_use_case(
-    settings: Settings = Depends(get_settings),
-    client: httpx.AsyncClient = Depends(get_http_client),
-) -> ArchiveOfferUseCase | None:
-    if not settings.web_base_url or not settings.web_api_key:
-        return None
-    return ArchiveOfferUseCase(
-        client=client,
-        web_base_url=settings.web_base_url,
-        web_api_key=settings.web_api_key,
-    )
 
 
 async def get_load_offer_details_use_case(
@@ -76,14 +55,17 @@ def health():
 @public_router.post(
     "/webhooks/talentsoft", dependencies=[Depends(verify_talentsoft_signature)]
 )
+@inject
 async def talentsoft_webhook(
     request: Request,
     client_id: str = Query(...),
-    archive_use_case: ArchiveOfferUseCase | None = Depends(get_archive_offer_use_case),
+    web_base_url: str | None = Depends(Provide[Container.config.web_base_url]),
+    web_api_key: str | None = Depends(Provide[Container.config.web_api_key]),
+    use_case: ArchiveOfferUseCase = Depends(Provide[Container.archive_offer_use_case]),
+    registry: ISourcesRegistry = Depends(Provide[Container.sources_registry]),
     load_offer_use_case: LoadOfferDetailsUseCase | None = Depends(
         get_load_offer_details_use_case
     ),
-    registry: ISourcesRegistry = Depends(get_sources_registry),
 ):
     body = await request.body()
     logger.debug(
@@ -98,9 +80,9 @@ async def talentsoft_webhook(
         return _OK
 
     if should_archive(payload):
-        if archive_use_case is None:
+        if not web_base_url or not web_api_key:
             raise HTTPException(status_code=500, detail="Web service not configured")
-        return await _handle_archive(payload, client_id, archive_use_case, registry)
+        return await _handle_archive(payload, client_id, use_case, registry)
 
     if should_load_offer_details(payload):
         if load_offer_use_case is None:

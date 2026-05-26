@@ -47,7 +47,7 @@ def talentsoft_client(monkeypatch):
     app = create_app()
 
     # Pre-populate the sources registry (the lifespan doesn't run in test mode)
-    app.state.sources_registry.load(
+    app.state.container.sources_registry().load(
         [
             Source(
                 source_id=SOURCE_ID,
