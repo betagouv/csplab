@@ -13,6 +13,7 @@ from api.main import create_app
 
 TALENTSOFT_CLIENT_ID = "test_client_id"
 TALENTSOFT_CLIENT_SECRET = "test_client_secret"
+TALENTSOFT_BASE_URL = "https://talentsoft.example.com"
 WEB_BASE_URL = "https://web.example.com"
 WEB_API_KEY = "test-web-api-key"
 WEBHOOK_PATH = "/webhooks/talentsoft"
@@ -32,6 +33,7 @@ def talentsoft_client(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("TALENTSOFT_CLIENT_ID", TALENTSOFT_CLIENT_ID)
     monkeypatch.setenv("TALENTSOFT_CLIENT_SECRET", TALENTSOFT_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BASE_URL", TALENTSOFT_BASE_URL)
     monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()

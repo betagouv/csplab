@@ -1,0 +1,56 @@
+name: Ingestion
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened, edited]
+    paths:
+      - "src/ingestion/**"
+      - ".github/workflows/ingestion.yml"
+      - ".github/actions/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build-ingestion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-uv-python
+        with:
+          service-path: src/ingestion
+
+  lint-ingestion:
+    needs: build-ingestion
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/ingestion
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-uv-python
+        with:
+          service-path: src/ingestion
+      - name: Lint with Ruff
+        run: uv run ruff check .
+      - name: Lint format with Ruff
+        run: uv run ruff format --check .
+      - name: Lint with MyPy
+        run: uv run mypy .
+
+  test-ingestion:
+    needs: build-ingestion
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/ingestion
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-uv-python
+        with:
+          service-path: src/ingestion
+      - name: Test with pytest
+        run: uv run pytest --cov=. --cov-report=term-missing --cov-fail-under=95
