@@ -1,4 +1,4 @@
-@import './dsfr-tokens.css';
+@import './theme.css';
 
 body {
   font-family: var(--csplab-font-family);

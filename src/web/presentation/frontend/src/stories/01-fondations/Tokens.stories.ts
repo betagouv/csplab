@@ -85,14 +85,6 @@ const SPACING_TOKENS = [
   '--csplab-space-16',
 ]
 
-const RADIUS_TOKENS = [
-  '--csplab-radius-none',
-  '--csplab-radius-sm',
-  '--csplab-radius-md',
-  '--csplab-radius-lg',
-  '--csplab-radius-full',
-]
-
 const FONT_SIZE_TOKENS = [
   { token: '--csplab-font-size-xs', label: 'xs — caption' },
   { token: '--csplab-font-size-sm', label: 'sm — meta / chip' },
