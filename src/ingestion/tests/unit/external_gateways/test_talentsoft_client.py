@@ -101,47 +101,38 @@ class TestGetAccessToken:
 
 class TestGetDetailOffer:
     @pytest.mark.asyncio
-    async def test_get_detail_raises_error_if_reference_is_missing(
-        self, talentsoft_client
+    @pytest.mark.parametrize(
+        "reference, mock_response, expected_error",
+        [
+            pytest.param("", None, "Reference is required", id="missing_reference"),
+            pytest.param(
+                None,
+                mocked_response(status_code=404),
+                "Offer not found for reference",
+                id="unknown_reference",
+            ),
+            pytest.param(
+                None,
+                mocked_response(return_value={"invalid": "response"}),
+                "Invalid response structure",
+                id="malformed_response",
+            ),
+        ],
+    )
+    async def test_get_detail_raises_error(
+        self, talentsoft_client, reference, mock_response, expected_error
     ):
-        with pytest.raises(ExternalApiError, match="Reference is required") as exc_info:
-            await talentsoft_client.get_detail(reference="")
+        talentsoft_client.cached_token = cached_token()
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_response
+
+            with pytest.raises(ExternalApiError, match=expected_error) as exc_info:
+                await talentsoft_client.get_detail(
+                    reference=reference if reference is not None else fake.uuid4()
+                )
 
         assert exc_info.value.api_name == "Talentsoft Front API"
-
-    @pytest.mark.asyncio
-    async def test_get_detail_raises_error_if_reference_is_unknown(
-        self, talentsoft_client
-    ):
-        mock_response = mocked_response(status_code=404)
-        talentsoft_client.cached_token = cached_token()
-
-        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = mock_response
-
-            with pytest.raises(
-                ExternalApiError, match="Offer not found for reference"
-            ) as exc_info:
-                await talentsoft_client.get_detail(reference=fake.uuid4())
-
-            assert exc_info.value.api_name == "Talentsoft Front API"
-
-    @pytest.mark.asyncio
-    async def test_get_detail_raises_error_if_response_is_malformed(
-        self, talentsoft_client
-    ):
-        talentsoft_client.cached_token = cached_token()
-        mock_response = mocked_response(return_value={"invalid": "response"})
-
-        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = mock_response
-
-            with pytest.raises(
-                ExternalApiError, match="Invalid response structure"
-            ) as exc_info:
-                await talentsoft_client.get_detail(reference=fake.uuid4())
-
-            assert exc_info.value.api_name == "Talentsoft Front API"
 
     @pytest.mark.asyncio
     async def test_get_detail_fails_due_to_unauthorized_token(self, talentsoft_client):

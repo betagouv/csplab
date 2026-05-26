@@ -4,36 +4,9 @@ import pytest
 
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.dtos.talentsoft_dtos import (
-    TalentsoftCodedObject,
-    TalentsoftDetailOffer,
-)
+from tests.factories.talentsoft_factories import TalentsoftDetailOfferFactory
 
 REFERENCE = "2024-OFFER-001"
-
-
-def _make_detail_offer(reference: str = REFERENCE) -> TalentsoftDetailOffer:
-    coded_object = TalentsoftCodedObject(
-        code=1,
-        clientCode="CODE",
-        label="Label",
-        active=True,
-        type="type",
-        parentType="",
-    )
-    return TalentsoftDetailOffer(
-        reference=reference,
-        isTopOffer=False,
-        title="Software Engineer",
-        organisationName="ACME Corp",
-        organisationDescription="A great company",
-        organisationLogoUrl="https://example.com/logo.png",
-        modificationDate="2024-01-01",
-        startPublicationDate="2024-01-01",
-        offerUrl="https://example.com/offer",
-        offerFamilyCategory=coded_object,
-        contractTypeCountry=coded_object,
-    )
 
 
 @pytest.fixture
@@ -49,25 +22,14 @@ def use_case(mock_client) -> LoadOfferDetailsUseCase:
 
 
 @pytest.mark.asyncio
-async def test_execute_calls_get_detail_with_reference(use_case, mock_client):
-    offer = _make_detail_offer()
+async def test_execute_calls_get_detail_and_returns_offer(use_case, mock_client):
+    offer = TalentsoftDetailOfferFactory.build(reference=REFERENCE)
     mock_client.get_detail.return_value = offer
 
     result = await use_case.execute(reference=REFERENCE)
 
     mock_client.get_detail.assert_called_once_with(REFERENCE)
     assert result == offer
-
-
-@pytest.mark.asyncio
-async def test_execute_returns_detail_offer(use_case, mock_client):
-    offer = _make_detail_offer(reference="REF-XYZ")
-    mock_client.get_detail.return_value = offer
-
-    result = await use_case.execute(reference="REF-XYZ")
-
-    assert result.reference == "REF-XYZ"
-    assert result.title == "Software Engineer"
 
 
 @pytest.mark.asyncio

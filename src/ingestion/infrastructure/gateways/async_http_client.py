@@ -24,7 +24,7 @@ class AsyncHttpClient:
         data: Optional[Dict[str, Any]] = None,
     ) -> httpx.Response:
         if not self._client:
-            raise RuntimeError("Client not initialized. Use async context manager.")
+            raise RuntimeError("Client not initialized.")
         return await self._client.post(url=url, headers=headers, data=data)
 
     async def get(
@@ -34,5 +34,5 @@ class AsyncHttpClient:
         params: Optional[Mapping[str, int | str]] = None,
     ) -> httpx.Response:
         if not self._client:
-            raise RuntimeError("Client not initialized. Use async context manager.")
+            raise RuntimeError("Client not initialized.")
         return await self._client.get(url=url, headers=headers, params=params)

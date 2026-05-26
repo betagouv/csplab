@@ -63,7 +63,7 @@ async def test_vacancy_new_fetches_offer_details(
     _mock_token_response(httpx_mock)
     httpx_mock.add_response(
         method="GET",
-        url=f"{DETAIL_OFFER_URL}?reference={REFERENCE}&sort=modificationDate",
+        url=f"{DETAIL_OFFER_URL}?reference={REFERENCE}",
         json=_detail_offer_payload(),
     )
 
@@ -89,7 +89,7 @@ async def test_vacancy_update_fetches_offer_details(
     _mock_token_response(httpx_mock)
     httpx_mock.add_response(
         method="GET",
-        url=f"{DETAIL_OFFER_URL}?reference={REFERENCE}&sort=modificationDate",
+        url=f"{DETAIL_OFFER_URL}?reference={REFERENCE}",
         json=_detail_offer_payload(),
     )
 
@@ -137,7 +137,7 @@ async def test_vacancy_new_talentsoft_api_error_propagates(
     for _ in range(3):
         httpx_mock.add_response(
             method="GET",
-            url=f"{DETAIL_OFFER_URL}?reference={REFERENCE}&sort=modificationDate",
+            url=f"{DETAIL_OFFER_URL}?reference={REFERENCE}",
             status_code=500,
         )
 

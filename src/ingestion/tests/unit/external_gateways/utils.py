@@ -14,10 +14,6 @@ from tests.factories.talentsoft_factories import (
 fake = Faker()
 
 
-def _build_offer_data() -> Dict[str, Any]:
-    return TalentsoftOfferFactory.build().model_dump()
-
-
 def cached_token(access_token: Optional[str] = None, expire_in: int = 3600):
     return CachedToken(
         access_token=fake.uuid4() if access_token is None else access_token,
@@ -31,7 +27,7 @@ def offers_response(
     count: int = 2, has_more: bool = False, offers: List[Any] | None = None
 ):
     if not offers:
-        offers = [_build_offer_data() for _ in range(count)]
+        offers = [TalentsoftOfferFactory.build().model_dump() for _ in range(count)]
 
     return {
         "data": offers,

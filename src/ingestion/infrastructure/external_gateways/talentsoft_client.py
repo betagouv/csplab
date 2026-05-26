@@ -166,7 +166,7 @@ class TalentsoftFrontClient(BaseTalentsoftClient):
             )
 
         url = f"{self.base_url}{DETAIL_OFFER_ENDPOINT}"
-        params = {"reference": reference, "sort": "modificationDate"}
+        params = {"reference": reference}
 
         try:
             response = await self._make_authenticated_request(url, params)
