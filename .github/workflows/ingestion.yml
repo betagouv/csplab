@@ -8,6 +8,8 @@ on:
     types: [opened, synchronize, reopened, edited]
     paths:
       - "src/ingestion/**"
+      - ".github/workflows/ingestion.yml"
+      - ".github/actions/**"
 
 permissions:
   contents: read
@@ -15,22 +17,11 @@ permissions:
 jobs:
   build-ingestion:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/ingestion
     steps:
       - uses: actions/checkout@v5
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: ./.github/actions/setup-uv-python
         with:
-          version: "0.9.7"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "./src/ingestion/.python-version"
-      - name: Install the project
-        run: uv sync --locked --all-extras --dev
+          service-path: src/ingestion
 
   lint-ingestion:
     needs: build-ingestion
@@ -40,17 +31,9 @@ jobs:
         working-directory: ./src/ingestion
     steps:
       - uses: actions/checkout@v5
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: ./.github/actions/setup-uv-python
         with:
-          version: "0.9.7"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "./src/ingestion/.python-version"
-      - name: Install the project
-        run: uv sync --locked --all-extras --dev
+          service-path: src/ingestion
       - name: Lint with Ruff
         run: uv run ruff check .
       - name: Lint format with Ruff
@@ -66,16 +49,8 @@ jobs:
         working-directory: ./src/ingestion
     steps:
       - uses: actions/checkout@v5
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: ./.github/actions/setup-uv-python
         with:
-          version: "0.9.7"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "./src/ingestion/.python-version"
-      - name: Install the project
-        run: uv sync --locked --all-extras --dev
+          service-path: src/ingestion
       - name: Test with pytest
         run: uv run pytest --cov=. --cov-report=term-missing --cov-fail-under=95
