@@ -358,7 +358,7 @@ class OffersListView(APIView):
             result = self.usecase.execute(input_data)
 
             paginator = IngestionPagination()
-            items = paginator.paginate(result.page, request)
+            items = paginator.paginate(result, request)
             return paginator.get_paginated_response(
                 ListOffersResponseSerializer(items, many=True).data
             )
