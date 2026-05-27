@@ -397,7 +397,8 @@ UPSERT_OFFERS_DESCRIPTION = """
 Cette API permet de créer ou mettre à jour, entre 1 et 100 offres d'emploi à la fois, \
 via un payload JSON.
 
-- Les offres sont identifiées par son champ `reference` (clé d'upsert).
+- Les offres sont identifiées par leur champs `identification.reference` et \
+`identification.source`.
 - Une offre existante est mise à jour, une offre inconnue est créée.
 
 # Permissions

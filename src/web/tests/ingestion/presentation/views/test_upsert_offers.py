@@ -83,9 +83,9 @@ PARTIAL_VALID_OFFER = make_offer(
     localisation=[],
     criteres={"diplome_niveau": 3},
     conditions={
-        "temps_travail": "TEMPSPLEIN",
+        "temps_travail": "TEMPS_PLEIN",
         "ouvert_aux_militaires": "OUI",
-        "lieu_de_travail": "SURSITE",
+        "lieu_de_travail": "SUR_SITE",
         "management": "SANS",
     },
     contacts=[],
@@ -121,9 +121,9 @@ COMPLETE_VALID_OFFER = make_offer(
     ],
     conditions={
         "debut_contrat": fake_datetime(future=True),
-        "temps_travail": "TEMPSPLEIN",
+        "temps_travail": "TEMPS_PLEIN",
         "ouvert_aux_militaires": "OUI",
-        "lieu_de_travail": "SURSITE",
+        "lieu_de_travail": "SUR_SITE",
         "management": "SANS",
     },
     contacts=[{"email": fake.email()}, {"email": fake.email()}],

@@ -160,8 +160,8 @@ class LocalisationInputSerializer(serializers.Serializer, ISerializerToDomainMap
             data.get("region") and data.get("departement")
         ):
             raise serializers.ValidationError(
-                "La region et le departement sont obligatoires"
-                "pour une offre localisées en France."
+                "La région et le département sont obligatoires"
+                "pour une offre localisée en France."
             )
         return data
 

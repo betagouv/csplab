@@ -10,8 +10,8 @@ class Management(Enum):
 
 
 class WorkingPlace(Enum):
-    NONDEFINI = "Non défini"
-    SURSITE = "Sur site"
+    NON_DEFINI = "Non défini"
+    SUR_SITE = "Sur site"
     TELETRAVAIL = "Télétravail"
 
     def __str__(self):
@@ -27,9 +27,9 @@ class OpenToMilitary(Enum):
 
 
 class WorkingTime(Enum):
-    NONDEFINI = "Non défini"
-    TEMPSPLEIN = "Temps plein"
-    TEMPSPARTIEL = "Temps partiel"
+    NON_DEFINI = "Non défini"
+    TEMPS_PLEIN = "Temps plein"
+    TEMPS_PARTIEL = "Temps partiel"
 
     def __str__(self):
         return self.value
