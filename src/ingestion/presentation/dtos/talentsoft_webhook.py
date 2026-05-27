@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field
 
-_TS_ARCHIVED = "_TS_Archived"
+_TS_ARCHIVED = "_TS_CO_OfferStatus_Archive"
 
 _VACANCY_LOAD_EVENT_TYPES = {"vacancy_new", "vacancy_update"}
 
