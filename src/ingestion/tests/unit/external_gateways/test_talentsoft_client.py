@@ -18,6 +18,32 @@ from tests.unit.external_gateways.utils import (
 fake = Faker()
 
 
+class TestTalentsoftConfig:
+    def test_base_url_trailing_slash_is_stripped(self):
+        config = TalentsoftConfig(
+            base_url="https://example.com/",
+            client_id=fake.uuid4(),
+            client_secret=fake.uuid4(),
+        )
+        assert config.base_url == "https://example.com"
+
+    def test_base_url_without_trailing_slash_is_unchanged(self):
+        config = TalentsoftConfig(
+            base_url="https://example.com",
+            client_id=fake.uuid4(),
+            client_secret=fake.uuid4(),
+        )
+        assert config.base_url == "https://example.com"
+
+    def test_base_url_multiple_trailing_slashes_are_stripped(self):
+        config = TalentsoftConfig(
+            base_url="https://example.com///",
+            client_id=fake.uuid4(),
+            client_secret=fake.uuid4(),
+        )
+        assert config.base_url == "https://example.com"
+
+
 @pytest.fixture(name="talentsoft_client")
 def talentsoft_client_fixture():
     config = TalentsoftConfig(

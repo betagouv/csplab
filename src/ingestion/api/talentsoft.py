@@ -36,12 +36,15 @@ def verify_talentsoft_signature(request: Request) -> None:
     if time.time() > expires_ts:
         raise HTTPException(status_code=403, detail="Signature has expired")
 
-    if not settings.talentsoft_client_id or not settings.talentsoft_client_secret:
+    if (
+        not settings.talentsoft_back_client_id
+        or not settings.talentsoft_back_client_secret
+    ):
         raise HTTPException(
             status_code=500, detail="TalentSoft credentials not configured"
         )
 
-    if client_id != settings.talentsoft_client_id:
+    if client_id != settings.talentsoft_back_client_id:
         raise HTTPException(status_code=403, detail="Invalid client_id")
 
     # CanonicalizedTsRecHeaders: x-ts-rec-* headers, lowercased, sorted
@@ -77,7 +80,7 @@ def verify_talentsoft_signature(request: Request) -> None:
         + canonicalized_resource
     )
 
-    secret = settings.talentsoft_client_secret.encode("utf-8")
+    secret = settings.talentsoft_back_client_secret.encode("utf-8")
     digest = hmac.new(secret, string_to_sign.encode("utf-8"), hashlib.sha1).digest()
     computed = base64.b64encode(digest).decode("utf-8")
 

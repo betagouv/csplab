@@ -11,9 +11,12 @@ from httpx import Response
 
 from api.main import create_app
 
-TALENTSOFT_CLIENT_ID = "test_client_id"
-TALENTSOFT_CLIENT_SECRET = "test_client_secret"
-TALENTSOFT_BASE_URL = "https://talentsoft.example.com"
+TALENTSOFT_BACK_CLIENT_ID = "test_back_client_id"
+TALENTSOFT_BACK_CLIENT_SECRET = "test_back_client_secret"
+TALENTSOFT_BACK_BASE_URL = "https://talentsoft-back.example.com"
+TALENTSOFT_FRONT_CLIENT_ID = "test_front_client_id"
+TALENTSOFT_FRONT_CLIENT_SECRET = "test_front_client_secret"
+TALENTSOFT_FRONT_BASE_URL = "https://talentsoft-front.example.com"
 WEB_BASE_URL = "https://web.example.com"
 WEB_API_KEY = "test-web-api-key"
 WEBHOOK_PATH = "/webhooks/talentsoft"
@@ -22,8 +25,8 @@ WEBHOOK_PATH = "/webhooks/talentsoft"
 @pytest.fixture
 def test_client(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
-    monkeypatch.delenv("TALENTSOFT_CLIENT_ID", raising=False)
-    monkeypatch.delenv("TALENTSOFT_CLIENT_SECRET", raising=False)
+    monkeypatch.delenv("TALENTSOFT_BACK_CLIENT_ID", raising=False)
+    monkeypatch.delenv("TALENTSOFT_BACK_CLIENT_SECRET", raising=False)
     app = create_app()
     return TestClient(app)
 
@@ -31,9 +34,12 @@ def test_client(monkeypatch):
 @pytest.fixture
 def talentsoft_client(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
-    monkeypatch.setenv("TALENTSOFT_CLIENT_ID", TALENTSOFT_CLIENT_ID)
-    monkeypatch.setenv("TALENTSOFT_CLIENT_SECRET", TALENTSOFT_CLIENT_SECRET)
-    monkeypatch.setenv("TALENTSOFT_BASE_URL", TALENTSOFT_BASE_URL)
+    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
+    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
+    monkeypatch.setenv("TALENTSOFT_FRONT_CLIENT_ID", TALENTSOFT_FRONT_CLIENT_ID)
+    monkeypatch.setenv("TALENTSOFT_FRONT_CLIENT_SECRET", TALENTSOFT_FRONT_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_FRONT_BASE_URL", TALENTSOFT_FRONT_BASE_URL)
     monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()
@@ -81,13 +87,13 @@ def make_signature(
         + canonicalized_resource
     )
 
-    secret = TALENTSOFT_CLIENT_SECRET.encode("utf-8")
+    secret = TALENTSOFT_BACK_CLIENT_SECRET.encode("utf-8")
     digest = hmac.new(secret, string_to_sign.encode("utf-8"), hashlib.sha1).digest()
     return base64.b64encode(digest).decode("utf-8")
 
 
 def valid_query_items() -> list[tuple[str, str]]:
-    return [("client_id", TALENTSOFT_CLIENT_ID)]
+    return [("client_id", TALENTSOFT_BACK_CLIENT_ID)]
 
 
 def valid_ts_rec_headers(expires: int | None = None) -> dict[str, str]:

@@ -25,6 +25,9 @@ class TalentsoftConfig:
     client_id: str
     client_secret: str
 
+    def __post_init__(self) -> None:
+        self.base_url = self.base_url.rstrip("/")
+
 
 class BaseTalentsoftClient(AsyncHttpClient):
     api_name: str

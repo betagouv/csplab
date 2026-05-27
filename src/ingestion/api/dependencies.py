@@ -37,16 +37,16 @@ async def get_load_offer_details_use_case(
     settings: Settings = Depends(get_settings),
 ) -> AsyncGenerator[LoadOfferDetailsUseCase | None, None]:
     if (
-        not settings.talentsoft_client_id
-        or not settings.talentsoft_client_secret
-        or not settings.talentsoft_base_url
+        not settings.talentsoft_front_client_id
+        or not settings.talentsoft_front_client_secret
+        or not settings.talentsoft_front_base_url
     ):
         yield None
     else:
         config = TalentsoftConfig(
-            base_url=settings.talentsoft_base_url,
-            client_id=settings.talentsoft_client_id,
-            client_secret=settings.talentsoft_client_secret,
+            base_url=settings.talentsoft_front_base_url,
+            client_id=settings.talentsoft_front_client_id,
+            client_secret=settings.talentsoft_front_client_secret,
         )
         async with TalentsoftFrontClient(config=config, logger=logger) as client:
             yield LoadOfferDetailsUseCase(talentsoft_client=client)
