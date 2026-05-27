@@ -2,7 +2,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
+from faker import Faker
 from fastapi.testclient import TestClient
+
+fake = Faker()
 
 from api.main import create_app
 from application.use_cases.archive_offer import ArchiveOfferUseCase
@@ -55,8 +58,8 @@ def talentsoft_client(monkeypatch) -> TestClient:
                 type="talentsoft",
                 client_id_front="test_client_id_front",
                 client_id_back=TALENTSOFT_BACK_CLIENT_ID,
-                base_url_front="https://front.talentsoft.com",
-                base_url_back="https://back.talentsoft.com",
+                base_url_front=fake.url(),
+                base_url_back=fake.url(),
             )
         ]
     )

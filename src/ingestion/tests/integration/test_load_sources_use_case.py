@@ -1,9 +1,12 @@
 import pytest
+from faker import Faker
 from pytest_httpx import HTTPXMock
 
 from application.use_cases.load_sources import LoadSourcesUseCase
 from infrastructure.sources_registry import SourcesRegistry
 from tests.conftest import WEB_BASE_URL
+
+fake = Faker()
 
 SOURCES_URL = f"{WEB_BASE_URL}/api/data/sources/"
 
@@ -12,8 +15,8 @@ SOURCE_DATA = {
     "type": "talentsoft",
     "client_id_back": "client-back-1",
     "client_id_front": "client-front-1",
-    "base_url_front": "https://front.talentsoft.com",
-    "base_url_back": "https://back.talentsoft.com",
+    "base_url_front": fake.url(),
+    "base_url_back": fake.url(),
 }
 
 

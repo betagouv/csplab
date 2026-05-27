@@ -2,10 +2,13 @@ from unittest.mock import AsyncMock, MagicMock, Mock
 
 import httpx
 import pytest
+from faker import Faker
 
 from application.interfaces.sources_registry import ISourcesRegistry
 from application.use_cases.load_sources import LoadSourcesUseCase
 from tests.shared_fixtures import WEB_API_KEY, WEB_BASE_URL
+
+fake = Faker()
 
 SOURCES_URL = f"{WEB_BASE_URL}/api/data/sources/"
 
@@ -18,8 +21,8 @@ async def test_execute_loads_sources_into_registry():
             "type": "talentsoft",
             "client_id_back": "client-back-1",
             "client_id_front": "client-front-1",
-            "base_url_front": "https://front.talentsoft.com",
-            "base_url_back": "https://back.talentsoft.com",
+            "base_url_front": fake.url(),
+            "base_url_back": fake.url(),
         }
     ]
     mock_response = Mock()
