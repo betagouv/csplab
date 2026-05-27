@@ -46,9 +46,11 @@ def create_app():
     container = Container()
     container.config.web_base_url.from_value(settings.web_base_url)
     container.config.web_api_key.from_value(settings.web_api_key)
-    container.config.talentsoft_client_id.from_value(settings.talentsoft_client_id)
-    container.config.talentsoft_client_secret.from_value(
-        settings.talentsoft_client_secret
+    container.config.talentsoft_back_client_id.from_value(
+        settings.talentsoft_back_client_id
+    )
+    container.config.talentsoft_back_client_secret.from_value(
+        settings.talentsoft_back_client_secret
     )
 
     @asynccontextmanager

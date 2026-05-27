@@ -16,10 +16,10 @@ from infrastructure.di.container import Container
 def verify_talentsoft_signature(
     request: Request,
     talentsoft_client_id: str | None = Depends(
-        Provide[Container.config.talentsoft_client_id]
+        Provide[Container.config.talentsoft_back_client_id]
     ),
     talentsoft_client_secret: str | None = Depends(
-        Provide[Container.config.talentsoft_client_secret]
+        Provide[Container.config.talentsoft_back_client_secret]
     ),
 ) -> None:
     client_id = request.query_params.get("client_id")
