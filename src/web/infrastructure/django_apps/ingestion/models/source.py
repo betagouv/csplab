@@ -20,7 +20,7 @@ class SourceModel(models.Model):
     base_url_back = models.URLField()
 
     class Meta:
-        db_table = "source"
+        db_table = "sources"
         verbose_name = "Source"
         verbose_name_plural = "Sources"
 
