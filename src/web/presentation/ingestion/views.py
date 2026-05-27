@@ -17,6 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
@@ -32,6 +33,8 @@ from presentation.ingestion.openapi import (
     ARCHIVE_OFFER_EXAMPLES,
     CONCOURS_UPLOAD_DESCRIPTION,
     CONCOURS_UPLOAD_EXAMPLES,
+    LIST_METIERS_DESCRIPTION,
+    LIST_METIERS_EXAMPLES,
     LIST_OFFERS_DESCRIPTION,
     LIST_OFFERS_EXAMPLES,
 )
@@ -329,6 +332,19 @@ class ConcoursUploadView(APIView):
         )
 
 
+@extend_schema(
+    summary="Liste des métiers",
+    description=LIST_METIERS_DESCRIPTION,
+    examples=LIST_METIERS_EXAMPLES,
+    tags=["metiers"],
+    parameters=[ListMetiersFiltersSerializer],
+    responses={
+        200: ListMetiersResponseSerializer,
+        400: GenericErrorSerializer,
+        401: TokenErrorSerializer,
+        500: GenericErrorSerializer,
+    },
+)
 class MetiersListView(APIView):
     serializer_class = ListMetiersResponseSerializer
     usecase = None
