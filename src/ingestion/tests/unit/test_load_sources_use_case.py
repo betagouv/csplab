@@ -4,7 +4,7 @@ import httpx
 import pytest
 from faker import Faker
 
-from application.interfaces.sources_registry import ISourcesRegistry
+from application.interfaces.sources_repository import ISourcesRepository
 from application.use_cases.load_sources import LoadSourcesUseCase
 from tests.shared_fixtures import WEB_API_KEY, WEB_BASE_URL
 
@@ -30,7 +30,7 @@ async def test_execute_loads_sources_into_registry():
 
     mock_client = MagicMock(spec=httpx.AsyncClient)
     mock_client.get = AsyncMock(return_value=mock_response)
-    mock_registry = MagicMock(spec=ISourcesRegistry)
+    mock_registry = MagicMock(spec=ISourcesRepository)
 
     use_case = LoadSourcesUseCase(
         client=mock_client,
@@ -55,7 +55,7 @@ async def test_execute_raises_on_error_response():
 
     mock_client = MagicMock(spec=httpx.AsyncClient)
     mock_client.get = AsyncMock(return_value=mock_response)
-    mock_registry = MagicMock(spec=ISourcesRegistry)
+    mock_registry = MagicMock(spec=ISourcesRepository)
 
     use_case = LoadSourcesUseCase(
         client=mock_client,

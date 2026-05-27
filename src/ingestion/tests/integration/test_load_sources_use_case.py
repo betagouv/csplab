@@ -3,7 +3,7 @@ from faker import Faker
 from pytest_httpx import HTTPXMock
 
 from application.use_cases.load_sources import LoadSourcesUseCase
-from infrastructure.sources_registry import SourcesRegistry
+from infrastructure.sources_repository import SourcesRepository
 from tests.conftest import WEB_BASE_URL
 
 fake = Faker()
@@ -23,7 +23,7 @@ SOURCE_DATA = {
 @pytest.mark.asyncio
 async def test_execute_populates_registry(
     load_sources_use_case: LoadSourcesUseCase,
-    sources_registry: SourcesRegistry,
+    sources_repository: SourcesRepository,
     httpx_mock: HTTPXMock,
 ):
     httpx_mock.add_response(
@@ -32,31 +32,31 @@ async def test_execute_populates_registry(
 
     await load_sources_use_case.execute()
 
-    source = sources_registry.get_by_client_id_back("client-back-1")
+    source = sources_repository.get_by_client_id_back("client-back-1")
     assert source is not None
     assert source.source_id == "aaaa-bbbb"
     assert source.type == "talentsoft"
-    assert len(sources_registry) == 1
+    assert len(sources_repository) == 1
 
 
 @pytest.mark.asyncio
 async def test_execute_with_empty_response_leaves_registry_empty(
     load_sources_use_case: LoadSourcesUseCase,
-    sources_registry: SourcesRegistry,
+    sources_repository: SourcesRepository,
     httpx_mock: HTTPXMock,
 ):
     httpx_mock.add_response(method="GET", url=SOURCES_URL, json=[], status_code=200)
 
     await load_sources_use_case.execute()
 
-    assert len(sources_registry) == 0
-    assert sources_registry.get_by_client_id_back("any") is None
+    assert len(sources_repository) == 0
+    assert sources_repository.get_by_client_id_back("any") is None
 
 
 @pytest.mark.asyncio
 async def test_execute_replaces_previous_registry_contents(
     load_sources_use_case: LoadSourcesUseCase,
-    sources_registry: SourcesRegistry,
+    sources_repository: SourcesRepository,
     httpx_mock: HTTPXMock,
 ):
     first_source = {**SOURCE_DATA, "source_id": "first-id", "client_id_back": "back-1"}
@@ -70,13 +70,13 @@ async def test_execute_replaces_previous_registry_contents(
         method="GET", url=SOURCES_URL, json=[first_source], status_code=200
     )
     await load_sources_use_case.execute()
-    assert len(sources_registry) == 1
+    assert len(sources_repository) == 1
 
     httpx_mock.add_response(
         method="GET", url=SOURCES_URL, json=[second_source], status_code=200
     )
     await load_sources_use_case.execute()
 
-    assert len(sources_registry) == 1
-    assert sources_registry.get_by_client_id_back("back-1") is None
-    assert sources_registry.get_by_client_id_back("back-2") is not None
+    assert len(sources_repository) == 1
+    assert sources_repository.get_by_client_id_back("back-1") is None
+    assert sources_repository.get_by_client_id_back("back-2") is not None

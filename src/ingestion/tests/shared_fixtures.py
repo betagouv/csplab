@@ -5,14 +5,12 @@ import pytest
 from faker import Faker
 from fastapi.testclient import TestClient
 
-fake = Faker()
-
 from api.main import create_app
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
 from domain.source import Source
-from infrastructure.sources_registry import SourcesRegistry
+from infrastructure.sources_repository import SourcesRepository
 from tests.conftest import (
     SOURCE_ID,
     TALENTSOFT_BACK_BASE_URL,
@@ -24,6 +22,8 @@ from tests.conftest import (
     WEB_API_KEY,
     WEB_BASE_URL,
 )
+
+fake = Faker()
 
 # --- App client fixtures ---
 
@@ -51,7 +51,7 @@ def talentsoft_client(monkeypatch) -> TestClient:
     app = create_app()
 
     # Pre-populate the sources registry (the lifespan doesn't run in test mode)
-    app.state.container.sources_registry().load(
+    app.state.container.sources_repository().load(
         [
             Source(
                 source_id=SOURCE_ID,
@@ -70,17 +70,17 @@ def talentsoft_client(monkeypatch) -> TestClient:
 
 
 @pytest.fixture
-def sources_registry() -> SourcesRegistry:
-    return SourcesRegistry()
+def sources_repository() -> SourcesRepository:
+    return SourcesRepository()
 
 
 @pytest.fixture
-def load_sources_use_case(sources_registry: SourcesRegistry) -> LoadSourcesUseCase:
+def load_sources_use_case(sources_repository: SourcesRepository) -> LoadSourcesUseCase:
     return LoadSourcesUseCase(
         client=httpx.AsyncClient(),
         web_base_url=WEB_BASE_URL,
         web_api_key=WEB_API_KEY,
-        registry=sources_registry,
+        registry=sources_repository,
     )
 
 

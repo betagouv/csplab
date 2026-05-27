@@ -1,9 +1,7 @@
 from domain.source import Source
 
 
-class SourcesRegistry:
-    """In-memory registry mapping client_id_back to Source."""
-
+class SourcesRepository:
     def __init__(self) -> None:
         self._mapping: dict[str, Source] = {}
 

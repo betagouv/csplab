@@ -2,7 +2,7 @@ import logging
 
 import httpx
 
-from application.interfaces.sources_registry import ISourcesRegistry
+from application.interfaces.sources_repository import ISourcesRepository
 from domain.source import Source
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ class LoadSourcesUseCase:
         client: httpx.AsyncClient,
         web_base_url: str,
         web_api_key: str,
-        registry: ISourcesRegistry,
+        registry: ISourcesRepository,
     ) -> None:
         self._client = client
         self._web_base_url = web_base_url

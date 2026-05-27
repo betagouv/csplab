@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from api.config import Settings, get_settings
 from api.talentsoft import verify_talentsoft_signature
-from application.interfaces.sources_registry import ISourcesRegistry
+from application.interfaces.sources_repository import ISourcesRepository
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from infrastructure.di.container import Container
@@ -62,7 +62,7 @@ async def talentsoft_webhook(
     web_base_url: str | None = Depends(Provide[Container.config.web_base_url]),
     web_api_key: str | None = Depends(Provide[Container.config.web_api_key]),
     use_case: ArchiveOfferUseCase = Depends(Provide[Container.archive_offer_use_case]),
-    registry: ISourcesRegistry = Depends(Provide[Container.sources_registry]),
+    registry: ISourcesRepository = Depends(Provide[Container.sources_repository]),
     load_offer_use_case: LoadOfferDetailsUseCase | None = Depends(
         get_load_offer_details_use_case
     ),
@@ -116,7 +116,7 @@ async def _handle_archive(
     payload: TalentsoftWebhookPayload,
     client_id: str,
     use_case: ArchiveOfferUseCase,
-    registry: ISourcesRegistry,
+    registry: ISourcesRepository,
 ) -> dict:
     source = registry.get_by_client_id_back(client_id)
     if source is None:
