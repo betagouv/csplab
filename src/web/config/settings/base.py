@@ -316,6 +316,10 @@ SPECTACULAR_SETTINGS = {
             "description": "Ingestion des concours par import de fichiers CSV",
         },
         {"name": "offres", "description": "Offres d'emploi de la Fonction Publique"},
+        {
+            "name": "metiers",
+            "description": "Métiers du Référentiel des Métiers de la Fonction Publique",
+        },
     ],
 }
 

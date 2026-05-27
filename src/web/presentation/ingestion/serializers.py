@@ -76,3 +76,19 @@ class ArchiveOfferRequestSerializer(serializers.Serializer):
 
 class ArchiveOfferSuccessSerializer(serializers.Serializer):
     status = serializers.CharField()
+
+
+class ListMetiersResponseSerializer(serializers.Serializer):
+    libelle = serializers.CharField()
+    description = serializers.CharField()
+    domaine_fonctionnel_code = serializers.CharField()
+    versants = serializers.ListField(child=serializers.CharField())
+    activites = serializers.ListField(child=serializers.CharField(), allow_null=True)
+    conditions_particulieres = serializers.ListField(
+        child=serializers.CharField(), allow_null=True
+    )
+    offer_family_code = serializers.CharField(allow_null=True)
+
+
+class ListMetiersFiltersSerializer(serializers.Serializer):
+    domain = serializers.CharField(default=None, max_length=3)
