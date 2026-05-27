@@ -22,6 +22,7 @@ from domain.value_objects.offer_conditions import (
 from domain.value_objects.region import Region
 from domain.value_objects.verse import Verse
 
+
 class GenericErrorSerializer(serializers.Serializer):
     error = serializers.CharField()
 
@@ -143,9 +144,12 @@ class LocalisationInputSerializer(serializers.Serializer, ISerializerToDomainMap
         choices=[(c.value, c.name) for c in GeographicalArea]
     )
     pays = serializers.CharField(max_length=3, min_length=3)
-    region = serializers.ChoiceField(choices=list(Region.VALID_CODES), allow_blank=True)
+    region = serializers.ChoiceField(
+        choices=sorted(Region.VALID_CODES, key=lambda x: x),
+        allow_blank=True,
+    )
     departement = serializers.ChoiceField(
-        choices=list(Department.VALID_CODES), allow_blank=True
+        choices=sorted(Department.VALID_CODES, key=lambda x: x), allow_blank=True
     )
     localisation_label = serializers.CharField(max_length=500, allow_blank=True)
     latitude = serializers.FloatField(allow_null=True)
