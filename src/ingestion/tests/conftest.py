@@ -5,12 +5,10 @@ import json
 import time
 import urllib.parse
 
-import pytest
 from fastapi.testclient import TestClient
 from httpx import Response
 
-from api.main import create_app
-from domain.source import Source
+# --- Constants ---
 
 TALENTSOFT_BACK_CLIENT_ID = "test_back_client_id"
 TALENTSOFT_BACK_CLIENT_SECRET = "test_back_client_secret"
@@ -19,47 +17,12 @@ TALENTSOFT_FRONT_CLIENT_ID = "test_front_client_id"
 TALENTSOFT_FRONT_CLIENT_SECRET = "test_front_client_secret"
 TALENTSOFT_FRONT_BASE_URL = "https://talentsoft-front.example.com"
 WEB_BASE_URL = "https://web.example.com"
-WEB_API_KEY = "test-web-api-key"
+WEB_API_KEY = "test-api-key"
 WEBHOOK_PATH = "/webhooks/talentsoft"
 SOURCE_ID = "11111111-2222-3333-4444-555555555555"
 
 
-@pytest.fixture
-def test_client(monkeypatch):
-    monkeypatch.setenv("TESTING", "true")
-    monkeypatch.delenv("TALENTSOFT_BACK_CLIENT_ID", raising=False)
-    monkeypatch.delenv("TALENTSOFT_BACK_CLIENT_SECRET", raising=False)
-    app = create_app()
-    return TestClient(app)
-
-
-@pytest.fixture
-def talentsoft_client(monkeypatch):
-    monkeypatch.setenv("TESTING", "true")
-    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
-    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
-    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
-    monkeypatch.setenv("TALENTSOFT_FRONT_CLIENT_ID", TALENTSOFT_FRONT_CLIENT_ID)
-    monkeypatch.setenv("TALENTSOFT_FRONT_CLIENT_SECRET", TALENTSOFT_FRONT_CLIENT_SECRET)
-    monkeypatch.setenv("TALENTSOFT_FRONT_BASE_URL", TALENTSOFT_FRONT_BASE_URL)
-    monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
-    monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
-    app = create_app()
-
-    # Pre-populate the sources registry (the lifespan doesn't run in test mode)
-    app.state.container.sources_registry().load(
-        [
-            Source(
-                source_id=SOURCE_ID,
-                type="talentsoft",
-                client_id_front="test_client_id_front",
-                client_id_back=TALENTSOFT_BACK_CLIENT_ID,
-                base_url_front="https://front.talentsoft.com",
-                base_url_back="https://back.talentsoft.com",
-            )
-        ]
-    )
-    return TestClient(app)
+# --- Signature helpers ---
 
 
 def make_signature(
@@ -138,3 +101,8 @@ def make_signed_request(client: TestClient, body: dict) -> Response:
         content=body_bytes,
         headers={"Content-Type": content_type, **ts_rec_headers},
     )
+
+
+# --- Fixtures (defined in shared_fixtures.py) ---
+
+pytest_plugins = ["tests.shared_fixtures"]

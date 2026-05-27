@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
 
 from api.main import create_app
-from tests.integration.conftest import (
+from tests.conftest import (
     SOURCE_ID,
     TALENTSOFT_BACK_CLIENT_ID,
     TALENTSOFT_BACK_CLIENT_SECRET,

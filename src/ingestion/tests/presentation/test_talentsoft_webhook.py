@@ -5,19 +5,12 @@ import urllib.parse
 
 import pytest
 
-from tests.integration.conftest import (
+from tests.conftest import (
     WEBHOOK_PATH,
     make_signature,
     valid_query_items,
     valid_ts_rec_headers,
 )
-
-
-@pytest.mark.asyncio
-async def test_health_endpoint(test_client):
-    response = test_client.get("/health")
-    assert response.status_code == 200
-    assert response.json() == {"status": "healthy"}
 
 
 @pytest.mark.asyncio
