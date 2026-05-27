@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "dependency-injector>=4.41.0",
     "fastapi>=0.135.1",
     "httpx>=0.28.1",
     "pydantic-settings>=2.13.1",
@@ -78,8 +79,9 @@ select = [
 [tool.ruff.lint.per-file-ignores]
 "api/routes.py" = [
     "B008", # Function call in argument defaults (acceptable for FastAPI)
+    "PLR0913", # Too many arguments (acceptable for FastAPI routes with injected dependencies)
 ]
-"api/dependencies.py" = [
+"api/talentsoft.py" = [
     "B008", # Function call in argument defaults (acceptable for FastAPI)
 ]
 "**/tests/*" = [

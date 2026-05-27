@@ -1,12 +1,20 @@
 import logging
+from collections.abc import AsyncGenerator
 
+from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import ValidationError
 
-from api.dependencies import get_archive_offer_use_case, get_load_offer_details_use_case
+from api.config import Settings, get_settings
 from api.talentsoft import verify_talentsoft_signature
+from application.interfaces.sources_repository import ISourcesRepository
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
+from infrastructure.di.container import Container
+from infrastructure.external_gateways.talentsoft_client import (
+    TalentsoftConfig,
+    TalentsoftFrontClient,
+)
 from presentation.dtos.talentsoft_webhook import (
     TalentsoftWebhookPayload,
     should_archive,
@@ -20,6 +28,25 @@ public_router = APIRouter()
 _OK = {"status": "ok"}
 
 
+async def get_load_offer_details_use_case(
+    settings: Settings = Depends(get_settings),
+) -> AsyncGenerator[LoadOfferDetailsUseCase | None, None]:
+    if (
+        not settings.talentsoft_front_client_id
+        or not settings.talentsoft_front_client_secret
+        or not settings.talentsoft_front_base_url
+    ):
+        yield None
+    else:
+        config = TalentsoftConfig(
+            base_url=settings.talentsoft_front_base_url,
+            client_id=settings.talentsoft_front_client_id,
+            client_secret=settings.talentsoft_front_client_secret,
+        )
+        async with TalentsoftFrontClient(config=config, logger=logger) as client:
+            yield LoadOfferDetailsUseCase(talentsoft_client=client)
+
+
 @public_router.get("/health")
 def health():
     return {"status": "healthy"}
@@ -28,10 +55,14 @@ def health():
 @public_router.post(
     "/webhooks/talentsoft", dependencies=[Depends(verify_talentsoft_signature)]
 )
+@inject
 async def talentsoft_webhook(
     request: Request,
     client_id: str = Query(...),
-    archive_use_case: ArchiveOfferUseCase | None = Depends(get_archive_offer_use_case),
+    web_base_url: str | None = Depends(Provide[Container.config.web_base_url]),
+    web_api_key: str | None = Depends(Provide[Container.config.web_api_key]),
+    use_case: ArchiveOfferUseCase = Depends(Provide[Container.archive_offer_use_case]),
+    registry: ISourcesRepository = Depends(Provide[Container.sources_repository]),
     load_offer_use_case: LoadOfferDetailsUseCase | None = Depends(
         get_load_offer_details_use_case
     ),
@@ -49,9 +80,9 @@ async def talentsoft_webhook(
         return _OK
 
     if should_archive(payload):
-        if archive_use_case is None:
+        if not web_base_url or not web_api_key:
             raise HTTPException(status_code=500, detail="Web service not configured")
-        return await _handle_archive(payload, client_id, archive_use_case)
+        return await _handle_archive(payload, client_id, use_case, registry)
 
     if should_load_offer_details(payload):
         if load_offer_use_case is None:
@@ -85,15 +116,26 @@ async def _handle_archive(
     payload: TalentsoftWebhookPayload,
     client_id: str,
     use_case: ArchiveOfferUseCase,
+    registry: ISourcesRepository,
 ) -> dict:
-    # `source_id` will not be `client_id` soon
-    # https://github.com/betagouv/csplab/issues/573 is required
-    await use_case.execute(reference=payload.reference, source_id=client_id)
+    source = registry.get_by_client_id_back(client_id)
+    if source is None:
+        logger.error(
+            "No source found for client_id %s, cannot archive offer %s",
+            client_id,
+            payload.reference,
+        )
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown client_id: {client_id}",
+        )
+
+    await use_case.execute(reference=payload.reference, source_id=source.source_id)
     logger.info(
         "Handled event type %s for reference %s",
         payload.event_type,
         payload.reference,
-        extra={"client_id": client_id},
+        extra={"client_id": client_id, "source_id": source.source_id},
     )
     return _OK
 

@@ -4,16 +4,24 @@ import hmac
 import time
 import urllib.parse
 
-from fastapi import HTTPException, Request
+from dependency_injector.wiring import Provide, inject
+from fastapi import Depends, HTTPException, Request
 
-from api.config import get_settings
+from infrastructure.di.container import Container
 
 
 # Verify the TalentSoft webhook signature
 # Documentation: https://developers.cegid.com/docreference/BusinessUnits/Recruiting-developer-portal/webhooks/_index.html#signature
-def verify_talentsoft_signature(request: Request) -> None:
-    settings = get_settings()
-
+@inject
+def verify_talentsoft_signature(
+    request: Request,
+    talentsoft_client_id: str | None = Depends(
+        Provide[Container.config.talentsoft_back_client_id]
+    ),
+    talentsoft_client_secret: str | None = Depends(
+        Provide[Container.config.talentsoft_back_client_secret]
+    ),
+) -> None:
     client_id = request.query_params.get("client_id")
     expires = request.headers.get("x-ts-rec-expires")
     # Extract signature from the raw query string: request.query_params decodes
@@ -36,15 +44,12 @@ def verify_talentsoft_signature(request: Request) -> None:
     if time.time() > expires_ts:
         raise HTTPException(status_code=403, detail="Signature has expired")
 
-    if (
-        not settings.talentsoft_back_client_id
-        or not settings.talentsoft_back_client_secret
-    ):
+    if not talentsoft_client_id or not talentsoft_client_secret:
         raise HTTPException(
             status_code=500, detail="TalentSoft credentials not configured"
         )
 
-    if client_id != settings.talentsoft_back_client_id:
+    if client_id != talentsoft_client_id:
         raise HTTPException(status_code=403, detail="Invalid client_id")
 
     # CanonicalizedTsRecHeaders: x-ts-rec-* headers, lowercased, sorted
@@ -80,7 +85,7 @@ def verify_talentsoft_signature(request: Request) -> None:
         + canonicalized_resource
     )
 
-    secret = settings.talentsoft_back_client_secret.encode("utf-8")
+    secret = talentsoft_client_secret.encode("utf-8")
     digest = hmac.new(secret, string_to_sign.encode("utf-8"), hashlib.sha1).digest()
     computed = base64.b64encode(digest).decode("utf-8")
 
