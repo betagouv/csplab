@@ -197,6 +197,44 @@ class TestGetDetailOffer:
             mock_post.assert_called_once()  # Token refresh called
 
     @pytest.mark.asyncio
+    async def test_token_is_fetched_once_when_client_is_shared_across_requests(
+        self, talentsoft_client
+    ):
+        response_data_1 = detail_offer_response()
+        response_data_2 = detail_offer_response()
+        token_response = {
+            "access_token": fake.uuid4(),
+            "token_type": fake.word(),
+            "expires_in": 3600,
+        }
+
+        talentsoft_client.cached_token = None
+
+        with (
+            patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get,
+            patch.object(
+                talentsoft_client, "post", new_callable=AsyncMock
+            ) as mock_post,
+        ):
+            mock_get.side_effect = [
+                mocked_response(return_value=response_data_1),
+                mocked_response(return_value=response_data_2),
+            ]
+            mock_post.return_value = mocked_response(return_value=token_response)
+
+            offer_1 = await talentsoft_client.get_detail(
+                reference=response_data_1["reference"]
+            )
+            offer_2 = await talentsoft_client.get_detail(
+                reference=response_data_2["reference"]
+            )
+
+        assert offer_1.reference == response_data_1["reference"]
+        assert offer_2.reference == response_data_2["reference"]
+        mock_post.assert_called_once()  # Token was fetched only once, not per request
+        assert mock_get.call_count == 2
+
+    @pytest.mark.asyncio
     async def test_get_detail_fails_after_max_retries_attempts(self, talentsoft_client):
         failed_response = mocked_response(status_code=500)
         failed_response.raise_for_status.side_effect = Exception(

@@ -6,7 +6,7 @@ import httpx
 class AsyncHttpClient:
     def __init__(self, timeout: int = 120):
         self.timeout = timeout
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: Optional[httpx.AsyncClient] = httpx.AsyncClient(timeout=timeout)
 
     async def __aenter__(self) -> Self:
         self._client = httpx.AsyncClient(timeout=self.timeout)
