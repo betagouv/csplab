@@ -215,7 +215,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/GenericError'
               examples:
                 Error-UnexpectedServerError:
                   value:
@@ -288,7 +288,11 @@ paths:
                     paginées
           description: ''
         '400':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
         '401':
           content:
             application/json:
@@ -311,7 +315,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/GenericError'
               examples:
                 Error-UnexpectedServerError:
                   value:
@@ -457,7 +461,7 @@ components:
       - detail
     ConcoursUpload400Error:
       oneOf:
-      - $ref: '#/components/schemas/FileError'
+      - $ref: '#/components/schemas/GenericError'
       - $ref: '#/components/schemas/NoValidRowsError'
     ConcoursUploadResponse:
       type: object
@@ -490,7 +494,7 @@ components:
       - updated
       - valid_rows
       - validation_errors
-    FileError:
+    GenericError:
       type: object
       properties:
         error:
@@ -543,13 +547,6 @@ components:
       required:
       - error
       - validation_errors
-    ServerError:
-      type: object
-      properties:
-        error:
-          type: string
-      required:
-      - error
     TokenError:
       type: object
       properties:
@@ -613,10 +610,10 @@ components:
     ValidationError:
       type: object
       properties:
-        row:
-          type: integer
         error:
           type: string
+        row:
+          type: integer
       required:
       - error
       - row

@@ -40,12 +40,10 @@ from presentation.ingestion.serializers import (
     ArchiveOfferRequestSerializer,
     ArchiveOfferSuccessSerializer,
     ConcoursUploadResponseSerializer,
-    FileErrorSerializer,
-    ListOffersErrorSerializer,
+    GenericErrorSerializer,
     ListOffersFiltersSerializer,
     ListOffersResponseSerializer,
     NoValidRowsErrorSerializer,
-    ServerErrorSerializer,
     SourceSerializer,
     TokenErrorSerializer,
 )
@@ -144,11 +142,11 @@ class ConcoursUploadView(APIView):
             201: ConcoursUploadResponseSerializer,
             400: PolymorphicProxySerializer(
                 component_name="ConcoursUpload400Error",
-                serializers=[FileErrorSerializer, NoValidRowsErrorSerializer],
+                serializers=[GenericErrorSerializer, NoValidRowsErrorSerializer],
                 resource_type_field_name=None,
             ),
             401: TokenErrorSerializer,
-            500: ServerErrorSerializer,
+            500: GenericErrorSerializer,
         },
     )
     def post(self, request):
@@ -335,9 +333,9 @@ class ConcoursUploadView(APIView):
     tags=["offres"],
     responses={
         200: ListOffersResponseSerializer,
-        400: ListOffersErrorSerializer,
+        400: GenericErrorSerializer,
         401: TokenErrorSerializer,
-        500: ServerErrorSerializer,
+        500: GenericErrorSerializer,
     },
 )
 class OffersListView(APIView):
@@ -360,13 +358,13 @@ class OffersListView(APIView):
             result = self.usecase.execute(input_data)
 
             paginator = IngestionPagination()
-            items = paginator.paginate(result.page, request)
+            items = paginator.paginate(result, request)
             return paginator.get_paginated_response(
                 ListOffersResponseSerializer(items, many=True).data
             )
         except Exception as e:
             self.logger.error("Unexpected error in OffersListView: %s", str(e))
-            serializer = ServerErrorSerializer({"error": "Unexpected error"})
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

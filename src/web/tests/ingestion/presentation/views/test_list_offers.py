@@ -31,7 +31,7 @@ def _make_paginated_mock(mock_container, num_offers, offers_slice):
     mock_page.slice.return_value = iter(offers_slice)
 
     mock_usecase = MagicMock()
-    mock_usecase.execute.return_value = MagicMock(page=mock_page)
+    mock_usecase.execute.return_value = mock_page
     mock_container.return_value.list_offers_usecase.return_value = mock_usecase
 
 

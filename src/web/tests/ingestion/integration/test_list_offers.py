@@ -81,7 +81,7 @@ def test_list_offers_result(
         input_data=input_data
     )
 
-    assert {offer.external_id for offer in result.page._qs} == {
+    assert {offer.external_id for offer in result._qs} == {
         offers[key].external_id for key in expected_keys
     }
 
@@ -102,9 +102,9 @@ def test_list_offers_page_slice(
         input_data=input_data
     )
 
-    assert result.page.count() == len(["active_expected", "active_other"])
+    assert result.count() == len(["active_expected", "active_other"])
 
-    sliced = list(result.page.slice(offset=offset, limit=limit))
+    sliced = list(result.slice(offset=offset, limit=limit))
     assert {offer.external_id for offer in sliced} == {
         offers[key].external_id for key in expected_keys
     }
