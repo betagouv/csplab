@@ -1,6 +1,101 @@
-## API DILA | Exploration et stratégie d'intégration
+## Note de faisabilité — API DILA (Annuaire des services publics)
+
+<!-- #region -->
+### 1. Données disponibles
+
+L'API DILA expose un annuaire public de **~94 000 services publics français**, sans authentification, exportable en CSV. Les champs d'intérêt sont :
+
+| Champ | Utilité |
+|---|---|
+| `id` (UUID) | Identifiant unique |
+| `nom` | Matching sémantique |
+| `type_organisme` + `categorie` | Qualification de l'entité |
+| `siren` / `siret` | Jonction avec le référentiel légal |
+| `adresse` (JSON) → `longitude`, `latitude` | Géolocalisation |
+| `url_service_public` | Distinction FPT vs FPE |
+| `date_creation`, `date_modification` | Fraîcheur |
+| `hierarchie` → `parent_id` reconstruit | Structure hiérarchique |
+
+---
+
+### 2. Convergence avec la structure CSP
+
+La structure DILA **converge bien** avec le modèle Entité de CSP sur les points suivants :
+
+| Besoin fonctionnel | Champ DILA | Champ TS (`df_orgs`) | Alignement |
+|---|---|---|---|
+| **Identifiant unique** | `id` (UUID) | `code` (interne TS) | ⚠️ Hétérogènes — nécessite une table de correspondance |
+| **Identifiant métier** | `siren` / `siret` | `clientCode` (code ministériel) | ⚠️ Natures différentes : SIREN vs code RH, ⚠️ DILA nécessite une autre API comme https://recherche-entreprises.api.gouv.fr/search |
+| **Nom / libellé** | `nom` | `label` | ✅ Équivalents — matching sémantique possible |
+| **Hiérarchie parent** | `hierarchie` → `parent_id` reconstruit | `parentCode` | ✅ Même concept, bien aligné |
+| **Type d'organisme** | `type_organisme` + `categorie` | `type` + `parentType` | ⚠️ Granularités différentes |
+| **Localisation** | `longitude` / `latitude` | `geolocation` dans details | ✅ Même concept, bien aligné, ⚠️ 60% complet chez TS|
 
 
+> **Clé de jonction possible :**
+> 1. `nom` (DILA) ↔ `label` (TS) — matching sémantique / flou
+> 2. `parent_id` reconstruit (DILA) ↔ `parentCode` (TS) — pour valider la cohérence hiérarchique
+> 3. ajout matching geographique (97% de complétude DILA FPE et 60% des organismes du référeciel TS)
+
+
+### 3. Couverture pour nos types d'entités cibles
+
+- **FPE (ministères, établissements publics)** → catégorie `SI` — ✅ bien couverte, hiérarchie reconstituable
+- **FPT (collectivités)** → identifiable via `url_service_public` et `slug` — ✅ présente mais volumineuse (~majorité des 94 000 entrées)
+- **FPH (hôpitaux)** → absent
+- **Ambassades / international** → ✅ slug `ambassades` identifié
+
+---
+
+### 4. Fraîcheur des données
+
+- Données mises à jour régulièrement par la DILA (date de modification disponible par enregistrement)
+- 75% des données ont moins d'un an, TS a un champ `active`
+- **Mécanisme de mise à jour : aucun webhook ni abonnement** — il faut **interroger l'API périodiquement** (export CSV complet ou requêtes filtrées)
+- L'API expose une date `data_processed` par dataset permettant de détecter les mises à jour
+
+---
+
+### 5. Authentification
+
+**Aucune authentification requise.** L'API est publique, accessible sans clé ni token.
+
+---
+
+### 6. Abonnement vs polling
+
+| Mécanisme | Disponible ? |
+|---|---|
+| Webhooks / événements | ❌ Non |
+| Flux de changements (delta) | ❌ Non |
+| Export CSV complet | ✅ Oui |
+| Filtres par date de modification | ✅ Possible via paramètres de requête |
+
+→ **Stratégie nécessaire : import périodique** (ex. hebdomadaire) avec détection des changements par comparaison de `date_modification`.
+
+---
+
+### 7. Recommandation
+
+**→ Import initial ponctuel + synchronisation périodique par polling**
+
+- **Import initial** : export CSV complet, filtrage sur `categorie == "SI"` (FPE) + reconstruction de la hiérarchie
+- **Synchronisation** : polling hebdomadaire, mise à jour des enregistrements dont `date_modification` a changé
+- **Matching avec TS** : par nom (`nom` ↔ `label`) avec seuil de similarité sémantique, à valider manuellement sur un échantillon
+
+---
+
+### 8. Risques et limites
+
+| Risque | Niveau | Mitigation |
+|---|---|---|
+| Pas de mécanisme push | 🟡 Moyen | Polling régulier sur `date_modification` |
+| SIREN/SIRET souvent absents sur les feuilles (bureaux) | 🟡 Moyen | Enrichissement via API recherche-entreprises |
+| Pas de champ `actif/inactif` | 🟠 Fort | Heuristique sur `date_modification` ancienne |
+| Matching DILA ↔ TS par nom uniquement | 🟠 Fort | Validation humaine sur les cas ambigus |
+| Volume FPT très élevé (>80% des entrées), absence de la FPH | 🟡 Moyen | Filtrage strict par `categorie` |
+| Qualité variable de la géolocalisation | 🟡 Moyen | Complétude à mesurer (taux partiel constaté côté TS) |
+<!-- #endregion -->
 
 ## 1. Données disponibles ?
 
@@ -77,30 +172,21 @@ print(f"URL distinctes            : {df_dila_full['url_service_public'].nunique(
 
 Exemple : https://lannuaire.service-public.gouv.fr/institutions-juridictions/f6d38468-d59e-42c0-9d54-1f8e573c1250
 
-
-#### Les champs disponibles et d'intérêt sont les suivants.
-
-* **id** : un identifiant unique (format UUID)
-
-* l'**url_service_public** : permet de distinguer la FPT
-
-* **nom :&#x20;**&#x70;eut servir pour pour un matching sémantique
-
-* **type_organisme**
-
-* **siren** / **siret** (non pertinent pour les feuilles qui correspondent aux bureaux par exemple)
-
-* **date de création**
-
-* **date de modification**
-
-* **localisation (long / lat)** : peut servir pour un matching
-
-* notion de parent / enfant qui peut être reconstruite à partir du champ **hierarchie**
-
+```python
+df_dila_full["categorie"].value_counts()
+```
 
 ```python
 df_dila_full["type_organisme"].value_counts()
+```
+
+```python
+pd.crosstab(
+    df_dila_full["type_organisme"],
+    df_dila_full["categorie"],
+    margins=True,
+    margins_name="Total"
+)
 ```
 
 ## 2. La structure proposée converge-t-elle avec la structure des entités dans CSP ?
@@ -110,6 +196,7 @@ df_dila_full["type_organisme"].value_counts()
 
 ```python
 import httpx
+import os
 
 BASE_URL = os.getenv("TALENTSOFT_BASE_URL", "")
 CLIENT_ID = os.getenv("TALENTSOFT_CLIENT_ID", "")
@@ -181,10 +268,7 @@ def flatten_org(org: dict) -> dict:
 
 df_orgs = pd.DataFrame([flatten_org(o) for o in raw_orgs])
 df_orgs = df_orgs[df_orgs["active"]==True]
-df_orgs.columns
-```
-
-```python
+print(df_orgs.columns)
 len(df_orgs)
 ```
 
@@ -217,7 +301,33 @@ fig.show(renderer="iframe")
 ```
 
 ```python
+# ── Taux de complétude géolocalisation — Talentsoft (organismes actifs) ───────
+# Note : df_details est construit sur df_orgs[active==True], donc tous les
+#        enregistrements sont déjà des organismes actifs.
 
+def extract_geo_ts(g):
+    if isinstance(g, dict):
+        try:
+            lat = float(g.get("latitude") or "nan")
+            lon = float(g.get("longitude") or "nan")
+            return (
+                lat if not pd.isna(lat) else None,
+                lon if not pd.isna(lon) else None,
+            )
+        except (ValueError, TypeError):
+            pass
+    return None, None
+
+geo_ts = df_details["geolocation"].apply(extract_geo_ts)
+df_details["geo_lat"] = geo_ts.apply(lambda x: x[0])
+df_details["geo_lon"] = geo_ts.apply(lambda x: x[1])
+
+n = len(df_details)
+has_geo = df_details["geo_lat"].notna() & df_details["geo_lon"].notna()
+n_geo   = has_geo.sum()
+
+print(f"[TS — actifs] Avec géolocalisation : {n_geo:,} / {n:,}  ({n_geo/n:.1%})")
+print(f"[TS — actifs] Sans géolocalisation : {n - n_geo:,} / {n:,}  ({(n - n_geo)/n:.1%})")
 ```
 
 > ### Conclusion : dans le référenciel des organismes de TS, la notion parent / enfant (hierarchique) est centrale pour la FPE.
@@ -266,37 +376,6 @@ engine = create_engine(
 #### Organismes depuis la BDD
 
 ```python
-import pandas as pd
-
-df = pd.read_sql("""
-    SELECT
-        id,
-        external_id,
-        created_at,
-        -- Champs organisation top-level (TalentsoftOffer)
-        raw_data->>'reference'               AS reference,
-        raw_data->>'organisationName'        AS organisation_name,
-        raw_data->>'organisationDescription' AS organisation_description,
-        raw_data->>'organisationLogoUrl'     AS organisation_logo_url,
-        -- Champs organisation imbriqués (TalentsoftOrganisation)
-        raw_data->'organisation'->>'entityCode'          AS entity_code,
-        raw_data->'organisation'->>'name'                AS org_name,
-        raw_data->'organisation'->>'description'         AS org_description,
-        raw_data->'organisation'->>'url'                 AS org_url,
-        raw_data->'organisation'->>'phoneNumber'         AS phone_number,
-        raw_data->'organisation'->>'postCode'            AS post_code,
-        raw_data->'organisation'->>'parentName'          AS parent_name,
-        raw_data->'organisation'->>'logoUrl'             AS logo_url,
-        raw_data->'organisation'->>'maxDelayForConsent'  AS max_delay_for_consent,
-        raw_data->'organisation'->>'retentionPeriod'     AS retention_period,
-        raw_data->'organisation'->'geolocation'->>'latitude'  AS geo_lat,
-        raw_data->'organisation'->'geolocation'->>'longitude' AS geo_lon
-    FROM ingestion_rawdocument
-    WHERE document_type = 'OFFERS'
-""", engine)
-```
-
-```python
 df_counts = pd.read_sql("""
     SELECT
         raw_data->'organisation'->>'entityCode' AS entity_code,
@@ -319,11 +398,10 @@ fig = px.treemap(
     ids="code",
     names="label",
     parents="parentCode",
-    values="offer_count",       # taille des tuiles
+    values="offer_count",
     hover_data=["clientCode"],
 )
 fig.show(renderer="iframe")
-
 ```
 
 #### Filtre sur les noeuds / feuilles qui sont rattachés directement à au moins une offre
@@ -374,114 +452,43 @@ print(f"Total : {n:,} | Avec parent : {n_p:,} ({n_p/n:.1%}) | Racines : {n - n_p
 ```
 
 ```python
-import re
+df_viz_all = df_dila_full[df_dila_full["parent_id"] != ""].copy()
 
-BASE = "https://lannuaire.service-public.gouv.fr/"
-UUID_PATTERN = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+parent_ids_manquants = set(df_viz_all["parent_id"]) - set(df_viz_all["id"])
+df_parents = df_dila_full[df_dila_full["id"].isin(parent_ids_manquants)]
+df_tree_all = pd.concat([df_viz_all, df_parents]).drop_duplicates("id")
 
-def parse_url_path(url) -> dict:
-    if not isinstance(url, str):
-        return {"slug_1": None, "slug_2": None, "n_slugs": 0}
-    # Enlever le préfixe et l'UUID final
-    path = url.replace(BASE, "")
-    path = re.sub(UUID_PATTERN, "", path).strip("/")
-    slugs = [s for s in path.split("/") if s]
-    return {
-        "slug_1": slugs[0] if len(slugs) > 0 else None,
-        "slug_2": slugs[1] if len(slugs) > 1 else None,
-        "n_slugs": len(slugs),
-    }
-
-parsed_urls = df_dila_full["url_service_public"].apply(parse_url_path)
-df_dila_full[["slug_1", "slug_2", "n_slugs"]] = pd.DataFrame(parsed_urls.tolist(), index=df_dila_full.index)
-
-# Distribution de la structure
-print("=== Nombre de slugs ===")
-print(df_dila_full["n_slugs"].value_counts())
-
-print("\n=== Top slug_1 (1er niveau) ===")
-print(df_dila_full["slug_1"].value_counts().head(20))
-
-print("\n=== Cas à 2 slugs : slug_1 + slug_2 ===")
-print(df_dila_full[df_dila_full["n_slugs"] == 2][["slug_1", "slug_2"]].value_counts().head(20))
-
-```
-
-```python
-REGIONS = {
-    "auvergne-rhone-alpes", "occitanie", "nouvelle-aquitaine", "grand-est",
-    "hauts-de-france", "bourgogne-franche-comte", "normandie", "ile-de-france",
-    "centre-val-de-loire", "provence-alpes-cote-d-azur", "pays-de-la-loire",
-    "bretagne", "corse"
-}
-DOM_TOM = {"la-reunion", "martinique", "guadeloupe", "guyane", "mayotte",
-           "collectivites-d-outre-mer"}
-
-def classify(row) -> str:
-    if row["n_slugs"] == 2:
-        return "Territorial (région/dép.)"
-    elif row["slug_1"] == "gouvernement":
-        return "FPE central"
-    elif row["slug_1"] == "ambassades":
-        return "FPE international"
-    elif row["slug_1"] in DOM_TOM:
-        return "Territorial (DOM-TOM)"
-    elif row["n_slugs"] == 1 and row["slug_1"]:
-        return f"Autre ({row['slug_1']})"
-    return "Inconnu"
-
-df_dila_full["nature"] = df_dila_full.apply(classify, axis=1)
-
-# Croiser avec a_un_parent
-summary = (
-    df_dila_full
-    .assign(a_un_parent=df_dila_full["parent_id"] != "")
-    .groupby(["nature", "a_un_parent"])
-    .size()
-    .unstack(fill_value=0)
-    .rename(columns={False: "orphelin", True: "avec_parent"})
-    .assign(total=lambda d: d.sum(axis=1))
-    .assign(pct_orphelin=lambda d: (d["orphelin"] / d["total"]).map("{:.1%}".format))
+fig = px.treemap(
+    df_tree_all,
+    ids="id", names="nom", parents="parent_id",
+    title=f"Hiérarchie DILA all ({len(df_tree_all):,} nœuds)",
+    hover_data=["siren", "siret"],
 )
-summary.sort_values("total", ascending=False)
+fig.show(renderer="iframe")
 ```
 
 ```python
-# Les 7 nœuds "Inconnu" sans parent
-vrais_inconnus = df_dila_full[
-    (df_dila_full["nature"] == "Inconnu") & (df_dila_full["parent_id"] == "")
-]
-vrais_inconnus.to_csv("data/dila_inconnus_orphelins.csv", index=False)
-print(f"{len(vrais_inconnus)} lignes exportées")
-display(vrais_inconnus[["id", "nom", "url_service_public", "siren", "parent_id"]])
-```
+df_dila_fpe = df_dila_full[df_dila_full["categorie"] == "SI"]
+df_viz_fpe  = df_dila_fpe[df_dila_fpe["parent_id"] != ""].copy()
 
-> ### Toutes les administrations hors territorial ont un parent.
+# ← chercher dans df_dila_FULL, pas df_dila_fpe
+parent_ids_manquants = set(df_viz_fpe["parent_id"]) - set(df_viz_fpe["id"])
+df_parents = df_dila_full[df_dila_full["id"].isin(parent_ids_manquants)]
+df_tree_fpe = pd.concat([df_viz_fpe, df_parents]).drop_duplicates("id")
 
-```python
-# df_tree hors territorial (FPE + institutions + ambassades)
-df_hors_terr = df_dila_full[
-    (df_dila_full["nature"] != "Territorial (région/dép.)") &
-    (df_dila_full["parent_id"] != "")
-].copy()
+# Sécurité : neutraliser les parent_id qui restent introuvables
+ids_valides = set(df_tree_fpe["id"])
+df_tree_fpe["parent_id"] = df_tree_fpe["parent_id"].where(
+    df_tree_fpe["parent_id"].isin(ids_valides), other=""
+)
 
-# Ajouter les racines manquantes pour le treemap
-parent_ids_manquants = set(df_hors_terr["parent_id"]) - set(df_hors_terr["id"])
-df_parents_fpe = df_dila_full[df_dila_full["id"].isin(parent_ids_manquants)]
-df_tree_fpe = pd.concat([df_hors_terr, df_parents_fpe]).drop_duplicates("id")
+print(f"Nœuds: {len(df_tree_fpe):,}")
 
-print(f"Nœuds hors territorial : {len(df_tree_fpe):,}")
-print(df_tree_fpe["nature"].value_counts())
-
-# Treemap
 fig = px.treemap(
     df_tree_fpe,
-    ids="id",
-    names="nom",
-    parents="parent_id",
-    color="nature",
-    title=f"Hiérarchie DILA — FPE + institutions ({len(df_tree_fpe):,} nœuds)",
-    hover_data=["siren", "siret", "slug_1"],
+    ids="id", names="nom", parents="parent_id",
+    title=f"Hiérarchie DILA FPE ({len(df_tree_fpe):,} nœuds)",
+    hover_data=["siren", "siret"],
 )
 fig.show(renderer="iframe")
 ```
@@ -489,59 +496,50 @@ fig.show(renderer="iframe")
 > **Les données de l'annuaire des services public de la DILA permet de reproduire la notion de hierarchie au sein des organismes de la FPE**
 
 ```python
-# Nœuds racines = ceux qui n'ont pas de parent dans df_dila_full
-racines = df_dila_full[df_dila_full["parent_id"] == ""].copy()
+# ── Dicts de lookup sur le FULL (indispensable pour traverser toute la hiérarchie) ──
+id_to_siren  = df_dila_full.set_index("id")["siren"].to_dict()
+id_to_siret  = df_dila_full.set_index("id")["siret"].to_dict()
+id_to_parent = df_dila_full.set_index("id")["parent_id"].to_dict()
 
-print(f"Nombre de racines : {len(racines)}")
-print(f"Racines sans SIREN ni SIRET : {(~racines['siren'].apply(has_val) & ~racines['siret'].apply(has_val)).sum()}")
-print(f"Soit : {(~racines['siren'].apply(has_val) & ~racines['siret'].apply(has_val)).mean():.0%}")
+def has_val(val) -> bool:
+    return pd.notna(val) and str(val).strip() not in ("", "nan")
 
-```
-
-```python
 # ── Identifier l'id du nœud référent (le plus fin avec SIREN ou SIRET) ──
 def get_referent_id_finest(node_id):
-    """Retourne l'id du nœud le plus fin (= le plus proche de la feuille) avec SIREN ou SIRET."""
     current = node_id
     for _ in range(20):
         if has_val(id_to_siren.get(current)) or has_val(id_to_siret.get(current)):
-            return current  # premier trouvé en remontant = le plus fin
+            return current
         parent = id_to_parent.get(current, "")
         if not parent:
             break
         current = parent
-    return None  # aucun SIREN/SIRET sur le chemin
+    return None
 
-# Exclure la territoriale
-df_hors_terr_full = df_dila_full[
-    df_dila_full["nature"] != "Territorial (région/dép.)"
-].copy()
-#df_hors_terr_full = df_dila_full.copy()
+# ── Partir de df_dila_fpe (catégorie SI) ──────────────────────────────────────
+df_fpe_work = df_dila_fpe.copy()
+df_fpe_work["referent_id"] = df_fpe_work["id"].apply(get_referent_id_finest)
 
-df_hors_terr_full["referent_id"] = df_hors_terr_full["id"].apply(get_referent_id_finest)
-
-# ── Agrégation correcte ───────────────────────────────────────────────────
+# ── Agrégation ───────────────────────────────────────────────────────────────
 # Cas 1 : nœuds avec référent → on ne garde QUE la ligne où id == referent_id
-referents_uniques  = set(df_hors_terr_full["referent_id"].dropna().unique())
+referents_uniques = set(df_fpe_work["referent_id"].dropna().unique())
 
 # Cas 2 : nœuds sans référent (aucun SIREN/SIRET sur tout le chemin)
-sans_referent_ids  = set(df_hors_terr_full[df_hors_terr_full["referent_id"].isna()]["id"])
+sans_referent_ids = set(df_fpe_work[df_fpe_work["referent_id"].isna()]["id"])
 
-# On filtre df_flat_sorted sur les ids hors territorial d'abord,
-# puis on ne garde que les référents uniques + les orphelins
-ids_hors_terr = set(df_hors_terr_full["id"])
-ids_a_garder  = (referents_uniques | sans_referent_ids) & ids_hors_terr
+# On ne garde que les référents uniques + les orphelins, dans les ids SI
+ids_fpe = set(df_fpe_work["id"])
+ids_a_garder = (referents_uniques | sans_referent_ids) & ids_fpe
 
-df_flat_agg = df_flat_sorted[df_flat_sorted["id"].isin(ids_a_garder)].copy()
+df_flat_agg = df_dila_fpe[df_dila_fpe["id"].isin(ids_a_garder)].copy()
 
-print(f"Avant agrégation (hors territorial) : {df_flat_sorted[df_flat_sorted['id'].isin(ids_hors_terr)].shape[0]:,} lignes")
-print(f"Après agrégation                     : {len(df_flat_agg):,} lignes")
-print(f"  dont référents uniques (avec SIREN/SIRET) : {len(referents_uniques):,}")
+print(f"Avant agrégation (catégorie SI) : {len(df_dila_fpe):,} lignes")
+print(f"Après agrégation                : {len(df_flat_agg):,} lignes")
+print(f"  dont référents uniques (avec SIREN/SIRET) : {len(referents_uniques & ids_fpe):,}")
 print(f"  dont orphelins (sans SIREN/SIRET)         : {len(sans_referent_ids):,}")
-print(f"  dont avec siren_effectif renseigné        : {df_flat_agg['siren_effectif'].notna().sum():,}")
+print(f"  dont avec siren renseigné                 : {df_flat_agg['siren'].notna().sum():,}")
 
-df_flat_agg.to_csv("data/dila_flat_hierarchy.csv", index=False, encoding="utf-8-sig")
-
+df_flat_agg.to_csv("data/dila_flat_fpe.csv", index=False, encoding="utf-8-sig")
 ```
 
 > **Mais les SIRET / SIREN sont souvent manquants, et ce n'est pas seulement du à une granularité trop fine (exemple : bureaux).**
@@ -549,54 +547,149 @@ df_flat_agg.to_csv("data/dila_flat_hierarchy.csv", index=False, encoding="utf-8-
 
 > **Le taux de complétude des siret / siren nécessite une API externe**
 
+```python
+# ── Treemap de df_flat_agg (référents SI agrégés) ────────────────────────────
 
-> **Si on s'appuie sur les données de la DILA pour la FPE: il sera nessaire de mettre une heuristique pour couper le référenciel au niveau des feuilles (bureaux etc.)**
+# Récupérer les parents manquants depuis df_dila_full
+parent_ids_manquants = set(df_flat_agg["parent_id"]) - {""} - set(df_flat_agg["id"])
+df_parents_tree = df_dila_full[df_dila_full["id"].isin(parent_ids_manquants)]
+df_tree_agg = pd.concat([df_flat_agg, df_parents_tree]).drop_duplicates("id").copy()
 
+# Neutraliser les parent_id encore fantômes (parents de parents hors périmètre)
+ids_valides = set(df_tree_agg["id"])
+df_tree_agg["parent_id"] = df_tree_agg["parent_id"].where(
+    df_tree_agg["parent_id"].isin(ids_valides), other=""
+)
 
-### 2.4 Comparaison des champs d'intéret
+print(f"Nœuds dans le treemap : {len(df_tree_agg):,}")
+
+fig = px.treemap(
+    df_tree_agg,
+    ids="id",
+    names="nom",
+    parents="parent_id",
+    title=f"Hiérarchie DILA — Référents FPE/SI agrégés ({len(df_flat_agg):,} nœuds)",
+    hover_data=["siren", "siret"],
+)
+fig.show(renderer="iframe")
+
+```
+
+> **Si on s'appuie sur les données de la DILA pour la FPE: il sera aussi necessaire de mettre en place une heuristique pour couper le référenciel au niveau des feuilles (bureaux etc.)**
 
 ```python
-import httpx
-import time
+import json
 
-RECHERCHE_API = "https://recherche-entreprises.api.gouv.fr/search"
-
-def fetch_siren_by_name(nom: str) -> tuple[str | None, str | None]:
-    """Retourne (siren, siret_siege) depuis l'API recherche-entreprises."""
+def extract_geo(adresse_raw):
+    if not isinstance(adresse_raw, str):
+        return None, None
     try:
-        resp = httpx.get(
-            RECHERCHE_API,
-            params={
-                "q": nom,
-                "categorie_juridique": "7120",  # organismes d'État
-                "per_page": 1,
-            },
-            timeout=10,
-        )
-        results = resp.json().get("results", [])
-        if results:
-            r = results[0]
-            return r.get("siren"), r.get("siege", {}).get("siret")
+        adresses = json.loads(adresse_raw)
+        for adr in adresses:
+            lon = adr.get("longitude", "").strip()
+            lat = adr.get("latitude", "").strip()
+            if lon and lat:
+                return float(lon), float(lat)
     except Exception:
         pass
     return None, None
 
-# Enrichir uniquement les organismes sans siren_effectif
-sans_siren = df_hors_terr[
-    df_hors_terr["siren_effectif"].isna() & df_hors_terr["siret_effectif"].isna()
-].copy()
+# Extraire
+geo = df_flat_agg["adresse"].apply(extract_geo)
+df_flat_agg["geo_lon"] = geo.apply(lambda x: x[0])
+df_flat_agg["geo_lat"] = geo.apply(lambda x: x[1])
 
-sirens, sirets = [], []
-for nom in sans_siren["nom"]:
-    s, st = fetch_siren_by_name(nom)
-    sirens.append(s)
-    sirets.append(st)
-    time.sleep(0.1)  # politesse API
+# ── Taux de complétude ────────────────────────────────────────────────────────
+n = len(df_flat_agg)
+has_geo = df_flat_agg["geo_lon"].notna() & df_flat_agg["geo_lat"].notna()
+n_geo   = has_geo.sum()
 
-sans_siren["siren_api"] = sirens
-sans_siren["siret_api"] = sirets
+print(f"Avec géolocalisation : {n_geo:,} / {n:,}  ({n_geo/n:.1%})")
+print(f"Sans géolocalisation : {n - n_geo:,} / {n:,}  ({(n - n_geo)/n:.1%})")
 
-print(f"Enrichis via API : {sans_siren['siren_api'].notna().sum()} / {len(sans_siren)}")
-sans_siren[["nom", "nature", "siren", "siren_effectif", "siren_api", "siret_api"]].head(20)
+```
 
+```python
+
+# ── Fraîcheur des données DILA — df_flat_agg (FPE / catégorie SI) ─────────────
+df_flat_agg["date_modification"] = pd.to_datetime(df_flat_agg["date_modification"], errors="coerce")
+df_flat_agg["date_creation"]     = pd.to_datetime(df_flat_agg["date_creation"], errors="coerce")
+
+today = pd.Timestamp.now().normalize()
+n     = len(df_flat_agg)
+age   = (today - df_flat_agg["date_modification"]).dt.days
+
+# 1. Complétude des dates
+pd.DataFrame({
+    "champ":        ["date_creation", "date_modification"],
+    "renseignés":   [df_flat_agg["date_creation"].notna().sum(),
+                     df_flat_agg["date_modification"].notna().sum()],
+    "total":        [n, n],
+    "complétude":   [f"{df_flat_agg['date_creation'].notna().mean():.1%}",
+                     f"{df_flat_agg['date_modification'].notna().mean():.1%}"],
+})
+```
+
+```python
+pd.DataFrame([
+    {
+        "fenêtre": f"{j} jours",
+        "organismes": (df_flat_agg["date_modification"] >= today - pd.Timedelta(days=j)).sum(),
+        "% du total": f"{(df_flat_agg['date_modification'] >= today - pd.Timedelta(days=j)).mean():.1%}",
+    }
+    for j in [30, 90, 180, 365]
+])
+```
+
+```python
+(
+    df_flat_agg["date_modification"]
+    .dt.year
+    .value_counts()
+    .sort_index(ascending=False)
+    .rename_axis("année")
+    .reset_index(name="nb_organismes")
+    .assign(pct=lambda d: (d["nb_organismes"] / n).map("{:.1%}".format))
+)
+
+```
+
+```python
+# ── Couverture FPH dans df_dila_full ─────────────────────────────────────────
+
+# 1. Explorer le croisement categorie × type_organisme pour repérer la FPH
+pd.crosstab(
+    df_dila_full["categorie"],
+    df_dila_full["type_organisme"],
+    margins=True,
+    margins_name="Total"
+).sort_values("Total", ascending=False)
+```
+
+```python
+# 2. Identifier les valeurs de type_organisme qui semblent relever de la FPH
+fph_keywords = ["hôpital", "hopital", "chu", "chru", "chp", "ehpad", "clinique",
+                "soin", "santé", "médico", "psychiatr", "maternité"]
+
+mask_fph = df_dila_full["nom"].str.lower().str.contains(
+    "|".join(fph_keywords), na=False
+)
+
+df_fph = df_dila_full[mask_fph].copy()
+print(f"Organismes FPH identifiés : {len(df_fph):,}")
+
+# Répartition par type_organisme
+df_fph["type_organisme"].value_counts().reset_index()
+```
+
+```python
+# 3. Couverture : % avec siren/siret, géolocalisation
+n_fph = len(df_fph)
+
+pd.DataFrame([
+    {"indicateur": "Total FPH identifiés",            "valeur": f"{n_fph:,}",          "taux": "—"},
+    {"indicateur": "Avec SIREN",                       "valeur": f"{df_fph['siren'].notna().sum():,}", "taux": f"{df_fph['siren'].notna().mean():.1%}"},
+    {"indicateur": "Avec SIRET",                       "valeur": f"{df_fph['siret'].notna().sum():,}", "taux": f"{df_fph['siret'].notna().mean():.1%}"},
+    {"indicateur": "Avec parent_id (dans hiérarchie)", "valeur": f"{(df_fph['parent_id'] != '').sum():,}", "taux": f"{(df_fph['parent_id'] != '').mean():.1%}"},
+])
 ```
