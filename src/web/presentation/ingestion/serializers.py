@@ -1,22 +1,16 @@
 from rest_framework import serializers
 
 
-class ValidationErrorSerializer(serializers.Serializer):
+class GenericErrorSerializer(serializers.Serializer):
+    error = serializers.CharField()
+
+
+class ValidationErrorSerializer(GenericErrorSerializer):
     row = serializers.IntegerField()
-    error = serializers.CharField()
 
 
-class FileErrorSerializer(serializers.Serializer):
-    error = serializers.CharField()
-
-
-class NoValidRowsErrorSerializer(serializers.Serializer):
-    error = serializers.CharField()
+class NoValidRowsErrorSerializer(GenericErrorSerializer):
     validation_errors = ValidationErrorSerializer(many=True)
-
-
-class ServerErrorSerializer(serializers.Serializer):
-    error = serializers.CharField()
 
 
 class TokenErrorMessageSerializer(serializers.Serializer):
