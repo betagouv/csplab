@@ -394,7 +394,7 @@ LIST_METIERS_EXAMPLES = [
 UPSERT_OFFERS_DESCRIPTION = """
 # API d'ingestion d'offres d'emploi de la Fonction Publique
 
-Cette API permet de créer ou mettre à jour des offres d'emploi, en masse, \
+Cette API permet de créer ou mettre à jour, entre 1 et 100 offres d'emploi à la fois, \
 via un payload JSON.
 
 - Les offres sont identifiées par son champ `reference` (clé d'upsert).
@@ -408,4 +408,6 @@ utilisateur.
 # Limitations
 
 L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+
+Le nombre d'offres transmises par appel à l'API est limité à 100.
 """

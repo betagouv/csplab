@@ -505,7 +505,14 @@ class ArchiveOffersView(APIView):
     tags=["offres"],
     request=inline_serializer(
         name="UpsertOffersRequest",
-        fields={"offres": OffersInputSerializer(many=True)},
+        fields={
+            "offres": serializers.ListField(
+                child=OffersInputSerializer(),
+                min_length=1,
+                max_length=100,
+                help_text="Liste d'offres à créer ou mettre à jour (min: 1, max: 100)",
+            )
+        },
     ),
     responses={
         201: inline_serializer(

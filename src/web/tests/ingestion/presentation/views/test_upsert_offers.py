@@ -214,14 +214,23 @@ def test_get_method_not_allowed(authenticated_client):
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-def test_invalid_payload_returns_error_400(authenticated_client):
+@pytest.mark.parametrize(
+    "num_offers,expected_msg",
+    [
+        (101, "Ensure this field has no more than 100 elements."),
+        (0, "Ensure this field has at least 1 elements."),
+    ],
+)
+def test_invalid_payload_returns_error_400(
+    authenticated_client, num_offers, expected_msg
+):
     response = authenticated_client.post(
         URL,
-        data=[],
+        data=[MINIMAL_VALID_OFFER] * num_offers,
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"offres": ["Ensure this field has at least 1 elements."]}
+    assert response.json() == {"offres": [expected_msg]}
 
 
 def test_valid_payload_returns_201_and_valid_offers_to_usecase(
