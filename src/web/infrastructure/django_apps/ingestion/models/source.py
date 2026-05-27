@@ -9,8 +9,8 @@ from domain.value_objects.source_type import SourceType
 class SourceModel(models.Model):
     objects: models.Manager = models.Manager()
 
-    id = models.UUIDField(primary_key=True)
-    source_id = models.UUIDField(unique=True)
+    id = models.UUIDField(primary_key=True, default=uuid4)
+    source_id = models.UUIDField(unique=True, default=uuid4)
     type = models.CharField(
         max_length=50, choices=[(st.value, st.value) for st in SourceType]
     )
