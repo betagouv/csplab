@@ -96,7 +96,12 @@ class TalentsoftOfferFactory(ModelFactory[TalentsoftOffer]):
 
     @classmethod
     def geographicalLocation(cls) -> List[TalentsoftCodedObject]:
-        return TalentsoftCodedObjectFactory.batch(size=1)
+        return [
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_GeographicalArea_Europe",
+                type="offerGeographicalArea",
+            )
+        ]
 
     @classmethod
     def country(cls) -> List[TalentsoftCodedObject]:
@@ -249,7 +254,12 @@ class TalentsoftDetailOfferFactory(ModelFactory[TalentsoftDetailOffer]):
 
     @classmethod
     def geographicalLocation(cls) -> List[TalentsoftCodedObject]:
-        return TalentsoftCodedObjectFactory.batch(size=1)
+        return [
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_GeographicalArea_Europe",
+                type="offerGeographicalArea",
+            )
+        ]
 
     @classmethod
     def country(cls) -> List[TalentsoftCodedObject]:
