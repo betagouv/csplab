@@ -81,6 +81,7 @@ class PostgresOffersRepository(IOffersRepository):
                                 "contract_type",
                                 "organization",
                                 "offer_url",
+                                "area",
                                 "country",
                                 "region",
                                 "department",

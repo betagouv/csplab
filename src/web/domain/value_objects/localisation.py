@@ -2,16 +2,25 @@
 
 from dataclasses import dataclass
 
+from domain.value_objects.area import GeographicalArea
 from domain.value_objects.country import Country
 from domain.value_objects.department import Department
 from domain.value_objects.region import Region
 
+# TODO : Redefine Localisation as follow
+# - geographical_area: GeographicalArea
+# - country: Country
+# - coordinates: Coordinates
+# - city: Optional[str]
+# - subdivision: Optional[Subdivision] #for France only
+
 
 @dataclass(frozen=True)
 class Localisation:
+    area: GeographicalArea
+    country: Country
     region: Region
     department: Department
-    country: Country
 
     def __str__(self):
         return (

@@ -23,7 +23,7 @@ async def test_vacancy_status_archived_calls_archive(
     payload = {
         "event_type": "vacancy_status",
         "reference": REFERENCE,
-        "statusId": "_TS_Archived",
+        "statusId": "_TS_CO_OfferStatus_Archive",
     }
     response = make_signed_request(talentsoft_client, payload)
     assert response.status_code == 200
