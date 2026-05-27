@@ -1,6 +1,7 @@
 from typing import Dict, List, Protocol
 
 from domain.entities.metier import Metier
+from domain.interfaces.page_interface import IPage
 from domain.repositories.document_repository_interface import IUpsertResult
 
 IPredicate = Dict[str, str]
@@ -12,6 +13,8 @@ class IMetierRepository(Protocol):
     def get_by_external_id(self, external_id: str) -> Metier: ...
 
     def get_all(self) -> List[Metier]: ...
+
+    def get_filtered_slice(self, predicate: IPredicate) -> IPage[Metier]: ...
 
     def get_filtered(
         self, predicate: IPredicate
