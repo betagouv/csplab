@@ -6,15 +6,10 @@ import httpx
 class AsyncHttpClient:
     def __init__(self, timeout: int = 120):
         self.timeout = timeout
-        self._client: Optional[httpx.AsyncClient] = None
-
-    def _ensure_client(self) -> httpx.AsyncClient:
-        if self._client is None:
-            self._client = httpx.AsyncClient(timeout=self.timeout)
-        return self._client
+        self._client: Optional[httpx.AsyncClient] = httpx.AsyncClient(timeout=timeout)
 
     async def __aenter__(self) -> Self:
-        self._ensure_client()
+        self._client = httpx.AsyncClient(timeout=self.timeout)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
@@ -28,7 +23,9 @@ class AsyncHttpClient:
         headers: Optional[Dict[str, str]] = None,
         data: Optional[Dict[str, Any]] = None,
     ) -> httpx.Response:
-        return await self._ensure_client().post(url=url, headers=headers, data=data)
+        if not self._client:
+            raise RuntimeError("Client not initialized.")
+        return await self._client.post(url=url, headers=headers, data=data)
 
     async def get(
         self,
@@ -36,4 +33,6 @@ class AsyncHttpClient:
         headers: Optional[Dict[str, str]] = None,
         params: Optional[Mapping[str, int | str]] = None,
     ) -> httpx.Response:
-        return await self._ensure_client().get(url=url, headers=headers, params=params)
+        if not self._client:
+            raise RuntimeError("Client not initialized.")
+        return await self._client.get(url=url, headers=headers, params=params)
