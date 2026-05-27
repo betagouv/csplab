@@ -8,7 +8,7 @@ from tests.conftest import WEB_BASE_URL
 
 fake = Faker()
 
-SOURCES_URL = f"{WEB_BASE_URL}/api/data/sources/"
+SOURCES_URL = f"{WEB_BASE_URL}/api/v1/sources/"
 
 SOURCE_DATA = {
     "source_id": "aaaa-bbbb",

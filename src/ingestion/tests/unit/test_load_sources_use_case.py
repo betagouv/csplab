@@ -10,7 +10,7 @@ from tests.shared_fixtures import WEB_API_KEY, WEB_BASE_URL
 
 fake = Faker()
 
-SOURCES_URL = f"{WEB_BASE_URL}/api/data/sources/"
+SOURCES_URL = f"{WEB_BASE_URL}/api/v1/sources/"
 
 
 @pytest.mark.asyncio
