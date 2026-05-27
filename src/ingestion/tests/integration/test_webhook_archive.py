@@ -4,8 +4,8 @@ from pytest_httpx import HTTPXMock
 
 from api.main import create_app
 from tests.integration.conftest import (
-    TALENTSOFT_CLIENT_ID,
-    TALENTSOFT_CLIENT_SECRET,
+    TALENTSOFT_BACK_CLIENT_ID,
+    TALENTSOFT_BACK_CLIENT_SECRET,
     WEB_API_KEY,
     WEB_BASE_URL,
     make_signed_request,
@@ -69,8 +69,8 @@ async def test_other_event_type_does_not_call_archive(
 @pytest.mark.asyncio
 async def test_web_service_not_configured_returns_500(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
-    monkeypatch.setenv("TALENTSOFT_CLIENT_ID", TALENTSOFT_CLIENT_ID)
-    monkeypatch.setenv("TALENTSOFT_CLIENT_SECRET", TALENTSOFT_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
+    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
     monkeypatch.delenv("WEB_BASE_URL", raising=False)
     monkeypatch.delenv("WEB_API_KEY", raising=False)
     app = create_app()
