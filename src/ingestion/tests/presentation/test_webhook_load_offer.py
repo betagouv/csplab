@@ -162,3 +162,39 @@ async def test_other_event_type_does_not_call_talentsoft(
 
     assert response.status_code == 200
     assert httpx_mock.get_requests() == []
+
+
+@pytest.mark.asyncio
+async def test_token_is_fetched_once_across_two_webhook_requests(
+    talentsoft_client, httpx_mock: HTTPXMock
+):
+    reference_2 = "2024-VACANCY-002"
+
+    _mock_token_response(httpx_mock)
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{DETAIL_OFFER_URL}?reference={REFERENCE}",
+        json=_detail_offer_payload(REFERENCE),
+    )
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{DETAIL_OFFER_URL}?reference={reference_2}",
+        json=_detail_offer_payload(reference_2),
+    )
+
+    response_1 = make_signed_request(
+        talentsoft_client, {"event_type": "vacancy_new", "reference": REFERENCE}
+    )
+    response_2 = make_signed_request(
+        talentsoft_client, {"event_type": "vacancy_new", "reference": reference_2}
+    )
+
+    assert response_1.status_code == 200
+    assert response_2.status_code == 200
+
+    requests = httpx_mock.get_requests()
+    # 1 token request + 2 detail requests.
+    # token is not fetched again on the second webhook call
+    assert len(requests) == 3
+    token_requests = [r for r in requests if str(r.url) == TOKEN_URL]
+    assert len(token_requests) == 1
