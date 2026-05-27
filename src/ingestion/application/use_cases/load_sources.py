@@ -22,7 +22,7 @@ class LoadSourcesUseCase:
         self._registry = registry
 
     async def execute(self) -> None:
-        url = f"{self._web_base_url}/api/v1/sources"
+        url = f"{self._web_base_url}/api/v1/sources/"
         response = await self._client.get(
             url,
             headers={"Authorization": f"Api-Key {self._web_api_key}"},
