@@ -33,6 +33,8 @@ def test_client(monkeypatch) -> TestClient:
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.delenv("TALENTSOFT_BACK_CLIENT_ID", raising=False)
     monkeypatch.delenv("TALENTSOFT_BACK_CLIENT_SECRET", raising=False)
+    monkeypatch.delenv("TALENTSOFT_FRONT_CLIENT_ID", raising=False)
+    monkeypatch.delenv("TALENTSOFT_FRONT_CLIENT_SECRET", raising=False)
     app = create_app()
     return TestClient(app)
 

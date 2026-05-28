@@ -54,6 +54,10 @@ def create_app():
                     settings.talentsoft_back_client_id,
                     settings.talentsoft_back_client_secret,
                 ),
+                (
+                    settings.talentsoft_front_client_id,
+                    settings.talentsoft_front_client_secret,
+                ),
             ]
             if client_id and secret
         ]
