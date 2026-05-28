@@ -737,7 +737,7 @@ components:
     TokenObtainPair:
       type: object
       properties:
-        username:
+        email:
           type: string
           writeOnly: true
         password:
@@ -751,9 +751,9 @@ components:
           readOnly: true
       required:
       - access
+      - email
       - password
       - refresh
-      - username
     TokenRefresh:
       type: object
       properties:
