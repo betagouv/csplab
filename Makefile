@@ -231,6 +231,7 @@ lint: \
   lint-ocr \
   lint-ingestion \
   lint-schema
+	frontend-lint
 .PHONY: lint
 
 lint-fix: ## lint and fix all sources

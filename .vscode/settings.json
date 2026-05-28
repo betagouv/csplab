@@ -29,10 +29,14 @@
     "reportMissingImports": "none",
     "reportMissingModuleSource": "none"
   },
-  "python.analysis.extraPaths": ["${workspaceFolder}/src/web"],
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/src/web"
+  ],
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestArgs": ["."],
+  "python.testing.pytestArgs": [
+    "."
+  ],
   "python.testing.cwd": "${workspaceFolder}/src/web",
   "python.defaultInterpreterPath": "${workspaceFolder}/src/web/.venv/bin/python",
   "python.terminal.activateEnvironment": true,
@@ -40,6 +44,13 @@
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
+  "[css]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "never"
+    }
+  },
   "[scss]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
@@ -48,16 +59,33 @@
     }
   },
   "stylelint.enable": true,
-  "stylelint.validate": ["css", "scss"],
+  "stylelint.validate": [
+    "css",
+    "scss"
+  ],
   "stylelint.configFile": "${workspaceFolder}/.stylelintrc.json",
   "prettier.enable": true,
   "emmet.includeLanguages": {
     "django-html": "html"
   },
+  "eslint.format.enable": true,
   "eslint.useFlatConfig": true,
-  "[vue][typescript][javascript][json][jsonc]": {
+  "eslint.workingDirectories": [
+    {
+      "directory": "./src/web/presentation/frontend",
+      "changeProcessCWD": true
+    }
+  ],
+  "[vue]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint",
     "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "never",
+      "source.organizeImports": "never"
+    }
+  },
+  "[typescript][javascript][json][jsonc]": {
+    "editor.formatOnSave": false,
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": "explicit",
       "source.organizeImports": "never"
@@ -67,6 +95,8 @@
     "javascript",
     "typescript",
     "vue",
+    "css",
+    "scss",
     "json",
     "jsonc"
   ]

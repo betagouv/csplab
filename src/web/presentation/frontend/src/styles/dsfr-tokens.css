@@ -95,7 +95,7 @@
   --csplab-z-toast: 1200;
 }
 
-[data-fr-theme="dark"] {
+[data-fr-theme='dark'] {
   --text-default-grey: #cecece;
   --text-title-grey: #f5f5f5;
   --text-title-blue-france: #8585f6;
