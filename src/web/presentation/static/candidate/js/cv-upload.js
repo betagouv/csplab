@@ -5,6 +5,9 @@ class CVUploadHandler {
   /** @type {HTMLElement|null} */
   dropzone;
 
+  /** @type {HTMLElement|null} */
+  uploadTrigger;
+
   /** @type {HTMLInputElement|null} */
   fileInput;
 
@@ -35,6 +38,7 @@ class CVUploadHandler {
   constructor(container) {
     this.container = container;
     this.dropzone = container.querySelector('[data-dropzone]');
+    this.uploadTrigger = container.querySelector('[data-upload-trigger]');
     this.fileInput = container.querySelector('[data-file-input]');
     this.fileCard = container.querySelector('[data-file-card]');
     this.fileName = container.querySelector('[data-file-name]');
@@ -147,6 +151,9 @@ class CVUploadHandler {
     if (this.dropzone) {
       this.dropzone.hidden = true;
     }
+    if (this.uploadTrigger) {
+      this.uploadTrigger.hidden = true;
+    }
     if (this.fileCard) {
       this.fileCard.hidden = false;
     }
@@ -189,6 +196,9 @@ class CVUploadHandler {
       this.dropzone.hidden = false;
       this.dropzone.dataset.state = 'initial';
     }
+    if (this.uploadTrigger) {
+      this.uploadTrigger.hidden = false;
+    }
     if (this.uploadActions) {
       this.uploadActions.hidden = true;
       this.uploadActions.setAttribute('aria-hidden', 'true');
@@ -225,20 +235,8 @@ class CVUploadHandler {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const isTouchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
   const form = document.getElementById('cv-upload-form');
   if (!form) return;
-
-  if (isTouchOnly) {
-    const noJsInput = form.querySelector('[data-nojs-input]');
-    const noJsActions = form.querySelector('[data-nojs-actions]');
-    if (noJsInput && noJsActions) {
-      noJsInput.addEventListener('change', () => {
-        noJsActions.hidden = !noJsInput.value;
-      });
-    }
-    return;
-  }
 
   new CVUploadHandler(form);
 });
