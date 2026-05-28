@@ -52,19 +52,14 @@
     }
   },
   "[scss]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.fixAll.stylelint": "explicit"
+      "source.fixAll.eslint": "never"
     }
   },
-  "stylelint.enable": true,
-  "stylelint.validate": [
-    "css",
-    "scss"
-  ],
-  "stylelint.configFile": "${workspaceFolder}/.stylelintrc.json",
-  "prettier.enable": true,
+  "stylelint.enable": false,
+  "prettier.enable": false,
   "emmet.includeLanguages": {
     "django-html": "html"
   },
@@ -73,6 +68,10 @@
   "eslint.workingDirectories": [
     {
       "directory": "./src/web/presentation/frontend",
+      "changeProcessCWD": true
+    },
+    {
+      "directory": "./src/web",
       "changeProcessCWD": true
     }
   ],
