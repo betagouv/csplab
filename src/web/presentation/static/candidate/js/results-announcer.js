@@ -66,6 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultsZone = document.getElementById('results-zone')
   const liveRegion = document.getElementById('results-live-region')
   if (resultsZone && liveRegion) {
-    new ResultsAnnouncer(resultsZone, liveRegion)
+    void new ResultsAnnouncer(resultsZone, liveRegion)
   }
 })

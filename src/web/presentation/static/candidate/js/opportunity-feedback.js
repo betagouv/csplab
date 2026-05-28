@@ -127,7 +127,7 @@ class OpportunityFeedbackHandler {
   }
 
   /**
-   * @returns {boolean}
+   * @returns {boolean} Whether feedback debug logging is enabled.
    */
   static isDebug() {
     return localStorage.getItem(OpportunityFeedbackHandler.DEBUG_KEY) === 'true'
@@ -138,12 +138,12 @@ class OpportunityFeedbackHandler {
    */
   static log(...args) {
     if (OpportunityFeedbackHandler.isDebug()) {
-      console.debug('%c[feedback]', 'color: #6a6af4; font-weight: bold', ...args)
+      console.warn('%c[feedback]', 'color: #6a6af4; font-weight: bold', ...args)
     }
   }
 
   /**
-   * @returns {Record<string, string>}
+   * @returns {Record<string, string>} The stored feedback entries by opportunity id.
    */
   static getStoredFeedbacks() {
     try {

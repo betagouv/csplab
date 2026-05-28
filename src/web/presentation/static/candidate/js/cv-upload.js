@@ -170,7 +170,7 @@ class CVUploadHandler {
 
   /**
    * @param {number} bytes
-   * @returns {string}
+   * @returns {string} The file size formatted for display.
    */
   formatSize(bytes) {
     const KB = 1024
@@ -247,5 +247,5 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!form)
     return
 
-  new CVUploadHandler(form)
+  void new CVUploadHandler(form)
 })
