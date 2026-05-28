@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
 
 from api.main import create_app
+from presentation.dtos.talentsoft_webhook import TalentsoftEventType
 from tests.conftest import (
     TALENTSOFT_BACK_CLIENT_ID,
     TALENTSOFT_BACK_CLIENT_SECRET,
@@ -69,7 +70,7 @@ async def test_vacancy_new_fetches_offer_details(
         json=_detail_offer_payload(),
     )
 
-    payload = {"event_type": "vacancy_new", "reference": REFERENCE}
+    payload = {"event_type": TalentsoftEventType.VACANCY_NEW, "reference": REFERENCE}
     response = make_signed_request(talentsoft_client, payload)
 
     assert response.status_code == 200
@@ -95,7 +96,7 @@ async def test_vacancy_update_fetches_offer_details(
         json=_detail_offer_payload(),
     )
 
-    payload = {"event_type": "vacancy_update", "reference": REFERENCE}
+    payload = {"event_type": TalentsoftEventType.VACANCY_UPDATE, "reference": REFERENCE}
     response = make_signed_request(talentsoft_client, payload)
 
     assert response.status_code == 200
@@ -116,7 +117,7 @@ async def test_vacancy_new_talentsoft_not_configured_returns_500(monkeypatch):
     app = create_app()
     client = TestClient(app, raise_server_exceptions=False)
 
-    payload = {"event_type": "vacancy_new", "reference": REFERENCE}
+    payload = {"event_type": TalentsoftEventType.VACANCY_NEW, "reference": REFERENCE}
     response = make_signed_request(client, payload)
 
     assert response.status_code == 500
@@ -147,7 +148,7 @@ async def test_vacancy_new_talentsoft_api_error_propagates(
             status_code=500,
         )
 
-    payload = {"event_type": "vacancy_new", "reference": REFERENCE}
+    payload = {"event_type": TalentsoftEventType.VACANCY_NEW, "reference": REFERENCE}
     response = make_signed_request(client, payload)
 
     assert response.status_code == 500

@@ -5,6 +5,10 @@ from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
 
 from api.main import create_app
+from presentation.dtos.talentsoft_webhook import (
+    TalentsoftEventType,
+    TalentsoftOfferStatus,
+)
 from tests.conftest import (
     SOURCE_ID,
     TALENTSOFT_BACK_CLIENT_ID,
@@ -19,14 +23,37 @@ ARCHIVE_URL = f"{WEB_BASE_URL}/api/v1/offres/archiver"
 
 
 @pytest.mark.asyncio
-async def test_vacancy_status_archived_calls_archive(
-    talentsoft_client, httpx_mock: HTTPXMock
+async def test_vacancy_deleted_calls_archive(talentsoft_client, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=ARCHIVE_URL, status_code=200)
+    payload = {
+        "event_type": TalentsoftEventType.VACANCY_DELETED,
+        "reference": REFERENCE,
+    }
+    response = make_signed_request(talentsoft_client, payload)
+    assert response.status_code == 200
+    requests = httpx_mock.get_requests()
+    assert len(requests) == 1
+    body = json.loads(requests[0].content)
+    assert body["source_id"] == SOURCE_ID
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "status_id",
+    [
+        status
+        for status in TalentsoftOfferStatus
+        if status != TalentsoftOfferStatus.DIFFUSE
+    ],
+)
+async def test_vacancy_status_non_diffuse_calls_archive(
+    talentsoft_client, httpx_mock: HTTPXMock, status_id: TalentsoftOfferStatus
 ):
     httpx_mock.add_response(method="POST", url=ARCHIVE_URL, status_code=200)
     payload = {
-        "event_type": "vacancy_status",
+        "event_type": TalentsoftEventType.VACANCY_STATUS,
         "reference": REFERENCE,
-        "statusId": "_TS_CO_OfferStatus_Archive",
+        "statusId": status_id,
     }
     response = make_signed_request(talentsoft_client, payload)
     assert response.status_code == 200
@@ -39,25 +66,13 @@ async def test_vacancy_status_archived_calls_archive(
 
 
 @pytest.mark.asyncio
-async def test_vacancy_deleted_calls_archive(talentsoft_client, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(method="POST", url=ARCHIVE_URL, status_code=200)
-    payload = {"event_type": "vacancy_deleted", "reference": REFERENCE}
-    response = make_signed_request(talentsoft_client, payload)
-    assert response.status_code == 200
-    requests = httpx_mock.get_requests()
-    assert len(requests) == 1
-    body = json.loads(requests[0].content)
-    assert body["source_id"] == SOURCE_ID
-
-
-@pytest.mark.asyncio
-async def test_vacancy_status_other_does_not_call_archive(
+async def test_vacancy_status_diffuse_does_not_call_archive(
     talentsoft_client, httpx_mock: HTTPXMock
 ):
     payload = {
-        "event_type": "vacancy_status",
+        "event_type": TalentsoftEventType.VACANCY_STATUS,
         "reference": REFERENCE,
-        "statusId": "_TS_Validated",
+        "statusId": TalentsoftOfferStatus.DIFFUSE,
     }
     response = make_signed_request(talentsoft_client, payload)
     assert response.status_code == 200
@@ -68,6 +83,7 @@ async def test_vacancy_status_other_does_not_call_archive(
 async def test_other_event_type_does_not_call_archive(
     talentsoft_client, httpx_mock: HTTPXMock
 ):
+    # unknown event type
     payload = {"event_type": "candidate_created", "reference": REFERENCE}
     response = make_signed_request(talentsoft_client, payload)
     assert response.status_code == 200
