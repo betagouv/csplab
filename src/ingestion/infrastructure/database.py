@@ -17,5 +17,4 @@ def make_engine(database_url: str) -> Engine:
 
 
 def create_tables(engine: Engine) -> None:
-    """Create all SQLModel tables that do not yet exist."""
     SQLModel.metadata.create_all(engine)
