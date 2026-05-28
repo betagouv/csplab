@@ -1,24 +1,52 @@
 import httpx
 from dependency_injector import containers, providers
-from dependency_injector.wiring import Provide, inject
-from fastapi import Depends, Query
+from sqlalchemy import Engine
 
 from application.interfaces.sources_repository import ISourcesRepository
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
+from application.use_cases.save_raw_offer import SaveRawOfferUseCase
+from infrastructure.database import make_engine
+from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
+from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.credentials_store import CredentialsStore
 from infrastructure.sources_repository import SourcesRepository
-from infrastructure.talentsoft_client_repository import TalentsoftClientRepository
 
 
 def _build_credentials_store(
     credentials: list[tuple[str, str, str]],
 ) -> CredentialsStore:
     store = CredentialsStore()
-    for client_id, secret, base_url in credentials:
-        store.register(client_id, secret, base_url)
+    for client_id, client_secret, base_url in credentials:
+        store.register(client_id, client_secret, base_url)
     return store
+
+
+def _make_db_engine(database_url: str | None) -> Engine | None:
+    if not database_url:
+        return None
+    return make_engine(database_url)
+
+
+def _make_load_offer_details_use_case(
+    talentsoft_client: TalentsoftFrontClient | None,
+) -> LoadOfferDetailsUseCase | None:
+    if talentsoft_client is None:
+        return None
+    return LoadOfferDetailsUseCase(talentsoft_client=talentsoft_client)
+
+
+def _make_save_raw_offer_use_case(
+    load_offer_details: LoadOfferDetailsUseCase | None,
+    engine: Engine | None,
+) -> SaveRawOfferUseCase | None:
+    if load_offer_details is None or engine is None:
+        return None
+    return SaveRawOfferUseCase(
+        load_offer_details=load_offer_details,
+        raw_offer_repository=RawOfferRepository(engine=engine),
+    )
 
 
 class Container(containers.DeclarativeContainer):
@@ -37,7 +65,15 @@ class Container(containers.DeclarativeContainer):
         credentials=config.talentsoft_credentials,
     )
 
-    talentsoft_client_repository = providers.Singleton(TalentsoftClientRepository)
+    db_engine = providers.Singleton(
+        _make_db_engine,
+        database_url=config.database_url,
+    )
+
+    # Overridden in main.py lifespan once the client is created and cached on app.state
+    talentsoft_front_client: providers.Provider[TalentsoftFrontClient | None] = (
+        providers.Object(None)
+    )
 
     archive_offer_use_case = providers.Factory(
         ArchiveOfferUseCase,
@@ -51,24 +87,16 @@ class Container(containers.DeclarativeContainer):
         client=http_client,
         web_base_url=config.web_base_url,
         web_api_key=config.web_api_key,
-        registry=sources_repository,
+        repository=sources_repository,
     )
 
+    load_offer_details_use_case = providers.Factory(
+        _make_load_offer_details_use_case,
+        talentsoft_client=talentsoft_front_client,
+    )
 
-@inject
-def get_load_offer_details_use_case(
-    client_id: str = Query(...),
-    sources_repository: ISourcesRepository = Depends(
-        Provide[Container.sources_repository]
-    ),
-    client_repository: TalentsoftClientRepository = Depends(
-        Provide[Container.talentsoft_client_repository]
-    ),
-) -> LoadOfferDetailsUseCase | None:
-    source = sources_repository.get_by_client_id_back(client_id)
-    if source is None:
-        return None
-    client = client_repository.get(source.client_id_front)
-    if client is None:
-        return None
-    return LoadOfferDetailsUseCase(talentsoft_client=client)
+    save_raw_offer_use_case = providers.Factory(
+        _make_save_raw_offer_use_case,
+        load_offer_details=load_offer_details_use_case,
+        engine=db_engine,
+    )

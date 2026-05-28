@@ -1,17 +1,18 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
+from dependency_injector import providers
 from fastapi import FastAPI
 
 from api.config import get_settings
 from api.routes import public_router
+from infrastructure.database import create_tables
 from infrastructure.di.container import Container
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
 )
-
-logger = logging.getLogger(__name__)
 
 _SKIP_LOG_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {
     "message",
@@ -35,6 +36,8 @@ _handler = logging.StreamHandler()
 _handler.setFormatter(_PlaintextFormatter())
 logging.basicConfig(level=get_settings().log_level.upper(), handlers=[_handler])
 
+_logger = logging.getLogger(__name__)
+
 
 def create_app():
     # Get settings dynamically to allow test environment override
@@ -52,6 +55,7 @@ def create_app():
     container = Container()
     container.config.web_base_url.from_value(settings.web_base_url)
     container.config.web_api_key.from_value(settings.web_api_key)
+    container.config.database_url.from_value(settings.database_url)
     container.config.talentsoft_credentials.from_value(
         [
             (client_id, secret, base_url)
@@ -73,26 +77,38 @@ def create_app():
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        engine = container.db_engine()
+        if engine is not None:
+            await asyncio.to_thread(create_tables, engine)
+        else:
+            _logger.warning(
+                "DATABASE_URL is not set — raw offers will not be persisted"
+            )
+
+        if (
+            settings.talentsoft_front_client_id
+            and settings.talentsoft_front_client_secret
+            and settings.talentsoft_front_base_url
+        ):
+            client = TalentsoftFrontClient(
+                config=TalentsoftConfig(
+                    base_url=settings.talentsoft_front_base_url,
+                    client_id=settings.talentsoft_front_client_id,
+                    client_secret=settings.talentsoft_front_client_secret,
+                ),
+                logger=_logger,
+            )
+            app.state.talentsoft_front_client = client
+            container.talentsoft_front_client.override(providers.Object(client))
+
         if settings.web_base_url and settings.web_api_key:
             use_case = container.load_sources_use_case()
             await use_case.execute()
 
-        if settings.talentsoft_front_client_id:
-            creds = container.credentials_store().get_credentials(
-                settings.talentsoft_front_client_id
-            )
-            if creds:
-                config = TalentsoftConfig(
-                    base_url=creds.base_url,
-                    client_id=creds.client_id,
-                    client_secret=creds.client_secret,
-                )
-                client = TalentsoftFrontClient(config=config, logger=logger)
-                container.talentsoft_client_repository().register(
-                    settings.talentsoft_front_client_id, client
-                )
-
         yield
+
+        if engine is not None:
+            engine.dispose()
         await container.http_client().aclose()
 
     app = FastAPI(title="Ingestion Microservice", version="0.1.0", lifespan=lifespan)

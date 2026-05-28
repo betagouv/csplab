@@ -3,15 +3,19 @@ from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
+from dependency_injector import providers
 from faker import Faker
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from pytest_httpx import HTTPXMock
 
 from api.main import create_app
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
+from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from domain.source import Source
+from infrastructure.di.container import Container
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
@@ -33,17 +37,54 @@ fake = Faker()
 _logger = logging.getLogger(__name__)
 
 
-def _register_front_client(app: FastAPI, client_id: str) -> None:
-    creds = app.state.container.credentials_store().get_credentials(client_id)
-    if creds is None:
-        return
-    config = TalentsoftConfig(
-        base_url=creds.base_url,
-        client_id=creds.client_id,
-        client_secret=creds.client_secret,
+_logger = logging.getLogger(__name__)
+
+TALENTSOFT_TOKEN_URL = f"{TALENTSOFT_FRONT_BASE_URL}/api/token"
+TALENTSOFT_DETAIL_OFFER_URL = f"{TALENTSOFT_FRONT_BASE_URL}/api/v2/offers/getoffer"
+
+
+def mock_talentsoft_token_response(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        method="POST",
+        url=TALENTSOFT_TOKEN_URL,
+        json={
+            "access_token": fake.uuid4(),
+            "token_type": "Bearer",
+            "expires_in": 3600,
+        },
     )
-    client = TalentsoftFrontClient(config=config, logger=_logger)
-    app.state.container.talentsoft_client_repository().register(client_id, client)
+
+
+# --- Helpers ---
+
+
+def setup_talentsoft_front_in_container(
+    app: FastAPI,
+    base_url: str,
+    client_id: str,
+    client_secret: str,
+) -> MagicMock:
+    container: Container = app.state.container
+
+    ts_client = TalentsoftFrontClient(
+        config=TalentsoftConfig(
+            base_url=base_url,
+            client_id=client_id,
+            client_secret=client_secret,
+        ),
+        logger=_logger,
+    )
+    container.talentsoft_front_client.override(providers.Object(ts_client))
+
+    mock_repo = MagicMock()
+    mock_repo.upsert = AsyncMock()
+    save_use_case = SaveRawOfferUseCase(
+        load_offer_details=LoadOfferDetailsUseCase(talentsoft_client=ts_client),
+        raw_offer_repository=mock_repo,
+    )
+    container.save_raw_offer_use_case.override(providers.Object(save_use_case))
+
+    return mock_repo
 
 
 # --- App client fixtures ---
@@ -73,9 +114,15 @@ def talentsoft_client(monkeypatch) -> TestClient:
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()
 
-    # Pre-populate the sources registry and initialise the front client,
-    # simulating what the lifespan does (lifespan doesn't run in test mode).
-    _register_front_client(app, TALENTSOFT_FRONT_CLIENT_ID)
+    mock_repo = setup_talentsoft_front_in_container(
+        app,
+        base_url=TALENTSOFT_FRONT_BASE_URL,
+        client_id=TALENTSOFT_FRONT_CLIENT_ID,
+        client_secret=TALENTSOFT_FRONT_CLIENT_SECRET,
+    )
+    app.state.mock_raw_offer_repository = mock_repo
+
+    # Pre-populate the sources registry (the lifespan doesn't run in test mode)
     app.state.container.sources_repository().load(
         [
             Source(
@@ -105,7 +152,7 @@ def load_sources_use_case(sources_repository: SourcesRepository) -> LoadSourcesU
         client=httpx.AsyncClient(),
         web_base_url=WEB_BASE_URL,
         web_api_key=WEB_API_KEY,
-        registry=sources_repository,
+        repository=sources_repository,
     )
 
 

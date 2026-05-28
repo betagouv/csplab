@@ -8,8 +8,10 @@ dependencies = [
     "dependency-injector>=4.41.0",
     "fastapi>=0.135.1",
     "httpx>=0.28.1",
+    "psycopg2-binary>=2.9.0",
     "pydantic-settings>=2.13.1",
     "sentry-sdk>=2.54.0",
+    "sqlmodel>=0.0.24",
     "uvicorn>=0.42.0",
 ]
 
@@ -41,7 +43,7 @@ url = "https://pypi.org/simple"
 ingestion = { path = ".", editable = true }
 
 [tool.setuptools.packages.find]
-include = ["api*", "application*", "infrastructure*", "presentation*"]
+include = ["api*", "application*", "domain*", "infrastructure*", "presentation*"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 python_files = [

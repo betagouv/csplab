@@ -51,6 +51,7 @@ bootstrap: \
   frontend-install \
   setup-qdrant \
   migrate \
+  migrate-ingestion \
   create-superuser \
   jupytext--to-ipynb \
   playwright-install
@@ -115,6 +116,18 @@ migrate: ## migrate web database
 	@echo "Migrating web database…"
 	@bin/manage migrate
 .PHONY: migrate
+
+create-ingestion-db: ## create the ingestion PostgreSQL user and database
+	@echo "Creating ingestion database and user…"
+	@set -a && source env.d/postgresql && docker exec -i csp_postgresql psql -U $$POSTGRES_USER < infra/postgres/create-ingestion-db.sql
+.PHONY: create-ingestion-db
+
+migrate-ingestion: ## create ingestion database tables
+migrate-ingestion: \
+  create-ingestion-db
+	@echo "Migrating ingestion database…"
+	@$(INGESTION_UV) uv run python -c "import asyncio; from infrastructure.database import create_tables, make_engine; import os; asyncio.run(create_tables(make_engine(os.environ['DATABASE_URL'])))"
+.PHONY: migrate-ingestion
 
 create-superuser: ## create web super user
 	@echo "Creating web super user…"

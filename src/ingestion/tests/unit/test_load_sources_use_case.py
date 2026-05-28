@@ -30,18 +30,18 @@ async def test_execute_loads_sources_into_registry():
 
     mock_client = MagicMock(spec=httpx.AsyncClient)
     mock_client.get = AsyncMock(return_value=mock_response)
-    mock_registry = MagicMock(spec=ISourcesRepository)
+    mock_repository = MagicMock(spec=ISourcesRepository)
 
     use_case = LoadSourcesUseCase(
         client=mock_client,
         web_base_url=WEB_BASE_URL,
         web_api_key=WEB_API_KEY,
-        registry=mock_registry,
+        repository=mock_repository,
     )
     await use_case.execute()
 
-    mock_registry.load.assert_called_once()
-    loaded_sources = mock_registry.load.call_args[0][0]
+    mock_repository.load.assert_called_once()
+    loaded_sources = mock_repository.load.call_args[0][0]
     assert len(loaded_sources) == 1
     assert loaded_sources[0].source_id == "aaaa-bbbb"
 
@@ -55,13 +55,13 @@ async def test_execute_raises_on_error_response():
 
     mock_client = MagicMock(spec=httpx.AsyncClient)
     mock_client.get = AsyncMock(return_value=mock_response)
-    mock_registry = MagicMock(spec=ISourcesRepository)
+    mock_repository = MagicMock(spec=ISourcesRepository)
 
     use_case = LoadSourcesUseCase(
         client=mock_client,
         web_base_url=WEB_BASE_URL,
         web_api_key=WEB_API_KEY,
-        registry=mock_registry,
+        repository=mock_repository,
     )
 
     with pytest.raises(httpx.HTTPStatusError):

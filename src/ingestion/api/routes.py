@@ -8,7 +8,8 @@ from api.talentsoft import verify_talentsoft_signature
 from application.interfaces.sources_repository import ISourcesRepository
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
-from infrastructure.di.container import Container, get_load_offer_details_use_case
+from application.use_cases.save_raw_offer import SaveRawOfferUseCase
+from infrastructure.di.container import Container
 from presentation.dtos.talentsoft_webhook import (
     TalentsoftWebhookPayload,
     should_archive,
@@ -37,9 +38,12 @@ async def talentsoft_webhook(
     web_base_url: str | None = Depends(Provide[Container.config.web_base_url]),
     web_api_key: str | None = Depends(Provide[Container.config.web_api_key]),
     use_case: ArchiveOfferUseCase = Depends(Provide[Container.archive_offer_use_case]),
-    registry: ISourcesRepository = Depends(Provide[Container.sources_repository]),
+    repository: ISourcesRepository = Depends(Provide[Container.sources_repository]),
     load_offer_use_case: LoadOfferDetailsUseCase | None = Depends(
-        get_load_offer_details_use_case
+        Provide[Container.load_offer_details_use_case]
+    ),
+    save_raw_offer_use_case: SaveRawOfferUseCase | None = Depends(
+        Provide[Container.save_raw_offer_use_case]
     ),
 ):
     body = await request.body()
@@ -57,14 +61,29 @@ async def talentsoft_webhook(
     if should_archive(payload):
         if not web_base_url or not web_api_key:
             raise HTTPException(status_code=500, detail="Web service not configured")
-        return await _handle_archive(payload, client_id, use_case, registry)
+        return await _handle_archive(payload, client_id, use_case, repository)
 
     if should_load_offer_details(payload):
         if load_offer_use_case is None:
             raise HTTPException(
                 status_code=500, detail="Talentsoft client not configured"
             )
-        return await _handle_load_offer_details(payload, client_id, load_offer_use_case)
+        if save_raw_offer_use_case is None:
+            raise HTTPException(status_code=500, detail="Database not configured")
+        source = repository.get_by_client_id_back(client_id)
+        if source is None:
+            logger.error(
+                "No source found for client_id %s, cannot load offer details for %s",
+                client_id,
+                payload.reference,
+            )
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown client_id: {client_id}",
+            )
+        return await _handle_load_offer_details(
+            payload, client_id, source.source_id, save_raw_offer_use_case
+        )
 
     logger.info(
         "Unhandled event type %s for reference %s and status_id %s",
@@ -91,9 +110,9 @@ async def _handle_archive(
     payload: TalentsoftWebhookPayload,
     client_id: str,
     use_case: ArchiveOfferUseCase,
-    registry: ISourcesRepository,
+    repository: ISourcesRepository,
 ) -> dict:
-    source = registry.get_by_client_id_back(client_id)
+    source = repository.get_by_client_id_back(client_id)
     if source is None:
         logger.error(
             "No source found for client_id %s, cannot archive offer %s",
@@ -118,13 +137,14 @@ async def _handle_archive(
 async def _handle_load_offer_details(
     payload: TalentsoftWebhookPayload,
     client_id: str,
-    use_case: LoadOfferDetailsUseCase,
+    source_id: str,
+    use_case: SaveRawOfferUseCase,
 ) -> dict:
-    await use_case.execute(reference=payload.reference)
+    await use_case.execute(reference=payload.reference, source_id=source_id)
     logger.info(
         "Handled event type %s for reference %s",
         payload.event_type,
         payload.reference,
-        extra={"client_id": client_id},
+        extra={"client_id": client_id, "source_id": source_id},
     )
     return _OK
