@@ -41,11 +41,9 @@ async def test_vacancy_deleted_calls_archive(talentsoft_client, httpx_mock: HTTP
 @pytest.mark.parametrize(
     "status_id",
     [
-        TalentsoftOfferStatus.ARCHIVE,
-        TalentsoftOfferStatus.FINALISE,
-        TalentsoftOfferStatus.SUSPENDUE,
-        TalentsoftOfferStatus.VALIDE,
-        TalentsoftOfferStatus.EN_ATTENTE_PUBLICATION,
+        status
+        for status in TalentsoftOfferStatus
+        if status != TalentsoftOfferStatus.DIFFUSE
     ],
 )
 async def test_vacancy_status_non_diffuse_calls_archive(
