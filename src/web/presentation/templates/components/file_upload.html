@@ -11,30 +11,38 @@
            class="fr-upload"
            data-nojs-input>
 </div>
-<!-- JS: Custom dropzone UI -->
+<!-- JS: Custom uploader (button-label < md, dropzone >= md) -->
 <div class="csplab-upload-wrapper js-only">
-    <!-- Hidden file input -->
+    <!-- Single visually-hidden native file input (one focusable target) -->
     <input type="file"
            id="{{ field.id_for_label }}-js"
            name="{{ field.html_name }}"
            accept="{{ field.field.widget.attrs.accept }}"
+           aria-describedby="{{ field.id_for_label }}-js-hint"
            class="fr-sr-only"
            data-file-input>
-    <!-- Dropzone -->
-    <div class="csplab-dropzone" data-dropzone data-state="initial">
-        <label for="{{ field.id_for_label }}-js" class="csplab-dropzone__label">
-            <span class="fr-sr-only">{{ field.label }}</span>
+    <div data-upload-trigger>
+        <!-- Mobile (< md): DSFR-styled button-label -->
+        <label for="{{ field.id_for_label }}-js"
+               class="fr-btn fr-btn--primary fr-btn--icon-left fr-icon-upload-line csplab-upload-button">
+            {{ field.label }}
         </label>
-        <div class="csplab-dropzone__icon">
-            <span class="fr-icon-drag-drop-line fr-text-action-high--blue-france"
-                  aria-hidden="true"></span>
+        <!-- Desktop (>= md): drag & drop zone -->
+        <div class="csplab-dropzone" data-dropzone data-state="initial">
+            <label for="{{ field.id_for_label }}-js" class="csplab-dropzone__label">
+                <span class="fr-sr-only">{{ field.label }}</span>
+            </label>
+            <div class="csplab-dropzone__icon">
+                <span class="fr-icon-drag-drop-line fr-text-action-high--blue-france"
+                      aria-hidden="true"></span>
+            </div>
+            <p class="csplab-dropzone__text fr-text--bold fr-m-0" aria-hidden="true">
+                {{ dropzone_text|default:"Glissez-déposez votre fichier ou" }}
+                <span class="csplab-dropzone__browse">parcourez vos dossiers</span>
+            </p>
+            <p class="fr-sr-only">Parcourez vos dossiers pour sélectionner votre fichier</p>
         </div>
-        <p class="csplab-dropzone__text fr-text--bold fr-m-0" aria-hidden="true">
-            {{ dropzone_text|default:"Glissez-déposez votre fichier ou" }}
-            <span class="csplab-dropzone__browse">parcourez vos dossiers</span>
-        </p>
-        <p class="fr-sr-only">Parcourez vos dossiers pour sélectionner votre fichier</p>
-        <p class="csplab-dropzone__hint fr-hint-text">{{ field.help_text }}</p>
+        <p id="{{ field.id_for_label }}-js-hint" class="fr-hint-text fr-mt-1w">{{ field.help_text }}</p>
     </div>
     <!-- File card -->
     <div class="csplab-file-card" data-file-card hidden aria-live="polite">
