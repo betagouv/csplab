@@ -80,6 +80,9 @@ jobs:
         run: pnpm --filter csplab-frontend lint
       - name: TypeScript check
         run: pnpm --filter csplab-frontend build
+      - name: Lint schema
+        working-directory: ${{ github.workspace }}
+        run: make lint-schema WEB_UV="cd src/web && uv run"
 
   test-web:
     needs: build-web
@@ -144,7 +147,3 @@ jobs:
         run: uv run playwright install --with-deps chromium
       - name: Test Web suite with coverage
         run: uv run pytest -m "e2e" .
-      - name: Generate schema
-        run: uv run python manage.py spectacular --file presentation/static/api/schema.yaml --validate --fail-on-warn
-      - name: Check schema is up to date
-        run: git diff --exit-code presentation/static/api/schema.yaml

@@ -229,7 +229,8 @@ lint: \
   lint-notebook \
   lint-web \
   lint-ocr \
-  lint-ingestion
+  lint-ingestion \
+  lint-schema
 .PHONY: lint
 
 lint-fix: ## lint and fix all sources
@@ -351,6 +352,12 @@ lint-ingestion-mypy: ## lint ingestion python sources with mypy
 	@echo 'lint:ingestion-mypy started…'
 	$(INGESTION_UV) mypy .
 .PHONY: lint-ingestion-mypy
+
+lint-schema: ## generate and check API schema is up to date
+	@echo 'lint:schema started…'
+	$(WEB_UV) python manage.py spectacular --file presentation/static/api/schema.yaml --validate --fail-on-warn
+	git diff --exit-code src/web/presentation/static/api/schema.yaml
+.PHONY: lint-schema
 
 ## TEST
 test: ## test all services
