@@ -13,6 +13,7 @@ from tests.conftest import (
     WEB_API_KEY,
     WEB_BASE_URL,
     make_signed_request,
+    populate_sources_repository,
 )
 
 REFERENCE = "2024-VACANCY-001"
@@ -115,6 +116,7 @@ async def test_vacancy_new_talentsoft_not_configured_returns_500(monkeypatch):
     monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()
+    populate_sources_repository(app)
     client = TestClient(app, raise_server_exceptions=False)
 
     payload = {"event_type": TalentsoftEventType.VACANCY_NEW, "reference": REFERENCE}
@@ -137,6 +139,7 @@ async def test_vacancy_new_talentsoft_api_error_propagates(
     monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()
+    populate_sources_repository(app)
     client = TestClient(app, raise_server_exceptions=False)
 
     # The client has max_retries=2, so it will attempt 3 GET requests total.

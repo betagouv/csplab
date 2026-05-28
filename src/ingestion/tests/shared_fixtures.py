@@ -56,7 +56,7 @@ def talentsoft_client(monkeypatch) -> TestClient:
             Source(
                 source_id=SOURCE_ID,
                 type="talentsoft",
-                client_id_front="test_client_id_front",
+                client_id_front=TALENTSOFT_FRONT_CLIENT_ID,
                 client_id_back=TALENTSOFT_BACK_CLIENT_ID,
                 base_url_front=fake.url(),
                 base_url_back=fake.url(),

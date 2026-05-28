@@ -5,8 +5,12 @@ import json
 import time
 import urllib.parse
 
+from faker import Faker
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from httpx import Response
+
+from domain.source import Source
 
 # --- Constants ---
 
@@ -100,6 +104,22 @@ def make_signed_request(client: TestClient, body: dict) -> Response:
         params=dict(query_items),
         content=body_bytes,
         headers={"Content-Type": content_type, **ts_rec_headers},
+    )
+
+
+def populate_sources_repository(app: FastAPI) -> None:
+    fake = Faker()
+    app.state.container.sources_repository().load(
+        [
+            Source(
+                source_id=SOURCE_ID,
+                type="talentsoft",
+                client_id_front=TALENTSOFT_FRONT_CLIENT_ID,
+                client_id_back=TALENTSOFT_BACK_CLIENT_ID,
+                base_url_front=fake.url(),
+                base_url_back=fake.url(),
+            )
+        ]
     )
 
 
