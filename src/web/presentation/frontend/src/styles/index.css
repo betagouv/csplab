@@ -1,0 +1,11 @@
+@import './theme.css';
+
+body {
+  font-family: var(--csplab-font-family);
+  color: var(--text-default-grey);
+  background: var(--background-default-grey);
+  font-size: var(--csplab-font-size-base);
+  line-height: var(--csplab-line-height-base);
+  margin: 0;
+  padding: 0;
+}

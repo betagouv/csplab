@@ -1,0 +1,7 @@
+@import './dsfr-tokens.css';
+@import 'tailwindcss';
+
+@theme {
+  --color-*: initial;
+  --font-sans: var(--csplab-font-family);
+}
