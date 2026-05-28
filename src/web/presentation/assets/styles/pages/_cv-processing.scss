@@ -1,4 +1,4 @@
-@use "../abstracts" as *;
+@use '../abstracts' as *;
 
 .csplab-processing {
   display: flex;
@@ -38,15 +38,15 @@
     opacity: 0;
     animation: csplab-message-rotate 9s infinite;
 
-    &[data-message="1"] {
+    &[data-message='1'] {
       animation-delay: 0s;
     }
 
-    &[data-message="2"] {
+    &[data-message='2'] {
       animation-delay: 3s;
     }
 
-    &[data-message="3"] {
+    &[data-message='3'] {
       animation-delay: 6s;
     }
   }
@@ -85,7 +85,7 @@
     animation: none;
     opacity: 0;
 
-    &[data-message="1"] {
+    &[data-message='1'] {
       opacity: 1;
     }
   }

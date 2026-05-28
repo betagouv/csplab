@@ -1,4 +1,4 @@
-@use "../variables/breakpoints" as bp;
+@use '../variables/breakpoints' as bp;
 
 @mixin respond-to($breakpoint) {
   @media (min-width: $breakpoint) {
