@@ -85,16 +85,9 @@ def test_user_fixture(db, user_credentials):
     return USER_MODEL.objects.create_user(**user_credentials)
 
 
-@pytest.fixture(name="user")
-def user_fixture(db):
-    return USER_MODEL.objects.create_user(
-        username=fake.name(), email=fake.email(), password=fake.password()
-    )
-
-
 @pytest.fixture(name="authenticated_client")
-def authenticated_client_fixture(api_client, user):
-    refresh = RefreshToken.for_user(user)
+def authenticated_client_fixture(api_client, test_user):
+    refresh = RefreshToken.for_user(test_user)
     token = str(refresh.access_token)
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     return api_client
