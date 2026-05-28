@@ -158,6 +158,14 @@ frontend-lint-fix: ## lint and fix frontend sources
 	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) lint:fix
 .PHONY: frontend-lint-fix
 
+storybook: ## run Storybook dev server (port 6006)
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) storybook
+.PHONY: storybook
+
+storybook-build: ## build Storybook static output
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) build-storybook
+.PHONY: storybook-build
+
 ### RUN
 run-notebook: ## run the notebook service
 	$(NOTEBOOK_UV) jupyter lab --ip=0.0.0.0 --port=8888 --no-browser

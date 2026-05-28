@@ -94,3 +94,6 @@ ARCHITECTURE*
 !.vscode/settings.json
 !.vscode/extensions.json
 **/iframe_figures/
+
+storybook-static/
+**/iframe_figures/

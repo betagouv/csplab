@@ -33,6 +33,21 @@ jobs:
       - name: Build frontend
         run: pnpm run build
 
+  storybook-web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/web
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-pnpm-node
+        with:
+          lock-file-path: src/web/pnpm-lock.yaml
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build Storybook
+        run: pnpm --filter csplab-frontend build-storybook
+
   lint-web:
     needs: build-web
     runs-on: ubuntu-latest
