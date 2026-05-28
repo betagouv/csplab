@@ -257,7 +257,8 @@ lint-web: ## lint web python sources
 lint-web: \
   lint-web-ruff \
   lint-web-djlint \
-  lint-web-mypy
+  lint-web-mypy \
+  lint-web-migrations
 .PHONY: lint-web
 
 lint-web-fix: ## lint and fix web python sources
@@ -293,6 +294,11 @@ lint-web-mypy: ## lint web python sources with mypy
 	@echo 'lint:web-mypy started…'
 	$(WEB_UV) mypy .
 .PHONY: lint-web-mypy
+
+lint-web-migrations: ## check no Django migrations are missing
+	@echo 'lint:web-migrations started…'
+	$(WEB_UV) python manage.py makemigrations --check
+.PHONY: lint-web-migrations
 
 lint-ocr: ## lint ocr python sources
 lint-ocr: \

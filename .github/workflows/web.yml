@@ -80,6 +80,9 @@ jobs:
         run: pnpm --filter csplab-frontend lint
       - name: TypeScript check
         run: pnpm --filter csplab-frontend build
+      - name: Check no migrations are missing
+        working-directory: .
+        run: make lint-web-migrations
 
   test-web:
     needs: build-web
