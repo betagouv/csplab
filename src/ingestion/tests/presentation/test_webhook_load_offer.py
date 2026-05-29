@@ -5,6 +5,7 @@ from pytest_httpx import HTTPXMock
 from api.main import create_app
 from presentation.dtos.talentsoft_webhook import TalentsoftEventType
 from tests.conftest import (
+    TALENTSOFT_BACK_BASE_URL,
     TALENTSOFT_BACK_CLIENT_ID,
     TALENTSOFT_BACK_CLIENT_SECRET,
     TALENTSOFT_FRONT_BASE_URL,
@@ -15,6 +16,7 @@ from tests.conftest import (
     make_signed_request,
     populate_sources_repository,
 )
+from tests.shared_fixtures import _register_front_client
 
 REFERENCE = "2024-VACANCY-001"
 TOKEN_URL = f"{TALENTSOFT_FRONT_BASE_URL}/api/token"
@@ -110,6 +112,7 @@ async def test_vacancy_new_talentsoft_not_configured_returns_500(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
     monkeypatch.setenv("TALENTSOFT_FRONT_CLIENT_ID", TALENTSOFT_FRONT_CLIENT_ID)
     monkeypatch.setenv("TALENTSOFT_FRONT_CLIENT_SECRET", TALENTSOFT_FRONT_CLIENT_SECRET)
     monkeypatch.delenv("TALENTSOFT_FRONT_BASE_URL", raising=False)
@@ -133,12 +136,15 @@ async def test_vacancy_new_talentsoft_api_error_propagates(
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
     monkeypatch.setenv("TALENTSOFT_FRONT_CLIENT_ID", TALENTSOFT_FRONT_CLIENT_ID)
     monkeypatch.setenv("TALENTSOFT_FRONT_CLIENT_SECRET", TALENTSOFT_FRONT_CLIENT_SECRET)
     monkeypatch.setenv("TALENTSOFT_FRONT_BASE_URL", TALENTSOFT_FRONT_BASE_URL)
     monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()
+    # Simulate lifespan: register front client (lifespan doesn't run in test mode)
+    _register_front_client(app, TALENTSOFT_FRONT_CLIENT_ID)
     populate_sources_repository(app)
     client = TestClient(app, raise_server_exceptions=False)
 

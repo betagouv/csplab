@@ -11,6 +11,7 @@ from presentation.dtos.talentsoft_webhook import (
 )
 from tests.conftest import (
     SOURCE_ID,
+    TALENTSOFT_BACK_BASE_URL,
     TALENTSOFT_BACK_CLIENT_ID,
     TALENTSOFT_BACK_CLIENT_SECRET,
     WEB_API_KEY,
@@ -96,6 +97,7 @@ async def test_unknown_client_id_returns_403(monkeypatch, httpx_mock: HTTPXMock)
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
     monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()
@@ -113,6 +115,7 @@ async def test_web_service_not_configured_returns_500(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
     monkeypatch.delenv("WEB_BASE_URL", raising=False)
     monkeypatch.delenv("WEB_API_KEY", raising=False)
     app = create_app()

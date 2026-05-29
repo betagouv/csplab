@@ -6,6 +6,12 @@ from fastapi import FastAPI
 from api.config import get_settings
 from api.routes import public_router
 from infrastructure.di.container import Container
+from infrastructure.external_gateways.talentsoft_client import (
+    TalentsoftConfig,
+    TalentsoftFrontClient,
+)
+
+logger = logging.getLogger(__name__)
 
 _SKIP_LOG_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {
     "message",
@@ -48,18 +54,20 @@ def create_app():
     container.config.web_api_key.from_value(settings.web_api_key)
     container.config.talentsoft_credentials.from_value(
         [
-            (client_id, secret)
-            for client_id, secret in [
+            (client_id, secret, base_url)
+            for client_id, secret, base_url in [
                 (
                     settings.talentsoft_back_client_id,
                     settings.talentsoft_back_client_secret,
+                    settings.talentsoft_back_base_url,
                 ),
                 (
                     settings.talentsoft_front_client_id,
                     settings.talentsoft_front_client_secret,
+                    settings.talentsoft_front_base_url,
                 ),
             ]
-            if client_id and secret
+            if client_id and secret and base_url
         ]
     )
 
@@ -68,6 +76,22 @@ def create_app():
         if settings.web_base_url and settings.web_api_key:
             use_case = container.load_sources_use_case()
             await use_case.execute()
+
+        if settings.talentsoft_front_client_id:
+            creds = container.credentials_store().get_credentials(
+                settings.talentsoft_front_client_id
+            )
+            if creds:
+                config = TalentsoftConfig(
+                    base_url=creds.base_url,
+                    client_id=creds.client_id,
+                    client_secret=creds.client_secret,
+                )
+                client = TalentsoftFrontClient(config=config, logger=logger)
+                container.talentsoft_client_repository().register(
+                    settings.talentsoft_front_client_id, client
+                )
+
         yield
         await container.http_client().aclose()
 
