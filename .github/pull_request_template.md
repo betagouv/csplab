@@ -1,26 +1,26 @@
 ## 📝 Description
-🎸 A clear and concise summary of the changes. What problem does this PR solve?
+🎸 Un résumé clair et concis des changements. Quel problème cette PR résout-elle ?
 
-## 🏷️ Type of change
-- [ ] 🐛 Bug fix
-- [ ] 🎢 New feature (non-breaking change that adds functionality)
-- [ ] 🥁 Breaking change (a modification or feature that would cause existing functionality to stop working as expected) requiring a documentation update
-- [ ] 📚 Documentation update
-- [ ] ♻️ Refactoring
-- [ ] 🔧 Technical change
+## 🏷️ Type de changement
+- [ ] 🐛 Correction de bug
+- [ ] 🎢 Nouvelle fonctionnalité (changement non bloquant qui ajoute une fonctionnalité)
+- [ ] 🥁 Changement breaking (modification ou fonctionnalité qui pourrait casser le fonctionnement existant) nécessitant une mise à jour de la documentation
+- [ ] 📚 Mise à jour de la documentation
+- [ ] ♻️ Refactorisation
+- [ ] 🔧 Changement technique
 
-## 🔧 Changes
-__List the main changes__
+## 🔧 Modifications
+__Lister les changements principaux__
 
-🛸 Required dependencies for this change (if applicable)
+🛸 Dépendances requises pour ce changement (si applicable)
 
-## 🏝️ How to test (if applicable)
-__Steps to reproduce or test__
+## 🏝️ Comment tester (si applicable)
+__Étapes pour reproduire ou tester__
 
-## 📸 Screenshots (if applicable)
+## 📸 Captures d’écran (si applicable)
 
-## ✅ Checklist
-- [ ] 💅 I have added or updated the appropriate tests.
-- [ ] 📝 I have updated or added the necessary documentation.
-- [ ] 🚀 I have considered the impact on performance, security, and user experience.
-- [ ] 👀 I have requested a review from a team member.
+## ✅ Liste de contrôle
+- [ ] 💅 J’ai ajouté ou mis à jour les tests appropriés.
+- [ ] 📝 J’ai mis à jour ou ajouté la documentation nécessaire.
+- [ ] 🚀 J’ai pris en compte l’impact sur les performances, la sécurité et l’expérience utilisateur.
+- [ ] 👀 J’ai demandé une revue à une personne de l’équipe.
