@@ -101,10 +101,25 @@ The caller (use case) is responsible for constructing the event:
 organisme.rename(OrganismeRenomme(new_name="Ministère X"))
 ```
 
-### Rule 3 — Public attributes are read-only
+### Rule 3 — Public attributes are read-only; property setters are banned
 
-Mutable attributes are stored as `_private` and exposed via `@property` without setter.
+Mutable attributes are stored as `_private` and exposed via `@property` **without setter**.
+`__init_subclass__` raises `TypeError` at class-definition time if a property has a setter.
 Direct assignment `aggregate.attribute = value` from outside raises `AttributeError`.
+
+```python
+# ✅ OK
+@property
+def nom(self) -> str:
+    return self._nom
+
+# ❌ Raises TypeError at import time
+@nom.setter
+def nom(self, value: str) -> None:
+    self._nom = value  # silent mutation, no event
+```
+
+To change a value, use `@mutate` instead.
 
 ### Rule 4 — All aggregate root events are collected by the application layer
 
@@ -166,7 +181,7 @@ This makes the public API of every aggregate self-documenting:
 | --------------- | ----------------- | --------------------------------------------------------- |
 | `@classmethod`  | `build`, `create` | `create` **must** be decorated with `@factory(EventType)` |
 | `@staticmethod` | _(none)_          | Always raises `TypeError`                                 |
-| `@property`     | any               | No constraint                                             |
+| `@property`     | any               | Setter (`fset`) raises `TypeError`                        |
 | Instance method | any public name   | Must have `@mutate` or `@query`                           |
 
 **Why ban `@staticmethod`?** A `@staticmethod` has no access to `cls` or `self`, so it
