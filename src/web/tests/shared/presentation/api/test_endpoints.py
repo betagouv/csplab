@@ -14,7 +14,7 @@ class TestJWTEndpoints:
         response = api_client.post(
             reverse("api:token_obtain_pair"),
             {
-                "email": user_credentials["email"],
+                "username": user_credentials["username"],
                 "password": user_credentials["password"],
             },
             format="json",

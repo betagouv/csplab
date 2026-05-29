@@ -8,3 +8,7 @@ class IEntity(Protocol):
 
 class IOfferEntity(IEntity, Protocol):
     external_id: str
+
+
+class IUserEntity(Protocol):
+    username: UUID
