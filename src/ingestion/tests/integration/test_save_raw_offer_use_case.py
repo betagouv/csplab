@@ -5,7 +5,6 @@ import pytest
 from faker import Faker
 from pytest_httpx import HTTPXMock
 
-from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.talentsoft_client import (
@@ -52,9 +51,7 @@ def mock_repository():
 @pytest.fixture
 def use_case(talentsoft_front_client, mock_repository) -> SaveRawOfferUseCase:
     return SaveRawOfferUseCase(
-        load_offer_details=LoadOfferDetailsUseCase(
-            talentsoft_client=talentsoft_front_client
-        ),
+        talentsoft_client=talentsoft_front_client,
         raw_offer_repository=mock_repository,
     )
 

@@ -8,17 +8,21 @@ from faker import Faker
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
+from sqlalchemy import text
+from sqlmodel import Session
 
+from api.config import get_settings
 from api.main import create_app
 from application.use_cases.archive_offer import ArchiveOfferUseCase
-from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
 from domain.source import Source
+from infrastructure.database import make_engine, run_migrations
 from infrastructure.di.container import Container
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
 )
+from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.sources_repository import SourcesRepository
 from tests.conftest import (
     SOURCE_ID,
@@ -167,6 +171,28 @@ def talentsoft_mock_client():
     return client
 
 
+# --- Database fixtures ---
+
+
+@pytest.fixture(scope="module")
+def db_engine():
+    url = get_settings().database_url
+    if not url:
+        pytest.skip("DATABASE_URL not set")
+    engine = make_engine(url)
+    run_migrations(url)
+    yield engine
+    engine.dispose()
+
+
 @pytest.fixture
-def load_offer_details_use_case(talentsoft_mock_client) -> LoadOfferDetailsUseCase:
-    return LoadOfferDetailsUseCase(talentsoft_client=talentsoft_mock_client)
+def clean_db(db_engine):
+    with Session(db_engine) as session:
+        session.execute(text("TRUNCATE TABLE raw_offers"))
+        session.commit()
+    yield
+
+
+@pytest.fixture
+def repository(db_engine) -> RawOfferRepository:
+    return RawOfferRepository(engine=db_engine)

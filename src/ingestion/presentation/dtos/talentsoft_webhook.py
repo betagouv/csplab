@@ -36,7 +36,7 @@ def should_archive(payload: TalentsoftWebhookPayload) -> bool:
     )
 
 
-def should_load_offer_details(payload: TalentsoftWebhookPayload) -> bool:
+def should_save_raw_offer(payload: TalentsoftWebhookPayload) -> bool:
     return payload.event_type in {
         TalentsoftEventType.VACANCY_NEW,
         TalentsoftEventType.VACANCY_UPDATE,

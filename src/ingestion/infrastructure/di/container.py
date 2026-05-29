@@ -7,7 +7,6 @@ from sqlalchemy import Engine
 from application.interfaces.raw_offer_repository import IRawOfferRepository
 from application.interfaces.sources_repository import ISourcesRepository
 from application.use_cases.archive_offer import ArchiveOfferUseCase
-from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from infrastructure.credentials_store import CredentialsStore
@@ -85,25 +84,6 @@ class Container(containers.DeclarativeContainer):
 
 
 @inject
-def get_load_offer_details_use_case(
-    client_id: str = Query(...),
-    sources_repository: ISourcesRepository = Depends(
-        Provide[Container.sources_repository]
-    ),
-    client_repository: TalentsoftClientRepository = Depends(
-        Provide[Container.talentsoft_client_repository]
-    ),
-) -> LoadOfferDetailsUseCase | None:
-    source = sources_repository.get_by_client_id_back(client_id)
-    if source is None:
-        return None
-    client = client_repository.get(source.client_id_front)
-    if client is None:
-        return None
-    return LoadOfferDetailsUseCase(talentsoft_client=client)
-
-
-@inject
 def get_save_raw_offer_use_case(
     client_id: str = Query(...),
     sources_repository: ISourcesRepository = Depends(
@@ -125,6 +105,6 @@ def get_save_raw_offer_use_case(
     if client is None:
         return None
     return SaveRawOfferUseCase(
-        load_offer_details=LoadOfferDetailsUseCase(talentsoft_client=client),
+        talentsoft_client=client,
         raw_offer_repository=raw_offer_repository,
     )

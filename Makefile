@@ -52,6 +52,7 @@ bootstrap: \
   setup-qdrant \
   migrate \
   migrate-ingestion \
+  create-ingestion-test-db \
   create-superuser \
   jupytext--to-ipynb \
   playwright-install
@@ -121,6 +122,13 @@ create-ingestion-db: ## create the ingestion PostgreSQL user and database
 	@echo "Creating ingestion database and user…"
 	@set -a && source env.d/postgresql && docker exec -i csp_postgresql psql -U $$POSTGRES_USER < infra/postgres/create-ingestion-db.sql
 .PHONY: create-ingestion-db
+
+create-ingestion-test-db: ## create the ingestion_test PostgreSQL database
+create-ingestion-test-db: \
+  create-ingestion-db
+	@echo "Creating ingestion_test database…"
+	@set -a && source env.d/postgresql && docker exec -i csp_postgresql psql -U $$POSTGRES_USER < infra/postgres/create-ingestion-test-db.sql
+.PHONY: create-ingestion-test-db
 
 migrate-ingestion: ## run ingestion database migrations (alembic upgrade head)
 migrate-ingestion: \
@@ -429,8 +437,10 @@ test-ocr: ## test ocr python sources
 .PHONY: test-ocr
 
 test-ingestion: ## test ingestion python sources
+test-ingestion: \
+  create-ingestion-test-db
 	@echo 'test:ingestion started…'
-	$(INGESTION_UV) pytest $(ARGS)
+	$(INGESTION_UV) env DATABASE_URL=psql://ingestion:pass@localhost:5432/ingestion_test pytest $(ARGS)
 .PHONY: test-ingestion
 
 test-a11y: ## run a11y tests with Playwright and axe-playwright-python

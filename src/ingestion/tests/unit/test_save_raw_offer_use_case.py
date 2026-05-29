@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
+from application.interfaces.talentsoft_client_interface import ITalentsoftFrontClient
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.models.raw_offer import RawOffer
@@ -13,10 +13,10 @@ SOURCE_ID = "11111111-2222-3333-4444-555555555555"
 
 
 @pytest.fixture
-def mock_load_offer_details():
-    uc = MagicMock(spec=LoadOfferDetailsUseCase)
-    uc.execute = AsyncMock()
-    return uc
+def mock_talentsoft_client():
+    client = MagicMock(spec=ITalentsoftFrontClient)
+    client.get_detail = AsyncMock()
+    return client
 
 
 @pytest.fixture
@@ -27,31 +27,31 @@ def mock_raw_offer_repository():
 
 
 @pytest.fixture
-def use_case(mock_load_offer_details, mock_raw_offer_repository) -> SaveRawOfferUseCase:
+def use_case(mock_talentsoft_client, mock_raw_offer_repository) -> SaveRawOfferUseCase:
     return SaveRawOfferUseCase(
-        load_offer_details=mock_load_offer_details,
+        talentsoft_client=mock_talentsoft_client,
         raw_offer_repository=mock_raw_offer_repository,
     )
 
 
 @pytest.mark.asyncio
-async def test_execute_calls_load_offer_details(
-    use_case, mock_load_offer_details, mock_raw_offer_repository
+async def test_execute_calls_talentsoft_client(
+    use_case, mock_talentsoft_client, mock_raw_offer_repository
 ):
     offer = TalentsoftDetailOfferFactory.build(reference=REFERENCE)
-    mock_load_offer_details.execute.return_value = offer
+    mock_talentsoft_client.get_detail.return_value = offer
 
     await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
-    mock_load_offer_details.execute.assert_called_once_with(REFERENCE)
+    mock_talentsoft_client.get_detail.assert_called_once_with(REFERENCE)
 
 
 @pytest.mark.asyncio
 async def test_execute_upserts_raw_offer_with_data_on_success(
-    use_case, mock_load_offer_details, mock_raw_offer_repository
+    use_case, mock_talentsoft_client, mock_raw_offer_repository
 ):
     offer = TalentsoftDetailOfferFactory.build(reference=REFERENCE)
-    mock_load_offer_details.execute.return_value = offer
+    mock_talentsoft_client.get_detail.return_value = offer
 
     await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
@@ -66,10 +66,10 @@ async def test_execute_upserts_raw_offer_with_data_on_success(
 
 @pytest.mark.asyncio
 async def test_execute_upserts_raw_offer_with_error_msg_on_failure(
-    use_case, mock_load_offer_details, mock_raw_offer_repository
+    use_case, mock_talentsoft_client, mock_raw_offer_repository
 ):
     error = ExternalApiError(message="Upstream error", api_name="Talentsoft Front API")
-    mock_load_offer_details.execute.side_effect = error
+    mock_talentsoft_client.get_detail.side_effect = error
 
     with pytest.raises(ExternalApiError):
         await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
@@ -85,12 +85,12 @@ async def test_execute_upserts_raw_offer_with_error_msg_on_failure(
 
 @pytest.mark.asyncio
 async def test_execute_re_raises_original_error_when_upsert_also_fails(
-    use_case, mock_load_offer_details, mock_raw_offer_repository
+    use_case, mock_talentsoft_client, mock_raw_offer_repository
 ):
     original_error = ExternalApiError(
         message="Upstream error", api_name="Talentsoft Front API"
     )
-    mock_load_offer_details.execute.side_effect = original_error
+    mock_talentsoft_client.get_detail.side_effect = original_error
     mock_raw_offer_repository.upsert.side_effect = RuntimeError("DB unavailable")
 
     with pytest.raises(ExternalApiError, match="Upstream error"):
@@ -99,10 +99,10 @@ async def test_execute_re_raises_original_error_when_upsert_also_fails(
 
 @pytest.mark.asyncio
 async def test_execute_does_not_raise_when_upsert_fails_after_success(
-    use_case, mock_load_offer_details, mock_raw_offer_repository
+    use_case, mock_talentsoft_client, mock_raw_offer_repository
 ):
     offer = TalentsoftDetailOfferFactory.build(reference=REFERENCE)
-    mock_load_offer_details.execute.return_value = offer
+    mock_talentsoft_client.get_detail.return_value = offer
     mock_raw_offer_repository.upsert.side_effect = RuntimeError("DB unavailable")
 
     # Should not raise — the upsert error is swallowed and logged

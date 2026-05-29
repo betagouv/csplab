@@ -136,7 +136,7 @@ async def test_vacancy_new_talentsoft_not_configured_returns_500(monkeypatch):
     response = make_signed_request(client, payload)
 
     assert response.status_code == 500
-    assert response.json()["detail"] == "Talentsoft client not configured"
+    assert response.json()["detail"] == "Talentsoft client or database not configured"
 
 
 @pytest.mark.asyncio

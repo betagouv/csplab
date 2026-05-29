@@ -7,17 +7,15 @@ from pydantic import ValidationError
 from api.talentsoft import verify_talentsoft_signature
 from application.interfaces.sources_repository import ISourcesRepository
 from application.use_cases.archive_offer import ArchiveOfferUseCase
-from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from infrastructure.di.container import (
     Container,
-    get_load_offer_details_use_case,
     get_save_raw_offer_use_case,
 )
 from presentation.dtos.talentsoft_webhook import (
     TalentsoftWebhookPayload,
     should_archive,
-    should_load_offer_details,
+    should_save_raw_offer,
 )
 
 logger = logging.getLogger(__name__)
@@ -43,9 +41,6 @@ async def talentsoft_webhook(
     web_api_key: str | None = Depends(Provide[Container.config.web_api_key]),
     use_case: ArchiveOfferUseCase = Depends(Provide[Container.archive_offer_use_case]),
     repository: ISourcesRepository = Depends(Provide[Container.sources_repository]),
-    load_offer_use_case: LoadOfferDetailsUseCase | None = Depends(
-        get_load_offer_details_use_case
-    ),
     save_raw_offer_use_case: SaveRawOfferUseCase | None = Depends(
         get_save_raw_offer_use_case
     ),
@@ -67,13 +62,11 @@ async def talentsoft_webhook(
             raise HTTPException(status_code=500, detail="Web service not configured")
         return await _handle_archive(payload, client_id, use_case, repository)
 
-    if should_load_offer_details(payload):
-        if load_offer_use_case is None:
-            raise HTTPException(
-                status_code=500, detail="Talentsoft client not configured"
-            )
+    if should_save_raw_offer(payload):
         if save_raw_offer_use_case is None:
-            raise HTTPException(status_code=500, detail="Database not configured")
+            raise HTTPException(
+                status_code=500, detail="Talentsoft client or database not configured"
+            )
         source = repository.get_by_client_id_back(client_id)
         if source is None:
             logger.error(
@@ -85,7 +78,7 @@ async def talentsoft_webhook(
                 status_code=422,
                 detail=f"Unknown client_id: {client_id}",
             )
-        return await _handle_load_offer_details(
+        return await _handle_save_raw_offer(
             payload, client_id, source.source_id, save_raw_offer_use_case
         )
 
@@ -138,7 +131,7 @@ async def _handle_archive(
     return _OK
 
 
-async def _handle_load_offer_details(
+async def _handle_save_raw_offer(
     payload: TalentsoftWebhookPayload,
     client_id: str,
     source_id: str,
