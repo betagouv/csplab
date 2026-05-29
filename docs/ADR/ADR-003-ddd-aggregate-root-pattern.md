@@ -44,8 +44,8 @@ Option C requires an event store — out of scope for MVP.
 
 - Invariants are protected at the source
 - Every mutation produces a traceable Domain Event
-- `build()` makes intent explicit and testable
-- `__init_subclass__` enforces the pattern at class-definition time (see Rule 6)
+- `build()` and `create()` make intent explicit and testable
+- `__init_subclass__` enforces the pattern at class-definition time (see Rules 6 & 7)
 
 ### Negative Consequences / Trade-offs
 
@@ -57,16 +57,26 @@ Option C requires an event store — out of scope for MVP.
 
 ## Guidelines
 
-### Rule 1 — Never instantiate an aggregate root directly, use a factory method
+### Rule 1 — Two factory classmethods: `build()` for reconstitution, `create()` for creation
 
 ```python
 @classmethod
 def build(cls, ...) -> "MyAggregate":
     """Restores an existing aggregate from persistence. MUST NOT emit any event."""
-    ...
+    return cls(...)
+
+@classmethod
+@factory(MyAggregateCree)
+def create(cls, event: MyAggregateCree) -> "MyAggregate":
+    """Creates a new aggregate. Automatically emits the event via @factory."""
+    return cls(...)
 ```
 
-`build()` is called by repositories when loading from the database.
+- `build()` is called by repositories when rehydrating from the database. It is silent:
+  no event is emitted.
+- `create()` is the business creation entry point. It **must** be decorated with
+  `@factory(EventType)`, which automatically calls `instance.add_event(event)` after
+  construction. Forgetting the decorator raises `TypeError` at import time (see Rule 7).
 
 ### Rule 2 — Every mutation must be decorated with `@mutate`
 
@@ -78,7 +88,7 @@ The decorator:
 3. Automatically calls `self.add_event(event)` — no need to do it manually
 
 ```python
-from domain.entities.aggregate_root import mutate
+from domain.ddd.aggregate_root import mutate
 
 @mutate(OrganismeRenomme)
 def rename(self, event: OrganismeRenomme) -> None:
@@ -107,26 +117,34 @@ orchestration and makes use cases easy to test in isolation.
 Every aggregate must have unit tests verifying:
 
 ```python
+# example: creation of Organisme
+def test_create_emits_event():
+    event = OrganismeCree(nom="DRH Centrale", ...)
+    organisme = Organisme.create(event)
+    events = organisme.collect_events()
+    assert len(events) == 1
+    assert isinstance(events[0], OrganismeCree)
+
 # example: mutation OrganismeRenomme on Organisme aggregate
 def test_rename_emits_event():
-    organisme = OrganismeFactory.build_aggregate()
+    organisme = OrganismeFactory.build()
     organisme.rename(OrganismeRenomme(new_name="New name"))
     events = organisme.collect_events()
     assert len(events) == 1
     assert isinstance(events[0], OrganismeRenomme)
 ```
 
-### Rule 6 — Every public method must be decorated with `@mutate` or `@query`
+### Rule 6 — Every public instance method must be decorated with `@mutate` or `@query`
 
 `AggregateRoot.__init_subclass__` enforces this at class-definition time.
-Any public method (not a `@classmethod`, `@staticmethod`, `@property`, or `build`) that
-lacks one of these decorators raises a `TypeError` immediately when the module is imported.
+Any public method that lacks one of these decorators raises a `TypeError` immediately
+when the module is imported.
 
 Use `@query` for read-only methods that cannot be expressed as a `@property`
 (e.g. methods with parameters):
 
 ```python
-from domain.entities.aggregate_root import query
+from domain.ddd.aggregate_root import query
 
 @query
 def has_priority_grade(self, grade: Grade) -> bool:
@@ -140,15 +158,33 @@ This makes the public API of every aggregate self-documenting:
 - `@property` → read-only attribute projection
 - `_private` → internal helper
 
+### Rule 7 — Only `build` and `create` are allowed as public classmethods; `@staticmethod` is banned
+
+`__init_subclass__` enforces the following constraints at class-definition time:
+
+| Member type     | Allowed names     | Additional constraint                                     |
+| --------------- | ----------------- | --------------------------------------------------------- |
+| `@classmethod`  | `build`, `create` | `create` **must** be decorated with `@factory(EventType)` |
+| `@staticmethod` | _(none)_          | Always raises `TypeError`                                 |
+| `@property`     | any               | No constraint                                             |
+| Instance method | any public name   | Must have `@mutate` or `@query`                           |
+
+**Why ban `@staticmethod`?** A `@staticmethod` has no access to `cls` or `self`, so it
+cannot call `add_event`. It would be a silent factory without event emission guarantee.
+
+**Why require `@factory` on `create`?** Without the decorator, nothing prevents a developer
+from forgetting `add_event`. The `@factory(EventType)` decorator enforces the contract:
+it verifies the event type, constructs the instance, and calls `add_event` automatically.
+
 ---
 
 ## Domain Building Blocks
 
-| File                                | Description                                                                         |
-| ----------------------------------- | ----------------------------------------------------------------------------------- |
-| `domain/events/domain_event.py`     | `DomainEventMetadata`, `DomainEvent` frozen dataclasses                             |
-| `domain/entities/entity.py`         | `Entity` base class (`entity_id: UUID`)                                             |
-| `domain/entities/aggregate_root.py` | `AggregateRoot(Entity)` with `add_event()`, `collect_events()`, `__init_subclass__` |
+| File                           | Description                                                          |
+| ------------------------------ | -------------------------------------------------------------------- |
+| `domain/ddd/domain_event.py`   | `DomainEventMetadata`, `DomainEvent` frozen dataclasses              |
+| `domain/entities/entity.py`    | `Entity` base class (`entity_id: UUID`)                              |
+| `domain/ddd/aggregate_root.py` | `AggregateRoot(Entity)` + `@factory`, `@mutate`, `@query` decorators |
 
 **Note:** existing entities (`Offer`, `Concours`…) are NOT migrated. This pattern applies
 only to new aggregates with meaningful business behaviour for the ATS.
