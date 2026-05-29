@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from api.config import get_settings
 from api.routes import public_router
-from infrastructure.database import create_tables
+from infrastructure.database import run_migrations
 from infrastructure.di.container import Container
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
@@ -77,8 +77,8 @@ def create_app():
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         engine = container.db_engine()
-        if engine is not None:
-            await asyncio.to_thread(create_tables, engine)
+        if settings.database_url:
+            await asyncio.to_thread(run_migrations, settings.database_url)
         else:
             logger.warning("DATABASE_URL is not set — raw offers will not be persisted")
 

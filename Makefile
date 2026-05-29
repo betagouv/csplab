@@ -122,12 +122,16 @@ create-ingestion-db: ## create the ingestion PostgreSQL user and database
 	@set -a && source env.d/postgresql && docker exec -i csp_postgresql psql -U $$POSTGRES_USER < infra/postgres/create-ingestion-db.sql
 .PHONY: create-ingestion-db
 
-migrate-ingestion: ## create ingestion database tables
+migrate-ingestion: ## run ingestion database migrations (alembic upgrade head)
 migrate-ingestion: \
   create-ingestion-db
 	@echo "Migrating ingestion database…"
-	@$(INGESTION_UV) uv run python -c "import asyncio; from infrastructure.database import create_tables, make_engine; import os; asyncio.run(create_tables(make_engine(os.environ['DATABASE_URL'])))"
+	@$(INGESTION_UV) uv run alembic upgrade head
 .PHONY: migrate-ingestion
+
+migration-ingestion: ## generate a new ingestion migration (ARGS="description of change")
+	@$(INGESTION_UV) uv run alembic revision --autogenerate -m "$(ARGS)"
+.PHONY: migration-ingestion
 
 create-superuser: ## create web super user
 	@echo "Creating web super user…"
