@@ -21,7 +21,7 @@ class CVUploadForm(forms.Form):
     """Form for CV upload."""
 
     cv_file = forms.FileField(
-        label="Votre CV",
+        label="Choisir un fichier",
         required=True,
         help_text="Taille maximale : 5 Mo. Formats supportés : PDF.",
         widget=forms.FileInput(
