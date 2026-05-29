@@ -14,8 +14,14 @@ class OrganismeCree(DomainEvent):
     localisation: Localisation | None
     siret: SIRET | None
     parent_id: UUID | None
-    config_recrutement: list[str]
+    parametres: list[str] | None
+
 
 @dataclass(frozen=True)
-class ConfigRecrutementModifiee(DomainEvent):
-    config: list[str]
+class ParametresOrganismeConfigures(DomainEvent):
+    parametres: list[str]
+
+
+@dataclass(frozen=True)
+class ParametresOrganismeModifies(DomainEvent):
+    parametres: list[str]
