@@ -2,15 +2,14 @@ import httpx
 from dependency_injector import containers, providers
 from sqlalchemy import Engine
 
-from application.interfaces.sources_repository import ISourcesRepository
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
+from infrastructure.credentials_store import CredentialsStore
 from infrastructure.database import make_engine
 from infrastructure.external_gateways.talentsoft_client import TalentsoftFrontClient
 from infrastructure.raw_offer_repository import RawOfferRepository
-from infrastructure.credentials_store import CredentialsStore
 from infrastructure.sources_repository import SourcesRepository
 
 
