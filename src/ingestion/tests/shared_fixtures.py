@@ -13,7 +13,6 @@ from api.main import create_app
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
-from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from domain.source import Source
 from infrastructure.di.container import Container
 from infrastructure.external_gateways.talentsoft_client import (
@@ -74,15 +73,11 @@ def setup_talentsoft_front_in_container(
         ),
         logger=_logger,
     )
-    container.talentsoft_front_client.override(providers.Object(ts_client))
+    container.talentsoft_client_repository().register(client_id, ts_client)
 
     mock_repo = MagicMock()
     mock_repo.upsert = AsyncMock()
-    save_use_case = SaveRawOfferUseCase(
-        load_offer_details=LoadOfferDetailsUseCase(talentsoft_client=ts_client),
-        raw_offer_repository=mock_repo,
-    )
-    container.save_raw_offer_use_case.override(providers.Object(save_use_case))
+    container.raw_offer_repository.override(providers.Object(mock_repo))
 
     return mock_repo
 

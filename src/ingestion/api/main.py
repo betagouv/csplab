@@ -2,7 +2,6 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-from dependency_injector import providers
 from fastapi import FastAPI
 
 from api.config import get_settings
@@ -36,7 +35,7 @@ _handler = logging.StreamHandler()
 _handler.setFormatter(_PlaintextFormatter())
 logging.basicConfig(level=get_settings().log_level.upper(), handlers=[_handler])
 
-_logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def create_app():
@@ -81,25 +80,22 @@ def create_app():
         if engine is not None:
             await asyncio.to_thread(create_tables, engine)
         else:
-            _logger.warning(
-                "DATABASE_URL is not set — raw offers will not be persisted"
-            )
+            logger.warning("DATABASE_URL is not set — raw offers will not be persisted")
 
-        if (
-            settings.talentsoft_front_client_id
-            and settings.talentsoft_front_client_secret
-            and settings.talentsoft_front_base_url
-        ):
-            client = TalentsoftFrontClient(
-                config=TalentsoftConfig(
-                    base_url=settings.talentsoft_front_base_url,
-                    client_id=settings.talentsoft_front_client_id,
-                    client_secret=settings.talentsoft_front_client_secret,
-                ),
-                logger=_logger,
+        if settings.talentsoft_front_client_id:
+            creds = container.credentials_store().get_credentials(
+                settings.talentsoft_front_client_id
             )
-            app.state.talentsoft_front_client = client
-            container.talentsoft_front_client.override(providers.Object(client))
+            if creds:
+                config = TalentsoftConfig(
+                    base_url=creds.base_url,
+                    client_id=creds.client_id,
+                    client_secret=creds.client_secret,
+                )
+                client = TalentsoftFrontClient(config=config, logger=logger)
+                container.talentsoft_client_repository().register(
+                    settings.talentsoft_front_client_id, client
+                )
 
         if settings.web_base_url and settings.web_api_key:
             use_case = container.load_sources_use_case()

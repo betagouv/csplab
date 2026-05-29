@@ -9,7 +9,11 @@ from application.interfaces.sources_repository import ISourcesRepository
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
-from infrastructure.di.container import Container
+from infrastructure.di.container import (
+    Container,
+    get_load_offer_details_use_case,
+    get_save_raw_offer_use_case,
+)
 from presentation.dtos.talentsoft_webhook import (
     TalentsoftWebhookPayload,
     should_archive,
@@ -40,10 +44,10 @@ async def talentsoft_webhook(
     use_case: ArchiveOfferUseCase = Depends(Provide[Container.archive_offer_use_case]),
     repository: ISourcesRepository = Depends(Provide[Container.sources_repository]),
     load_offer_use_case: LoadOfferDetailsUseCase | None = Depends(
-        Provide[Container.load_offer_details_use_case]
+        get_load_offer_details_use_case
     ),
     save_raw_offer_use_case: SaveRawOfferUseCase | None = Depends(
-        Provide[Container.save_raw_offer_use_case]
+        get_save_raw_offer_use_case
     ),
 ):
     body = await request.body()
