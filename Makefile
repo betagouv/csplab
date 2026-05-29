@@ -231,6 +231,7 @@ lint: \
   lint-ocr \
   lint-ingestion \
   lint-schema
+	frontend-lint
 .PHONY: lint
 
 lint-fix: ## lint and fix all sources
@@ -256,6 +257,8 @@ lint-notebook-fix: ## lint and fix notebook python sources
 
 lint-web: ## lint web python sources
 lint-web: \
+	lint-web-candidate-js \
+	lint-web-styles \
   lint-web-ruff \
   lint-web-djlint \
   lint-web-mypy \
@@ -264,10 +267,33 @@ lint-web: \
 
 lint-web-fix: ## lint and fix web python sources
 lint-web-fix: \
+	lint-web-styles-fix \
+	lint-web-candidate-js-fix \
   lint-web-ruff-fix \
   lint-web-djlint-fix \
   lint-web-mypy
 .PHONY: lint-web-fix
+
+lint-web-candidate-js: ## lint candidate app JS sources with ESLint
+	@echo 'lint:web-candidate-js started…'
+	cd $(WEB_DIR) && pnpm run lint:candidate-js
+.PHONY: lint-web-candidate-js
+
+lint-web-candidate-js-fix: ## lint and fix candidate app JS sources with ESLint
+	@echo 'lint:web-candidate-js-fix started…'
+	cd $(WEB_DIR) && pnpm run lint:candidate-js:fix || true
+.PHONY: lint-web-candidate-js-fix
+
+lint-web-styles: ## lint Django app SCSS sources with ESLint
+	@echo 'lint:web-styles started…'
+	cd $(WEB_DIR) && pnpm run lint:styles
+.PHONY: lint-web-styles
+
+lint-web-styles-fix: ## lint, fix, and compile Django app SCSS sources
+	@echo 'lint:web-styles-fix started…'
+	cd $(WEB_DIR) && pnpm run lint:styles:fix
+	@bin/sass compile
+.PHONY: lint-web-styles-fix
 
 lint-web-ruff: ## lint web python sources with ruff (check only, like CI)
 	@echo 'lint:web-ruff started…'

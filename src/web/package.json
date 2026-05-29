@@ -2,10 +2,19 @@
   "name": "csplab-web",
   "private": true,
   "packageManager": "pnpm@11.1.3",
-  "scripts": {
-    "build": "pnpm --filter csplab-frontend build"
-  },
   "engines": {
     "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm --filter csplab-frontend build",
+    "lint:candidate-js": "eslint \"presentation/static/candidate/js/**/*.js\"",
+    "lint:candidate-js:fix": "eslint \"presentation/static/candidate/js/**/*.js\" --fix",
+    "lint:styles": "eslint \"presentation/assets/styles/**/*.scss\"",
+    "lint:styles:fix": "eslint \"presentation/assets/styles/**/*.scss\" --fix"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.13",
+    "eslint": "^9.28",
+    "eslint-plugin-format": "^2.0.1"
   }
 }

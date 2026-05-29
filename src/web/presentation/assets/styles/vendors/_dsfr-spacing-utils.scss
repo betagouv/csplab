@@ -1,7 +1,7 @@
 // Forked from: https://github.com/ShallowRed/dsfr-utils v0.1.1
 
-@use "sass:list";
-@use "../abstracts" as *;
+@use 'sass:list';
+@use '../abstracts' as *;
 
 @mixin reset-children {
   > * {
@@ -21,8 +21,8 @@ $gap-selectors: ();
 $stack-selectors: ();
 
 @each $token, $value in $spacing-tokens {
-  $gap-selectors: list.append($gap-selectors, ".fr-gap-#{$token}", "comma");
-  $stack-selectors: list.append($stack-selectors, ".fr-stack-#{$token}", "comma");
+  $gap-selectors: list.append($gap-selectors, '.fr-gap-#{$token}', 'comma');
+  $stack-selectors: list.append($stack-selectors, '.fr-stack-#{$token}', 'comma');
 }
 
 @each $token, $value in $spacing-tokens {
