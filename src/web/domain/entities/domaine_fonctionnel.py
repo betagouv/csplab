@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 from uuid import UUID, uuid4
 
-from domain.interfaces.entity_interface import IEntity
+from domain.ddd.entity_interface import IEntity
 
 
 @dataclass

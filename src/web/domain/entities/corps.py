@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from domain.interfaces.entity_interface import IEntity
+from domain.ddd.entity_interface import IEntity
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma

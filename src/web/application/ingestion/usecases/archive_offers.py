@@ -2,8 +2,8 @@ from datetime import datetime
 
 from asgiref.sync import async_to_sync
 
+from domain.ddd.usecase_interface import IUseCase
 from domain.gateways.document_gateway_interface import IDocumentGateway
-from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.offers_repository_interface import (
     IArchiveResult,
     IOffersRepository,

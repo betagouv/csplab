@@ -6,7 +6,7 @@ from qdrant_client.http.models import (
     MatchValue,
 )
 
-from domain.interfaces.mapper_interface import IFromDomainMapper
+from domain.ddd.mapper_interface import IFromDomainMapper
 from domain.repositories.vector_repository_interface import IFilters
 
 

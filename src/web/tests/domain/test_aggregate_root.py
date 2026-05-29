@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 import pytest
 
-from domain.entities.aggregate_root import AggregateRoot
-from domain.events.domain_event import DomainEvent
+from domain.ddd.aggregate_root import AggregateRoot
+from domain.ddd.domain_event import DomainEvent
 from tests.domain.example_aggregate import ExampleAggregateRenomme
 from tests.factories.example_aggregate_factory import ExampleAggregateFactory
 

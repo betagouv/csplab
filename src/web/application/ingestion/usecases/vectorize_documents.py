@@ -3,6 +3,8 @@ from typing import Any, Dict, List, Union, cast
 from asgiref.sync import async_to_sync
 from django.db import transaction
 
+from domain.ddd.entity_interface import IEntity
+from domain.ddd.usecase_interface import IUseCase
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
@@ -10,8 +12,6 @@ from domain.entities.metier import Metier
 from domain.entities.offer import Offer
 from domain.entities.vectorized_document import VectorizedDocument
 from domain.exceptions.document_error import UnsupportedDocumentTypeError
-from domain.interfaces.entity_interface import IEntity
-from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.repository_factory_interface import IRepositoryFactory
 from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
