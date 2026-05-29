@@ -1,10 +1,15 @@
 from dataclasses import dataclass
 
-from domain.ddd.aggregate_root import AggregateRoot, mutate, query
+from domain.ddd.aggregate_root import AggregateRoot, factory, mutate, query
 from domain.ddd.domain_event import DomainEvent
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True)
+class ExampleAggregateCree(DomainEvent):
+    name: str
+
+
+@dataclass(frozen=True)
 class ExampleAggregateRenomme(DomainEvent):
     new_name: str
 
@@ -12,6 +17,11 @@ class ExampleAggregateRenomme(DomainEvent):
 @dataclass(kw_only=True)
 class ExampleAggregate(AggregateRoot):
     _name: str
+
+    @classmethod
+    @factory(ExampleAggregateCree)
+    def create(cls, event: ExampleAggregateCree) -> "ExampleAggregate":
+        return cls(_name=event.name)
 
     @classmethod
     def build(cls, name: str) -> "ExampleAggregate":

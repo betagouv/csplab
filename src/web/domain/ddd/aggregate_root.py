@@ -14,12 +14,34 @@ class AggregateRoot(Entity):
 
     def __init_subclass__(cls, **kwargs: object) -> None:
         super().__init_subclass__(**kwargs)
-        excluded = {"build"}
         for name, attr in cls.__dict__.items():
-            if name.startswith("_") or name in excluded:
+            if name.startswith("_"):
                 continue
-            is_descriptor = isinstance(attr, (classmethod, staticmethod, property))
-            if is_descriptor or not callable(attr):
+            if isinstance(attr, classmethod):
+                if name == "build":
+                    continue
+                if name == "create":
+                    if not getattr(attr.__func__, "__is_factory__", False):
+                        raise TypeError(
+                            f"{cls.__name__}.create() must be decorated"
+                            f" with @factory(EventType) to ensure the"
+                            f" domain event is always emitted."
+                        )
+                    continue
+                raise TypeError(
+                    f"{cls.__name__}.{name}() is a public classmethod"
+                    f" but is not allowed. Only 'build' (reconstitution)"
+                    f" and 'create' (decorated with @factory) are permitted."
+                )
+            if isinstance(attr, property):
+                continue
+            if isinstance(attr, staticmethod):
+                raise TypeError(
+                    f"{cls.__name__}.{name}() is a public staticmethod"
+                    f" which is not allowed in an AggregateRoot."
+                    f" Use @factory(EventType) on a @classmethod instead."
+                )
+            if not callable(attr):
                 continue
             is_mutation = getattr(attr, "__is_mutation__", False)
             is_query = getattr(attr, "__is_query__", False)
@@ -46,6 +68,27 @@ class AggregateRoot(Entity):
         events = list(self._pending_events)
         self._pending_events.clear()
         return events
+
+
+def factory(event_type: type) -> Callable:
+    def decorator(method: Callable) -> Callable:
+        @wraps(method)
+        def wrapper(
+            cls: type, event: DomainEvent, *args: object, **kwargs: object
+        ) -> "AggregateRoot":
+            if not isinstance(event, event_type):
+                raise TypeError(
+                    f"{method.__name__}() expected {event_type.__name__}, "
+                    f"got {type(event).__name__}."
+                )
+            instance: AggregateRoot = method(cls, event, *args, **kwargs)
+            instance.add_event(event)
+            return instance
+
+        wrapper.__is_factory__ = True  # type: ignore[attr-defined]
+        return wrapper
+
+    return decorator
 
 
 def mutate(event_type: type) -> Callable:
