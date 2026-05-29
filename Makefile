@@ -48,6 +48,7 @@ bootstrap: \
   run-redis \
   run-qdrant \
   build \
+  frontend-install \
   setup-qdrant \
   migrate \
   create-superuser \
@@ -230,8 +231,8 @@ lint: \
   lint-web \
   lint-ocr \
   lint-ingestion \
-  lint-schema
-	frontend-lint
+  lint-schema \
+  frontend-lint
 .PHONY: lint
 
 lint-fix: ## lint and fix all sources
