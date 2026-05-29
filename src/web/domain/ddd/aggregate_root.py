@@ -2,8 +2,8 @@ from dataclasses import dataclass, field, replace
 from functools import wraps
 from typing import Callable
 
+from domain.ddd.domain_event import DomainEvent, DomainEventMetadata
 from domain.entities.entity import Entity
-from domain.events.domain_event import DomainEvent, DomainEventMetadata
 
 
 @dataclass(kw_only=True)

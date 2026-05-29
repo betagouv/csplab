@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from domain.interfaces.entity_interface import IEntity
+from domain.ddd.entity_interface import IEntity
 from domain.types import JsonDataType
 from domain.value_objects.cv_processing_status import CVStatus
 

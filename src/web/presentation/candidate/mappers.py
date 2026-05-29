@@ -4,11 +4,11 @@ from django.http import QueryDict
 from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
 
+from domain.ddd.mapper_interface import IToDomainMapper
 from domain.entities.concours import Concours
 from domain.entities.document import DocumentType
 from domain.entities.metier import Metier
 from domain.entities.offer import Offer
-from domain.interfaces.mapper_interface import IToDomainMapper
 from domain.repositories.vector_repository_interface import IFilters
 from domain.value_objects.category import Category
 from domain.value_objects.department import Department

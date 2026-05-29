@@ -1,11 +1,11 @@
 from typing import Any, Dict, Union
 
+from domain.ddd.entity_interface import IEntity
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import Document
 from domain.entities.metier import Metier
 from domain.entities.offer import Offer
-from domain.interfaces.entity_interface import IEntity
 from domain.services.text_extractor_interface import ITextExtractor
 
 

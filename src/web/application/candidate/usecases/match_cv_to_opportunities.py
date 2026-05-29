@@ -2,12 +2,12 @@ from typing import List, Optional, Tuple
 
 from asgiref.sync import async_to_sync
 
+from domain.ddd.usecase_interface import IUseCase
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
 from domain.entities.offer import Offer
 from domain.exceptions.cv_errors import CVProcessingFailedError
-from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
 from domain.repositories.offers_repository_interface import IOffersRepository

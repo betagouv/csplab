@@ -12,8 +12,8 @@ from application.ingestion.usecases.list_sources import ListSourcesUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.load_offers import LoadOffersUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
-from domain.interfaces.async_usecase_interface import IAsyncUseCase
-from domain.interfaces.entity_interface import IEntity
+from domain.ddd.async_usecase_interface import IAsyncUseCase
+from domain.ddd.entity_interface import IEntity
 from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )

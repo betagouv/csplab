@@ -5,9 +5,9 @@ from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.utils import timezone
 
+from domain.ddd.page_interface import IPage
 from domain.entities.metier import Metier
 from domain.exceptions.metiers_error import MetierDoesNotExist
-from domain.interfaces.page_interface import IPage
 from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )
