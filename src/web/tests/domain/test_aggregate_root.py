@@ -100,3 +100,19 @@ def test_public_staticmethod_raises():
             @staticmethod
             def helper() -> str:
                 return "oops"
+
+
+def test_property_with_setter_raises():
+    with pytest.raises(TypeError, match="property with a setter"):
+
+        @dataclass(kw_only=True)
+        class _BadAggregate(AggregateRoot):
+            _name: str
+
+            @property
+            def name(self) -> str:
+                return self._name
+
+            @name.setter
+            def name(self, value: str) -> None:
+                self._name = value

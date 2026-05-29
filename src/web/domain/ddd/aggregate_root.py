@@ -34,6 +34,12 @@ class AggregateRoot(Entity):
                     f" and 'create' (decorated with @factory) are permitted."
                 )
             if isinstance(attr, property):
+                if attr.fset is not None:
+                    raise TypeError(
+                        f"{cls.__name__}.{name} is a property with a setter,"
+                        f" which is not allowed in an AggregateRoot."
+                        f" Use @mutate(EventType) to mutate state."
+                    )
                 continue
             if isinstance(attr, staticmethod):
                 raise TypeError(
