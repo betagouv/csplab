@@ -1,10 +1,16 @@
 # Sass/SCSS Configuration
 
-This project uses **Dart Sass CLI** (standalone binary) for compiling Sass/SCSS files.
+This project uses the npm `sass` package from the `src/web` workspace for compiling Sass/SCSS files.
 
 ## Prerequisites
 
-[Install Dart Sass](https://sass-lang.com/install/#command-line)
+Install web dependencies first:
+
+```bash
+make frontend-install
+```
+
+`make bootstrap` includes this step automatically.
 
 ## Usage
 
