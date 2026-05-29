@@ -1,9 +1,9 @@
-from typing import Protocol, Union
+from typing import Protocol
 from uuid import UUID
 
 
 class IEntity(Protocol):
-    id: Union[int, UUID]
+    id: UUID
 
 
 class IOfferEntity(IEntity, Protocol):
