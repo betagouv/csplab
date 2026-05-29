@@ -8,6 +8,6 @@ export interface Session {
 }
 
 export const sessionApi = {
-  get: () => http.get<Session>('/api/session/'),
-  ping: () => http.get<{ status: string }>('/api/ping/'),
+  get: () => http.get<Session>('/ats/api/session/'),
+  ping: () => http.get<{ status: string }>('/ats/api/ping/'),
 }
