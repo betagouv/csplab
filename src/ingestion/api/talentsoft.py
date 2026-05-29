@@ -7,6 +7,8 @@ import urllib.parse
 from dependency_injector.wiring import Provide, inject
 from fastapi import Depends, HTTPException, Request
 
+from application.interfaces.sources_repository import ISourcesRepository
+from infrastructure.credentials_store import CredentialsStore
 from infrastructure.di.container import Container
 
 
@@ -15,12 +17,10 @@ from infrastructure.di.container import Container
 @inject
 def verify_talentsoft_signature(
     request: Request,
-    talentsoft_client_id: str | None = Depends(
-        Provide[Container.config.talentsoft_back_client_id]
+    sources_repository: ISourcesRepository = Depends(
+        Provide[Container.sources_repository]
     ),
-    talentsoft_client_secret: str | None = Depends(
-        Provide[Container.config.talentsoft_back_client_secret]
-    ),
+    credentials_store: CredentialsStore = Depends(Provide[Container.credentials_store]),
 ) -> None:
     client_id = request.query_params.get("client_id")
     expires = request.headers.get("x-ts-rec-expires")
@@ -44,13 +44,20 @@ def verify_talentsoft_signature(
     if time.time() > expires_ts:
         raise HTTPException(status_code=403, detail="Signature has expired")
 
-    if not talentsoft_client_id or not talentsoft_client_secret:
+    if len(credentials_store) == 0:
         raise HTTPException(
             status_code=500, detail="TalentSoft credentials not configured"
         )
 
-    if client_id != talentsoft_client_id:
+    source = sources_repository.get_by_client_id_back(client_id)
+    if source is None:
         raise HTTPException(status_code=403, detail="Invalid client_id")
+
+    talentsoft_client_secret = credentials_store.get_secret(client_id)
+    if talentsoft_client_secret is None:
+        raise HTTPException(
+            status_code=500, detail="TalentSoft credentials not configured"
+        )
 
     # CanonicalizedTsRecHeaders: x-ts-rec-* headers, lowercased, sorted
     ts_rec_headers = sorted(

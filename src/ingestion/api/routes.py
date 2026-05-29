@@ -1,21 +1,14 @@
 import logging
-from typing import Callable, TypeVar
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import ValidationError
-from starlette.datastructures import State
 
-from api.config import Settings, get_settings
 from api.talentsoft import verify_talentsoft_signature
 from application.interfaces.sources_repository import ISourcesRepository
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
-from infrastructure.di.container import Container
-from infrastructure.external_gateways.talentsoft_client import (
-    TalentsoftConfig,
-    TalentsoftFrontClient,
-)
+from infrastructure.di.container import Container, get_load_offer_details_use_case
 from presentation.dtos.talentsoft_webhook import (
     TalentsoftWebhookPayload,
     should_archive,
@@ -27,45 +20,6 @@ logger = logging.getLogger(__name__)
 public_router = APIRouter()
 
 _OK = {"status": "ok"}
-
-_T = TypeVar("_T")
-
-
-def _state_setdefault(state: State, key: str, factory: Callable[[], _T]) -> _T:
-    if not hasattr(state, key):
-        setattr(state, key, factory())
-    return getattr(state, key)
-
-
-def get_load_offer_details_use_case(
-    request: Request,
-    settings: Settings = Depends(get_settings),
-) -> LoadOfferDetailsUseCase | None:
-    if (
-        not settings.talentsoft_front_client_id
-        or not settings.talentsoft_front_client_secret
-        or not settings.talentsoft_front_base_url
-    ):
-        return None
-
-    base_url = settings.talentsoft_front_base_url
-    client_id = settings.talentsoft_front_client_id
-    client_secret = settings.talentsoft_front_client_secret
-
-    def _make_client() -> TalentsoftFrontClient:
-        config = TalentsoftConfig(
-            base_url=base_url,
-            client_id=client_id,
-            client_secret=client_secret,
-        )
-        return TalentsoftFrontClient(config=config, logger=logger)
-
-    client = _state_setdefault(
-        request.app.state,
-        "talentsoft_front_client",
-        _make_client,
-    )
-    return LoadOfferDetailsUseCase(talentsoft_client=client)
 
 
 @public_router.get("/health")

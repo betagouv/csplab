@@ -1,8 +1,10 @@
+import logging
 from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
 from faker import Faker
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from api.main import create_app
@@ -10,6 +12,10 @@ from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_offer_details import LoadOfferDetailsUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
 from domain.source import Source
+from infrastructure.external_gateways.talentsoft_client import (
+    TalentsoftConfig,
+    TalentsoftFrontClient,
+)
 from infrastructure.sources_repository import SourcesRepository
 from tests.conftest import (
     SOURCE_ID,
@@ -24,6 +30,21 @@ from tests.conftest import (
 )
 
 fake = Faker()
+_logger = logging.getLogger(__name__)
+
+
+def _register_front_client(app: FastAPI, client_id: str) -> None:
+    creds = app.state.container.credentials_store().get_credentials(client_id)
+    if creds is None:
+        return
+    config = TalentsoftConfig(
+        base_url=creds.base_url,
+        client_id=creds.client_id,
+        client_secret=creds.client_secret,
+    )
+    client = TalentsoftFrontClient(config=config, logger=_logger)
+    app.state.container.talentsoft_client_repository().register(client_id, client)
+
 
 # --- App client fixtures ---
 
@@ -33,6 +54,8 @@ def test_client(monkeypatch) -> TestClient:
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.delenv("TALENTSOFT_BACK_CLIENT_ID", raising=False)
     monkeypatch.delenv("TALENTSOFT_BACK_CLIENT_SECRET", raising=False)
+    monkeypatch.delenv("TALENTSOFT_FRONT_CLIENT_ID", raising=False)
+    monkeypatch.delenv("TALENTSOFT_FRONT_CLIENT_SECRET", raising=False)
     app = create_app()
     return TestClient(app)
 
@@ -50,13 +73,15 @@ def talentsoft_client(monkeypatch) -> TestClient:
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()
 
-    # Pre-populate the sources registry (the lifespan doesn't run in test mode)
+    # Pre-populate the sources registry and initialise the front client,
+    # simulating what the lifespan does (lifespan doesn't run in test mode).
+    _register_front_client(app, TALENTSOFT_FRONT_CLIENT_ID)
     app.state.container.sources_repository().load(
         [
             Source(
                 source_id=SOURCE_ID,
                 type="talentsoft",
-                client_id_front="test_client_id_front",
+                client_id_front=TALENTSOFT_FRONT_CLIENT_ID,
                 client_id_back=TALENTSOFT_BACK_CLIENT_ID,
                 base_url_front=fake.url(),
                 base_url_back=fake.url(),

@@ -152,6 +152,8 @@ async def test_talentsoft_webhook_signature_with_raw_plus(talentsoft_client):
 
 @pytest.mark.asyncio
 async def test_talentsoft_webhook_unconfigured_credentials(test_client):
+    assert len(test_client.app.state.container.credentials_store()) == 0
+
     query_items = valid_query_items()
     query_items.append(("signature", "any"))
 

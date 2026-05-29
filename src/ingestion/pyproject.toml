@@ -84,6 +84,9 @@ select = [
 "api/talentsoft.py" = [
     "B008", # Function call in argument defaults (acceptable for FastAPI)
 ]
+"infrastructure/di/container.py" = [
+    "B008", # Function call in argument defaults (acceptable for FastAPI)
+]
 "**/tests/*" = [
     "S101", # use of assert
     "S105", # hardcoded passwords (acceptable for test fixtures)

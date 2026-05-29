@@ -11,11 +11,13 @@ from presentation.dtos.talentsoft_webhook import (
 )
 from tests.conftest import (
     SOURCE_ID,
+    TALENTSOFT_BACK_BASE_URL,
     TALENTSOFT_BACK_CLIENT_ID,
     TALENTSOFT_BACK_CLIENT_SECRET,
     WEB_API_KEY,
     WEB_BASE_URL,
     make_signed_request,
+    populate_sources_repository,
 )
 
 REFERENCE = "2019-1234"
@@ -91,20 +93,21 @@ async def test_other_event_type_does_not_call_archive(
 
 
 @pytest.mark.asyncio
-async def test_unknown_client_id_returns_422(monkeypatch, httpx_mock: HTTPXMock):
+async def test_unknown_client_id_returns_403(monkeypatch, httpx_mock: HTTPXMock):
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
     monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()
-    # Registry is empty — no source registered for this client_id
+    # Registry is empty — signature verification rejects the unknown client_id
     client = TestClient(app, raise_server_exceptions=False)
 
     payload = {"event_type": "vacancy_deleted", "reference": REFERENCE}
     response = make_signed_request(client, payload)
-    assert response.status_code == 422
-    assert "client_id" in response.json()["detail"]
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Invalid client_id"
 
 
 @pytest.mark.asyncio
@@ -112,9 +115,11 @@ async def test_web_service_not_configured_returns_500(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
     monkeypatch.delenv("WEB_BASE_URL", raising=False)
     monkeypatch.delenv("WEB_API_KEY", raising=False)
     app = create_app()
+    populate_sources_repository(app)
     client = TestClient(app, raise_server_exceptions=False)
 
     payload = {"event_type": "vacancy_deleted", "reference": REFERENCE}
