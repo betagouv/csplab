@@ -106,7 +106,7 @@ def test_property_with_setter_raises():
     with pytest.raises(TypeError, match="property with a setter"):
 
         @dataclass(kw_only=True)
-        class _BadAggregate(AggregateRoot):
+        class BadAggregate(AggregateRoot):
             _name: str
 
             @property
@@ -116,3 +116,13 @@ def test_property_with_setter_raises():
             @name.setter
             def name(self, value: str) -> None:
                 self._name = value
+
+
+def test_public_non_callable_class_attribute_is_allowed():
+    # MAX_SIZE is public, non-callable
+    # __init_subclass__ skip it without raising d'erreur
+    @dataclass(kw_only=True)
+    class AggregateWithConstant(AggregateRoot):
+        MAX_SIZE = 100
+
+    assert AggregateWithConstant.MAX_SIZE == 100  # noqa

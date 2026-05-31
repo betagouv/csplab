@@ -3,7 +3,7 @@ from functools import wraps
 from typing import Callable
 
 from domain.ddd.domain_event import DomainEvent, DomainEventMetadata
-from domain.entities.entity import Entity
+from domain.ddd.entity import Entity
 
 
 @dataclass(kw_only=True)
