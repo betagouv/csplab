@@ -1,7 +1,21 @@
+from datetime import datetime
+
+import pytest
+
 from domain.candidature.entities.candidature import Candidature
 from domain.candidature.events.candidature_events import (
+    CandidatureSoumise,
     DocumentsDeposes,
     DossierCandidatureCree,
+)
+from domain.candidature.exceptions import (
+    CandidatureNePeutPasEtreSoumise,
+    DossierCandidatureInvalide,
+)
+from domain.candidature.value_objects.statut_candidature import StatutCandidature
+from domain.shared.value_objects.etapes_recrutement import (
+    CategorieEtapeRecrutement,
+    EtapeRecrutement,
 )
 from tests.ats.candidature.factories.candidature_factory import (
     CandidatureFactory,
@@ -28,8 +42,57 @@ def test_dossier_candidature_cree():
 def test_documents_deposes():
     documents = make_documents()
     candidature_factory = CandidatureFactory.build(documents=documents)
-    candidature_factory.deposer_documents(DocumentsDeposes(documents=documents))
+    ts = datetime.now()
+    candidature_factory.deposer_documents(
+        DocumentsDeposes(documents=documents, occurred_at=ts)
+    )
     events = candidature_factory.collect_events()
     assert len(events) == 1
     assert isinstance(events[0], DocumentsDeposes)
     assert candidature_factory.documents == documents
+    assert candidature_factory.mise_a_jour_le == ts
+
+
+def test_candidature_invalide():
+    candidature_factory = CandidatureFactory.build()
+    with pytest.raises(DossierCandidatureInvalide):
+        candidature_factory.deposer_documents(DocumentsDeposes(documents=()))
+
+
+def test_candidature_soumise():
+    candidature_factory = CandidatureFactory.build()
+    documents = make_documents()
+    candidature_factory.deposer_documents(DocumentsDeposes(documents=documents))
+    ts = datetime.now()
+    candidature_factory.soumettre_candidature(
+        CandidatureSoumise(
+            occurred_at=ts,
+        )
+    )
+    events = candidature_factory.collect_events()
+    assert len(events) == 2  # noqa
+    assert isinstance(events[1], CandidatureSoumise)
+    assert candidature_factory.statut == StatutCandidature.SOUMISE
+    assert candidature_factory.soumise_le == ts
+
+
+def test_candidature_soumise_dossier_invalide():
+    candidature_factory = CandidatureFactory.build()
+    with pytest.raises(DossierCandidatureInvalide):
+        candidature_factory.soumettre_candidature(CandidatureSoumise())
+
+
+def test_candidature_ne_peut_pas_etre_soumise():
+    candidature_factory = CandidatureFactory.build(
+        etape_courante=EtapeRecrutement(
+            nom="Clôture du recrutement",
+            categorie=CategorieEtapeRecrutement.CLOTURE,
+            rang=1,
+            identifiant="cloture",
+        )
+    )
+
+    documents = make_documents()
+    candidature_factory.deposer_documents(DocumentsDeposes(documents=documents))
+    with pytest.raises(CandidatureNePeutPasEtreSoumise):
+        candidature_factory.soumettre_candidature(CandidatureSoumise())

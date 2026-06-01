@@ -19,9 +19,9 @@ class DocumentsDeposes(DomainEvent):
 
 @dataclass(frozen=True)
 class CandidatureSoumise(DomainEvent):
-    candidature_id: UUID
+    pass
 
 
 @dataclass(frozen=True)
 class CandidatureRetiree(DomainEvent):
-    candidature_id: UUID
+    pass

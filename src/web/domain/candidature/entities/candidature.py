@@ -3,12 +3,20 @@ from datetime import datetime
 from uuid import UUID
 
 from domain.candidature.events.candidature_events import (
+    CandidatureSoumise,
     DocumentsDeposes,
     DossierCandidatureCree,
 )
+from domain.candidature.exceptions import (
+    CandidatureNePeutPasEtreSoumise,
+    DossierCandidatureInvalide,
+)
 from domain.candidature.value_objects.statut_candidature import StatutCandidature
 from domain.ddd.aggregate_root import AggregateRoot, factory, mutate
-from domain.shared.value_objects.etapes_recrutement import EtapeRecrutement
+from domain.shared.value_objects.etapes_recrutement import (
+    CategorieEtapeRecrutement,
+    EtapeRecrutement,
+)
 
 
 @dataclass(kw_only=True)
@@ -29,6 +37,7 @@ class Candidature(AggregateRoot):
             _offre_id=event.offre_id,
             _statut=StatutCandidature.INITIAL,
             _etape_courante=event.etape_courante,
+            _mise_a_jour_le=event.occurred_at,
         )
 
     @classmethod
@@ -82,4 +91,26 @@ class Candidature(AggregateRoot):
 
     @mutate(DocumentsDeposes)
     def deposer_documents(self, event: DocumentsDeposes) -> None:
-        self._documents = event.documents
+        if len(event.documents) == 0:
+            raise DossierCandidatureInvalide(
+                ("Le dossier de candidature doit contenir au moins un document")
+            )
+        else:
+            self._documents = event.documents
+            self._mise_a_jour_le = event.occurred_at
+
+    @mutate(CandidatureSoumise)
+    def soumettre_candidature(self, event: CandidatureSoumise) -> None:
+        if self._etape_courante.categorie == CategorieEtapeRecrutement.CLOTURE:
+            raise CandidatureNePeutPasEtreSoumise("Le recrutement est clôturé")
+        elif self._documents is None or len(self._documents) == 0:
+            raise DossierCandidatureInvalide(
+                (
+                    "Le dossier de candidature doit contenir"
+                    "au moins un document pour être soumis"
+                )
+            )
+        else:
+            self._statut = StatutCandidature.SOUMISE
+            self._soumise_le = event.occurred_at
+            self._mise_a_jour_le = event.occurred_at
