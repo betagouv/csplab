@@ -21,10 +21,11 @@ WEB_PISTE_OAUTH_BASE_URL=https://sandbox-oauth.piste.gouv.fr
 WEB_INGRES_BASE_URL=https://sandbox-api.piste.gouv.fr/cisirh/ingres-nomenclatures/v2/nomenclatures
 
 # superuser
-
 DJANGO_SUPERUSER_USERNAME=admin
 DJANGO_SUPERUSER_PASSWORD=admin
 DJANGO_SUPERUSER_EMAIL=admin@example.com
+DJANGO_SUPERUSER_FIRST_NAME=bob
+DJANGO_SUPERUSER_LAST_NAME=wayne
 
 WEB_VECTOR_DB_TYPE=QDRANT
 WEB_QDRANT_URL=http://localhost:6333
