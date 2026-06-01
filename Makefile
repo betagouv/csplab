@@ -438,6 +438,7 @@ test-ocr: ## test ocr python sources
 
 test-ingestion: ## test ingestion python sources
 test-ingestion: \
+  create-ingestion-db \
   create-ingestion-test-db
 	@echo 'test:ingestion started…'
 	$(INGESTION_UV) env DATABASE_URL=psql://ingestion:pass@localhost:5432/ingestion_test pytest $(ARGS)
