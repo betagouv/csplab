@@ -2,9 +2,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from domain.candidature.events.candidature_events import DossierCandidatureCree
+from domain.candidature.events.candidature_events import (
+    DocumentsDeposes,
+    DossierCandidatureCree,
+)
 from domain.candidature.value_objects.statut_candidature import StatutCandidature
-from domain.ddd.aggregate_root import AggregateRoot, factory
+from domain.ddd.aggregate_root import AggregateRoot, factory, mutate
 from domain.shared.value_objects.etapes_recrutement import EtapeRecrutement
 
 
@@ -76,3 +79,7 @@ class Candidature(AggregateRoot):
     @property
     def mise_a_jour_le(self) -> datetime | None:
         return self._mise_a_jour_le
+
+    @mutate(DocumentsDeposes)
+    def deposer_documents(self, event: DocumentsDeposes) -> None:
+        self._documents = event.documents

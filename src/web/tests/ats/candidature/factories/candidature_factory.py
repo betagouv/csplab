@@ -9,6 +9,13 @@ from domain.shared.value_objects.etapes_recrutement import (
 from tests.ats.shared.factories.shared_factories import make_etapes_recrutement
 
 
+def make_documents() -> tuple[UUID, ...]:
+    return (
+        UUID("00000000-0000-0000-0000-000000000003"),
+        UUID("00000000-0000-0000-0000-000000000004"),
+    )
+
+
 class CandidatureFactory:
     @staticmethod
     def build(
