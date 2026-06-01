@@ -1,8 +1,8 @@
 from typing import List, Protocol, TypedDict
 from uuid import UUID
 
+from domain.ddd.page_interface import IPage
 from domain.entities.offer import Offer
-from domain.interfaces.page_interface import IPage
 from domain.repositories.document_repository_interface import IUpsertResult
 
 

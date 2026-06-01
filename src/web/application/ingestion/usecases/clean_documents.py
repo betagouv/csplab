@@ -2,9 +2,9 @@ from typing import Any, Dict, List, cast
 
 from django.db import transaction
 
+from domain.ddd.entity_interface import IEntity, IOfferEntity
+from domain.ddd.usecase_interface import IUseCase
 from domain.entities.document import DocumentType
-from domain.interfaces.entity_interface import IEntity, IOfferEntity
-from domain.interfaces.usecase_interface import IUseCase
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,

@@ -3,10 +3,10 @@ from typing import List, cast
 from asgiref.sync import sync_to_async
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
+from domain.ddd.async_usecase_interface import IAsyncUseCase
 from domain.entities.document import DocumentType
 from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.gateways.document_gateway_interface import IDocumentGateway
-from domain.interfaces.async_usecase_interface import IAsyncUseCase
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,

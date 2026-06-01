@@ -1,7 +1,7 @@
 from typing import Dict, List, Protocol
 
+from domain.ddd.page_interface import IPage
 from domain.entities.metier import Metier
-from domain.interfaces.page_interface import IPage
 from domain.repositories.document_repository_interface import IUpsertResult
 
 IPredicate = Dict[str, str]

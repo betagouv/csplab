@@ -1,4 +1,4 @@
-from domain.interfaces.usecase_interface import IUseCase
+from domain.ddd.usecase_interface import IUseCase
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.repositories.vector_repository_interface import IVectorRepository
 

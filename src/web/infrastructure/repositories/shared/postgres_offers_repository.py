@@ -6,9 +6,9 @@ from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.utils import timezone
 
+from domain.ddd.page_interface import IPage
 from domain.entities.offer import Offer
 from domain.exceptions.offer_errors import OfferDoesNotExist
-from domain.interfaces.page_interface import IPage
 from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )

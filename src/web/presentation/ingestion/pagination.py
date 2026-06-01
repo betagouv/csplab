@@ -4,7 +4,7 @@ from rest_framework.pagination import BasePagination
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from domain.interfaces.page_interface import IPage
+from domain.ddd.page_interface import IPage
 
 
 class IngestionPagination(BasePagination):
