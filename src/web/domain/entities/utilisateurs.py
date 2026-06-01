@@ -3,11 +3,11 @@ from uuid import UUID, uuid4
 
 from pydantic import EmailStr
 
-from domain.ddd.entity_interface import IUserEntity
+from domain.ddd.entity import Entity
 
 
-@dataclass
-class Utilisateur(IUserEntity):
+@dataclass(kw_only=True)
+class Utilisateur(Entity):
     email: EmailStr
     prenom: str
     nom: str
