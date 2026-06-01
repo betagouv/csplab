@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from domain.recrutement.errors.erreur_recrutement import EtapeRecrutementInvalide
+from domain.shared.exceptions.erreur_shared import EtapeRecrutementInvalide
 
 
 class CategorieEtapeRecrutement(Enum):

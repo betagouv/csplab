@@ -1,7 +1,7 @@
 import pytest
 
-from domain.recrutement.errors.erreur_recrutement import EtapeRecrutementInvalide
-from domain.recrutement.value_objects.etapes_recrutement import (
+from domain.shared.exceptions.erreur_shared import EtapeRecrutementInvalide
+from domain.shared.value_objects.etapes_recrutement import (
     CategorieEtapeRecrutement,
     EtapeRecrutement,
     EtapesRecrutement,

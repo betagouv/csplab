@@ -1,7 +1,7 @@
 from polyfactory.factories.dataclass_factory import DataclassFactory
 
 from domain.recrutement.entities.organisme import Organisme
-from domain.recrutement.value_objects.etapes_recrutement import (
+from domain.shared.value_objects.etapes_recrutement import (
     CategorieEtapeRecrutement,
     EtapeRecrutement,
     EtapesRecrutement,

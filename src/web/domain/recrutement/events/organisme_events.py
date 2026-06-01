@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from domain.ddd.domain_event import DomainEvent
-from domain.recrutement.value_objects.etapes_recrutement import EtapesRecrutement
+from domain.shared.value_objects.etapes_recrutement import EtapesRecrutement
 
 
 @dataclass(frozen=True)

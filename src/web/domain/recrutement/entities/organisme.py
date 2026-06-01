@@ -5,7 +5,7 @@ from domain.recrutement.events.organisme_events import (
     OrganismeParametresInitialises,
     OrganismeParametresModifies,
 )
-from domain.recrutement.value_objects.etapes_recrutement import EtapesRecrutement
+from domain.shared.value_objects.etapes_recrutement import EtapesRecrutement
 
 
 @dataclass(kw_only=True)
