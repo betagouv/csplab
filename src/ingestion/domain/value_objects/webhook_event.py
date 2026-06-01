@@ -11,6 +11,7 @@ class EventType(StrEnum):
 
 class OfferStatus(StrEnum):
     ARCHIVE = "Archive"
+    BROUILLON = "Brouillon"
     DIFFUSE = "Diffuse"
     EN_ATTENTE_PUBLICATION = "EnAttentePublication"
     FINALISE = "Finalise"

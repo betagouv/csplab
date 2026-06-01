@@ -14,6 +14,7 @@ class TalentsoftEventType(StrEnum):
 
 class TalentsoftOfferStatus(StrEnum):
     ARCHIVE = "_TS_CO_OfferStatus_Archive"
+    BROUILLON = "_TS_CO_OfferStatus_Brouillon"
     DIFFUSE = "_TS_CO_OfferStatus_Diffuse"
     EN_ATTENTE_PUBLICATION = "_TS_CO_OfferStatus_EnAttentePublication"
     FINALISE = "_TS_CO_OfferStatus_Finalise"
@@ -30,6 +31,7 @@ _EVENT_TYPE_MAP: dict[TalentsoftEventType, EventType] = {
 
 _OFFER_STATUS_MAP: dict[TalentsoftOfferStatus, OfferStatus] = {
     TalentsoftOfferStatus.ARCHIVE: OfferStatus.ARCHIVE,
+    TalentsoftOfferStatus.BROUILLON: OfferStatus.BROUILLON,
     TalentsoftOfferStatus.DIFFUSE: OfferStatus.DIFFUSE,
     TalentsoftOfferStatus.EN_ATTENTE_PUBLICATION: OfferStatus.EN_ATTENTE_PUBLICATION,
     TalentsoftOfferStatus.FINALISE: OfferStatus.FINALISE,
