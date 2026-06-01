@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
+from domain.ddd.mapper_interface import ISerializerToDomainMapper
 from domain.entities.offer import Offer
-from domain.interfaces.mapper_interface import ISerializerToDomainMapper
 from domain.value_objects.area import GeographicalArea
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractKind, ContractType
