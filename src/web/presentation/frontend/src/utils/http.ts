@@ -34,11 +34,12 @@ async function request<T>(
   data?: unknown,
   options: RequestOptions = {},
 ): Promise<T> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  }
+  const hasBody = data !== undefined
+  const headers: Record<string, string> = { ...options.headers }
 
+  if (hasBody) {
+    headers['Content-Type'] = 'application/json'
+  }
   if (method !== 'GET') {
     headers['X-CSRFToken'] = readCsrfCookie()
   }
@@ -55,7 +56,7 @@ async function request<T>(
   const response = await fetch(finalUrl, {
     method,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
+    body: hasBody ? JSON.stringify(data) : undefined,
     credentials: 'same-origin',
     signal: options.signal,
   })

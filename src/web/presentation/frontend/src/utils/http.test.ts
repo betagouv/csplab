@@ -24,7 +24,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
-  clearCookies()
 })
 
 function mockFetchResponse(data: unknown, status = 200, statusText = 'OK') {
@@ -93,5 +92,44 @@ describe('http', () => {
       expect((error as HttpError).status).toBe(404)
       expect((error as HttpError).data).toEqual(errorData)
     }
+  })
+
+  it('should return undefined on 204 No Content (typical for DELETE)', async () => {
+    mockFetchResponse(null, 204, 'No Content')
+    const result = await http.delete('/api/things/1')
+    expect(result).toBeUndefined()
+  })
+
+  it('should serialize query params into the URL', async () => {
+    mockFetchResponse({})
+    await http.get('/api/things', {
+      params: { q: 'hello world', page: 2, active: true },
+    })
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/things?q=hello+world&page=2&active=true',
+      expect.any(Object),
+    )
+  })
+
+  it('should merge custom headers without overriding CSRF', async () => {
+    mockFetchResponse({}, 201)
+    await http.post('/api/test', { x: 1 }, {
+      headers: { 'X-Trace-Id': 'abc-123' },
+    })
+    expect(fetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
+      headers: expect.objectContaining({
+        'X-Trace-Id': 'abc-123',
+        'X-CSRFToken': MOCK_CSRF_TOKEN,
+        'Content-Type': 'application/json',
+      }),
+    }))
+  })
+
+  it('should not set Content-Type on GET without body', async () => {
+    mockFetchResponse({})
+    await http.get('/api/things')
+    expect(fetch).toHaveBeenCalledWith('/api/things', expect.objectContaining({
+      headers: expect.not.objectContaining({ 'Content-Type': expect.any(String) }),
+    }))
   })
 })
