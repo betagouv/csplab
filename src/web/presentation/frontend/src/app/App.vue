@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import ErrorBoundary from '@/shared/components/ErrorBoundary.vue'
 </script>
 
 <template>
   <div class="ats-app">
-    <RouterView />
+    <ErrorBoundary>
+      <RouterView />
+    </ErrorBoundary>
   </div>
 </template>

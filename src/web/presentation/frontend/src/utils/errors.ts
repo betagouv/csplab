@@ -30,11 +30,9 @@ export class ValidationError extends HttpError {
 
 const META_KEYS = new Set(['detail', 'status', 'message', 'type'])
 
-/** Extracts per-field errors from a DRF native or custom-handler payload. */
 export function parseFieldErrors(payload: unknown): Record<string, string[]> {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload))
     return {}
-  }
   const obj = payload as Record<string, unknown>
   const isCustomHandler
     = obj.status === 'error'
