@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from pydantic import EmailStr
 
-from domain.interfaces.entity_interface import IUserEntity
+from domain.ddd.entity_interface import IUserEntity
 
 
 @dataclass
