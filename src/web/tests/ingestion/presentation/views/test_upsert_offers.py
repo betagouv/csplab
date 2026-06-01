@@ -1,5 +1,4 @@
-from datetime import datetime, timezone
-from typing import Any
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -17,68 +16,18 @@ from domain.value_objects.limit_date import LimitDate
 from domain.value_objects.localisation import Localisation
 from domain.value_objects.region import Region
 from domain.value_objects.verse import Verse
+from tests.factories.offer_payload_factory import PayloadOfferFactory, fake_datetime
 
 fake = Faker("fr_FR")
+
 URL = reverse("ingestion:offers_upsert")
 
 
-def fake_datetime(future=True):
-    if future:
-        fake_datetime = fake.future_datetime(tzinfo=timezone.utc)
-    else:
-        fake_datetime = fake.date_time(tzinfo=timezone.utc)
-
-    return fake_datetime.isoformat().replace("+00:00", "Z")
-
-
-def deep_merge(base: dict, overrides: dict) -> dict:
-    result = base.copy()
-    for key, value in overrides.items():
-        if isinstance(value, dict) and isinstance(result.get(key), dict):
-            result[key] = deep_merge(result[key], value)
-        else:
-            result[key] = value
-    return result
-
-
-def make_offer(**overrides) -> dict:
-    base: dict[str, Any] = {
-        "identification": {},
-        "titre": fake.text(max_nb_chars=150),
-        "titre_long": fake.text(max_nb_chars=1500),
-        "organisation": {"nom": fake.company(), "siret": ""},
-        "url_offre": None,
-        "url_candidature": None,
-        "profession": {"domaine": "INF", "metier": "INF001"},
-        "categories": [],
-        "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "forme_contrat": [],
-        "vacance_poste": "",
-        "description": {
-            "mission": fake.text(max_nb_chars=3000),
-            "profil": fake.text(max_nb_chars=3000),
-            "employeur": fake.text(max_nb_chars=1500),
-            "complements": "",
-        },
-        "localisation": None,
-        "criteres": None,
-        "conditions": None,
-        "contacts": None,
-        "publication": {
-            "debut_publication": fake_datetime(future=False),
-            "fin_publication": fake_datetime(),
-            "fin_candidature": None,
-            "debut_vacance_poste": None,
-        },
-    }
-    return deep_merge(base, overrides)
-
-
-MINIMAL_VALID_OFFER = make_offer(
+MINIMAL_VALID_OFFER = PayloadOfferFactory.create(
     identification={"reference": "REF-001", "source": "source-abc", "versant": "FPT"}
 )
 
-PARTIAL_VALID_OFFER = make_offer(
+PARTIAL_VALID_OFFER = PayloadOfferFactory.create(
     identification={"reference": "REF-002", "source": "source-abc", "versant": "FPE"},
     localisation=[],
     criteres={"diplome_niveau": 3},
@@ -91,7 +40,7 @@ PARTIAL_VALID_OFFER = make_offer(
     contacts=[],
 )
 
-COMPLETE_VALID_OFFER = make_offer(
+COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
     identification={"reference": "REF-003", "source": "source-abc", "versant": "FPH"},
     organisation={"nom": fake.company(), "siret": fake.siret().replace(" ", "")},
     url_offre="https://example.com/offre",
@@ -129,12 +78,12 @@ COMPLETE_VALID_OFFER = make_offer(
     contacts=[{"email": fake.email()}, {"email": fake.email()}],
 )
 
-INVALID_PAYLOAD_OFFER = make_offer(
+INVALID_PAYLOAD_OFFER = PayloadOfferFactory.create(
     identification={"reference": "REF-004", "source": "source-abc", "versant": "FPT"},
     titre=None,  # missing required field
 )
 
-INVALID_DATA_OFFER = make_offer(
+INVALID_DATA_OFFER = PayloadOfferFactory.create(
     identification={"reference": "REF-005", "source": "source-abc", "versant": "FPT"},
     type_contrat="ABC",  # invalid enum value
 )
