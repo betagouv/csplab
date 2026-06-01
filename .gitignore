@@ -71,6 +71,7 @@ scripts/*.csv
 
 .Trash*
 .ruff_cache/
+.mypy_cache/
 
 .todo*
 .pre-commit-cache/
