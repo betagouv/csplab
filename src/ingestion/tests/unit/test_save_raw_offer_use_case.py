@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
+from domain.entities.raw_offer import RawOffer
 from domain.gateways.offers_gateway import IOffersGateway
-from domain.raw_offer import RawOffer
 from infrastructure.exceptions.exceptions import ExternalApiError
 
 REFERENCE = "2024-OFFER-001"

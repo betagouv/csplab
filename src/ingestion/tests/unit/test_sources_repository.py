@@ -1,6 +1,6 @@
 import pytest
 
-from domain.source import Source
+from domain.value_objects.source import Source
 from infrastructure.sources_repository import SourcesRepository
 
 

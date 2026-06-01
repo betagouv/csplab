@@ -1,7 +1,9 @@
 import httpx
 
+from domain.gateways.archive_gateway import IArchiveGateway
 
-class WebArchiveGateway:
+
+class WebArchiveGateway(IArchiveGateway):
     def __init__(self, client: httpx.AsyncClient, base_url: str, api_key: str) -> None:
         self._client = client
         self._base_url = base_url.rstrip("/")

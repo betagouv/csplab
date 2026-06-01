@@ -15,7 +15,7 @@ from api.config import get_settings
 from api.main import create_app
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
-from domain.source import Source
+from domain.value_objects.source import Source
 from infrastructure.database import make_engine, run_migrations
 from infrastructure.di.container import Container
 from infrastructure.external_gateways.talentsoft_client import (

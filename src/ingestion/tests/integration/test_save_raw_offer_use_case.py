@@ -6,7 +6,7 @@ from faker import Faker
 from pytest_httpx import HTTPXMock
 
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
-from domain.raw_offer import RawOffer
+from domain.entities.raw_offer import RawOffer
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,

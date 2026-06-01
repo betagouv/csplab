@@ -5,7 +5,7 @@ from sqlalchemy import Engine
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlmodel import Session
 
-from domain.raw_offer import RawOffer
+from domain.entities.raw_offer import RawOffer
 from infrastructure.models.raw_offer import RawOfferModel
 
 

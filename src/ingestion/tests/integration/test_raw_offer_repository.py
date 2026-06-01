@@ -4,7 +4,7 @@ from uuid import uuid4
 import pytest
 from sqlmodel import Session, select
 
-from domain.raw_offer import RawOffer
+from domain.entities.raw_offer import RawOffer
 from infrastructure.models.raw_offer import RawOfferModel
 from infrastructure.raw_offer_repository import (
     RawOfferRepository,  # noqa: F401 — used via shared fixture

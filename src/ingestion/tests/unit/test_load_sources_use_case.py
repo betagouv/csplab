@@ -6,7 +6,7 @@ from faker import Faker
 from application.use_cases.load_sources import LoadSourcesUseCase
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.sources_repository import ISourcesRepository
-from domain.source import Source
+from domain.value_objects.source import Source
 
 fake = Faker()
 

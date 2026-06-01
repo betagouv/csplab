@@ -3,9 +3,9 @@ from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
 
 from api.main import create_app
-from domain.raw_offer import RawOffer
-from domain.source import Source
-from domain.webhook_event import TalentsoftEventType
+from domain.entities.raw_offer import RawOffer
+from domain.value_objects.source import Source
+from presentation.dtos.talentsoft_webhook import TalentsoftEventType
 from tests.conftest import (
     SOURCE_ID,
     TALENTSOFT_BACK_BASE_URL,
@@ -184,14 +184,19 @@ async def test_vacancy_new_talentsoft_api_error_propagates(
 
 
 @pytest.mark.asyncio
-async def test_other_event_type_does_not_call_talentsoft(
-    talentsoft_client, httpx_mock: HTTPXMock
-):
+async def test_other_event_type_returns_500(httpx_mock: HTTPXMock, monkeypatch):
+    # unknown event type — not handled, raises ValueError
+    monkeypatch.setenv("TESTING", "true")
+    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
+    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
+    app = create_app()
+    populate_sources_repository(app)
+    client = TestClient(app, raise_server_exceptions=False)
     payload = {"event_type": "candidate_created", "reference": REFERENCE}
-    response = make_signed_request(talentsoft_client, payload)
+    response = make_signed_request(client, payload)
 
-    assert response.status_code == 200
-    assert httpx_mock.get_requests() == []
+    assert response.status_code == 500
 
 
 @pytest.mark.asyncio

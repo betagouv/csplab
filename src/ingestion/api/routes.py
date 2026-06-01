@@ -9,8 +9,12 @@ from api.talentsoft import verify_talentsoft_signature
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from domain.repositories.sources_repository import ISourcesRepository
-from domain.source import Source
-from domain.webhook_event import WebhookEvent, should_archive, should_save_raw_offer
+from domain.value_objects.source import Source
+from domain.value_objects.webhook_event import (
+    WebhookEvent,
+    should_archive,
+    should_save_raw_offer,
+)
 from infrastructure.di.container import (
     Container,
     get_save_raw_offer_use_case,
@@ -74,10 +78,10 @@ async def talentsoft_webhook(
         )
 
     logger.info(
-        "Unhandled event type %s for reference %s and status_id %s",
+        "Unhandled event type %s for reference %s and status %s",
         event.event_type,
         event.reference,
-        event.status_id,
+        event.status,
         extra={"client_id": client_id},
     )
     return _OK

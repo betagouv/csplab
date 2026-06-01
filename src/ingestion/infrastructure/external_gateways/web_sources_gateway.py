@@ -1,9 +1,10 @@
 import httpx
 
-from domain.source import Source
+from domain.gateways.sources_gateway import ISourcesGateway
+from domain.value_objects.source import Source
 
 
-class WebSourcesGateway:
+class WebSourcesGateway(ISourcesGateway):
     def __init__(self, client: httpx.AsyncClient, base_url: str, api_key: str) -> None:
         self._client = client
         self._base_url = base_url.rstrip("/")

@@ -2,8 +2,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from domain.entities.raw_offer import RawOffer
 from domain.gateways.offers_gateway import IOffersGateway
-from domain.raw_offer import RawOffer
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 
 logger = logging.getLogger(__name__)

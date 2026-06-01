@@ -7,7 +7,8 @@ from typing import Any, Dict, Mapping, Optional, cast
 
 from pydantic import ValidationError
 
-from domain.raw_offer import RawOffer
+from domain.entities.raw_offer import RawOffer
+from domain.gateways.offers_gateway import IOffersGateway
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
@@ -150,7 +151,7 @@ class BaseTalentsoftClient(AsyncHttpClient):
         )
 
 
-class TalentsoftFrontClient(BaseTalentsoftClient):
+class TalentsoftFrontClient(BaseTalentsoftClient, IOffersGateway):
     api_name = "Talentsoft Front API"
 
     def __init__(self, config: TalentsoftConfig, logger: logging.Logger, **kwargs):

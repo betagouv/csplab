@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from httpx import Response
 
-from domain.source import Source
+from domain.value_objects.source import Source
 
 # --- Constants ---
 
