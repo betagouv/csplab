@@ -1,3 +1,4 @@
+from domain.recrutement.entities.organisme import Organisme
 from domain.recrutement.value_objects.etapes_recrutement import (
     CategorieEtapeRecrutement,
     EtapeRecrutement,
@@ -59,3 +60,13 @@ def make_etapes_recrutement(
             ),
         )
     return EtapesRecrutement(etapes=etapes)
+
+
+class OrganismeFactory:
+    @staticmethod
+    def build(
+        parametres: EtapesRecrutement | None = None,
+    ) -> "Organisme":
+        return Organisme.build(
+            parametres=parametres or make_etapes_recrutement(),
+        )
