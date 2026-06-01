@@ -76,6 +76,8 @@ class AggregateRoot(Entity):
         return events
 
 
+# todo: what if several events can create the same aggregate?
+# @factory does not allow for that
 def factory(event_type: type) -> Callable:
     def decorator(method: Callable) -> Callable:
         @wraps(method)
