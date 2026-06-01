@@ -14,7 +14,7 @@ from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 from domain.repositories.sources_repository import ISourcesRepository
 from infrastructure.credentials_store import CredentialsStore
-from infrastructure.database import make_engine, run_migrations
+from infrastructure.database import make_engine
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
@@ -133,10 +133,6 @@ class Container(containers.DeclarativeContainer):
         sources_gateway=sources_gateway,
         repository=sources_repository,
     )
-
-
-def run_database_migrations(database_url: str) -> None:
-    run_migrations(database_url)
 
 
 def register_talentsoft_front_client(

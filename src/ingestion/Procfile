@@ -1,1 +1,2 @@
+release: bin/run_migrations.sh
 web: bin/start_web.sh
