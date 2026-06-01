@@ -1,5 +1,3 @@
-import { getCsrfToken } from '@/types/config'
-
 export class HttpError extends Error {
   constructor(
     public readonly status: number,
@@ -19,8 +17,14 @@ interface RequestOptions {
   signal?: AbortSignal
 }
 
-function handleAuthError(): never {
-  window.location.href = `/login/?next=${encodeURIComponent(window.location.pathname)}`
+function readCsrfCookie(): string {
+  const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/)
+  return match ? decodeURIComponent(match[1]) : ''
+}
+
+function redirectToLogin(): never {
+  const next = encodeURIComponent(window.location.pathname + window.location.search)
+  window.location.href = `/login/?next=${next}`
   throw new Error('Redirecting to login')
 }
 
@@ -36,7 +40,7 @@ async function request<T>(
   }
 
   if (method !== 'GET') {
-    headers['X-CSRFToken'] = getCsrfToken()
+    headers['X-CSRFToken'] = readCsrfCookie()
   }
 
   let finalUrl = url
@@ -56,8 +60,8 @@ async function request<T>(
     signal: options.signal,
   })
 
-  if (response.status === 401 || response.status === 403) {
-    handleAuthError()
+  if (response.status === 401) {
+    redirectToLogin()
   }
 
   if (!response.ok) {

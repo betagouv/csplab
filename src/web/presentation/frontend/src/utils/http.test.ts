@@ -3,16 +3,28 @@ import { http, HttpError } from './http'
 
 const MOCK_CSRF_TOKEN = 'test-csrf-token'
 
+function setCsrfCookie(value: string) {
+  Object.defineProperty(document, 'cookie', {
+    configurable: true,
+    get: () => `csrftoken=${value}`,
+  })
+}
+
+function clearCookies() {
+  Object.defineProperty(document, 'cookie', {
+    configurable: true,
+    get: () => '',
+  })
+}
+
 beforeEach(() => {
-  window.__APP_CONFIG__ = {
-    csrfToken: MOCK_CSRF_TOKEN,
-    user: { is_authenticated: true },
-  }
+  setCsrfCookie(MOCK_CSRF_TOKEN)
   vi.stubGlobal('fetch', vi.fn())
 })
 
 afterEach(() => {
   vi.restoreAllMocks()
+  clearCookies()
 })
 
 function mockFetchResponse(data: unknown, status = 200, statusText = 'OK') {
@@ -33,7 +45,7 @@ describe('http', () => {
     }))
   })
 
-  it('should include CSRF token on mutating requests', async () => {
+  it('should read CSRF token from cookie on mutating requests', async () => {
     mockFetchResponse({}, 201)
     await http.post('/api/test', { name: 'test' })
     expect(fetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
@@ -41,13 +53,31 @@ describe('http', () => {
     }))
   })
 
-  it('should redirect to /login/ on 401/403', async () => {
-    const mockLocation = { href: '', pathname: '/ats/dashboard' }
+  it('should send empty CSRF header when cookie is missing', async () => {
+    clearCookies()
+    mockFetchResponse({}, 201)
+    await http.post('/api/test', {})
+    expect(fetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
+      headers: expect.objectContaining({ 'X-CSRFToken': '' }),
+    }))
+  })
+
+  it('should redirect to /login/ on 401 only', async () => {
+    const mockLocation = { href: '', pathname: '/ats/dashboard', search: '' }
     vi.stubGlobal('location', mockLocation)
     mockFetchResponse({}, 401, 'Unauthorized')
 
     await expect(http.get('/api/test')).rejects.toThrow('Redirecting to login')
     expect(mockLocation.href).toBe('/login/?next=%2Fats%2Fdashboard')
+  })
+
+  it('should NOT redirect on 403 (permission denied is not auth)', async () => {
+    const mockLocation = { href: '', pathname: '/ats/x', search: '' }
+    vi.stubGlobal('location', mockLocation)
+    mockFetchResponse({ detail: 'Forbidden' }, 403, 'Forbidden')
+
+    await expect(http.get('/api/test')).rejects.toBeInstanceOf(HttpError)
+    expect(mockLocation.href).toBe('')
   })
 
   it('should throw HttpError with status and data on non-2xx', async () => {
