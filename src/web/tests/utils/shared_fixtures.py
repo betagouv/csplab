@@ -74,7 +74,7 @@ def api_client_fixture():
 @pytest.fixture(name="user_credentials")
 def user_credentials_fixture():
     return {
-        "username": fake.name(),
+        "username": fake.uuid4(),
         "email": fake.email(),
         "password": fake.password(),
     }
