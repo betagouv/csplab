@@ -11,4 +11,4 @@ class Utilisateur(IUserEntity):
     email: EmailStr
     prenom: str
     nom: str
-    username: UUID = field(default_factory=uuid4)
+    entity_id: UUID = field(default_factory=uuid4)

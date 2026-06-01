@@ -25,7 +25,7 @@ class UserModel(AbstractUser):
 
     def to_entity(self) -> Utilisateur:
         return Utilisateur(
-            username=UUID(self.username),
+            entity_id=UUID(self.username),
             email=self.email,
             prenom=self.first_name,
             nom=self.last_name,
@@ -34,7 +34,7 @@ class UserModel(AbstractUser):
     @classmethod
     def from_entity(cls, utilisateur: Utilisateur) -> "UserModel":
         return cls(
-            username=str(utilisateur.username),
+            username=str(utilisateur.entity_id),
             email=utilisateur.email,
             first_name=utilisateur.prenom,
             last_name=utilisateur.nom,

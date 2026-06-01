@@ -11,4 +11,4 @@ class IOfferEntity(IEntity, Protocol):
 
 
 class IUserEntity(Protocol):
-    username: UUID
+    entity_id: UUID
