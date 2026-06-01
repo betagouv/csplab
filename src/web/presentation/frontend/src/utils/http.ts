@@ -1,0 +1,96 @@
+import { getCsrfToken } from '@/types/config'
+
+export class HttpError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly statusText: string,
+    public readonly data?: unknown,
+  ) {
+    super(`HTTP ${status}: ${statusText}`)
+    this.name = 'HttpError'
+  }
+}
+
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+
+interface RequestOptions {
+  params?: Record<string, string | number | boolean>
+  headers?: Record<string, string>
+  signal?: AbortSignal
+}
+
+function handleAuthError(): never {
+  window.location.href = `/login/?next=${encodeURIComponent(window.location.pathname)}`
+  throw new Error('Redirecting to login')
+}
+
+async function request<T>(
+  method: HttpMethod,
+  url: string,
+  data?: unknown,
+  options: RequestOptions = {},
+): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  }
+
+  if (method !== 'GET') {
+    headers['X-CSRFToken'] = getCsrfToken()
+  }
+
+  let finalUrl = url
+  if (options.params) {
+    const searchParams = new URLSearchParams()
+    for (const [key, value] of Object.entries(options.params)) {
+      searchParams.append(key, String(value))
+    }
+    finalUrl = `${url}?${searchParams.toString()}`
+  }
+
+  const response = await fetch(finalUrl, {
+    method,
+    headers,
+    body: data ? JSON.stringify(data) : undefined,
+    credentials: 'same-origin',
+    signal: options.signal,
+  })
+
+  if (response.status === 401 || response.status === 403) {
+    handleAuthError()
+  }
+
+  if (!response.ok) {
+    let errorData: unknown
+    try {
+      errorData = await response.json()
+    }
+    catch {
+      errorData = undefined
+    }
+    throw new HttpError(response.status, response.statusText, errorData)
+  }
+
+  if (response.status === 204) {
+    return undefined as T
+  }
+
+  return response.json()
+}
+
+export const http = {
+  get: <T>(url: string, options?: RequestOptions) =>
+    request<T>('GET', url, undefined, options),
+
+  post: <T>(url: string, data?: unknown, options?: RequestOptions) =>
+    request<T>('POST', url, data, options),
+
+  put: <T>(url: string, data?: unknown, options?: RequestOptions) =>
+    request<T>('PUT', url, data, options),
+
+  patch: <T>(url: string, data?: unknown, options?: RequestOptions) =>
+    request<T>('PATCH', url, data, options),
+
+  delete: <T>(url: string, options?: RequestOptions) =>
+    request<T>('DELETE', url, undefined, options),
+}

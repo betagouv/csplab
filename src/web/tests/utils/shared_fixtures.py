@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock
 import pytest
 from asgiref.sync import sync_to_async
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import connections
 from faker import Faker
 from qdrant_client import QdrantClient
@@ -54,6 +54,8 @@ from tests.utils.pdf_test_utils import create_minimal_valid_pdf
 
 fake = Faker()
 
+USER_MODEL = get_user_model()
+
 
 @pytest.fixture(autouse=True)
 async def close_worker_thread_connections():
@@ -80,19 +82,12 @@ def user_credentials_fixture():
 
 @pytest.fixture(name="test_user")
 def test_user_fixture(db, user_credentials):
-    return User.objects.create_user(**user_credentials)
-
-
-@pytest.fixture(name="user")
-def user_fixture(db):
-    return User.objects.create_user(
-        username=fake.name(), email=fake.email(), password=fake.password()
-    )
+    return USER_MODEL.objects.create_user(**user_credentials)
 
 
 @pytest.fixture(name="authenticated_client")
-def authenticated_client_fixture(api_client, user):
-    refresh = RefreshToken.for_user(user)
+def authenticated_client_fixture(api_client, test_user):
+    refresh = RefreshToken.for_user(test_user)
     token = str(refresh.access_token)
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     return api_client

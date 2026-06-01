@@ -16,10 +16,10 @@
     <body>
         <div id="ats-app"></div>
         <script nonce="{{ request.csp_nonce }}">
-    window.__ATS_CONFIG__ = {
-      csrfToken: "{{ csrf_token }}",
-      user: {{ user_json|safe }},
-    };
+            window.__APP_CONFIG__ = {
+                csrfToken: "{{ csrf_token }}",
+                user: {{ user_json|default:"null"|safe }},
+            };
         </script>
     </body>
 </html>

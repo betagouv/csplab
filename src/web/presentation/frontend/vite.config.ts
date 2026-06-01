@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
@@ -27,5 +28,9 @@ export default defineConfig({
       '/api': 'http://localhost:8000',
       '/ats': 'http://localhost:8000',
     },
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
   },
 })
