@@ -1,13 +1,4 @@
-export class HttpError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly statusText: string,
-    public readonly data?: unknown,
-  ) {
-    super(`HTTP ${status}: ${statusText}`)
-    this.name = 'HttpError'
-  }
-}
+import { HttpError, NetworkError, parseFieldErrors, ValidationError } from './errors'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
@@ -28,6 +19,14 @@ function redirectToLogin(): never {
   throw new Error('Redirecting to login')
 }
 
+function buildUrl(url: string, params?: RequestOptions['params']): string {
+  if (!params)
+    return url
+  const search = new URLSearchParams()
+  for (const [k, v] of Object.entries(params)) search.append(k, String(v))
+  return `${url}?${search.toString()}`
+}
+
 async function request<T>(
   method: HttpMethod,
   url: string,
@@ -36,66 +35,58 @@ async function request<T>(
 ): Promise<T> {
   const hasBody = data !== undefined
   const headers: Record<string, string> = { ...options.headers }
-
-  if (hasBody) {
+  if (hasBody)
     headers['Content-Type'] = 'application/json'
-  }
-  if (method !== 'GET') {
+  if (method !== 'GET')
     headers['X-CSRFToken'] = readCsrfCookie()
+
+  let response: Response
+  try {
+    response = await fetch(buildUrl(url, options.params), {
+      method,
+      headers,
+      body: hasBody ? JSON.stringify(data) : undefined,
+      credentials: 'same-origin',
+      signal: options.signal,
+    })
+  }
+  catch (err) {
+    // Let caller-initiated cancellation surface as-is.
+    if (err instanceof DOMException && err.name === 'AbortError')
+      throw err
+    throw new NetworkError(err)
   }
 
-  let finalUrl = url
-  if (options.params) {
-    const searchParams = new URLSearchParams()
-    for (const [key, value] of Object.entries(options.params)) {
-      searchParams.append(key, String(value))
-    }
-    finalUrl = `${url}?${searchParams.toString()}`
-  }
-
-  const response = await fetch(finalUrl, {
-    method,
-    headers,
-    body: hasBody ? JSON.stringify(data) : undefined,
-    credentials: 'same-origin',
-    signal: options.signal,
-  })
-
-  if (response.status === 401) {
+  if (response.status === 401)
     redirectToLogin()
-  }
 
   if (!response.ok) {
-    let errorData: unknown
-    try {
-      errorData = await response.json()
-    }
-    catch {
-      errorData = undefined
+    const errorData = await response.json().catch(() => undefined)
+    if (response.status === 400 || response.status === 422) {
+      throw new ValidationError(
+        response.status,
+        response.statusText,
+        errorData,
+        parseFieldErrors(errorData),
+      )
     }
     throw new HttpError(response.status, response.statusText, errorData)
   }
 
-  if (response.status === 204) {
+  if (response.status === 204)
     return undefined as T
-  }
-
   return response.json()
 }
 
 export const http = {
   get: <T>(url: string, options?: RequestOptions) =>
     request<T>('GET', url, undefined, options),
-
   post: <T>(url: string, data?: unknown, options?: RequestOptions) =>
     request<T>('POST', url, data, options),
-
   put: <T>(url: string, data?: unknown, options?: RequestOptions) =>
     request<T>('PUT', url, data, options),
-
   patch: <T>(url: string, data?: unknown, options?: RequestOptions) =>
     request<T>('PATCH', url, data, options),
-
   delete: <T>(url: string, options?: RequestOptions) =>
     request<T>('DELETE', url, undefined, options),
 }
