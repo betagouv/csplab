@@ -4,7 +4,8 @@ from uuid import uuid4
 import pytest
 from sqlmodel import Session, select
 
-from infrastructure.models.raw_offer import RawOffer
+from domain.raw_offer import RawOffer
+from infrastructure.models.raw_offer import RawOfferModel
 from infrastructure.raw_offer_repository import (
     RawOfferRepository,  # noqa: F401 — used via shared fixture
 )
@@ -15,12 +16,12 @@ REFERENCE = "2024-OFFER-001"
 SOURCE_ID = "11111111-2222-3333-4444-555555555555"
 
 
-def _fetch(db_engine, reference: str, source_id: str) -> RawOffer | None:
+def _fetch(db_engine, reference: str, source_id: str) -> RawOfferModel | None:
     with Session(db_engine) as session:
         return session.exec(
-            select(RawOffer).where(
-                RawOffer.reference == reference,
-                RawOffer.source_id == source_id,
+            select(RawOfferModel).where(
+                RawOfferModel.reference == reference,
+                RawOfferModel.source_id == source_id,
             )
         ).first()
 

@@ -6,11 +6,10 @@ from fastapi import FastAPI
 
 from api.config import get_settings
 from api.routes import public_router
-from infrastructure.database import run_migrations
-from infrastructure.di.container import Container
-from infrastructure.external_gateways.talentsoft_client import (
-    TalentsoftConfig,
-    TalentsoftFrontClient,
+from infrastructure.di.container import (
+    Container,
+    register_talentsoft_front_client,
+    run_database_migrations,
 )
 
 _SKIP_LOG_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {
@@ -76,26 +75,15 @@ def create_app():
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        engine = container.db_engine()
         if settings.database_url:
-            await asyncio.to_thread(run_migrations, settings.database_url)
+            await asyncio.to_thread(run_database_migrations, settings.database_url)
         else:
             logger.warning("DATABASE_URL is not set — raw offers will not be persisted")
 
         if settings.talentsoft_front_client_id:
-            creds = container.credentials_store().get_credentials(
-                settings.talentsoft_front_client_id
+            register_talentsoft_front_client(
+                container, settings.talentsoft_front_client_id, logger
             )
-            if creds:
-                config = TalentsoftConfig(
-                    base_url=creds.base_url,
-                    client_id=creds.client_id,
-                    client_secret=creds.client_secret,
-                )
-                client = TalentsoftFrontClient(config=config, logger=logger)
-                container.talentsoft_client_repository().register(
-                    settings.talentsoft_front_client_id, client
-                )
 
         if settings.web_base_url and settings.web_api_key:
             use_case = container.load_sources_use_case()
@@ -103,6 +91,7 @@ def create_app():
 
         yield
 
+        engine = container.db_engine()
         if engine is not None:
             engine.dispose()
         await container.http_client().aclose()

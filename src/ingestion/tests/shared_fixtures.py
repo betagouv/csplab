@@ -22,6 +22,8 @@ from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
 )
+from infrastructure.external_gateways.web_archive_gateway import WebArchiveGateway
+from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.sources_repository import SourcesRepository
 from tests.conftest import (
@@ -148,9 +150,11 @@ def sources_repository() -> SourcesRepository:
 @pytest.fixture
 def load_sources_use_case(sources_repository: SourcesRepository) -> LoadSourcesUseCase:
     return LoadSourcesUseCase(
-        client=httpx.AsyncClient(),
-        web_base_url=WEB_BASE_URL,
-        web_api_key=WEB_API_KEY,
+        sources_gateway=WebSourcesGateway(
+            client=httpx.AsyncClient(),
+            base_url=WEB_BASE_URL,
+            api_key=WEB_API_KEY,
+        ),
         repository=sources_repository,
     )
 
@@ -158,9 +162,11 @@ def load_sources_use_case(sources_repository: SourcesRepository) -> LoadSourcesU
 @pytest.fixture
 def archive_offer_use_case() -> ArchiveOfferUseCase:
     return ArchiveOfferUseCase(
-        client=httpx.AsyncClient(),
-        web_base_url=WEB_BASE_URL,
-        web_api_key=WEB_API_KEY,
+        archive_gateway=WebArchiveGateway(
+            client=httpx.AsyncClient(),
+            base_url=WEB_BASE_URL,
+            api_key=WEB_API_KEY,
+        ),
     )
 
 

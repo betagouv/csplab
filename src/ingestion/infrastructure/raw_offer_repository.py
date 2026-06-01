@@ -5,7 +5,8 @@ from sqlalchemy import Engine
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlmodel import Session
 
-from infrastructure.models.raw_offer import RawOffer
+from domain.raw_offer import RawOffer
+from infrastructure.models.raw_offer import RawOfferModel
 
 
 class RawOfferRepository:
@@ -19,10 +20,10 @@ class RawOfferRepository:
         now = datetime.now(tz=timezone.utc)
         with Session(self._engine) as session:
             stmt = (
-                pg_insert(RawOffer)
+                pg_insert(RawOfferModel)
                 .values(
                     id=offer.id,
-                    created_at=offer.created_at,
+                    created_at=now,
                     updated_at=now,
                     reference=offer.reference,
                     source_id=offer.source_id,
@@ -30,7 +31,7 @@ class RawOfferRepository:
                     error_msg=offer.error_msg,
                     loaded_at=offer.loaded_at,
                     cleaned_at=offer.cleaned_at,
-                    upsert_at=offer.upsert_at,
+                    upsert_at=None,
                 )
                 .on_conflict_do_update(
                     constraint="uq_raw_offer_reference_source",

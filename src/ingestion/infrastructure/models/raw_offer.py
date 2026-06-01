@@ -13,7 +13,7 @@ def _now() -> datetime:
     return datetime.now(tz=timezone.utc)
 
 
-class RawOffer(SQLModel, table=True):
+class RawOfferModel(SQLModel, table=True):
     __tablename__ = "raw_offers"
     __table_args__ = (
         UniqueConstraint(

@@ -5,10 +5,7 @@ from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
 
 from api.main import create_app
-from presentation.dtos.talentsoft_webhook import (
-    TalentsoftEventType,
-    TalentsoftOfferStatus,
-)
+from domain.webhook_event import TalentsoftEventType, TalentsoftOfferStatus
 from tests.conftest import (
     SOURCE_ID,
     TALENTSOFT_BACK_BASE_URL,

@@ -122,4 +122,5 @@ omit = [
     ".venv/*",
     "tests/*",
     "*/__init__.py",
+    "migrations/*",
 ]

@@ -7,6 +7,7 @@ from typing import Any, Dict, Mapping, Optional, cast
 
 from pydantic import ValidationError
 
+from domain.raw_offer import RawOffer
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
@@ -162,7 +163,7 @@ class TalentsoftFrontClient(BaseTalentsoftClient):
             max_retries=kwargs.get("max_retries", 2),
         )
 
-    async def get_detail(self, reference: str) -> TalentsoftDetailOffer:
+    async def get_detail(self, reference: str) -> RawOffer:
         if not reference:
             raise ExternalApiError(
                 message="Reference is required", api_name=self.api_name
@@ -182,10 +183,10 @@ class TalentsoftFrontClient(BaseTalentsoftClient):
             raise
 
         try:
-            offer = TalentsoftDetailOffer.model_validate(response.json())
+            talentsoft_offer = TalentsoftDetailOffer.model_validate(response.json())
         except ValidationError as e:
             raise ExternalApiError(
                 f"Invalid response structure: {e}", api_name=self.api_name
             ) from e
 
-        return offer
+        return RawOffer(reference=reference, data=talentsoft_offer.model_dump())

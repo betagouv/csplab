@@ -2,9 +2,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from application.interfaces.raw_offer_repository import IRawOfferRepository
-from application.interfaces.talentsoft_client_interface import ITalentsoftFrontClient
-from infrastructure.models.raw_offer import RawOffer
+from domain.gateways.offers_gateway import IOffersGateway
+from domain.raw_offer import RawOffer
+from domain.repositories.raw_offer_repository import IRawOfferRepository
 
 logger = logging.getLogger(__name__)
 
@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 class SaveRawOfferUseCase:
     def __init__(
         self,
-        talentsoft_client: ITalentsoftFrontClient,
+        offers_gateway: IOffersGateway,
         raw_offer_repository: IRawOfferRepository,
     ) -> None:
-        self._talentsoft_client = talentsoft_client
+        self._offers_gateway = offers_gateway
         self._raw_offer_repository = raw_offer_repository
 
     async def execute(self, reference: str, source_id: str) -> None:
@@ -23,9 +23,9 @@ class SaveRawOfferUseCase:
         loaded_at: datetime | None = None
         data: dict[str, Any] | None = None
         try:
-            offer = await self._talentsoft_client.get_detail(reference)
+            offer = await self._offers_gateway.get_detail(reference)
             loaded_at = datetime.now(tz=timezone.utc)
-            data = offer.model_dump()
+            data = offer.data
         except Exception as e:
             error_msg = str(e)
             raise

@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from infrastructure.models.raw_offer import RawOffer
+from domain.raw_offer import RawOffer
 
 
 class IRawOfferRepository(Protocol):
