@@ -1,0 +1,57 @@
+from dataclasses import dataclass
+from datetime import datetime
+from uuid import UUID
+
+from domain.candidature.events.candidature_events import DossierCandidatureCree
+from domain.candidature.value_objects.statut_candidature import StatutCandidature
+from domain.ddd.aggregate_root import AggregateRoot, factory
+from domain.shared.value_objects.etapes_recrutement import EtapeRecrutement
+
+
+@dataclass(kw_only=True)
+class Candidature(AggregateRoot):
+    _profil_candidat_id: UUID
+    _offre_id: UUID
+    _statut: StatutCandidature
+    _etape_courante: EtapeRecrutement | None = None
+    _documents: tuple[UUID, ...] | None = None
+    _soumise_le: datetime | None = None
+    _mise_a_jour_le: datetime | None = None
+
+    @classmethod
+    @factory(DossierCandidatureCree)
+    def create(cls, event: DossierCandidatureCree) -> "Candidature":
+        return cls(
+            _profil_candidat_id=event.profil_candidat_id,
+            _offre_id=event.offre_id,
+            _statut=StatutCandidature.INITIAL,
+            _etape_courante=event.etape_courante,
+        )
+
+    @property
+    def profil_candidat_id(self) -> UUID:
+        return self._profil_candidat_id
+
+    @property
+    def offre_id(self) -> UUID:
+        return self._offre_id
+
+    @property
+    def statut(self) -> StatutCandidature:
+        return self._statut
+
+    @property
+    def etape_courante(self) -> EtapeRecrutement | None:
+        return self._etape_courante
+
+    @property
+    def documents(self) -> tuple[UUID, ...] | None:
+        return self._documents
+
+    @property
+    def soumise_le(self) -> datetime | None:
+        return self._soumise_le
+
+    @property
+    def mise_a_jour_le(self) -> datetime | None:
+        return self._mise_a_jour_le

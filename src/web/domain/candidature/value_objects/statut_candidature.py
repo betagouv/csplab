@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class StatutCandidature(Enum):
+    INITIAL = "initial"  # état par défaut, avant soumission
     SOUMISE = "soumise"  # état initial à la soumission
     EN_COURS = "en_cours"  # en cours d'instruction par le RH
     REFUSEE = "refusee"  # candidature refusée
