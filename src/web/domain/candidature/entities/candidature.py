@@ -13,7 +13,7 @@ class Candidature(AggregateRoot):
     _profil_candidat_id: UUID
     _offre_id: UUID
     _statut: StatutCandidature
-    _etape_courante: EtapeRecrutement | None = None
+    _etape_courante: EtapeRecrutement
     _documents: tuple[UUID, ...] | None = None
     _soumise_le: datetime | None = None
     _mise_a_jour_le: datetime | None = None
@@ -26,6 +26,27 @@ class Candidature(AggregateRoot):
             _offre_id=event.offre_id,
             _statut=StatutCandidature.INITIAL,
             _etape_courante=event.etape_courante,
+        )
+
+    @classmethod
+    def build(
+        cls,
+        profil_candidat_id: UUID,
+        offre_id: UUID,
+        statut: StatutCandidature,
+        etape_courante: EtapeRecrutement,
+        documents: tuple[UUID, ...] | None = None,
+        soumise_le: datetime | None = None,
+        mise_a_jour_le: datetime | None = None,
+    ) -> "Candidature":
+        return cls(
+            _profil_candidat_id=profil_candidat_id,
+            _offre_id=offre_id,
+            _statut=statut,
+            _etape_courante=etape_courante,
+            _documents=documents,
+            _soumise_le=soumise_le,
+            _mise_a_jour_le=mise_a_jour_le,
         )
 
     @property
