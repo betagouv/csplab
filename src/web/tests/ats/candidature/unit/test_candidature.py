@@ -4,11 +4,13 @@ import pytest
 
 from domain.candidature.entities.candidature import Candidature
 from domain.candidature.events.candidature_events import (
+    CandidatureRetiree,
     CandidatureSoumise,
     DocumentsDeposes,
     DossierCandidatureCree,
 )
 from domain.candidature.exceptions import (
+    CandidatureNePeutEtreRetiree,
     CandidatureNePeutPasEtreSoumise,
     DossierCandidatureInvalide,
 )
@@ -96,3 +98,28 @@ def test_candidature_ne_peut_pas_etre_soumise():
     candidature_factory.deposer_documents(DocumentsDeposes(documents=documents))
     with pytest.raises(CandidatureNePeutPasEtreSoumise):
         candidature_factory.soumettre_candidature(CandidatureSoumise())
+
+
+def test_candidature_retiree():
+    candidature_factory = CandidatureFactory.build(
+        statut=StatutCandidature.SOUMISE,
+    )
+    ts = datetime.now()
+    candidature_factory.retirer_candidature(
+        CandidatureRetiree(
+            occurred_at=ts,
+        )
+    )
+    events = candidature_factory.collect_events()
+    assert len(events) == 1
+    assert isinstance(events[0], CandidatureRetiree)
+    assert candidature_factory.statut == StatutCandidature.RETIREE
+    assert candidature_factory.mise_a_jour_le == ts
+
+
+def test_candidature_ne_peut_pas_etre_retiree():
+    candidature_factory = CandidatureFactory.build(
+        statut=StatutCandidature.INITIAL,
+    )
+    with pytest.raises(CandidatureNePeutEtreRetiree):
+        candidature_factory.retirer_candidature(CandidatureRetiree())

@@ -3,11 +3,13 @@ from datetime import datetime
 from uuid import UUID
 
 from domain.candidature.events.candidature_events import (
+    CandidatureRetiree,
     CandidatureSoumise,
     DocumentsDeposes,
     DossierCandidatureCree,
 )
 from domain.candidature.exceptions import (
+    CandidatureNePeutEtreRetiree,
     CandidatureNePeutPasEtreSoumise,
     DossierCandidatureInvalide,
 )
@@ -114,3 +116,11 @@ class Candidature(AggregateRoot):
             self._statut = StatutCandidature.SOUMISE
             self._soumise_le = event.occurred_at
             self._mise_a_jour_le = event.occurred_at
+
+    @mutate(CandidatureRetiree)
+    def retirer_candidature(self, event: CandidatureRetiree) -> None:
+        if self._statut == StatutCandidature.SOUMISE:
+            self._statut = StatutCandidature.RETIREE
+            self._mise_a_jour_le = event.occurred_at
+        else:
+            raise CandidatureNePeutEtreRetiree()
