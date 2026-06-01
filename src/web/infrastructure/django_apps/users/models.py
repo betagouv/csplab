@@ -16,7 +16,8 @@ class UserModel(AbstractUser):
         max_length=36,
     )
 
-    REQUIRED_FIELDS = ["first_name", "last_name", "email"]
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["first_name", "last_name", "username"]
 
     class Meta:
         db_table = "auth_user"
