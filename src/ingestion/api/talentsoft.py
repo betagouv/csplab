@@ -7,7 +7,7 @@ import urllib.parse
 from dependency_injector.wiring import Provide, inject
 from fastapi import Depends, HTTPException, Request
 
-from application.interfaces.sources_repository import ISourcesRepository
+from domain.repositories.sources_repository import ISourcesRepository
 from infrastructure.credentials_store import CredentialsStore
 from infrastructure.di.container import Container
 

@@ -1,68 +1,54 @@
-from unittest.mock import AsyncMock, MagicMock, Mock
+from unittest.mock import AsyncMock, MagicMock
 
-import httpx
 import pytest
 from faker import Faker
 
-from application.interfaces.sources_repository import ISourcesRepository
 from application.use_cases.load_sources import LoadSourcesUseCase
-from tests.shared_fixtures import WEB_API_KEY, WEB_BASE_URL
+from domain.gateways.sources_gateway import ISourcesGateway
+from domain.repositories.sources_repository import ISourcesRepository
+from domain.value_objects.source import Source
 
 fake = Faker()
 
-SOURCES_URL = f"{WEB_BASE_URL}/api/v1/sources/"
+
+def _make_source(**kwargs) -> Source:
+    defaults = {
+        "source_id": "aaaa-bbbb",
+        "type": "talentsoft",
+        "client_id_back": "client-back-1",
+        "client_id_front": "client-front-1",
+        "base_url_front": fake.url(),
+        "base_url_back": fake.url(),
+    }
+    return Source(**{**defaults, **kwargs})
 
 
 @pytest.mark.asyncio
-async def test_execute_loads_sources_into_registry():
-    sources_data = [
-        {
-            "source_id": "aaaa-bbbb",
-            "type": "talentsoft",
-            "client_id_back": "client-back-1",
-            "client_id_front": "client-front-1",
-            "base_url_front": fake.url(),
-            "base_url_back": fake.url(),
-        }
-    ]
-    mock_response = Mock()
-    mock_response.json.return_value = sources_data
-
-    mock_client = MagicMock(spec=httpx.AsyncClient)
-    mock_client.get = AsyncMock(return_value=mock_response)
-    mock_registry = MagicMock(spec=ISourcesRepository)
+async def test_execute_loads_sources_into_repository():
+    source = _make_source()
+    mock_gateway = MagicMock(spec=ISourcesGateway)
+    mock_gateway.fetch_sources = AsyncMock(return_value=[source])
+    mock_repository = MagicMock(spec=ISourcesRepository)
 
     use_case = LoadSourcesUseCase(
-        client=mock_client,
-        web_base_url=WEB_BASE_URL,
-        web_api_key=WEB_API_KEY,
-        registry=mock_registry,
+        sources_gateway=mock_gateway, repository=mock_repository
     )
     await use_case.execute()
 
-    mock_registry.load.assert_called_once()
-    loaded_sources = mock_registry.load.call_args[0][0]
-    assert len(loaded_sources) == 1
-    assert loaded_sources[0].source_id == "aaaa-bbbb"
+    mock_repository.load.assert_called_once_with([source])
 
 
 @pytest.mark.asyncio
-async def test_execute_raises_on_error_response():
-    mock_response = Mock()
-    mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-        "500 Internal Server Error", request=Mock(), response=Mock()
-    )
-
-    mock_client = MagicMock(spec=httpx.AsyncClient)
-    mock_client.get = AsyncMock(return_value=mock_response)
-    mock_registry = MagicMock(spec=ISourcesRepository)
+async def test_execute_raises_when_gateway_fails():
+    mock_gateway = MagicMock(spec=ISourcesGateway)
+    mock_gateway.fetch_sources = AsyncMock(side_effect=Exception("Gateway error"))
+    mock_repository = MagicMock(spec=ISourcesRepository)
 
     use_case = LoadSourcesUseCase(
-        client=mock_client,
-        web_base_url=WEB_BASE_URL,
-        web_api_key=WEB_API_KEY,
-        registry=mock_registry,
+        sources_gateway=mock_gateway, repository=mock_repository
     )
 
-    with pytest.raises(httpx.HTTPStatusError):
+    with pytest.raises(Exception, match="Gateway error"):
         await use_case.execute()
+
+    mock_repository.load.assert_not_called()

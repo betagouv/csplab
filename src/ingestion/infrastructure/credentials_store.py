@@ -1,4 +1,4 @@
-from domain.credentials import Credentials
+from domain.value_objects.credentials import Credentials
 
 
 class CredentialsStore:

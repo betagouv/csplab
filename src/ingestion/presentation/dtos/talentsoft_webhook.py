@@ -2,6 +2,15 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from domain.value_objects.webhook_event import EventType, OfferStatus, WebhookEvent
+
+
+class TalentsoftEventType(StrEnum):
+    VACANCY_NEW = "vacancy_new"
+    VACANCY_STATUS = "vacancy_status"
+    VACANCY_UPDATE = "vacancy_update"
+    VACANCY_DELETED = "vacancy_deleted"
+
 
 class TalentsoftOfferStatus(StrEnum):
     ARCHIVE = "_TS_CO_OfferStatus_Archive"
@@ -12,11 +21,21 @@ class TalentsoftOfferStatus(StrEnum):
     VALIDE = "_TS_CO_OfferStatus_Valide"
 
 
-class TalentsoftEventType(StrEnum):
-    VACANCY_NEW = "vacancy_new"
-    VACANCY_STATUS = "vacancy_status"
-    VACANCY_UPDATE = "vacancy_update"
-    VACANCY_DELETED = "vacancy_deleted"
+_EVENT_TYPE_MAP: dict[TalentsoftEventType, EventType] = {
+    TalentsoftEventType.VACANCY_NEW: EventType.CREE,
+    TalentsoftEventType.VACANCY_STATUS: EventType.STATUT_CHANGE,
+    TalentsoftEventType.VACANCY_UPDATE: EventType.MIS_A_JOUR,
+    TalentsoftEventType.VACANCY_DELETED: EventType.SUPPRIME,
+}
+
+_OFFER_STATUS_MAP: dict[TalentsoftOfferStatus, OfferStatus] = {
+    TalentsoftOfferStatus.ARCHIVE: OfferStatus.ARCHIVE,
+    TalentsoftOfferStatus.DIFFUSE: OfferStatus.DIFFUSE,
+    TalentsoftOfferStatus.EN_ATTENTE_PUBLICATION: OfferStatus.EN_ATTENTE_PUBLICATION,
+    TalentsoftOfferStatus.FINALISE: OfferStatus.FINALISE,
+    TalentsoftOfferStatus.SUSPENDUE: OfferStatus.SUSPENDUE,
+    TalentsoftOfferStatus.VALIDE: OfferStatus.VALIDE,
+}
 
 
 class TalentsoftWebhookPayload(BaseModel):
@@ -26,18 +45,15 @@ class TalentsoftWebhookPayload(BaseModel):
     reference: str
     status_id: str | None = Field(None, alias="statusId")
 
-
-def should_archive(payload: TalentsoftWebhookPayload) -> bool:
-    if payload.event_type == TalentsoftEventType.VACANCY_DELETED:
-        return True
-    return (
-        payload.event_type == TalentsoftEventType.VACANCY_STATUS
-        and payload.status_id != TalentsoftOfferStatus.DIFFUSE
-    )
-
-
-def should_load_offer_details(payload: TalentsoftWebhookPayload) -> bool:
-    return payload.event_type in {
-        TalentsoftEventType.VACANCY_NEW,
-        TalentsoftEventType.VACANCY_UPDATE,
-    }
+    def to_domain(self) -> WebhookEvent:
+        event_type = _EVENT_TYPE_MAP[TalentsoftEventType(self.event_type)]
+        status = (
+            _OFFER_STATUS_MAP.get(TalentsoftOfferStatus(self.status_id))
+            if self.status_id
+            else None
+        )
+        return WebhookEvent(
+            event_type=event_type,
+            reference=self.reference,
+            status=status,
+        )

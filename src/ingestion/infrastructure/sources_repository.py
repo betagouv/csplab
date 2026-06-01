@@ -1,4 +1,4 @@
-from domain.source import Source
+from domain.value_objects.source import Source
 
 
 class SourcesRepository:

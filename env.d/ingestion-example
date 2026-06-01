@@ -8,3 +8,5 @@ TALENTSOFT_BACK_BASE_URL=
 
 WEB_BASE_URL=
 WEB_API_KEY=
+
+DATABASE_URL=psql://ingestion:pass@localhost:5432/ingestion

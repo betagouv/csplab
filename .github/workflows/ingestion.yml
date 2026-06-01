@@ -26,9 +26,25 @@ jobs:
   lint-ingestion:
     needs: build-ingestion
     runs-on: ubuntu-latest
+    services:
+      postgresql:
+        image: postgres:17
+        env:
+          POSTGRES_DB: ingestion
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pass
+        options: >-
+          --health-cmd "pg_isready -h localhost -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
     defaults:
       run:
         working-directory: ./src/ingestion
+    env:
+      DATABASE_URL: postgresql+psycopg2://postgres:pass@localhost:5432/ingestion
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-uv-python
@@ -40,13 +56,33 @@ jobs:
         run: uv run ruff format --check .
       - name: Lint with MyPy
         run: uv run mypy .
+      - name: Check no migrations are missing
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check
 
   test-ingestion:
     needs: build-ingestion
     runs-on: ubuntu-latest
+    services:
+      postgresql:
+        image: postgres:17
+        env:
+          POSTGRES_DB: ingestion
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pass
+        options: >-
+          --health-cmd "pg_isready -h localhost -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
     defaults:
       run:
         working-directory: ./src/ingestion
+    env:
+      DATABASE_URL: postgresql+psycopg2://postgres:pass@localhost:5432/ingestion
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-uv-python

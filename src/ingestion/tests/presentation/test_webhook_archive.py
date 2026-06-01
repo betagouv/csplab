@@ -82,14 +82,20 @@ async def test_vacancy_status_diffuse_does_not_call_archive(
 
 
 @pytest.mark.asyncio
-async def test_other_event_type_does_not_call_archive(
-    talentsoft_client, httpx_mock: HTTPXMock
-):
-    # unknown event type
+async def test_other_event_type_returns_500(httpx_mock: HTTPXMock, monkeypatch):
+    # unknown event type — not handled, raises ValueError
+    monkeypatch.setenv("TESTING", "true")
+    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
+    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
+    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
+    monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
+    monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
+    app = create_app()
+    populate_sources_repository(app)
+    client = TestClient(app, raise_server_exceptions=False)
     payload = {"event_type": "candidate_created", "reference": REFERENCE}
-    response = make_signed_request(talentsoft_client, payload)
-    assert response.status_code == 200
-    assert httpx_mock.get_requests() == []
+    response = make_signed_request(client, payload)
+    assert response.status_code == 500
 
 
 @pytest.mark.asyncio
