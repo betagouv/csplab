@@ -79,16 +79,16 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         self._filters_mapper = ViewFiltersToUsecaseMapper()
         self._status: CVStatus = CVStatus.PENDING
         self._filename: str | None = None
-        self._opportunities: Sequence[tuple[Concours | tuple[Offer, list[Metier]], float]] = []
+        self._opportunities: Sequence[
+            tuple[Concours | tuple[Offer, list[Metier]], float]
+        ] = []
 
     def dispatch(self, request, *args, **kwargs) -> HttpResponse:
         cv_uuid: UUID = kwargs["cv_uuid"]
         self._fetch_cv_data(request, cv_uuid)
 
         flat_opportunities: list[tuple[Concours | Offer, float]] = [
-            (entity, score)
-            if isinstance(entity, Concours)
-            else (entity[0], score)
+            (entity, score) if isinstance(entity, Concours) else (entity[0], score)
             for entity, score in self._opportunities
         ]
         presenter = OpportunityListPresenter(flat_opportunities, request)
