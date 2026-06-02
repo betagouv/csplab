@@ -6,10 +6,10 @@ from faker import Faker
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
-from application.ingestion.usecases.archive_offer_by_reference import (
-    ArchiveOfferByReferenceUseCase,
-)
+from config.app_config import AppConfig
 from domain.exceptions.offer_errors import OfferDoesNotExist
+from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
@@ -35,11 +35,20 @@ def vector_repository():
 
 
 @pytest.fixture
-def use_case(offers_repository, vector_repository):
-    return ArchiveOfferByReferenceUseCase(
-        offers_repository=offers_repository,
-        vector_repository=vector_repository,
-    )
+def use_case(db, vector_repository):
+    shared_container = SharedContainer()
+    app_config = AppConfig.from_django_settings()
+    logger_service = LoggerService()
+    shared_container.app_config.override(app_config)
+    shared_container.logger_service.override(logger_service)
+    shared_container.vector_repository.override(vector_repository)
+    shared_container.embedding_generator.override(MagicMock())
+
+    container = IngestionContainer()
+    container.app_config.override(app_config)
+    container.logger_service.override(logger_service)
+    container.shared_container.override(shared_container)
+    return container.archive_offer_by_reference_usecase()
 
 
 class TestArchiveOfferByReferenceUseCase:
