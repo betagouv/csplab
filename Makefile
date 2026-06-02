@@ -108,6 +108,13 @@ jupytext--to-ipynb: ## convert remote md files into ipynb
 	cd src/notebook && uv run jupytext --to ipynb *.md && cd ../..
 .PHONY: jupytext--to-ipynb
 
+NOTEBOOK ?=  ## optional: path to a .ipynb file to export (exports all src/notebook/*.ipynb if unset)
+FORMAT ?= html  ## output format: html (default, interactive Plotly) | markdown
+
+publish-notebooks: ## export notebooks to docs/notebook/ (usage: make publish-notebooks [NOTEBOOK=src/notebook/name.ipynb] [FORMAT=html|markdown])
+	@bin/publish-notebooks $(NOTEBOOK) $(FORMAT)
+.PHONY: publish-notebooks
+
 ### LOGS
 logs: ## display all services logs (follow mode)
 	@$(COMPOSE) logs -f
