@@ -130,6 +130,12 @@ create-ingestion-test-db: \
 	@set -a && source env.d/postgresql && docker exec -i csp_postgresql psql -U $$POSTGRES_USER < infra/postgres/create-ingestion-test-db.sql
 .PHONY: create-ingestion-test-db
 
+DUMP ?=  ## optional: path to a .tar.gz dump file (auto-picks latest in dumps/ if unset)
+
+restore-web-db: ## restore web database from a Scalingo dump — auto-picks latest if DUMP is unset (usage: make restore-web-db [DUMP=dumps/myfile.tar.gz])
+	@bin/restore-web-db $(DUMP)
+.PHONY: restore-web-db
+
 migrate-ingestion: ## run ingestion database migrations (alembic upgrade head)
 migrate-ingestion: \
   create-ingestion-db
