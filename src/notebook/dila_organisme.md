@@ -297,7 +297,7 @@ print(df_details.columns.tolist())
 import plotly.express as px
 
 fig = px.treemap(df_orgs[df_orgs["active"]==True], ids="code", names="label", parents="parentCode")
-fig.show(renderer="iframe")
+fig.show(renderer="notebook_connected")
 ```
 
 ```python
@@ -378,7 +378,7 @@ fig = px.treemap(
     values="offer_count",
     hover_data=["clientCode"],
 )
-fig.show(renderer="iframe")
+fig.show(renderer="notebook_connected")
 ```
 
 #### Filtre sur les noeuds / feuilles qui sont rattachés directement à au moins une offre
@@ -405,7 +405,7 @@ fig = px.treemap(
     hover_data=["clientCode"],
     title=f"Organismes avec au moins 1 offre ({len(df_avec_offres)} organismes)",
 )
-fig.show(renderer="iframe")
+fig.show(renderer="notebook_connected")
 ```
 
 ### 2.3 Analyse de la structure des données proposées par la DILA
@@ -441,7 +441,7 @@ fig = px.treemap(
     title=f"Hiérarchie DILA all ({len(df_tree_all):,} nœuds)",
     hover_data=["siren", "siret"],
 )
-fig.show(renderer="iframe")
+fig.show(renderer="notebook_connected")
 ```
 
 ```python
@@ -467,7 +467,7 @@ fig = px.treemap(
     title=f"Hiérarchie DILA FPE ({len(df_tree_fpe):,} nœuds)",
     hover_data=["siren", "siret"],
 )
-fig.show(renderer="iframe")
+fig.show(renderer="notebook_connected")
 ```
 
 > **Les données de l'annuaire des services public de la DILA permet de reproduire la notion de hierarchie au sein des organismes de la FPE**
@@ -548,8 +548,7 @@ fig = px.treemap(
     title=f"Hiérarchie DILA — Référents FPE/SI agrégés ({len(df_flat_agg):,} nœuds)",
     hover_data=["siren", "siret"],
 )
-fig.show(renderer="iframe")
-
+fig.show(renderer="notebook_connected")
 ```
 
 > **Si on s'appuie sur les données de la DILA pour la FPE: il sera aussi necessaire de mettre en place une heuristique pour couper le référenciel au niveau des feuilles (bureaux etc.)**
