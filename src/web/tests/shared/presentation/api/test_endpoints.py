@@ -6,16 +6,16 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from tests.factories.utilisateur_factory import DEFAULT_PASSWORD
+
 
 class TestJWTEndpoints:
-    def test_token_obtain_endpoint_exists(
-        self, api_client, test_user, user_credentials
-    ):
+    def test_token_obtain_endpoint_exists(self, api_client, test_user):
         response = api_client.post(
             reverse("api:token_obtain_pair"),
             {
-                "email": user_credentials["email"],
-                "password": user_credentials["password"],
+                "email": test_user.email,
+                "password": DEFAULT_PASSWORD,
             },
             format="json",
         )

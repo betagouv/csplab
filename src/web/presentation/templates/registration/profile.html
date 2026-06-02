@@ -1,0 +1,13 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}
+    Profil utilisateur
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container fr-py-8w">
+        Bonjour !
+        <form action="{% url 'users:logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Log Out</button>
+        </form>
+    </div>
+{% endblock main %}

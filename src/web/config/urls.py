@@ -3,14 +3,20 @@ from django.contrib import admin
 from django.urls import URLPattern, URLResolver, include, path
 
 from presentation.api import urls as api_urls
+from presentation.ats import urls as ats_urls
+from presentation.candidate import urls as candidate_urls
+from presentation.ingestion import urls as ingestion_urls
+from presentation.pages import urls as pages_urls
+from presentation.users import urls as users_urls
 
 urlpatterns: list[URLPattern | URLResolver] = [
-    path("", include("presentation.pages.urls")),
+    path("", include(pages_urls)),
     path("api/", include(api_urls)),
     path("admin/", admin.site.urls),
-    path("candidate/", include("presentation.candidate.urls")),
-    path("api/v1/", include("presentation.ingestion.urls")),
-    path("ats/", include("presentation.ats.urls")),
+    path("candidate/", include(candidate_urls)),
+    path("api/v1/", include(ingestion_urls)),
+    path("ats/", include(ats_urls)),
+    path("utilisateur/", include(users_urls)),
 ]
 
 if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:

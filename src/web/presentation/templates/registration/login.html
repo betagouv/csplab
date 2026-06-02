@@ -1,0 +1,14 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}
+    Connexion
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container fr-py-8w">
+        <h2>Connexion</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form }}
+            <button class="fr-btn fr-btn--lg" type="submit">Je m'authentifie</button>
+        </form>
+    </div>
+{% endblock main %}
