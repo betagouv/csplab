@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -9,7 +8,6 @@ from api.routes import public_router
 from infrastructure.di.container import (
     Container,
     register_talentsoft_front_client,
-    run_database_migrations,
 )
 
 _SKIP_LOG_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {
@@ -75,9 +73,7 @@ def create_app():
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        if settings.database_url:
-            await asyncio.to_thread(run_database_migrations, settings.database_url)
-        else:
+        if not settings.database_url:
             logger.warning("DATABASE_URL is not set — raw offers will not be persisted")
 
         if settings.talentsoft_front_client_id:
