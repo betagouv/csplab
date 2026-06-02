@@ -116,9 +116,11 @@ class PostgresOffersRepository(IOffersRepository):
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(external_id) from e
 
-    def get_by_reference(self, reference: str) -> Offer:
+    def get_by_reference_and_source_id(self, reference: str, source_id: str) -> Offer:
         try:
-            offer_model = OfferModel.objects.get(external_id__endswith=f"-{reference}")
+            offer_model = OfferModel.objects.get(
+                external_id__endswith=f"-{reference}", source_id=source_id
+            )
             return offer_model.to_entity()
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(reference) from e
