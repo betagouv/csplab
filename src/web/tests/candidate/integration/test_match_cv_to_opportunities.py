@@ -11,10 +11,12 @@ from domain.value_objects.verse import Verse
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.shared.models.concours import ConcoursModel
+from infrastructure.django_apps.shared.models.metier import MetierModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.cv_metadata_factory import CVMetadataFactory
+from tests.factories.metier_factory import MetierFactory
 from tests.factories.offer_factory import OfferFactory
 from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
@@ -96,6 +98,8 @@ def test_execute_with_valid_cv_returns_opportunities(
 
     concours = ConcoursFactory.create_model_batch(2)
     offers = OfferFactory.create_model_batch(3)
+    metiers = MetierFactory.create_model_batch(3)
+
     limit = len(offers) + len(concours) - 1
 
     # Setup CV metadata in real DB
@@ -108,6 +112,9 @@ def test_execute_with_valid_cv_returns_opportunities(
 
     offers_repo = candidate_container.shared_container.offers_repository()
     offers_repo.upsert_batch([OfferModel.to_entity(offer) for offer in offers])
+
+    metiers_repo = candidate_container.shared_container.metiers_repository()
+    metiers_repo.upsert_batch([MetierModel.to_entity(metier) for metier in metiers])
 
     # Generate vectorized documents using VectorizedDocumentFactory
     vectorized_concours = []

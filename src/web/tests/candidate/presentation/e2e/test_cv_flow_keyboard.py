@@ -49,7 +49,7 @@ class TestCandidateFlowKeyboard:
             "application.candidate.usecases.match_cv_to_opportunities."
             "MatchCVToOpportunitiesUsecase.execute"
         ) as mock_execute:
-            mock_execute.return_value = [(offer_entity, 0.9)]
+            mock_execute.return_value = [((offer_entity, []), 0.9)]
             CVMetadataModel.objects.filter(id=cv_uuid).update(
                 status=CVStatus.COMPLETED.value, search_query="dev"
             )
@@ -93,8 +93,8 @@ class TestCandidateFlowKeyboard:
 
         def fake_execute(*, cv_metadata, filters, limit):
             if filters and "category" in filters:
-                return [(offer_a, 0.9)]
-            return [(offer_a, 0.9), (offer_b, 0.8)]
+                return [((offer_a, []), 0.9)]
+            return [((offer_a, []), 0.9), ((offer_b, []), 0.8)]
 
         results_url = reverse(
             "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}

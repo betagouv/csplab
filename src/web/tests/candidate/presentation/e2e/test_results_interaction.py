@@ -17,8 +17,8 @@ from tests.factories.offer_factory import OfferFactory
 
 def fake_execute_filter_by_category(offer_a, offer_b, *, cv_metadata, filters, limit):
     if filters and "category" in filters:
-        return [(offer_a, 0.9)]
-    return [(offer_a, 0.9), (offer_b, 0.8)]
+        return [((offer_a, []), 0.9)]
+    return [((offer_a, []), 0.9), ((offer_b, []), 0.8)]
 
 
 def fake_execute_filter_by_category_and_versant(
@@ -27,13 +27,13 @@ def fake_execute_filter_by_category_and_versant(
     has_cat = bool(filters and "category" in filters)
     has_versant = bool(filters and "verse" in filters)
     if has_cat and has_versant:
-        return [(offer_a_fpe, 0.9)]
+        return [((offer_a_fpe, []), 0.9)]
     if has_cat:
-        return [(offer_a_fpe, 0.9), (offer_a_fpt, 0.85)]
+        return [((offer_a_fpe, []), 0.9), ((offer_a_fpt, []), 0.85)]
     return [
-        (offer_a_fpe, 0.9),
-        (offer_a_fpt, 0.85),
-        (offer_b_fpe, 0.8),
+        ((offer_a_fpe, []), 0.9),
+        ((offer_a_fpt, []), 0.85),
+        ((offer_b_fpe, []), 0.8),
     ]
 
 
@@ -58,7 +58,7 @@ class TestResultsDrawer:
             "application.candidate.usecases.match_cv_to_opportunities."
             "MatchCVToOpportunitiesUsecase.execute"
         ) as mock_execute:
-            mock_execute.return_value = [(offer_entity, 0.9)]
+            mock_execute.return_value = [((offer_entity, []), 0.9)]
 
             page.goto(f"{live_server.url}{results_url}")
             expect(page.get_by_test_id("cv-results")).to_be_visible()
@@ -91,7 +91,7 @@ class TestResultsDrawer:
             "application.candidate.usecases.match_cv_to_opportunities."
             "MatchCVToOpportunitiesUsecase.execute"
         ) as mock_execute:
-            mock_execute.return_value = [(offer_entity, 0.9)]
+            mock_execute.return_value = [((offer_entity, []), 0.9)]
 
             page.goto(f"{live_server.url}{results_url}")
             expect(page.get_by_test_id("cv-results")).to_be_visible()
@@ -162,7 +162,7 @@ class TestResultsPersistence:
             "application.candidate.usecases.match_cv_to_opportunities."
             "MatchCVToOpportunitiesUsecase.execute"
         ) as mock_execute:
-            mock_execute.return_value = [(offer_entity, 0.9)]
+            mock_execute.return_value = [((offer_entity, []), 0.9)]
 
             page.goto(f"{live_server.url}{results_url}")
             results = page.get_by_test_id("cv-results")
@@ -324,7 +324,7 @@ class TestResultsPagination:
             "MatchCVToOpportunitiesUsecase.execute"
         ) as mock_execute:
             mock_execute.return_value = [
-                (offer, 0.9 - i * 0.05) for i, offer in enumerate(offers)
+                ((offer, []), 0.9 - i * 0.05) for i, offer in enumerate(offers)
             ]
 
             page.goto(f"{live_server.url}{results_url}")

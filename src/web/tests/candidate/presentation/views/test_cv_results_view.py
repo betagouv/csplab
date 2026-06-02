@@ -63,7 +63,9 @@ def test_cv_results_selects_response_from_status_and_request_type(
         search_query="Python developer",
     )
     CVMetadataModel.from_entity(cv_metadata).save()
-    mock_execute.return_value = [(OfferFactory.create_entity(title="Poste test"), 0.9)]
+    mock_execute.return_value = [
+        ((OfferFactory.create_entity(title="Poste test"), []), 0.9)
+    ]
 
     headers = {"HTTP_HX_REQUEST": "true"} if is_htmx else {}
     response = client.get(
@@ -93,7 +95,9 @@ def test_cv_results_htmx_results_zone_target_returns_results_list_template(
     mock_execute, client, db, cv_metadata_completed
 ):
     CVMetadataModel.from_entity(cv_metadata_completed).save()
-    mock_execute.return_value = [(OfferFactory.create_entity(title="Poste ciblé"), 0.9)]
+    mock_execute.return_value = [
+        ((OfferFactory.create_entity(title="Poste ciblé"), []), 0.9)
+    ]
 
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_completed.id}),
@@ -114,7 +118,9 @@ def test_cv_results_htmx_poll_pending_to_completed_transition(
 ):
     model = CVMetadataModel.from_entity(cv_metadata_pending)
     model.save()
-    mock_execute.return_value = [(OfferFactory.create_entity(title="Poste test"), 0.9)]
+    mock_execute.return_value = [
+        ((OfferFactory.create_entity(title="Poste test"), []), 0.9)
+    ]
     url = reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_pending.id})
 
     response_pending = client.get(url, {"poll": "1"}, HTTP_HX_REQUEST="true")
@@ -205,7 +211,9 @@ def test_cv_results_with_results_includes_tally_modal(
 ):
     CVMetadataModel.from_entity(cv_metadata_completed).save()
     settings.TALLY_FORM_ID_RESULTS = "test-results-form"
-    mock_execute.return_value = [(OfferFactory.create_entity(title="Poste test"), 0.9)]
+    mock_execute.return_value = [
+        ((OfferFactory.create_entity(title="Poste test"), []), 0.9)
+    ]
 
     response = client.get(
         reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_completed.id})
