@@ -154,6 +154,9 @@ def match_cv_to_opportunities_usecase():
     offers_repo = cast(
         IOffersRepository, create_interface_aware_mock(IOffersRepository)
     )
+    metiers_repo = cast(
+        IMetierRepository, create_interface_aware_mock(IMetierRepository)
+    )
     cv_repo = cast(
         ICVMetadataRepository, create_interface_aware_mock(ICVMetadataRepository)
     )
@@ -167,6 +170,7 @@ def match_cv_to_opportunities_usecase():
         vector_repository=vector_repo,
         concours_repository=concours_repo,
         offers_repository=offers_repo,
+        metiers_repository=metiers_repo,
         logger=logger_service,
     )
 

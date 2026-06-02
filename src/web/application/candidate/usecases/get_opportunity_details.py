@@ -32,13 +32,5 @@ class GetOpportunityDetailsUsecase:
             return self.concours_repository.get_by_id(opportunity_id)
 
         offer = self.offers_repository.get_by_id(opportunity_id)
-        if offer.family_code is None:
-            self.logger.warning(
-                f"Offer with id {offer.id} has no family code"
-                f"cannot fetch related metiers"
-            )
-            return offer, []
-        metiers = self.metiers_repository.get_filtered(
-            {"offer_family_code": offer.family_code}
-        )
+        metiers = self.metiers_repository.get_for_offer(offer)
         return offer, metiers

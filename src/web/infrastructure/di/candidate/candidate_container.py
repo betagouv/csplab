@@ -76,6 +76,7 @@ class CandidateContainer(containers.DeclarativeContainer):
         vector_repository=vector_repository,
         concours_repository=concours_repository,
         offers_repository=offers_repository,
+        metiers_repository=metiers_repository,
         logger=logger_service,
     )
 

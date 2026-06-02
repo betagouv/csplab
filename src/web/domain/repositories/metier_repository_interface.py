@@ -2,6 +2,7 @@ from typing import Dict, List, Protocol
 
 from domain.ddd.page_interface import IPage
 from domain.entities.metier import Metier
+from domain.entities.offer import Offer
 from domain.repositories.document_repository_interface import IUpsertResult
 
 IPredicate = Dict[str, str]
@@ -19,6 +20,8 @@ class IMetierRepository(Protocol):
     def get_filtered(
         self, predicate: IPredicate
     ) -> List[Metier]: ...  # for example {"offer_family_code": "ERLOG005"}
+
+    def get_for_offer(self, offer: Offer) -> List[Metier]: ...
 
     def get_pending_processing(self, limit: int = 1000) -> List[Metier]: ...
 

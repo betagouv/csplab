@@ -74,6 +74,11 @@ def create_interface_aware_mock(interface_class):
                     filters = args[1]
                 elif len(args) >= 1 and isinstance(args[0], dict):
                     filters = args[0]
+                elif len(args) >= 1 and hasattr(args[0], "family_code"):
+                    offer = args[0]
+                    if offer.family_code is None:
+                        return []
+                    filters = {"offer_family_code": offer.family_code}
 
                 if filters:
                     filtered_results = []

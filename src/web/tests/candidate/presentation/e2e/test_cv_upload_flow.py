@@ -30,7 +30,7 @@ class TestCVUploadFlow:
             "MatchCVToOpportunitiesUsecase.execute"
         ) as mock_execute:
             mock_execute.return_value = [
-                (OfferFactory.create_entity(title="Offre e2e"), 0.9),
+                ((OfferFactory.create_entity(title="Offre e2e"), []), 0.9),
             ]
             CVMetadataModel.objects.filter(id=cv_uuid).update(
                 status=CVStatus.COMPLETED.value, search_query="dev"

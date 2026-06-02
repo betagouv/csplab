@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from domain.ddd.page_interface import IPage
 from domain.entities.metier import Metier
+from domain.entities.offer import Offer
 from domain.exceptions.metiers_error import MetierDoesNotExist
 from domain.repositories.document_repository_interface import (
     IUpsertResult,
@@ -111,6 +112,15 @@ class PostgresMetierRepository(IMetierRepository):
     ) -> List[Metier]:
         metier_models = MetierModel.objects.filter(**predicate)[:limit]
         return [model.to_entity() for model in metier_models]
+
+    def get_for_offer(self, offer: Offer) -> List[Metier]:
+        if offer.family_code is None:
+            self.logger.warning(
+                "Offer with id %s has no family code, cannot fetch related metiers",
+                offer.id,
+            )
+            return []
+        return self.get_filtered({"offer_family_code": offer.family_code})
 
     @transaction.atomic
     def get_pending_processing(self, limit: int = 1000) -> List[Metier]:
