@@ -20,7 +20,6 @@ class UserModel(AbstractUser):
     REQUIRED_FIELDS = ["first_name", "last_name", "username"]
 
     class Meta:
-        db_table = "auth_user"
         verbose_name = "User"
         verbose_name_plural = "Users"
 
