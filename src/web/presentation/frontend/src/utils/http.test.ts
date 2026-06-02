@@ -46,13 +46,13 @@ describe('http', () => {
     }))
   })
 
-  it('redirects to /login/ on 401', async () => {
+  it('redirects to /utilisateur/connexion/ on 401', async () => {
     const mockLocation = { href: '', pathname: '/ats/dashboard', search: '' }
     vi.stubGlobal('location', mockLocation)
     mockFetchResponse({}, 401, 'Unauthorized')
 
     await expect(http.get('/api/test')).rejects.toThrow('Redirecting to login')
-    expect(mockLocation.href).toBe('/login/?next=%2Fats%2Fdashboard')
+    expect(mockLocation.href).toBe('/utilisateur/connexion/?next=%2Fats%2Fdashboard')
   })
 
   it('does NOT redirect on 403 (permission denied is not auth)', async () => {
