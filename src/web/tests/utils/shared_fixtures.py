@@ -45,6 +45,7 @@ from domain.repositories.vector_repository_interface import IVectorRepository
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
+from tests.factories.utilisateur_factory import UtilisateurFactory
 from tests.utils.async_in_memory_cv_metadata_repository import (
     AsyncInMemoryCVMetadataRepository,
 )
@@ -72,18 +73,9 @@ def api_client_fixture():
     return APIClient()
 
 
-@pytest.fixture(name="user_credentials")
-def user_credentials_fixture():
-    return {
-        "username": fake.uuid4(),
-        "email": fake.email(),
-        "password": fake.password(),
-    }
-
-
 @pytest.fixture(name="test_user")
-def test_user_fixture(db, user_credentials):
-    return USER_MODEL.objects.create_user(**user_credentials)
+def test_user_fixture(db):
+    return UtilisateurFactory.create_model()
 
 
 @pytest.fixture(name="authenticated_client")
