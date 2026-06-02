@@ -173,7 +173,6 @@ class IngestionContainer(containers.DeclarativeContainer):
         ArchiveOfferByReferenceUseCase,
         offers_repository=offers_repository,
         vector_repository=vector_repository,
-        logger=logger_service,
     )
 
     upsert_offers_usecase = providers.Factory(
