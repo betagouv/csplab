@@ -7,6 +7,15 @@ const config: StorybookConfig = {
     '../src/**/*.mdx',
     '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)',
   ],
+  framework: {
+    name: '@storybook/vue3-vite',
+    options: {
+      docgen: {
+        plugin: 'vue-component-meta',
+        tsconfig: 'tsconfig.json',
+      },
+    },
+  },
   addons: [
     {
       name: '@storybook/addon-docs',
@@ -19,7 +28,6 @@ const config: StorybookConfig = {
       },
     },
   ],
-  framework: '@storybook/vue3-vite',
   viteFinal: async (config) => {
     if (process.env.STORYBOOK_BASE_URL) {
       config.base = process.env.STORYBOOK_BASE_URL
