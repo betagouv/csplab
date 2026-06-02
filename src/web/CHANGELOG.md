@@ -4,7 +4,76 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.9] - 2026-05-18
+## [0.1.10] - 2026-06-02
+
+### <!-- 0 --> Breaking Changes
+
+- ♻️(ingestion-presentation) refactor archive offer to use body params + French names ([#580](https://github.com/betagouv/csplab/pull/580))
+- ✨(ingestion-domain) add front and back base_url for Source ([#583](https://github.com/betagouv/csplab/pull/583))
+- 🏗️(users-infrastructure) switch to custom UserModel - part 1 ([#614](https://github.com/betagouv/csplab/pull/614))
+- 🏗️(users-infrastructure) switch to custom UserModel - part 2 ([#616](https://github.com/betagouv/csplab/pull/616))
+
+### <!-- 1 --> Added
+
+- ✨(ingestion) setup logging mecanism ([#578](https://github.com/betagouv/csplab/pull/578))
+- ✨(web) setup frontend ([#579](https://github.com/betagouv/csplab/pull/579))
+- ✨(ingestion-presentation) add a Source entity and an API to list Sources ([#574](https://github.com/betagouv/csplab/pull/574))
+- 📝(ingestion-presentation) update source_id example in API documentation ([#587](https://github.com/betagouv/csplab/pull/587))
+- 🔧(ingestion-domain) register Source in Django admin ([#582](https://github.com/betagouv/csplab/pull/582))
+- 🔧(ingestion) control logging level with env variable ([#594](https://github.com/betagouv/csplab/pull/594))
+- ✨(ingestion) load offer for vacancy webhooks ([#592](https://github.com/betagouv/csplab/pull/592))
+- ✨(ingestion-domain) add geographical area to Localisation ([#576](https://github.com/betagouv/csplab/pull/576))
+- ✨(ingestion-domain) load Sources on app boot ([#585](https://github.com/betagouv/csplab/pull/585))
+- ✨(ingestion-usecase) expose list of metiers endpoint ([#569](https://github.com/betagouv/csplab/pull/569))
+- ✨(ingestion) create a shared Talensoft front client ([#599](https://github.com/betagouv/csplab/pull/599))
+- ♻️(ingestion-infrastructure) create enums for Talensoft webhooks ([#607](https://github.com/betagouv/csplab/pull/607))
+- 🔧(tooling-presentation) bootstrap storybook for ats frontend ([#596](https://github.com/betagouv/csplab/pull/596))
+- ✅(candidate-presentation) test a11y for the cv flow ([#464](https://github.com/betagouv/csplab/pull/464))
+- 🔧(tooling) add auto assign GitHub Actions workflow ([#606](https://github.com/betagouv/csplab/pull/606))
+- ✅(tooling) add task to lint the schema as part of lint ([#608](https://github.com/betagouv/csplab/pull/608))
+- ✨(ingestion) introduce a CredentialsStore ([#609](https://github.com/betagouv/csplab/pull/609))
+- ✨(ats) authentification des requetes vue django ([#613](https://github.com/betagouv/csplab/pull/613))
+- 📝(tooling-domain) aggregate root ([#621](https://github.com/betagouv/csplab/pull/621))
+- ✨(ingestion-infrastructure) save RawOffer to database ([#610](https://github.com/betagouv/csplab/pull/610))
+- ✨(ingestion) expose offers/upsert endpoint ([#547](https://github.com/betagouv/csplab/pull/547))
+- ✨(web-infrastructure) add source_id to offer ([#642](https://github.com/betagouv/csplab/pull/642))
+- ✨(ats-domain) add organisme in identite context ([#624](https://github.com/betagouv/csplab/pull/624))
+- ✨(frontend) interception et gestion des erreurs frontend ([#629](https://github.com/betagouv/csplab/pull/629))
+- ♻️(ingestion) add Talensoft offer status for draft ([#627](https://github.com/betagouv/csplab/pull/627))
+- ✨(web-infrastructure) backfill source_id for offers ([#643](https://github.com/betagouv/csplab/pull/643))
+- ✨(users-presentation) mise en place de l'authentification par email-password ([#639](https://github.com/betagouv/csplab/pull/639))
+
+### <!-- 2 --> Modified
+
+- ♻️(ingestion-infrastructure) standardise method names: get_xxxx for retrieval operations ([#568](https://github.com/betagouv/csplab/pull/568))
+- ♻️(ingestion-presentation) move files related to archive offer ([#532](https://github.com/betagouv/csplab/pull/532))
+- ♻️(ingestion) log status_id for unhandled webhooks ([#590](https://github.com/betagouv/csplab/pull/590))
+- ♻️(ingestion-presentation) change API URLs to v1 scope ([#588](https://github.com/betagouv/csplab/pull/588))
+- ✅(tooling) refactor common GitHub Actions ([#593](https://github.com/betagouv/csplab/pull/593))
+- ♻️(ingestion:presentation) refacto to prepare list of metiers endpoint ([#603](https://github.com/betagouv/csplab/pull/603))
+- ♻️(candidate-presentation) update file input progressive enhancement on mobile ([#465](https://github.com/betagouv/csplab/pull/465))
+- 🔧(tooling) update eslint and vscode formatting config ([#612](https://github.com/betagouv/csplab/pull/612))
+- 🏗️(users-infrastructure) switch to custom UserModel - part 3 - enforce username to be an UUID ([#620](https://github.com/betagouv/csplab/pull/620))
+- ⚡️(users-infrastructure) revert to login with email ([#630](https://github.com/betagouv/csplab/pull/630))
+- (users-infrastructure) the very last step of the custom user model migration ([#632](https://github.com/betagouv/csplab/pull/632))
+- 🔧(ingestion) run database migrations in a one-off process ([#628](https://github.com/betagouv/csplab/pull/628))
+
+### <!-- 4 --> Fixed
+
+- 🐛(tooling) fix path for schema generation in CI ([#581](https://github.com/betagouv/csplab/pull/581))
+- 🐛(tooling) run djlint in CI ([#584](https://github.com/betagouv/csplab/pull/584))
+- 🐛(ingestion) update status_id for archived status ([#598](https://github.com/betagouv/csplab/pull/598))
+- 🐛(ingestion) split Talensoft front and back env variables ([#600](https://github.com/betagouv/csplab/pull/600))
+- 🔧(ingestion) update sources endpoint ([#602](https://github.com/betagouv/csplab/pull/602))
+- 🐛(ingestion-infrastructure) fix sources migration ([#604](https://github.com/betagouv/csplab/pull/604))
+- 🐛(ingestion-domain) set default values for source.id and source.source_id ([#605](https://github.com/betagouv/csplab/pull/605))
+- 🐛(ingestion-infrastructure) add missing migration file ([#615](https://github.com/betagouv/csplab/pull/615))
+- 🔧(tooling-presentation) use npm sass for mvp cv ([#622](https://github.com/betagouv/csplab/pull/622))
+- ♻️(tooling) Git ignore mypy cache ([#626](https://github.com/betagouv/csplab/pull/626))
+- 🐛(web-infrastructure) fix archive offer container wiring ([#644](https://github.com/betagouv/csplab/pull/644))
+- 🐛(ingestion) postdeploy is the appropriate name ([#645](https://github.com/betagouv/csplab/pull/645))
+
+## [0.1.9] - 2026-05-19
 
 ### <!-- 0 --> Breaking Changes
 
