@@ -29,6 +29,7 @@ from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.list_offers import ListOffersUseCase
 from application.ingestion.usecases.list_sources import ListSourcesUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
+from application.ingestion.usecases.upsert_offers import UpsertOffersUseCase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from config.app_config import AppConfig
 from domain.entities.document import DocumentType
@@ -352,6 +353,19 @@ def list_offers_usecase():
     )
 
     return ListOffersUseCase(
+        offers_repository=offers_repo,
+        logger=logger,
+    )
+
+
+@pytest.fixture
+def upsert_offers_usecase():
+    logger = MagicMock()
+    offers_repo = cast(
+        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+    )
+
+    return UpsertOffersUseCase(
         offers_repository=offers_repo,
         logger=logger,
     )

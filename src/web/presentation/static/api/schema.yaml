@@ -540,6 +540,63 @@ paths:
                   summary: Offre introuvable
                   description: Aucune offre ne correspond à la référence fournie.
           description: ''
+  /api/v1/offres/creer_modifier/:
+    post:
+      operationId: v1_offres_creer_modifier_create
+      description: |2
+
+        # API d'ingestion d'offres d'emploi de la Fonction Publique
+
+        Cette API permet de créer ou mettre à jour, entre 1 et 100 offres d'emploi à la fois, via un payload JSON.
+
+        - Les offres sont identifiées par leur champs `identification.reference` et `identification.source`.
+        - Une offre existante est mise à jour, une offre inconnue est créée.
+
+        # Permissions
+
+        L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque utilisateur.
+
+        # Limitations
+
+        L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+
+        Le nombre d'offres transmises par appel à l'API est limité à 100.
+      summary: Ajouter/mettre à jour une offre d'emploi
+      tags:
+      - offres
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertOffersRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpsertOffersResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
 components:
   schemas:
     ArchiveOffer401Error:
@@ -584,6 +641,23 @@ components:
           type: string
       required:
       - detail
+    BlankEnum:
+      enum:
+      - ''
+    CategoriesEnum:
+      enum:
+      - APLUS
+      - A
+      - B
+      - C
+      - HORS_CATEGORIE
+      type: string
+      description: |-
+        * `APLUS` - APLUS
+        * `A` - A
+        * `B` - B
+        * `C` - C
+        * `HORS_CATEGORIE` - HORS_CATEGORIE
     ConcoursUpload400Error:
       oneOf:
       - $ref: '#/components/schemas/GenericError'
@@ -619,6 +693,344 @@ components:
       - updated
       - valid_rows
       - validation_errors
+    ConditionsInput:
+      type: object
+      properties:
+        salaire_titulaire:
+          type: string
+          maxLength: 100
+        salaire_contractuel:
+          type: string
+          maxLength: 100
+        debut_contrat:
+          type: string
+          format: date-time
+          nullable: true
+        fin_contrat:
+          type: string
+          format: date-time
+          nullable: true
+        duree_contrat:
+          type: string
+        temps_travail:
+          $ref: '#/components/schemas/TempsTravailEnum'
+        ouvert_aux_militaires:
+          $ref: '#/components/schemas/OuvertAuxMilitairesEnum'
+        lieu_de_travail:
+          $ref: '#/components/schemas/LieuDeTravailEnum'
+        management:
+          $ref: '#/components/schemas/ManagementEnum'
+        complements:
+          type: string
+          maxLength: 1500
+        bases_legales:
+          type: string
+          maxLength: 1500
+        note_ouverture_poste_url:
+          type: string
+          format: uri
+      required:
+      - lieu_de_travail
+      - management
+      - ouvert_aux_militaires
+      - temps_travail
+    ContactsInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    CriteriaInput:
+      type: object
+      properties:
+        diplome_niveau:
+          type: integer
+          maximum: 8
+          minimum: 1
+        experience:
+          $ref: '#/components/schemas/ExperienceEnum'
+        specialisations:
+          type: array
+          items:
+            type: string
+        diplome:
+          type: string
+        documents_requis:
+          type: array
+          items:
+            type: string
+        competences_requises:
+          type: array
+          items:
+            type: string
+        langues:
+          type: array
+          items:
+            $ref: '#/components/schemas/LanguageInput'
+      required:
+      - diplome_niveau
+    DepartementEnum:
+      enum:
+      - '01'
+      - '02'
+      - '03'
+      - '04'
+      - '05'
+      - '06'
+      - '07'
+      - 08
+      - 09
+      - '10'
+      - '11'
+      - '12'
+      - '13'
+      - '14'
+      - '15'
+      - '16'
+      - '17'
+      - '18'
+      - '19'
+      - '21'
+      - '22'
+      - '23'
+      - '24'
+      - '25'
+      - '26'
+      - '27'
+      - '28'
+      - '29'
+      - 2A
+      - 2B
+      - '30'
+      - '31'
+      - '32'
+      - '33'
+      - '34'
+      - '35'
+      - '36'
+      - '37'
+      - '38'
+      - '39'
+      - '40'
+      - '41'
+      - '42'
+      - '43'
+      - '44'
+      - '45'
+      - '46'
+      - '47'
+      - '48'
+      - '49'
+      - '50'
+      - '51'
+      - '52'
+      - '53'
+      - '54'
+      - '55'
+      - '56'
+      - '57'
+      - '58'
+      - '59'
+      - '60'
+      - '61'
+      - '62'
+      - '63'
+      - '64'
+      - '65'
+      - '66'
+      - '67'
+      - '68'
+      - '69'
+      - '70'
+      - '71'
+      - '72'
+      - '73'
+      - '74'
+      - '75'
+      - '76'
+      - '77'
+      - '78'
+      - '79'
+      - '80'
+      - '81'
+      - '82'
+      - '83'
+      - '84'
+      - '85'
+      - '86'
+      - '87'
+      - '88'
+      - '89'
+      - '90'
+      - '91'
+      - '92'
+      - '93'
+      - '94'
+      - '95'
+      - '971'
+      - '972'
+      - '973'
+      - '974'
+      - '975'
+      - '976'
+      - '986'
+      - '987'
+      - '988'
+      - SPM
+      - WLF
+      type: string
+      description: |-
+        * `01` - 01
+        * `02` - 02
+        * `03` - 03
+        * `04` - 04
+        * `05` - 05
+        * `06` - 06
+        * `07` - 07
+        * `08` - 08
+        * `09` - 09
+        * `10` - 10
+        * `11` - 11
+        * `12` - 12
+        * `13` - 13
+        * `14` - 14
+        * `15` - 15
+        * `16` - 16
+        * `17` - 17
+        * `18` - 18
+        * `19` - 19
+        * `21` - 21
+        * `22` - 22
+        * `23` - 23
+        * `24` - 24
+        * `25` - 25
+        * `26` - 26
+        * `27` - 27
+        * `28` - 28
+        * `29` - 29
+        * `2A` - 2A
+        * `2B` - 2B
+        * `30` - 30
+        * `31` - 31
+        * `32` - 32
+        * `33` - 33
+        * `34` - 34
+        * `35` - 35
+        * `36` - 36
+        * `37` - 37
+        * `38` - 38
+        * `39` - 39
+        * `40` - 40
+        * `41` - 41
+        * `42` - 42
+        * `43` - 43
+        * `44` - 44
+        * `45` - 45
+        * `46` - 46
+        * `47` - 47
+        * `48` - 48
+        * `49` - 49
+        * `50` - 50
+        * `51` - 51
+        * `52` - 52
+        * `53` - 53
+        * `54` - 54
+        * `55` - 55
+        * `56` - 56
+        * `57` - 57
+        * `58` - 58
+        * `59` - 59
+        * `60` - 60
+        * `61` - 61
+        * `62` - 62
+        * `63` - 63
+        * `64` - 64
+        * `65` - 65
+        * `66` - 66
+        * `67` - 67
+        * `68` - 68
+        * `69` - 69
+        * `70` - 70
+        * `71` - 71
+        * `72` - 72
+        * `73` - 73
+        * `74` - 74
+        * `75` - 75
+        * `76` - 76
+        * `77` - 77
+        * `78` - 78
+        * `79` - 79
+        * `80` - 80
+        * `81` - 81
+        * `82` - 82
+        * `83` - 83
+        * `84` - 84
+        * `85` - 85
+        * `86` - 86
+        * `87` - 87
+        * `88` - 88
+        * `89` - 89
+        * `90` - 90
+        * `91` - 91
+        * `92` - 92
+        * `93` - 93
+        * `94` - 94
+        * `95` - 95
+        * `971` - 971
+        * `972` - 972
+        * `973` - 973
+        * `974` - 974
+        * `975` - 975
+        * `976` - 976
+        * `986` - 986
+        * `987` - 987
+        * `988` - 988
+        * `SPM` - SPM
+        * `WLF` - WLF
+    DescriptionInput:
+      type: object
+      properties:
+        mission:
+          type: string
+          maxLength: 3000
+        profil:
+          type: string
+          maxLength: 3000
+        employeur:
+          type: string
+          maxLength: 3000
+        complements:
+          type: string
+          maxLength: 1500
+      required:
+      - complements
+      - employeur
+      - mission
+      - profil
+    ExperienceEnum:
+      enum:
+      - DEBUTANT
+      - CONFIRME
+      - EXPERT
+      type: string
+      description: |-
+        * `DEBUTANT` - Débutant
+        * `CONFIRME` - Confirmé
+        * `EXPERT` - Expert
+    FormeContratEnum:
+      enum:
+      - CDD
+      - CDI
+      - VACATION
+      - STAGE
+      type: string
+      description: |-
+        * `CDD` - CDD
+        * `CDI` - CDI
+        * `VACATION` - Vacation
+        * `STAGE` - Stage
     GenericError:
       type: object
       properties:
@@ -626,6 +1038,40 @@ components:
           type: string
       required:
       - error
+    IdentityInput:
+      type: object
+      properties:
+        reference:
+          type: string
+        source:
+          type: string
+        versant:
+          $ref: '#/components/schemas/VersantEnum'
+      required:
+      - reference
+      - source
+      - versant
+    LanguageInput:
+      type: object
+      properties:
+        iso_code:
+          type: string
+          maxLength: 2
+        niveau:
+          $ref: '#/components/schemas/NiveauEnum'
+      required:
+      - iso_code
+      - niveau
+    LieuDeTravailEnum:
+      enum:
+      - NON_DEFINI
+      - SUR_SITE
+      - TELETRAVAIL
+      type: string
+      description: |-
+        * `NON_DEFINI` - Non défini
+        * `SUR_SITE` - Sur site
+        * `TELETRAVAIL` - Télétravail
     ListMetiersResponse:
       type: object
       properties:
@@ -694,6 +1140,66 @@ components:
       - organization
       - publication_date
       - title
+    LocalisationInput:
+      type: object
+      properties:
+        zone_geographique:
+          $ref: '#/components/schemas/ZoneGeographiqueEnum'
+        pays:
+          type: string
+          maxLength: 3
+          minLength: 3
+        region:
+          oneOf:
+          - $ref: '#/components/schemas/RegionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        departement:
+          oneOf:
+          - $ref: '#/components/schemas/DepartementEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        localisation_label:
+          type: string
+          maxLength: 500
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+      required:
+      - departement
+      - latitude
+      - localisation_label
+      - longitude
+      - pays
+      - region
+      - zone_geographique
+    ManagementEnum:
+      enum:
+      - SANS
+      - AVEC
+      type: string
+      description: |-
+        * `SANS` - Sans management
+        * `AVEC` - Avec management
+    NiveauEnum:
+      enum:
+      - A1
+      - A2
+      - B1
+      - B2
+      - C1
+      - C2
+      type: string
+      description: |-
+        * `A1` - A1
+        * `A2` - A2
+        * `B1` - B1
+        * `B2` - B2
+        * `C1` - C1
+        * `C2` - C2
     NoValidRowsError:
       type: object
       properties:
@@ -706,6 +1212,192 @@ components:
       required:
       - error
       - validation_errors
+    OffersInput:
+      type: object
+      properties:
+        identification:
+          $ref: '#/components/schemas/IdentityInput'
+        titre:
+          type: string
+          maxLength: 150
+        titre_long:
+          type: string
+          maxLength: 1500
+        organisation:
+          $ref: '#/components/schemas/OrganizationInput'
+        url_offre:
+          type: string
+          format: uri
+          nullable: true
+        url_candidature:
+          type: string
+          format: uri
+          nullable: true
+        profession:
+          $ref: '#/components/schemas/ProfessionInput'
+        categories:
+          type: array
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/CategoriesEnum'
+            - $ref: '#/components/schemas/BlankEnum'
+        type_contrat:
+          $ref: '#/components/schemas/TypeContratEnum'
+        forme_contrat:
+          type: array
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/FormeContratEnum'
+            - $ref: '#/components/schemas/BlankEnum'
+        vacance_poste:
+          oneOf:
+          - $ref: '#/components/schemas/VacancePosteEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        description:
+          $ref: '#/components/schemas/DescriptionInput'
+        localisation:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocalisationInput'
+          nullable: true
+        criteres:
+          allOf:
+          - $ref: '#/components/schemas/CriteriaInput'
+          nullable: true
+        conditions:
+          allOf:
+          - $ref: '#/components/schemas/ConditionsInput'
+          nullable: true
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactsInput'
+          nullable: true
+        publication:
+          $ref: '#/components/schemas/PublicationInput'
+      required:
+      - categories
+      - conditions
+      - contacts
+      - criteres
+      - description
+      - forme_contrat
+      - identification
+      - localisation
+      - organisation
+      - profession
+      - publication
+      - titre
+      - titre_long
+      - type_contrat
+      - url_candidature
+      - url_offre
+      - vacance_poste
+    OrganizationInput:
+      type: object
+      properties:
+        nom:
+          type: string
+        siret:
+          type: string
+          maxLength: 15
+      required:
+      - nom
+      - siret
+    OuvertAuxMilitairesEnum:
+      enum:
+      - NON
+      - OUI
+      type: string
+      description: |-
+        * `NON` - Non
+        * `OUI` - Oui
+    ProfessionInput:
+      type: object
+      properties:
+        domaine:
+          type: string
+          maxLength: 3
+        metier:
+          type: string
+          maxLength: 8
+      required:
+      - domaine
+      - metier
+    PublicationInput:
+      type: object
+      properties:
+        debut_publication:
+          type: string
+          format: date-time
+        fin_publication:
+          type: string
+          format: date-time
+        fin_candidature:
+          type: string
+          format: date-time
+          nullable: true
+        debut_vacance_poste:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - debut_publication
+      - fin_publication
+    RegionEnum:
+      enum:
+      - '01'
+      - '02'
+      - '03'
+      - '04'
+      - '06'
+      - '11'
+      - '24'
+      - '27'
+      - '28'
+      - '32'
+      - '44'
+      - '52'
+      - '53'
+      - '75'
+      - '76'
+      - '84'
+      - '93'
+      - '94'
+      - DOM
+      - TOM
+      type: string
+      description: |-
+        * `01` - 01
+        * `02` - 02
+        * `03` - 03
+        * `04` - 04
+        * `06` - 06
+        * `11` - 11
+        * `24` - 24
+        * `27` - 27
+        * `28` - 28
+        * `32` - 32
+        * `44` - 44
+        * `52` - 52
+        * `53` - 53
+        * `75` - 75
+        * `76` - 76
+        * `84` - 84
+        * `93` - 93
+        * `94` - 94
+        * `DOM` - DOM
+        * `TOM` - TOM
+    TempsTravailEnum:
+      enum:
+      - NON_DEFINI
+      - TEMPS_PLEIN
+      - TEMPS_PARTIEL
+      type: string
+      description: |-
+        * `NON_DEFINI` - Non défini
+        * `TEMPS_PLEIN` - Temps plein
+        * `TEMPS_PARTIEL` - Temps partiel
     TokenError:
       type: object
       properties:
@@ -766,6 +1458,68 @@ components:
       required:
       - access
       - refresh
+    TypeContratEnum:
+      enum:
+      - TITULAIRE_CONTRACTUEL
+      - CONTRACTUELS
+      - TERRITORIAL
+      type: string
+      description: |-
+        * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+        * `CONTRACTUELS` - CONTRACTUELS
+        * `TERRITORIAL` - TERRITORIAL
+    UpsertOfferError:
+      type: object
+      properties:
+        offer:
+          allOf:
+          - $ref: '#/components/schemas/IdentityInput'
+          description: Identification de l'offre rejetée
+        error:
+          type: object
+          additionalProperties: {}
+          description: Détail de l'erreur de validation
+      required:
+      - error
+      - offer
+    UpsertOffersRequest:
+      type: object
+      properties:
+        offres:
+          type: array
+          items:
+            $ref: '#/components/schemas/OffersInput'
+          description: 'Liste d''offres à créer ou mettre à jour (min: 1, max: 100)'
+          maxItems: 100
+          minItems: 1
+      required:
+      - offres
+    UpsertOffersResponse:
+      type: object
+      properties:
+        created:
+          type: integer
+          description: Nombre d'offres créées
+        updated:
+          type: integer
+          description: Nombre d'offres mises à jour
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpsertOfferError'
+          description: Offres rejetées avec le détail de l'erreur
+      required:
+      - created
+      - errors
+      - updated
+    VacancePosteEnum:
+      enum:
+      - OUI
+      - NON
+      type: string
+      description: |-
+        * `OUI` - Poste vacant
+        * `NON` - Poste susceptible d'être vacant
     ValidationError:
       type: object
       properties:
@@ -776,6 +1530,32 @@ components:
       required:
       - error
       - row
+    VersantEnum:
+      enum:
+      - FPT
+      - FPE
+      - FPH
+      type: string
+      description: |-
+        * `FPT` - FPT
+        * `FPE` - FPE
+        * `FPH` - FPH
+    ZoneGeographiqueEnum:
+      enum:
+      - AF
+      - EU
+      - AS
+      - AM
+      - OC
+      - AN
+      type: string
+      description: |-
+        * `AF` - AFRIQUE
+        * `EU` - EUROPE
+        * `AS` - ASIE
+        * `AM` - AMERIQUE
+        * `OC` - OCEANIE
+        * `AN` - ANTARTIQUE
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

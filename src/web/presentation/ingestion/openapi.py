@@ -390,3 +390,25 @@ LIST_METIERS_EXAMPLES = [
     _EXAMPLE_INVALID_TOKEN,
     _EXAMPLE_SERVER_ERROR,
 ]
+
+UPSERT_OFFERS_DESCRIPTION = """
+# API d'ingestion d'offres d'emploi de la Fonction Publique
+
+Cette API permet de créer ou mettre à jour, entre 1 et 100 offres d'emploi à la fois, \
+via un payload JSON.
+
+- Les offres sont identifiées par leur champs `identification.reference` et \
+`identification.source`.
+- Une offre existante est mise à jour, une offre inconnue est créée.
+
+# Permissions
+
+L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque \
+utilisateur.
+
+# Limitations
+
+L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+
+Le nombre d'offres transmises par appel à l'API est limité à 100.
+"""

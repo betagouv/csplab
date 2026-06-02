@@ -1,5 +1,3 @@
-"""French Region value object."""
-
 from typing import ClassVar
 
 from pydantic import BaseModel, field_validator
