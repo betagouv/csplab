@@ -100,16 +100,7 @@ class MatchCVToOpportunitiesUsecase(
             for result in offers_similarity_results
         }
         for offer in offers_list:
-            if offer.family_code is None:
-                self.logger.info(
-                    "Offer with id %s has no family code, cannot fetch related metiers",
-                    offer.id,
-                )
-                metiers: list[Metier] = []
-            else:
-                metiers = self.metiers_repository.get_filtered(
-                    {"offer_family_code": offer.family_code}
-                )
+            metiers = self.metiers_repository.get_for_offer(offer)
             opportunities.append(((offer, metiers), offers_scores_by_id[offer.id]))
 
         self.logger.info("Returning %d opportunities", len(opportunities))
