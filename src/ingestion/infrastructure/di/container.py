@@ -6,7 +6,9 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import Depends, Query
 from sqlalchemy import Engine
 
+from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.use_cases.archive_offer import ArchiveOfferUseCase
+from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from domain.gateways.archive_gateway import IArchiveGateway
@@ -21,6 +23,7 @@ from infrastructure.external_gateways.talentsoft_client import (
 )
 from infrastructure.external_gateways.web_archive_gateway import WebArchiveGateway
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
+from infrastructure.gateways.offers_cleaner import OffersCleaner
 from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.sources_repository import SourcesRepository
 from infrastructure.talentsoft_client_repository import TalentsoftClientRepository
@@ -134,6 +137,13 @@ class Container(containers.DeclarativeContainer):
         repository=sources_repository,
     )
 
+    offers_cleaner = providers.Singleton(OffersCleaner)
+
+    clean_raw_offer_use_case = providers.Factory(
+        CleanRawOfferUseCase,
+        offers_cleaner=offers_cleaner,
+    )
+
 
 def run_database_migrations(database_url: str) -> None:
     run_migrations(database_url)
@@ -155,7 +165,7 @@ def register_talentsoft_front_client(
 
 
 @inject
-def get_save_raw_offer_use_case(
+def get_ingest_offer_pipeline(
     client_id: str = Query(...),
     sources_repository: ISourcesRepository = Depends(
         Provide[Container.sources_repository]
@@ -166,7 +176,7 @@ def get_save_raw_offer_use_case(
     raw_offer_repository: IRawOfferRepository | None = Depends(
         Provide[Container.raw_offer_repository]
     ),
-) -> SaveRawOfferUseCase | None:
+) -> IngestOfferPipeline | None:
     if raw_offer_repository is None:
         return None
     source = sources_repository.get_by_client_id_back(client_id)
@@ -175,7 +185,13 @@ def get_save_raw_offer_use_case(
     client = client_repository.get(source.client_id_front)
     if client is None:
         return None
-    return SaveRawOfferUseCase(
+    save_use_case = SaveRawOfferUseCase(
         offers_gateway=client,
+        raw_offer_repository=raw_offer_repository,
+    )
+    clean_use_case = CleanRawOfferUseCase(offers_cleaner=OffersCleaner())
+    return IngestOfferPipeline(
+        save_raw_offer=save_use_case,
+        clean_raw_offer=clean_use_case,
         raw_offer_repository=raw_offer_repository,
     )
