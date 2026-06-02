@@ -11,5 +11,6 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql="UPDATE offers SET source_id = (SELECT source_id FROM sources LIMIT 1)",
             reverse_sql=migrations.RunSQL.noop,
+            elidable=True,
         ),
     ]
