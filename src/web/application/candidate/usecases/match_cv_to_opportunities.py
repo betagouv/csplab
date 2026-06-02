@@ -6,10 +6,12 @@ from domain.ddd.usecase_interface import IUseCase
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType
+from domain.entities.metier import Metier
 from domain.entities.offer import Offer
 from domain.exceptions.cv_errors import CVProcessingFailedError
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
+from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.repositories.vector_repository_interface import IFilters, IVectorRepository
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
@@ -18,7 +20,7 @@ from domain.value_objects.cv_processing_status import CVStatus
 
 
 class MatchCVToOpportunitiesUsecase(
-    IUseCase[CVMetadata, List[Tuple[Concours | Offer, float]]],
+    IUseCase[CVMetadata, List[Tuple[Concours | Tuple[Offer, list[Metier]], float]]],
 ):
     def __init__(
         self,
@@ -27,6 +29,7 @@ class MatchCVToOpportunitiesUsecase(
         vector_repository: IVectorRepository,
         concours_repository: IConcoursRepository,
         offers_repository: IOffersRepository,
+        metiers_repository: IMetierRepository,
         logger: ILogger,
     ):
         self.cv_metadata_repository = cv_metadata_repository
@@ -34,6 +37,7 @@ class MatchCVToOpportunitiesUsecase(
         self.vector_repository = vector_repository
         self.concours_repository = concours_repository
         self.offers_repository = offers_repository
+        self.metiers_repository = metiers_repository
         self.logger = logger
 
     def execute(
@@ -41,7 +45,7 @@ class MatchCVToOpportunitiesUsecase(
         cv_metadata: CVMetadata,
         filters: Optional[IFilters] | None = None,
         limit: int = 5,
-    ) -> List[Tuple[Concours | Offer, float]]:
+    ) -> List[Tuple[Concours | Tuple[Offer, list[Metier]], float]]:
         self.logger.info(
             "Starting opportunity matching for cv_uuid='%s', limit=%d",
             cv_metadata.id,
@@ -72,7 +76,7 @@ class MatchCVToOpportunitiesUsecase(
             if result.document.document_type == DocumentType.OFFERS
         ]
 
-        opportunities: List[Tuple[Concours | Offer, float]] = []
+        opportunities: List[Tuple[Concours | Tuple[Offer, list[Metier]], float]] = []
 
         concours_ids = [
             result.document.entity_id for result in concours_similarity_results
@@ -95,9 +99,18 @@ class MatchCVToOpportunitiesUsecase(
             result.document.entity_id: result.score
             for result in offers_similarity_results
         }
-        opportunities.extend(
-            [(offer, offers_scores_by_id[offer.id]) for offer in offers_list]
-        )
+        for offer in offers_list:
+            if offer.family_code is None:
+                self.logger.info(
+                    "Offer with id %s has no family code, cannot fetch related metiers",
+                    offer.id,
+                )
+                metiers: list[Metier] = []
+            else:
+                metiers = self.metiers_repository.get_filtered(
+                    {"offer_family_code": offer.family_code}
+                )
+            opportunities.append(((offer, metiers), offers_scores_by_id[offer.id]))
 
         self.logger.info("Returning %d opportunities", len(opportunities))
 

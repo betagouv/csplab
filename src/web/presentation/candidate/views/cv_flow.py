@@ -10,6 +10,7 @@ from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
 
 from domain.entities.concours import Concours
+from domain.entities.metier import Metier
 from domain.entities.offer import Offer
 from domain.exceptions.concours_errors import ConcoursDoesNotExist
 from domain.exceptions.offer_errors import OfferDoesNotExist
@@ -78,13 +79,19 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         self._filters_mapper = ViewFiltersToUsecaseMapper()
         self._status: CVStatus = CVStatus.PENDING
         self._filename: str | None = None
-        self._opportunities: Sequence[tuple[Concours | Offer, float]] = []
+        self._opportunities: Sequence[tuple[Concours | tuple[Offer, list[Metier]], float]] = []
 
     def dispatch(self, request, *args, **kwargs) -> HttpResponse:
         cv_uuid: UUID = kwargs["cv_uuid"]
         self._fetch_cv_data(request, cv_uuid)
 
-        presenter = OpportunityListPresenter(self._opportunities, request)
+        flat_opportunities: list[tuple[Concours | Offer, float]] = [
+            (entity, score)
+            if isinstance(entity, Concours)
+            else (entity[0], score)
+            for entity, score in self._opportunities
+        ]
+        presenter = OpportunityListPresenter(flat_opportunities, request)
         is_htmx = bool(request.headers.get("HX-Request"))
 
         if is_htmx and request.GET.get("poll") and self._status != CVStatus.PENDING:
