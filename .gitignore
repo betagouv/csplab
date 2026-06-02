@@ -102,3 +102,4 @@ ARCHITECTURE*
 src/**/iframe_figures/
 
 storybook-static/
+dumps/*
