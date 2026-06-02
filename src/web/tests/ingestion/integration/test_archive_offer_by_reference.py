@@ -1,7 +1,11 @@
 from unittest.mock import MagicMock
 
 import pytest
+from faker import Faker
 
+from application.ingestion.interfaces.archive_offer_by_reference_input import (
+    ArchiveOfferByReferenceInput,
+)
 from application.ingestion.usecases.archive_offer_by_reference import (
     ArchiveOfferByReferenceUseCase,
 )
@@ -12,7 +16,10 @@ from infrastructure.repositories.shared.postgres_offers_repository import (
 )
 from tests.factories.offer_factory import OfferFactory
 
-REFERENCE = "12345"
+fake = Faker()
+
+REFERENCE = fake.bothify("REF-####")
+SOURCE_ID = str(fake.uuid4())
 
 
 @pytest.fixture
@@ -37,20 +44,30 @@ def use_case(offers_repository, vector_repository):
 
 class TestArchiveOfferByReferenceUseCase:
     def test_archives_offer_by_reference(self, db, use_case, offers_repository):
-        OfferFactory.create_model(external_id=f"Versant_FPE-{REFERENCE}")
-        use_case.execute(REFERENCE)
-        offer = offers_repository.get_by_reference(REFERENCE)
+        OfferFactory.create_model(
+            external_id=f"Versant_FPE-{REFERENCE}", source_id=SOURCE_ID
+        )
+        use_case.execute(
+            ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
+        )
+        offer = offers_repository.get_by_reference_and_source_id(REFERENCE, SOURCE_ID)
         assert offer.archived_at is not None
 
     def test_deletes_vectors_for_offer(self, db, use_case, vector_repository):
         offer = OfferFactory.create_model(
-            external_id=f"Versant_FPE-{REFERENCE}"
+            external_id=f"Versant_FPE-{REFERENCE}", source_id=SOURCE_ID
         ).to_entity()
-        use_case.execute(REFERENCE)
+        use_case.execute(
+            ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
+        )
         vector_repository.delete_vectorized_documents.assert_called_once_with(
             [offer.id]
         )
 
     def test_raises_when_reference_not_found(self, db, use_case):
         with pytest.raises(OfferDoesNotExist):
-            use_case.execute("unknown-ref")
+            use_case.execute(
+                ArchiveOfferByReferenceInput(
+                    reference="unknown-ref", source_id=SOURCE_ID
+                )
+            )

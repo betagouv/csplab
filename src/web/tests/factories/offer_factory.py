@@ -34,6 +34,7 @@ class OfferFactory:
         mission: str | None = None,
         organization: str | None = None,
         family_code: str | None = None,
+        source_id: str | None = None,
         offer_url: HttpUrl | None = None,
         localisation: Localisation | None = None,
         publication_date: datetime | None = None,
@@ -74,6 +75,7 @@ class OfferFactory:
             processed_at=None,
             archived_at=archived_at,
             family_code=family_code,
+            source_id=source_id,
         )
 
     @staticmethod
@@ -91,6 +93,7 @@ class OfferFactory:
         beginning_date: Optional[LimitDate] = None,
         localisation: Optional[Localisation] = None,
         family_code: Optional[str] = None,
+        source_id: Optional[str] = None,
         updated_at: Optional[datetime] = None,
         processing: bool = False,
         processed_at: Optional[datetime] = None,
@@ -111,6 +114,7 @@ class OfferFactory:
             offer_url=offer_url,
             localisation=localisation,
             family_code=family_code,
+            source_id=source_id,
             publication_date=publication_date,
             beginning_date=beginning_date,
             archived_at=archived_at,

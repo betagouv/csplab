@@ -42,6 +42,7 @@ class OfferModel(models.Model):
     organization = models.CharField(max_length=500)
     offer_url = models.URLField(null=True, blank=True)
     code_emploi_csp = models.CharField(max_length=50, null=True, blank=True)
+    source_id = models.UUIDField(null=True, blank=True)
 
     # Localisation fields stored separately
     area = models.CharField(max_length=2, null=True, blank=True)
@@ -65,6 +66,7 @@ class OfferModel(models.Model):
         verbose_name_plural = "Offers"
         indexes = [
             models.Index(fields=["external_id"]),
+            models.Index(fields=["source_id"], name="offers_source_id_idx"),
         ]
 
     def to_entity(self) -> Offer:
@@ -107,6 +109,7 @@ class OfferModel(models.Model):
             processed_at=self.processed_at,
             archived_at=self.archived_at,
             family_code=self.code_emploi_csp,
+            source_id=str(self.source_id) if self.source_id else None,
         )
 
     @classmethod
@@ -152,6 +155,7 @@ class OfferModel(models.Model):
             region=region,
             department=department,
             code_emploi_csp=offer.family_code,
+            source_id=offer.source_id,
             publication_date=offer.publication_date,
             beginning_date=beginning_date,
             processing=offer.processing,

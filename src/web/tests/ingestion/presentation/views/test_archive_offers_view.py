@@ -4,6 +4,9 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
+from application.ingestion.interfaces.archive_offer_by_reference_input import (
+    ArchiveOfferByReferenceInput,
+)
 from domain.exceptions.offer_errors import OfferDoesNotExist
 
 API_KEY = "test-ingestion-api-key"
@@ -57,11 +60,15 @@ class TestArchiveOffersView:
         response = authenticated_client.post(URL, VALID_BODY, format="json")
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {"status": "ok"}
-        use_case.execute.assert_called_once_with(REFERENCE)
+        use_case.execute.assert_called_once_with(
+            ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
+        )
 
     def test_api_key_authentication_archives_offer(self, api_client, use_case):
         api_client.credentials(HTTP_AUTHORIZATION=f"Api-Key {API_KEY}")
         response = api_client.post(URL, VALID_BODY, format="json")
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {"status": "ok"}
-        use_case.execute.assert_called_once_with(REFERENCE)
+        use_case.execute.assert_called_once_with(
+            ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
+        )

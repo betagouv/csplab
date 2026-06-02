@@ -132,6 +132,7 @@ def parse_offer_from_payload(payload: dict) -> Offer:
         localisation=localisation,
         beginning_date=debut_contrat,
         family_code=payload["profession"]["metier"],
+        source_id=payload["identification"]["source"],
     )
 
 
@@ -216,6 +217,7 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
             "localisation",
             "beginning_date",
             "family_code",
+            "source_id",
         ]:
             assert getattr(offer, attr) == getattr(expected, attr)
 

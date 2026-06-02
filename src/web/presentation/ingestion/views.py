@@ -17,6 +17,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from application.ingestion.interfaces.archive_offer_by_reference_input import (
+    ArchiveOfferByReferenceInput,
+)
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
@@ -490,11 +493,15 @@ class ArchiveOffersView(APIView):
         serializer = ArchiveOfferRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        reference = serializer.validated_data["reference"]
         container = create_ingestion_container()
         use_case = container.archive_offer_by_reference_usecase()
         try:
-            use_case.execute(reference)
+            use_case.execute(
+                ArchiveOfferByReferenceInput(
+                    reference=serializer.validated_data["reference"],
+                    source_id=serializer.validated_data["source_id"],
+                )
+            )
         except OfferDoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
