@@ -1,2 +1,2 @@
-release: bin/run_migrations.sh
 web: bin/start_web.sh
+postdeploy: bin/run_migrations.sh
