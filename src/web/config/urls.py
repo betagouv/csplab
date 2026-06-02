@@ -7,6 +7,7 @@ from presentation.ats import urls as ats_urls
 from presentation.candidate import urls as candidate_urls
 from presentation.ingestion import urls as ingestion_urls
 from presentation.pages import urls as pages_urls
+from presentation.users import urls as users_urls
 
 urlpatterns: list[URLPattern | URLResolver] = [
     path("", include(pages_urls)),
@@ -15,6 +16,7 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path("candidate/", include(candidate_urls)),
     path("api/v1/", include(ingestion_urls)),
     path("ats/", include(ats_urls)),
+    path("utilisateur/", include(users_urls)),
 ]
 
 if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:

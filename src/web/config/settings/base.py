@@ -151,6 +151,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTH_USER_MODEL = "users.UserModel"
+LOGIN_REDIRECT_URL = "users:profile"
+LOGOUT_REDIRECT_URL = "pages:home"
 
 # Internationalization
 LANGUAGE_CODE = "fr"
