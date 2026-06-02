@@ -5,7 +5,7 @@ class ErreurRecrutement(DomainError):
     pass
 
 
-class RecrutementInvalide(ErreurRecrutement):
+class EtapeRecrutementInvalide(ErreurRecrutement):
     def __init__(self, identifier: str, erreurs: list[str] | None = None):
         details = f" : {', '.join(erreurs)}" if erreurs else ""
         super().__init__(

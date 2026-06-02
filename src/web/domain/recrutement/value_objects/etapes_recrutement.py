@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from domain.recrutement.errors.erreur_recrutement import RecrutementInvalide
+from domain.recrutement.errors.erreur_recrutement import EtapeRecrutementInvalide
 
 
 class CategorieEtapeRecrutement(Enum):
@@ -15,7 +15,7 @@ class CategorieEtapeRecrutement(Enum):
 @dataclass(frozen=True)
 class EtapeRecrutement:
     rang: int  # ordre de l'étape dans le processus
-    identifiant: str  # clé unique pour référencer l'étape
+    identifiant: str  # identifiant de l'étape
     categorie: CategorieEtapeRecrutement  # catégorie connue du système
     nom: str  # label libre, personnalisé par l'organisme
 
@@ -25,15 +25,26 @@ class EtapeRecrutement:
             erreurs.append("rang doit être un entier strictement positif")
         if not self.identifiant.strip():
             erreurs.append("identifiant ne peut pas être vide")
+        if not isinstance(self.categorie, CategorieEtapeRecrutement):
+            erreurs.append("categorie doit être une CategorieEtapeRecrutement valide")
         if not self.nom.strip():
             erreurs.append("nom ne peut pas être vide")
         if erreurs:
-            raise RecrutementInvalide(identifier=self.identifiant, erreurs=erreurs)
+            raise EtapeRecrutementInvalide(identifier=self.identifiant, erreurs=erreurs)
 
 
 @dataclass(frozen=True)
 class EtapesRecrutement:
     etapes: tuple[EtapeRecrutement, ...]
+
+    def __post_init__(self) -> None:
+        identifiants = [e.identifiant for e in self.etapes]
+        doublons = {i for i in identifiants if identifiants.count(i) > 1}
+        if doublons:
+            raise EtapeRecrutementInvalide(
+                identifier="etapes_recrutement",
+                erreurs=[f"identifiants en doublon : {sorted(doublons)}"],
+            )
 
     def ordonnees(self) -> tuple[EtapeRecrutement, ...]:
         return tuple(sorted(self.etapes, key=lambda e: e.rang))
