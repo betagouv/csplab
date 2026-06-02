@@ -1,7 +1,5 @@
 from django.urls import reverse
-from pytest_django.asserts import (
-    assertTemplateUsed,
-)
+from pytest_django.asserts import assertTemplateUsed
 from rest_framework import status
 
 from tests.factories.utilisateur_factory import DEFAULT_PASSWORD
@@ -10,11 +8,22 @@ from tests.factories.utilisateur_factory import DEFAULT_PASSWORD
 # legacy auth django view yet
 
 
-def test_profile_view(db, client):
-    response = client.get(reverse("users:profile"))
+class TestProfileView:
+    def test_anonymous_request_redirects_to_login_view(self, db, client):
+        response = client.get(reverse("users:profile"))
 
-    assert response.status_code == status.HTTP_200_OK
-    assertTemplateUsed(response, "registration/profile.html")
+        assert response.status_code == status.HTTP_302_FOUND
+        assert (
+            response.url == f"{reverse('users:login')}?next={reverse('users:profile')}"
+        )
+
+    def test_authenticated_request_shows_template(self, db, client, test_user):
+        client.force_login(test_user)
+
+        response = client.get(reverse("users:profile"))
+
+        assert response.status_code == status.HTTP_200_OK
+        assertTemplateUsed(response, "registration/profile.html")
 
 
 def test_logout_view(db, client, test_user):

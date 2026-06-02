@@ -4,15 +4,10 @@
 {% endblock page_title %}
 {% block main %}
     <div class="fr-container fr-py-8w">
-        {% if user.is_authenticated %}
-            Bonjour {{ user.first_name }} {{ user.last_name }} !
-            <form action="{% url 'users:logout' %}" method="post">
-                {% csrf_token %}
-                <button type="submit">Log Out</button>
-            </form>
-        {% else %}
-            <p>You are not logged in</p>
-            <a href="{% url 'users:login' %}">Log In</a>
-        {% endif %}
+        Bonjour !
+        <form action="{% url 'users:logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Log Out</button>
+        </form>
     </div>
 {% endblock main %}
