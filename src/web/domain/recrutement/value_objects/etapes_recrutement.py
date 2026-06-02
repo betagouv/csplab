@@ -14,15 +14,12 @@ class CategorieEtapeRecrutement(Enum):
 
 @dataclass(frozen=True)
 class EtapeRecrutement:
-    rang: int  # ordre de l'étape dans le processus
     identifiant: str  # identifiant de l'étape
     categorie: CategorieEtapeRecrutement  # catégorie connue du système
     nom: str  # label libre, personnalisé par l'organisme
 
     def __post_init__(self) -> None:
         erreurs = []
-        if not isinstance(self.rang, int) or self.rang <= 0:
-            erreurs.append("rang doit être un entier strictement positif")
         if not self.identifiant.strip():
             erreurs.append("identifiant ne peut pas être vide")
         if not isinstance(self.categorie, CategorieEtapeRecrutement):
@@ -35,7 +32,7 @@ class EtapeRecrutement:
 
 @dataclass(frozen=True)
 class EtapesRecrutement:
-    etapes: tuple[EtapeRecrutement, ...]
+    etapes: tuple[EtapeRecrutement, ...]  # l'ordre du tuple définit l'ordre des étapes
 
     def __post_init__(self) -> None:
         identifiants = [e.identifiant for e in self.etapes]
@@ -45,6 +42,3 @@ class EtapesRecrutement:
                 identifier="etapes_recrutement",
                 erreurs=[f"identifiants en doublon : {sorted(doublons)}"],
             )
-
-    def ordonnees(self) -> tuple[EtapeRecrutement, ...]:
-        return tuple(sorted(self.etapes, key=lambda e: e.rang))
