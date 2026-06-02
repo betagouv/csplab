@@ -1,17 +1,12 @@
 from rest_framework import serializers
 
-from domain.ddd.mapper_interface import ISerializerToDomainMapper
-from domain.entities.offer import Offer
 from domain.value_objects.area import GeographicalArea
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractKind, ContractType
-from domain.value_objects.country import Country
 from domain.value_objects.department import Department
 from domain.value_objects.diploma import Diploma
 from domain.value_objects.experience_level import ExperienceLevel
 from domain.value_objects.language_level import LanguageLevel
-from domain.value_objects.limit_date import LimitDate
-from domain.value_objects.localisation import Localisation
 from domain.value_objects.offer_conditions import (
     JobVacancy,
     Management,
@@ -139,7 +134,7 @@ class DescriptionInputSerializer(serializers.Serializer):
     complements = serializers.CharField(max_length=1500, allow_blank=True)
 
 
-class LocalisationInputSerializer(serializers.Serializer, ISerializerToDomainMapper):
+class LocalisationInputSerializer(serializers.Serializer):
     zone_geographique = serializers.ChoiceField(
         choices=[(c.value, c.name) for c in GeographicalArea]
     )
@@ -164,15 +159,6 @@ class LocalisationInputSerializer(serializers.Serializer, ISerializerToDomainMap
                 "pour une offre localisée en France."
             )
         return data
-
-    @staticmethod
-    def to_domain(data: dict) -> Localisation:
-        return Localisation(
-            area=GeographicalArea(data["zone_geographique"]),
-            country=Country(data["pays"]),
-            region=Region(code=data["region"]),
-            department=Department(code=data["departement"]),
-        )
 
 
 class LanguageInputSerializer(serializers.Serializer):
@@ -238,7 +224,7 @@ class PublicationInputSerializer(serializers.Serializer):
     debut_vacance_poste = serializers.DateTimeField(allow_null=True, required=False)
 
 
-class OffersInputSerializer(serializers.Serializer, ISerializerToDomainMapper):
+class OffersInputSerializer(serializers.Serializer):
     identification = IdentityInputSerializer()
 
     # general infos
@@ -269,36 +255,6 @@ class OffersInputSerializer(serializers.Serializer, ISerializerToDomainMapper):
     conditions = ConditionsInputSerializer(allow_null=True)
     contacts = ContactsInputSerializer(many=True, allow_null=True)
     publication = PublicationInputSerializer()
-
-    @staticmethod
-    def to_domain(data: dict) -> Offer:
-        # todo handle multiple categories offers later
-        category = (
-            Category(sorted(data["categories"])[0]) if data.get("categories") else None
-        )
-        conditions = data.get("conditions", {})
-        debut_contrat = conditions.get("debut_contrat") if conditions else None
-
-        localisations = data.get("localisation", [])
-        localisation = localisations[0] if localisations else None
-
-        return Offer(
-            external_id=f"{data['identification']['versant']}-{data['identification']['reference']}",
-            title=data["titre"],
-            profile=data["description"]["profil"],
-            mission=data["description"]["mission"],
-            organization=data["organisation"]["nom"],
-            publication_date=data["publication"]["debut_publication"],
-            verse=Verse(data["identification"]["versant"]),
-            category=category,
-            contract_type=ContractType(data["type_contrat"]),
-            offer_url=data.get("url_offre"),
-            localisation=LocalisationInputSerializer.to_domain(localisation)
-            if localisation
-            else None,
-            beginning_date=LimitDate(debut_contrat) if debut_contrat else None,
-            family_code=data["profession"]["metier"],
-        )
 
 
 class UpsertOffersRequestSerializer(serializers.Serializer):

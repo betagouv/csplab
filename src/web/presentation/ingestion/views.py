@@ -29,6 +29,7 @@ from infrastructure.authentication.api_key_authentication import (
     UserRateThrottleExceptApiKey,
 )
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from presentation.ingestion.mappers import OfferInputMapper
 from presentation.ingestion.openapi import (
     ARCHIVE_OFFER_DESCRIPTION,
     ARCHIVE_OFFER_EXAMPLES,
@@ -560,6 +561,7 @@ class OffersUpsertView(APIView):
         # iterate over offers, to handle only valid ones
         valid_offers = []
         errors = []
+        offer_mapper = OfferInputMapper()
 
         for _, offer_data in enumerate(request.data):
             serializer = OffersInputSerializer(data=offer_data)
@@ -572,9 +574,7 @@ class OffersUpsertView(APIView):
                 )
                 continue
             try:
-                valid_offers.append(
-                    OffersInputSerializer.to_domain(serializer.validated_data)
-                )
+                valid_offers.append(offer_mapper.to_domain(serializer.validated_data))
             except Exception as e:
                 errors.append(
                     {
