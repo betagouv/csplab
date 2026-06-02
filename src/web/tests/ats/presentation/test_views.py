@@ -17,3 +17,7 @@ class TestATSBase:
     def test_base_view_catches_subroutes(self, client: Client):
         response = client.get("/ats/candidates/123/")
         assert response.status_code == HTTPStatus.OK
+
+    def test_base_view_sets_csrf_cookie(self, client: Client):
+        response = client.get("/ats/")
+        assert "csrftoken" in response.cookies
