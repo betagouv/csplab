@@ -14,13 +14,14 @@ on:
       - "src/web/**"
       - ".github/workflows/storybook_pages.yml"
       - ".github/actions/**"
+  workflow_dispatch:
 
 permissions:
   contents: write
   pull-requests: write
 
 concurrency:
-  group: storybook-pages-${{ github.ref }}
+  group: storybook-pages-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
