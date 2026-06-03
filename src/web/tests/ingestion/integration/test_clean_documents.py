@@ -161,6 +161,10 @@ def test_execute_updates_existing_offers_entities(db, raw_offer_setup):
     # First execution - create entity
     assert clean_documents_usecase.execute(document_type) == execute_results(created=1)
 
+    cleaned_offer = OfferModel.objects.first()
+    assert cleaned_offer is not None
+    assert cleaned_offer.reference == document.raw_data["reference"]
+
     # Second execution with same data - should not update
     assert clean_documents_usecase.execute(document_type) == execute_results()
 
@@ -377,6 +381,7 @@ def test_execute_clean_offers_with_category(
     cleaned_offer = OfferModel.objects.first()
     assert cleaned_offer is not None
     assert cleaned_offer.category == expected
+    assert cleaned_offer.reference == offer_dto.reference
 
 
 @pytest.mark.parametrize(
@@ -466,6 +471,7 @@ def test_execute_clean_offers_with_geographical_area(
 
     cleaned_offer = OfferModel.objects.first()
     assert cleaned_offer is not None
+    assert cleaned_offer.reference == offer_dto.reference
     assert cleaned_offer.area == expected_area
     assert cleaned_offer.country == expected_country
     assert cleaned_offer.region == expected_region

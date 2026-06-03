@@ -28,6 +28,7 @@ class OfferModel(models.Model):
 
     id = models.UUIDField(primary_key=True)
     external_id = models.CharField(max_length=100, unique=True)
+    reference = models.CharField(max_length=100)
     verse = models.CharField(
         max_length=20, choices=VERSE_CHOICES, null=True, blank=True
     )
@@ -73,6 +74,12 @@ class OfferModel(models.Model):
         indexes = [
             models.Index(fields=["external_id"]),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["reference", "source_id"],
+                name="offers_reference_source_id_unique",
+            ),
+        ]
 
     def to_entity(self) -> Offer:
         # Build localisation if both region and department are present
@@ -110,6 +117,7 @@ class OfferModel(models.Model):
             localisation=localisation,
             publication_date=self.publication_date,
             beginning_date=beginning_date,
+            reference=self.reference,
             processing=self.processing,
             processed_at=self.processed_at,
             archived_at=self.archived_at,
@@ -147,6 +155,7 @@ class OfferModel(models.Model):
         return cls(
             id=offer.id,
             external_id=offer.external_id,
+            reference=offer.reference,
             verse=offer.verse.value if offer.verse else None,
             title=offer.title,
             profile=offer.profile,

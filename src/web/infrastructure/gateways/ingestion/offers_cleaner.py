@@ -150,6 +150,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             external_id=f"{ts_verse}-{talentsoft_offer.reference}"
             if ts_verse
             else talentsoft_offer.reference,
+            reference=talentsoft_offer.reference,
             verse=verse,
             title=talentsoft_offer.title,
             profile=talentsoft_offer.description2 or "",
