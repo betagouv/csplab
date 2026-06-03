@@ -1,5 +1,6 @@
 from datetime import datetime
 from unittest.mock import MagicMock, patch
+from uuid import UUID
 
 import pytest
 from django.urls import reverse
@@ -20,15 +21,16 @@ from tests.factories.offer_payload_factory import PayloadOfferFactory, fake_date
 
 fake = Faker("fr_FR")
 
+SOURCE_UUID = fake.uuid4()
 URL = reverse("ingestion:offers_upsert")
 
 
 MINIMAL_VALID_OFFER = PayloadOfferFactory.create(
-    identification={"reference": "REF-001", "source": "source-abc", "versant": "FPT"}
+    identification={"reference": "REF-001", "source": SOURCE_UUID, "versant": "FPT"}
 )
 
 PARTIAL_VALID_OFFER = PayloadOfferFactory.create(
-    identification={"reference": "REF-002", "source": "source-abc", "versant": "FPE"},
+    identification={"reference": "REF-002", "source": SOURCE_UUID, "versant": "FPE"},
     localisation=[],
     criteres={"diplome_niveau": 3},
     conditions={
@@ -41,7 +43,7 @@ PARTIAL_VALID_OFFER = PayloadOfferFactory.create(
 )
 
 COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
-    identification={"reference": "REF-003", "source": "source-abc", "versant": "FPH"},
+    identification={"reference": "REF-003", "source": SOURCE_UUID, "versant": "FPH"},
     organisation={"nom": fake.company(), "siret": fake.siret().replace(" ", "")},
     url_offre="https://example.com/offre",
     url_candidature="https://example.com/candidature",
@@ -79,12 +81,12 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
 )
 
 INVALID_PAYLOAD_OFFER = PayloadOfferFactory.create(
-    identification={"reference": "REF-004", "source": "source-abc", "versant": "FPT"},
+    identification={"reference": "REF-004", "source": SOURCE_UUID, "versant": "FPT"},
     titre=None,  # missing required field
 )
 
 INVALID_DATA_OFFER = PayloadOfferFactory.create(
-    identification={"reference": "REF-005", "source": "source-abc", "versant": "FPT"},
+    identification={"reference": "REF-005", "source": SOURCE_UUID, "versant": "FPT"},
     type_contrat="ABC",  # invalid enum value
 )
 
@@ -132,7 +134,7 @@ def parse_offer_from_payload(payload: dict) -> Offer:
         localisation=localisation,
         beginning_date=debut_contrat,
         family_code=payload["profession"]["metier"],
-        source_id=payload["identification"]["source"],
+        source_id=UUID(payload["identification"]["source"]),
     )
 
 
@@ -240,11 +242,11 @@ def test_mixed_valid_invalid_offers_in_payload(authenticated_client, use_case):
     assert errors == [
         "db error on offer xxx",
         {
-            "offer": {"reference": "REF-004", "source": "source-abc", "versant": "FPT"},
+            "offer": {"reference": "REF-004", "source": SOURCE_UUID, "versant": "FPT"},
             "error": {"titre": ["Ce champ ne peut être nul."]},
         },
         {
-            "offer": {"reference": "REF-005", "source": "source-abc", "versant": "FPT"},
+            "offer": {"reference": "REF-005", "source": SOURCE_UUID, "versant": "FPT"},
             "error": {"type_contrat": ["«\xa0ABC\xa0» n'est pas un choix valide."]},
         },
     ]

@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 from typing import List, Optional
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from django.utils import timezone
 from pydantic import HttpUrl
@@ -15,7 +15,9 @@ from domain.value_objects.limit_date import LimitDate
 from domain.value_objects.localisation import Localisation
 from domain.value_objects.region import Region
 from domain.value_objects.verse import Verse
+from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
+from tests.factories.source_factory import SourceFactory
 
 
 class OfferFactory:
@@ -34,7 +36,7 @@ class OfferFactory:
         mission: str | None = None,
         organization: str | None = None,
         family_code: str | None = None,
-        source_id: str | None = None,
+        source_id: UUID | None = None,
         offer_url: HttpUrl | None = None,
         localisation: Localisation | None = None,
         publication_date: datetime | None = None,
@@ -75,7 +77,7 @@ class OfferFactory:
             processed_at=None,
             archived_at=archived_at,
             family_code=family_code,
-            source_id=source_id,
+            source_id=source_id or uuid4(),
         )
 
     @staticmethod
@@ -93,7 +95,7 @@ class OfferFactory:
         beginning_date: Optional[LimitDate] = None,
         localisation: Optional[Localisation] = None,
         family_code: Optional[str] = None,
-        source_id: Optional[str] = None,
+        source_id: Optional[UUID] = None,
         updated_at: Optional[datetime] = None,
         processing: bool = False,
         processed_at: Optional[datetime] = None,
@@ -101,6 +103,11 @@ class OfferFactory:
     ) -> OfferModel:
         if processed_at:
             processed_at = timezone.make_aware(processed_at)
+
+        if source_id is None:
+            source_id = SourceFactory.create_model().source_id
+        elif not SourceModel.objects.filter(source_id=source_id).exists():
+            SourceFactory.create_model(source_id=source_id)
 
         offer = OfferFactory.create_entity(
             external_id=external_id,

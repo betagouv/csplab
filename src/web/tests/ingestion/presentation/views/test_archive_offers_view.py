@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+from uuid import UUID
 
 import pytest
 from django.urls import reverse
@@ -11,10 +12,10 @@ from domain.exceptions.offer_errors import OfferDoesNotExist
 
 API_KEY = "test-ingestion-api-key"
 REFERENCE = "12345"
-SOURCE_ID = "talentsoft-client-1"
+SOURCE_ID = UUID("12345678-1234-4234-b234-123456789abc")
 
 URL = reverse("ingestion:offers_archive")
-VALID_BODY = {"reference": REFERENCE, "source_id": SOURCE_ID}
+VALID_BODY = {"reference": REFERENCE, "source_id": str(SOURCE_ID)}
 
 
 @pytest.fixture
@@ -52,7 +53,9 @@ class TestArchiveOffersView:
         use_case.execute.side_effect = OfferDoesNotExist("unknown-ref")
         api_client.credentials(HTTP_AUTHORIZATION=f"Api-Key {API_KEY}")
         response = api_client.post(
-            URL, {"reference": "unknown-ref", "source_id": SOURCE_ID}, format="json"
+            URL,
+            {"reference": "unknown-ref", "source_id": str(SOURCE_ID)},
+            format="json",
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 

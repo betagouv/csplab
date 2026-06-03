@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
+from uuid import UUID
 
 from pydantic import HttpUrl, ValidationError
 
@@ -8,6 +9,7 @@ from domain.entities.offer import Offer
 from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.repositories.offers_repository_interface import IOffersRepository
+from domain.repositories.source_repository_interface import ISourceRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from domain.value_objects.area import GeographicalArea
@@ -34,14 +36,26 @@ _TALENTSOFT_TO_AREA: dict[str, GeographicalArea] = {
 
 
 class OffersCleaner(IDocumentCleaner[Offer]):
-    def __init__(self, logger: ILogger, offers_repository: IOffersRepository):
+    def __init__(
+        self,
+        logger: ILogger,
+        offers_repository: IOffersRepository,
+        source_repository: ISourceRepository,
+    ):
         self.logger = logger
         self.offers_repository = offers_repository
+        self.source_repository = source_repository
 
     def clean(self, raw_documents: List[Document]) -> CleaningResult[Offer]:
         for document in raw_documents:
             if document.type != DocumentType.OFFERS:
                 raise InvalidDocumentTypeError(document.type.value)  # todo: test
+
+        sources = self.source_repository.get_all()
+        if not sources:
+            raise ValueError("No source found in repository")
+        # TODO: replace when we will have multiple instances of Talentsoft
+        source_id = sources[0].source_id
 
         validated_offers = []
         cleaning_errors = []
@@ -63,7 +77,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         for talentsoft_offer in validated_offers:
             self.logger.info(f"Processing offer {talentsoft_offer.reference}")
             try:
-                offer = self._map_talentsoft_to_offer(talentsoft_offer)
+                offer = self._map_talentsoft_to_offer(talentsoft_offer, source_id)
                 offers_list.append(offer)
                 self.logger.debug(
                     f"Successfully processed offer {talentsoft_offer.reference}"
@@ -88,7 +102,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         return CleaningResult(entities=offers_list, cleaning_errors=cleaning_errors)
 
     def _map_talentsoft_to_offer(
-        self, talentsoft_offer: TalentsoftDetailOffer
+        self, talentsoft_offer: TalentsoftDetailOffer, source_id: UUID
     ) -> Offer:
         # Extract verse from salaryRange if available
         ts_verse = (
@@ -148,6 +162,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
             publication_date=publication_date,
             beginning_date=beginning_date,
             family_code=family_code_value,
+            source_id=source_id,
         )
         try:
             existing_offer = self.offers_repository.get_by_external_id(

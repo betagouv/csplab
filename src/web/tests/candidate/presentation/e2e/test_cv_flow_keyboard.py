@@ -9,7 +9,6 @@ from playwright.sync_api import Page, expect
 from domain.value_objects.category import Category
 from domain.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
-from infrastructure.django_apps.shared.models.offer import OfferModel
 from tests.factories.cv_metadata_factory import CVMetadataFactory
 from tests.factories.offer_factory import OfferFactory
 
@@ -23,8 +22,7 @@ class TestCandidateFlowKeyboard:
         cv_pdf_path: Path,
         transactional_db,
     ) -> None:
-        offer_entity = OfferFactory.create_entity(title="Offre keyboard")
-        OfferModel.from_entity(offer_entity).save()
+        offer_entity = OfferFactory.create_model(title="Offre keyboard").to_entity()
 
         # 1. Upload page: select file, submit via keyboard (Enter on submit button)
         page.goto(f"{live_server.url}/candidate/cv-upload/")
@@ -77,14 +75,12 @@ class TestCandidateFlowKeyboard:
         live_server,
         transactional_db,
     ) -> None:
-        offer_a = OfferFactory.create_entity(
+        offer_a = OfferFactory.create_model(
             title="Offre alpha kbd", category=Category.A
-        )
-        offer_b = OfferFactory.create_entity(
+        ).to_entity()
+        offer_b = OfferFactory.create_model(
             title="Offre beta kbd", category=Category.B
-        )
-        OfferModel.from_entity(offer_a).save()
-        OfferModel.from_entity(offer_b).save()
+        ).to_entity()
 
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"

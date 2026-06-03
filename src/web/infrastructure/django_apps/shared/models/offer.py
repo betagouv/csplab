@@ -11,6 +11,7 @@ from domain.value_objects.limit_date import LimitDate
 from domain.value_objects.localisation import Localisation
 from domain.value_objects.region import Region
 from domain.value_objects.verse import Verse
+from infrastructure.django_apps.ingestion.models.source import SourceModel
 
 
 class OfferModel(models.Model):
@@ -42,7 +43,12 @@ class OfferModel(models.Model):
     organization = models.CharField(max_length=500)
     offer_url = models.URLField(null=True, blank=True)
     code_emploi_csp = models.CharField(max_length=50, null=True, blank=True)
-    source_id = models.UUIDField(null=True, blank=True)
+    source = models.ForeignKey(
+        SourceModel,
+        to_field="source_id",
+        on_delete=models.PROTECT,
+        related_name="offers",
+    )
 
     # Localisation fields stored separately
     area = models.CharField(max_length=2, null=True, blank=True)
@@ -66,7 +72,6 @@ class OfferModel(models.Model):
         verbose_name_plural = "Offers"
         indexes = [
             models.Index(fields=["external_id"]),
-            models.Index(fields=["source_id"], name="offers_source_id_idx"),
         ]
 
     def to_entity(self) -> Offer:
@@ -109,7 +114,7 @@ class OfferModel(models.Model):
             processed_at=self.processed_at,
             archived_at=self.archived_at,
             family_code=self.code_emploi_csp,
-            source_id=str(self.source_id) if self.source_id else None,
+            source_id=self.source_id,
         )
 
     @classmethod

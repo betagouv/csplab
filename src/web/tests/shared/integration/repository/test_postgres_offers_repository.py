@@ -22,6 +22,7 @@ from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
 )
 from tests.factories.offer_factory import OfferFactory
+from tests.factories.source_factory import SourceFactory
 
 fake = Faker()
 NOW = datetime.now()
@@ -53,7 +54,9 @@ class TestUpsertBatch:
     def test_datetime_on_upsert(self, db, repository):
         offer = OfferFactory.create_model()
         offer_to_update = OfferFactory.create_model()
-        new_offer_entity = OfferFactory.create_entity()
+        new_offer_entity = OfferFactory.create_entity(
+            source_id=OfferModel.to_entity(offer).source_id
+        )
 
         offers = [
             OfferModel.to_entity(offer_to_update),
@@ -101,9 +104,8 @@ class TestUpsertBatch:
 
     def test_multiple_offers_success(self, db, repository):
         offers = OfferFactory.create_model_batch(2)
-        entities = [OfferModel.to_entity(offer) for offer in offers] + [
-            OfferFactory.create_entity()
-        ]
+        entities = [OfferModel.to_entity(offer) for offer in offers]
+        entities.append(OfferFactory.create_entity(source_id=entities[0].source_id))
 
         result = repository.upsert_batch(entities)
 
@@ -252,3 +254,12 @@ def test_mark_as_pending(db, repository):
 
     undesired_model_objects = OfferModel.objects.get(processing=True)
     assert undesired_model_objects.id == undesired_offer.id
+
+
+def test_multiple_offers_success(db, repository):
+    source = SourceFactory.create_model()
+    offers = OfferFactory.create_model_batch(2, source_id=source.id)
+    entities = [OfferModel.to_entity(offer) for offer in offers]
+    entities.append(OfferFactory.create_entity(source_id=source.id))
+
+    repository.upsert_batch(entities)
