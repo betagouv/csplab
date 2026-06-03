@@ -1,10 +1,10 @@
 from typing import Any, Dict, List, Union, cast
 
 from asgiref.sync import async_to_sync
+from ddd.entity_interface import IEntity
+from ddd.usecase_interface import IUseCase
 from django.db import transaction
 
-from domain.ddd.entity_interface import IEntity
-from domain.ddd.usecase_interface import IUseCase
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType

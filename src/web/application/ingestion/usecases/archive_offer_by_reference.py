@@ -1,7 +1,8 @@
+from ddd.usecase_interface import IUseCase
+
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
-from domain.ddd.usecase_interface import IUseCase
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.repositories.vector_repository_interface import IVectorRepository
 

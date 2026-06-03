@@ -1,10 +1,10 @@
 from typing import Any
 
+from ddd.mapper_interface import IToDomainMapper
 from django.http import QueryDict
 from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
 
-from domain.ddd.mapper_interface import IToDomainMapper
 from domain.entities.concours import Concours
 from domain.entities.document import DocumentType
 from domain.entities.metier import Metier

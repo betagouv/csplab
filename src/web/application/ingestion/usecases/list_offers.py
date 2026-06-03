@@ -1,6 +1,7 @@
+from ddd.page_interface import IPage
+from ddd.usecase_interface import IUseCase
+
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
-from domain.ddd.page_interface import IPage
-from domain.ddd.usecase_interface import IUseCase
 from domain.entities.offer import Offer
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.services.logger_interface import ILogger

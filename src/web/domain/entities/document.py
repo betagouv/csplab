@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
 
-from domain.ddd.entity_interface import IEntity
+from ddd.entity_interface import IEntity
 
 
 class DocumentType(Enum):

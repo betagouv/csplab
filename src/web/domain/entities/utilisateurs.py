@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
 from uuid import UUID, uuid4
 
+from ddd.entity import Entity
 from pydantic import EmailStr
-
-from domain.ddd.entity import Entity
 
 
 @dataclass(kw_only=True)

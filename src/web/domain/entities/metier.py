@@ -2,7 +2,8 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from domain.ddd.entity_interface import IEntity
+from ddd.entity_interface import IEntity
+
 from domain.value_objects.verse import Verse
 
 

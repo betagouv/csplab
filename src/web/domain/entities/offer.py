@@ -3,9 +3,9 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
+from ddd.entity_interface import IEntity
 from pydantic import HttpUrl
 
-from domain.ddd.entity_interface import IEntity
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
 from domain.value_objects.limit_date import LimitDate

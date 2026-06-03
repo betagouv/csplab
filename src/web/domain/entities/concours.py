@@ -3,7 +3,8 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from domain.ddd.entity_interface import IEntity
+from ddd.entity_interface import IEntity
+
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.ministry import Ministry

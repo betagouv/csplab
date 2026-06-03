@@ -1,7 +1,8 @@
 from typing import Optional
 from uuid import UUID
 
-from domain.ddd.mapper_interface import IToDomainMapper
+from ddd.mapper_interface import IToDomainMapper
+
 from domain.entities.offer import Offer
 from domain.value_objects.area import GeographicalArea
 from domain.value_objects.category import Category
