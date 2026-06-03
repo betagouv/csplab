@@ -26,6 +26,14 @@ def cv_metadata_pending():
     )
 
 
+@pytest.fixture
+def mock_execute():
+    with patch(
+        "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
+    ) as mock:
+        yield mock
+
+
 def test_cv_results_invalid_uuid_returns_404(client, db):
     response = client.get("/candidate/cv/invalid-uuid/results/")
 
@@ -45,9 +53,6 @@ def test_cv_results_invalid_uuid_returns_404(client, db):
             "candidate/components/_results_content.html",
         ),
     ],
-)
-@patch(
-    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
 )
 def test_cv_results_selects_response_from_status_and_request_type(
     mock_execute,
@@ -88,9 +93,6 @@ def test_cv_results_selects_response_from_status_and_request_type(
         mock_execute.assert_not_called()
 
 
-@patch(
-    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
-)
 def test_cv_results_htmx_results_zone_target_returns_results_list_template(
     mock_execute, client, db, cv_metadata_completed
 ):
@@ -110,9 +112,6 @@ def test_cv_results_htmx_results_zone_target_returns_results_list_template(
     assertContains(response, "Poste ciblé")
 
 
-@patch(
-    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
-)
 def test_cv_results_htmx_poll_pending_to_completed_transition(
     mock_execute, client, db, cv_metadata_pending
 ):
@@ -165,9 +164,6 @@ def test_cv_results_htmx_request_sets_redirect_header(client, db):
     assert response["HX-Redirect"] == reverse("candidate:cv_upload")
 
 
-@patch(
-    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
-)
 def test_cv_results_htmx_empty_opportunities_shows_no_results(
     mock_execute, client, db, cv_metadata_completed
 ):
@@ -183,9 +179,6 @@ def test_cv_results_htmx_empty_opportunities_shows_no_results(
     assertTemplateUsed(response, "candidate/components/_no_results_content.html")
 
 
-@patch(
-    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
-)
 def test_cv_results_no_results_includes_tally_iframe(
     mock_execute, client, db, settings, cv_metadata_completed
 ):
@@ -203,9 +196,6 @@ def test_cv_results_no_results_includes_tally_iframe(
     assertContains(response, f"cv_uuid={cv_metadata_completed.id}")
 
 
-@patch(
-    "application.candidate.usecases.match_cv_to_opportunities.MatchCVToOpportunitiesUsecase.execute"
-)
 def test_cv_results_with_results_includes_tally_modal(
     mock_execute, client, db, settings, cv_metadata_completed
 ):
