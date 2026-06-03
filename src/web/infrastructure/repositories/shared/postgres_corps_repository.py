@@ -1,6 +1,7 @@
 from typing import List
 from uuid import UUID
 
+from ddd.services.logger_interface import ILogger
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.utils import timezone
@@ -12,7 +13,6 @@ from domain.repositories.document_repository_interface import (
     IUpsertError,
     IUpsertResult,
 )
-from domain.services.logger_interface import ILogger
 from infrastructure.django_apps.shared.models.corps import CorpsModel
 
 

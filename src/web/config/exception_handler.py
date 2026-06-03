@@ -1,8 +1,8 @@
+from ddd.domain_errors import DomainError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler, status
 
 from application.exceptions import ApplicationError
-from domain.exceptions.domain_errors import DomainError
 from infrastructure.exceptions.exceptions import InfrastructureError
 from infrastructure.gateways.shared.logger import LoggerService
 

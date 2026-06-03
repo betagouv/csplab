@@ -2,12 +2,12 @@ import json
 from http import HTTPStatus
 from typing import Any, Dict
 
+from ddd.services.async_http_client_interface import IAsyncHttpClient
+from ddd.types import JsonDataType
 from pydantic import ValidationError
 
 from config.app_config import AlbertConfig
-from domain.services.async_http_client_interface import IAsyncHttpClient
 from domain.services.text_formatter_interface import ITextFormatter
-from domain.types import JsonDataType
 from domain.value_objects.cv_extraction_types import CVExtractionResult
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.constants.ocr_cv_prompts import (

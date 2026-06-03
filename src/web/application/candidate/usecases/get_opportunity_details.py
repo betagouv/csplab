@@ -1,13 +1,14 @@
 from typing import Tuple
 from uuid import UUID
 
+from ddd.services.logger_interface import ILogger
+
 from domain.entities.concours import Concours
 from domain.entities.metier import Metier
 from domain.entities.offer import Offer
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.repositories.offers_repository_interface import IOffersRepository
-from domain.services.logger_interface import ILogger
 from domain.value_objects.opportunity_type import OpportunityType
 
 

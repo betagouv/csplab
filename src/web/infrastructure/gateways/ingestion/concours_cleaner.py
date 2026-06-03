@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 import polars as pl
+from ddd.services.logger_interface import ILogger
 from django.utils import timezone
 
 from domain.entities.concours import Concours
@@ -12,7 +13,6 @@ from domain.exceptions.corps_errors import InvalidMinistryError
 from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.repositories.concours_repository_interface import IConcoursRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
-from domain.services.logger_interface import ILogger
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.ministry import Ministry

@@ -2,10 +2,10 @@ from datetime import UTC, datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
+from ddd.types import JsonDataType
 from polyfactory.factories import DataclassFactory
 
 from domain.entities.cv_metadata import CVMetadata
-from domain.types import JsonDataType
 from domain.value_objects.cv_processing_status import CVStatus
 
 
