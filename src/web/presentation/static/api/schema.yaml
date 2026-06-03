@@ -624,6 +624,7 @@ components:
           type: string
         source_id:
           type: string
+          format: uuid
       required:
       - reference
       - source_id

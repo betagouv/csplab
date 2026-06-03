@@ -88,7 +88,7 @@ class SourceSerializer(serializers.Serializer):
 
 class ArchiveOfferRequestSerializer(serializers.Serializer):
     reference = serializers.CharField()
-    source_id = serializers.CharField()
+    source_id = serializers.UUIDField()
 
 
 class ArchiveOfferSuccessSerializer(serializers.Serializer):

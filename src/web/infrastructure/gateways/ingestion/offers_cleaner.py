@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
+from uuid import UUID
 
 from pydantic import HttpUrl, ValidationError
 
@@ -54,7 +55,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         if not sources:
             raise ValueError("No source found in repository")
         # TODO: replace when we will have multiple instances of Talentsoft
-        source_id = str(sources[0].source_id)
+        source_id = sources[0].source_id
 
         validated_offers = []
         cleaning_errors = []
@@ -101,7 +102,7 @@ class OffersCleaner(IDocumentCleaner[Offer]):
         return CleaningResult(entities=offers_list, cleaning_errors=cleaning_errors)
 
     def _map_talentsoft_to_offer(
-        self, talentsoft_offer: TalentsoftDetailOffer, source_id: str
+        self, talentsoft_offer: TalentsoftDetailOffer, source_id: UUID
     ) -> Offer:
         # Extract verse from salaryRange if available
         ts_verse = (

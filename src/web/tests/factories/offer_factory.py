@@ -36,7 +36,7 @@ class OfferFactory:
         mission: str | None = None,
         organization: str | None = None,
         family_code: str | None = None,
-        source_id: str | None = None,
+        source_id: UUID | None = None,
         offer_url: HttpUrl | None = None,
         localisation: Localisation | None = None,
         publication_date: datetime | None = None,
@@ -77,7 +77,7 @@ class OfferFactory:
             processed_at=None,
             archived_at=archived_at,
             family_code=family_code,
-            source_id=source_id or str(uuid4()),
+            source_id=source_id or uuid4(),
         )
 
     @staticmethod
@@ -95,7 +95,7 @@ class OfferFactory:
         beginning_date: Optional[LimitDate] = None,
         localisation: Optional[Localisation] = None,
         family_code: Optional[str] = None,
-        source_id: Optional[str] = None,
+        source_id: Optional[UUID] = None,
         updated_at: Optional[datetime] = None,
         processing: bool = False,
         processed_at: Optional[datetime] = None,
@@ -105,9 +105,9 @@ class OfferFactory:
             processed_at = timezone.make_aware(processed_at)
 
         if source_id is None:
-            source_id = str(SourceFactory.create_model().source_id)
+            source_id = SourceFactory.create_model().source_id
         elif not SourceModel.objects.filter(source_id=source_id).exists():
-            SourceFactory.create_model(source_id=UUID(source_id))
+            SourceFactory.create_model(source_id=source_id)
 
         offer = OfferFactory.create_entity(
             external_id=external_id,

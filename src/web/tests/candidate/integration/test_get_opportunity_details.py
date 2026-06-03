@@ -48,7 +48,7 @@ def test_app_config(candidate_container):
 def test_execute_get_offer_details(db, candidate_container):
     source = SourceFactory.create_model()
     offer = OfferFactory.create_entity(
-        family_code="ERJUR011", source_id=str(source.source_id)
+        family_code="ERJUR011", source_id=source.source_id
     )
 
     offers_repo = candidate_container.shared_container.offers_repository()

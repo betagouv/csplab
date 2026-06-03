@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock
+from uuid import UUID
 
 import pytest
 from faker import Faker
@@ -19,7 +20,7 @@ from tests.factories.offer_factory import OfferFactory
 fake = Faker()
 
 REFERENCE = fake.bothify("REF-####")
-SOURCE_ID = str(fake.uuid4())
+SOURCE_ID = UUID(fake.uuid4())
 
 
 @pytest.fixture

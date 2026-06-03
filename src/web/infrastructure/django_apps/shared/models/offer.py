@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from django.db import models
 from pydantic import HttpUrl
 
@@ -117,7 +115,7 @@ class OfferModel(models.Model):
             processed_at=self.processed_at,
             archived_at=self.archived_at,
             family_code=self.code_emploi_csp,
-            source_id=str(self.source_id),
+            source_id=self.source_id,
         )
 
     @classmethod
@@ -163,7 +161,7 @@ class OfferModel(models.Model):
             region=region,
             department=department,
             code_emploi_csp=offer.family_code,
-            source_id=UUID(offer.source_id),
+            source_id=offer.source_id,
             publication_date=offer.publication_date,
             beginning_date=beginning_date,
             processing=offer.processing,
