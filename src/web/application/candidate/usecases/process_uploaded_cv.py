@@ -3,15 +3,15 @@ from uuid import UUID
 
 from ddd.services.logger_interface import ILogger
 
-from domain.entities.cv_metadata import CVMetadata
-from domain.exceptions.cv_errors import CVNotFoundError, TextExtractionError
-from domain.repositories.async_cv_metadata_repository_interface import (
+from domain.candidate.entities.cv_metadata import CVMetadata
+from domain.candidate.exceptions.cv_errors import CVNotFoundError, TextExtractionError
+from domain.candidate.repositories.async_cv_metadata_repository_interface import (
     IAsyncCVMetadataRepository,
 )
-from domain.services.ocr_interface import IOCR
-from domain.services.query_builder_interface import IQueryBuilder
-from domain.services.text_formatter_interface import ITextFormatter
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.services.ocr_interface import IOCR
+from domain.candidate.services.query_builder_interface import IQueryBuilder
+from domain.candidate.services.text_formatter_interface import ITextFormatter
+from domain.candidate.value_objects.cv_processing_status import CVStatus
 
 
 class ProcessUploadedCVUsecase:

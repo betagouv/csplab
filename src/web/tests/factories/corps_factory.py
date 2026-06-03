@@ -4,12 +4,12 @@ from typing import List, Optional
 
 from django.utils import timezone
 from faker import Faker
+from referentiel.entities.corps import Corps
+from referentiel.value_objects.access_modality import AccessModality
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.label import Label
+from referentiel.value_objects.ministry import Ministry
 
-from domain.entities.corps import Corps
-from domain.value_objects.access_modality import AccessModality
-from domain.value_objects.category import Category
-from domain.value_objects.label import Label
-from domain.value_objects.ministry import Ministry
 from infrastructure.django_apps.shared.models.corps import CorpsModel
 
 fake = Faker()

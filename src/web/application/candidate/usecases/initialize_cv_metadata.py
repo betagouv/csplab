@@ -1,11 +1,11 @@
-"""Use case for initializing CV metadata with pending status."""
-
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from domain.entities.cv_metadata import CVMetadata
-from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.entities.cv_metadata import CVMetadata
+from domain.candidate.repositories.cv_metadata_repository_interface import (
+    ICVMetadataRepository,
+)
+from domain.candidate.value_objects.cv_processing_status import CVStatus
 
 
 class InitializeCVMetadataUsecase:
@@ -16,7 +16,7 @@ class InitializeCVMetadataUsecase:
 
         now = datetime.now(timezone.utc)
         cv_metadata = CVMetadata(
-            id=uuid4(),
+            entity_id=uuid4(),
             filename=filename,
             status=CVStatus.PENDING,
             created_at=now,
@@ -24,4 +24,4 @@ class InitializeCVMetadataUsecase:
         )
 
         saved_cv = self.cv_metadata_repository.save(cv_metadata)
-        return str(saved_cv.id)
+        return str(saved_cv.entity_id)

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from domain.entities.document import DocumentType
+from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.ingestion.tasks import clean_documents
 

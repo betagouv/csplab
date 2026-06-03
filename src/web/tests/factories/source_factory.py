@@ -3,8 +3,8 @@ from uuid import UUID, uuid4
 
 from faker import Faker
 
-from domain.entities.source import Source
-from domain.value_objects.source_type import SourceType
+from domain.ingestion.entities.source import Source
+from domain.ingestion.value_objects.source_type import SourceType
 from infrastructure.django_apps.ingestion.models.source import SourceModel
 
 fake = Faker()

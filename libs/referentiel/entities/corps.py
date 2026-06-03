@@ -1,0 +1,30 @@
+"""Corps entity for clean corps storage."""
+
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Optional
+from uuid import UUID, uuid4
+
+from ddd.entity_interface import IEntity
+
+from referentiel.value_objects.access_modality import AccessModality
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.diploma import Diploma
+from referentiel.value_objects.label import Label
+from referentiel.value_objects.ministry import Ministry
+
+
+@dataclass
+class Corps(IEntity):
+    """Corps entity."""
+
+    code: str
+    category: Optional[Category]
+    ministry: Ministry
+    diploma: Optional[Diploma]
+    access_modalities: list[AccessModality]
+    label: Label
+    processing: bool = False
+    processed_at: Optional[datetime] = None
+    archived_at: Optional[datetime] = None
+    id: UUID = field(default_factory=uuid4)

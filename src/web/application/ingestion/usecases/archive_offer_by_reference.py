@@ -1,10 +1,10 @@
 from ddd.usecase_interface import IUseCase
+from referentiel.repositories.offers_repository_interface import IOffersRepository
 
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
-from domain.repositories.offers_repository_interface import IOffersRepository
-from domain.repositories.vector_repository_interface import IVectorRepository
+from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
 
 
 class ArchiveOfferByReferenceUseCase(IUseCase[ArchiveOfferByReferenceInput, None]):

@@ -3,13 +3,13 @@ from datetime import datetime
 from asgiref.sync import async_to_sync
 from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
-
-from domain.gateways.document_gateway_interface import IDocumentGateway
-from domain.repositories.offers_repository_interface import (
+from referentiel.repositories.offers_repository_interface import (
     IArchiveResult,
     IOffersRepository,
 )
-from domain.repositories.vector_repository_interface import IVectorRepository
+
+from domain.ingestion.gateways.document_gateway_interface import IDocumentGateway
+from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
 
 MAX_OFFSET = 100000
 

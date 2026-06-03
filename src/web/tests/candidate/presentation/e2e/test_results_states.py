@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 from playwright.sync_api import Page, expect
 
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from tests.factories.cv_metadata_factory import CVMetadataFactory
 
@@ -20,7 +20,7 @@ class TestResultsEmptyAndFailedStates:
         CVMetadataModel.from_entity(cv_metadata).save()
 
         results_url = reverse(
-            "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}
+            "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
 
         with patch(
@@ -48,7 +48,7 @@ class TestResultsEmptyAndFailedStates:
         CVMetadataModel.from_entity(cv_metadata).save()
 
         results_url = reverse(
-            "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}
+            "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
         upload_url = reverse("candidate:cv_upload")
 

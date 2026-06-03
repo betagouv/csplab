@@ -12,15 +12,15 @@ from qdrant_client.http.models import (
 )
 
 from config.app_config import QdrantConfig
-from domain.entities.document import DocumentType
-from domain.entities.vectorized_document import VectorizedDocument
-from domain.repositories.vector_repository_interface import (
+from domain.ingestion.entities.document import DocumentType
+from domain.ingestion.entities.vectorized_document import VectorizedDocument
+from domain.ingestion.repositories.vector_repository_interface import (
     IDeleteError,
     IDeleteResult,
     IFilters,
     IVectorRepository,
 )
-from domain.value_objects.similarity_type import (
+from domain.ingestion.value_objects.similarity_type import (
     SimilarityMetric,
     SimilarityResult,
     SimilarityType,

@@ -3,8 +3,8 @@ from datetime import datetime
 import pytest
 from dateutil.relativedelta import relativedelta
 from faker import Faker
+from referentiel.entities.metier import Metier
 
-from domain.entities.metier import Metier
 from infrastructure.django_apps.shared.models.metier import MetierModel
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_metier_repository import (

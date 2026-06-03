@@ -2,13 +2,16 @@ from typing import Dict, List
 from uuid import NAMESPACE_DNS, UUID, uuid4, uuid5
 
 from ddd.services.logger_interface import ILogger
+from referentiel.entities.metier import Metier
+from referentiel.repositories.metier_repository_interface import IMetierRepository
+from referentiel.value_objects.verse import Verse
 
-from domain.entities.document import Document, DocumentType
-from domain.entities.metier import Metier
-from domain.exceptions.document_error import InvalidDocumentTypeError
-from domain.repositories.metier_repository_interface import IMetierRepository
-from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
-from domain.value_objects.verse import Verse
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.exceptions.document_error import InvalidDocumentTypeError
+from domain.ingestion.services.document_cleaner_interface import (
+    CleaningResult,
+    IDocumentCleaner,
+)
 from infrastructure.external_gateways.dtos.ingres_metiers_dtos import (
     IngresMetiersDocument,
 )
@@ -42,10 +45,10 @@ class MetierCleaner(IDocumentCleaner[Metier]):
                 parsed_data = self._parse_metier_data(document.raw_data)
                 all_metiers_data.extend(parsed_data)  # Aplatir les listes
             except Exception as e:
-                error_msg = f"Error parsing document {document.id}: {str(e)}"
+                error_msg = f"Error parsing document {document.entity_id}: {str(e)}"
                 self.logger.error(error_msg)
                 cleaning_errors.append(
-                    {"error": error_msg, "document_id": str(document.id)}
+                    {"error": error_msg, "document_id": str(document.entity_id)}
                 )
 
         metier_entities, entity_errors = self._create_metier_entities(all_metiers_data)

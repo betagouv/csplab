@@ -121,13 +121,22 @@ def create_interface_aware_mock(interface_class):
                 and hasattr(return_type, "__required_keys__")
             )
 
+        def _get_entity_id(self, entity):
+            if hasattr(entity, "entity_id"):
+                return entity.entity_id
+            elif hasattr(entity, "id"):
+                return entity.id
+            return None
+
         def _handle_none_return_type(self, args):
             if args and hasattr(args[0], "__iter__") and not isinstance(args[0], str):
                 for entity in args[0]:
-                    if hasattr(entity, "id"):
-                        self._storage[entity.id] = entity
-            elif args and hasattr(args[0], "id"):
-                self._storage[args[0].id] = args[0]
+                    eid = self._get_entity_id(entity)
+                    if eid is not None:
+                        self._storage[eid] = entity
+            elif args and self._get_entity_id(args[0]) is not None:
+                eid = self._get_entity_id(args[0])
+                self._storage[eid] = args[0]
                 return args[0]
             else:
                 self._storage.clear()
@@ -145,8 +154,9 @@ def create_interface_aware_mock(interface_class):
                 ):
                     entities = args[0]
                     for entity in entities:
-                        if hasattr(entity, "id"):
-                            self._storage[entity.id] = entity
+                        eid = self._get_entity_id(entity)
+                        if eid is not None:
+                            self._storage[eid] = entity
                     entities_count = len(entities)
 
                 for i, (field_name, field_type) in enumerate(
@@ -163,14 +173,18 @@ def create_interface_aware_mock(interface_class):
                 return {}
 
         def _handle_entity_return(self, args):
-            if args and hasattr(args[0], "id"):
+            if args and self._get_entity_id(args[0]) is not None:
                 entity = args[0]
-                self._storage[entity.id] = entity
+                eid = self._get_entity_id(entity)
+                self._storage[eid] = entity
                 return entity
             elif args:
-                entity_id = args[0]
-                if entity_id in self._storage:
-                    return self._storage[entity_id]
+                try:
+                    entity_id = args[0]
+                    if entity_id in self._storage:
+                        return self._storage[entity_id]
+                except TypeError:
+                    pass
             return None
 
     return InterfaceAwareMock()

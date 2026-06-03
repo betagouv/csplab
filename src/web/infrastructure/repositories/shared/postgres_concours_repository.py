@@ -5,11 +5,11 @@ from ddd.services.logger_interface import ILogger
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.utils import timezone
+from referentiel.entities.concours import Concours
+from referentiel.exceptions.concours_errors import ConcoursDoesNotExist
+from referentiel.repositories.concours_repository_interface import IConcoursRepository
 
-from domain.entities.concours import Concours
-from domain.exceptions.concours_errors import ConcoursDoesNotExist
-from domain.repositories.concours_repository_interface import IConcoursRepository
-from domain.repositories.document_repository_interface import (
+from domain.ingestion.repositories.document_repository_interface import (
     IUpsertError,
     IUpsertResult,
 )

@@ -7,12 +7,12 @@ from uuid import uuid4
 from django.utils import timezone
 from faker import Faker
 from faker.providers import BaseProvider
+from referentiel.entities.concours import Concours
+from referentiel.value_objects.access_modality import AccessModality
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.ministry import Ministry
+from referentiel.value_objects.nor import NOR
 
-from domain.entities.concours import Concours
-from domain.value_objects.access_modality import AccessModality
-from domain.value_objects.category import Category
-from domain.value_objects.ministry import Ministry
-from domain.value_objects.nor import NOR
 from infrastructure.django_apps.shared.models.concours import ConcoursModel
 
 

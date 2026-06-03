@@ -7,8 +7,8 @@ from ddd.types import JsonDataType
 from pydantic import ValidationError
 
 from config.app_config import AlbertConfig
-from domain.services.text_formatter_interface import ITextFormatter
-from domain.value_objects.cv_extraction_types import CVExtractionResult
+from domain.candidate.services.text_formatter_interface import ITextFormatter
+from domain.candidate.value_objects.cv_extraction_types import CVExtractionResult
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.constants.ocr_cv_prompts import (
     CV_EXTRACTION_PROMPT,

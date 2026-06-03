@@ -1,7 +1,7 @@
 import pytest
 from faker import Faker
 
-from domain.entities.utilisateurs import Utilisateur
+from domain.identite.entities.utilisateurs import Utilisateur
 
 fake = Faker()
 

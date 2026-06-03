@@ -1,1 +1,0 @@
-"""Domain Value Objects package."""

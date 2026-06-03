@@ -3,7 +3,7 @@ from uuid import UUID
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from domain.entities.utilisateurs import Utilisateur
+from domain.identite.entities.utilisateurs import Utilisateur
 
 
 class UserModel(AbstractUser):

@@ -5,8 +5,8 @@ from uuid import UUID, uuid4
 from django.conf import settings
 from faker import Faker
 
-from domain.entities.document import DocumentType
-from domain.entities.vectorized_document import VectorizedDocument
+from domain.ingestion.entities.document import DocumentType
+from domain.ingestion.entities.vectorized_document import VectorizedDocument
 
 fake = Faker()
 

@@ -2,12 +2,12 @@ from unittest.mock import patch
 
 import pytest
 from django.apps import apps
+from referentiel.exceptions.concours_errors import ConcoursDoesNotExist
+from referentiel.exceptions.corps_errors import CorpsDoesNotExist
+from referentiel.exceptions.offer_errors import OfferDoesNotExist
 
 from config.app_config import AppConfig
-from domain.entities.document import DocumentType
-from domain.exceptions.concours_errors import ConcoursDoesNotExist
-from domain.exceptions.corps_errors import CorpsDoesNotExist
-from domain.exceptions.offer_errors import OfferDoesNotExist
+from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument

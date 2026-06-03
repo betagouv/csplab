@@ -1,22 +1,24 @@
 from typing import Any, Dict, List, Union, cast
 
 from asgiref.sync import async_to_sync
-from ddd.entity_interface import IEntity
+from ddd.entity import Entity
 from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
 from django.db import transaction
+from referentiel.entities.concours import Concours
+from referentiel.entities.corps import Corps
+from referentiel.entities.metier import Metier
+from referentiel.entities.offer import Offer
 
-from domain.entities.concours import Concours
-from domain.entities.corps import Corps
-from domain.entities.document import Document, DocumentType
-from domain.entities.metier import Metier
-from domain.entities.offer import Offer
-from domain.entities.vectorized_document import VectorizedDocument
-from domain.exceptions.document_error import UnsupportedDocumentTypeError
-from domain.repositories.repository_factory_interface import IRepositoryFactory
-from domain.repositories.vector_repository_interface import IVectorRepository
-from domain.services.embedding_generator_interface import IEmbeddingGenerator
-from domain.services.text_extractor_interface import ITextExtractor
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.entities.vectorized_document import VectorizedDocument
+from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.ingestion.repositories.repository_factory_interface import (
+    IRepositoryFactory,
+)
+from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
+from domain.ingestion.services.embedding_generator_interface import IEmbeddingGenerator
+from domain.ingestion.services.text_extractor_interface import ITextExtractor
 
 
 class VectorizeDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
@@ -83,7 +85,7 @@ class VectorizeDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
         return results
 
     def vectorize_single_source(
-        self, source: Union[Document, IEntity]
+        self, source: Union[Document, Entity]
     ) -> VectorizedDocument:
         content = self.text_extractor.extract_content(source)
         metadata = self.text_extractor.extract_metadata(source)
@@ -91,7 +93,7 @@ class VectorizeDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
         embedding = async_to_sync(self.embedding_generator.generate_embedding)(content)
 
         if isinstance(source, Document):
-            entity_id = source.id
+            entity_id = source.entity_id
             document_type = source.type
         elif isinstance(source, Corps):
             entity_id = source.id

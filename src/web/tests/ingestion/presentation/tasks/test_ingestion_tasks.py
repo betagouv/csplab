@@ -5,7 +5,7 @@ from huey.api import PeriodicTask
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from domain.entities.document import DocumentType
+from domain.ingestion.entities.document import DocumentType
 from infrastructure.exceptions.exceptions import TaskError
 from presentation.ingestion.tasks import (
     clean_concours,

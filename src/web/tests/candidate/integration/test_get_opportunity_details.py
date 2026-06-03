@@ -2,7 +2,7 @@ import pytest
 from faker import Faker
 
 from config.app_config import AppConfig
-from domain.value_objects.opportunity_type import OpportunityType
+from domain.candidate.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService

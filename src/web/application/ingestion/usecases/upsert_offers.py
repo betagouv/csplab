@@ -1,11 +1,11 @@
 from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
+from referentiel.repositories.offers_repository_interface import IOffersRepository
 
 from application.ingestion.interfaces.upsert_offers_input import (
     UpsertOffersInput,
 )
-from domain.repositories.document_repository_interface import IUpsertResult
-from domain.repositories.offers_repository_interface import IOffersRepository
+from domain.ingestion.repositories.document_repository_interface import IUpsertResult
 
 
 class UpsertOffersUseCase(IUseCase[UpsertOffersInput, IUpsertResult]):

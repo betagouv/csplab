@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = "~=3.12.0"
 dependencies = [
     "ddd",
+    "referentiel",
     "dependency-injector>=4.48.2,<4.49.0",
     "django>=6.0.1,<7.0.0",
     "django-dsfr>=3.3.0,<3.4.0",
@@ -69,6 +70,7 @@ url = "https://pypi.org/simple"
 [tool.uv.sources]
 web = { path = ".", editable = true }
 ddd = { path = "../../libs/ddd", editable = true }
+referentiel = { path = "../../libs/referentiel", editable = true }
 
 [tool.hatch.build.targets.wheel]
 packages = [

@@ -1,11 +1,10 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-
-from domain.entities.concours import Concours
-from domain.value_objects.access_modality import AccessModality
-from domain.value_objects.category import Category
-from domain.value_objects.ministry import Ministry
-from domain.value_objects.nor import NOR
+from referentiel.entities.concours import Concours
+from referentiel.value_objects.access_modality import AccessModality
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.ministry import Ministry
+from referentiel.value_objects.nor import NOR
 
 
 class ConcoursModel(models.Model):

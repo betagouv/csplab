@@ -1,10 +1,9 @@
-"""Shared presentation formatters for domain value objects."""
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.verse import Verse
 
-from domain.value_objects.category import Category
-from domain.value_objects.contract_type import ContractType
-from domain.value_objects.localisation import Localisation
-from domain.value_objects.opportunity_type import OpportunityType
-from domain.value_objects.verse import Verse
+from domain.candidate.value_objects.opportunity_type import OpportunityType
 
 CATEGORY_DISPLAY: dict[Category, str] = {
     Category.APLUS: "Catégorie A+",
