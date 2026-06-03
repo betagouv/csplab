@@ -120,6 +120,7 @@ def parse_offer_from_payload(payload: dict) -> Offer:
 
     return Offer(
         external_id=f"{versant}-{reference}",
+        reference=reference,
         title=payload["titre"],
         profile=payload["description"]["profil"],
         mission=payload["description"]["mission"],

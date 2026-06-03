@@ -32,6 +32,7 @@ class OfferFactory:
         contract_type: ContractType | None = None,
         verse: Verse | None = None,
         external_id: str | None = None,
+        reference: str | None = None,
         profile: str | None = None,
         mission: str | None = None,
         organization: str | None = None,
@@ -60,8 +61,10 @@ class OfferFactory:
                 region=Region(code="11"),
                 department=Department(code=department),
             )
+        _external_id = external_id or f"OFFER_{uuid4().hex[:8]}"
         return Offer(
-            external_id=external_id or f"OFFER_{uuid4().hex[:8]}",
+            external_id=_external_id,
+            reference=reference or str(uuid4()),
             verse=verse or Verse.FPE,
             title=title or "Test Offer Title",
             profile=profile or "Test profile description",
@@ -82,6 +85,7 @@ class OfferFactory:
 
     @staticmethod
     def create_model(
+        reference: Optional[str] = None,
         external_id: Optional[str] = None,
         title: Optional[str] = None,
         profile: Optional[str] = None,
@@ -110,6 +114,7 @@ class OfferFactory:
             SourceFactory.create_model(source_id=source_id)
 
         offer = OfferFactory.create_entity(
+            reference=reference,
             external_id=external_id,
             verse=verse,
             title=title,
