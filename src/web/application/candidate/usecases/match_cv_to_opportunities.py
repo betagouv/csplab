@@ -1,6 +1,7 @@
 from typing import List, Optional, Tuple
 
 from asgiref.sync import async_to_sync
+from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
 
 from domain.entities.concours import Concours
@@ -15,7 +16,6 @@ from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.repositories.vector_repository_interface import IFilters, IVectorRepository
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
-from domain.services.logger_interface import ILogger
 from domain.value_objects.cv_processing_status import CVStatus
 
 

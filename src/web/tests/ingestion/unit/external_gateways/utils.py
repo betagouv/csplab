@@ -2,10 +2,10 @@ from time import time
 from typing import Any, Dict, List, Optional
 from unittest.mock import Mock
 
+from ddd.types import JsonDataType
 from faker import Faker
 from httpx import Response
 
-from domain.types import JsonDataType
 from infrastructure.external_gateways.dtos.talentsoft_dtos import CachedToken
 from tests.factories.talentsoft_factories import (
     TalentsoftDetailOfferFactory,

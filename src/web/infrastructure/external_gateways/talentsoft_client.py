@@ -5,11 +5,11 @@ from http import HTTPStatus
 from time import time
 from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 
+from ddd.services.async_http_client_interface import IAsyncHttpResponse
+from ddd.services.logger_interface import ILogger
 from pydantic import ValidationError
 
 from config.app_config import TalentsoftBackConfig, TalentsoftConfig
-from domain.services.async_http_client_interface import IAsyncHttpResponse
-from domain.services.logger_interface import ILogger
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dtos.talentsoft_back_dtos import (
     TalentsoftBackVacanciesResponse,

@@ -1,6 +1,4 @@
-"""Domain errors for entity Document."""
-
-from domain.exceptions.domain_errors import DomainError
+from ddd.domain_errors import DomainError
 
 
 class DocumentError(DomainError):

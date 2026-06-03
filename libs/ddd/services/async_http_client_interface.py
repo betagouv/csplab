@@ -1,6 +1,6 @@
 from typing import Any, Dict, Mapping, Optional, Protocol
 
-from domain.types import JsonDataType
+from ddd.types import JsonDataType
 
 
 class IAsyncHttpResponse(Protocol):

@@ -1,10 +1,10 @@
 from ddd.page_interface import IPage
+from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from domain.entities.offer import Offer
 from domain.repositories.offers_repository_interface import IOffersRepository
-from domain.services.logger_interface import ILogger
 
 
 class ListOffersUseCase(IUseCase[GetFilteredOffersInput, IPage[Offer]]):
