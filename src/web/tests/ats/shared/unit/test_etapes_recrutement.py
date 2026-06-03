@@ -6,7 +6,7 @@ from domain.shared.value_objects.etapes_recrutement import (
     EtapeRecrutement,
     EtapesRecrutement,
 )
-from tests.ats.recrutement.factories.organisme_factory import (
+from tests.ats.shared.factories.shared_factories import (
     make_etape_recrutement,
 )
 

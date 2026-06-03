@@ -27,7 +27,7 @@ class CandidatureFactory:
         soumise_le: datetime | None = None,
         mise_a_jour_le: datetime | None = None,
     ) -> "Candidature":
-        etape_courante = etape_courante or make_etapes_recrutement().ordonnees()[0]
+        etape_courante = etape_courante or make_etapes_recrutement().etapes[0]
         profil_candidat_id = profil_candidat_id or UUID(
             "00000000-0000-0000-0000-000000000001"
         )

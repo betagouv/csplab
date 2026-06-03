@@ -89,7 +89,6 @@ def test_candidature_ne_peut_pas_etre_soumise():
         etape_courante=EtapeRecrutement(
             nom="Clôture du recrutement",
             categorie=CategorieEtapeRecrutement.CLOTURE,
-            rang=1,
             identifiant="cloture",
         )
     )
