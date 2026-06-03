@@ -39,8 +39,7 @@ def use_case(mock_offers_gateway, mock_raw_offer_repository) -> SaveRawOfferUseC
 async def test_execute_calls_offers_gateway(
     use_case, mock_offers_gateway, mock_raw_offer_repository
 ):
-    offer = GATEWAY_OFFER
-    mock_offers_gateway.get_detail.return_value = offer
+    mock_offers_gateway.get_detail.return_value = GATEWAY_OFFER
 
     await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
@@ -48,11 +47,26 @@ async def test_execute_calls_offers_gateway(
 
 
 @pytest.mark.asyncio
+async def test_execute_returns_raw_offer_on_success(
+    use_case, mock_offers_gateway, mock_raw_offer_repository
+):
+    mock_offers_gateway.get_detail.return_value = GATEWAY_OFFER
+
+    result = await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
+
+    assert result is not None
+    assert result.reference == REFERENCE
+    assert result.source_id == SOURCE_ID
+    assert result.loaded_at is not None
+    assert result.error_msg is None
+    assert result.data == GATEWAY_OFFER.data
+
+
+@pytest.mark.asyncio
 async def test_execute_upserts_raw_offer_with_data_on_success(
     use_case, mock_offers_gateway, mock_raw_offer_repository
 ):
-    offer = GATEWAY_OFFER
-    mock_offers_gateway.get_detail.return_value = offer
+    mock_offers_gateway.get_detail.return_value = GATEWAY_OFFER
 
     await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
@@ -62,7 +76,7 @@ async def test_execute_upserts_raw_offer_with_data_on_success(
     assert saved.source_id == SOURCE_ID
     assert saved.loaded_at is not None
     assert saved.error_msg is None
-    assert saved.data == offer.data
+    assert saved.data == GATEWAY_OFFER.data
 
 
 @pytest.mark.asyncio
@@ -99,14 +113,14 @@ async def test_execute_re_raises_original_error_when_upsert_also_fails(
 
 
 @pytest.mark.asyncio
-async def test_execute_does_not_raise_when_upsert_fails_after_success(
+async def test_execute_returns_none_when_upsert_fails_after_success(
     use_case, mock_offers_gateway, mock_raw_offer_repository
 ):
-    offer = GATEWAY_OFFER
-    mock_offers_gateway.get_detail.return_value = offer
+    mock_offers_gateway.get_detail.return_value = GATEWAY_OFFER
     mock_raw_offer_repository.upsert.side_effect = RuntimeError("DB unavailable")
 
-    # Should not raise — the upsert error is swallowed and logged
     with patch("application.use_cases.save_raw_offer.logger") as mock_logger:
-        await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
+        result = await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
         mock_logger.exception.assert_called_once()
+
+    assert result is None

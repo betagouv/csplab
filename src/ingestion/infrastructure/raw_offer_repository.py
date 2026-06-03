@@ -1,15 +1,16 @@
 import asyncio
 from datetime import datetime, timezone
 
-from sqlalchemy import Engine
+from sqlalchemy import Engine, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlmodel import Session
+from sqlmodel import Session, col
 
 from domain.entities.raw_offer import RawOffer
+from domain.repositories.raw_offer_repository import IRawOfferRepository
 from infrastructure.models.raw_offer import RawOfferModel
 
 
-class RawOfferRepository:
+class RawOfferRepository(IRawOfferRepository):
     def __init__(self, engine: Engine) -> None:
         self._engine = engine
 
@@ -44,4 +45,31 @@ class RawOfferRepository:
                 )
             )
             session.execute(stmt)
+            session.commit()
+
+    async def mark_as_cleaned(
+        self, reference: str, source_id: str, cleaned_at: datetime
+    ) -> None:
+        await asyncio.to_thread(
+            self._mark_as_cleaned_sync, reference, source_id, cleaned_at
+        )
+
+    def _mark_as_cleaned_sync(
+        self, reference: str, source_id: str, cleaned_at: datetime
+    ) -> None:
+        now = datetime.now(tz=timezone.utc)
+        with Session(self._engine) as session:
+            result = session.execute(
+                update(RawOfferModel)
+                .where(
+                    col(RawOfferModel.reference) == reference,
+                    col(RawOfferModel.source_id) == source_id,
+                )
+                .values(cleaned_at=cleaned_at, updated_at=now)
+            )
+            if result.rowcount == 0:  # type: ignore[attr-defined]
+                raise ValueError(
+                    f"RawOffer not found for reference={reference},"
+                    f" source_id={source_id}"
+                )
             session.commit()

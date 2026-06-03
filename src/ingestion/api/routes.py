@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import ValidationError
 
 from api.talentsoft import verify_talentsoft_signature
+from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.use_cases.archive_offer import ArchiveOfferUseCase
-from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.value_objects.source import Source
 from domain.value_objects.webhook_event import (
@@ -17,7 +17,7 @@ from domain.value_objects.webhook_event import (
 )
 from infrastructure.di.container import (
     Container,
-    get_save_raw_offer_use_case,
+    get_ingest_offer_pipeline,
 )
 from presentation.dtos.talentsoft_webhook import TalentsoftWebhookPayload
 
@@ -44,8 +44,8 @@ async def talentsoft_webhook(
         Provide[Container.archive_offer_use_case]
     ),
     repository: ISourcesRepository = Depends(Provide[Container.sources_repository]),
-    save_raw_offer_use_case: SaveRawOfferUseCase | None = Depends(
-        get_save_raw_offer_use_case
+    ingest_offer_pipeline: IngestOfferPipeline | None = Depends(
+        get_ingest_offer_pipeline
     ),
 ):
     body = await request.body()
@@ -69,12 +69,12 @@ async def talentsoft_webhook(
         return await _handle_archive(event, client_id, source.source_id, use_case)
 
     if should_save_raw_offer(event):
-        if save_raw_offer_use_case is None:
+        if ingest_offer_pipeline is None:
             raise HTTPException(
                 status_code=500, detail="Talentsoft client or database not configured"
             )
-        return await _handle_save_raw_offer(
-            event, client_id, source.source_id, save_raw_offer_use_case
+        return await _handle_ingest_offer(
+            event, client_id, source.source_id, ingest_offer_pipeline
         )
 
     logger.info(
@@ -114,13 +114,13 @@ async def _handle_archive(
     return _OK
 
 
-async def _handle_save_raw_offer(
+async def _handle_ingest_offer(
     event: WebhookEvent,
     client_id: str,
     source_id: str,
-    use_case: SaveRawOfferUseCase,
+    pipeline: IngestOfferPipeline,
 ) -> dict:
-    await use_case.execute(reference=event.reference, source_id=source_id)
+    await pipeline.execute(reference=event.reference, source_id=source_id)
     logger.info(
         "Handled event type %s for reference %s",
         event.event_type,

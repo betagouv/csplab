@@ -168,6 +168,57 @@ async def test_upsert_does_not_overwrite_cleaned_at_on_conflict(repository, db_e
 
 
 # ---------------------------------------------------------------------------
+# mark_as_cleaned
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_mark_as_cleaned_sets_cleaned_at(repository, db_engine):
+    await repository.upsert(RawOffer(reference=REFERENCE, source_id=SOURCE_ID))
+
+    cleaned_at = datetime(2025, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
+    await repository.mark_as_cleaned(REFERENCE, SOURCE_ID, cleaned_at)
+
+    saved = _fetch(db_engine, REFERENCE, SOURCE_ID)
+    assert saved.cleaned_at is not None
+    assert saved.cleaned_at.replace(tzinfo=timezone.utc) == cleaned_at
+
+
+@pytest.mark.asyncio
+async def test_mark_as_cleaned_updates_updated_at(repository, db_engine):
+    await repository.upsert(RawOffer(reference=REFERENCE, source_id=SOURCE_ID))
+    before = _fetch(db_engine, REFERENCE, SOURCE_ID)
+
+    cleaned_at = datetime.now(tz=timezone.utc)
+    await repository.mark_as_cleaned(REFERENCE, SOURCE_ID, cleaned_at)
+
+    after = _fetch(db_engine, REFERENCE, SOURCE_ID)
+    assert after.updated_at >= before.updated_at
+
+
+@pytest.mark.asyncio
+async def test_mark_as_cleaned_does_not_affect_other_rows(repository, db_engine):
+    other_source_id = str(uuid4())
+    await repository.upsert(RawOffer(reference=REFERENCE, source_id=SOURCE_ID))
+    await repository.upsert(RawOffer(reference=REFERENCE, source_id=other_source_id))
+
+    await repository.mark_as_cleaned(
+        REFERENCE, SOURCE_ID, datetime.now(tz=timezone.utc)
+    )
+
+    other = _fetch(db_engine, REFERENCE, other_source_id)
+    assert other.cleaned_at is None
+
+
+@pytest.mark.asyncio
+async def test_mark_as_cleaned_raises_when_row_not_found(repository, db_engine):
+    with pytest.raises(ValueError, match="RawOffer not found"):
+        await repository.mark_as_cleaned(
+            "UNKNOWN-REF", SOURCE_ID, datetime.now(tz=timezone.utc)
+        )
+
+
+# ---------------------------------------------------------------------------
 # Uniqueness
 # ---------------------------------------------------------------------------
 
