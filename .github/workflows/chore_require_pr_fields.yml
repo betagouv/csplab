@@ -2,7 +2,8 @@ name: PR Fields Check
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, edited, ready_for_review]
+    types: [opened, synchronize, reopened, edited, ready_for_review, labeled, unlabeled]
+  merge_group:
 
 permissions:
   pull-requests: read
@@ -11,12 +12,24 @@ jobs:
   check-pr-fields:
     runs-on: ubuntu-latest
     steps:
-      - name: Check Projects or Development field
+      - name: Check PR fields
         # GH_TOKEN must be a PAT with read:project scope to query GitHub Projects v2
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GH_TOKEN || github.token }}
           script: |
+            const validLabels = new Set([
+              'breaking', 'added', 'modified', 'removed', 'bugfix', 'dependencies', 'documentation'
+            ]);
+            const labels = context.payload.pull_request.labels.map(l => l.name);
+            const matching = labels.filter(l => validLabels.has(l));
+            if (matching.length !== 1) {
+              core.setFailed(
+                `This pull request must have exactly one changelog label (${[...validLabels].join(', ')}). Found: ${matching.length === 0 ? 'none' : matching.join(', ')}.`
+              );
+              return;
+            }
+
             const { owner, repo } = context.repo;
             const prNumber = context.payload.pull_request.number;
 
