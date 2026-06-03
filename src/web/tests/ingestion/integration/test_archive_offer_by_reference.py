@@ -54,9 +54,7 @@ def use_case(db, vector_repository):
 
 class TestArchiveOfferByReferenceUseCase:
     def test_archives_offer_by_reference(self, db, use_case, offers_repository):
-        OfferFactory.create_model(
-            external_id=f"Versant_FPE-{REFERENCE}", source_id=SOURCE_ID
-        )
+        OfferFactory.create_model(reference=REFERENCE, source_id=SOURCE_ID)
         use_case.execute(
             ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
         )
@@ -65,7 +63,7 @@ class TestArchiveOfferByReferenceUseCase:
 
     def test_deletes_vectors_for_offer(self, db, use_case, vector_repository):
         offer = OfferFactory.create_model(
-            external_id=f"Versant_FPE-{REFERENCE}", source_id=SOURCE_ID
+            reference=REFERENCE, source_id=SOURCE_ID
         ).to_entity()
         use_case.execute(
             ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)

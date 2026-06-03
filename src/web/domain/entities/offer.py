@@ -27,6 +27,7 @@ class Offer(IEntity):
     localisation: Optional[Localisation]
     publication_date: datetime
     beginning_date: Optional[LimitDate]
+    reference: str
     family_code: Optional[str] = None
     source_id: UUID = field(default_factory=uuid4)
     processing: bool = False

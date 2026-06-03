@@ -73,6 +73,7 @@ class PostgresOffersRepository(IOffersRepository):
                         updated = OfferModel.objects.bulk_update(
                             models_to_update,
                             fields=[
+                                "reference",
                                 "verse",
                                 "title",
                                 "profile",
@@ -119,7 +120,7 @@ class PostgresOffersRepository(IOffersRepository):
     def get_by_reference_and_source_id(self, reference: str, source_id: UUID) -> Offer:
         try:
             offer_model = OfferModel.objects.get(
-                external_id__endswith=f"-{reference}", source_id=source_id
+                reference=reference, source_id=source_id
             )
             return offer_model.to_entity()
         except OfferModel.DoesNotExist as e:

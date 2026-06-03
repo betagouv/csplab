@@ -46,6 +46,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
 
         return Offer(
             external_id=f"{data['identification']['versant']}-{data['identification']['reference']}",
+            reference=data["identification"]["reference"],
             title=data["titre"],
             profile=data["description"]["profil"],
             mission=data["description"]["mission"],
