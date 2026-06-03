@@ -1,9 +1,9 @@
 from typing import cast
 
 from asgiref.sync import sync_to_async
+from ddd.async_usecase_interface import IAsyncUseCase
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
-from domain.ddd.async_usecase_interface import IAsyncUseCase
 from domain.entities.document import DocumentType
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,

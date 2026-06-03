@@ -1,6 +1,7 @@
+from ddd.page_interface import IPage
+from ddd.usecase_interface import IUseCase
+
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
-from domain.ddd.page_interface import IPage
-from domain.ddd.usecase_interface import IUseCase
 from domain.entities.metier import Metier
 from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.services.logger_interface import ILogger

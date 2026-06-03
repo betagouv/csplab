@@ -10,6 +10,7 @@ OCR_UV = cd src/ocr && direnv exec .
 INGESTION_UV = cd src/ingestion && direnv exec .
 NOTEBOOK_UV = cd src/notebook && direnv exec .
 DEV_UV = cd dev && direnv exec .
+DDD_UV = cd libs/ddd &&
 
 default: help
 
@@ -68,12 +69,17 @@ git-hooks: \
 ### BUILD
 build: ## build services image
 build: \
+  build-ddd \
   build-dev \
   build-web \
   build-ocr \
   build-notebook \
   build-ingestion
 .PHONY: build
+
+build-ddd: ## setup ddd package
+	@$(DDD_UV) uv sync --group dev --locked
+.PHONY: build-ddd
 
 build-dev: ## build development environment image
 	@$(DEV_UV) uv sync --locked
@@ -265,6 +271,7 @@ run-mvp: ## run web + ocr + ingestion + huey with unified logs
 # -- Global linting
 lint: ## lint all sources
 lint: \
+  lint-ddd \
   lint-notebook \
   lint-web \
   lint-ocr \
@@ -275,11 +282,24 @@ lint: \
 
 lint-fix: ## lint and fix all sources
 lint-fix: \
+  lint-ddd-fix \
   lint-notebook-fix \
   lint-web-fix \
   lint-ocr-fix \
   lint-ingestion-fix
 .PHONY: lint-fix
+
+lint-ddd: ## lint ddd python sources with ruff
+	@echo 'lint:ddd started…'
+	$(DDD_UV) uv run ruff check .
+	$(DDD_UV) uv run ruff format --check .
+.PHONY: lint-ddd
+
+lint-ddd-fix: ## lint and fix ddd python sources with ruff
+	@echo 'lint:ddd-fix started…'
+	$(DDD_UV) uv run ruff check --fix .
+	$(DDD_UV) uv run ruff format .
+.PHONY: lint-ddd-fix
 
 # -- Per-service linting
 lint-notebook: ## lint notebook python sources
@@ -433,10 +453,16 @@ lint-schema: ## generate and check API schema is up to date
 ## TEST
 test: ## test all services
 test: \
+  test-ddd \
   test-web \
   test-ocr \
   test-ingestion
 .PHONY: test
+
+test-ddd: ## test ddd package
+	@echo 'test:ddd started…'
+	$(DDD_UV) uv run pytest --no-cov $(ARGS)
+.PHONY: test-ddd
 
 test-web: ## test web python sources
 	@echo 'test:web started…'

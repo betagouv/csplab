@@ -1,12 +1,12 @@
 from typing import Optional, cast
 
+from ddd.mapper_interface import IFromDomainMapper
 from qdrant_client.http.models import (
     FieldCondition,
     Filter,
     MatchValue,
 )
 
-from domain.ddd.mapper_interface import IFromDomainMapper
 from domain.repositories.vector_repository_interface import IFilters
 
 

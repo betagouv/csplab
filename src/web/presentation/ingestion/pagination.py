@@ -1,10 +1,9 @@
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
+from ddd.page_interface import IPage
 from rest_framework.pagination import BasePagination
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
-
-from domain.ddd.page_interface import IPage
 
 
 class IngestionPagination(BasePagination):

@@ -1,8 +1,8 @@
 from typing import List, Optional, Tuple
 
 from asgiref.sync import async_to_sync
+from ddd.usecase_interface import IUseCase
 
-from domain.ddd.usecase_interface import IUseCase
 from domain.entities.concours import Concours
 from domain.entities.cv_metadata import CVMetadata
 from domain.entities.document import DocumentType

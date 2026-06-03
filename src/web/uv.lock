@@ -1,6 +1,6 @@
 version = 1
-revision = 2
-requires-python = ">=3.12.0, <3.13"
+revision = 3
+requires-python = "==3.12.*"
 
 [[package]]
 name = "annotated-types"
@@ -145,6 +145,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f7/01/fdf41c1e5f93d359681976ba10410a04b299d248e28ecce1d4e88588dde4/cssbeautifier-1.15.4.tar.gz", hash = "sha256:9bb08dc3f64c101a01677f128acf01905914cf406baf87434dcde05b74c0acf5", size = 25376, upload-time = "2025-02-27T17:53:51.341Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/63/51/ef6c5628e46092f0a54c7cee69acc827adc6b6aab57b55d344fefbdf28f1/cssbeautifier-1.15.4-py3-none-any.whl", hash = "sha256:78c84d5e5378df7d08622bbd0477a1abdbd209680e95480bf22f12d5701efc98", size = 123667, upload-time = "2025-02-27T17:53:43.594Z" },
+]
+
+[[package]]
+name = "ddd"
+version = "0.1.0"
+source = { editable = "../../libs/ddd" }
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "ruff", specifier = ">=0.14.3" },
 ]
 
 [[package]]
@@ -1435,6 +1449,7 @@ name = "web"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "ddd" },
     { name = "dependency-injector" },
     { name = "django" },
     { name = "django-dsfr" },
@@ -1486,6 +1501,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "ddd", editable = "../../libs/ddd" },
     { name = "dependency-injector", specifier = ">=4.48.2,<4.49.0" },
     { name = "django", specifier = ">=6.0.1,<7.0.0" },
     { name = "django-dsfr", specifier = ">=3.3.0,<3.4.0" },

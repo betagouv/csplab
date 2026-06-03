@@ -3,7 +3,8 @@
 from dataclasses import dataclass
 from typing import Dict, Generic, List, Protocol, TypeVar
 
-from domain.ddd.entity_interface import IEntity
+from ddd.entity_interface import IEntity
+
 from domain.entities.document import Document
 
 T_co = TypeVar("T_co", bound=IEntity, covariant=True)
