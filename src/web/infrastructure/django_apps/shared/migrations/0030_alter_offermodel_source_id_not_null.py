@@ -1,4 +1,13 @@
+import django.db.models.deletion
 from django.db import migrations, models
+
+
+def hydrate_source(apps, schema_editor):
+    OfferModel = apps.get_model("shared", "OfferModel")
+    SourceModel = apps.get_model("ingestion", "SourceModel")
+    source = SourceModel.objects.first()
+    if source:
+        OfferModel.objects.update(source=source)
 
 
 class Migration(migrations.Migration):
@@ -9,50 +18,38 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            sql="UPDATE offers SET source_id = (SELECT source_id FROM sources LIMIT 1) WHERE source_id IS NULL",
-            reverse_sql=migrations.RunSQL.noop,
+        migrations.RemoveIndex(
+            model_name="offermodel",
+            name="offers_source_id_idx",
         ),
-        migrations.SeparateDatabaseAndState(
-            database_operations=[
-                migrations.RunSQL(
-                    sql="""
-                        ALTER TABLE offers ALTER COLUMN source_id SET NOT NULL;
-                        ALTER TABLE offers ADD CONSTRAINT offers_source_id_fk
-                            FOREIGN KEY (source_id) REFERENCES sources(source_id);
-                    """,
-                    reverse_sql="""
-                        ALTER TABLE offers DROP CONSTRAINT offers_source_id_fk;
-                        ALTER TABLE offers ALTER COLUMN source_id DROP NOT NULL;
-                    """,
-                ),
-            ],
-            state_operations=[
-                migrations.RemoveIndex(
-                    model_name="offermodel",
-                    name="offers_source_id_idx",
-                ),
-                migrations.RemoveField(
-                    model_name="offermodel",
-                    name="source_id",
-                ),
-                migrations.AddField(
-                    model_name="offermodel",
-                    name="source",
-                    field=models.ForeignKey(
-                        db_column="source_id",
-                        on_delete=models.PROTECT,
-                        related_name="offers",
-                        to="ingestion.sourcemodel",
-                        to_field="source_id",
-                    ),
-                ),
-                migrations.AddIndex(
-                    model_name="offermodel",
-                    index=models.Index(
-                        fields=["source"], name="offers_source_id_idx"
-                    ),
-                ),
-            ],
+        migrations.RemoveField(
+            model_name="offermodel",
+            name="source_id",
+        ),
+        migrations.AddField(
+            model_name="offermodel",
+            name="source",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="offers",
+                to="ingestion.sourcemodel",
+                to_field="source_id",
+            ),
+        ),
+        migrations.RunPython(hydrate_source, reverse_code=migrations.RunPython.noop),
+        migrations.AlterField(
+            model_name="offermodel",
+            name="source",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="offers",
+                to="ingestion.sourcemodel",
+                to_field="source_id",
+            ),
+        ),
+        migrations.AddIndex(
+            model_name="offermodel",
+            index=models.Index(fields=["source"], name="offers_source_id_idx"),
         ),
     ]

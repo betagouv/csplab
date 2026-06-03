@@ -22,6 +22,7 @@ from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
 )
 from tests.factories.offer_factory import OfferFactory
+from tests.factories.source_factory import SourceFactory
 
 fake = Faker()
 NOW = datetime.now()
@@ -253,3 +254,12 @@ def test_mark_as_pending(db, repository):
 
     undesired_model_objects = OfferModel.objects.get(processing=True)
     assert undesired_model_objects.id == undesired_offer.id
+
+
+def test_multiple_offers_success(db, repository):
+    source = SourceFactory.create_model()
+    offers = OfferFactory.create_model_batch(2, source_id=source.id)
+    entities = [OfferModel.to_entity(offer) for offer in offers]
+    entities.append(OfferFactory.create_entity(source_id=source.id))
+
+    repository.upsert_batch(entities)

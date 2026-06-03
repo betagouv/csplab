@@ -11,6 +11,7 @@ from domain.value_objects.limit_date import LimitDate
 from domain.value_objects.localisation import Localisation
 from domain.value_objects.region import Region
 from domain.value_objects.verse import Verse
+from infrastructure.django_apps.ingestion.models.source import SourceModel
 
 
 class OfferModel(models.Model):
@@ -43,9 +44,8 @@ class OfferModel(models.Model):
     offer_url = models.URLField(null=True, blank=True)
     code_emploi_csp = models.CharField(max_length=50, null=True, blank=True)
     source = models.ForeignKey(
-        "ingestion.SourceModel",
+        SourceModel,
         to_field="source_id",
-        db_column="source_id",
         on_delete=models.PROTECT,
         related_name="offers",
     )

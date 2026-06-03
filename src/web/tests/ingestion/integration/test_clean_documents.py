@@ -485,6 +485,5 @@ def test_execute_clean_offers_source_id(
 
     assert result["created"] == 1
 
-    cleaned_offer = OfferModel.objects.first()
-    assert cleaned_offer is not None
+    cleaned_offer = OfferModel.objects.get()
     assert cleaned_offer.source_id == offer_source.source_id
