@@ -81,7 +81,7 @@ def test_call_without_arg(mock_container, authenticated_client):
     for result, offer in zip(data["results"], offers, strict=True):
         assert result["external_id"] == offer.external_id
         assert result["reference"] == offer.reference
-        assert result["source_id"] == offer.source_id
+        assert result["source_id"] == str(offer.source_id)
         assert result["title"] == offer.title
         assert result["organization"] == offer.organization
         assert result["contract_type"] == (
