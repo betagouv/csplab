@@ -11,7 +11,9 @@ URL = reverse("ingestion:sources_list")
 
 @pytest.fixture
 def mock_container():
-    with patch("presentation.ingestion.views.create_ingestion_container") as mock:
+    with patch(
+        "presentation.ingestion.views.sources.create_ingestion_container"
+    ) as mock:
         yield mock
 
 

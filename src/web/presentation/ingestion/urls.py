@@ -6,8 +6,8 @@ from presentation.ingestion.views import (
     MetiersListView,
     OffersListView,
     OffersUpsertView,
-    SourcesListView,
 )
+from presentation.ingestion.views.sources import SourcesListView
 
 app_name = "ingestion"
 
