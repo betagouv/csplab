@@ -160,6 +160,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/scalingo-deploy
         with:
           branch: main-web
