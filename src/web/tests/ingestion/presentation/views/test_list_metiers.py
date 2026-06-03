@@ -13,6 +13,12 @@ fake = Faker()
 URL = reverse("ingestion:metiers_list")
 
 
+@pytest.fixture
+def mock_container():
+    with patch("presentation.ingestion.views.create_ingestion_container") as mock:
+        yield mock
+
+
 def test_unauthenticated_access(api_client):
     response = api_client.get(URL)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -32,8 +38,9 @@ def _make_paginated_mock(mock_container, num_metiers, metiers_slice):
     mock_usecase.execute.return_value = mock_page
     mock_container.return_value.list_metiers_usecase.return_value = mock_usecase
 
+    return mock_usecase
 
-@patch("presentation.ingestion.views.create_ingestion_container")
+
 def test_empty_result(mock_container, authenticated_client):
     _make_paginated_mock(mock_container, num_metiers=0, metiers_slice=[])
 
@@ -48,7 +55,6 @@ def test_empty_result(mock_container, authenticated_client):
     }
 
 
-@patch("presentation.ingestion.views.create_ingestion_container")
 def test_call_without_arg(mock_container, authenticated_client):
     metiers = [MetierFactory.create_entity() for _ in range(2)]
 
@@ -77,7 +83,6 @@ def test_call_without_arg(mock_container, authenticated_client):
 
 
 @pytest.mark.parametrize("domain", [None, "TRE"])
-@patch("presentation.ingestion.views.create_ingestion_container")
 def test_call_with_args(mock_container, authenticated_client, domain):
     _make_paginated_mock(mock_container, num_metiers=0, metiers_slice=[])
 
@@ -89,7 +94,6 @@ def test_call_with_args(mock_container, authenticated_client, domain):
     )
 
 
-@patch("presentation.ingestion.views.create_ingestion_container")
 def test_returns_error_500(mock_container, authenticated_client):
     mock_usecase = MagicMock()
     mock_usecase.execute.side_effect = Exception("db error")
@@ -100,7 +104,6 @@ def test_returns_error_500(mock_container, authenticated_client):
 
 
 @patch("presentation.ingestion.views.IngestionPagination.page_size", new=2)
-@patch("presentation.ingestion.views.create_ingestion_container")
 def test_pagination_page_arg(mock_container, authenticated_client):
     num_metiers = 5
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
@@ -135,7 +138,6 @@ def test_pagination_page_arg(mock_container, authenticated_client):
 
 
 @patch("presentation.ingestion.views.IngestionPagination.page_size", new=2)
-@patch("presentation.ingestion.views.create_ingestion_container")
 def test_pagination_out_of_bond(mock_container, authenticated_client):
     num_metiers = 3
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
@@ -159,7 +161,6 @@ def test_pagination_out_of_bond(mock_container, authenticated_client):
     assert data["next"] is None
 
 
-@patch("presentation.ingestion.views.create_ingestion_container")
 def test_invalid_payload(mock_container, authenticated_client):
     _make_paginated_mock(mock_container, num_metiers=0, metiers_slice=[])
 
