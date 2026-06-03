@@ -105,3 +105,16 @@ jobs:
           service-path: src/ingestion
       - name: Test with pytest
         run: uv run pytest --cov=. --cov-report=term-missing --cov-fail-under=95
+
+  deploy-ingestion:
+    needs: [check-changes, lint-ingestion, test-ingestion]
+    if: github.event_name == 'push' && needs.check-changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/scalingo-deploy
+        with:
+          branch: main-ingestion

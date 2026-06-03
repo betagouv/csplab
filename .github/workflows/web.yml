@@ -150,3 +150,16 @@ jobs:
         run: uv run playwright install --with-deps chromium
       - name: Test Web suite with coverage
         run: uv run pytest -m "e2e" .
+
+  deploy-web:
+    needs: [check-changes, lint-web, test-web]
+    if: github.event_name == 'push' && needs.check-changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/scalingo-deploy
+        with:
+          branch: main-web

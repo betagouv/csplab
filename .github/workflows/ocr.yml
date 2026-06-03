@@ -79,3 +79,16 @@ jobs:
           sudo apt-get install -y poppler-utils tesseract-ocr tesseract-ocr-fra
       - name: Test with pytest
         run: uv run pytest .
+
+  deploy-ocr:
+    needs: [check-changes, lint-ocr, test-ocr]
+    if: github.event_name == 'push' && needs.check-changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/scalingo-deploy
+        with:
+          branch: main-ocr
