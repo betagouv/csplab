@@ -6,19 +6,32 @@ on:
   pull_request:
     branches: ["main"]
     types: [opened, synchronize, reopened, edited]
-    paths:
-      - "src/ocr/**"
-      - ".github/workflows/ocr.yml"
-      - ".github/actions/**"
 
 permissions:
   contents: read
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - "src/ocr/**"
+              - ".github/workflows/ocr.yml"
+              - ".github/actions/**"
+
   build-ocr:
+    needs: check-changes
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/ocr
@@ -28,13 +41,14 @@ jobs:
           sudo apt-get install -y poppler-utils tesseract-ocr tesseract-ocr-fra
 
   lint-ocr:
-    needs: build-ocr
+    needs: [check-changes, build-ocr]
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./src/ocr
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/ocr
@@ -46,7 +60,8 @@ jobs:
         run: uv run mypy .
 
   test-ocr:
-    needs: build-ocr
+    needs: [check-changes, build-ocr]
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -54,7 +69,7 @@ jobs:
     env:
       API_KEY: test-api-key-for-development
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/ocr

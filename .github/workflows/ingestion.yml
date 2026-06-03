@@ -6,25 +6,39 @@ on:
   pull_request:
     branches: ["main"]
     types: [opened, synchronize, reopened, edited]
-    paths:
-      - "src/ingestion/**"
-      - ".github/workflows/ingestion.yml"
-      - ".github/actions/**"
 
 permissions:
   contents: read
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - "src/ingestion/**"
+              - ".github/workflows/ingestion.yml"
+              - ".github/actions/**"
+
   build-ingestion:
+    needs: check-changes
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/ingestion
 
   lint-ingestion:
-    needs: build-ingestion
+    needs: [check-changes, build-ingestion]
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     services:
       postgresql:
@@ -46,7 +60,7 @@ jobs:
     env:
       DATABASE_URL: postgresql+psycopg2://postgres:pass@localhost:5432/ingestion
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/ingestion
@@ -62,7 +76,8 @@ jobs:
           uv run alembic check
 
   test-ingestion:
-    needs: build-ingestion
+    needs: [check-changes, build-ingestion]
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     services:
       postgresql:
@@ -84,7 +99,7 @@ jobs:
     env:
       DATABASE_URL: postgresql+psycopg2://postgres:pass@localhost:5432/ingestion
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/ingestion
