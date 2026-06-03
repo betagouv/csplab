@@ -3,10 +3,10 @@ from django.urls import path
 from presentation.ingestion.views import (
     ArchiveOffersView,
     ConcoursUploadView,
-    MetiersListView,
     OffersListView,
     OffersUpsertView,
 )
+from presentation.ingestion.views.metiers import MetiersListView
 from presentation.ingestion.views.sources import SourcesListView
 
 app_name = "ingestion"
