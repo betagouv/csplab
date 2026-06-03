@@ -56,7 +56,7 @@ class ConcoursUploadResponseSerializer(serializers.Serializer):
 class ListOffersResponseSerializer(serializers.Serializer):
     external_id = serializers.CharField()
     reference = serializers.CharField()
-    source_id = serializers.CharField(allow_null=True)
+    source_id = serializers.UUIDField()
     title = serializers.CharField()
     organization = serializers.CharField()
     contract_type = serializers.CharField(allow_null=True)

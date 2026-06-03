@@ -1116,7 +1116,7 @@ components:
           type: string
         source_id:
           type: string
-          nullable: true
+          format: uuid
         title:
           type: string
         organization:
