@@ -1,0 +1,14 @@
+name: Deploy to Scalingo
+description: Force-push the repository to a deploy branch for Scalingo to deploy. Requires actions/checkout to have run first.
+
+inputs:
+  branch:
+    description: Target branch to force-push to (e.g. main-ocr)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Push to deploy branch
+      shell: bash
+      run: git push origin HEAD:refs/heads/${{ inputs.branch }} --force
