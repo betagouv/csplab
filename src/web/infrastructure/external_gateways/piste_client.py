@@ -1,11 +1,11 @@
 import time
 
 import httpx
+from ddd.services.async_http_client_interface import IAsyncHttpResponse
+from ddd.services.logger_interface import ILogger
 from pydantic import BaseModel
 
 from config.app_config import PisteConfig
-from domain.services.async_http_client_interface import IAsyncHttpResponse
-from domain.services.logger_interface import ILogger
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
 

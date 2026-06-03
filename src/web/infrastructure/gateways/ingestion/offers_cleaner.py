@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
+from ddd.services.logger_interface import ILogger
 from pydantic import HttpUrl, ValidationError
 
 from domain.entities.document import Document, DocumentType
@@ -11,7 +12,6 @@ from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.repositories.source_repository_interface import ISourceRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
-from domain.services.logger_interface import ILogger
 from domain.value_objects.area import GeographicalArea
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType

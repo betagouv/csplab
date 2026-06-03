@@ -1,8 +1,7 @@
-"""Corps cleaner adapter."""
-
 from typing import List, Optional
 
 import polars as pl
+from ddd.services.logger_interface import ILogger
 
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
@@ -14,7 +13,6 @@ from domain.exceptions.corps_errors import (
 from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.repositories.corps_repository_interface import ICorpsRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
-from domain.services.logger_interface import ILogger
 from domain.value_objects.access_modality import AccessModality
 from domain.value_objects.category import Category
 from domain.value_objects.diploma import Diploma

@@ -1,34 +1,11 @@
-"""Query builder implementation."""
+from ddd.types import JsonDataType
 
 from domain.exceptions.cv_errors import QueryBuildingError
 from domain.services.query_builder_interface import IQueryBuilder
-from domain.types import JsonDataType
 
 
 class QueryBuilder(IQueryBuilder):
-    """Implementation of query building service."""
-
     def build_query(self, cv_data: JsonDataType) -> str:
-        """Build a search query from CV structured data.
-
-        Args:
-            cv_data: Structured CV data with format:
-                {
-                    "experiences": [
-                        {
-                            "title": str, "company": str,
-                            "sector": str|None,
-                            "description": str
-                        }
-                    ]
-                }
-
-        Returns:
-            Optimized search query string for semantic search
-
-        Raises:
-            QueryBuildingError: If CV data is empty or invalid
-        """
         if not cv_data or not isinstance(cv_data, dict):
             raise QueryBuildingError("CV data cannot be empty or invalid")
 

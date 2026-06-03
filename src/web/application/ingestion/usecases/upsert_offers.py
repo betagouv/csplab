@@ -1,3 +1,4 @@
+from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
 
 from application.ingestion.interfaces.upsert_offers_input import (
@@ -5,7 +6,6 @@ from application.ingestion.interfaces.upsert_offers_input import (
 )
 from domain.repositories.document_repository_interface import IUpsertResult
 from domain.repositories.offers_repository_interface import IOffersRepository
-from domain.services.logger_interface import ILogger
 
 
 class UpsertOffersUseCase(IUseCase[UpsertOffersInput, IUpsertResult]):

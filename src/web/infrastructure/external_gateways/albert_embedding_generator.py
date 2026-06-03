@@ -1,9 +1,9 @@
 from typing import List
 
+from ddd.services.async_http_client_interface import IAsyncHttpClient
 from pydantic import ValidationError
 
 from config.app_config import AlbertConfig
-from domain.services.async_http_client_interface import IAsyncHttpClient
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dtos.albert_types import AlbertEmbeddingResponse

@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
+from ddd.services.logger_interface import ILogger
+
 from domain.entities.cv_metadata import CVMetadata
 from domain.exceptions.cv_errors import CVNotFoundError, TextExtractionError
 from domain.repositories.async_cv_metadata_repository_interface import (
     IAsyncCVMetadataRepository,
 )
-from domain.services.logger_interface import ILogger
 from domain.services.ocr_interface import IOCR
 from domain.services.query_builder_interface import IQueryBuilder
 from domain.services.text_formatter_interface import ITextFormatter
