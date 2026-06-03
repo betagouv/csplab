@@ -1,6 +1,7 @@
 from typing import Any, Dict, Union
 
-from domain.ddd.entity_interface import IEntity
+from ddd.entity_interface import IEntity
+
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import Document

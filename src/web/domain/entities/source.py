@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from uuid import UUID, uuid4
 
-from domain.ddd.entity_interface import IEntity
+from ddd.entity_interface import IEntity
+
 from domain.value_objects.source_type import SourceType
 
 

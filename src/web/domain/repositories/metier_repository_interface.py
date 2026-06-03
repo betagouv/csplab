@@ -1,6 +1,7 @@
 from typing import Dict, List, Protocol
 
-from domain.ddd.page_interface import IPage
+from ddd.page_interface import IPage
+
 from domain.entities.metier import Metier
 from domain.entities.offer import Offer
 from domain.repositories.document_repository_interface import IUpsertResult

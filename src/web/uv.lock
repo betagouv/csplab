@@ -148,6 +148,20 @@ wheels = [
 ]
 
 [[package]]
+name = "ddd"
+version = "0.1.0"
+source = { editable = "../../libs/ddd" }
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "ruff", specifier = ">=0.14.3" },
+]
+
+[[package]]
 name = "dependency-injector"
 version = "4.48.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1459,6 +1473,7 @@ name = "web"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "ddd" },
     { name = "dependency-injector" },
     { name = "django" },
     { name = "django-dsfr" },
@@ -1512,6 +1527,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "ddd", editable = "../../libs/ddd" },
     { name = "dependency-injector", specifier = ">=4.48.2,<4.49.0" },
     { name = "django", specifier = ">=6.0.1,<7.0.0" },
     { name = "django-dsfr", specifier = ">=3.3.0,<3.4.0" },

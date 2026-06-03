@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from domain.ddd.domain_event import DomainEvent
+from ddd.domain_event import DomainEvent
+
 from domain.identite.value_objects.siret import SIRET
 from domain.value_objects.localisation import Localisation
 from domain.value_objects.verse import Verse

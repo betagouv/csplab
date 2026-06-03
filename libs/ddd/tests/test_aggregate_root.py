@@ -2,14 +2,14 @@ from dataclasses import dataclass
 
 import pytest
 
-from domain.ddd.aggregate_root import AggregateRoot
-from domain.ddd.domain_event import DomainEvent
-from tests.domain.example_aggregate import (
+from ddd.aggregate_root import AggregateRoot
+from ddd.domain_event import DomainEvent
+from tests.example_aggregate import (
     ExampleAggregate,
     ExampleAggregateCree,
     ExampleAggregateRenomme,
 )
-from tests.factories.example_aggregate_factory import ExampleAggregateFactory
+from tests.example_aggregate_factory import ExampleAggregateFactory
 
 
 @dataclass(frozen=True)
