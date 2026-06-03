@@ -40,8 +40,7 @@ import{F as j,h as b,C as M,m as O,c as H,i as m,d as J,x as Q,a as U,q as f,z a
             >
               <p class="mb-2">{{ v.description }}</p>
               <BaseButton
-                v-bind="args"
-                v-bind="v.props"
+                v-bind="{ ...args, ...v.props }"
                 :size="s"
               />
             </div>
@@ -185,8 +184,7 @@ import{F as j,h as b,C as M,m as O,c as H,i as m,d as J,x as Q,a as U,q as f,z a
             >
               <p class="mb-2">{{ v.description }}</p>
               <BaseButton
-                v-bind="args"
-                v-bind="v.props"
+                v-bind="{ ...args, ...v.props }"
                 :size="s"
               />
             </div>
