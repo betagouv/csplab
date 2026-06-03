@@ -1,12 +1,12 @@
 from django.urls import path
 
-from presentation.ingestion.views import (
+from presentation.ingestion.views.concours import ConcoursUploadView
+from presentation.ingestion.views.metiers import MetiersListView
+from presentation.ingestion.views.offers import (
     ArchiveOffersView,
     OffersListView,
     OffersUpsertView,
 )
-from presentation.ingestion.views.concours import ConcoursUploadView
-from presentation.ingestion.views.metiers import MetiersListView
 from presentation.ingestion.views.sources import SourcesListView
 
 app_name = "ingestion"
