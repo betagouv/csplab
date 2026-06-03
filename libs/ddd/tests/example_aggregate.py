@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from domain.ddd.aggregate_root import AggregateRoot, factory, mutate, query
-from domain.ddd.domain_event import DomainEvent
+from ddd.aggregate_root import AggregateRoot, factory, mutate, query
+from ddd.domain_event import DomainEvent
 
 
 @dataclass(frozen=True)

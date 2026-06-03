@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from domain.ddd.aggregate_root import AggregateRoot, mutate
+from ddd.aggregate_root import AggregateRoot, mutate
+
 from domain.recrutement.events.organisme_events import (
     OrganismeParametresInitialises,
     OrganismeParametresModifies,

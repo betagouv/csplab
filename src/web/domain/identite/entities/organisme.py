@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from domain.ddd.aggregate_root import AggregateRoot, factory
+from ddd.aggregate_root import AggregateRoot, factory
+
 from domain.identite.events.organisme_events import (
     OrganismeCree,
 )

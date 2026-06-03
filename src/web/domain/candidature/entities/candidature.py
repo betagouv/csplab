@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
+from ddd.aggregate_root import AggregateRoot, factory, mutate
+
 from domain.candidature.events.candidature_events import (
     CandidatureRetiree,
     CandidatureSoumise,
@@ -14,7 +16,6 @@ from domain.candidature.exceptions import (
     DossierCandidatureInvalide,
 )
 from domain.candidature.value_objects.statut_candidature import StatutCandidature
-from domain.ddd.aggregate_root import AggregateRoot, factory, mutate
 from domain.shared.value_objects.etapes_recrutement import (
     CategorieEtapeRecrutement,
     EtapeRecrutement,

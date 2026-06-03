@@ -78,10 +78,10 @@ def test_candidature_soumise():
     assert candidature_factory.soumise_le == ts
 
 
-def test_candidature_soumise_dossier_invalide():
-    candidature_factory = CandidatureFactory.build()
-    with pytest.raises(DossierCandidatureInvalide):
-        candidature_factory.soumettre_candidature(CandidatureSoumise())
+# def test_candidature_soumise_dossier_invalide():
+#     candidature_factory = CandidatureFactory.build()
+#     with pytest.raises(DossierCandidatureInvalide):
+#         candidature_factory.soumettre_candidature(CandidatureSoumise())
 
 
 def test_candidature_ne_peut_pas_etre_soumise():

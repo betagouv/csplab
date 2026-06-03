@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from domain.ddd.domain_event import DomainEvent
+from ddd.domain_event import DomainEvent
+
 from domain.shared.value_objects.etapes_recrutement import EtapesRecrutement
 
 

@@ -2,11 +2,11 @@ from datetime import datetime
 from typing import Dict, List
 from uuid import UUID
 
+from ddd.page_interface import IPage
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.utils import timezone
 
-from domain.ddd.page_interface import IPage
 from domain.entities.offer import Offer
 from domain.exceptions.offer_errors import OfferDoesNotExist
 from domain.repositories.document_repository_interface import (

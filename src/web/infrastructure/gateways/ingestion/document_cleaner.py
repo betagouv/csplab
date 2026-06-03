@@ -2,7 +2,8 @@
 
 from typing import List
 
-from domain.ddd.entity_interface import IEntity
+from ddd.entity_interface import IEntity
+
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import (
     MixedDocumentTypesError,

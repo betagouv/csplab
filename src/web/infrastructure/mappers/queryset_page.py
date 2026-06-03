@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar
 
-from domain.ddd.page_interface import IPage
+from ddd.page_interface import IPage
 
 T = TypeVar("T")
 
