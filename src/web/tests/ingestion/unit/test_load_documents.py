@@ -2,7 +2,7 @@ import pytest
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from domain.entities.document import DocumentType
+from domain.ingestion.entities.document import DocumentType
 from tests.factories.document_factory import DocumentFactory
 
 TWO_DOCUMENTS_COUNT = 2

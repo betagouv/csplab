@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.value_objects.cv_processing_status import CVStatus
 
 
 def test_execute_creates_cv_metadata_with_pending_status(

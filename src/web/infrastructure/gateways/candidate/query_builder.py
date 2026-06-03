@@ -1,7 +1,7 @@
 from ddd.types import JsonDataType
 
-from domain.exceptions.cv_errors import QueryBuildingError
-from domain.services.query_builder_interface import IQueryBuilder
+from domain.candidate.exceptions.cv_errors import QueryBuildingError
+from domain.candidate.services.query_builder_interface import IQueryBuilder
 
 
 class QueryBuilder(IQueryBuilder):

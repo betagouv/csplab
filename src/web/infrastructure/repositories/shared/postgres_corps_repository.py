@@ -5,11 +5,11 @@ from ddd.services.logger_interface import ILogger
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.utils import timezone
+from referentiel.entities.corps import Corps
+from referentiel.exceptions.corps_errors import CorpsDoesNotExist
+from referentiel.repositories.corps_repository_interface import ICorpsRepository
 
-from domain.entities.corps import Corps
-from domain.exceptions.corps_errors import CorpsDoesNotExist
-from domain.repositories.corps_repository_interface import ICorpsRepository
-from domain.repositories.document_repository_interface import (
+from domain.ingestion.repositories.document_repository_interface import (
     IUpsertError,
     IUpsertResult,
 )

@@ -2,8 +2,8 @@ from datetime import datetime
 
 import pytest
 from dateutil.relativedelta import relativedelta
+from referentiel.entities.corps import Corps
 
-from domain.entities.corps import Corps
 from infrastructure.django_apps.shared.models.corps import CorpsModel
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_corps_repository import (

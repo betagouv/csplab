@@ -3,20 +3,25 @@ from typing import List, Optional, Tuple
 from asgiref.sync import async_to_sync
 from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
+from referentiel.entities.concours import Concours
+from referentiel.entities.metier import Metier
+from referentiel.entities.offer import Offer
+from referentiel.repositories.concours_repository_interface import IConcoursRepository
+from referentiel.repositories.metier_repository_interface import IMetierRepository
+from referentiel.repositories.offers_repository_interface import IOffersRepository
 
-from domain.entities.concours import Concours
-from domain.entities.cv_metadata import CVMetadata
-from domain.entities.document import DocumentType
-from domain.entities.metier import Metier
-from domain.entities.offer import Offer
-from domain.exceptions.cv_errors import CVProcessingFailedError
-from domain.repositories.concours_repository_interface import IConcoursRepository
-from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
-from domain.repositories.metier_repository_interface import IMetierRepository
-from domain.repositories.offers_repository_interface import IOffersRepository
-from domain.repositories.vector_repository_interface import IFilters, IVectorRepository
-from domain.services.embedding_generator_interface import IEmbeddingGenerator
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.entities.cv_metadata import CVMetadata
+from domain.candidate.exceptions.cv_errors import CVProcessingFailedError
+from domain.candidate.repositories.cv_metadata_repository_interface import (
+    ICVMetadataRepository,
+)
+from domain.candidate.value_objects.cv_processing_status import CVStatus
+from domain.ingestion.entities.document import DocumentType
+from domain.ingestion.repositories.vector_repository_interface import (
+    IFilters,
+    IVectorRepository,
+)
+from domain.ingestion.services.embedding_generator_interface import IEmbeddingGenerator
 
 
 class MatchCVToOpportunitiesUsecase(
@@ -48,12 +53,14 @@ class MatchCVToOpportunitiesUsecase(
     ) -> List[Tuple[Concours | Tuple[Offer, list[Metier]], float]]:
         self.logger.info(
             "Starting opportunity matching for cv_uuid='%s', limit=%d",
-            cv_metadata.id,
+            cv_metadata.entity_id,
             limit,
         )
 
         if cv_metadata.status == CVStatus.FAILED or not cv_metadata.search_query:
-            raise CVProcessingFailedError(str(cv_metadata.id), "CV processing failed")
+            raise CVProcessingFailedError(
+                str(cv_metadata.entity_id), "CV processing failed"
+            )
 
         query_embedding = async_to_sync(self.embedding_generator.generate_embedding)(
             cv_metadata.search_query

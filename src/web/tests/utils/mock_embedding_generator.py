@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 from django.conf import settings
 
-from domain.services.embedding_generator_interface import IEmbeddingGenerator
+from domain.ingestion.services.embedding_generator_interface import IEmbeddingGenerator
 
 
 class MockEmbeddingGenerator(IEmbeddingGenerator):

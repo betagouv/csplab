@@ -1,7 +1,7 @@
 import pytest
 from django.http import QueryDict
+from referentiel.value_objects.category import Category
 
-from domain.value_objects.category import Category
 from presentation.candidate.filter_config import format_category_value
 from presentation.candidate.formatters import format_category_display
 from presentation.candidate.mappers import ViewFiltersToUsecaseMapper

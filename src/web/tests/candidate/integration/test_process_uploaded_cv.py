@@ -5,9 +5,9 @@ from uuid import UUID
 import pytest
 
 from config.app_config import AppConfig
-from domain.entities.cv_metadata import CVMetadata
-from domain.exceptions.cv_errors import CVNotFoundError
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.entities.cv_metadata import CVMetadata
+from domain.candidate.exceptions.cv_errors import CVNotFoundError
+from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.exceptions.exceptions import ExternalApiError
@@ -111,7 +111,7 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
 
     usecase = candidate_container.process_uploaded_cv_usecase()
 
-    result = await usecase.execute(initial_cv.id, pdf_content)
+    result = await usecase.execute(initial_cv.entity_id, pdf_content)
     assert isinstance(result, CVMetadata)
     assert result.status == CVStatus.COMPLETED
 
@@ -148,10 +148,10 @@ async def test_execute_with_api_failure_saves_failed_status_to_database(
     usecase = candidate_container.process_uploaded_cv_usecase()
 
     with pytest.raises(ExternalApiError):
-        await usecase.execute(initial_cv.id, pdf_content)
+        await usecase.execute(initial_cv.entity_id, pdf_content)
 
     # Verify that CV metadata was saved with FAILED status
-    updated_cv = await repo.get_by_id(initial_cv.id)
+    updated_cv = await repo.get_by_id(initial_cv.entity_id)
     assert updated_cv is not None
     assert updated_cv.status == CVStatus.FAILED
     assert updated_cv.updated_at > initial_cv.updated_at
@@ -184,7 +184,7 @@ async def test_execute_albert_fenced_json_response_success(
 
     usecase = candidate_container.process_uploaded_cv_usecase()
 
-    result = await usecase.execute(initial_cv.id, pdf_content)
+    result = await usecase.execute(initial_cv.entity_id, pdf_content)
     assert isinstance(result, CVMetadata)
     assert result.status == CVStatus.COMPLETED
 
@@ -212,7 +212,7 @@ async def test_execute_albert_http_error_with_valid_error_response(
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(initial_cv.id, pdf_content)
+        await usecase.execute(initial_cv.entity_id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "Invalid API key provided" in error_message
@@ -241,7 +241,7 @@ async def test_execute_albert_invalid_response_structure(
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(initial_cv.id, pdf_content)
+        await usecase.execute(initial_cv.entity_id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "Invalid Albert completion response structure" in error_message
@@ -271,7 +271,7 @@ async def test_execute_albert_empty_choices_response(
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(initial_cv.id, pdf_content)
+        await usecase.execute(initial_cv.entity_id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "No completion choices returned from Albert API" in error_message
@@ -301,7 +301,7 @@ async def test_execute_albert_invalid_fenced_json_response(
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(initial_cv.id, pdf_content)
+        await usecase.execute(initial_cv.entity_id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "Failed to parse JSON from Albert completion response" in error_message
@@ -328,7 +328,7 @@ async def test_execute_ocr_http_error_with_valid_error_response(
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(initial_cv.id, pdf_content)
+        await usecase.execute(initial_cv.entity_id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "Invalid file format or corrupted PDF" in error_message
@@ -355,7 +355,7 @@ async def test_execute_ocr_http_error_with_invalid_error_response(
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(initial_cv.id, pdf_content)
+        await usecase.execute(initial_cv.entity_id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "OCR service error: 500" in error_message
@@ -382,7 +382,7 @@ async def test_execute_ocr_invalid_success_response_structure(
     await repo.save(initial_cv)
 
     with pytest.raises(ExternalApiError) as exc_info:
-        await usecase.execute(initial_cv.id, pdf_content)
+        await usecase.execute(initial_cv.entity_id, pdf_content)
 
     error_message = str(exc_info.value)
     assert "Failed to parse JSON response" in error_message

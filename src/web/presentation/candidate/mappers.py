@@ -4,16 +4,16 @@ from ddd.mapper_interface import IToDomainMapper
 from django.http import QueryDict
 from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
+from referentiel.entities.concours import Concours
+from referentiel.entities.metier import Metier
+from referentiel.entities.offer import Offer
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.verse import Verse
 
-from domain.entities.concours import Concours
-from domain.entities.document import DocumentType
-from domain.entities.metier import Metier
-from domain.entities.offer import Offer
-from domain.repositories.vector_repository_interface import IFilters
-from domain.value_objects.category import Category
-from domain.value_objects.department import Department
-from domain.value_objects.opportunity_type import OpportunityType
-from domain.value_objects.verse import Verse
+from domain.candidate.value_objects.opportunity_type import OpportunityType
+from domain.ingestion.entities.document import DocumentType
+from domain.ingestion.repositories.vector_repository_interface import IFilters
 from presentation.candidate.filter_config import (
     CATEGORY_FILTER_VALUE,
     FILTER_PARAM_CATEGORY,

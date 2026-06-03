@@ -5,18 +5,21 @@ from typing import Dict, List, Optional, Tuple
 import polars as pl
 from ddd.services.logger_interface import ILogger
 from django.utils import timezone
+from referentiel.entities.concours import Concours
+from referentiel.exceptions.concours_errors import ConcoursDoesNotExist
+from referentiel.exceptions.corps_errors import InvalidMinistryError
+from referentiel.repositories.concours_repository_interface import IConcoursRepository
+from referentiel.value_objects.access_modality import AccessModality
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.ministry import Ministry
+from referentiel.value_objects.nor import NOR
 
-from domain.entities.concours import Concours
-from domain.entities.document import Document, DocumentType
-from domain.exceptions.concours_errors import ConcoursDoesNotExist
-from domain.exceptions.corps_errors import InvalidMinistryError
-from domain.exceptions.document_error import InvalidDocumentTypeError
-from domain.repositories.concours_repository_interface import IConcoursRepository
-from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
-from domain.value_objects.access_modality import AccessModality
-from domain.value_objects.category import Category
-from domain.value_objects.ministry import Ministry
-from domain.value_objects.nor import NOR
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.exceptions.document_error import InvalidDocumentTypeError
+from domain.ingestion.services.document_cleaner_interface import (
+    CleaningResult,
+    IDocumentCleaner,
+)
 
 REFERENCE_YEAR = 2024
 DECEMBER = 12

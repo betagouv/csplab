@@ -4,23 +4,26 @@ from uuid import UUID
 
 from ddd.services.logger_interface import ILogger
 from pydantic import HttpUrl, ValidationError
+from referentiel.entities.offer import Offer
+from referentiel.exceptions.offer_errors import OfferDoesNotExist
+from referentiel.repositories.offers_repository_interface import IOffersRepository
+from referentiel.value_objects.area import GeographicalArea
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.limit_date import LimitDate
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.region import Region
+from referentiel.value_objects.verse import Verse
 
-from domain.entities.document import Document, DocumentType
-from domain.entities.offer import Offer
-from domain.exceptions.document_error import InvalidDocumentTypeError
-from domain.exceptions.offer_errors import OfferDoesNotExist
-from domain.repositories.offers_repository_interface import IOffersRepository
-from domain.repositories.source_repository_interface import ISourceRepository
-from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
-from domain.value_objects.area import GeographicalArea
-from domain.value_objects.category import Category
-from domain.value_objects.contract_type import ContractType
-from domain.value_objects.country import Country
-from domain.value_objects.department import Department
-from domain.value_objects.limit_date import LimitDate
-from domain.value_objects.localisation import Localisation
-from domain.value_objects.region import Region
-from domain.value_objects.verse import Verse
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.exceptions.document_error import InvalidDocumentTypeError
+from domain.ingestion.repositories.source_repository_interface import ISourceRepository
+from domain.ingestion.services.document_cleaner_interface import (
+    CleaningResult,
+    IDocumentCleaner,
+)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftDetailOffer,
 )

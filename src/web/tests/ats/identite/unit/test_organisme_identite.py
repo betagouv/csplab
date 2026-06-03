@@ -1,9 +1,10 @@
+from referentiel.value_objects.verse import Verse
+
 from domain.identite.entities.organisme import Organisme
 from domain.identite.events.organisme_events import (
     OrganismeCree,
 )
 from domain.identite.value_objects.siret import SIRET
-from domain.value_objects.verse import Verse
 from tests.ats.identite.factories.organisme_factory import OrganismeFactory
 
 

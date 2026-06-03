@@ -1,11 +1,10 @@
 from django.db import models
-
-from domain.entities.corps import Corps
-from domain.value_objects.access_modality import AccessModality
-from domain.value_objects.category import Category
-from domain.value_objects.diploma import Diploma
-from domain.value_objects.label import Label
-from domain.value_objects.ministry import Ministry
+from referentiel.entities.corps import Corps
+from referentiel.value_objects.access_modality import AccessModality
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.diploma import Diploma
+from referentiel.value_objects.label import Label
+from referentiel.value_objects.ministry import Ministry
 
 
 class CorpsModel(models.Model):

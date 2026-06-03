@@ -1,6 +1,6 @@
 from django.db import models
 
-from domain.entities.document import Document, DocumentType
+from domain.ingestion.entities.document import Document, DocumentType
 
 
 class RawDocument(models.Model):
@@ -40,7 +40,7 @@ class RawDocument(models.Model):
 
     def to_entity(self) -> Document:
         return Document(
-            id=self.id,
+            entity_id=self.id,
             external_id=self.external_id,
             raw_data=self.raw_data,
             type=DocumentType(self.document_type),  # String -> Enum
@@ -53,7 +53,7 @@ class RawDocument(models.Model):
     @classmethod
     def from_entity(cls, document: Document) -> "RawDocument":
         return cls(
-            id=document.id,
+            id=document.entity_id,
             external_id=document.external_id,
             raw_data=document.raw_data,
             document_type=document.type.value if document.type else None,

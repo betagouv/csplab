@@ -1,26 +1,29 @@
 from typing import List
 
-from ddd.entity_interface import IEntity
+from ddd.entity import Entity
 from ddd.services.logger_interface import ILogger
+from referentiel.repositories.concours_repository_interface import IConcoursRepository
+from referentiel.repositories.corps_repository_interface import ICorpsRepository
+from referentiel.repositories.metier_repository_interface import IMetierRepository
+from referentiel.repositories.offers_repository_interface import IOffersRepository
 
-from domain.entities.document import Document, DocumentType
-from domain.exceptions.document_error import (
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.exceptions.document_error import (
     MixedDocumentTypesError,
     UnsupportedDocumentTypeError,
 )
-from domain.repositories.concours_repository_interface import IConcoursRepository
-from domain.repositories.corps_repository_interface import ICorpsRepository
-from domain.repositories.metier_repository_interface import IMetierRepository
-from domain.repositories.offers_repository_interface import IOffersRepository
-from domain.repositories.source_repository_interface import ISourceRepository
-from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
+from domain.ingestion.repositories.source_repository_interface import ISourceRepository
+from domain.ingestion.services.document_cleaner_interface import (
+    CleaningResult,
+    IDocumentCleaner,
+)
 from infrastructure.gateways.ingestion.concours_cleaner import ConcoursCleaner
 from infrastructure.gateways.ingestion.corps_cleaner import CorpsCleaner
 from infrastructure.gateways.ingestion.metier_cleaner import MetierCleaner
 from infrastructure.gateways.ingestion.offers_cleaner import OffersCleaner
 
 
-class DocumentCleaner(IDocumentCleaner[IEntity]):
+class DocumentCleaner(IDocumentCleaner[Entity]):
     def __init__(
         self,
         logger: ILogger,
@@ -39,7 +42,7 @@ class DocumentCleaner(IDocumentCleaner[IEntity]):
             DocumentType.METIERS: MetierCleaner(logger, metiers_repository),
         }
 
-    def clean(self, raw_documents: List[Document]) -> CleaningResult[IEntity]:
+    def clean(self, raw_documents: List[Document]) -> CleaningResult[Entity]:
         if not raw_documents:
             return CleaningResult(entities=[], cleaning_errors=[])
 

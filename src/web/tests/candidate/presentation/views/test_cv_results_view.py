@@ -6,7 +6,7 @@ import pytest
 from django.urls import reverse
 from pytest_django.asserts import assertContains, assertTemplateUsed
 
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from tests.factories.cv_metadata_factory import CVMetadataFactory
 from tests.factories.offer_factory import OfferFactory
@@ -74,7 +74,7 @@ def test_cv_results_selects_response_from_status_and_request_type(
 
     headers = {"HTTP_HX_REQUEST": "true"} if is_htmx else {}
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}),
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}),
         **headers,
     )
 
@@ -102,7 +102,10 @@ def test_cv_results_htmx_results_zone_target_returns_results_list_template(
     ]
 
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_completed.id}),
+        reverse(
+            "candidate:cv_results",
+            kwargs={"cv_uuid": cv_metadata_completed.entity_id},
+        ),
         HTTP_HX_REQUEST="true",
         HTTP_HX_TARGET="results-zone",
     )
@@ -120,7 +123,9 @@ def test_cv_results_htmx_poll_pending_to_completed_transition(
     mock_execute.return_value = [
         ((OfferFactory.create_entity(title="Poste test"), []), 0.9)
     ]
-    url = reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_pending.id})
+    url = reverse(
+        "candidate:cv_results", kwargs={"cv_uuid": cv_metadata_pending.entity_id}
+    )
 
     response_pending = client.get(url, {"poll": "1"}, HTTP_HX_REQUEST="true")
     assert response_pending.status_code == HTTPStatus.NO_CONTENT
@@ -156,7 +161,7 @@ def test_cv_results_htmx_request_sets_redirect_header(client, db):
     CVMetadataModel.from_entity(cv_metadata).save()
 
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.id}),
+        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}),
         HTTP_HX_REQUEST="true",
     )
 
@@ -171,7 +176,10 @@ def test_cv_results_htmx_empty_opportunities_shows_no_results(
     mock_execute.return_value = []
 
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_completed.id}),
+        reverse(
+            "candidate:cv_results",
+            kwargs={"cv_uuid": cv_metadata_completed.entity_id},
+        ),
         HTTP_HX_REQUEST="true",
     )
 
@@ -187,13 +195,16 @@ def test_cv_results_no_results_includes_tally_iframe(
     mock_execute.return_value = []
 
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_completed.id}),
+        reverse(
+            "candidate:cv_results",
+            kwargs={"cv_uuid": cv_metadata_completed.entity_id},
+        ),
         HTTP_HX_REQUEST="true",
     )
 
     assert response.status_code == HTTPStatus.OK
     assertContains(response, "tally.so/embed/test-no-results-form")
-    assertContains(response, f"cv_uuid={cv_metadata_completed.id}")
+    assertContains(response, f"cv_uuid={cv_metadata_completed.entity_id}")
 
 
 def test_cv_results_with_results_includes_tally_modal(
@@ -206,10 +217,13 @@ def test_cv_results_with_results_includes_tally_modal(
     ]
 
     response = client.get(
-        reverse("candidate:cv_results", kwargs={"cv_uuid": cv_metadata_completed.id})
+        reverse(
+            "candidate:cv_results",
+            kwargs={"cv_uuid": cv_metadata_completed.entity_id},
+        )
     )
 
     assert response.status_code == HTTPStatus.OK
     assertContains(response, "tally.so/embed/test-results-form")
-    assertContains(response, f"cv_uuid={cv_metadata_completed.id}")
+    assertContains(response, f"cv_uuid={cv_metadata_completed.entity_id}")
     assertContains(response, "tally-results-modal")

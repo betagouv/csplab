@@ -1,7 +1,7 @@
 import pytest
 
-from domain.exceptions.cv_errors import CVProcessingFailedError
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.exceptions.cv_errors import CVProcessingFailedError
+from domain.candidate.value_objects.cv_processing_status import CVStatus
 from tests.factories.cv_metadata_factory import CVMetadataFactory
 
 
@@ -14,4 +14,4 @@ def test_execute_with_failed_cv_raises_error(match_cv_to_opportunities_usecase):
     with pytest.raises(CVProcessingFailedError) as exc_info:
         match_cv_to_opportunities_usecase.execute(cv_metadata, limit=10)
 
-    assert exc_info.value.cv_id == str(cv_metadata.id)
+    assert exc_info.value.cv_id == str(cv_metadata.entity_id)

@@ -5,9 +5,9 @@ from ddd.services.async_http_client_interface import IAsyncHttpClient
 from ddd.services.logger_interface import ILogger
 from ddd.types import JsonDataType
 
-from domain.entities.document import Document, DocumentType
-from domain.exceptions.document_error import InvalidDocumentTypeError
-from domain.gateways.document_gateway_interface import IDocumentGateway
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.exceptions.document_error import InvalidDocumentTypeError
+from domain.ingestion.gateways.document_gateway_interface import IDocumentGateway
 from infrastructure.external_gateways.dtos.ingres_corps_dtos import (
     IngresCorpsApiResponse,
 )

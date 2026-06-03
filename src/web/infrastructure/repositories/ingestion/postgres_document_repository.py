@@ -5,8 +5,8 @@ from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.utils import timezone
 
-from domain.entities.document import Document, DocumentType
-from domain.repositories.document_repository_interface import (
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,
 )
@@ -170,7 +170,7 @@ class PostgresDocumentRepository(IDocumentRepository):
     def mark_as_processed(self, raw_documents: List[Document]) -> int:
         try:
             return RawDocument.objects.filter(
-                id__in=[obj.id for obj in raw_documents]
+                id__in=[obj.entity_id for obj in raw_documents]
             ).update(processed_at=timezone.now(), processing=False)
         except Exception as e:
             raise DatabaseError(f"Database error during update: {str(e)}") from e
@@ -178,7 +178,7 @@ class PostgresDocumentRepository(IDocumentRepository):
     def mark_as_pending(self, raw_documents: List[Document]) -> int:
         try:
             return RawDocument.objects.filter(
-                id__in=[obj.id for obj in raw_documents]
+                id__in=[obj.entity_id for obj in raw_documents]
             ).update(processing=False)
         except Exception as e:
             raise DatabaseError(f"Database error during update: {str(e)}") from e
@@ -186,7 +186,7 @@ class PostgresDocumentRepository(IDocumentRepository):
     def mark_as_failed(self, raw_documents: List[Document], error_msg: str) -> int:
         try:
             return RawDocument.objects.filter(
-                id__in=[obj.id for obj in raw_documents]
+                id__in=[obj.entity_id for obj in raw_documents]
             ).update(processed_at=timezone.now(), processing=False, error_msg=error_msg)
         except Exception as e:
             raise DatabaseError(f"Database error during update: {str(e)}") from e

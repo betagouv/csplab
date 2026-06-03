@@ -1,8 +1,8 @@
 from typing import Dict, Optional
 from uuid import UUID
 
-from domain.entities.cv_metadata import CVMetadata
-from domain.repositories.async_cv_metadata_repository_interface import (
+from domain.candidate.entities.cv_metadata import CVMetadata
+from domain.candidate.repositories.async_cv_metadata_repository_interface import (
     IAsyncCVMetadataRepository,
 )
 
@@ -12,7 +12,7 @@ class AsyncInMemoryCVMetadataRepository(IAsyncCVMetadataRepository):
         self._storage: Dict[UUID, CVMetadata] = {}
 
     async def save(self, cv_metadata: CVMetadata) -> CVMetadata:
-        self._storage[cv_metadata.id] = cv_metadata
+        self._storage[cv_metadata.entity_id] = cv_metadata
         return cv_metadata
 
     async def get_by_id(self, cv_id: UUID) -> Optional[CVMetadata]:

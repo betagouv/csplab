@@ -2,22 +2,25 @@ from typing import List, Optional
 
 import polars as pl
 from ddd.services.logger_interface import ILogger
-
-from domain.entities.corps import Corps
-from domain.entities.document import Document, DocumentType
-from domain.exceptions.corps_errors import (
+from referentiel.entities.corps import Corps
+from referentiel.exceptions.corps_errors import (
     CorpsDoesNotExist,
     InvalidAccessModalityError,
     InvalidDiplomaLevelError,
 )
-from domain.exceptions.document_error import InvalidDocumentTypeError
-from domain.repositories.corps_repository_interface import ICorpsRepository
-from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
-from domain.value_objects.access_modality import AccessModality
-from domain.value_objects.category import Category
-from domain.value_objects.diploma import Diploma
-from domain.value_objects.label import Label
-from domain.value_objects.ministry import Ministry
+from referentiel.repositories.corps_repository_interface import ICorpsRepository
+from referentiel.value_objects.access_modality import AccessModality
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.diploma import Diploma
+from referentiel.value_objects.label import Label
+from referentiel.value_objects.ministry import Ministry
+
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.exceptions.document_error import InvalidDocumentTypeError
+from domain.ingestion.services.document_cleaner_interface import (
+    CleaningResult,
+    IDocumentCleaner,
+)
 from infrastructure.gateways.ingestion.pelage_checks import (
     has_no_minarm_ministry,
     has_only_civil_servants,

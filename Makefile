@@ -11,6 +11,7 @@ INGESTION_UV = cd src/ingestion && direnv exec .
 NOTEBOOK_UV = cd src/notebook && direnv exec .
 DEV_UV = cd dev && direnv exec .
 DDD_UV = cd libs/ddd &&
+REFERENTIEL_UV = cd libs/referentiel &&
 
 default: help
 
@@ -70,6 +71,7 @@ git-hooks: \
 build: ## build services image
 build: \
   build-ddd \
+  build-referentiel \
   build-dev \
   build-web \
   build-ocr \
@@ -80,6 +82,10 @@ build: \
 build-ddd: ## setup ddd package
 	@$(DDD_UV) uv sync --group dev --locked
 .PHONY: build-ddd
+
+build-referentiel: ## setup referentiel package
+	@$(REFERENTIEL_UV) uv sync --group dev
+.PHONY: build-referentiel
 
 build-dev: ## build development environment image
 	@$(DEV_UV) uv sync --locked
@@ -272,6 +278,7 @@ run-mvp: ## run web + ocr + ingestion + huey with unified logs
 lint: ## lint all sources
 lint: \
   lint-ddd \
+  lint-referentiel \
   lint-notebook \
   lint-web \
   lint-ocr \
@@ -283,6 +290,7 @@ lint: \
 lint-fix: ## lint and fix all sources
 lint-fix: \
   lint-ddd-fix \
+  lint-referentiel-fix \
   lint-notebook-fix \
   lint-web-fix \
   lint-ocr-fix \
@@ -300,6 +308,18 @@ lint-ddd-fix: ## lint and fix ddd python sources with ruff
 	$(DDD_UV) uv run ruff check --fix .
 	$(DDD_UV) uv run ruff format .
 .PHONY: lint-ddd-fix
+
+lint-referentiel: ## lint referentiel python sources with ruff
+	@echo 'lint:referentiel started…'
+	$(REFERENTIEL_UV) uv run ruff check .
+	$(REFERENTIEL_UV) uv run ruff format --check .
+.PHONY: lint-referentiel
+
+lint-referentiel-fix: ## lint and fix referentiel python sources with ruff
+	@echo 'lint:referentiel-fix started…'
+	$(REFERENTIEL_UV) uv run ruff check --fix .
+	$(REFERENTIEL_UV) uv run ruff format .
+.PHONY: lint-referentiel-fix
 
 # -- Per-service linting
 lint-notebook: ## lint notebook python sources
@@ -454,6 +474,7 @@ lint-schema: ## generate and check API schema is up to date
 test: ## test all services
 test: \
   test-ddd \
+  test-referentiel \
   test-web \
   test-ocr \
   test-ingestion
@@ -463,6 +484,11 @@ test-ddd: ## test ddd package
 	@echo 'test:ddd started…'
 	$(DDD_UV) uv run pytest --no-cov $(ARGS)
 .PHONY: test-ddd
+
+test-referentiel: ## test referentiel package
+	@echo 'test:referentiel started…'
+	$(REFERENTIEL_UV) uv run pytest --no-cov $(ARGS)
+.PHONY: test-referentiel
 
 test-web: ## test web python sources
 	@echo 'test:web started…'

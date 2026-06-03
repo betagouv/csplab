@@ -3,12 +3,12 @@ from uuid import UUID
 
 import pytest
 from django.urls import reverse
+from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from rest_framework import status
 
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
-from domain.exceptions.offer_errors import OfferDoesNotExist
 
 API_KEY = "test-ingestion-api-key"
 REFERENCE = "12345"

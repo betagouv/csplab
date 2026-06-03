@@ -1,5 +1,5 @@
 from ddd.async_usecase_interface import IAsyncUseCase
-from ddd.entity_interface import IEntity
+from ddd.entity import Entity
 from dependency_injector import containers, providers
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
@@ -15,10 +15,10 @@ from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.load_offers import LoadOffersUsecase
 from application.ingestion.usecases.upsert_offers import UpsertOffersUseCase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
-from domain.repositories.document_repository_interface import (
+from domain.ingestion.repositories.document_repository_interface import (
     IUpsertResult,
 )
-from domain.services.document_cleaner_interface import IDocumentCleaner
+from domain.ingestion.services.document_cleaner_interface import IDocumentCleaner
 from infrastructure.external_gateways import (
     external_document_gateway,
     piste_client,
@@ -94,7 +94,7 @@ class IngestionContainer(containers.DeclarativeContainer):
         metiers_repository=metiers_repository,
     )
 
-    document_cleaner: providers.Provider[IDocumentCleaner[IEntity]] = (
+    document_cleaner: providers.Provider[IDocumentCleaner[Entity]] = (
         providers.Singleton(
             DocumentCleaner,
             logger=logger_service,

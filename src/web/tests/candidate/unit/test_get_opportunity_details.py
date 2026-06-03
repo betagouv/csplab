@@ -1,6 +1,6 @@
 import pytest
 
-from domain.value_objects.opportunity_type import OpportunityType
+from domain.candidate.value_objects.opportunity_type import OpportunityType
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.metier_factory import MetierFactory
 from tests.factories.offer_factory import OfferFactory

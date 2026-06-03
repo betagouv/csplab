@@ -5,10 +5,10 @@ from ddd.async_usecase_interface import IAsyncUseCase
 from ddd.services.logger_interface import ILogger
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
-from domain.entities.document import DocumentType
-from domain.exceptions.document_error import InvalidDocumentTypeError
-from domain.gateways.document_gateway_interface import IDocumentGateway
-from domain.repositories.document_repository_interface import (
+from domain.ingestion.entities.document import DocumentType
+from domain.ingestion.exceptions.document_error import InvalidDocumentTypeError
+from domain.ingestion.gateways.document_gateway_interface import IDocumentGateway
+from domain.ingestion.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,
 )

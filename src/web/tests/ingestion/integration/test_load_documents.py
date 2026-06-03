@@ -10,8 +10,8 @@ from application.ingestion.interfaces.load_documents_input import LoadDocumentsI
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from application.ingestion.usecases import load_offers
 from config.app_config import AppConfig
-from domain.entities.document import Document, DocumentType
-from domain.exceptions.document_error import InvalidDocumentTypeError
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.exceptions.document_error import InvalidDocumentTypeError
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument

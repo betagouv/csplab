@@ -2,8 +2,8 @@ from uuid import uuid4
 
 from django.db import models
 
-from domain.entities.source import Source
-from domain.value_objects.source_type import SourceType
+from domain.ingestion.entities.source import Source
+from domain.ingestion.value_objects.source_type import SourceType
 
 
 class SourceModel(models.Model):

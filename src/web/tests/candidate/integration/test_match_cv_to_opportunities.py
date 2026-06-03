@@ -2,12 +2,12 @@ import pytest
 from django.conf import settings
 from faker import Faker
 from pytest_django.asserts import assertNumQueries
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.verse import Verse
 
 from config.app_config import AppConfig
-from domain.entities.document import DocumentType
-from domain.value_objects.category import Category
-from domain.value_objects.cv_processing_status import CVStatus
-from domain.value_objects.verse import Verse
+from domain.candidate.value_objects.cv_processing_status import CVStatus
+from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.shared.models.concours import ConcoursModel

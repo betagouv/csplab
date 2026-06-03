@@ -1,17 +1,17 @@
 from typing import Any, Dict, Union
 
-from ddd.entity_interface import IEntity
+from ddd.entity import Entity
+from referentiel.entities.concours import Concours
+from referentiel.entities.corps import Corps
+from referentiel.entities.metier import Metier
+from referentiel.entities.offer import Offer
 
-from domain.entities.concours import Concours
-from domain.entities.corps import Corps
-from domain.entities.document import Document
-from domain.entities.metier import Metier
-from domain.entities.offer import Offer
-from domain.services.text_extractor_interface import ITextExtractor
+from domain.ingestion.entities.document import Document
+from domain.ingestion.services.text_extractor_interface import ITextExtractor
 
 
 class TextExtractor(ITextExtractor):
-    def extract_content(self, source: Union[Document, IEntity]) -> str:
+    def extract_content(self, source: Union[Document, Entity]) -> str:
         if isinstance(source, Corps):
             return self._extract_from_corps(source)
         elif isinstance(source, Concours):
@@ -25,7 +25,7 @@ class TextExtractor(ITextExtractor):
                 f"Content extraction not implemented for {type(source)}"
             )
 
-    def extract_metadata(self, source: Union[Document, IEntity]) -> Dict[str, Any]:
+    def extract_metadata(self, source: Union[Document, Entity]) -> Dict[str, Any]:
         if isinstance(source, Corps):
             return self._extract_metadata_from_corps(source)
         elif isinstance(source, Concours):

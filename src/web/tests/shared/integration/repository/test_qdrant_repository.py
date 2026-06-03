@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from domain.entities.document import DocumentType
+from domain.ingestion.entities.document import DocumentType
 from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
 from tests.utils.shared_fixtures import create_shared_qdrant_repository
 

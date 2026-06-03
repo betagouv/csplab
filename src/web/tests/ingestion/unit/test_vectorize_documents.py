@@ -2,8 +2,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from domain.entities.document import Document, DocumentType
-from domain.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.corps_factory import CorpsFactory
 from tests.factories.metier_factory import MetierFactory
@@ -69,7 +69,7 @@ def test_vectorize_single_source_with_none_entity_id_raises_error(
 ):
 
     source_with_none_id = Mock(spec=Document)
-    source_with_none_id.id = None
+    source_with_none_id.entity_id = None
     source_with_none_id.type = DocumentType.CORPS
 
     with pytest.raises(ValueError, match="Entity ID cannot be None"):

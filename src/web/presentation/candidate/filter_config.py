@@ -1,8 +1,9 @@
-from domain.value_objects.category import Category
-from domain.value_objects.department import Department
-from domain.value_objects.localisation import Localisation
-from domain.value_objects.opportunity_type import OpportunityType
-from domain.value_objects.verse import Verse
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.verse import Verse
+
+from domain.candidate.value_objects.opportunity_type import OpportunityType
 from presentation.candidate.formatters import (
     CATEGORY_DISPLAY,
     OPPORTUNITY_TYPE_FILTER_DISPLAY,

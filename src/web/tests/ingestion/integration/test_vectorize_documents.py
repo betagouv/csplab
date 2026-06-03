@@ -7,9 +7,12 @@ from httpx import Headers
 from qdrant_client.http.exceptions import UnexpectedResponse
 
 from config.app_config import AppConfig
-from domain.entities.document import DocumentType
-from domain.exceptions.document_error import UnsupportedDocumentTypeError
-from domain.value_objects.similarity_type import SimilarityMetric, SimilarityType
+from domain.ingestion.entities.document import DocumentType
+from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.ingestion.value_objects.similarity_type import (
+    SimilarityMetric,
+    SimilarityType,
+)
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.shared.models.offer import OfferModel

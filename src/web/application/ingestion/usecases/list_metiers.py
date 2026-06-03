@@ -1,10 +1,10 @@
 from ddd.page_interface import IPage
 from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
+from referentiel.entities.metier import Metier
+from referentiel.repositories.metier_repository_interface import IMetierRepository
 
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
-from domain.entities.metier import Metier
-from domain.repositories.metier_repository_interface import IMetierRepository
 
 
 class ListMetiersUseCase(IUseCase[GetFilteredMetiersInput, IPage[Metier]]):

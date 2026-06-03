@@ -1,14 +1,15 @@
-"""Repository factory implementation for entity persistence."""
-
 from typing import Union
 
-from domain.entities.document import DocumentType
-from domain.exceptions.document_error import UnsupportedDocumentTypeError
-from domain.repositories.concours_repository_interface import IConcoursRepository
-from domain.repositories.corps_repository_interface import ICorpsRepository
-from domain.repositories.metier_repository_interface import IMetierRepository
-from domain.repositories.offers_repository_interface import IOffersRepository
-from domain.repositories.repository_factory_interface import IRepositoryFactory
+from referentiel.repositories.concours_repository_interface import IConcoursRepository
+from referentiel.repositories.corps_repository_interface import ICorpsRepository
+from referentiel.repositories.metier_repository_interface import IMetierRepository
+from referentiel.repositories.offers_repository_interface import IOffersRepository
+
+from domain.ingestion.entities.document import DocumentType
+from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.ingestion.repositories.repository_factory_interface import (
+    IRepositoryFactory,
+)
 
 
 class RepositoryFactory(IRepositoryFactory):

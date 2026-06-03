@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 from playwright.sync_api import Page, expect
 
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from tests.factories.offer_factory import OfferFactory
 

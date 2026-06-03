@@ -1,7 +1,7 @@
 import pytest
 
 from config.app_config import AppConfig
-from domain.value_objects.source_type import SourceType
+from domain.ingestion.value_objects.source_type import SourceType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService

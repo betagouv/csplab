@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from faker import Faker
 
-from domain.entities.utilisateurs import Utilisateur
+from domain.identite.entities.utilisateurs import Utilisateur
 from infrastructure.django_apps.users.models import UserModel
 
 fake = Faker()
