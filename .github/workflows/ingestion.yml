@@ -108,7 +108,7 @@ jobs:
 
   deploy-ingestion:
     needs: [check-changes, lint-ingestion, test-ingestion]
-    if: github.event_name == 'push' && needs.check-changes.outputs.relevant == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     environment: production
     permissions:
