@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("shared", "0029_populate_offer_source_id"),
+        ("shared", "0030_alter_offermodel_source_id_not_null"),
     ]
 
     operations = [
