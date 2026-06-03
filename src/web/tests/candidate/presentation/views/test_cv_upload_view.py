@@ -12,6 +12,14 @@ from tests.utils.form_test_utils import assert_form_error_code
 from tests.utils.pdf_test_utils import create_minimal_valid_pdf
 
 
+@pytest.fixture
+def mock_container():
+    with patch(
+        "presentation.candidate.views.cv_flow.create_candidate_container"
+    ) as mock:
+        yield mock
+
+
 def test_cv_upload_page_loads_correctly(client, db):
     response = client.get(reverse("candidate:cv_upload"))
 
@@ -25,7 +33,6 @@ def test_cv_upload_page_loads_correctly(client, db):
 
 
 @pytest.mark.parametrize("filename", ["cv.pdf", "CV.PDF"])
-@patch("presentation.candidate.views.cv_flow.create_candidate_container")
 def test_cv_upload_valid_pdf_redirects_to_results(mock_container, client, db, filename):
     # Mock the usecases
     mock_uuid = str(uuid4())
