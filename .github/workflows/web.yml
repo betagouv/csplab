@@ -6,22 +6,35 @@ on:
   pull_request:
     branches: ["main"]
     types: [opened, synchronize, reopened, edited]
-    paths:
-      - "src/web/**"
-      - ".github/workflows/web.yml"
-      - ".github/actions/**"
 
 permissions:
   contents: read
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - "src/web/**"
+              - ".github/workflows/web.yml"
+              - ".github/actions/**"
+
   build-web:
+    needs: check-changes
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./src/web
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/web
@@ -34,7 +47,8 @@ jobs:
         run: pnpm run build
 
   lint-web:
-    needs: build-web
+    needs: [check-changes, build-web]
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -44,7 +58,7 @@ jobs:
       WEB_DATABASE_URL: psql://web:pass@localhost:5432/web
       DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/web
@@ -73,7 +87,8 @@ jobs:
         run: make lint-schema WEB_UV="cd src/web && uv run"
 
   test-web:
-    needs: build-web
+    needs: [check-changes, build-web]
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     services:
       postgresql:
@@ -108,7 +123,7 @@ jobs:
       WEB_VECTOR_DB_TYPE: QDRANT
       DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-uv-python
         with:
           service-path: src/web
