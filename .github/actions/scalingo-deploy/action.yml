@@ -11,4 +11,4 @@ runs:
   steps:
     - name: Push to deploy branch
       shell: bash
-      run: git push origin HEAD:refs/heads/${{ inputs.branch }} --force
+      run: git push origin HEAD:refs/heads/${{ inputs.branch }}
