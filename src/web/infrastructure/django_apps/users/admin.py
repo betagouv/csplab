@@ -15,4 +15,4 @@ class UserModelAdmin(admin.ModelAdmin):
     )
     list_filter = ("is_staff", "is_superuser")
     search_fields = ("email",)
-    readonly_fields = [f.name for f in UserModel._meta.get_fields()]
+    readonly_fields = ["username", "id", "date_joined", "last_login", "password"]
