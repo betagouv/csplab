@@ -79,7 +79,7 @@ def test_upsert_offers_result(documents_integration_container):
     for field, value in updated_fields.items():
         setattr(existing_offer, field, value)
 
-    new_offer = OfferFactory.create_entity()
+    new_offer = OfferFactory.create_entity(source_id=existing_offer.source_id)
 
     input_data = UpsertOffersInput(offers=[existing_offer, new_offer])
     result = documents_integration_container.upsert_offers_usecase().execute(

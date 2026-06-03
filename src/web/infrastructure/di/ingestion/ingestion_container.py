@@ -102,6 +102,7 @@ class IngestionContainer(containers.DeclarativeContainer):
             concours_repository=concours_repository,
             offers_repository=offers_repository,
             metiers_repository=metiers_repository,
+            source_repository=source_repository,
         )
     )
 

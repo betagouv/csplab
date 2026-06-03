@@ -12,6 +12,7 @@ from domain.repositories.concours_repository_interface import IConcoursRepositor
 from domain.repositories.corps_repository_interface import ICorpsRepository
 from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.repositories.offers_repository_interface import IOffersRepository
+from domain.repositories.source_repository_interface import ISourceRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
 from domain.services.logger_interface import ILogger
 from infrastructure.gateways.ingestion.concours_cleaner import ConcoursCleaner
@@ -28,11 +29,14 @@ class DocumentCleaner(IDocumentCleaner[IEntity]):
         concours_repository: IConcoursRepository,
         offers_repository: IOffersRepository,
         metiers_repository: IMetierRepository,
+        source_repository: ISourceRepository,
     ):
         self._cleaners = {
             DocumentType.CORPS: CorpsCleaner(logger, corps_repository),
             DocumentType.CONCOURS: ConcoursCleaner(logger, concours_repository),
-            DocumentType.OFFERS: OffersCleaner(logger, offers_repository),
+            DocumentType.OFFERS: OffersCleaner(
+                logger, offers_repository, source_repository
+            ),
             DocumentType.METIERS: MetierCleaner(logger, metiers_repository),
         }
 

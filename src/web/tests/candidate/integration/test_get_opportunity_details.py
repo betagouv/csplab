@@ -8,6 +8,7 @@ from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.metier_factory import MetierFactory
 from tests.factories.offer_factory import OfferFactory
+from tests.factories.source_factory import SourceFactory
 from tests.utils.shared_fixtures import (
     create_shared_qdrant_repository,
 )
@@ -45,7 +46,10 @@ def test_app_config(candidate_container):
 
 
 def test_execute_get_offer_details(db, candidate_container):
-    offer = OfferFactory.create_entity(family_code="ERJUR011")
+    source = SourceFactory.create_model()
+    offer = OfferFactory.create_entity(
+        family_code="ERJUR011", source_id=str(source.source_id)
+    )
 
     offers_repo = candidate_container.shared_container.offers_repository()
     offers_repo.upsert_batch([offer])

@@ -16,6 +16,7 @@ from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.concours_factory import ConcoursFactory
 from tests.factories.corps_factory import CorpsFactory
 from tests.factories.document_factory import DocumentFactory
+from tests.factories.source_factory import SourceFactory
 from tests.factories.talentsoft_factories import (
     TalentsoftCodedObjectFactory,
     TalentsoftCustomCodeTableFactory,
@@ -84,8 +85,13 @@ def clean_documents_integration_container(db):
     return container
 
 
+@pytest.fixture(name="offer_source")
+def offer_source_fixture(db):
+    return SourceFactory.create_model()
+
+
 @pytest.fixture(name="raw_offer_setup")
-def raw_offer_setup_fixture(db, clean_documents_integration_container):
+def raw_offer_setup_fixture(db, clean_documents_integration_container, offer_source):
     usecase = clean_documents_integration_container.clean_documents_usecase()
     repository = clean_documents_integration_container.document_repository()
     # Créer un nouveau document à chaque fois pour éviter la réutilisation
@@ -343,7 +349,7 @@ def test_clean_offers_mark_as_failed_error(db, raw_offer_setup):
     ],
 )
 def test_execute_clean_offers_with_category(
-    db, clean_documents_integration_container, category, expected
+    db, clean_documents_integration_container, offer_source, category, expected
 ):
     usecase = clean_documents_integration_container.clean_documents_usecase()
     document_repository = clean_documents_integration_container.document_repository()
@@ -416,6 +422,7 @@ def test_execute_clean_offers_with_category(
 def test_execute_clean_offers_with_geographical_area(
     db,
     clean_documents_integration_container,
+    offer_source,
     area,
     country,
     region,
@@ -463,3 +470,21 @@ def test_execute_clean_offers_with_geographical_area(
     assert cleaned_offer.country == expected_country
     assert cleaned_offer.region == expected_region
     assert cleaned_offer.department == expected_department
+
+
+def test_execute_clean_offers_source_id(
+    db, clean_documents_integration_container, offer_source
+):
+    usecase = clean_documents_integration_container.clean_documents_usecase()
+    document_repository = clean_documents_integration_container.document_repository()
+
+    document = DocumentFactory.create_entity(document_type=DocumentType.OFFERS)
+    document_repository.upsert_batch([document], DocumentType.OFFERS)
+
+    result = usecase.execute(DocumentType.OFFERS)
+
+    assert result["created"] == 1
+
+    cleaned_offer = OfferModel.objects.first()
+    assert cleaned_offer is not None
+    assert cleaned_offer.source_id == offer_source.source_id

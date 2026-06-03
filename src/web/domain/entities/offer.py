@@ -28,7 +28,7 @@ class Offer(IEntity):
     publication_date: datetime
     beginning_date: Optional[LimitDate]
     family_code: Optional[str] = None
-    source_id: Optional[str] = None
+    source_id: str = ""
     processing: bool = False
     processed_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
