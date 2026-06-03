@@ -28,7 +28,7 @@ class OfferModel(models.Model):
 
     id = models.UUIDField(primary_key=True)
     external_id = models.CharField(max_length=100, unique=True)
-    reference = models.CharField(max_length=100)
+    reference = models.CharField(max_length=100, null=False, blank=False)
     verse = models.CharField(
         max_length=20, choices=VERSE_CHOICES, null=True, blank=True
     )

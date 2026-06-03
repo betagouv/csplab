@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="offermodel",
             name="reference",
-            field=models.CharField(max_length=100),
+            field=models.CharField(max_length=100, null=False, blank=False),
         ),
         migrations.AddConstraint(
             model_name="offermodel",
