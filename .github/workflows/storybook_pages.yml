@@ -32,7 +32,7 @@ jobs:
       run:
         working-directory: ./src/web
     env:
-      STORYBOOK_BASE_URL: /${{ github.event.repository.name }}/
+      STORYBOOK_BASE_URL: /${{ github.event.repository.name }}/storybook/
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-pnpm-node
@@ -44,6 +44,7 @@ jobs:
         with:
           branch: gh-pages
           folder: src/web/presentation/frontend/storybook-static
+          target-folder: storybook
           force: false
           clean-exclude: pr-*
 

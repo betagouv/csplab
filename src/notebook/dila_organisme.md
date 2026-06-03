@@ -297,7 +297,7 @@ print(df_details.columns.tolist())
 import plotly.express as px
 
 fig = px.treemap(df_orgs[df_orgs["active"]==True], ids="code", names="label", parents="parentCode")
-fig.show(renderer="iframe")
+fig.show(renderer="notebook_connected")
 ```
 
 ```python
@@ -335,47 +335,24 @@ print(f"[TS — actifs] Sans géolocalisation : {n - n_geo:,} / {n:,}  ({(n - n_
 
 ### 2.2 Analyse de la structure du référenciel Organisation de TS utilisée en pratique
 
-<!-- #region -->
-Connecting to the Scalingo production database
-
-__Prerequisites:__
-
-- Scalingo CLI installed (`brew install scalingo`)
-- SSH key added to your Scalingo account (`scalingo keys-add my-key ~/.ssh/id_ed25519.pub`)
-- `SCALINGO_POSTGRESQL_URL` set in your environment (`~/.zshrc`)
-
-__Step 1 — Load the SSH key into the agent__ (once per session):
-```bash
-ssh-add ~/.ssh/id_ed25519
-```
-
-__Step 2 — Open the tunnel__ (keep this terminal open):
-
-```bash
-scalingo --app csplab-web --region osc-fr1 db-tunnel $SCALINGO_POSTGRESQL_URL
-```
-
-__Step 3 — Connect from the notebook:__
-
-<!-- #endregion -->
-
 ```python
 import re
-from urllib.parse import urlparse
 from sqlalchemy import create_engine
 import os
 
-raw_url = os.getenv("SCALINGO_POSTGRESQL_URL", "")
-parsed = urlparse(re.sub(r'^postgres(ql)?://', 'postgresql+psycopg2://', raw_url))
+raw_url = os.getenv("WEB_DATABASE_URL", "postgresql+psycopg2://web:pass@localhost:5432/web")
 
-engine = create_engine(
-    f"postgresql+psycopg2://{parsed.username}:{parsed.password}@127.0.0.1:10000{parsed.path}"
-)
+# Normalise le schéma vers psycopg2 (psql://, postgres://, postgresql:// → postgresql+psycopg2://)
+url = re.sub(r'^(?:postgresql|postgres|psql)(?:\+\w+)?://', 'postgresql+psycopg2://', raw_url)
+
+engine = create_engine(url)
 ```
 
 #### Organismes depuis la BDD
 
 ```python
+import pandas as pd
+
 df_counts = pd.read_sql("""
     SELECT
         raw_data->'organisation'->>'entityCode' AS entity_code,
@@ -401,7 +378,7 @@ fig = px.treemap(
     values="offer_count",
     hover_data=["clientCode"],
 )
-fig.show(renderer="iframe")
+fig.show(renderer="notebook_connected")
 ```
 
 #### Filtre sur les noeuds / feuilles qui sont rattachés directement à au moins une offre
@@ -428,7 +405,7 @@ fig = px.treemap(
     hover_data=["clientCode"],
     title=f"Organismes avec au moins 1 offre ({len(df_avec_offres)} organismes)",
 )
-fig.show(renderer="iframe")
+fig.show(renderer="notebook_connected")
 ```
 
 ### 2.3 Analyse de la structure des données proposées par la DILA
@@ -464,7 +441,7 @@ fig = px.treemap(
     title=f"Hiérarchie DILA all ({len(df_tree_all):,} nœuds)",
     hover_data=["siren", "siret"],
 )
-fig.show(renderer="iframe")
+fig.show(renderer="notebook_connected")
 ```
 
 ```python
@@ -490,7 +467,7 @@ fig = px.treemap(
     title=f"Hiérarchie DILA FPE ({len(df_tree_fpe):,} nœuds)",
     hover_data=["siren", "siret"],
 )
-fig.show(renderer="iframe")
+fig.show(renderer="notebook_connected")
 ```
 
 > **Les données de l'annuaire des services public de la DILA permet de reproduire la notion de hierarchie au sein des organismes de la FPE**
@@ -571,8 +548,7 @@ fig = px.treemap(
     title=f"Hiérarchie DILA — Référents FPE/SI agrégés ({len(df_flat_agg):,} nœuds)",
     hover_data=["siren", "siret"],
 )
-fig.show(renderer="iframe")
-
+fig.show(renderer="notebook_connected")
 ```
 
 > **Si on s'appuie sur les données de la DILA pour la FPE: il sera aussi necessaire de mettre en place une heuristique pour couper le référenciel au niveau des feuilles (bureaux etc.)**

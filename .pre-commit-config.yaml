@@ -6,6 +6,8 @@ repos:
     hooks:
       - id: check-yaml
       - id: end-of-file-fixer
+        exclude: ^docs/
       - id: trailing-whitespace
+        exclude: ^docs/
       - id: debug-statements
         files: ^src/.+\.py$

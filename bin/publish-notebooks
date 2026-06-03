@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# ---------------------------------------------------------------------------
+# publish-notebooks — Export Jupyter notebooks to docs/notebook/
+#                     Default format: markdown (viewable on GitHub, but iframes won't work for security reasons)
+#                     Alternative:    html    (standalone file)
+#
+# Usage:
+#   bin/publish-notebooks [path/to/notebook.ipynb] [format]
+#
+#   format: markdown (default) | html
+#
+# Examples:
+#   bin/publish-notebooks
+#   bin/publish-notebooks src/notebook/dila_organisme.ipynb
+#   bin/publish-notebooks src/notebook/dila_organisme.ipynb html
+#
+# GitHub URL after push:
+#   https://github.com/betagouv/csplab/blob/main/docs/notebook/<name>.md
+# ---------------------------------------------------------------------------
+
+NOTEBOOK="${1:-}"
+FORMAT="${2:-markdown}"
+
+mkdir -p docs/notebook
+
+if [[ -n "$NOTEBOOK" ]]; then
+  echo "📄 Exporting ${NOTEBOOK} as ${FORMAT}…"
+  cd src/notebook && direnv exec . jupyter nbconvert \
+    --to "${FORMAT}" \
+    --output-dir "../../docs/notebook" \
+    "../../${NOTEBOOK}"
+else
+  echo "📄 Exporting all notebooks as ${FORMAT}…"
+  cd src/notebook && direnv exec . jupyter nbconvert \
+    --to "${FORMAT}" \
+    --output-dir "../../docs/notebook" \
+    *.ipynb
+fi
+
+echo "✅ Done. Files available in docs/notebook/"
+if [[ "${FORMAT}" == "markdown" ]]; then
+  echo "   → https://github.com/betagouv/csplab/blob/main/docs/notebook/"
+else
+  echo "   → https://htmlpreview.github.io/?https://raw.githubusercontent.com/betagouv/csplab/main/docs/notebook/"
+fi

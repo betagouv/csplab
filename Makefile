@@ -108,6 +108,13 @@ jupytext--to-ipynb: ## convert remote md files into ipynb
 	cd src/notebook && uv run jupytext --to ipynb *.md && cd ../..
 .PHONY: jupytext--to-ipynb
 
+NOTEBOOK ?=  ## optional: path to a .ipynb file to export (exports all src/notebook/*.ipynb if unset)
+FORMAT ?= html  ## output format: html (default, interactive Plotly) | markdown
+
+publish-notebooks: ## export notebooks to docs/notebook/ (usage: make publish-notebooks [NOTEBOOK=src/notebook/name.ipynb] [FORMAT=html|markdown])
+	@bin/publish-notebooks $(NOTEBOOK) $(FORMAT)
+.PHONY: publish-notebooks
+
 ### LOGS
 logs: ## display all services logs (follow mode)
 	@$(COMPOSE) logs -f
@@ -129,6 +136,12 @@ create-ingestion-test-db: \
 	@echo "Creating ingestion_test database…"
 	@set -a && source env.d/postgresql && docker exec -i csp_postgresql psql -U $$POSTGRES_USER < infra/postgres/create-ingestion-test-db.sql
 .PHONY: create-ingestion-test-db
+
+DUMP ?=  ## optional: path to a .tar.gz dump file (auto-picks latest in dumps/ if unset)
+
+restore-web-db: ## restore web database from a Scalingo dump — auto-picks latest if DUMP is unset (usage: make restore-web-db [DUMP=dumps/myfile.tar.gz])
+	@bin/restore-web-db $(DUMP)
+.PHONY: restore-web-db
 
 migrate-ingestion: ## run ingestion database migrations (alembic upgrade head)
 migrate-ingestion: \

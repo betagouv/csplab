@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# ---------------------------------------------------------------------------
+# restore-web-db — Restore the web PostgreSQL database from a Scalingo dump
+#
+# Usage:
+#   bin/restore-web-db [path/to/dump.tar.gz]
+#
+# If no argument is provided, the most recent *.tar.gz in dumps/ is used.
+# ---------------------------------------------------------------------------
+
+DUMP="${1:-}"
+
+# Auto-detect the most recent dump if none provided
+if [[ -z "$DUMP" ]]; then
+  DUMP=$(ls -t dumps/*.tar.gz 2>/dev/null | head -1)
+fi
+
+if [[ -z "$DUMP" ]]; then
+  echo "❌ No dump file found."
+  echo "   Place a .tar.gz in dumps/ or pass the path as an argument:"
+  echo "   bin/restore-web-db dumps/myfile.tar.gz"
+  exit 1
+fi
+
+if [[ ! -f "$DUMP" ]]; then
+  echo "❌ File not found: $DUMP"
+  exit 1
+fi
+
+# Load PostgreSQL env vars (POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD…)
+set -a
+# shellcheck source=/dev/null
+source env.d/postgresql
+set +a
+
+echo "⚠️  Dropping and recreating database '${POSTGRES_DB}'…"
+# Connect to template1 (always available) so we are not connected to the target DB
+docker exec -i csp_postgresql psql -U "${POSTGRES_USER}" -d template1 \
+  -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${POSTGRES_DB}' AND pid <> pg_backend_pid();"
+docker exec -i csp_postgresql psql -U "${POSTGRES_USER}" -d template1 \
+  -c "DROP DATABASE IF EXISTS ${POSTGRES_DB};"
+docker exec -i csp_postgresql psql -U "${POSTGRES_USER}" -d template1 \
+  -c "CREATE DATABASE ${POSTGRES_DB} OWNER ${POSTGRES_USER};"
+
+echo "📦 Restoring web database from ${DUMP}…"
+tar -xzOf "${DUMP}" | docker exec -i csp_postgresql \
+  pg_restore -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" --no-owner --no-privileges
+
+echo "🔄 Running Django migrations…"
+bin/manage migrate
+
+echo "✅ Done. Web database restored from ${DUMP}."
