@@ -72,7 +72,6 @@ class OfferModel(models.Model):
         verbose_name_plural = "Offers"
         indexes = [
             models.Index(fields=["external_id"]),
-            models.Index(fields=["source"], name="offers_source_id_idx"),
         ]
 
     def to_entity(self) -> Offer:

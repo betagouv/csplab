@@ -48,8 +48,4 @@ class Migration(migrations.Migration):
                 to_field="source_id",
             ),
         ),
-        migrations.AddIndex(
-            model_name="offermodel",
-            index=models.Index(fields=["source"], name="offers_source_id_idx"),
-        ),
     ]
