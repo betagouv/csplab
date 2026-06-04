@@ -1,5 +1,6 @@
 from polyfactory.factories.dataclass_factory import DataclassFactory
 
+from domain.recruteur.entities.organisme import Organisme
 from domain.recruteur.value_objects.etapes_recrutement import (
     CategorieEtapeRecrutement,
     EtapeRecrutement,
@@ -28,3 +29,16 @@ def make_etapes_recrutement(
             EtapeRecrutementFactory.build(identifiant=f"etape_{i}") for i in range(n)
         )
     return EtapesRecrutement(etapes=etapes)
+
+
+class OrganismeFactory(DataclassFactory):
+    __model__ = Organisme
+
+    @classmethod
+    def build(
+        cls,
+        parametres: EtapesRecrutement | None = None,
+    ):
+        if parametres is None:
+            parametres = make_etapes_recrutement()
+        return super().build(_parametres=parametres)
