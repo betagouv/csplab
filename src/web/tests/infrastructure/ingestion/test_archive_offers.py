@@ -18,7 +18,7 @@ from tests.factories.talentsoft_factories import (
     TalentsoftBackVacancyFactory,
 )
 from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
-from tests.ingestion.unit.external_gateways.utils import cached_token
+from tests.infrastructure.ingestion.external_gateways.utils import cached_token
 from tests.utils.shared_fixtures import create_shared_qdrant_repository
 
 
