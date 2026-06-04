@@ -1,11 +1,11 @@
 import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3'
-import BaseButton from '@/components/base/BaseButton/BaseButton.vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 
-type ButtonProps = ComponentPropsAndSlots<typeof BaseButton>
+type CspButtonProps = ComponentPropsAndSlots<typeof CspButton>
 
 const meta = {
-  title: '02 - Elements/Generic/BaseButton',
-  component: BaseButton,
+  title: 'Éléments/Génériques/CspButton',
+  component: CspButton,
   tags: ['autodocs'],
   parameters: {
     controls: {
@@ -13,15 +13,15 @@ const meta = {
     },
     docs: {
       description: {
-        component: 'Generic button. Either have a `label` or an `icon` or both.',
+        component: 'Bouton générique. Doit avoir un `label`, une `icon`, ou les deux.',
       },
     },
   },
   argTypes: {
     variant: {
       control: { type: 'radio' },
-      options: ['primary', 'secondary', 'tertiary', 'tertiary-no-outline'] satisfies ButtonProps['variant'][],
-      description: 'Visual style.',
+      options: ['primary', 'secondary', 'tertiary', 'tertiary-no-outline'] satisfies CspButtonProps['variant'][],
+      description: 'Style visuel.',
       table: {
         type: {
           summary: 'primary | secondary | tertiary | tertiary-no-outline',
@@ -33,8 +33,8 @@ const meta = {
     },
     size: {
       control: { type: 'radio' },
-      options: ['sm', 'md', 'lg'] satisfies ButtonProps['size'][],
-      description: 'Button size.',
+      options: ['sm', 'md', 'lg'] satisfies CspButtonProps['size'][],
+      description: 'Taille du bouton.',
       table: {
         type: {
           summary: 'sm | md | lg',
@@ -46,7 +46,7 @@ const meta = {
     },
     isIconLeft: {
       control: { type: 'boolean' },
-      description: 'Show icon before label.',
+      description: 'Afficher l\'icône avant le libellé.',
       table: {
         type: {
           summary: 'boolean',
@@ -58,7 +58,7 @@ const meta = {
     },
     label: {
       control: { type: 'text' },
-      description: 'Button text. Required if `icon` is missing.',
+      description: 'Texte du bouton. Requis si `icon` est absent.',
       table: {
         type: {
           summary: 'string',
@@ -67,7 +67,7 @@ const meta = {
     },
     icon: {
       control: { type: 'text' },
-      description: 'Iconify name. Required if `label` is missing.',
+      description: 'Nom Iconify. Requis si `label` est absent.',
       table: {
         type: {
           summary: 'string',
@@ -76,7 +76,7 @@ const meta = {
     },
     as: {
       control: { type: 'text' },
-      description: 'Rendered element or component.',
+      description: 'Élément ou composant rendu.',
       table: {
         type: {
           summary: 'string | Component',
@@ -88,7 +88,7 @@ const meta = {
     },
     asChild: {
       control: { type: 'boolean' },
-      description: 'Render the child as the root element.',
+      description: 'Rendre l\'enfant comme élément racine.',
       table: {
         type: {
           summary: 'boolean',
@@ -139,20 +139,20 @@ const meta = {
     variant: 'primary',
     size: 'md',
     isIconLeft: false,
-    label: 'Button label',
+    label: 'Libellé du bouton',
     asChild: false,
   },
-  render: (args: ButtonProps) => ({
-    components: { BaseButton },
+  render: (args: CspButtonProps) => ({
+    components: { CspButton },
     setup() {
       return { args }
     },
-    template: '<BaseButton v-bind="args" />',
+    template: '<CspButton v-bind="args" />',
   }),
 }
 
 export default meta
-type Story = StoryObj<ButtonProps>
+type Story = StoryObj<CspButtonProps>
 
 const VARIANTS = ['primary', 'secondary', 'tertiary', 'tertiary-no-outline'] as const
 const SIZES = ['sm', 'md', 'lg'] as const
@@ -165,7 +165,7 @@ export const Default: Story = {
 
 export const Variants: Story = {
   render: args => ({
-    components: { BaseButton },
+    components: { CspButton },
     setup() {
       return { variants: VARIANTS, args }
     },
@@ -176,7 +176,7 @@ export const Variants: Story = {
           :key="v"
         >
           <p class="mb-2">{{ v }}</p>
-          <BaseButton
+          <CspButton
             v-bind="args"
             :variant="v"
             label="Label"
@@ -189,7 +189,7 @@ export const Variants: Story = {
 
 export const Sizes: Story = {
   render: args => ({
-    components: { BaseButton },
+    components: { CspButton },
     setup() {
       return { sizes: SIZES, args }
     },
@@ -200,7 +200,7 @@ export const Sizes: Story = {
           :key="s"
         >
           <p class="mb-2">{{ s }}</p>
-          <BaseButton
+          <CspButton
             v-bind="args"
             :size="s"
             label="Label"
@@ -213,7 +213,7 @@ export const Sizes: Story = {
 
 export const Icons: Story = {
   render: args => ({
-    components: { BaseButton },
+    components: { CspButton },
     setup() {
       const iconVariants = [
         {
@@ -260,7 +260,7 @@ export const Icons: Story = {
               :key="v.description"
             >
               <p class="mb-2">{{ v.description }}</p>
-              <BaseButton
+              <CspButton
                 v-bind="{ ...args, ...v.props }"
                 :size="s"
               />
@@ -274,7 +274,7 @@ export const Icons: Story = {
 
 export const States: Story = {
   render: args => ({
-    components: { BaseButton },
+    components: { CspButton },
     setup() {
       return { variants: VARIANTS, args }
     },
@@ -286,12 +286,12 @@ export const States: Story = {
           class="flex gap-3 items-center"
         >
           <p class="w-24">{{ v }}</p>
-          <BaseButton
+          <CspButton
             :variant="v"
             v-bind="args"
             label="Default"
           />
-          <BaseButton
+          <CspButton
             :variant="v"
             v-bind="args"
             :disabled="true"
@@ -305,9 +305,9 @@ export const States: Story = {
 
 export const AsLink: Story = {
   render: () => ({
-    components: { BaseButton },
+    components: { CspButton },
     template: `
-      <BaseButton
+      <CspButton
         as="a"
         href="https://www.csplab.beta.gouv.fr"
         target="_blank"

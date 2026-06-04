@@ -1,21 +1,19 @@
 <script setup lang="ts">
 import { Icon as IconifyIcon } from '@iconify/vue'
 
-interface BaseIconProps {
-  /** Iconify name rendered by the component. */
+interface CspIconProps {
   name: string
-  /** Icon size in pixels or CSS units. */
   size?: number | string
 }
 
-withDefaults(defineProps<BaseIconProps>(), {
+withDefaults(defineProps<CspIconProps>(), {
   size: 16,
 })
 </script>
 
 <template>
   <IconifyIcon
-    class="icon"
+    class="csp-icon"
     :icon="name"
     :width="size"
     :height="size"

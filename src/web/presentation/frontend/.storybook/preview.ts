@@ -18,6 +18,24 @@ const preview: Preview = {
       storySort: {
         method: 'alphabetical',
         locales: 'fr-FR',
+        order: [
+          'Système de design',
+          [
+            'Introduction',
+            'DDR',
+          ],
+          'Fondations',
+          'Éléments',
+          [
+            'Génériques',
+            'ATS',
+          ],
+          'Compositions',
+          [
+            'Génériques',
+            'ATS',
+          ],
+        ],
       },
     },
   },

@@ -3,5 +3,5 @@
 
 @theme {
   --color-*: initial;
-  --font-sans: var(--csplab-font-family);
+  --font-sans: var(--csp-font-family);
 }

@@ -1,5 +1,5 @@
 ---
-title: DDR-000 — Pourquoi des DDR (Design Decision Records)
+title: "DDR-000 : Pourquoi des DDR (Design Decision Records)"
 created: 2026-05-13
 status: accepté
 ---
