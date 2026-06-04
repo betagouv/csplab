@@ -4,7 +4,7 @@ from uuid import UUID
 from ddd.page_interface import IPage
 
 from referentiel.entities.offer import Offer
-from referentiel.repositories.document_repository_interface import IUpsertResult
+from referentiel.types import IUpsertResult
 
 
 class IArchiveError(TypedDict):
@@ -21,6 +21,7 @@ class IArchiveResult(TypedDict):
 
 
 class IOffersRepository(Protocol):
+    # todo move this logic in ingestion
     def upsert_batch(self, offers_list: List[Offer]) -> IUpsertResult: ...
 
     def get_by_id(self, offer_id: UUID) -> Offer: ...
@@ -41,10 +42,13 @@ class IOffersRepository(Protocol):
         self, active: bool, external_id_contains: str | None
     ) -> IPage[Offer]: ...
 
+    # todo move this logic in ingestion
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]: ...
 
+    # todo move this logic in ingestion
     def mark_as_processed(self, offers_list: List[Offer]) -> int: ...
 
+    # todo move this logic in ingestion
     def mark_as_pending(self, offers_list: List[Offer]) -> int: ...
 
     def mark_as_archived(self, offers_list: List[Offer]) -> int: ...
