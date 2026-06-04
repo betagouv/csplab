@@ -1,12 +1,12 @@
-import{j as e,b as o,M as i}from"./index-BCYKmYhM.js";import{useMDXComponents as r}from"./index-B99yJZoL.js";import"./iframe-E-jaVpmF.js";import"./index-8_2S3kac.js";const a=`---
-title: DDR-001 - Niveaux de composition et frontières
+import{j as e,b as o,M as i}from"./index-DM3HQ_yf.js";import{useMDXComponents as r}from"./index-B4jJGZPG.js";import"./iframe-DnGFeqNW.js";import"./index-8_2S3kac.js";const a=`---
+title: "DDR-001 : Niveaux de composition et frontières"
 created: 2026-05-12
 status: accepté
 ---
 
 ## Contexte
 
-Le design system, le Storybook et l'organisation du code doivent partager une même grille de lecture, sans confondre trois sujets distincts :
+Le système de design, le Storybook et l'organisation du code doivent partager une même grille de lecture, sans confondre trois sujets distincts :
 
 - l'architecture technique (primitives Reka UI, composants Vue) ;
 - l'organisation du code source (\`shared\`, \`features\`, \`views\`) ;
@@ -16,7 +16,7 @@ Il faut une taxonomie courte, compréhensible par une équipe mixte design/dev, 
 
 ## Décision
 
-Le design system est décrit selon deux axes.
+Le système de design est décrit selon deux axes.
 
 ### Axe principal : niveau de composition
 
@@ -69,7 +69,7 @@ La hiérarchie des dossiers n'a pas à refléter exactement la taxonomie Storybo
 
 ## Conséquences
 
-- Le Storybook, le design system et le code source partagent le même vocabulaire.
+- Le Storybook, le système de design et le code source partagent le même vocabulaire.
 - L'axe \`Générique / ATS\` répond au besoin actuel sans anticiper des frontières métier qui ne sont pas encore stabilisées.
 
 ## Alternatives écartées
@@ -77,6 +77,6 @@ La hiérarchie des dossiers n'a pas à refléter exactement la taxonomie Storybo
 - **Atomic design stricte** : trop de niveaux et trop d'arbitrages atome/molécule.
 - **Axe secondaire \`Générique / Domaine recrutement / ATS\` dès maintenant** : plus prospectif que nécessaire à ce stade ; sans cas d'usage concret partagé hors ATS, il introduit surtout des débats de classement.
 - **Découpage par feature uniquement** : bon pour l'ownership, insuffisant pour décrire l'échelle de composition.
-- **Taxonomie calquée sur les dossiers** : crée des collisions de vocabulaire entre architecture technique, code source et design system.
-`;function s(n){return e.jsxs(e.Fragment,{children:[e.jsx(o,{title:"00 — Design System/DDR/DDR-001 — Niveaux de composition"}),`
+- **Taxonomie calquée sur les dossiers** : crée des collisions de vocabulaire entre architecture technique, code source et système de design.
+`;function s(n){return e.jsxs(e.Fragment,{children:[e.jsx(o,{title:"Système de design/DDR/DDR-001 : Niveaux de composition"}),`
 `,e.jsx(i,{children:a})]})}function p(n={}){const{wrapper:t}={...r(),...n.components};return t?e.jsx(t,{...n,children:e.jsx(s,{...n})}):s()}export{p as default};

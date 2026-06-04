@@ -1,5 +1,5 @@
-import{j as e,b as i,M as o}from"./index-BCYKmYhM.js";import{useMDXComponents as r}from"./index-B99yJZoL.js";import"./iframe-E-jaVpmF.js";import"./index-8_2S3kac.js";const u=`---
-title: DDR-000 — Pourquoi des DDR (Design Decision Records)
+import{j as e,b as i,M as o}from"./index-DM3HQ_yf.js";import{useMDXComponents as r}from"./index-B4jJGZPG.js";import"./iframe-DnGFeqNW.js";import"./index-8_2S3kac.js";const u=`---
+title: "DDR-000 : Pourquoi des DDR (Design Decision Records)"
 created: 2026-05-13
 status: accepté
 ---
@@ -64,5 +64,5 @@ Le format markdown versionné est peu consultable des parties prenantes non tech
 
 - Les décisions de design sont tracées, datées et référençables dans les tickets et les revues de code.
 - Une story peut référencer un DDR pour expliciter les choix de design qui y sont appliqués.
-`;function t(n){return e.jsxs(e.Fragment,{children:[e.jsx(i,{title:"00 - Design System/DDR/DDR-000 - Pourquoi des DDR"}),`
+`;function t(n){return e.jsxs(e.Fragment,{children:[e.jsx(i,{title:"Système de design/DDR/DDR-000 : Pourquoi des DDR"}),`
 `,e.jsx(o,{children:u})]})}function p(n={}){const{wrapper:s}={...r(),...n.components};return s?e.jsx(s,{...n,children:e.jsx(t,{...n})}):t()}export{p as default};
