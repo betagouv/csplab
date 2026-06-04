@@ -68,8 +68,9 @@ function handleSave() {
 | Type                 | Convention       | Example                           |
 | -------------------- | ---------------- | --------------------------------- |
 | Page/View            | `*View.vue`      | `CandidateListView.vue`           |
-| Feature component    | `PascalCase.vue` | `CandidateCard.vue`               |
-| Generic UI component | `Base` prefix    | `BaseButton.vue`, `BaseModal.vue` |
+| UI ingredient        | `Csp` prefix     | `CspButton.vue`, `CspCandidateCard.vue` |
+
+**Rule**: The `Csp` prefix is reserved for UI "ingredients" and design system components. This includes both generic components (base UI) and business-specific UI components (e.g., a card, a specialized input). It does NOT apply to full pages/views or technical utility components (like error boundaries).
 
 ### Props & Emits
 
@@ -213,6 +214,7 @@ export interface CreateCandidateDto {
 
 - `<style scoped lang="scss">` by default
 - BEM light for elements and modifiers ( `__element`, `--modifier`)
+- Use `csp-` prefix for global or shared component classes (e.g., `.csp-btn`, `.csp-input`)
 - CSS variables for tokens (colors, spacing)
 - No global styles except reset/tokens
 

@@ -2,7 +2,7 @@
 import type { PrimitiveProps } from 'reka-ui'
 import { Primitive } from 'reka-ui'
 import { computed } from 'vue'
-import BaseIcon from '@/components/base/BaseIcon/BaseIcon.vue'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 type ButtonProps = PrimitiveProps & {
   variant?: 'primary' | 'secondary' | 'tertiary' | 'tertiary-no-outline'
@@ -29,18 +29,18 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
 <template>
   <Primitive
     v-bind="props"
-    class="btn"
+    class="csp-btn"
     :class="[
-      `btn--${variant}`,
-      `btn--${size}`,
-      { 'btn--icon-only': isIconOnly },
-      { 'btn--icon-left': !isIconOnly && isIconLeft && Boolean(icon) },
-      { 'btn--icon-right': !isIconOnly && !isIconLeft && Boolean(icon) },
+      `csp-btn--${variant}`,
+      `csp-btn--${size}`,
+      { 'csp-btn--icon-only': isIconOnly },
+      { 'csp-btn--icon-left': !isIconOnly && isIconLeft && Boolean(icon) },
+      { 'csp-btn--icon-right': !isIconOnly && !isIconLeft && Boolean(icon) },
     ]"
   >
     <span
       v-if="label"
-      class="btn__label"
+      class="csp-btn__label"
     >
       {{ label }}
     </span>
@@ -48,7 +48,8 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
       v-if="icon"
       class="btn__icon"
     >
-      <BaseIcon
+      <CspIcon
+        class="csp-btn__icon"
         :name="icon"
       />
     </span>
@@ -56,22 +57,22 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
 </template>
 
 <style scoped lang="scss">
-.btn {
+.csp-btn {
   display: inline-flex;
   width: fit-content;
   align-items: center;
   justify-content: center;
-  gap: var(--btn-gap);
+  gap: var(--csp-btn-gap);
   white-space: nowrap;
   font-weight: 500;
   line-height: 1.25;
   cursor: pointer;
   border: none;
   text-decoration: none;
-  padding: var(--btn-padding-y) var(--btn-padding-x);
+  padding: var(--csp-btn-padding-y) var(--csp-btn-padding-x);
 
   &:focus-visible {
-    outline: 2px solid var(--csplab-focus-ring-color);
+    outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;
   }
 
@@ -83,7 +84,7 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   }
 }
 
-.btn--primary {
+.csp-btn--primary {
   background-color: var(--background-action-high-blue-france);
   color: var(--text-inverted-grey);
 
@@ -96,7 +97,7 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   }
 }
 
-.btn--secondary {
+.csp-btn--secondary {
   background-color: transparent;
   color: var(--text-action-high-blue-france);
   box-shadow: inset 0 0 0 1px var(--border-action-high-blue-france);
@@ -110,7 +111,7 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   }
 }
 
-.btn--tertiary {
+.csp-btn--tertiary {
   background-color: transparent;
   color: var(--text-action-high-blue-france);
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
@@ -124,7 +125,7 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   }
 }
 
-.btn--tertiary-no-outline {
+.csp-btn--tertiary-no-outline {
   background-color: transparent;
   color: var(--text-action-high-blue-france);
 
@@ -137,49 +138,49 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   }
 }
 
-.btn:deep(.icon) {
+.csp-btn__icon {
   width: 1.25em;
   height: 1.25em;
 }
 
-.btn--icon-only {
-  padding: var(--btn-padding-y) var(--btn-padding-y);
+.csp-btn--icon-only {
+  padding: var(--csp-btn-padding-y) var(--csp-btn-padding-y);
 }
 
-.btn--icon-right {
+.csp-btn--icon-right {
   flex-direction: row;
-  padding-right: var(--btn-padding-x-sm);
+  padding-right: var(--csp-btn-padding-x-sm);
 }
 
-.btn--icon-left {
+.csp-btn--icon-left {
   flex-direction: row-reverse;
-  padding-left: var(--btn-padding-x-sm);
+  padding-left: var(--csp-btn-padding-x-sm);
 }
 
-.btn--sm {
+.csp-btn--sm {
   font-size: 0.825rem;
 
-  --btn-gap: 0.375rem;
-  --btn-padding-y: 0.5em;
-  --btn-padding-x: 1.25em;
-  --btn-padding-x-sm: 0.75em;
+  --csp-btn-gap: 0.375rem;
+  --csp-btn-padding-y: 0.5em;
+  --csp-btn-padding-x: 1.25em;
+  --csp-btn-padding-x-sm: 0.75em;
 }
 
-.btn--md {
+.csp-btn--md {
   font-size: 0.875rem;
 
-  --btn-gap: 0.5rem;
-  --btn-padding-y: 0.75em;
-  --btn-padding-x: 1.5em;
-  --btn-padding-x-sm: 1em;
+  --csp-btn-gap: 0.5rem;
+  --csp-btn-padding-y: 0.75em;
+  --csp-btn-padding-x: 1.5em;
+  --csp-btn-padding-x-sm: 1em;
 }
 
-.btn--lg {
+.csp-btn--lg {
   font-size: 1rem;
 
-  --btn-gap: 0.625rem;
-  --btn-padding-y: 0.75em;
-  --btn-padding-x: 1.5em;
-  --btn-padding-x-sm: 1em;
+  --csp-btn-gap: 0.625rem;
+  --csp-btn-padding-y: 0.75em;
+  --csp-btn-padding-x: 1.5em;
+  --csp-btn-padding-x-sm: 1em;
 }
 </style>

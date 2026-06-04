@@ -1,12 +1,12 @@
 ---
-title: DDR-001 - Niveaux de composition et frontières
+title: "DDR-001 : Niveaux de composition et frontières"
 created: 2026-05-12
 status: accepté
 ---
 
 ## Contexte
 
-Le design system, le Storybook et l'organisation du code doivent partager une même grille de lecture, sans confondre trois sujets distincts :
+Le système de design, le Storybook et l'organisation du code doivent partager une même grille de lecture, sans confondre trois sujets distincts :
 
 - l'architecture technique (primitives Reka UI, composants Vue) ;
 - l'organisation du code source (`shared`, `features`, `views`) ;
@@ -16,7 +16,7 @@ Il faut une taxonomie courte, compréhensible par une équipe mixte design/dev, 
 
 ## Décision
 
-Le design system est décrit selon deux axes.
+Le système de design est décrit selon deux axes.
 
 ### Axe principal : niveau de composition
 
@@ -69,7 +69,7 @@ La hiérarchie des dossiers n'a pas à refléter exactement la taxonomie Storybo
 
 ## Conséquences
 
-- Le Storybook, le design system et le code source partagent le même vocabulaire.
+- Le Storybook, le système de design et le code source partagent le même vocabulaire.
 - L'axe `Générique / ATS` répond au besoin actuel sans anticiper des frontières métier qui ne sont pas encore stabilisées.
 
 ## Alternatives écartées
@@ -77,4 +77,4 @@ La hiérarchie des dossiers n'a pas à refléter exactement la taxonomie Storybo
 - **Atomic design stricte** : trop de niveaux et trop d'arbitrages atome/molécule.
 - **Axe secondaire `Générique / Domaine recrutement / ATS` dès maintenant** : plus prospectif que nécessaire à ce stade ; sans cas d'usage concret partagé hors ATS, il introduit surtout des débats de classement.
 - **Découpage par feature uniquement** : bon pour l'ownership, insuffisant pour décrire l'échelle de composition.
-- **Taxonomie calquée sur les dossiers** : crée des collisions de vocabulaire entre architecture technique, code source et design system.
+- **Taxonomie calquée sur les dossiers** : crée des collisions de vocabulaire entre architecture technique, code source et système de design.
