@@ -1,0 +1,30 @@
+from polyfactory.factories.dataclass_factory import DataclassFactory
+
+from domain.recruteur.value_objects.etapes_recrutement import (
+    CategorieEtapeRecrutement,
+    EtapeRecrutement,
+    EtapesRecrutement,
+)
+
+
+class EtapeRecrutementFactory(DataclassFactory):
+    __model__ = EtapeRecrutement
+
+
+def make_etape_recrutement(
+    identifiant: str = "entree",
+    categorie: CategorieEtapeRecrutement = CategorieEtapeRecrutement.INITIALE,
+    nom: str = "Réception des candidatures",
+) -> EtapeRecrutement:
+    return EtapeRecrutement(identifiant=identifiant, categorie=categorie, nom=nom)
+
+
+def make_etapes_recrutement(
+    etapes: tuple[EtapeRecrutement, ...] | None = None,
+    n: int = 6,
+) -> EtapesRecrutement:
+    if etapes is None:
+        etapes = tuple(
+            EtapeRecrutementFactory.build(identifiant=f"etape_{i}") for i in range(n)
+        )
+    return EtapesRecrutement(etapes=etapes)
