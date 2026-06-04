@@ -22,7 +22,7 @@ from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.offer_factory import OfferFactory
+from tests.factories.referentiel.offer_factory import OfferFactory
 
 fake = Faker()
 

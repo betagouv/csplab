@@ -1,7 +1,7 @@
 import pytest
 from referentiel.repositories.metier_repository_interface import IMetierRepository
 
-from tests.factories.metier_factory import MetierFactory
+from tests.factories.referentiel.metier_factory import MetierFactory
 from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 

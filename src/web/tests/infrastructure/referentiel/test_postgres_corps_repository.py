@@ -9,7 +9,7 @@ from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_corps_repository import (
     PostgresCorpsRepository,
 )
-from tests.factories.corps_factory import CorpsFactory
+from tests.factories.referentiel.corps_factory import CorpsFactory
 
 NOW = datetime.now()
 DAY_AGO = NOW - relativedelta(days=1)

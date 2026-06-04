@@ -5,7 +5,7 @@ from domain.ingestion.value_objects.source_type import SourceType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.source_factory import SourceFactory
+from tests.factories.ingestion.source_factory import SourceFactory
 
 
 @pytest.fixture(name="ingestion_container")

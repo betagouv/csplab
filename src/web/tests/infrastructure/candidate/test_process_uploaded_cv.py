@@ -12,7 +12,7 @@ from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.cv_metadata_factory import CVMetadataFactory
+from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.pdf_test_utils import create_minimal_valid_pdf
 

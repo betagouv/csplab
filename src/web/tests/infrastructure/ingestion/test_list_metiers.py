@@ -7,7 +7,7 @@ from config.app_config import AppConfig
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.metier_factory import MetierFactory
+from tests.factories.referentiel.metier_factory import MetierFactory
 
 
 @pytest.fixture(name="documents_integration_container")

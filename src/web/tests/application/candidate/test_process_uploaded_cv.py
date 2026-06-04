@@ -5,7 +5,7 @@ import pytest
 from domain.candidate.entities.cv_metadata import CVMetadata
 from domain.candidate.exceptions.cv_errors import CVNotFoundError
 from domain.candidate.value_objects.cv_processing_status import CVStatus
-from tests.factories.cv_metadata_factory import (
+from tests.factories.candidate.cv_metadata_factory import (
     CVMetadataFactory,
 )
 

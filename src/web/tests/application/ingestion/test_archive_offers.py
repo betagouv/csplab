@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from tests.factories.offer_factory import OfferFactory
+from tests.factories.referentiel.offer_factory import OfferFactory
 
 
 class TestArchiveOffers:

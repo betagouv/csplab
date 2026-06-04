@@ -5,10 +5,12 @@ from django.utils import timezone
 
 from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
-from tests.factories.concours_row_factory import ConcoursRowFactory
-from tests.factories.ingres_corps_factories import IngresCorpsDocumentFactory
-from tests.factories.ingres_metiers_factories import IngresMetiersDocumentFactory
-from tests.factories.talentsoft_factories import TalentsoftDetailOfferFactory
+from tests.factories.ingestion.ingres_corps_factories import IngresCorpsDocumentFactory
+from tests.factories.ingestion.ingres_metiers_factories import (
+    IngresMetiersDocumentFactory,
+)
+from tests.factories.ingestion.talentsoft_factories import TalentsoftDetailOfferFactory
+from tests.factories.referentiel.concours_row_factory import ConcoursRowFactory
 
 
 class DocumentFactory:

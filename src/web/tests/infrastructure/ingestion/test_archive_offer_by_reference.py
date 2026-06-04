@@ -15,7 +15,7 @@ from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
 )
-from tests.factories.offer_factory import OfferFactory
+from tests.factories.referentiel.offer_factory import OfferFactory
 
 fake = Faker()
 

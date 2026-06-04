@@ -8,7 +8,7 @@ from config.app_config import AppConfig
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.offer_factory import OfferFactory
+from tests.factories.referentiel.offer_factory import OfferFactory
 
 
 @pytest.fixture(name="documents_integration_container")

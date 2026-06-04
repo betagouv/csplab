@@ -10,7 +10,7 @@ from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_concours_repository import (
     PostgresConcoursRepository,
 )
-from tests.factories.concours_factory import ConcoursFactory
+from tests.factories.referentiel.concours_factory import ConcoursFactory
 
 fake = Faker()
 NOW = datetime.now()

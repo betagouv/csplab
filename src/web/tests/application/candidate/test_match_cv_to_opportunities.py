@@ -2,7 +2,7 @@ import pytest
 
 from domain.candidate.exceptions.cv_errors import CVProcessingFailedError
 from domain.candidate.value_objects.cv_processing_status import CVStatus
-from tests.factories.cv_metadata_factory import CVMetadataFactory
+from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
 
 
 def test_execute_with_failed_cv_raises_error(match_cv_to_opportunities_usecase):
