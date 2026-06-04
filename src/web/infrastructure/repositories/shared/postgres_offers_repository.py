@@ -9,11 +9,11 @@ from django.db.models import F, Q
 from django.utils import timezone
 from referentiel.entities.offer import Offer
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
-from referentiel.repositories.document_repository_interface import (
-    IUpsertResult,
-)
 from referentiel.repositories.offers_repository_interface import IOffersRepository
 
+from domain.ingestion.repositories.document_repository_interface import (
+    IUpsertResult,
+)
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.mappers.queryset_page import QuerySetPage
 

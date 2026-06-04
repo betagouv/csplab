@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from domain.entities.document import Document, DocumentType
+from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_DESCRIPTION,

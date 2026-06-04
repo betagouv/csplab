@@ -4,6 +4,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
     inline_serializer,
 )
+from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from rest_framework import serializers, status
 from rest_framework import serializers as drf_serializers
 from rest_framework.parsers import JSONParser
@@ -16,7 +17,6 @@ from application.ingestion.interfaces.archive_offer_by_reference_input import (
 )
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
-from domain.exceptions.offer_errors import OfferDoesNotExist
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
     UserRateThrottleExceptApiKey,
