@@ -11,7 +11,7 @@ from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftBackClient,
     TalentsoftFrontClient,
 )
-from tests.ingestion.unit.external_gateways.utils import (
+from tests.infrastructure.ingestion.external_gateways.utils import (
     cached_token,
     detail_offer_response,
     mocked_response,

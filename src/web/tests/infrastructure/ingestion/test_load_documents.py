@@ -18,7 +18,7 @@ from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.ingres_corps_factories import IngresCorpsApiResponseFactory
 from tests.factories.talentsoft_factories import TalentsoftDetailOfferFactory
-from tests.ingestion.unit.external_gateways.utils import (
+from tests.infrastructure.ingestion.external_gateways.utils import (
     cached_token,
     offers_response,
 )
