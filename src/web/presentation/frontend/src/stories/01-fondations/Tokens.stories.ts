@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
+import { dsfrTokens } from './colors'
 
 const meta = {
   title: 'Fondations/Tokens',
@@ -15,63 +16,6 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-const COLOR_GROUPS: Array<{ group: string, tokens: string[] }> = [
-  {
-    group: 'Texte',
-    tokens: [
-      '--text-default-grey',
-      '--text-title-grey',
-      '--text-title-blue-france',
-      '--text-action-high-blue-france',
-      '--text-action-high-grey',
-      '--text-mention-grey',
-      '--text-disabled-grey',
-      '--text-inverted-grey',
-      '--text-default-info',
-      '--text-default-success',
-      '--text-default-warning',
-      '--text-default-error',
-    ],
-  },
-  {
-    group: 'Fonds',
-    tokens: [
-      '--background-default-grey',
-      '--background-alt-grey',
-      '--background-alt-blue-france',
-      '--background-contrast-grey',
-      '--background-elevated-grey',
-      '--background-contrast-info',
-      '--background-contrast-success',
-      '--background-contrast-warning',
-      '--background-contrast-error',
-      '--background-action-high-blue-france',
-      '--background-action-high-blue-france-hover',
-      '--background-action-high-blue-france-active',
-      '--background-action-high-red-marianne',
-      '--background-action-high-red-marianne-hover',
-      '--background-action-high-red-marianne-active',
-      '--background-default-grey-hover',
-      '--background-default-grey-active',
-      '--background-disabled-grey',
-    ],
-  },
-  {
-    group: 'Bordures',
-    tokens: [
-      '--border-default-grey',
-      '--border-default-blue-france',
-      '--border-action-high-blue-france',
-      '--border-plain-info',
-      '--border-plain-success',
-      '--border-plain-warning',
-      '--border-plain-error',
-      '--border-disabled-grey',
-      '--csp-focus-ring-color',
-    ],
-  },
-]
-
 const SPACING_TOKENS = [
   '--csp-space-1',
   '--csp-space-2',
@@ -86,13 +30,13 @@ const SPACING_TOKENS = [
 ]
 
 const FONT_SIZE_TOKENS = [
-  { token: '--csp-font-size-xs', label: 'xs — caption' },
-  { token: '--csp-font-size-sm', label: 'sm — meta / chip' },
-  { token: '--csp-font-size-base', label: 'base — body' },
-  { token: '--csp-font-size-md', label: 'md — body fort' },
-  { token: '--csp-font-size-lg', label: 'lg — sous-titre' },
-  { token: '--csp-font-size-xl', label: 'xl — titre section' },
-  { token: '--csp-font-size-2xl', label: '2xl — titre page' },
+  { token: '--csp-font-size-xs', label: 'xs - caption' },
+  { token: '--csp-font-size-sm', label: 'sm - meta / chip' },
+  { token: '--csp-font-size-base', label: 'base - body' },
+  { token: '--csp-font-size-md', label: 'md - body fort' },
+  { token: '--csp-font-size-lg', label: 'lg - sous-titre' },
+  { token: '--csp-font-size-xl', label: 'xl - titre section' },
+  { token: '--csp-font-size-2xl', label: '2xl - titre page' },
 ]
 
 const FONT_WEIGHT_TOKENS = [
@@ -111,15 +55,75 @@ const SHADOW_TOKENS = ['--csp-shadow-sm', '--csp-shadow-md', '--csp-shadow-lg']
 
 export const Couleurs: Story = {
   render: () => ({
-    setup: () => ({ groups: COLOR_GROUPS }),
+    setup: () => ({ dsfrTokens }),
     template: `
-      <div style="padding: var(--csp-space-6); display: flex; flex-direction: column; gap: var(--csp-space-8);">
-        <section v-for="g in groups" :key="g.group">
-          <h3 style="margin: 0 0 var(--csp-space-3); font-size: var(--csp-font-size-lg); color: var(--text-title-grey);">{{ g.group }}</h3>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--csp-space-3);">
-            <div v-for="t in g.tokens" :key="t" style="border: 1px solid var(--border-default-grey); border-radius: var(--csp-radius-md); overflow: hidden;">
-              <div :style="{ background: 'var(' + t + ')', height: '56px' }"></div>
-              <div style="padding: var(--csp-space-2); font-family: ui-monospace, monospace; font-size: var(--csp-font-size-xs); color: var(--text-mention-grey); background: var(--background-default-grey);">{{ t }}</div>
+      <div class="flex flex-col gap-12">
+        <section
+          v-for="g in dsfrTokens"
+          :key="g.name"
+        >
+          <h3 class="text-2xl font-bold mb-2">
+            {{ g.name }}
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-12 gap-y-8 border p-6">
+            <div
+              v-for="t in g.tokens"
+              :key="t"
+            >
+              <template v-if="g.type === 'text'">
+                <p
+                  class="text-2xl font-medium"
+                  :class="[
+                    { ['bg-[#333]']: t.match('inverted') },
+                  ]"
+                  :style="{ color: 'var(--' + t + ')' }">
+                  Lorem ipsum
+                </p>
+                <p class="text-[var(--text-mention-grey)]">
+                  {{ t }}
+                </p>
+              </template>
+              <template v-else-if="g.type === 'border'">
+                <div
+                  class="border-2 p-2"
+                  :style="{ borderColor: 'var(--' + t + ')' }"
+                  >
+                  <p class="text-[var(--text-mention-grey)]">
+                    {{ t }}
+                  </p>
+                </div>
+              </template>
+              <template v-else>
+                <div class="flex flex-col gap-2">
+                  <div class="flex flex-row gap-2">
+                    <div
+                      v-for="tok in new Array(g.interactive ? 3 : 1)
+                        .fill(null)
+                        .map((_, i) => {
+                          return t + ['', '-hover', '-active'][i]
+                        })"
+                      :key="tok"
+                      class="flex-1 h-12 border border-black"
+                      :style="{ background: 'var(--' + tok + ')' }"
+                    />
+                  </div>
+                  <div class="text-[var(--text-mention-grey)]">
+                    <p>
+                      {{ t }}
+                    </p>
+                    <template
+                      v-if="g.interactive"
+                    >
+                      <p>
+                        {{ t }}-hover
+                      </p>
+                      <p>
+                        {{ t }}-active
+                      </p>
+                    </template>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
         </section>
@@ -132,11 +136,23 @@ export const Espacements: Story = {
   render: () => ({
     setup: () => ({ tokens: SPACING_TOKENS }),
     template: `
-      <div style="padding: var(--csp-space-6); display: flex; flex-direction: column; gap: var(--csp-space-3);">
-        <div v-for="t in tokens" :key="t" style="display: flex; align-items: center; gap: var(--csp-space-4);">
-          <code style="width: 220px; font-size: var(--csp-font-size-xs); color: var(--text-mention-grey);">{{ t }}</code>
-          <div :style="{ width: 'var(' + t + ')', height: '20px', background: 'var(--background-action-high-blue-france)', borderRadius: '2px' }"></div>
-        </div>
+      <div class="flex flex-col gap-12">
+        <section>
+          <h3 class="text-2xl font-bold mb-2">Espacements</h3>
+          <div class="flex flex-col gap-3 border p-6">
+            <div
+              v-for="t in tokens"
+              :key="t"
+              class="flex items-center gap-4"
+            >
+              <code class="w-52 text-xs text-[var(--text-mention-grey)]">{{ t }}</code>
+              <div
+                class="h-5 bg-[var(--background-action-high-blue-france)] rounded-sm"
+                :style="{ width: 'var(' + t + ')' }"
+              />
+            </div>
+          </div>
+        </section>
       </div>
     `,
   }),
@@ -146,31 +162,60 @@ export const Typographie: Story = {
   render: () => ({
     setup: () => ({ fontSizes: FONT_SIZE_TOKENS, fontWeights: FONT_WEIGHT_TOKENS, lineHeights: LINE_HEIGHT_TOKENS }),
     template: `
-      <div style="padding: var(--csp-space-6); display: flex; flex-direction: column; gap: var(--csp-space-8);">
+      <div class="flex flex-col gap-12">
         <section>
-          <h3 style="margin: 0 0 var(--csp-space-3); font-size: var(--csp-font-size-lg); color: var(--text-title-grey);">Tailles</h3>
-          <div style="display: flex; flex-direction: column; gap: var(--csp-space-4);">
-            <div v-for="t in fontSizes" :key="t.token" style="display: flex; align-items: baseline; gap: var(--csp-space-4); border-bottom: 1px solid var(--border-default-grey); padding-bottom: var(--csp-space-2);">
-              <span :style="{ fontSize: 'var(' + t.token + ')', color: 'var(--text-title-grey)', minWidth: '280px' }">{{ t.label }}</span>
-              <code style="font-size: var(--csp-font-size-xs); color: var(--text-mention-grey);">{{ t.token }}</code>
+          <h3 class="text-2xl font-bold mb-4">Tailles</h3>
+          <div class="flex flex-col gap-4 border p-6">
+            <div
+              v-for="t in fontSizes"
+              :key="t.token"
+              class="flex items-baseline gap-4 border-b border-[var(--border-default-grey)] pb-2"
+            >
+              <span
+                class="min-w-[280px] text-[var(--text-title-grey)]"
+                :style="{ fontSize: 'var(' + t.token + ')' }"
+              >
+                {{ t.label }}
+              </span>
+              <code class="text-xs text-[var(--text-mention-grey)]">{{ t.token }}</code>
             </div>
           </div>
         </section>
+
         <section>
-          <h3 style="margin: 0 0 var(--csp-space-3); font-size: var(--csp-font-size-lg); color: var(--text-title-grey);">Graisses</h3>
-          <div style="display: flex; flex-direction: column; gap: var(--csp-space-4);">
-            <div v-for="t in fontWeights" :key="t.token" style="display: flex; align-items: baseline; gap: var(--csp-space-4); border-bottom: 1px solid var(--border-default-grey); padding-bottom: var(--csp-space-2);">
-              <span :style="{ fontWeight: 'var(' + t.token + ')', fontSize: 'var(--csp-font-size-md)', color: 'var(--text-title-grey)', minWidth: '280px' }">{{ t.label }}</span>
-              <code style="font-size: var(--csp-font-size-xs); color: var(--text-mention-grey);">{{ t.token }}</code>
+          <h3 class="text-2xl font-bold mb-4">Graisses</h3>
+          <div class="flex flex-col gap-4 border p-6">
+            <div
+              v-for="t in fontWeights"
+              :key="t.token"
+              class="flex items-baseline gap-4 border-b border-[var(--border-default-grey)] pb-2"
+            >
+              <span
+                class="min-w-[280px] text-[var(--text-title-grey)] text-md"
+                :style="{ fontWeight: 'var(' + t.token + ')' }"
+              >
+                {{ t.label }}
+              </span>
+              <code class="text-xs text-[var(--text-mention-grey)]">{{ t.token }}</code>
             </div>
           </div>
         </section>
+
         <section>
-          <h3 style="margin: 0 0 var(--csp-space-3); font-size: var(--csp-font-size-lg); color: var(--text-title-grey);">Hauteurs de ligne</h3>
-          <div style="display: flex; flex-direction: column; gap: var(--csp-space-4);">
-            <div v-for="t in lineHeights" :key="t.token" style="display: flex; align-items: flex-start; gap: var(--csp-space-4); border-bottom: 1px solid var(--border-default-grey); padding-bottom: var(--csp-space-2);">
-              <p :style="{ lineHeight: 'var(' + t.token + ')', fontSize: 'var(--csp-font-size-sm)', color: 'var(--text-title-grey)', minWidth: '280px', margin: 0 }">{{ t.label }}<br>Texte exemple sur deux lignes<br>pour visualiser l'interligne</p>
-              <code style="font-size: var(--csp-font-size-xs); color: var(--text-mention-grey);">{{ t.token }}</code>
+          <h3 class="text-2xl font-bold mb-4">Hauteurs de ligne</h3>
+          <div class="flex flex-col gap-4 border p-6">
+            <div
+              v-for="t in lineHeights"
+              :key="t.token"
+              class="flex items-start gap-4 border-b border-[var(--border-default-grey)] pb-2"
+            >
+              <p
+                class="min-w-[280px] text-[var(--text-title-grey)] text-sm m-0"
+                :style="{ lineHeight: 'var(' + t.token + ')' }"
+              >
+                {{ t.label }}<br>Texte exemple sur deux lignes<br>pour visualiser l'interligne
+              </p>
+              <code class="text-xs text-[var(--text-mention-grey)]">{{ t.token }}</code>
             </div>
           </div>
         </section>
@@ -183,11 +228,23 @@ export const Ombres: Story = {
   render: () => ({
     setup: () => ({ tokens: SHADOW_TOKENS }),
     template: `
-      <div style="padding: var(--csp-space-8); display: flex; gap: var(--csp-space-8); background: var(--background-alt-grey);">
-        <div v-for="t in tokens" :key="t" style="text-align: center;">
-          <div :style="{ width: '160px', height: '100px', background: 'var(--background-default-grey)', borderRadius: 'var(--csp-radius-md)', boxShadow: 'var(' + t + ')', marginBottom: 'var(--csp-space-3)' }"></div>
-          <code style="font-size: var(--csp-font-size-xs); color: var(--text-mention-grey);">{{ t }}</code>
-        </div>
+      <div class="flex flex-col gap-12">
+        <section>
+          <h3 class="text-2xl font-bold mb-4">Ombres</h3>
+          <div class="flex gap-8 border p-8 bg-[var(--background-alt-grey)]">
+            <div
+              v-for="t in tokens"
+              :key="t"
+              class="text-center"
+            >
+              <div
+                class="w-40 h-[100px] bg-[var(--background-default-grey)] rounded-[var(--csp-radius-md)] mb-3"
+                :style="{ boxShadow: 'var(' + t + ')' }"
+              />
+              <code class="text-xs text-[var(--text-mention-grey)]">{{ t }}</code>
+            </div>
+          </div>
+        </section>
       </div>
     `,
   }),
