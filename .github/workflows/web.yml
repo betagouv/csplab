@@ -23,6 +23,7 @@ jobs:
           filters: |
             relevant:
               - "src/web/**"
+              - "libs/**"
               - ".github/workflows/web.yml"
               - ".github/actions/**"
 
