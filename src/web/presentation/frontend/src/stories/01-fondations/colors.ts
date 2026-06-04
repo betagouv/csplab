@@ -196,6 +196,7 @@ export const dsfrTokens: TokenGroup[] = [
       'background-alt-overlap-grey',
       'background-contrast-raised-grey',
       'background-contrast-overlap-grey',
+      'background-elevated-grey',
     ],
   },
   {

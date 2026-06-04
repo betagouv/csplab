@@ -322,6 +322,7 @@
   --background-contrast-overlap-grey: var(--grey-950-150);
   --background-contrast-overlap-grey-hover: var(--grey-950-150-hover);
   --background-contrast-overlap-grey-active: var(--grey-950-150-active);
+  --background-elevated-grey: var(--grey-1000-75);
 
   /** Texts */
   --text-default-grey: var(--grey-200-850);
