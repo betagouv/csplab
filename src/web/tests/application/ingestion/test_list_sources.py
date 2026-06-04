@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from tests.factories.source_factory import SourceFactory
+from tests.factories.ingestion.source_factory import SourceFactory
 
 
 def test_execute_returns_empty_list_when_no_sources(list_sources_usecase):

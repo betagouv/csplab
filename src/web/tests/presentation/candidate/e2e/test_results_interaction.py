@@ -9,9 +9,9 @@ from referentiel.value_objects.category import Category
 
 from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
-from tests.factories.concours_factory import ConcoursFactory
-from tests.factories.cv_metadata_factory import CVMetadataFactory
-from tests.factories.offer_factory import OfferFactory
+from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
+from tests.factories.referentiel.concours_factory import ConcoursFactory
+from tests.factories.referentiel.offer_factory import OfferFactory
 
 
 def fake_execute_filter_by_category(offer_a, offer_b, *, cv_metadata, filters, limit):

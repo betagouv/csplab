@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from tests.factories.source_factory import SourceFactory
+from tests.factories.ingestion.source_factory import SourceFactory
 
 URL = reverse("ingestion:sources_list")
 

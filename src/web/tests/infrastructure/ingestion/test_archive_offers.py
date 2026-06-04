@@ -12,12 +12,14 @@ from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from infrastructure.external_gateways.external_document_gateway import MAX_OFFSET
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.offer_factory import OfferFactory
-from tests.factories.talentsoft_factories import (
+from tests.factories.ingestion.talentsoft_factories import (
     TalentsoftBackVacanciesResponseFactory,
     TalentsoftBackVacancyFactory,
 )
-from tests.factories.vectorized_document_factory import VectorizedDocumentFactory
+from tests.factories.ingestion.vectorized_document_factory import (
+    VectorizedDocumentFactory,
+)
+from tests.factories.referentiel.offer_factory import OfferFactory
 from tests.infrastructure.ingestion.external_gateways.utils import cached_token
 from tests.utils.shared_fixtures import create_shared_qdrant_repository
 

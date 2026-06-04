@@ -5,8 +5,8 @@ import pytest
 from django.urls import reverse
 from pytest_django.asserts import assertContains, assertTemplateUsed
 
-from tests.factories.concours_factory import ConcoursFactory
-from tests.factories.offer_factory import OfferFactory
+from tests.factories.referentiel.concours_factory import ConcoursFactory
+from tests.factories.referentiel.offer_factory import OfferFactory
 
 
 def _create_offer():

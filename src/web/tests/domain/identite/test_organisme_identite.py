@@ -5,7 +5,7 @@ from domain.identite.events.organisme_events import (
     OrganismeCree,
 )
 from domain.identite.value_objects.siret import SIRET
-from tests.factories.organisme_factory import OrganismeFactory
+from tests.factories.identite.organisme_factory import OrganismeFactory
 
 
 def test_organisme_creation():

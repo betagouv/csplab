@@ -9,7 +9,7 @@ from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.repositories.ingestion.postgres_document_repository import (
     PostgresDocumentRepository,
 )
-from tests.factories.document_factory import DocumentFactory
+from tests.factories.ingestion.document_factory import DocumentFactory
 
 fake = Faker()
 

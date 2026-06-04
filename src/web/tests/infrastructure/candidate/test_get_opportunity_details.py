@@ -6,9 +6,9 @@ from domain.candidate.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.metier_factory import MetierFactory
-from tests.factories.offer_factory import OfferFactory
-from tests.factories.source_factory import SourceFactory
+from tests.factories.ingestion.source_factory import SourceFactory
+from tests.factories.referentiel.metier_factory import MetierFactory
+from tests.factories.referentiel.offer_factory import OfferFactory
 from tests.utils.shared_fixtures import (
     create_shared_qdrant_repository,
 )

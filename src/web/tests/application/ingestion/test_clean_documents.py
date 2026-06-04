@@ -5,7 +5,7 @@ import pytest
 
 from domain.ingestion.entities.document import Document, DocumentType
 from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
-from tests.factories.document_factory import DocumentFactory
+from tests.factories.ingestion.document_factory import DocumentFactory
 
 THREE_DOCUMENTS_COUNT = 3
 

@@ -17,7 +17,7 @@ from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
-from tests.factories.source_factory import SourceFactory
+from tests.factories.ingestion.source_factory import SourceFactory
 
 
 class OfferFactory:

@@ -17,7 +17,10 @@ from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
-from tests.factories.offer_payload_factory import PayloadOfferFactory, fake_datetime
+from tests.factories.ingestion.offer_payload_factory import (
+    PayloadOfferFactory,
+    fake_datetime,
+)
 
 fake = Faker("fr_FR")
 

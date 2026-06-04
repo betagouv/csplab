@@ -10,7 +10,7 @@ from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_metier_repository import (
     PostgresMetierRepository,
 )
-from tests.factories.metier_factory import MetierFactory
+from tests.factories.referentiel.metier_factory import MetierFactory
 
 fake = Faker()
 NOW = datetime.now()

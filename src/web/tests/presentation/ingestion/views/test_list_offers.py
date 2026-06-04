@@ -9,7 +9,7 @@ from referentiel.value_objects.contract_type import ContractType
 from rest_framework import status
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
-from tests.factories.offer_factory import OfferFactory
+from tests.factories.referentiel.offer_factory import OfferFactory
 
 fake = Faker()
 URL = reverse("ingestion:offers_list")
