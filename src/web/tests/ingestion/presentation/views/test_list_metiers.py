@@ -15,7 +15,9 @@ URL = reverse("ingestion:metiers_list")
 
 @pytest.fixture
 def mock_container():
-    with patch("presentation.ingestion.views.create_ingestion_container") as mock:
+    with patch(
+        "presentation.ingestion.views.metiers.create_ingestion_container"
+    ) as mock:
         yield mock
 
 
@@ -103,7 +105,7 @@ def test_returns_error_500(mock_container, authenticated_client):
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@patch("presentation.ingestion.views.IngestionPagination.page_size", new=2)
+@patch("presentation.ingestion.views.metiers.IngestionPagination.page_size", new=2)
 def test_pagination_page_arg(mock_container, authenticated_client):
     num_metiers = 5
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
@@ -137,7 +139,7 @@ def test_pagination_page_arg(mock_container, authenticated_client):
     }
 
 
-@patch("presentation.ingestion.views.IngestionPagination.page_size", new=2)
+@patch("presentation.ingestion.views.metiers.IngestionPagination.page_size", new=2)
 def test_pagination_out_of_bond(mock_container, authenticated_client):
     num_metiers = 3
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]

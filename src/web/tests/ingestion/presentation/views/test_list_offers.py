@@ -17,7 +17,9 @@ URL = reverse("ingestion:offers_list")
 
 @pytest.fixture
 def mock_container():
-    with patch("presentation.ingestion.views.create_ingestion_container") as mock:
+    with patch(
+        "presentation.ingestion.views.offers.create_ingestion_container"
+    ) as mock:
         yield mock
 
 
@@ -124,7 +126,7 @@ def test_returns_error_500(mock_container, authenticated_client):
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@patch("presentation.ingestion.views.IngestionPagination.page_size", new=2)
+@patch("presentation.ingestion.views.offers.IngestionPagination.page_size", new=2)
 def test_pagination_page_arg(mock_container, authenticated_client):
     num_offers = 5
     offers = [OfferFactory.create_entity() for _ in range(num_offers)]
@@ -160,7 +162,7 @@ def test_pagination_page_arg(mock_container, authenticated_client):
     }
 
 
-@patch("presentation.ingestion.views.IngestionPagination.page_size", new=2)
+@patch("presentation.ingestion.views.offers.IngestionPagination.page_size", new=2)
 def test_pagination_out_of_bond(mock_container, authenticated_client):
     num_offers = 3
     offers = [OfferFactory.create_entity() for _ in range(num_offers)]

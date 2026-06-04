@@ -151,7 +151,7 @@ def mock_container(use_case):
     container = MagicMock()
     container.upsert_offers_usecase.return_value = use_case
     with patch(
-        "presentation.ingestion.views.create_ingestion_container",
+        "presentation.ingestion.views.offers.create_ingestion_container",
         return_value=container,
     ):
         yield container
