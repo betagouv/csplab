@@ -10,8 +10,10 @@ from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
+from application.use_cases.post_cleaned_offer import PostCleanedOfferUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from domain.gateways.archive_gateway import IArchiveGateway
+from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 from domain.repositories.sources_repository import ISourcesRepository
@@ -22,6 +24,9 @@ from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftFrontClient,
 )
 from infrastructure.external_gateways.web_archive_gateway import WebArchiveGateway
+from infrastructure.external_gateways.web_publish_offer_gateway import (
+    WebPublishOfferGateway,
+)
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.gateways.offers_cleaner import OffersCleaner
 from infrastructure.raw_offer_repository import RawOfferRepository
@@ -70,6 +75,22 @@ def _make_archive_use_case(
     if archive_gateway is None:
         return None
     return ArchiveOfferUseCase(archive_gateway=archive_gateway)
+
+
+def _make_publish_offer_gateway(
+    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
+) -> IPublishOfferGateway | None:
+    if not base_url or not api_key:
+        return None
+    return WebPublishOfferGateway(client=client, base_url=base_url, api_key=api_key)
+
+
+def _make_post_cleaned_offer_use_case(
+    publish_offer_gateway: IPublishOfferGateway | None,
+) -> PostCleanedOfferUseCase | None:
+    if publish_offer_gateway is None:
+        return None
+    return PostCleanedOfferUseCase(publish_offer_gateway=publish_offer_gateway)
 
 
 def _make_raw_offer_repository(engine: Engine | None) -> IRawOfferRepository | None:
@@ -144,6 +165,22 @@ class Container(containers.DeclarativeContainer):
         offers_cleaner=offers_cleaner,
     )
 
+    publish_offer_gateway: providers.Provider[IPublishOfferGateway | None] = (
+        providers.Factory(
+            _make_publish_offer_gateway,
+            client=http_client,
+            base_url=config.web_base_url,
+            api_key=config.web_api_key,
+        )
+    )
+
+    post_cleaned_offer_use_case: providers.Provider[PostCleanedOfferUseCase | None] = (
+        providers.Factory(
+            _make_post_cleaned_offer_use_case,
+            publish_offer_gateway=publish_offer_gateway,
+        )
+    )
+
 
 def register_talentsoft_front_client(
     container: Container, client_id: str, logger: logging.Logger
@@ -172,6 +209,9 @@ def get_ingest_offer_pipeline(
     raw_offer_repository: IRawOfferRepository | None = Depends(
         Provide[Container.raw_offer_repository]
     ),
+    post_cleaned_offer_use_case: PostCleanedOfferUseCase | None = Depends(
+        Provide[Container.post_cleaned_offer_use_case]
+    ),
 ) -> IngestOfferPipeline | None:
     if raw_offer_repository is None:
         return None
@@ -190,4 +230,5 @@ def get_ingest_offer_pipeline(
         save_raw_offer=save_use_case,
         clean_raw_offer=clean_use_case,
         raw_offer_repository=raw_offer_repository,
+        post_cleaned_offer=post_cleaned_offer_use_case,
     )
