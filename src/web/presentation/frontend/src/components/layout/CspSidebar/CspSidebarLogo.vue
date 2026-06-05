@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import type { ComputedRef } from 'vue'
-import { inject } from 'vue'
+import { useSidebar } from '@/composables/useSidebar'
 
-const isExpanded = inject<ComputedRef<boolean>>('sidebar-expanded')
+const { isExpanded, isMobile } = useSidebar()
 </script>
 
 <template>
   <div class="csp-sidebar-logo">
     <span class="csp-sidebar-logo__title">CSPLab</span>
     <span
-      v-if="isExpanded"
+      v-if="isExpanded || isMobile"
       class="csp-sidebar-logo__subtitle"
     >
       ATS

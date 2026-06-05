@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { ComputedRef } from 'vue'
 import type { PrimitiveProps } from 'reka-ui'
 import { Primitive } from 'reka-ui'
-import { inject } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import CspTooltip from '@/components/base/CspTooltip/CspTooltip.vue'
+import { useSidebar } from '@/composables/useSidebar'
 
 interface CspSidebarItemProps extends PrimitiveProps {
   icon: string
@@ -16,33 +16,39 @@ withDefaults(defineProps<CspSidebarItemProps>(), {
   isActive: false,
 })
 
-const isExpanded = inject<ComputedRef<boolean>>('sidebar-expanded')
+const { isExpanded, isMobile } = useSidebar()
 </script>
 
 <template>
-  <Primitive
-    :as="as"
-    :as-child="asChild"
-    class="csp-sidebar-item"
-    :class="{
-      'csp-sidebar-item--active': isActive,
-      'csp-sidebar-item--expanded': isExpanded,
-    }"
-    :title="isExpanded ? undefined : label"
-    :aria-current="isActive ? 'page' : undefined"
+  <CspTooltip
+    :content="label"
+    :disabled="isExpanded || isMobile"
+    side="right"
+    :side-offset="12"
   >
-    <CspIcon
-      class="csp-sidebar-item__icon"
-      :name="icon"
-      :size="20"
-    />
-    <span
-      v-if="isExpanded"
-      class="csp-sidebar-item__label"
+    <Primitive
+      :as="as"
+      :as-child="asChild"
+      class="csp-sidebar-item"
+      :class="{
+        'csp-sidebar-item--active': isActive,
+        'csp-sidebar-item--expanded': isExpanded || isMobile,
+      }"
+      :aria-current="isActive ? 'page' : undefined"
     >
-      {{ label }}
-    </span>
-  </Primitive>
+      <CspIcon
+        class="csp-sidebar-item__icon"
+        :name="icon"
+        :size="20"
+      />
+      <span
+        v-if="isExpanded || isMobile"
+        class="csp-sidebar-item__label"
+      >
+        {{ label }}
+      </span>
+    </Primitive>
+  </CspTooltip>
 </template>
 
 <style scoped lang="scss">
@@ -61,6 +67,11 @@ const isExpanded = inject<ComputedRef<boolean>>('sidebar-expanded')
   text-decoration: none;
   cursor: pointer;
   flex-shrink: 0;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    width 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &--expanded {
     justify-content: flex-start;

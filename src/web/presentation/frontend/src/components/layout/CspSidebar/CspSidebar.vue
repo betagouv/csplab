@@ -1,35 +1,95 @@
 <script setup lang="ts">
-import { computed, provide, ref } from 'vue'
+import {
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+} from 'reka-ui'
+import { computed, useSlots } from 'vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import { provideSidebar, SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from '@/composables/useSidebar'
 
 interface CspSidebarProps {
   defaultExpanded?: boolean
+  persistState?: boolean
 }
 
 const props = withDefaults(defineProps<CspSidebarProps>(), {
-  defaultExpanded: false,
+  defaultExpanded: true,
+  persistState: true,
 })
 
-const isExpanded = ref(props.defaultExpanded)
-const isExpandedComputed = computed(() => isExpanded.value)
+const slots = useSlots()
+const hasLogo = computed(() => Boolean(slots.logo))
+const hasFooter = computed(() => Boolean(slots.footer))
 
-function toggle() {
-  isExpanded.value = !isExpanded.value
-}
-
-provide('sidebar-expanded', isExpandedComputed)
-provide('sidebar-toggle', toggle)
+const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = provideSidebar({
+  defaultExpanded: props.defaultExpanded,
+  persistState: props.persistState,
+})
 </script>
 
 <template>
+  <DialogRoot
+    v-if="isMobile"
+    :open="isMobileOpen"
+    @update:open="setMobileOpen"
+  >
+    <DialogPortal>
+      <DialogOverlay class="csp-sidebar-overlay" />
+      <DialogContent
+        class="csp-sidebar csp-sidebar--mobile"
+        :aria-label="$attrs['aria-label'] ?? 'Menu de navigation'"
+        :style="{
+          '--sidebar-width': SIDEBAR_WIDTH,
+        }"
+      >
+        <header class="csp-sidebar__header">
+          <div
+            v-if="hasLogo"
+            class="csp-sidebar__brand"
+          >
+            <slot name="logo" />
+          </div>
+          <CspButton
+            class="csp-sidebar__close"
+            variant="tertiary-no-outline"
+            size="sm"
+            icon="ri:close-line"
+            aria-label="Fermer le menu"
+            @click="setMobileOpen(false)"
+          />
+        </header>
+
+        <nav class="csp-sidebar__nav">
+          <slot />
+        </nav>
+
+        <div
+          v-if="hasFooter"
+          class="csp-sidebar__footer"
+        >
+          <slot name="footer" />
+        </div>
+      </DialogContent>
+    </DialogPortal>
+  </DialogRoot>
+
   <nav
+    v-else
     class="csp-sidebar"
     :class="{ 'csp-sidebar--expanded': isExpanded }"
+    :data-state="state"
     :aria-expanded="isExpanded"
+    :style="{
+      '--sidebar-width': SIDEBAR_WIDTH,
+      '--sidebar-width-collapsed': SIDEBAR_WIDTH_COLLAPSED,
+    }"
   >
     <div class="csp-sidebar__header">
       <div
-        v-show="isExpanded"
+        v-if="hasLogo && isExpanded"
         class="csp-sidebar__brand"
       >
         <slot name="logo" />
@@ -38,6 +98,7 @@ provide('sidebar-toggle', toggle)
         type="button"
         class="csp-sidebar__toggle"
         :aria-label="isExpanded ? 'Réduire le menu' : 'Ouvrir le menu'"
+        :title="`${isExpanded ? 'Réduire' : 'Ouvrir'} (Ctrl+B)`"
         @click="toggle"
       >
         <CspIcon
@@ -51,13 +112,23 @@ provide('sidebar-toggle', toggle)
       <slot />
     </div>
 
-    <div class="csp-sidebar__footer">
+    <div
+      v-if="hasFooter"
+      class="csp-sidebar__footer"
+    >
       <slot name="footer" />
     </div>
   </nav>
 </template>
 
 <style scoped lang="scss">
+.csp-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--csp-overlay-scrim);
+  z-index: var(--csp-z-overlay);
+}
+
 .csp-sidebar {
   --sidebar-inset-x: 0.5rem;
   --sidebar-item-size: 2.5rem;
@@ -66,58 +137,69 @@ provide('sidebar-toggle', toggle)
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  width: 4rem;
-  height: 100vh;
+  width: var(--sidebar-width-collapsed);
+  height: 100%;
   padding: 0.75rem var(--sidebar-padding-x);
   background: var(--background-alt-grey);
   overflow: hidden;
-  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    width 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &--expanded {
-    width: 15rem;
+    width: var(--sidebar-width);
+    --sidebar-padding-x: 0.75rem;
+  }
+
+  &--mobile {
+    position: fixed;
+    inset-block: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    max-width: calc(100vw - 3rem);
+    z-index: var(--csp-z-modal);
+    box-shadow: var(--csp-shadow-lg);
     --sidebar-padding-x: 0.75rem;
   }
 }
 
 .csp-sidebar__header {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-shrink: 0;
   min-height: 2rem;
   margin-bottom: 1rem;
 }
 
 .csp-sidebar__brand {
-  padding-left: var(--sidebar-inset-x);
-  padding-right: 2.25rem;
+  flex: 1;
   min-width: 0;
+  padding-left: var(--sidebar-inset-x);
+  padding-right: 0.5rem;
   overflow: hidden;
 }
 
 .csp-sidebar__toggle {
-  position: absolute;
-  top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 2rem;
   height: 2rem;
+  flex-shrink: 0;
   padding: 0;
   border: none;
   border-radius: 0.375rem;
   background: transparent;
   color: var(--text-mention-grey);
   cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
   .csp-sidebar:not(.csp-sidebar--expanded) & {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-  }
-
-  .csp-sidebar--expanded & {
-    right: 0;
-    left: auto;
-    transform: none;
+    margin-inline: auto;
   }
 
   &:hover {
@@ -131,6 +213,10 @@ provide('sidebar-toggle', toggle)
   }
 }
 
+.csp-sidebar__close {
+  flex-shrink: 0;
+}
+
 .csp-sidebar__nav {
   display: flex;
   flex-direction: column;
@@ -142,7 +228,8 @@ provide('sidebar-toggle', toggle)
   overflow-x: hidden;
   overflow-y: auto;
 
-  .csp-sidebar--expanded & {
+  .csp-sidebar--expanded &,
+  .csp-sidebar--mobile & {
     align-items: stretch;
   }
 }
@@ -159,7 +246,8 @@ provide('sidebar-toggle', toggle)
   padding: 0.75rem var(--sidebar-padding-x) 0;
   border-top: 1px solid var(--border-default-grey);
 
-  .csp-sidebar--expanded & {
+  .csp-sidebar--expanded &,
+  .csp-sidebar--mobile & {
     align-items: stretch;
   }
 }

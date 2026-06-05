@@ -1,39 +1,45 @@
 <script setup lang="ts">
-import type { ComputedRef } from 'vue'
-import { inject } from 'vue'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
+import CspTooltip from '@/components/base/CspTooltip/CspTooltip.vue'
+import { useSidebar } from '@/composables/useSidebar'
 
 interface CspSidebarUserProps {
   name: string
   role?: string
 }
 
-defineProps<CspSidebarUserProps>()
+const props = defineProps<CspSidebarUserProps>()
 
-const isExpanded = inject<ComputedRef<boolean>>('sidebar-expanded')
+const { isExpanded, isMobile } = useSidebar()
 </script>
 
 <template>
-  <div
-    class="csp-sidebar-user"
-    :class="{ 'csp-sidebar-user--expanded': isExpanded }"
-    :title="isExpanded ? undefined : name"
+  <CspTooltip
+    :content="props.role ? `${name} • ${role}` : name"
+    :disabled="isExpanded || isMobile"
+    side="right"
+    :side-offset="12"
   >
-    <CspAvatar
-      :name="name"
-      size="md"
-    />
     <div
-      v-if="isExpanded"
-      class="csp-sidebar-user__info"
+      class="csp-sidebar-user"
+      :class="{ 'csp-sidebar-user--expanded': isExpanded || isMobile }"
     >
-      <span class="csp-sidebar-user__name">{{ name }}</span>
-      <span
-        v-if="role"
-        class="csp-sidebar-user__role"
-      >{{ role }}</span>
+      <CspAvatar
+        :name="name"
+        size="md"
+      />
+      <div
+        v-if="isExpanded || isMobile"
+        class="csp-sidebar-user__info"
+      >
+        <span class="csp-sidebar-user__name">{{ name }}</span>
+        <span
+          v-if="role"
+          class="csp-sidebar-user__role"
+        >{{ role }}</span>
+      </div>
     </div>
-  </div>
+  </CspTooltip>
 </template>
 
 <style scoped lang="scss">

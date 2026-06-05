@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { ComputedRef } from 'vue'
-import { inject } from 'vue'
+import { useSidebar } from '@/composables/useSidebar'
 
 interface CspSidebarGroupProps {
   label: string
@@ -8,7 +7,7 @@ interface CspSidebarGroupProps {
 
 defineProps<CspSidebarGroupProps>()
 
-const isExpanded = inject<ComputedRef<boolean>>('sidebar-expanded')
+const { isExpanded, isMobile } = useSidebar()
 </script>
 
 <template>
@@ -18,7 +17,7 @@ const isExpanded = inject<ComputedRef<boolean>>('sidebar-expanded')
     :aria-label="label"
   >
     <span
-      v-if="isExpanded"
+      v-if="isExpanded || isMobile"
       class="csp-sidebar-group__label"
     >
       {{ label }}

@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import CspAppLayout from '@/components/layout/CspAppLayout/CspAppLayout.vue'
-import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
-import CspSidebarGroup from '@/components/layout/CspSidebar/CspSidebarGroup.vue'
-import CspSidebarItem from '@/components/layout/CspSidebar/CspSidebarItem.vue'
-import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
-import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
+import {
+  CspSidebar,
+  CspSidebarGroup,
+  CspSidebarItem,
+  CspSidebarLogo,
+  CspSidebarTrigger,
+  CspSidebarUser,
+} from '@/components/layout/CspSidebar'
 </script>
 
 <template>
@@ -59,6 +62,10 @@ import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
           />
         </template>
       </CspSidebar>
+    </template>
+
+    <template #header>
+      <CspSidebarTrigger />
     </template>
 
     <slot />
