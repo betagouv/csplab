@@ -32,7 +32,7 @@ def _fetch(db_engine, reference: str, source_id: str) -> RawOfferModel | None:
 
 
 @pytest.mark.asyncio
-async def test_upsert_inserts_new_offer(repository, db_engine):
+async def test_upsert_inserts_new_offer(raw_offer_repository, db_engine):
     offer = RawOffer(
         reference=REFERENCE,
         source_id=SOURCE_ID,
@@ -40,7 +40,7 @@ async def test_upsert_inserts_new_offer(repository, db_engine):
         loaded_at=datetime.now(tz=timezone.utc),
     )
 
-    await repository.upsert(offer)
+    await raw_offer_repository.upsert(offer)
 
     saved = _fetch(db_engine, REFERENCE, SOURCE_ID)
     assert saved is not None
@@ -53,7 +53,7 @@ async def test_upsert_inserts_new_offer(repository, db_engine):
 
 
 @pytest.mark.asyncio
-async def test_upsert_stores_error_state(repository, db_engine):
+async def test_upsert_stores_error_state(raw_offer_repository, db_engine):
     offer = RawOffer(
         reference=REFERENCE,
         source_id=SOURCE_ID,
@@ -62,7 +62,7 @@ async def test_upsert_stores_error_state(repository, db_engine):
         loaded_at=None,
     )
 
-    await repository.upsert(offer)
+    await raw_offer_repository.upsert(offer)
 
     saved = _fetch(db_engine, REFERENCE, SOURCE_ID)
     assert saved.data is None
@@ -76,14 +76,14 @@ async def test_upsert_stores_error_state(repository, db_engine):
 
 
 @pytest.mark.asyncio
-async def test_upsert_updates_data_on_conflict(repository, db_engine):
+async def test_upsert_updates_data_on_conflict(raw_offer_repository, db_engine):
     first = RawOffer(
         reference=REFERENCE,
         source_id=SOURCE_ID,
         data={"version": 1},
         loaded_at=datetime.now(tz=timezone.utc),
     )
-    await repository.upsert(first)
+    await raw_offer_repository.upsert(first)
 
     second = RawOffer(
         reference=REFERENCE,
@@ -91,20 +91,22 @@ async def test_upsert_updates_data_on_conflict(repository, db_engine):
         data={"version": 2},
         loaded_at=datetime.now(tz=timezone.utc),
     )
-    await repository.upsert(second)
+    await raw_offer_repository.upsert(second)
 
     saved = _fetch(db_engine, REFERENCE, SOURCE_ID)
     assert saved.data == {"version": 2}
 
 
 @pytest.mark.asyncio
-async def test_upsert_preserves_id_and_created_at_on_conflict(repository, db_engine):
+async def test_upsert_preserves_id_and_created_at_on_conflict(
+    raw_offer_repository, db_engine
+):
     first = RawOffer(reference=REFERENCE, source_id=SOURCE_ID, data={"v": 1})
-    await repository.upsert(first)
+    await raw_offer_repository.upsert(first)
     after_first = _fetch(db_engine, REFERENCE, SOURCE_ID)
 
     second = RawOffer(reference=REFERENCE, source_id=SOURCE_ID, data={"v": 2})
-    await repository.upsert(second)
+    await raw_offer_repository.upsert(second)
     after_second = _fetch(db_engine, REFERENCE, SOURCE_ID)
 
     # Both values are read from the DB (naive datetimes), so comparison is safe.
@@ -113,8 +115,8 @@ async def test_upsert_preserves_id_and_created_at_on_conflict(repository, db_eng
 
 
 @pytest.mark.asyncio
-async def test_upsert_updates_error_msg_on_conflict(repository, db_engine):
-    await repository.upsert(
+async def test_upsert_updates_error_msg_on_conflict(raw_offer_repository, db_engine):
+    await raw_offer_repository.upsert(
         RawOffer(
             reference=REFERENCE,
             source_id=SOURCE_ID,
@@ -123,7 +125,7 @@ async def test_upsert_updates_error_msg_on_conflict(repository, db_engine):
         )
     )
 
-    await repository.upsert(
+    await raw_offer_repository.upsert(
         RawOffer(
             reference=REFERENCE,
             source_id=SOURCE_ID,
@@ -140,9 +142,11 @@ async def test_upsert_updates_error_msg_on_conflict(repository, db_engine):
 
 
 @pytest.mark.asyncio
-async def test_upsert_does_not_overwrite_cleaned_at_on_conflict(repository, db_engine):
+async def test_upsert_does_not_overwrite_cleaned_at_on_conflict(
+    raw_offer_repository, db_engine
+):
     """cleaned_at is not in the ON CONFLICT SET clause, so it must survive updates."""
-    await repository.upsert(
+    await raw_offer_repository.upsert(
         RawOffer(
             reference=REFERENCE,
             source_id=SOURCE_ID,
@@ -152,7 +156,7 @@ async def test_upsert_does_not_overwrite_cleaned_at_on_conflict(repository, db_e
     )
     after_first = _fetch(db_engine, REFERENCE, SOURCE_ID)
 
-    await repository.upsert(
+    await raw_offer_repository.upsert(
         RawOffer(
             reference=REFERENCE,
             source_id=SOURCE_ID,
@@ -173,11 +177,13 @@ async def test_upsert_does_not_overwrite_cleaned_at_on_conflict(repository, db_e
 
 
 @pytest.mark.asyncio
-async def test_mark_as_cleaned_sets_cleaned_at(repository, db_engine):
-    await repository.upsert(RawOffer(reference=REFERENCE, source_id=SOURCE_ID))
+async def test_mark_as_cleaned_sets_cleaned_at(raw_offer_repository, db_engine):
+    await raw_offer_repository.upsert(
+        RawOffer(reference=REFERENCE, source_id=SOURCE_ID)
+    )
 
     cleaned_at = datetime(2025, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
-    await repository.mark_as_cleaned(REFERENCE, SOURCE_ID, cleaned_at)
+    await raw_offer_repository.mark_as_cleaned(REFERENCE, SOURCE_ID, cleaned_at)
 
     saved = _fetch(db_engine, REFERENCE, SOURCE_ID)
     assert saved.cleaned_at is not None
@@ -185,24 +191,32 @@ async def test_mark_as_cleaned_sets_cleaned_at(repository, db_engine):
 
 
 @pytest.mark.asyncio
-async def test_mark_as_cleaned_updates_updated_at(repository, db_engine):
-    await repository.upsert(RawOffer(reference=REFERENCE, source_id=SOURCE_ID))
+async def test_mark_as_cleaned_updates_updated_at(raw_offer_repository, db_engine):
+    await raw_offer_repository.upsert(
+        RawOffer(reference=REFERENCE, source_id=SOURCE_ID)
+    )
     before = _fetch(db_engine, REFERENCE, SOURCE_ID)
 
     cleaned_at = datetime.now(tz=timezone.utc)
-    await repository.mark_as_cleaned(REFERENCE, SOURCE_ID, cleaned_at)
+    await raw_offer_repository.mark_as_cleaned(REFERENCE, SOURCE_ID, cleaned_at)
 
     after = _fetch(db_engine, REFERENCE, SOURCE_ID)
     assert after.updated_at >= before.updated_at
 
 
 @pytest.mark.asyncio
-async def test_mark_as_cleaned_does_not_affect_other_rows(repository, db_engine):
+async def test_mark_as_cleaned_does_not_affect_other_rows(
+    raw_offer_repository, db_engine
+):
     other_source_id = str(uuid4())
-    await repository.upsert(RawOffer(reference=REFERENCE, source_id=SOURCE_ID))
-    await repository.upsert(RawOffer(reference=REFERENCE, source_id=other_source_id))
+    await raw_offer_repository.upsert(
+        RawOffer(reference=REFERENCE, source_id=SOURCE_ID)
+    )
+    await raw_offer_repository.upsert(
+        RawOffer(reference=REFERENCE, source_id=other_source_id)
+    )
 
-    await repository.mark_as_cleaned(
+    await raw_offer_repository.mark_as_cleaned(
         REFERENCE, SOURCE_ID, datetime.now(tz=timezone.utc)
     )
 
@@ -211,9 +225,11 @@ async def test_mark_as_cleaned_does_not_affect_other_rows(repository, db_engine)
 
 
 @pytest.mark.asyncio
-async def test_mark_as_cleaned_raises_when_row_not_found(repository, db_engine):
+async def test_mark_as_cleaned_raises_when_row_not_found(
+    raw_offer_repository, db_engine
+):
     with pytest.raises(ValueError, match="RawOffer not found"):
-        await repository.mark_as_cleaned(
+        await raw_offer_repository.mark_as_cleaned(
             "UNKNOWN-REF", SOURCE_ID, datetime.now(tz=timezone.utc)
         )
 
@@ -326,11 +342,17 @@ async def test_mark_as_archived_is_noop_when_row_not_found(repository, db_engine
 
 
 @pytest.mark.asyncio
-async def test_upsert_same_reference_different_source_ids(repository, db_engine):
+async def test_upsert_same_reference_different_source_ids(
+    raw_offer_repository, db_engine
+):
     other_source_id = str(uuid4())
 
-    await repository.upsert(RawOffer(reference=REFERENCE, source_id=SOURCE_ID))
-    await repository.upsert(RawOffer(reference=REFERENCE, source_id=other_source_id))
+    await raw_offer_repository.upsert(
+        RawOffer(reference=REFERENCE, source_id=SOURCE_ID)
+    )
+    await raw_offer_repository.upsert(
+        RawOffer(reference=REFERENCE, source_id=other_source_id)
+    )
 
     row1 = _fetch(db_engine, REFERENCE, SOURCE_ID)
     row2 = _fetch(db_engine, REFERENCE, other_source_id)

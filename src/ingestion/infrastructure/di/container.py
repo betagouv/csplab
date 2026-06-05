@@ -12,11 +12,15 @@ from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
 from application.use_cases.publish_offer import PublishOfferUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
+from application.use_cases.save_talentsoft_webhook import SaveTalentsoftWebhookUseCase
 from domain.gateways.archive_gateway import IArchiveGateway
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 from domain.repositories.sources_repository import ISourcesRepository
+from domain.repositories.talentsoft_webhook_repository import (
+    ITalentsoftWebhookRepository,
+)
 from infrastructure.credentials_store import CredentialsStore
 from infrastructure.database import make_engine
 from infrastructure.external_gateways.talentsoft_client import (
@@ -32,6 +36,7 @@ from infrastructure.gateways.offers_cleaner import OffersCleaner
 from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.sources_repository import SourcesRepository
 from infrastructure.talentsoft_client_repository import TalentsoftClientRepository
+from infrastructure.talentsoft_webhook_repository import TalentsoftWebhookRepository
 
 
 def _build_credentials_store(
@@ -103,6 +108,22 @@ def _make_raw_offer_repository(engine: Engine | None) -> IRawOfferRepository | N
     return RawOfferRepository(engine=engine)
 
 
+def _make_talentsoft_webhook_repository(
+    engine: Engine | None,
+) -> ITalentsoftWebhookRepository | None:
+    if engine is None:
+        return None
+    return TalentsoftWebhookRepository(engine=engine)
+
+
+def _make_save_talentsoft_webhook_use_case(
+    repository: ITalentsoftWebhookRepository | None,
+) -> SaveTalentsoftWebhookUseCase | None:
+    if repository is None:
+        return None
+    return SaveTalentsoftWebhookUseCase(repository=repository)
+
+
 class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(
         modules=["api.routes", "api.talentsoft", "infrastructure.di.container"]
@@ -133,6 +154,20 @@ class Container(containers.DeclarativeContainer):
             _make_raw_offer_repository,
             engine=db_engine,
         )
+    )
+
+    talentsoft_webhook_repository: providers.Provider[
+        ITalentsoftWebhookRepository | None
+    ] = providers.Singleton(
+        _make_talentsoft_webhook_repository,
+        engine=db_engine,
+    )
+
+    save_talentsoft_webhook_use_case: providers.Provider[
+        SaveTalentsoftWebhookUseCase | None
+    ] = providers.Factory(
+        _make_save_talentsoft_webhook_use_case,
+        repository=talentsoft_webhook_repository,
     )
 
     sources_gateway: providers.Provider[ISourcesGateway | None] = providers.Factory(

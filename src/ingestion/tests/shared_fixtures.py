@@ -23,7 +23,6 @@ from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftFrontClient,
 )
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
-from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.sources_repository import SourcesRepository
 from tests.conftest import (
     SOURCE_ID,
@@ -151,6 +150,45 @@ def talentsoft_client(monkeypatch) -> TestClient:
     return TestClient(app)
 
 
+# --- Database fixtures ---
+
+
+@pytest.fixture(scope="module")
+def db_engine():
+    url = get_settings().database_url
+    if not url:
+        pytest.skip("DATABASE_URL not set")
+    engine = make_engine(url)
+    run_migrations(url)
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture
+def clean_db(db_engine):
+    with Session(db_engine) as session:
+        session.execute(text("TRUNCATE TABLE raw_offers, talentsoft_webhooks"))
+        session.commit()
+    yield
+
+
+# --- Repository fixtures ---
+
+
+@pytest.fixture
+def raw_offer_repository(db_engine):
+    container = Container()
+    container.db_engine.override(providers.Object(db_engine))
+    return container.raw_offer_repository()
+
+
+@pytest.fixture
+def talentsoft_webhook_repository(db_engine):
+    container = Container()
+    container.db_engine.override(providers.Object(db_engine))
+    return container.talentsoft_webhook_repository()
+
+
 # --- Use case fixtures ---
 
 
@@ -197,30 +235,3 @@ def talentsoft_mock_client():
     client = MagicMock()
     client.get_detail = AsyncMock()
     return client
-
-
-# --- Database fixtures ---
-
-
-@pytest.fixture(scope="module")
-def db_engine():
-    url = get_settings().database_url
-    if not url:
-        pytest.skip("DATABASE_URL not set")
-    engine = make_engine(url)
-    run_migrations(url)
-    yield engine
-    engine.dispose()
-
-
-@pytest.fixture
-def clean_db(db_engine):
-    with Session(db_engine) as session:
-        session.execute(text("TRUNCATE TABLE raw_offers"))
-        session.commit()
-    yield
-
-
-@pytest.fixture
-def repository(db_engine) -> RawOfferRepository:
-    return RawOfferRepository(engine=db_engine)

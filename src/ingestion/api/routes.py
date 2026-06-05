@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import cast
 
@@ -8,6 +9,7 @@ from pydantic import ValidationError
 from api.talentsoft import verify_talentsoft_signature
 from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.use_cases.archive_offer import ArchiveOfferUseCase
+from application.use_cases.save_talentsoft_webhook import SaveTalentsoftWebhookUseCase
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.value_objects.source import Source
 from domain.value_objects.webhook_event import (
@@ -47,6 +49,9 @@ async def talentsoft_webhook(
     ingest_offer_pipeline: IngestOfferPipeline | None = Depends(
         get_ingest_offer_pipeline
     ),
+    save_webhook_use_case: SaveTalentsoftWebhookUseCase = Depends(
+        Provide[Container.save_talentsoft_webhook_use_case]
+    ),
 ):
     body = await request.body()
     logger.debug(
@@ -62,6 +67,13 @@ async def talentsoft_webhook(
 
     # verify_talentsoft_signature already rejected unknown client_ids
     source = cast(Source, repository.get_by_client_id_back(client_id))
+
+    try:
+        await save_webhook_use_case.execute(
+            event=event, source=source, payload=json.loads(body)
+        )
+    except Exception:
+        logger.exception("Failed to store webhook for reference %s", event.reference)
 
     if should_archive(event):
         if use_case is None:

@@ -1,4 +1,6 @@
+import importlib
 import os
+import pkgutil
 import re
 from logging.config import fileConfig
 
@@ -6,8 +8,11 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 
+import infrastructure.models
+
 # Register all models with SQLModel metadata before Alembic reads it.
-import infrastructure.models.raw_offer  # noqa: F401
+for _module in pkgutil.iter_modules(infrastructure.models.__path__):
+    importlib.import_module(f"infrastructure.models.{_module.name}")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
