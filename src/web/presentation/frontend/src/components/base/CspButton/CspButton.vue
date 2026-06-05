@@ -77,9 +77,7 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   }
 
   &:disabled {
-    pointer-events: none;
-    background-color: var(--background-disabled-grey);
-    color: var(--text-disabled-grey);
+    cursor: not-allowed;
     box-shadow: none;
   }
 }
@@ -95,6 +93,11 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   &:active {
     background-color: var(--background-action-high-blue-france-active);
   }
+
+  &:disabled {
+    background-color: var(--background-disabled-grey);
+    color: var(--text-disabled-grey);
+  }
 }
 
 .csp-btn--secondary {
@@ -108,6 +111,12 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
 
   &:active {
     background-color: var(--background-default-grey-active);
+  }
+
+  &:disabled {
+    background-color: transparent;
+    color: var(--text-disabled-grey);
+    box-shadow: inset 0 0 0 1px var(--border-disabled-grey);
   }
 }
 
@@ -123,6 +132,12 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   &:active {
     background-color: var(--background-default-grey-active);
   }
+
+  &:disabled {
+    background-color: transparent;
+    color: var(--text-disabled-grey);
+    box-shadow: inset 0 0 0 1px var(--border-disabled-grey);
+  }
 }
 
 .csp-btn--tertiary-no-outline {
@@ -135,6 +150,11 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
 
   &:active {
     background-color: var(--background-default-grey-active);
+  }
+
+  &:disabled {
+    background-color: transparent;
+    color: var(--text-disabled-grey);
   }
 }
 

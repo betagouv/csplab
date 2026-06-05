@@ -287,15 +287,15 @@ export const States: Story = {
         >
           <p class="w-24">{{ v }}</p>
           <CspButton
-            :variant="v"
             v-bind="args"
-            label="Default"
+            :variant="v"
+            label="Activé"
           />
           <CspButton
-            :variant="v"
             v-bind="args"
+            :variant="v"
             :disabled="true"
-            label="Disabled"
+            label="Désactivé"
           />
         </div>
       </div>
