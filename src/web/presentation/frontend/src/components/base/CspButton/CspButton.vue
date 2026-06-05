@@ -46,7 +46,6 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
     </span>
     <span
       v-if="icon"
-      class="btn__icon"
     >
       <CspIcon
         class="csp-btn__icon"

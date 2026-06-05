@@ -40,6 +40,16 @@ jobs:
           lock-file-path: src/web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter csplab-frontend build-storybook
+      - name: Disable Jekyll processing on GitHub Pages
+        run: |
+          touch presentation/frontend/storybook-static/.nojekyll
+          mkdir -p "${{ runner.temp }}/ghpages-nojekyll"
+          touch "${{ runner.temp }}/ghpages-nojekyll/.nojekyll"
+      - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: ${{ runner.temp }}/ghpages-nojekyll
+          force: false
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
@@ -62,6 +72,16 @@ jobs:
           lock-file-path: src/web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter csplab-frontend build-storybook
+      - name: Disable Jekyll processing on GitHub Pages
+        run: |
+          touch presentation/frontend/storybook-static/.nojekyll
+          mkdir -p "${{ runner.temp }}/ghpages-nojekyll"
+          touch "${{ runner.temp }}/ghpages-nojekyll/.nojekyll"
+      - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: ${{ runner.temp }}/ghpages-nojekyll
+          force: false
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
