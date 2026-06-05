@@ -162,6 +162,16 @@ def test_unauthenticated_access(api_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
+def test_api_key_authentication(api_key_client, use_case):
+    use_case.execute.return_value = {"created": 1, "updated": 0, "errors": []}
+    response = api_key_client.post(
+        URL,
+        data=[MINIMAL_VALID_OFFER],
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+
+
 def test_get_method_not_allowed(authenticated_client):
     response = authenticated_client.get(URL)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED

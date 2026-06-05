@@ -572,6 +572,7 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - ApiKeyAuth: []
       responses:
         '201':
           content:

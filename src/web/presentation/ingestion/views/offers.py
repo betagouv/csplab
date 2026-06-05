@@ -188,6 +188,7 @@ class ArchiveOffersView(APIView):
     },
 )
 class OffersUpsertView(APIView):
+    authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
     parser_classes = [JSONParser]
     serializer_class = UpsertOffersRequestSerializer
 
