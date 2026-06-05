@@ -8,26 +8,13 @@ import {
 import { computed, useSlots } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import { provideSidebar, SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from '@/composables/useSidebar'
-
-interface CspSidebarProps {
-  defaultExpanded?: boolean
-  persistState?: boolean
-}
-
-const props = withDefaults(defineProps<CspSidebarProps>(), {
-  defaultExpanded: true,
-  persistState: true,
-})
+import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED, useSidebar } from '@/composables/useSidebar'
 
 const slots = useSlots()
 const hasLogo = computed(() => Boolean(slots.logo))
 const hasFooter = computed(() => Boolean(slots.footer))
 
-const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = provideSidebar({
-  defaultExpanded: props.defaultExpanded,
-  persistState: props.persistState,
-})
+const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = useSidebar()
 </script>
 
 <template>
