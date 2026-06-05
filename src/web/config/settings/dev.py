@@ -60,3 +60,5 @@ SECURE_CSP["connect-src"] = [  # noqa: F405
     "http://localhost:5173",
     "ws://localhost:5173",
 ]
+SECURE_CSP["style-src"] = ["'self'", "'unsafe-inline'"]  # noqa: F405
+SECURE_CSP["style-src-elem"] = ["'self'", "'unsafe-inline'"]  # noqa: F405
