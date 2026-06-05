@@ -179,7 +179,7 @@ def test_invalid_payload_returns_error_400(
 ):
     response = authenticated_client.post(
         URL,
-        data=[MINIMAL_VALID_OFFER] * num_offers,
+        data={"offres": [MINIMAL_VALID_OFFER] * num_offers},
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -198,7 +198,7 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
     }
     response = authenticated_client.post(
         URL,
-        data=offers_payload,
+        data={"offres": offers_payload},
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_201_CREATED
@@ -235,7 +235,7 @@ def test_mixed_valid_invalid_offers_in_payload(authenticated_client, use_case):
     }
     response = authenticated_client.post(
         URL,
-        data=offers_payload,
+        data={"offres": offers_payload},
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_201_CREATED
@@ -257,6 +257,6 @@ def test_returns_error_500(authenticated_client, use_case):
     use_case.execute.side_effect = Exception("db error")
 
     response = authenticated_client.post(
-        URL, data=[MINIMAL_VALID_OFFER], content_type="application/json"
+        URL, data={"offres": [MINIMAL_VALID_OFFER]}, content_type="application/json"
     )
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR

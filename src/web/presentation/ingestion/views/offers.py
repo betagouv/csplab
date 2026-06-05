@@ -196,7 +196,7 @@ class OffersUpsertView(APIView):
         logger = container.logger_service()
 
         # catch mini / maxi items number
-        serializer = UpsertOffersRequestSerializer(data={"offres": request.data})
+        serializer = UpsertOffersRequestSerializer(data=request.data)
         if not serializer.is_valid():
             logger.warning("OffersUpsertView: validation errors %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -206,7 +206,7 @@ class OffersUpsertView(APIView):
         errors = []
         offer_mapper = OfferInputMapper()
 
-        for _, offer_data in enumerate(request.data):
+        for _, offer_data in enumerate(request.data["offres"]):
             serializer = OffersInputSerializer(data=offer_data)
             if not serializer.is_valid():
                 errors.append(
