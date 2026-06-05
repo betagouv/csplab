@@ -32,6 +32,7 @@ const preview: Preview = {
           ],
           'Compositions',
           [
+            'Layout',
             'Génériques',
             'ATS',
           ],
