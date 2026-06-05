@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
-import CspTooltip from '@/components/base/CspTooltip/CspTooltip.vue'
+import {
+  CspDropdownMenu,
+  CspDropdownMenuItem,
+  CspDropdownMenuSeparator,
+} from '@/components/base/CspDropdownMenu'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import { useColorMode } from '@/composables/useColorMode'
 import { useSidebar } from '@/composables/useSidebar'
 
 interface CspSidebarUserProps {
@@ -8,38 +14,84 @@ interface CspSidebarUserProps {
   role?: string
 }
 
-const props = defineProps<CspSidebarUserProps>()
+defineProps<CspSidebarUserProps>()
 
 const { isExpanded, isMobile } = useSidebar()
+const { isDark, toggle: toggleColorMode } = useColorMode()
 </script>
 
 <template>
-  <CspTooltip
-    :content="props.role ? `${name} • ${role}` : name"
-    :disabled="isExpanded || isMobile"
+  <CspDropdownMenu
     side="right"
-    :side-offset="12"
+    align="end"
+    :side-offset="8"
+    :side-flip="false"
   >
-    <div
-      class="csp-sidebar-user"
-      :class="{ 'csp-sidebar-user--expanded': isExpanded || isMobile }"
-    >
-      <CspAvatar
-        :name="name"
-        size="md"
-      />
-      <div
-        v-if="isExpanded || isMobile"
-        class="csp-sidebar-user__info"
+    <template #trigger>
+      <button
+        type="button"
+        class="csp-sidebar-user"
+        :class="{ 'csp-sidebar-user--expanded': isExpanded || isMobile }"
       >
-        <span class="csp-sidebar-user__name">{{ name }}</span>
-        <span
-          v-if="role"
-          class="csp-sidebar-user__role"
-        >{{ role }}</span>
-      </div>
-    </div>
-  </CspTooltip>
+        <CspAvatar
+          :name="name"
+          size="md"
+        />
+        <div
+          v-if="isExpanded || isMobile"
+          class="csp-sidebar-user__info"
+        >
+          <span class="csp-sidebar-user__name">{{ name }}</span>
+          <span
+            v-if="role"
+            class="csp-sidebar-user__role"
+          >{{ role }}</span>
+        </div>
+        <CspIcon
+          v-if="isExpanded || isMobile"
+          name="ri:expand-up-down-line"
+          :size="16"
+          class="csp-sidebar-user__chevron"
+        />
+      </button>
+    </template>
+
+    <CspDropdownMenuItem @select="toggleColorMode">
+      <CspIcon
+        :name="isDark ? 'ri:sun-line' : 'ri:moon-line'"
+        :size="16"
+      />
+      {{ isDark ? 'Mode clair' : 'Mode sombre' }}
+    </CspDropdownMenuItem>
+
+    <CspDropdownMenuSeparator />
+
+    <CspDropdownMenuItem>
+      <CspIcon
+        name="ri:user-line"
+        :size="16"
+      />
+      Mon profil
+    </CspDropdownMenuItem>
+
+    <CspDropdownMenuItem>
+      <CspIcon
+        name="ri:settings-3-line"
+        :size="16"
+      />
+      Paramètres
+    </CspDropdownMenuItem>
+
+    <CspDropdownMenuSeparator />
+
+    <CspDropdownMenuItem>
+      <CspIcon
+        name="ri:logout-box-r-line"
+        :size="16"
+      />
+      Se déconnecter
+    </CspDropdownMenuItem>
+  </CspDropdownMenu>
 </template>
 
 <style scoped lang="scss">
@@ -50,11 +102,26 @@ const { isExpanded, isMobile } = useSidebar()
   gap: 0.625rem;
   width: 100%;
   min-width: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--background-alt-grey);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--csp-focus-ring-offset);
+  }
 
   &--expanded {
     justify-content: flex-start;
     min-height: var(--sidebar-item-size, 2.5rem);
-    padding: 0 var(--sidebar-inset-x, 0.5rem);
+    padding: 0.375rem var(--sidebar-inset-x, 0.5rem);
   }
 }
 
@@ -63,6 +130,7 @@ const { isExpanded, isMobile } = useSidebar()
   flex-direction: column;
   flex: 1;
   min-width: 0;
+  text-align: left;
   line-height: 1.2;
 }
 
@@ -81,5 +149,10 @@ const { isExpanded, isMobile } = useSidebar()
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.csp-sidebar-user__chevron {
+  flex-shrink: 0;
+  color: var(--text-mention-grey);
 }
 </style>

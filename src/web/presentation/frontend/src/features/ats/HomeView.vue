@@ -8,9 +8,6 @@ import AtsAppShell from './components/AtsAppShell.vue'
       <h1 class="home-view__title">
         Mes offres
       </h1>
-      <p class="home-view__hint">
-        Layout de base branché. Le contenu métier viendra ensuite.
-      </p>
     </div>
   </AtsAppShell>
 </template>
@@ -25,10 +22,5 @@ import AtsAppShell from './components/AtsAppShell.vue'
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--text-title-grey);
-}
-
-.home-view__hint {
-  margin: 0;
-  color: var(--text-mention-grey);
 }
 </style>
