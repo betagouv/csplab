@@ -3,6 +3,8 @@ name: PR Fields Check
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited, ready_for_review, labeled, unlabeled]
+  projects_v2_item:
+    types: [edited]
   merge_group:
 
 permissions:
@@ -18,101 +20,134 @@ jobs:
         with:
           github-token: ${{ secrets.GH_TOKEN || github.token }}
           script: |
-            const validLabels = new Set([
+            const VALID_LABELS = new Set([
               'breaking', 'added', 'modified', 'removed', 'bugfix', 'dependencies', 'documentation'
             ]);
-            const labels = context.payload.pull_request.labels.map(l => l.name);
-            const matching = labels.filter(l => validLabels.has(l));
-            if (matching.length !== 1) {
-              core.setFailed(
-                `This pull request must have exactly one changelog label (${[...validLabels].join(', ')}). Found: ${matching.length === 0 ? 'none' : matching.join(', ')}.`
-              );
-              return;
-            }
+            const REQUIRED_PROJECT_FIELDS = ['Importance', 'Size', 'Iteration', 'Epic'];
 
-            const { owner, repo } = context.repo;
-            const prNumber = context.payload.pull_request.number;
-
-            const query = `
-              query($owner: String!, $repo: String!, $number: Int!) {
-                repository(owner: $owner, name: $repo) {
-                  pullRequest(number: $number) {
-                    closingIssuesReferences(first: 10) {
-                      totalCount
-                    }
-                    projectItems(first: 10) {
-                      nodes {
-                        project {
-                          title
-                        }
-                        fieldValues(first: 30) {
-                          nodes {
-                            ... on ProjectV2ItemFieldSingleSelectValue {
-                              name
-                              field { ... on ProjectV2FieldCommon { name } }
-                            }
-                            ... on ProjectV2ItemFieldIterationValue {
-                              title
-                              field { ... on ProjectV2FieldCommon { name } }
-                            }
-                            ... on ProjectV2ItemFieldTextValue {
-                              text
-                              field { ... on ProjectV2FieldCommon { name } }
-                            }
-                            ... on ProjectV2ItemFieldNumberValue {
-                              number
-                              field { ... on ProjectV2FieldCommon { name } }
-                            }
-                          }
-                        }
-                      }
-                    }
+            const FIELD_VALUES_FRAGMENT = `
+              fieldValues(first: 30) {
+                nodes {
+                  ... on ProjectV2ItemFieldSingleSelectValue {
+                    name
+                    field { ... on ProjectV2FieldCommon { name } }
+                  }
+                  ... on ProjectV2ItemFieldIterationValue {
+                    title
+                    field { ... on ProjectV2FieldCommon { name } }
+                  }
+                  ... on ProjectV2ItemFieldTextValue {
+                    text
+                    field { ... on ProjectV2FieldCommon { name } }
+                  }
+                  ... on ProjectV2ItemFieldNumberValue {
+                    number
+                    field { ... on ProjectV2FieldCommon { name } }
                   }
                 }
               }
             `;
 
-            const result = await github.graphql(query, { owner, repo, number: prNumber });
-            const pr = result.repository.pullRequest;
-
-            const linkedIssuesCount = pr.closingIssuesReferences.totalCount;
-            const projectItems = pr.projectItems.nodes;
-
-            const hasDevelopment = linkedIssuesCount > 0;
-            const hasProjects = projectItems.length > 0;
-
-            if (!hasDevelopment && !hasProjects) {
-              core.setFailed(
-                'This pull request must have either the "Development" field (a linked issue) or be added to a "Projects" board.'
-              );
-              return;
+            async function fetchPRByNodeId(nodeId) {
+              const result = await github.graphql(`
+                query($nodeId: ID!) {
+                  node(id: $nodeId) {
+                    ... on PullRequest {
+                      labels(first: 20) { nodes { name } }
+                      closingIssuesReferences(first: 10) { totalCount }
+                      projectItems(first: 10) {
+                        nodes {
+                          project { title }
+                          ${FIELD_VALUES_FRAGMENT}
+                        }
+                      }
+                    }
+                  }
+                }
+              `, { nodeId });
+              const pr = result.node;
+              pr.labels = pr.labels.nodes.map(l => l.name);
+              return pr;
             }
 
-            if (hasProjects) {
-              const requiredFields = ['Importance', 'Size', 'Iteration', 'Epic'];
-              const errors = [];
+            async function fetchPRByNumber(owner, repo, number) {
+              const result = await github.graphql(`
+                query($owner: String!, $repo: String!, $number: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    pullRequest(number: $number) {
+                      labels(first: 20) { nodes { name } }
+                      closingIssuesReferences(first: 10) { totalCount }
+                      projectItems(first: 10) {
+                        nodes {
+                          project { title }
+                          ${FIELD_VALUES_FRAGMENT}
+                        }
+                      }
+                    }
+                  }
+                }
+              `, { owner, repo, number });
+              const pr = result.repository.pullRequest;
+              pr.labels = pr.labels.nodes.map(l => l.name);
+              return pr;
+            }
 
+            function checkLabel(labels) {
+              const matching = labels.filter(l => VALID_LABELS.has(l));
+              if (matching.length !== 1) {
+                core.setFailed(
+                  `This pull request must have exactly one changelog label (${[...VALID_LABELS].join(', ')}). Found: ${matching.length === 0 ? 'none' : matching.join(', ')}.`
+                );
+                return false;
+              }
+              return true;
+            }
+
+            function checkLinkedIssueOrProject(pr) {
+              const hasDevelopment = pr.closingIssuesReferences.totalCount > 0;
+              const hasProjects = pr.projectItems.nodes.length > 0;
+              if (!hasDevelopment && !hasProjects) {
+                core.setFailed(
+                  'This pull request must have either the "Development" field (a linked issue) or be added to a "Projects" board.'
+                );
+                return false;
+              }
+              return true;
+            }
+
+            function checkProjectFields(projectItems) {
+              const errors = [];
               for (const item of projectItems) {
                 const filledFields = new Set();
-
                 for (const fieldValue of item.fieldValues.nodes) {
                   const fieldName = fieldValue.field?.name;
                   if (!fieldName) continue;
                   const value = fieldValue.name ?? fieldValue.title ?? fieldValue.text ?? fieldValue.number;
-                  if (value !== null && value !== undefined) {
-                    filledFields.add(fieldName);
-                  }
+                  if (value !== null && value !== undefined) filledFields.add(fieldName);
                 }
-
-                const missingFields = requiredFields.filter(f => !filledFields.has(f));
+                const missingFields = REQUIRED_PROJECT_FIELDS.filter(f => !filledFields.has(f));
                 if (missingFields.length > 0) {
-                  errors.push(
-                    `Project "${item.project.title}" is missing required fields: ${missingFields.join(', ')}.`
-                  );
+                  errors.push(`Project "${item.project.title}" is missing required fields: ${missingFields.join(', ')}.`);
                 }
               }
-
-              if (errors.length > 0) {
-                core.setFailed(errors.join('\n'));
-              }
+              if (errors.length > 0) core.setFailed(errors.join('\n'));
             }
+
+            // --- main ---
+
+            let pr;
+            if (context.eventName === 'projects_v2_item') {
+              const item = context.payload.projects_v2_item;
+              if (item.content_type !== 'PullRequest') {
+                core.info('Project item is not a pull request, skipping.');
+                return;
+              }
+              pr = await fetchPRByNodeId(item.content_node_id);
+            } else {
+              const { owner, repo } = context.repo;
+              pr = await fetchPRByNumber(owner, repo, context.payload.pull_request.number);
+            }
+
+            if (!checkLabel(pr.labels)) return;
+            if (!checkLinkedIssueOrProject(pr)) return;
+            checkProjectFields(pr.projectItems.nodes);
