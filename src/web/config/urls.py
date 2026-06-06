@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import URLPattern, URLResolver, include, path
+from django_otp.admin import OTPAdminSite
 
 from presentation.api import urls as api_urls
 from presentation.ats import urls as ats_urls
@@ -8,6 +9,8 @@ from presentation.candidate import urls as candidate_urls
 from presentation.ingestion import urls as ingestion_urls
 from presentation.pages import urls as pages_urls
 from presentation.users import urls as users_urls
+
+admin.site.__class__ = OTPAdminSite
 
 urlpatterns: list[URLPattern | URLResolver] = [
     path("", include(pages_urls)),
