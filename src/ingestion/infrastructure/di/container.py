@@ -71,10 +71,14 @@ def _make_archive_gateway(
 
 def _make_archive_use_case(
     archive_gateway: IArchiveGateway | None,
+    raw_offer_repository: IRawOfferRepository | None,
 ) -> ArchiveOfferUseCase | None:
-    if archive_gateway is None:
+    if archive_gateway is None or raw_offer_repository is None:
         return None
-    return ArchiveOfferUseCase(archive_gateway=archive_gateway)
+    return ArchiveOfferUseCase(
+        archive_gateway=archive_gateway,
+        raw_offer_repository=raw_offer_repository,
+    )
 
 
 def _make_publish_offer_gateway(
@@ -149,6 +153,7 @@ class Container(containers.DeclarativeContainer):
         providers.Factory(
             _make_archive_use_case,
             archive_gateway=archive_gateway,
+            raw_offer_repository=raw_offer_repository,
         )
     )
 

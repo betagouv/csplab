@@ -271,6 +271,56 @@ async def test_mark_as_upserted_raises_when_row_not_found(repository, db_engine)
 
 
 # ---------------------------------------------------------------------------
+# mark_as_archived
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_mark_as_archived_sets_archived_at(repository, db_engine):
+    await repository.upsert(RawOffer(reference=REFERENCE, source_id=SOURCE_ID))
+
+    archived_at = datetime(2025, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
+    await repository.mark_as_archived(REFERENCE, SOURCE_ID, archived_at)
+
+    saved = _fetch(db_engine, REFERENCE, SOURCE_ID)
+    assert saved.archived_at is not None
+    assert saved.archived_at.replace(tzinfo=timezone.utc) == archived_at
+
+
+@pytest.mark.asyncio
+async def test_mark_as_archived_updates_updated_at(repository, db_engine):
+    await repository.upsert(RawOffer(reference=REFERENCE, source_id=SOURCE_ID))
+    before = _fetch(db_engine, REFERENCE, SOURCE_ID)
+
+    archived_at = datetime.now(tz=timezone.utc)
+    await repository.mark_as_archived(REFERENCE, SOURCE_ID, archived_at)
+
+    after = _fetch(db_engine, REFERENCE, SOURCE_ID)
+    assert after.updated_at >= before.updated_at
+
+
+@pytest.mark.asyncio
+async def test_mark_as_archived_does_not_affect_other_rows(repository, db_engine):
+    other_source_id = str(uuid4())
+    await repository.upsert(RawOffer(reference=REFERENCE, source_id=SOURCE_ID))
+    await repository.upsert(RawOffer(reference=REFERENCE, source_id=other_source_id))
+
+    await repository.mark_as_archived(
+        REFERENCE, SOURCE_ID, datetime.now(tz=timezone.utc)
+    )
+
+    other = _fetch(db_engine, REFERENCE, other_source_id)
+    assert other.archived_at is None
+
+
+@pytest.mark.asyncio
+async def test_mark_as_archived_is_noop_when_row_not_found(repository, db_engine):
+    await repository.mark_as_archived(
+        "UNKNOWN-REF", SOURCE_ID, datetime.now(tz=timezone.utc)
+    )
+
+
+# ---------------------------------------------------------------------------
 # Uniqueness
 # ---------------------------------------------------------------------------
 

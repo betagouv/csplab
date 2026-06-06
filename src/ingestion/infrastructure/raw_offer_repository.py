@@ -100,3 +100,25 @@ class RawOfferRepository(IRawOfferRepository):
                     f" source_id={source_id}"
                 )
             session.commit()
+
+    async def mark_as_archived(
+        self, reference: str, source_id: str, archived_at: datetime
+    ) -> None:
+        await asyncio.to_thread(
+            self._mark_as_archived_sync, reference, source_id, archived_at
+        )
+
+    def _mark_as_archived_sync(
+        self, reference: str, source_id: str, archived_at: datetime
+    ) -> None:
+        now = datetime.now(tz=timezone.utc)
+        with Session(self._engine) as session:
+            session.execute(
+                update(RawOfferModel)
+                .where(
+                    col(RawOfferModel.reference) == reference,
+                    col(RawOfferModel.source_id) == source_id,
+                )
+                .values(archived_at=archived_at, updated_at=now)
+            )
+            session.commit()
