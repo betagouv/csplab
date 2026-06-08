@@ -4,7 +4,7 @@ from uuid import UUID
 
 import pytest
 
-from application.use_cases.post_cleaned_offer import PostCleanedOfferUseCase
+from application.use_cases.publish_offer import PublishOfferUseCase
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.value_objects.contract_type import ContractType
@@ -38,7 +38,7 @@ def mock_gateway():
 
 @pytest.fixture
 def use_case(mock_gateway):
-    return PostCleanedOfferUseCase(publish_offer_gateway=mock_gateway)
+    return PublishOfferUseCase(publish_offer_gateway=mock_gateway)
 
 
 @pytest.mark.asyncio

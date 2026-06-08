@@ -5,7 +5,7 @@ import pytest
 
 from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
-from application.use_cases.post_cleaned_offer import PostCleanedOfferUseCase
+from application.use_cases.publish_offer import PublishOfferUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
@@ -62,8 +62,8 @@ def mock_raw_offer_repository():
 
 
 @pytest.fixture
-def mock_post_cleaned_offer_use_case():
-    use_case = MagicMock(spec=PostCleanedOfferUseCase)
+def mock_publish_offer_use_case():
+    use_case = MagicMock(spec=PublishOfferUseCase)
     use_case.execute = AsyncMock()
     return use_case
 
@@ -84,13 +84,13 @@ def pipeline_with_post(
     mock_save_use_case,
     mock_clean_use_case,
     mock_raw_offer_repository,
-    mock_post_cleaned_offer_use_case,
+    mock_publish_offer_use_case,
 ) -> IngestOfferPipeline:
     return IngestOfferPipeline(
         save_raw_offer=mock_save_use_case,
         clean_raw_offer=mock_clean_use_case,
         raw_offer_repository=mock_raw_offer_repository,
-        post_cleaned_offer=mock_post_cleaned_offer_use_case,
+        publish_offer=mock_publish_offer_use_case,
     )
 
 
@@ -169,19 +169,19 @@ async def test_execute_does_not_raise_when_mark_as_cleaned_fails(
 
 
 @pytest.mark.asyncio
-async def test_execute_calls_post_cleaned_offer_after_clean(
+async def test_execute_calls_publish_offer_after_clean(
     pipeline_with_post,
     mock_clean_use_case,
-    mock_post_cleaned_offer_use_case,
+    mock_publish_offer_use_case,
 ):
     await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
-    mock_post_cleaned_offer_use_case.execute.assert_awaited_once_with(CLEANED_OFFER)
+    mock_publish_offer_use_case.execute.assert_awaited_once_with(CLEANED_OFFER)
 
 
 @pytest.mark.asyncio
-async def test_execute_marks_as_upserted_after_post(
-    pipeline_with_post, mock_raw_offer_repository, mock_post_cleaned_offer_use_case
+async def test_execute_marks_as_upserted_after_publish(
+    pipeline_with_post, mock_raw_offer_repository, mock_publish_offer_use_case
 ):
     await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
@@ -192,10 +192,10 @@ async def test_execute_marks_as_upserted_after_post(
 
 
 @pytest.mark.asyncio
-async def test_execute_skips_post_when_clean_fails(
+async def test_execute_skips_publish_when_clean_fails(
     pipeline_with_post,
     mock_clean_use_case,
-    mock_post_cleaned_offer_use_case,
+    mock_publish_offer_use_case,
     mock_raw_offer_repository,
 ):
     mock_clean_use_case.execute.side_effect = ValueError("Bad data")
@@ -203,15 +203,15 @@ async def test_execute_skips_post_when_clean_fails(
     with patch("application.pipelines.ingest_offer_pipeline.logger"):
         await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
-    mock_post_cleaned_offer_use_case.execute.assert_not_called()
+    mock_publish_offer_use_case.execute.assert_not_called()
     mock_raw_offer_repository.mark_as_upserted.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_execute_does_not_raise_when_post_fails(
-    pipeline_with_post, mock_post_cleaned_offer_use_case
+async def test_execute_does_not_raise_when_publish_fails(
+    pipeline_with_post, mock_publish_offer_use_case
 ):
-    mock_post_cleaned_offer_use_case.execute.side_effect = RuntimeError("Web API down")
+    mock_publish_offer_use_case.execute.side_effect = RuntimeError("Web API down")
 
     with patch("application.pipelines.ingest_offer_pipeline.logger") as mock_logger:
         await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
@@ -230,8 +230,8 @@ async def test_execute_does_not_raise_when_mark_as_upserted_fails(
 
 
 @pytest.mark.asyncio
-async def test_execute_skips_post_when_use_case_not_configured(
-    pipeline, mock_post_cleaned_offer_use_case, mock_raw_offer_repository
+async def test_execute_skips_publish_when_use_case_not_configured(
+    pipeline, mock_publish_offer_use_case, mock_raw_offer_repository
 ):
     await pipeline.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
