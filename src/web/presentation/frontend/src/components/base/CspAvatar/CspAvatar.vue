@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { getInitials } from '@/utils/string'
+import { getInitials } from '@/utils/format'
 
 export interface CspAvatarProps {
   name?: string | null

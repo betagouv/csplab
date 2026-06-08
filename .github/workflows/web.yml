@@ -79,8 +79,8 @@ jobs:
         run: pnpm --filter csplab-frontend lint
       - name: TypeScript check
         run: pnpm --filter csplab-frontend build
-      - name: Test frontend
-        run: pnpm --filter csplab-frontend test:run
+      - name: Test frontend with coverage
+        run: pnpm --filter csplab-frontend test:run --coverage
       - name: Check no migrations are missing
         working-directory: ${{ github.workspace }}
         run: make lint-web-migrations WEB_UV="cd src/web && uv run"

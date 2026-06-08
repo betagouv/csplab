@@ -84,6 +84,8 @@ dumps/*.tar.gz
 dumps/*.dump
 dumps/*.sql
 .coverage
+coverage/
+.pnpm-store/
 
 # Coverage reports
 */tests/cov.md
