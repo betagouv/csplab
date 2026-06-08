@@ -9,6 +9,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
+            elidable=True,
             sql=[
                 """
                 DELETE FROM offers
