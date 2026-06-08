@@ -107,6 +107,7 @@ MIDDLEWARE = [
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "presentation.middleware.api_request_logger.ApiRequestLoggerMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

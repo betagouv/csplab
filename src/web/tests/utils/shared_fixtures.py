@@ -72,7 +72,7 @@ async def close_worker_thread_connections():
 
 
 @pytest.fixture(name="api_client")
-def api_client_fixture():
+def api_client_fixture(db):
     return APIClient()
 
 
