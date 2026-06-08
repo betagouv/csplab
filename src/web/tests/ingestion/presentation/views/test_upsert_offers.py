@@ -166,7 +166,7 @@ def test_api_key_authentication(api_key_client, use_case):
     use_case.execute.return_value = {"created": 1, "updated": 0, "errors": []}
     response = api_key_client.post(
         URL,
-        data=[MINIMAL_VALID_OFFER],
+        data={"offres": [MINIMAL_VALID_OFFER]},
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_201_CREATED
