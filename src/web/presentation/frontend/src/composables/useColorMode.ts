@@ -1,4 +1,4 @@
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 export type ColorMode = 'light' | 'dark' | 'system'
 
@@ -38,6 +38,9 @@ export function useColorMode() {
     setColorMode(newMode)
   }
 
+  let mediaQuery: MediaQueryList | null = null
+  let handler: ((e: MediaQueryListEvent) => void) | null = null
+
   onMounted(() => {
     systemPrefersDark.value = getSystemPreference()
 
@@ -48,14 +51,20 @@ export function useColorMode() {
 
     applyTheme(isDark.value)
 
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = (e: MediaQueryListEvent) => {
+    mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    handler = (e: MediaQueryListEvent) => {
       systemPrefersDark.value = e.matches
       if (colorMode.value === 'system') {
         applyTheme(e.matches)
       }
     }
     mediaQuery.addEventListener('change', handler)
+  })
+
+  onUnmounted(() => {
+    if (mediaQuery && handler) {
+      mediaQuery.removeEventListener('change', handler)
+    }
   })
 
   watch(isDark, (dark) => {

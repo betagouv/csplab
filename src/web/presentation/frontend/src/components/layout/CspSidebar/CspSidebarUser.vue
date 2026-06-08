@@ -1,10 +1,7 @@
 <script setup lang="ts">
+import { DropdownMenuItem, DropdownMenuSeparator } from 'reka-ui'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
-import {
-  CspDropdownMenu,
-  CspDropdownMenuItem,
-  CspDropdownMenuSeparator,
-} from '@/components/base/CspDropdownMenu'
+import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useColorMode } from '@/composables/useColorMode'
 import { useSidebar } from '@/composables/useSidebar'
@@ -56,41 +53,41 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
       </button>
     </template>
 
-    <CspDropdownMenuItem @select="toggleColorMode">
+    <DropdownMenuItem @select="toggleColorMode">
       <CspIcon
         :name="isDark ? 'ri:sun-line' : 'ri:moon-line'"
         :size="16"
       />
       {{ isDark ? 'Mode clair' : 'Mode sombre' }}
-    </CspDropdownMenuItem>
+    </DropdownMenuItem>
 
-    <CspDropdownMenuSeparator />
+    <DropdownMenuSeparator />
 
-    <CspDropdownMenuItem>
+    <DropdownMenuItem>
       <CspIcon
         name="ri:user-line"
         :size="16"
       />
       Mon profil
-    </CspDropdownMenuItem>
+    </DropdownMenuItem>
 
-    <CspDropdownMenuItem>
+    <DropdownMenuItem>
       <CspIcon
         name="ri:settings-3-line"
         :size="16"
       />
       Paramètres
-    </CspDropdownMenuItem>
+    </DropdownMenuItem>
 
-    <CspDropdownMenuSeparator />
+    <DropdownMenuSeparator />
 
-    <CspDropdownMenuItem>
+    <DropdownMenuItem>
       <CspIcon
         name="ri:logout-box-r-line"
         :size="16"
       />
       Se déconnecter
-    </CspDropdownMenuItem>
+    </DropdownMenuItem>
   </CspDropdownMenu>
 </template>
 

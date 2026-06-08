@@ -1,12 +1,12 @@
 import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3'
-import CspButton from '@/components/base/CspButton/CspButton.vue'
 import {
-  CspDropdownMenu,
-  CspDropdownMenuGroup,
-  CspDropdownMenuItem,
-  CspDropdownMenuLabel,
-  CspDropdownMenuSeparator,
-} from '@/components/base/CspDropdownMenu'
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from 'reka-ui'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 type CspDropdownMenuProps = ComponentPropsAndSlots<typeof CspDropdownMenu>
@@ -121,8 +121,8 @@ const meta = {
   render: (args: CspDropdownMenuProps) => ({
     components: {
       CspDropdownMenu,
-      CspDropdownMenuItem,
-      CspDropdownMenuSeparator,
+      DropdownMenuItem,
+      DropdownMenuSeparator,
       CspButton,
       CspIcon,
     },
@@ -136,19 +136,19 @@ const meta = {
             <CspButton label="Ouvrir le menu" variant="secondary" />
           </template>
 
-          <CspDropdownMenuItem>
+          <DropdownMenuItem>
             <CspIcon name="ri:user-line" :size="16" />
             Mon profil
-          </CspDropdownMenuItem>
-          <CspDropdownMenuItem>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
             <CspIcon name="ri:settings-3-line" :size="16" />
             Paramètres
-          </CspDropdownMenuItem>
-          <CspDropdownMenuSeparator />
-          <CspDropdownMenuItem>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>
             <CspIcon name="ri:logout-box-r-line" :size="16" />
             Se déconnecter
-          </CspDropdownMenuItem>
+          </DropdownMenuItem>
         </CspDropdownMenu>
       </div>
     `,
@@ -167,7 +167,7 @@ export const Positions: Story = {
   render: args => ({
     components: {
       CspDropdownMenu,
-      CspDropdownMenuItem,
+      DropdownMenuItem,
       CspButton,
     },
     setup() {
@@ -185,9 +185,9 @@ export const Positions: Story = {
             <CspButton :label="side" variant="secondary" />
           </template>
 
-          <CspDropdownMenuItem>Option 1</CspDropdownMenuItem>
-          <CspDropdownMenuItem>Option 2</CspDropdownMenuItem>
-          <CspDropdownMenuItem>Option 3</CspDropdownMenuItem>
+          <DropdownMenuItem>Option 1</DropdownMenuItem>
+          <DropdownMenuItem>Option 2</DropdownMenuItem>
+          <DropdownMenuItem>Option 3</DropdownMenuItem>
         </CspDropdownMenu>
       </div>
     `,
@@ -201,7 +201,7 @@ export const Alignments: Story = {
   render: args => ({
     components: {
       CspDropdownMenu,
-      CspDropdownMenuItem,
+      DropdownMenuItem,
       CspButton,
     },
     setup() {
@@ -220,9 +220,9 @@ export const Alignments: Story = {
             <CspButton :label="align" variant="tertiary" />
           </template>
 
-          <CspDropdownMenuItem>Option 1</CspDropdownMenuItem>
-          <CspDropdownMenuItem>Option 2</CspDropdownMenuItem>
-          <CspDropdownMenuItem>Option 3</CspDropdownMenuItem>
+          <DropdownMenuItem>Option 1</DropdownMenuItem>
+          <DropdownMenuItem>Option 2</DropdownMenuItem>
+          <DropdownMenuItem>Option 3</DropdownMenuItem>
         </CspDropdownMenu>
       </div>
     `,
@@ -236,10 +236,10 @@ export const WithLabelsAndGroups: Story = {
   render: args => ({
     components: {
       CspDropdownMenu,
-      CspDropdownMenuGroup,
-      CspDropdownMenuItem,
-      CspDropdownMenuLabel,
-      CspDropdownMenuSeparator,
+      DropdownMenuGroup,
+      DropdownMenuItem,
+      DropdownMenuLabel,
+      DropdownMenuSeparator,
       CspButton,
       CspIcon,
     },
@@ -253,38 +253,38 @@ export const WithLabelsAndGroups: Story = {
             <CspButton label="Menu avec groupes" variant="secondary" />
           </template>
 
-          <CspDropdownMenuLabel>Mon compte</CspDropdownMenuLabel>
-          <CspDropdownMenuGroup>
-            <CspDropdownMenuItem>
+          <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+          <DropdownMenuGroup>
+            <DropdownMenuItem>
               <CspIcon name="ri:user-line" :size="16" />
               Profil
-            </CspDropdownMenuItem>
-            <CspDropdownMenuItem>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
               <CspIcon name="ri:settings-3-line" :size="16" />
               Paramètres
-            </CspDropdownMenuItem>
-          </CspDropdownMenuGroup>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
 
-          <CspDropdownMenuSeparator />
+          <DropdownMenuSeparator />
 
-          <CspDropdownMenuLabel>Équipe</CspDropdownMenuLabel>
-          <CspDropdownMenuGroup>
-            <CspDropdownMenuItem>
+          <DropdownMenuLabel>Équipe</DropdownMenuLabel>
+          <DropdownMenuGroup>
+            <DropdownMenuItem>
               <CspIcon name="ri:group-line" :size="16" />
               Membres
-            </CspDropdownMenuItem>
-            <CspDropdownMenuItem>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
               <CspIcon name="ri:add-line" :size="16" />
               Inviter
-            </CspDropdownMenuItem>
-          </CspDropdownMenuGroup>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
 
-          <CspDropdownMenuSeparator />
+          <DropdownMenuSeparator />
 
-          <CspDropdownMenuItem>
+          <DropdownMenuItem>
             <CspIcon name="ri:logout-box-r-line" :size="16" />
             Se déconnecter
-          </CspDropdownMenuItem>
+          </DropdownMenuItem>
         </CspDropdownMenu>
       </div>
     `,
@@ -295,8 +295,8 @@ export const WithIcons: Story = {
   render: args => ({
     components: {
       CspDropdownMenu,
-      CspDropdownMenuItem,
-      CspDropdownMenuSeparator,
+      DropdownMenuItem,
+      DropdownMenuSeparator,
       CspButton,
       CspIcon,
     },
@@ -310,23 +310,23 @@ export const WithIcons: Story = {
             <CspButton label="Actions" variant="primary" />
           </template>
 
-          <CspDropdownMenuItem>
+          <DropdownMenuItem>
             <CspIcon name="ri:edit-line" :size="16" />
             Modifier
-          </CspDropdownMenuItem>
-          <CspDropdownMenuItem>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
             <CspIcon name="ri:eye-line" :size="16" />
             Aperçu
-          </CspDropdownMenuItem>
-          <CspDropdownMenuItem>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
             <CspIcon name="ri:external-link-line" :size="16" />
             Ouvrir dans un nouvel onglet
-          </CspDropdownMenuItem>
-          <CspDropdownMenuSeparator />
-          <CspDropdownMenuItem>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>
             <CspIcon name="ri:delete-bin-line" :size="16" />
             Supprimer
-          </CspDropdownMenuItem>
+          </DropdownMenuItem>
         </CspDropdownMenu>
       </div>
     `,
