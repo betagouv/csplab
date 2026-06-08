@@ -29,5 +29,7 @@ jobs:
           git rebase origin/main
 
       - name: Push rebased branch
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          git push --force-with-lease origin HEAD:${{ github.event.pull_request.head.ref }}
+          git push --force-with-lease origin "HEAD:$HEAD_REF"
