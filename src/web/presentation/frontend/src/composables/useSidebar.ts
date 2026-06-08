@@ -1,8 +1,7 @@
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import { computed, inject, onMounted, onUnmounted, provide, ref, watch } from 'vue'
 
-export const SIDEBAR_COOKIE_NAME = 'csp_sidebar_state'
-export const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 30
+export const SIDEBAR_STORAGE_KEY = 'csp_sidebar_state'
 export const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
 export const SIDEBAR_WIDTH = '15rem'
 export const SIDEBAR_WIDTH_COLLAPSED = '4rem'
@@ -19,21 +18,6 @@ export interface SidebarContext {
 }
 
 export const SIDEBAR_INJECTION_KEY = Symbol('sidebar') as InjectionKey<SidebarContext>
-
-function getCookieValue(name: string): string | null {
-  if (typeof document === 'undefined') {
-    return null
-  }
-  const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`))
-  return match ? match[2] : null
-}
-
-function setCookieValue(name: string, value: string, maxAge: number): void {
-  if (typeof document === 'undefined') {
-    return
-  }
-  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}`
-}
 
 function useMediaQuery(breakpoint: number) {
   const matches = ref(false)
@@ -62,7 +46,7 @@ export function provideSidebar(options: {
 }) {
   const { defaultExpanded = true, persistState = true } = options
 
-  const storedState = getCookieValue(SIDEBAR_COOKIE_NAME)
+  const storedState = localStorage.getItem(SIDEBAR_STORAGE_KEY)
   const initialExpanded = storedState !== null
     ? storedState === 'true'
     : defaultExpanded
@@ -78,7 +62,7 @@ export function provideSidebar(options: {
   function setExpanded(value: boolean) {
     isExpanded.value = value
     if (persistState) {
-      setCookieValue(SIDEBAR_COOKIE_NAME, String(value), SIDEBAR_COOKIE_MAX_AGE)
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, String(value))
     }
   }
 
