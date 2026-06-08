@@ -21,6 +21,7 @@ from tests.shared_fixtures import (
     TALENTSOFT_DETAIL_OFFER_URL,
     TALENTSOFT_TOKEN_URL,
     mock_talentsoft_token_response,
+    mock_web_publish_offer_response,
     setup_talentsoft_front_in_container,
 )
 
@@ -64,6 +65,7 @@ async def test_vacancy_new_fetches_offer_details(
         url=f"{TALENTSOFT_DETAIL_OFFER_URL}?reference={REFERENCE}",
         json=_detail_offer_payload(),
     )
+    mock_web_publish_offer_response(httpx_mock)
 
     payload = {"event_type": TalentsoftEventType.VACANCY_NEW, "reference": REFERENCE}
     response = make_signed_request(talentsoft_client, payload)
@@ -72,9 +74,9 @@ async def test_vacancy_new_fetches_offer_details(
     assert response.json() == {"status": "ok"}
 
     requests = httpx_mock.get_requests()
-    # token request + detail request
-    assert len(requests) == 2
-    token_req, detail_req = requests
+    # token request + detail request + publish request
+    assert len(requests) == 3
+    token_req, detail_req, _ = requests
     assert TALENTSOFT_TOKEN_URL in str(token_req.url)
     assert "reference=" + REFERENCE in str(detail_req.url)
     assert detail_req.headers["authorization"].startswith("Bearer ")
@@ -88,6 +90,7 @@ async def test_vacancy_new_saves_raw_offer(talentsoft_client, httpx_mock: HTTPXM
         url=f"{TALENTSOFT_DETAIL_OFFER_URL}?reference={REFERENCE}",
         json=_detail_offer_payload(),
     )
+    mock_web_publish_offer_response(httpx_mock)
 
     payload = {"event_type": TalentsoftEventType.VACANCY_NEW, "reference": REFERENCE}
     make_signed_request(talentsoft_client, payload)
@@ -113,13 +116,14 @@ async def test_vacancy_update_fetches_offer_details(
         url=f"{TALENTSOFT_DETAIL_OFFER_URL}?reference={REFERENCE}",
         json=_detail_offer_payload(),
     )
+    mock_web_publish_offer_response(httpx_mock)
 
     payload = {"event_type": TalentsoftEventType.VACANCY_UPDATE, "reference": REFERENCE}
     response = make_signed_request(talentsoft_client, payload)
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
-    assert len(httpx_mock.get_requests()) == 2
+    assert len(httpx_mock.get_requests()) == 3
 
 
 @pytest.mark.asyncio
@@ -216,6 +220,8 @@ async def test_token_is_fetched_once_across_two_webhook_requests(
         url=f"{TALENTSOFT_DETAIL_OFFER_URL}?reference={reference_2}",
         json=_detail_offer_payload(reference_2),
     )
+    mock_web_publish_offer_response(httpx_mock)
+    mock_web_publish_offer_response(httpx_mock)
 
     response_1 = make_signed_request(
         talentsoft_client, {"event_type": "vacancy_new", "reference": REFERENCE}
@@ -228,8 +234,8 @@ async def test_token_is_fetched_once_across_two_webhook_requests(
     assert response_2.status_code == 200
 
     requests = httpx_mock.get_requests()
-    # 1 token request + 2 detail requests.
+    # 1 token request + 2 detail requests + 2 publish requests.
     # token is not fetched again on the second webhook call
-    assert len(requests) == 3
+    assert len(requests) == 5
     token_requests = [r for r in requests if str(r.url) == TALENTSOFT_TOKEN_URL]
     assert len(token_requests) == 1

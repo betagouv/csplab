@@ -9,3 +9,6 @@ class IRawOfferRepository(Protocol):
     async def mark_as_cleaned(
         self, reference: str, source_id: str, cleaned_at: datetime
     ) -> None: ...
+    async def mark_as_upserted(
+        self, reference: str, source_id: str, upsert_at: datetime
+    ) -> None: ...

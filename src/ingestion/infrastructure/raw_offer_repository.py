@@ -73,3 +73,30 @@ class RawOfferRepository(IRawOfferRepository):
                     f" source_id={source_id}"
                 )
             session.commit()
+
+    async def mark_as_upserted(
+        self, reference: str, source_id: str, upsert_at: datetime
+    ) -> None:
+        await asyncio.to_thread(
+            self._mark_as_upserted_sync, reference, source_id, upsert_at
+        )
+
+    def _mark_as_upserted_sync(
+        self, reference: str, source_id: str, upsert_at: datetime
+    ) -> None:
+        now = datetime.now(tz=timezone.utc)
+        with Session(self._engine) as session:
+            result = session.execute(
+                update(RawOfferModel)
+                .where(
+                    col(RawOfferModel.reference) == reference,
+                    col(RawOfferModel.source_id) == source_id,
+                )
+                .values(upsert_at=upsert_at, updated_at=now)
+            )
+            if result.rowcount == 0:  # type: ignore[attr-defined]
+                raise ValueError(
+                    f"RawOffer not found for reference={reference},"
+                    f" source_id={source_id}"
+                )
+            session.commit()

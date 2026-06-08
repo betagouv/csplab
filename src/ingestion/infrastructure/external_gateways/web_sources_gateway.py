@@ -1,20 +1,9 @@
-import httpx
-
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.value_objects.source import Source
+from infrastructure.external_gateways.base_web_gateway import BaseWebGateway
 
 
-class WebSourcesGateway(ISourcesGateway):
-    def __init__(self, client: httpx.AsyncClient, base_url: str, api_key: str) -> None:
-        self._client = client
-        self._base_url = base_url.rstrip("/")
-        self._api_key = api_key
-
+class WebSourcesGateway(BaseWebGateway, ISourcesGateway):
     async def fetch_sources(self) -> list[Source]:
-        url = f"{self._base_url}/api/v1/sources/"
-        response = await self._client.get(
-            url,
-            headers={"Authorization": f"Api-Key {self._api_key}"},
-        )
-        response.raise_for_status()
+        response = await self._get("/sources/")
         return [Source(**item) for item in response.json()]
