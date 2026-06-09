@@ -49,7 +49,7 @@ from domain.ingestion.repositories.vector_repository_interface import IVectorRep
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
-from tests.factories.utilisateur_factory import UtilisateurFactory
+from tests.factories.identite.utilisateur_factory import UtilisateurFactory
 from tests.utils.async_in_memory_cv_metadata_repository import (
     AsyncInMemoryCVMetadataRepository,
 )
