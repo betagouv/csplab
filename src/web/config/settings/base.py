@@ -155,8 +155,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTH_USER_MODEL = "users.UserModel"
-LOGIN_URL = "users:login"
-LOGIN_REDIRECT_URL = "users:profile"
+LOGIN_URL = "identite:login"
+LOGIN_REDIRECT_URL = "identite:profile"
 LOGOUT_REDIRECT_URL = "pages:home"
 
 # Internationalization
