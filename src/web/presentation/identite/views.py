@@ -19,7 +19,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
 @extend_schema(
     summary="Detail de l'utilisateur connecté",
-    tags=["ats"],
+    tags=["utilisateurs"],
     responses={
         200: UtilisateurSerializer,
         400: GenericErrorSerializer,
