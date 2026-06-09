@@ -22,7 +22,6 @@ jobs:
           filters: |
             relevant:
               - "src/ingestion/**"
-              - "libs/**"
               - ".github/workflows/ingestion.yml"
               - ".github/actions/**"
 

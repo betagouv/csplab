@@ -22,7 +22,6 @@ jobs:
           filters: |
             relevant:
               - "src/ocr/**"
-              - "libs/**"
               - ".github/workflows/ocr.yml"
               - ".github/actions/**"
 
