@@ -53,13 +53,15 @@ def test_returned_payload(mock_container, authenticated_client, test_user):
 
 
 @pytest.mark.parametrize(
-    "exception",
+    "exception,status_code",
     [
-        UtilisateurDoesNotExist("unknown"),
-        Exception("db connection error"),
+        (UtilisateurDoesNotExist("unknown"), status.HTTP_404_NOT_FOUND),
+        (Exception("db connection error"), status.HTTP_500_INTERNAL_SERVER_ERROR),
     ],
 )
-def test_returns_500_on_error(mock_container, authenticated_client, exception):
+def test_returns_500_on_error(
+    mock_container, authenticated_client, exception, status_code
+):
     mock_usecase = MagicMock()
     mock_usecase.execute.side_effect = exception
     mock_container.return_value.get_utilisateur_details_usecase.return_value = (
@@ -69,5 +71,4 @@ def test_returns_500_on_error(mock_container, authenticated_client, exception):
 
     response = authenticated_client.get(URL)
 
-    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-    assert response.json() == {"error": "Unexpected error"}
+    assert response.status_code == status_code

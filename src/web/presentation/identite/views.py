@@ -3,6 +3,7 @@ from uuid import UUID
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema
+from referentiel.exceptions.identite_errors import UtilisateurDoesNotExist
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -42,6 +43,8 @@ class UtilisateurDetailsView(APIView):
             usecase = self.container.get_utilisateur_details_usecase()
             utilisateur = usecase.execute(entity_id)
             return Response(UtilisateurSerializer(utilisateur).data)
+        except UtilisateurDoesNotExist:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             self.logger.error("Unexpected error in UserInfoView: %s", str(e))
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
