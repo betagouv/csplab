@@ -1,14 +1,19 @@
 from datetime import datetime
+from typing import cast
 from uuid import UUID
+
+from faker import Faker
 
 from domain.candidate.entities.candidature import Candidature
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
 
+fake = Faker("fr_FR")
+
 
 def make_documents() -> tuple[UUID, ...]:
     return (
-        UUID("00000000-0000-0000-0000-000000000003"),
-        UUID("00000000-0000-0000-0000-000000000004"),
+        cast(UUID, fake.uuid4()),
+        cast(UUID, fake.uuid4()),
     )
 
 
@@ -22,10 +27,8 @@ class CandidatureFactory:
         soumise_le: datetime | None = None,
         mise_a_jour_le: datetime | None = None,
     ) -> "Candidature":
-        profil_candidat_id = profil_candidat_id or UUID(
-            "00000000-0000-0000-0000-000000000001"
-        )
-        offre_id = offre_id or UUID("00000000-0000-0000-0000-000000000002")
+        profil_candidat_id = profil_candidat_id or cast(UUID, fake.uuid4())
+        offre_id = offre_id or cast(UUID, fake.uuid4())
         statut = statut or StatutCandidature.INITIAL
 
         return Candidature.build(
