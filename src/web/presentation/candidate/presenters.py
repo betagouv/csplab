@@ -4,10 +4,10 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.http import HttpRequest
 from dsfr.utils import list_pages
+from referentiel.entities.concours import Concours
+from referentiel.entities.offer import Offer
 
-from domain.entities.concours import Concours
-from domain.entities.offer import Offer
-from domain.value_objects.opportunity_type import OpportunityType
+from domain.candidate.value_objects.opportunity_type import OpportunityType
 from presentation.candidate.filter_config import (
     FILTER_PARAM_CATEGORY,
     FILTER_PARAM_LOCATION,

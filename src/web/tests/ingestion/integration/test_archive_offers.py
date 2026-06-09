@@ -6,7 +6,7 @@ import pytest
 from django.conf import settings
 
 from config.app_config import AppConfig
-from domain.entities.document import DocumentType
+from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.shared.models.offer import OfferModel

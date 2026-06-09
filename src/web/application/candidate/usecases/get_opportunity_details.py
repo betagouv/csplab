@@ -2,14 +2,14 @@ from typing import Tuple
 from uuid import UUID
 
 from ddd.services.logger_interface import ILogger
+from referentiel.entities.concours import Concours
+from referentiel.entities.metier import Metier
+from referentiel.entities.offer import Offer
+from referentiel.repositories.concours_repository_interface import IConcoursRepository
+from referentiel.repositories.metier_repository_interface import IMetierRepository
+from referentiel.repositories.offers_repository_interface import IOffersRepository
 
-from domain.entities.concours import Concours
-from domain.entities.metier import Metier
-from domain.entities.offer import Offer
-from domain.repositories.concours_repository_interface import IConcoursRepository
-from domain.repositories.metier_repository_interface import IMetierRepository
-from domain.repositories.offers_repository_interface import IOffersRepository
-from domain.value_objects.opportunity_type import OpportunityType
+from domain.candidate.value_objects.opportunity_type import OpportunityType
 
 
 class GetOpportunityDetailsUsecase:

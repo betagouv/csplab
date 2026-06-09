@@ -5,7 +5,7 @@ from axe_playwright_python.sync_playwright import Axe
 from django.urls import reverse
 from playwright.sync_api import Page, expect
 
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
 from tests.factories.cv_metadata_factory import CVMetadataFactory
@@ -40,10 +40,10 @@ class TestCandidateFlowAccessibility:
         cv_metadata = CVMetadataFactory.create_entity(status=CVStatus.PENDING)
         CVMetadataModel.from_entity(cv_metadata).save()
 
-        page.goto(
-            f"{live_server.url}"
-            f"{reverse('candidate:cv_results', kwargs={'cv_uuid': cv_metadata.id})}"
+        cv_url = reverse(
+            "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
+        page.goto(f"{live_server.url}{cv_url}")
         expect(
             page.get_by_role("heading", name="Analyse de votre CV en cours...")
         ).to_be_visible()
@@ -66,10 +66,10 @@ class TestCandidateFlowAccessibility:
         ) as mock_execute:
             mock_execute.return_value = [(offer_entity, 0.9)]
 
-            page.goto(
-                f"{live_server.url}"
-                f"{reverse('candidate:cv_results', kwargs={'cv_uuid': cv_metadata.id})}"
+            cv_url = reverse(
+                "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
             )
+            page.goto(f"{live_server.url}{cv_url}")
             expect(
                 page.get_by_role(
                     "heading", name="Offres et concours les plus pertinents"
@@ -94,10 +94,10 @@ class TestCandidateFlowAccessibility:
         ) as mock_execute:
             mock_execute.return_value = [(offer_entity, 0.9)]
 
-            page.goto(
-                f"{live_server.url}"
-                f"{reverse('candidate:cv_results', kwargs={'cv_uuid': cv_metadata.id})}"
+            cv_url = reverse(
+                "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
             )
+            page.goto(f"{live_server.url}{cv_url}")
             page.locator("[data-drawer-open]").first.click()
             expect(page.locator("dialog[data-drawer][open]")).to_be_visible()
 

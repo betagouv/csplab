@@ -1,21 +1,20 @@
-from rest_framework import serializers
-
-from domain.value_objects.area import GeographicalArea
-from domain.value_objects.category import Category
-from domain.value_objects.contract_type import ContractKind, ContractType
-from domain.value_objects.department import Department
-from domain.value_objects.diploma import Diploma
-from domain.value_objects.experience_level import ExperienceLevel
-from domain.value_objects.language_level import LanguageLevel
-from domain.value_objects.offer_conditions import (
+from referentiel.value_objects.area import GeographicalArea
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.diploma import Diploma
+from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.language_level import LanguageLevel
+from referentiel.value_objects.offer_conditions import (
     JobVacancy,
     Management,
     OpenToMilitary,
     WorkingPlace,
     WorkingTime,
 )
-from domain.value_objects.region import Region
-from domain.value_objects.verse import Verse
+from referentiel.value_objects.region import Region
+from referentiel.value_objects.verse import Verse
+from rest_framework import serializers
 
 
 class GenericErrorSerializer(serializers.Serializer):

@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from django.utils import timezone
 
-from domain.entities.document import Document, DocumentType
+from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from tests.factories.concours_row_factory import ConcoursRowFactory
 from tests.factories.ingres_corps_factories import IngresCorpsDocumentFactory

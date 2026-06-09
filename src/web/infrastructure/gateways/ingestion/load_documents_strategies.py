@@ -1,8 +1,8 @@
 from typing import List, Tuple
 
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from domain.entities.document import Document, DocumentType
-from domain.gateways.document_gateway_interface import IDocumentGateway
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.gateways.document_gateway_interface import IDocumentGateway
 from infrastructure.exceptions.ingestion_exceptions import (
     MissingOperationParameterError,
 )

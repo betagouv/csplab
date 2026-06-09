@@ -4,7 +4,7 @@ import pytest
 from dateutil.relativedelta import relativedelta
 from faker import Faker
 
-from domain.entities.document import Document, DocumentType
+from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.repositories.ingestion.postgres_document_repository import (
     PostgresDocumentRepository,
@@ -210,7 +210,7 @@ class TestGetPendingProcessing:
         )
 
         entities = repository.get_pending_processing(document_type=DocumentType.OFFERS)
-        assert {e.id for e in entities} == {
+        assert {e.entity_id for e in entities} == {
             never_processed.id,
             updated_after_processed.id,
         }
@@ -244,13 +244,13 @@ def test_mark_as_processed(db, repository):
         processing=False, processed_at__isnull=False
     )
     assert set(model_objects.values_list("id", flat=True)) == {
-        raw_document.id for raw_document in raw_documents
+        raw_document.entity_id for raw_document in raw_documents
     }
 
     undesired_model_objects = RawDocument.objects.get(
         processing=True, processed_at__isnull=True
     )
-    assert undesired_model_objects.id == undesired_raw_document.id
+    assert undesired_model_objects.id == undesired_raw_document.entity_id
 
 
 def test_mark_as_pending(db, repository):
@@ -265,8 +265,8 @@ def test_mark_as_pending(db, repository):
 
     model_objects = RawDocument.objects.filter(processing=False)
     assert set(model_objects.values_list("id", flat=True)) == {
-        raw_document.id for raw_document in raw_documents
+        raw_document.entity_id for raw_document in raw_documents
     }
 
     undesired_model_objects = RawDocument.objects.get(processing=True)
-    assert undesired_model_objects.id == undesired_raw_document.id
+    assert undesired_model_objects.id == undesired_raw_document.entity_id

@@ -1,7 +1,7 @@
 from typing import Union
 
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from domain.gateways.document_gateway_interface import IDocumentGateway
+from domain.ingestion.gateways.document_gateway_interface import IDocumentGateway
 from infrastructure.exceptions.ingestion_exceptions import InvalidLoadOperationError
 from infrastructure.gateways.ingestion.load_documents_strategies import (
     FetchFromApiStrategy,

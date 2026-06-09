@@ -3,9 +3,9 @@ from uuid import UUID
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from domain.entities.cv_metadata import CVMetadata
-from domain.exceptions.cv_errors import CVNotFoundError
-from domain.repositories.async_cv_metadata_repository_interface import (
+from domain.candidate.entities.cv_metadata import CVMetadata
+from domain.candidate.exceptions.cv_errors import CVNotFoundError
+from domain.candidate.repositories.async_cv_metadata_repository_interface import (
     IAsyncCVMetadataRepository,
 )
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel

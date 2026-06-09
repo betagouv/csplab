@@ -7,7 +7,7 @@ from huey.contrib.djhuey import db_periodic_task, db_task
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
-from domain.entities.document import DocumentType
+from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from infrastructure.exceptions.exceptions import TaskError
 

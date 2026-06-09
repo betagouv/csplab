@@ -5,9 +5,9 @@ from uuid import UUID, uuid4
 from django.utils import timezone
 from faker import Faker
 from polyfactory.factories import DataclassFactory
+from referentiel.entities.metier import Metier
+from referentiel.value_objects.verse import Verse
 
-from domain.entities.metier import Metier
-from domain.value_objects.verse import Verse
 from infrastructure.django_apps.shared.models.metier import MetierModel
 
 fake = Faker()

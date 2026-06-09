@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from domain.entities.offer import Offer
+from referentiel.entities.offer import Offer
 
 
 @dataclass

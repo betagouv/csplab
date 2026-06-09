@@ -1,11 +1,12 @@
+from referentiel.value_objects.area import GeographicalArea
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.region import Region
+from referentiel.value_objects.verse import Verse
+
 from domain.identite.entities.organisme import Organisme
 from domain.identite.value_objects.siret import SIRET
-from domain.value_objects.area import GeographicalArea
-from domain.value_objects.country import Country
-from domain.value_objects.department import Department
-from domain.value_objects.localisation import Localisation
-from domain.value_objects.region import Region
-from domain.value_objects.verse import Verse
 
 
 def make_localisation(

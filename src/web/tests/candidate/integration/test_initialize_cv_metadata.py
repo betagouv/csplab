@@ -5,7 +5,7 @@ import pytest
 from application.candidate.usecases.initialize_cv_metadata import (
     InitializeCVMetadataUsecase,
 )
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,

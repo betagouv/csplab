@@ -1,0 +1,38 @@
+from typing import List, Protocol, Tuple
+
+from referentiel.types import IUpsertResult
+
+from domain.ingestion.entities.document import Document, DocumentType
+
+
+class IDocumentRepository(Protocol):
+    def get_by_type(
+        self, document_type: DocumentType, start: int, batch_size: int = 1000
+    ) -> Tuple[List[Document], bool]: ...
+
+    def get_by_external_ids(
+        self, document_type: DocumentType, documents: List[Document]
+    ) -> List[Document]: ...
+
+    def get_documents_to_upsert(
+        self,
+        document_type: DocumentType,
+        fetched_documents: List[Document],
+        existing_documents: List[Document],
+    ) -> List[Document]: ...
+
+    def upsert_batch(
+        self, documents: List[Document], document_type: DocumentType
+    ) -> IUpsertResult: ...
+
+    def get_pending_processing(
+        self,
+        document_type: DocumentType,
+        limit: int = 1000,
+    ) -> List[Document]: ...
+
+    def mark_as_processed(self, raw_documents: List[Document]) -> int: ...
+
+    def mark_as_pending(self, raw_documents: List[Document]) -> int: ...
+
+    def mark_as_failed(self, raw_documents: List[Document], error_msg: str) -> int: ...

@@ -3,8 +3,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from domain.entities.document import Document, DocumentType
-from domain.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.ingestion.entities.document import Document, DocumentType
+from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
 from tests.factories.document_factory import DocumentFactory
 
 THREE_DOCUMENTS_COUNT = 3

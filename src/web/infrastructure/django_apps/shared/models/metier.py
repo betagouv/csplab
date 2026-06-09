@@ -1,7 +1,6 @@
 from django.db import models
-
-from domain.entities.metier import Metier
-from domain.value_objects.verse import Verse
+from referentiel.entities.metier import Metier
+from referentiel.value_objects.verse import Verse
 
 
 class MetierModel(models.Model):

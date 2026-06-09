@@ -7,7 +7,7 @@ from qdrant_client.http.models import (
     MatchValue,
 )
 
-from domain.repositories.vector_repository_interface import IFilters
+from domain.ingestion.repositories.vector_repository_interface import IFilters
 
 
 class QdrantFiltersMapper(IFromDomainMapper[IFilters, Filter]):

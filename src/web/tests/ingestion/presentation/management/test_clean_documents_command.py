@@ -4,7 +4,7 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
-from domain.entities.document import DocumentType
+from domain.ingestion.entities.document import DocumentType
 
 _CMD_MODULE = "presentation.ingestion.management.commands.clean_documents"
 

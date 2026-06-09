@@ -11,6 +11,10 @@ from django.db import connections
 from faker import Faker
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, PayloadSchemaType, VectorParams
+from referentiel.repositories.concours_repository_interface import IConcoursRepository
+from referentiel.repositories.corps_repository_interface import ICorpsRepository
+from referentiel.repositories.metier_repository_interface import IMetierRepository
+from referentiel.repositories.offers_repository_interface import IOffersRepository
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -32,16 +36,16 @@ from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.upsert_offers import UpsertOffersUseCase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from config.app_config import AppConfig
-from domain.entities.document import DocumentType
-from domain.exceptions.document_error import UnsupportedDocumentTypeError
-from domain.repositories.concours_repository_interface import IConcoursRepository
-from domain.repositories.corps_repository_interface import ICorpsRepository
-from domain.repositories.cv_metadata_repository_interface import ICVMetadataRepository
-from domain.repositories.document_repository_interface import IDocumentRepository
-from domain.repositories.metier_repository_interface import IMetierRepository
-from domain.repositories.offers_repository_interface import IOffersRepository
-from domain.repositories.source_repository_interface import ISourceRepository
-from domain.repositories.vector_repository_interface import IVectorRepository
+from domain.candidate.repositories.cv_metadata_repository_interface import (
+    ICVMetadataRepository,
+)
+from domain.ingestion.entities.document import DocumentType
+from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.ingestion.repositories.document_repository_interface import (
+    IDocumentRepository,
+)
+from domain.ingestion.repositories.source_repository_interface import ISourceRepository
+from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
@@ -49,7 +53,6 @@ from tests.factories.utilisateur_factory import UtilisateurFactory
 from tests.utils.async_in_memory_cv_metadata_repository import (
     AsyncInMemoryCVMetadataRepository,
 )
-from tests.utils.in_memory_offers_repository import InMemoryOffersRepository
 from tests.utils.interface_aware_mock import create_interface_aware_mock
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.pdf_test_utils import create_minimal_valid_pdf
@@ -332,9 +335,12 @@ def archive_offers_usecase():
     vector_repo = cast(
         IVectorRepository, create_interface_aware_mock(IVectorRepository)
     )
+    offers_repo = cast(
+        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+    )
 
     return ArchiveOffersUsecase(
-        offers_repository=InMemoryOffersRepository(),
+        offers_repository=offers_repo,
         document_gateway=MagicMock(),
         vector_repository=vector_repo,
         logger=logger,

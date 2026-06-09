@@ -2,9 +2,9 @@ from uuid import UUID
 
 import pytest
 
-from domain.entities.cv_metadata import CVMetadata
-from domain.exceptions.cv_errors import CVNotFoundError
-from domain.value_objects.cv_processing_status import CVStatus
+from domain.candidate.entities.cv_metadata import CVMetadata
+from domain.candidate.exceptions.cv_errors import CVNotFoundError
+from domain.candidate.value_objects.cv_processing_status import CVStatus
 from tests.factories.cv_metadata_factory import (
     CVMetadataFactory,
 )
@@ -18,7 +18,9 @@ async def test_execute_with_valid_pdf_updates_cv_metadatas(
 
     await repo.save(initial_cv)
 
-    result = await process_uploaded_cv_usecase.execute(initial_cv.id, pdf_content)
+    result = await process_uploaded_cv_usecase.execute(
+        initial_cv.entity_id, pdf_content
+    )
     assert isinstance(result, CVMetadata)
     assert result.status == CVStatus.COMPLETED
 

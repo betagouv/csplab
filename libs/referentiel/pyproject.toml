@@ -1,0 +1,88 @@
+[project]
+name = "referentiel"
+version = "0.1.1"
+description = "Cross-service objects for the CSPLab monorepo"
+readme = "README.md"
+requires-python = "~=3.12.0"
+dependencies = [
+    "ddd",
+    "pydantic>=2.0.0",
+    "pydantic-extra-types>=2.0.0",
+    "pycountry>=24.6.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.0",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.15.0",
+]
+
+[tool.pytest.ini_options]
+python_files = [
+    "test_*.py",
+    "tests.py",
+]
+testpaths = [
+    "tests",
+]
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = ".."}
+
+[tool.setuptools.packages.find]
+where = [".."]
+include = ["referentiel*"]
+
+[tool.uv]
+package = true
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+
+[tool.uv.sources]
+ddd = { path = "../ddd", editable = true }
+
+[tool.ruff]
+target-version = "py312"
+exclude = [
+  ".venv",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/*" = [
+    "S101",    # use of assert
+    "S311",    # standard pseudo-random generators not suitable for crypto
+    "PLW0108", # Lambda may be unnecessary; consider inlining inner function
+    "PLR2004", # Magic value used in comparison
+]
+"*" = [
+    "PLR0913", # too many args in function definition
+]
+
+[tool.ruff.lint.pydocstyle]
+# Use Google-style docstrings.
+convention = "google"
+
+[tool.ruff.lint]
+select = [
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "E",   # pycodestyle error
+    "F",   # Pyflakes
+    "I",   # Isort
+    "ISC", # flake8-implicit-str-concat
+    "PLC", # Pylint Convention
+    "PLE", # Pylint Error
+    "PLR", # Pylint Refactor
+    "PLW", # Pylint Warning
+    "RUF100", # Ruff unused-noqa
+    "S",   # flake8-bandit
+    "T20", # flake8-print
+    "W",   # pycodestyle warning
+]

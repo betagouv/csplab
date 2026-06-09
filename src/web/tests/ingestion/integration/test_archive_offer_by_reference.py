@@ -3,12 +3,12 @@ from uuid import UUID
 
 import pytest
 from faker import Faker
+from referentiel.exceptions.offer_errors import OfferDoesNotExist
 
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
 from config.app_config import AppConfig
-from domain.exceptions.offer_errors import OfferDoesNotExist
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService

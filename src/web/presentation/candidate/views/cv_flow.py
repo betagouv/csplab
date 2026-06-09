@@ -8,14 +8,14 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
+from referentiel.entities.concours import Concours
+from referentiel.entities.metier import Metier
+from referentiel.entities.offer import Offer
+from referentiel.exceptions.concours_errors import ConcoursDoesNotExist
+from referentiel.exceptions.offer_errors import OfferDoesNotExist
 
-from domain.entities.concours import Concours
-from domain.entities.metier import Metier
-from domain.entities.offer import Offer
-from domain.exceptions.concours_errors import ConcoursDoesNotExist
-from domain.exceptions.offer_errors import OfferDoesNotExist
-from domain.value_objects.cv_processing_status import CVStatus
-from domain.value_objects.opportunity_type import OpportunityType
+from domain.candidate.value_objects.cv_processing_status import CVStatus
+from domain.candidate.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from presentation.candidate.forms.cv_flow import CVUploadForm
 from presentation.candidate.mappers import (
