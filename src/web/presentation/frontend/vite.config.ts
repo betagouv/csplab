@@ -27,6 +27,7 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:8000',
       '/ats': 'http://localhost:8000',
+      '/static': 'http://localhost:8000',
     },
   },
   test: {

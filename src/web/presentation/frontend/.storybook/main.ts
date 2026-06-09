@@ -7,6 +7,7 @@ const config: StorybookConfig = {
     '../src/**/*.mdx',
     '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)',
   ],
+  staticDirs: [{ from: '../../static', to: '/static' }],
   framework: {
     name: '@storybook/vue3-vite',
     options: {
