@@ -13,15 +13,15 @@ permissions:
   contents: write
 
 concurrency:
-  group: notebook-pages
-  cancel-in-progress: true
+  group: gh-pages-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Deploy notebooks to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
@@ -29,6 +29,3 @@ jobs:
           folder: docs/notebook
           target-folder: notebook
           force: false
-          clean-exclude: |
-            storybook
-            pr-*

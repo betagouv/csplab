@@ -21,8 +21,8 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: storybook-pages-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.event_name == 'pull_request' && format('gh-pages-deploy-pr-{0}', github.event.number) || 'gh-pages-deploy' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   deploy-stable:
@@ -40,21 +40,22 @@ jobs:
           lock-file-path: src/web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter csplab-frontend build-storybook
-      - name: Disable Jekyll processing on GitHub Pages
+      - name: Ensure .nojekyll exists at the site root
         run: |
-          touch presentation/frontend/storybook-static/.nojekyll
           mkdir -p "${{ runner.temp }}/ghpages-nojekyll"
           touch "${{ runner.temp }}/ghpages-nojekyll/.nojekyll"
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
           folder: ${{ runner.temp }}/ghpages-nojekyll
+          clean: false
           force: false
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
           folder: src/web/presentation/frontend/storybook-static
           target-folder: storybook
+          clean-exclude: pr-*
           force: false
 
   deploy-preview:
@@ -72,16 +73,6 @@ jobs:
           lock-file-path: src/web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter csplab-frontend build-storybook
-      - name: Disable Jekyll processing on GitHub Pages
-        run: |
-          touch presentation/frontend/storybook-static/.nojekyll
-          mkdir -p "${{ runner.temp }}/ghpages-nojekyll"
-          touch "${{ runner.temp }}/ghpages-nojekyll/.nojekyll"
-      - uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          branch: gh-pages
-          folder: ${{ runner.temp }}/ghpages-nojekyll
-          force: false
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
@@ -114,9 +105,17 @@ jobs:
           ref: gh-pages
       - name: Remove preview folder
         run: |
-          git rm -rf --ignore-unmatch "storybook/pr-${{ github.event.number }}"
-          git diff --cached --quiet && exit 0
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -rf --ignore-unmatch "storybook/pr-${{ github.event.number }}"
+          git diff --cached --quiet && exit 0
           git commit -m "chore: remove Storybook preview for PR #${{ github.event.number }}"
-          git push
+          # gh-pages can move under us (a stable deploy may push concurrently),
+          # so rebase and retry rather than failing on a rejected push.
+          for attempt in 1 2 3; do
+            if git push origin HEAD:gh-pages; then exit 0; fi
+            echo "Push rejected, rebasing onto gh-pages (attempt $attempt)…"
+            git pull --rebase origin gh-pages
+          done
+          echo "Could not push preview cleanup after 3 attempts" >&2
+          exit 1
