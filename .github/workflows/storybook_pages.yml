@@ -50,6 +50,7 @@ jobs:
           branch: gh-pages
           folder: ${{ runner.temp }}/ghpages-nojekyll
           force: false
+          clean-exclude: notebook
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
@@ -82,6 +83,7 @@ jobs:
           branch: gh-pages
           folder: ${{ runner.temp }}/ghpages-nojekyll
           force: false
+          clean-exclude: notebook
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
