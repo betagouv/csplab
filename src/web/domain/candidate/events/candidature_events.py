@@ -18,8 +18,3 @@ class DocumentsDeposes(DomainEvent):
 @dataclass(frozen=True)
 class CandidatureSoumise(DomainEvent):
     pass
-
-
-@dataclass(frozen=True)
-class CandidatureRetiree(DomainEvent):
-    pass

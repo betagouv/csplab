@@ -5,13 +5,11 @@ from uuid import UUID
 from ddd.aggregate_root import AggregateRoot, factory, mutate
 
 from domain.candidate.events.candidature_events import (
-    CandidatureRetiree,
     CandidatureSoumise,
     DocumentsDeposes,
     DossierCandidatureCree,
 )
 from domain.candidate.exceptions.candidature_errors import (
-    CandidatureNePeutEtreRetiree,
     DossierCandidatureInvalide,
 )
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
@@ -29,6 +27,7 @@ class Candidature(AggregateRoot):
     @classmethod
     @factory(DossierCandidatureCree)
     def create(cls, event: DossierCandidatureCree) -> "Candidature":
+        # deduplicate
         return cls(
             _profil_candidat_id=event.profil_candidat_id,
             _offre_id=event.offre_id,
@@ -91,24 +90,6 @@ class Candidature(AggregateRoot):
 
     @mutate(CandidatureSoumise)
     def soumettre_candidature(self, event: CandidatureSoumise) -> None:
-        if self._documents is None or len(self._documents) == 0:
-            raise DossierCandidatureInvalide(
-                (
-                    "Le dossier de candidature doit contenir"
-                    "au moins un document pour être soumis"
-                )
-            )
-        else:
-            self._statut = StatutCandidature.SOUMISE
-            self._soumise_le = event.occurred_at
-            self._mise_a_jour_le = event.occurred_at
-
-    @mutate(CandidatureRetiree)
-    def retirer_candidature(self, event: CandidatureRetiree) -> None:
-        if self._statut == StatutCandidature.SOUMISE:
-            self._statut = StatutCandidature.RETIREE
-            self._mise_a_jour_le = event.occurred_at
-        else:
-            raise CandidatureNePeutEtreRetiree(
-                "La candidature doit être soumise pour pouvoir être retirée"
-            )
+        self._statut = StatutCandidature.SOUMISE
+        self._soumise_le = event.occurred_at
+        self._mise_a_jour_le = event.occurred_at
