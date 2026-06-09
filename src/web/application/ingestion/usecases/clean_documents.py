@@ -1,9 +1,10 @@
 from typing import Any, Dict, List, cast
 
+from ddd.entity_interface import IEntity, IOfferEntity
+from ddd.services.logger_interface import ILogger
+from ddd.usecase_interface import IUseCase
 from django.db import transaction
 
-from domain.ddd.entity_interface import IEntity, IOfferEntity
-from domain.ddd.usecase_interface import IUseCase
 from domain.entities.document import DocumentType
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
@@ -11,7 +12,6 @@ from domain.repositories.document_repository_interface import (
 )
 from domain.repositories.repository_factory_interface import IRepositoryFactory
 from domain.services.document_cleaner_interface import IDocumentCleaner
-from domain.services.logger_interface import ILogger
 
 
 class CleanDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):

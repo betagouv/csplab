@@ -3,8 +3,9 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from domain.ddd.entity_interface import IEntity
-from domain.types import JsonDataType
+from ddd.entity_interface import IEntity
+from ddd.types import JsonDataType
+
 from domain.value_objects.cv_processing_status import CVStatus
 
 

@@ -1,12 +1,11 @@
 from typing import Any, Dict, Mapping, Optional
 
 import httpx
-
-from domain.services.async_http_client_interface import (
+from ddd.services.async_http_client_interface import (
     IAsyncHttpClient,
     IAsyncHttpResponse,
 )
-from domain.types import JsonDataType
+from ddd.types import JsonDataType
 
 
 class HttpxResponse(IAsyncHttpResponse):

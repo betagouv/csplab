@@ -1,8 +1,8 @@
-"""Document cleaner factory."""
-
 from typing import List
 
-from domain.ddd.entity_interface import IEntity
+from ddd.entity_interface import IEntity
+from ddd.services.logger_interface import ILogger
+
 from domain.entities.document import Document, DocumentType
 from domain.exceptions.document_error import (
     MixedDocumentTypesError,
@@ -14,7 +14,6 @@ from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.repositories.offers_repository_interface import IOffersRepository
 from domain.repositories.source_repository_interface import ISourceRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
-from domain.services.logger_interface import ILogger
 from infrastructure.gateways.ingestion.concours_cleaner import ConcoursCleaner
 from infrastructure.gateways.ingestion.corps_cleaner import CorpsCleaner
 from infrastructure.gateways.ingestion.metier_cleaner import MetierCleaner

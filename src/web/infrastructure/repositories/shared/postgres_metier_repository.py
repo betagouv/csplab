@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import Dict, List
 
+from ddd.page_interface import IPage
+from ddd.services.logger_interface import ILogger
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.utils import timezone
 
-from domain.ddd.page_interface import IPage
 from domain.entities.metier import Metier
 from domain.entities.offer import Offer
 from domain.exceptions.metiers_error import MetierDoesNotExist
@@ -13,7 +14,6 @@ from domain.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from domain.repositories.metier_repository_interface import IMetierRepository
-from domain.services.logger_interface import ILogger
 from infrastructure.django_apps.shared.models.metier import MetierModel
 from infrastructure.mappers.queryset_page import QuerySetPage
 

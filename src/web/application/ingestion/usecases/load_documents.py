@@ -1,15 +1,15 @@
 from typing import cast
 
 from asgiref.sync import sync_to_async
+from ddd.async_usecase_interface import IAsyncUseCase
+from ddd.services.logger_interface import ILogger
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
-from domain.ddd.async_usecase_interface import IAsyncUseCase
 from domain.entities.document import DocumentType
 from domain.repositories.document_repository_interface import (
     IDocumentRepository,
     IUpsertResult,
 )
-from domain.services.logger_interface import ILogger
 from infrastructure.gateways.ingestion import load_documents_strategy_factory
 
 

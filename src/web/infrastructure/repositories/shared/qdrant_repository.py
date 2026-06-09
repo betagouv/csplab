@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, cast
 from uuid import UUID
 
+from ddd.services.logger_interface import ILogger
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.http.models import (
@@ -19,7 +20,6 @@ from domain.repositories.vector_repository_interface import (
     IFilters,
     IVectorRepository,
 )
-from domain.services.logger_interface import ILogger
 from domain.value_objects.similarity_type import (
     SimilarityMetric,
     SimilarityResult,

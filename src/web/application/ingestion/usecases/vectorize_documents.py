@@ -1,10 +1,11 @@
 from typing import Any, Dict, List, Union, cast
 
 from asgiref.sync import async_to_sync
+from ddd.entity_interface import IEntity
+from ddd.services.logger_interface import ILogger
+from ddd.usecase_interface import IUseCase
 from django.db import transaction
 
-from domain.ddd.entity_interface import IEntity
-from domain.ddd.usecase_interface import IUseCase
 from domain.entities.concours import Concours
 from domain.entities.corps import Corps
 from domain.entities.document import Document, DocumentType
@@ -15,7 +16,6 @@ from domain.exceptions.document_error import UnsupportedDocumentTypeError
 from domain.repositories.repository_factory_interface import IRepositoryFactory
 from domain.repositories.vector_repository_interface import IVectorRepository
 from domain.services.embedding_generator_interface import IEmbeddingGenerator
-from domain.services.logger_interface import ILogger
 from domain.services.text_extractor_interface import ITextExtractor
 
 

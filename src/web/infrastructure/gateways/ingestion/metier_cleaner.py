@@ -1,12 +1,13 @@
 from typing import Dict, List
 from uuid import NAMESPACE_DNS, UUID, uuid4, uuid5
 
+from ddd.services.logger_interface import ILogger
+
 from domain.entities.document import Document, DocumentType
 from domain.entities.metier import Metier
 from domain.exceptions.document_error import InvalidDocumentTypeError
 from domain.repositories.metier_repository_interface import IMetierRepository
 from domain.services.document_cleaner_interface import CleaningResult, IDocumentCleaner
-from domain.services.logger_interface import ILogger
 from domain.value_objects.verse import Verse
 from infrastructure.external_gateways.dtos.ingres_metiers_dtos import (
     IngresMetiersDocument,

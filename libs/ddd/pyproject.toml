@@ -1,0 +1,47 @@
+[project]
+name = "ddd"
+version = "0.1.2"
+description = "Pure technical DDD scaffolding — AggregateRoot, DomainEvent, Entity, decorators and interfaces"
+readme = "README.md"
+requires-python = "~=3.12.0"
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.4.2",
+  "pytest-cov>=7.0.0",
+  "ruff>=0.14.3",
+]
+
+[tool.uv]
+package = true
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+
+[tool.setuptools]
+packages = ["ddd"]
+package-dir = {"ddd" = "."}
+
+[tool.pytest.ini_options]
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "B",
+    "E",
+    "F",
+    "I",
+    "ISC",
+    "W",
+]

@@ -1,9 +1,9 @@
 from http import HTTPStatus
 
+from ddd.services.async_http_client_interface import IAsyncHttpClient
 from pydantic import BaseModel
 
 from config.app_config import OCRConfig
-from domain.services.async_http_client_interface import IAsyncHttpClient
 from domain.services.ocr_interface import IOCR
 from infrastructure.exceptions.exceptions import ExternalApiError
 
