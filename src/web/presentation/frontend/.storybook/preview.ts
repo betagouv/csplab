@@ -1,6 +1,7 @@
 import type { Preview } from '@storybook/vue3'
 import { setup } from '@storybook/vue3'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import '../src/app/icons'
 import '../src/styles/index.css'
 
 const storybookRouter = createRouter({
@@ -32,6 +33,7 @@ const preview: Preview = {
           ],
           'Compositions',
           [
+            'Layout',
             'Génériques',
             'ATS',
           ],
