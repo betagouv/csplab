@@ -22,6 +22,7 @@ from infrastructure.authentication.api_key_authentication import (
     UserRateThrottleExceptApiKey,
 )
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.ingestion.mappers import OfferInputMapper
 from presentation.ingestion.openapi import (
     ARCHIVE_OFFER_DESCRIPTION,
@@ -34,12 +35,10 @@ from presentation.ingestion.pagination import IngestionPagination
 from presentation.ingestion.serializers import (
     ArchiveOfferRequestSerializer,
     ArchiveOfferSuccessSerializer,
-    GenericErrorSerializer,
     IdentityInputSerializer,
     ListOffersFiltersSerializer,
     ListOffersResponseSerializer,
     OffersInputSerializer,
-    TokenErrorSerializer,
     UpsertOffersRequestSerializer,
 )
 

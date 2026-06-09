@@ -16,9 +16,7 @@ from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
-
-class GenericErrorSerializer(serializers.Serializer):
-    error = serializers.CharField()
+from presentation.api.serializers import GenericErrorSerializer
 
 
 class ValidationErrorSerializer(GenericErrorSerializer):
@@ -27,18 +25,6 @@ class ValidationErrorSerializer(GenericErrorSerializer):
 
 class NoValidRowsErrorSerializer(GenericErrorSerializer):
     validation_errors = ValidationErrorSerializer(many=True)
-
-
-class TokenErrorMessageSerializer(serializers.Serializer):
-    token_class = serializers.CharField()
-    token_type = serializers.CharField()
-    message = serializers.CharField()
-
-
-class TokenErrorSerializer(serializers.Serializer):
-    detail = serializers.CharField()
-    code = serializers.CharField()
-    messages = TokenErrorMessageSerializer(many=True)
 
 
 class ConcoursUploadResponseSerializer(serializers.Serializer):

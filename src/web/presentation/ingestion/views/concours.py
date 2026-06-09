@@ -16,6 +16,7 @@ from application.ingestion.interfaces.load_documents_input import LoadDocumentsI
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_DESCRIPTION,
     CONCOURS_UPLOAD_EXAMPLES,
@@ -23,9 +24,7 @@ from presentation.ingestion.openapi import (
 from presentation.ingestion.schemas import ConcoursRowSchema
 from presentation.ingestion.serializers import (
     ConcoursUploadResponseSerializer,
-    GenericErrorSerializer,
     NoValidRowsErrorSerializer,
-    TokenErrorSerializer,
 )
 
 # Mapping from CSV column names to Python field names

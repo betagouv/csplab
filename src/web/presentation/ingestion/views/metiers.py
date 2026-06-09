@@ -8,16 +8,15 @@ from rest_framework.views import APIView
 
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.ingestion.openapi import (
     LIST_METIERS_DESCRIPTION,
     LIST_METIERS_EXAMPLES,
 )
 from presentation.ingestion.pagination import IngestionPagination
 from presentation.ingestion.serializers import (
-    GenericErrorSerializer,
     ListMetiersFiltersSerializer,
     ListMetiersResponseSerializer,
-    TokenErrorSerializer,
 )
 
 
