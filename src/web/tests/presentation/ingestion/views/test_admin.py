@@ -6,7 +6,10 @@ from django_otp.middleware import is_verified
 from django_otp.oath import totp
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
-from tests.factories.utilisateur_factory import DEFAULT_PASSWORD, UtilisateurFactory
+from tests.factories.identite.utilisateur_factory import (
+    DEFAULT_PASSWORD,
+    UtilisateurFactory,
+)
 
 
 @pytest.mark.django_db
