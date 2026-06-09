@@ -4,11 +4,11 @@ from ddd.entity_interface import IEntity, IOfferEntity
 from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
 from django.db import transaction
+from referentiel.types import IUpsertResult
 
 from domain.ingestion.entities.document import DocumentType
 from domain.ingestion.repositories.document_repository_interface import (
     IDocumentRepository,
-    IUpsertResult,
 )
 from domain.ingestion.repositories.repository_factory_interface import (
     IRepositoryFactory,

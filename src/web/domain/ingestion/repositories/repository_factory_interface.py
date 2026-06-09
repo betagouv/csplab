@@ -1,5 +1,3 @@
-"""Repository factory interface for entity persistence."""
-
 from typing import Protocol, TypeVar, Union
 
 from referentiel.repositories.concours_repository_interface import IConcoursRepository

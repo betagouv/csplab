@@ -8,11 +8,8 @@ from django.utils import timezone
 from referentiel.entities.corps import Corps
 from referentiel.exceptions.corps_errors import CorpsDoesNotExist
 from referentiel.repositories.corps_repository_interface import ICorpsRepository
+from referentiel.types import IUpsertError, IUpsertResult
 
-from domain.ingestion.repositories.document_repository_interface import (
-    IUpsertError,
-    IUpsertResult,
-)
 from infrastructure.django_apps.shared.models.corps import CorpsModel
 
 

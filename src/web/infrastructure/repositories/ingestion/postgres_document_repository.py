@@ -4,11 +4,11 @@ from typing import Dict, List, Tuple
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.utils import timezone
+from referentiel.types import IUpsertResult
 
 from domain.ingestion.entities.document import Document, DocumentType
 from domain.ingestion.repositories.document_repository_interface import (
     IDocumentRepository,
-    IUpsertResult,
 )
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 

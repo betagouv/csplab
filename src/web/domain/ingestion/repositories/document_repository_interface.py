@@ -1,18 +1,8 @@
-from typing import Any, List, Protocol, Tuple, TypedDict
+from typing import List, Protocol, Tuple
+
+from referentiel.types import IUpsertResult
 
 from domain.ingestion.entities.document import Document, DocumentType
-
-
-class IUpsertError(TypedDict):
-    entity_id: Any
-    error: str
-    exception: Exception
-
-
-class IUpsertResult(TypedDict):
-    created: int
-    updated: int
-    errors: List[IUpsertError]
 
 
 class IDocumentRepository(Protocol):

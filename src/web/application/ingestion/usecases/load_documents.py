@@ -3,12 +3,12 @@ from typing import cast
 from asgiref.sync import sync_to_async
 from ddd.async_usecase_interface import IAsyncUseCase
 from ddd.services.logger_interface import ILogger
+from referentiel.types import IUpsertResult
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from domain.ingestion.entities.document import DocumentType
 from domain.ingestion.repositories.document_repository_interface import (
     IDocumentRepository,
-    IUpsertResult,
 )
 from infrastructure.gateways.ingestion import load_documents_strategy_factory
 

@@ -1,6 +1,8 @@
 from typing import Dict, List, Optional, Protocol, TypedDict
 from uuid import UUID
 
+from referentiel.types import IUpsertResult
+
 # Import the filter types
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.localisation import Localisation
@@ -9,7 +11,6 @@ from referentiel.value_objects.verse import Verse
 from domain.candidate.value_objects.opportunity_type import OpportunityType
 from domain.ingestion.entities.document import DocumentType
 from domain.ingestion.entities.vectorized_document import VectorizedDocument
-from domain.ingestion.repositories.document_repository_interface import IUpsertResult
 from domain.ingestion.value_objects.similarity_type import (
     SimilarityResult,
     SimilarityType,
