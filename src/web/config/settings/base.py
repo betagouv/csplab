@@ -191,6 +191,8 @@ STATICFILES_DIRS = (STATIC_DIR,)
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+SECURITY_CONTACT_EMAIL = "ops.csplab@beta.gouv.fr"
+
 # Maximum CV size in cv upload flow
 CV_MAX_SIZE_MB = 5
 
