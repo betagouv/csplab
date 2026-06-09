@@ -1,1 +1,0 @@
-import{a as t}from"./useForwardExpose-Owox9Wch.js";import"./vue.esm-bundler-7zVN4DZj.js";function l(){let e=document.activeElement;if(e==null)return null;for(;e!=null&&e.shadowRoot!=null&&e.shadowRoot.activeElement!=null;)e=e.shadowRoot.activeElement;return e}const[i]=t("ConfigProvider");export{l as g,i};
