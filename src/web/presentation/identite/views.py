@@ -3,12 +3,12 @@ from uuid import UUID
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema
-from referentiel.exceptions.identite_errors import UtilisateurDoesNotExist
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from domain.identite.errors.identite_errors import UtilisateurDoesNotExist
 from infrastructure.di.identite.identite_factory import create_identite_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.identite.serializers import UtilisateurSerializer

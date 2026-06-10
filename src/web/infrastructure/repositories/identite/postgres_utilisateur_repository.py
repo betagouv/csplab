@@ -1,6 +1,5 @@
-from referentiel.exceptions.identite_errors import UtilisateurDoesNotExist
-
 from domain.identite.entities.utilisateurs import Utilisateur
+from domain.identite.errors.identite_errors import UtilisateurDoesNotExist
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )

@@ -1,8 +1,8 @@
 import pytest
 from faker import Faker
-from referentiel.exceptions.identite_errors import UtilisateurDoesNotExist
 
 from config.app_config import AppConfig
+from domain.identite.errors.identite_errors import UtilisateurDoesNotExist
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.gateways.shared.logger import LoggerService
 

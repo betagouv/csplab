@@ -2,12 +2,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.urls import reverse
-from referentiel.exceptions.identite_errors import UtilisateurDoesNotExist
 from rest_framework import status
 
+from domain.identite.errors.identite_errors import UtilisateurDoesNotExist
 from tests.factories.identite.utilisateur_factory import UtilisateurFactory
 
-URL = reverse("users:user-details")
+URL = reverse("identite:user-details")
 
 
 @pytest.fixture
