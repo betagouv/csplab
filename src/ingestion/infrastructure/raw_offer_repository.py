@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from datetime import datetime, timezone
 
 from sqlalchemy import Engine, update
@@ -8,6 +9,8 @@ from sqlmodel import Session, col
 from domain.entities.raw_offer import RawOffer
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 from infrastructure.models.raw_offer import RawOfferModel
+
+logger = logging.getLogger(__name__)
 
 
 class RawOfferRepository(IRawOfferRepository):
@@ -113,7 +116,7 @@ class RawOfferRepository(IRawOfferRepository):
     ) -> None:
         now = datetime.now(tz=timezone.utc)
         with Session(self._engine) as session:
-            session.execute(
+            result = session.execute(
                 update(RawOfferModel)
                 .where(
                     col(RawOfferModel.reference) == reference,
@@ -121,4 +124,10 @@ class RawOfferRepository(IRawOfferRepository):
                 )
                 .values(archived_at=archived_at, updated_at=now)
             )
+            if result.rowcount == 0:  # type: ignore[attr-defined]
+                logger.warning(
+                    "RawOffer not found when archiving: reference=%s, source_id=%s",
+                    reference,
+                    source_id,
+                )
             session.commit()
