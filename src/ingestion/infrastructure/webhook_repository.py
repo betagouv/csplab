@@ -7,6 +7,7 @@ from sqlmodel import Session
 from domain.entities.webhook import Webhook
 from domain.repositories.webhook_repository import IWebhookRepository
 from infrastructure.models.webhook import WebhookModel
+from infrastructure.value_objects.webhook_source import WEBHOOK_TYPE_TO_SOURCE
 
 
 class WebhookRepository(IWebhookRepository):
@@ -24,7 +25,7 @@ class WebhookRepository(IWebhookRepository):
                 created_at=now,
                 updated_at=now,
                 source_id=webhook.source_id,
-                webhook_type=webhook.webhook_type,
+                webhook_type=WEBHOOK_TYPE_TO_SOURCE[webhook.webhook_type],
                 event_type=webhook.event_type,
                 reference=webhook.reference,
                 status_id=webhook.status_id,

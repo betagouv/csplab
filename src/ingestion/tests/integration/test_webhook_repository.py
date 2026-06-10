@@ -13,7 +13,7 @@ pytestmark = pytest.mark.usefixtures("clean_db")
 
 SOURCE_ID = "11111111-2222-3333-4444-555555555555"
 REFERENCE = "2024-WEBHOOK-001"
-WEBHOOK_TYPE = WebhookType.TALENTSOFT
+WEBHOOK_TYPE = WebhookType.OFFER
 
 
 def _fetch(db_engine, source_id: str, reference: str) -> WebhookModel | None:
@@ -47,7 +47,7 @@ async def test_insert_saves_webhook(webhook_repository, db_engine):
     assert saved is not None
     assert saved.id == webhook.id
     assert saved.source_id == SOURCE_ID
-    assert saved.webhook_type == WEBHOOK_TYPE
+    assert saved.webhook_type == "talentsoft"
     assert saved.event_type == EventType.CREE
     assert saved.reference == REFERENCE
     assert saved.status_id is None

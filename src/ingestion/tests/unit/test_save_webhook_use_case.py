@@ -9,7 +9,7 @@ from domain.value_objects.webhook_type import WebhookType
 from tests.factories.domain_factories import SourceFactory
 
 PAYLOAD = {"event_type": "vacancy_new", "reference": "REF-001"}
-WEBHOOK_TYPE = WebhookType.TALENTSOFT
+WEBHOOK_TYPE = WebhookType.OFFER
 
 
 @pytest.mark.asyncio

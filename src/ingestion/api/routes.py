@@ -17,11 +17,11 @@ from domain.value_objects.webhook_event import (
     should_archive,
     should_save_raw_offer,
 )
-from domain.value_objects.webhook_type import WebhookType
 from infrastructure.di.container import (
     Container,
     get_ingest_offer_pipeline,
 )
+from infrastructure.value_objects import webhook_source
 from presentation.dtos.talentsoft_webhook import TalentsoftWebhookPayload
 
 logger = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ async def talentsoft_webhook(
             event=event,
             source=source,
             payload=json.loads(body),
-            webhook_type=WebhookType.TALENTSOFT,
+            webhook_type=webhook_source.SOURCE_TO_WEBHOOK_TYPE["talentsoft"],
         )
     except Exception:
         logger.exception("Failed to store webhook for reference %s", event.reference)
