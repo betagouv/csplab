@@ -36,7 +36,25 @@ async def test_vacancy_deleted_calls_archive(talentsoft_client, httpx_mock: HTTP
     requests = httpx_mock.get_requests()
     assert len(requests) == 1
     body = json.loads(requests[0].content)
+    assert body["reference"] == REFERENCE
     assert body["source_id"] == SOURCE_ID
+
+
+@pytest.mark.asyncio
+async def test_vacancy_deleted_marks_offer_as_archived_in_repository(
+    talentsoft_client, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=ARCHIVE_URL, status_code=200)
+    payload = {
+        "event_type": TalentsoftEventType.VACANCY_DELETED,
+        "reference": REFERENCE,
+    }
+    make_signed_request(talentsoft_client, payload)
+
+    mock_repo = talentsoft_client.app.state.mock_raw_offer_repository
+    call_kwargs = mock_repo.mark_as_archived.call_args.kwargs
+    assert call_kwargs["reference"] == REFERENCE
+    assert call_kwargs["source_id"] == SOURCE_ID
 
 
 @pytest.mark.asyncio
