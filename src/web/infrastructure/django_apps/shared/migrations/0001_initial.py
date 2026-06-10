@@ -9,6 +9,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ("ingestion", "0013_delete_corpsmodel_delete_vectorizeddocumentmodel"),
     ]
 
     operations = [
