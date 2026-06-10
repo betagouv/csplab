@@ -7,7 +7,7 @@ from tests.factories.identite.utilisateur_factory import DEFAULT_PASSWORD
 class TestLoginView:
     def test_post_with_wrong_credentials_shows_error_message(self, db, client):
         response = client.post(
-            reverse("users:login"),
+            reverse("identite:login"),
             {"password": "abc", "username": "abc"},
         )
 
@@ -19,7 +19,7 @@ class TestLoginView:
         self, db, client, test_user
     ):
         response = client.post(
-            reverse("users:login"),
+            reverse("identite:login"),
             {
                 "password": DEFAULT_PASSWORD,
                 "username": test_user.email,
@@ -27,6 +27,6 @@ class TestLoginView:
         )
 
         assert response.status_code == status.HTTP_302_FOUND
-        assert response.url == reverse("users:profile")
+        assert response.url == reverse("identite:profile")
         assert "_auth_user_id" in client.session
         assert response.wsgi_request.user.is_authenticated is True

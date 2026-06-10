@@ -8,17 +8,18 @@ from rest_framework import status
 
 class TestProfileView:
     def test_anonymous_request_redirects_to_login_view(self, db, client):
-        response = client.get(reverse("users:profile"))
+        response = client.get(reverse("identite:profile"))
 
         assert response.status_code == status.HTTP_302_FOUND
         assert (
-            response.url == f"{reverse('users:login')}?next={reverse('users:profile')}"
+            response.url
+            == f"{reverse('identite:login')}?next={reverse('identite:profile')}"
         )
 
     def test_authenticated_request_shows_template(self, db, client, test_user):
         client.force_login(test_user)
 
-        response = client.get(reverse("users:profile"))
+        response = client.get(reverse("identite:profile"))
 
         assert response.status_code == status.HTTP_200_OK
         assertTemplateUsed(response, "registration/profile.html")
@@ -27,7 +28,7 @@ class TestProfileView:
 def test_logout_view(db, client, test_user):
     client.force_login(test_user)
 
-    response = client.post(reverse("users:logout"))
+    response = client.post(reverse("identite:logout"))
     assert response.status_code == status.HTTP_302_FOUND
     assert response.url == reverse("pages:home")
     assert "_auth_user_id" not in client.session

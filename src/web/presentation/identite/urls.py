@@ -1,9 +1,9 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from presentation.users.views import ProfileView
+from presentation.identite.views import ProfileView
 
-app_name = "users"
+app_name = "identite"
 
 urlpatterns = [
     path("connexion/", auth_views.LoginView.as_view(), name="login"),
