@@ -1,5 +1,3 @@
-"""Use case interface definitions."""
-
 from typing import Generic, Protocol, TypeVar
 
 # generic types for query or commands inputs and DTOs output

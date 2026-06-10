@@ -6,7 +6,7 @@ from domain.candidate.entities.candidature import Candidature
 from domain.candidate.events.candidature_events import (
     CandidatureSoumise,
     DocumentsDeposes,
-    DossierCandidatureCree,
+    DossierCandidatureInitialise,
 )
 from domain.candidate.exceptions.candidature_errors import (
     DossierCandidatureInvalide,
@@ -21,14 +21,14 @@ from tests.factories.candidate.candidature_factory import (
 def test_dossier_candidature_cree():
     candidature_factory = CandidatureFactory.build()
     candidature = Candidature.create(
-        DossierCandidatureCree(
-            profil_candidat_id=candidature_factory.profil_candidat_id,
+        DossierCandidatureInitialise(
+            candidat_id=candidature_factory.candidat_id,
             offre_id=candidature_factory.offre_id,
         )
     )
     events = candidature.collect_events()
     assert len(events) == 1
-    assert isinstance(events[0], DossierCandidatureCree)
+    assert isinstance(events[0], DossierCandidatureInitialise)
     assert candidature.statut == StatutCandidature.INITIAL
 
 
