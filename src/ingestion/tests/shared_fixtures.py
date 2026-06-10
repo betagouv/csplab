@@ -22,7 +22,6 @@ from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
 )
-from infrastructure.external_gateways.web_archive_gateway import WebArchiveGateway
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.sources_repository import SourcesRepository
@@ -95,6 +94,7 @@ def setup_talentsoft_front_in_container(
     mock_repo.upsert = AsyncMock()
     mock_repo.mark_as_cleaned = AsyncMock()
     mock_repo.mark_as_upserted = AsyncMock()
+    mock_repo.mark_as_archived = AsyncMock()
     container.raw_offer_repository.override(providers.Object(mock_repo))
 
     return mock_repo
@@ -172,14 +172,24 @@ def load_sources_use_case(sources_repository: SourcesRepository) -> LoadSourcesU
 
 
 @pytest.fixture
-def archive_offer_use_case() -> ArchiveOfferUseCase:
-    return ArchiveOfferUseCase(
-        archive_gateway=WebArchiveGateway(
-            client=httpx.AsyncClient(),
-            base_url=WEB_BASE_URL,
-            api_key=WEB_API_KEY,
-        ),
+def mock_raw_offer_repository() -> MagicMock:
+    mock_repo = MagicMock()
+    mock_repo.upsert = AsyncMock()
+    mock_repo.mark_as_archived = AsyncMock()
+    mock_repo.mark_as_cleaned = AsyncMock()
+    return mock_repo
+
+
+@pytest.fixture
+def archive_offer_use_case(mock_raw_offer_repository: MagicMock) -> ArchiveOfferUseCase:
+    container = Container()
+    container.config.from_dict(
+        {"web_base_url": WEB_BASE_URL, "web_api_key": WEB_API_KEY, "database_url": None}
     )
+    container.raw_offer_repository.override(providers.Object(mock_raw_offer_repository))
+    use_case = container.archive_offer_use_case()
+    assert use_case is not None
+    return use_case
 
 
 @pytest.fixture

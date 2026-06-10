@@ -33,3 +33,4 @@ class RawOfferModel(SQLModel, table=True):  # type: ignore[call-arg]
     loaded_at: Optional[datetime] = None
     cleaned_at: Optional[datetime] = None
     upsert_at: Optional[datetime] = None
+    archived_at: Optional[datetime] = None
