@@ -10,12 +10,17 @@ from infrastructure.repositories.shared import (
     postgres_metier_repository,
     postgres_offers_repository,
 )
+from infrastructure.repositories.shared.postgres_api_log_repository import (
+    PostgresApiLogRepository,
+)
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
 
 
 class SharedContainer(containers.DeclarativeContainer):
     app_config: providers.Dependency = providers.Dependency()
     logger_service: providers.Dependency = providers.Dependency()
+
+    api_log_repository = providers.Singleton(PostgresApiLogRepository)
 
     corps_repository = providers.Singleton(
         postgres_corps_repository.PostgresCorpsRepository,

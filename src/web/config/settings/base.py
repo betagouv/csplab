@@ -107,6 +107,7 @@ MIDDLEWARE = [
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "presentation.middleware.api_request_logger.ApiRequestLoggerMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -309,10 +310,15 @@ REST_FRAMEWORK = {
     },
 }
 
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "USER_ID_FIELD": "username",
+    "USER_ID_CLAIM": "username",
 }
+
+PUBLIC_API_PREFIX = "/api/"
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "CSPLab API",
