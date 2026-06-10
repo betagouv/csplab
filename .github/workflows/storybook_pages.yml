@@ -19,6 +19,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  pages: read
 
 concurrency:
   group: ${{ github.event_name == 'pull_request' && format('gh-pages-deploy-pr-{0}', github.event.number) || 'gh-pages-deploy' }}
@@ -31,15 +32,28 @@ jobs:
     defaults:
       run:
         working-directory: ./src/web
-    env:
-      STORYBOOK_BASE_URL: /${{ github.event.repository.name }}/storybook/
     steps:
       - uses: actions/checkout@v5
+      - name: Resolve GitHub Pages base path
+        id: pages
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data } = await github.rest.repos.getPages({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+            const { origin, pathname } = new URL(data.html_url)
+            core.setOutput('origin', origin)
+            core.setOutput('base', pathname.replace(/\/$/, ''))
       - uses: ./.github/actions/setup-pnpm-node
         with:
           lock-file-path: src/web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter csplab-frontend build-storybook
+      - name: Build Storybook
+        env:
+          STORYBOOK_BASE_URL: ${{ steps.pages.outputs.base }}/storybook/
+        run: pnpm --filter csplab-frontend build-storybook
       - name: Ensure .nojekyll exists at the site root
         run: |
           mkdir -p "${{ runner.temp }}/ghpages-nojekyll"
@@ -64,15 +78,28 @@ jobs:
     defaults:
       run:
         working-directory: ./src/web
-    env:
-      STORYBOOK_BASE_URL: /${{ github.event.repository.name }}/storybook/pr-${{ github.event.number }}/
     steps:
       - uses: actions/checkout@v5
+      - name: Resolve GitHub Pages base path
+        id: pages
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data } = await github.rest.repos.getPages({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+            const { origin, pathname } = new URL(data.html_url)
+            core.setOutput('origin', origin)
+            core.setOutput('base', pathname.replace(/\/$/, ''))
       - uses: ./.github/actions/setup-pnpm-node
         with:
           lock-file-path: src/web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter csplab-frontend build-storybook
+      - name: Build Storybook
+        env:
+          STORYBOOK_BASE_URL: ${{ steps.pages.outputs.base }}/storybook/pr-${{ github.event.number }}/
+        run: pnpm --filter csplab-frontend build-storybook
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
@@ -80,9 +107,11 @@ jobs:
           target-folder: storybook/pr-${{ github.event.number }}
           force: false
       - uses: actions/github-script@v7
+        env:
+          PREVIEW_URL: ${{ steps.pages.outputs.origin }}${{ steps.pages.outputs.base }}/storybook/pr-${{ github.event.number }}/
         with:
           script: |
-            const url = `https://${context.repo.owner}.github.io/${context.repo.repo}/storybook/pr-${context.issue.number}/`
+            const url = process.env.PREVIEW_URL
             const marker = '<!-- storybook-preview -->'
             const body = `${marker}\n📖 Storybook de prévisualisation : ${url}`
             const comments = await github.paginate(github.rest.issues.listComments, {
