@@ -13,16 +13,17 @@ def _now() -> datetime:
     return datetime.now(tz=timezone.utc)
 
 
-class TalentsoftWebhookModel(SQLModel, table=True):  # type: ignore[call-arg]
-    __tablename__ = "talentsoft_webhooks"
+class WebhookModel(SQLModel, table=True):  # type: ignore[call-arg]
+    __tablename__ = "webhooks"
     __table_args__ = (
-        Index("ix_talentsoft_webhooks_source_id_reference", "source_id", "reference"),
+        Index("ix_webhooks_source_id_reference", "source_id", "reference"),
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     created_at: datetime = Field(default_factory=_now)
     updated_at: datetime = Field(default_factory=_now)
     source_id: str
+    webhook_type: str = Field(index=True)
     event_type: str = Field(index=True)
     reference: str
     status_id: Optional[str] = None

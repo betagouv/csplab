@@ -167,7 +167,7 @@ def db_engine():
 @pytest.fixture
 def clean_db(db_engine):
     with Session(db_engine) as session:
-        session.execute(text("TRUNCATE TABLE raw_offers, talentsoft_webhooks"))
+        session.execute(text("TRUNCATE TABLE raw_offers, webhooks"))
         session.commit()
     yield
 
@@ -183,10 +183,10 @@ def raw_offer_repository(db_engine):
 
 
 @pytest.fixture
-def talentsoft_webhook_repository(db_engine):
+def webhook_repository(db_engine):
     container = Container()
     container.db_engine.override(providers.Object(db_engine))
-    return container.talentsoft_webhook_repository()
+    return container.webhook_repository()
 
 
 # --- Use case fixtures ---

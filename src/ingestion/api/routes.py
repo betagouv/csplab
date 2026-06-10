@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from api.talentsoft import verify_talentsoft_signature
 from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.use_cases.archive_offer import ArchiveOfferUseCase
-from application.use_cases.save_talentsoft_webhook import SaveTalentsoftWebhookUseCase
+from application.use_cases.save_webhook import SaveWebhookUseCase
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.value_objects.source import Source
 from domain.value_objects.webhook_event import (
@@ -17,6 +17,7 @@ from domain.value_objects.webhook_event import (
     should_archive,
     should_save_raw_offer,
 )
+from domain.value_objects.webhook_type import WebhookType
 from infrastructure.di.container import (
     Container,
     get_ingest_offer_pipeline,
@@ -49,8 +50,8 @@ async def talentsoft_webhook(
     ingest_offer_pipeline: IngestOfferPipeline | None = Depends(
         get_ingest_offer_pipeline
     ),
-    save_webhook_use_case: SaveTalentsoftWebhookUseCase = Depends(
-        Provide[Container.save_talentsoft_webhook_use_case]
+    save_webhook_use_case: SaveWebhookUseCase = Depends(
+        Provide[Container.save_webhook_use_case]
     ),
 ):
     body = await request.body()
@@ -70,7 +71,10 @@ async def talentsoft_webhook(
 
     try:
         await save_webhook_use_case.execute(
-            event=event, source=source, payload=json.loads(body)
+            event=event,
+            source=source,
+            payload=json.loads(body),
+            webhook_type=WebhookType.TALENTSOFT,
         )
     except Exception:
         logger.exception("Failed to store webhook for reference %s", event.reference)

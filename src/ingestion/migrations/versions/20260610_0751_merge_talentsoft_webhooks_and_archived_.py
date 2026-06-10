@@ -1,4 +1,4 @@
-"""merge talentsoft_webhooks and archived_at
+"""merge webhooks and archived_at
 
 Revision ID: 37a97d8bcec5
 Revises: a1b2c3d4e5f6, 8d711cbbc883

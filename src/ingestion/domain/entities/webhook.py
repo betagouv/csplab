@@ -5,13 +5,15 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from domain.value_objects.webhook_event import EventType
+from domain.value_objects.webhook_type import WebhookType
 
 
 @dataclass
-class TalentsoftWebhook:
+class Webhook:
     source_id: str
     event_type: EventType
     reference: str
     payload: dict[str, Any]
+    webhook_type: WebhookType
     status_id: str | None = None
     id: UUID = field(default_factory=uuid4)
