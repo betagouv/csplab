@@ -1,7 +1,7 @@
 import pytest
 
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.django_apps.shared.models.api_log import ApiLogModel
+from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
 from tests.factories.api_log_factory import ApiLogFactory
 
 

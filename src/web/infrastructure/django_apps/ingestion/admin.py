@@ -4,6 +4,36 @@ from django.contrib import admin
 
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.django_apps.ingestion.models.source import SourceModel
+from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
+
+
+@admin.register(ApiLogModel)
+class ApiLogAdmin(admin.ModelAdmin):
+    list_display = (
+        "timestamp",
+        "method",
+        "path",
+        "status_code",
+        "ip_address",
+        "token_type",
+    )
+    list_filter = (
+        "method",
+        "status_code",
+        "token_type",
+        "timestamp",
+    )
+    search_fields = ("path", "ip_address", "auth_token")
+    readonly_fields = [f.name for f in ApiLogModel._meta.get_fields()]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(SourceModel)
