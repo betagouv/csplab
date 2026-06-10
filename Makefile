@@ -415,7 +415,8 @@ lint-ocr: \
 lint-ingestion: ## lint ingestion python sources
 lint-ingestion: \
   lint-ingestion-ruff \
-  lint-ingestion-mypy
+  lint-ingestion-mypy \
+  lint-ingestion-migrations
 .PHONY: lint-ingestion
 
 lint-ocr-fix: ## lint and fix ocr python sources
@@ -463,6 +464,12 @@ lint-ingestion-mypy: ## lint ingestion python sources with mypy
 	@echo 'lint:ingestion-mypy started…'
 	$(INGESTION_UV) mypy .
 .PHONY: lint-ingestion-mypy
+
+lint-ingestion-migrations: ## check no ingestion migrations are missing
+	@echo 'lint:ingestion-migrations started…'
+	$(INGESTION_UV) uv run alembic upgrade head
+	$(INGESTION_UV) uv run alembic check
+.PHONY: lint-ingestion-migrations
 
 lint-schema: ## generate and check API schema is up to date
 	@echo 'lint:schema started…'
