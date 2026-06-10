@@ -15,14 +15,6 @@ fake = Faker()
 URL = reverse("ingestion:offers_list")
 
 
-@pytest.fixture
-def mock_container():
-    with patch(
-        "presentation.ingestion.views.offers.create_ingestion_container"
-    ) as mock:
-        yield mock
-
-
 def test_unauthenticated_access(api_client):
     response = api_client.get(URL)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -33,20 +25,20 @@ def test_post_not_allowed(authenticated_client):
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-def _make_paginated_mock(mock_container, num_offers, offers_slice):
+def _make_paginated_mock(mock_offers_container, num_offers, offers_slice):
     mock_page = MagicMock()
     mock_page.count.return_value = num_offers
     mock_page.slice.return_value = iter(offers_slice)
 
     mock_usecase = MagicMock()
     mock_usecase.execute.return_value = mock_page
-    mock_container.return_value.list_offers_usecase.return_value = mock_usecase
+    mock_offers_container.list_offers_usecase.return_value = mock_usecase
 
     return mock_usecase
 
 
-def test_empty_result(mock_container, authenticated_client, list_offers_usecase):
-    _make_paginated_mock(mock_container, num_offers=0, offers_slice=[])
+def test_empty_result(mock_offers_container, authenticated_client, list_offers_usecase):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
 
     response = authenticated_client.get(URL)
 
@@ -59,7 +51,7 @@ def test_empty_result(mock_container, authenticated_client, list_offers_usecase)
     }
 
 
-def test_call_without_arg(mock_container, authenticated_client):
+def test_call_without_arg(mock_offers_container, authenticated_client):
     first_offer = OfferFactory.create_entity(
         contract_type=ContractType.TERRITORIAL,
         offer_url=fake.url(),
@@ -68,7 +60,9 @@ def test_call_without_arg(mock_container, authenticated_client):
     second_offer = OfferFactory.create_entity()
     offers = [first_offer, second_offer]
 
-    _make_paginated_mock(mock_container, num_offers=len(offers), offers_slice=offers)
+    _make_paginated_mock(
+        mock_offers_container, num_offers=len(offers), offers_slice=offers
+    )
 
     response = authenticated_client.get(URL)
 
@@ -102,9 +96,9 @@ def test_call_without_arg(mock_container, authenticated_client):
 
 @pytest.mark.parametrize("active,external_id_contains", [(True, None), (False, "123")])
 def test_call_with_args(
-    mock_container, authenticated_client, active, external_id_contains
+    mock_offers_container, authenticated_client, active, external_id_contains
 ):
-    _make_paginated_mock(mock_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
 
     params = {"active": active}
     if external_id_contains is not None:
@@ -112,27 +106,27 @@ def test_call_with_args(
 
     authenticated_client.get(URL, params)
 
-    mock_container.return_value.list_offers_usecase.return_value.execute.assert_called_once_with(
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(active=active, external_id_contains=external_id_contains)
     )
 
 
-def test_returns_error_500(mock_container, authenticated_client):
+def test_returns_error_500(mock_offers_container, authenticated_client):
     mock_usecase = MagicMock()
     mock_usecase.execute.side_effect = Exception("db error")
-    mock_container.return_value.list_offers_usecase.return_value = mock_usecase
+    mock_offers_container.list_offers_usecase.return_value = mock_usecase
 
     response = authenticated_client.get(URL)
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 @patch("presentation.ingestion.views.offers.IngestionPagination.page_size", new=2)
-def test_pagination_page_arg(mock_container, authenticated_client):
+def test_pagination_page_arg(mock_offers_container, authenticated_client):
     num_offers = 5
     offers = [OfferFactory.create_entity() for _ in range(num_offers)]
 
     _make_paginated_mock(
-        mock_container, num_offers=len(offers), offers_slice=offers[2:4]
+        mock_offers_container, num_offers=len(offers), offers_slice=offers[2:4]
     )
 
     response = authenticated_client.get(URL, {"page": 2, "dummy": "arg", "active": 1})
@@ -163,11 +157,11 @@ def test_pagination_page_arg(mock_container, authenticated_client):
 
 
 @patch("presentation.ingestion.views.offers.IngestionPagination.page_size", new=2)
-def test_pagination_out_of_bond(mock_container, authenticated_client):
+def test_pagination_out_of_bond(mock_offers_container, authenticated_client):
     num_offers = 3
     offers = [OfferFactory.create_entity() for _ in range(num_offers)]
 
-    _make_paginated_mock(mock_container, num_offers=len(offers), offers_slice=[])
+    _make_paginated_mock(mock_offers_container, num_offers=len(offers), offers_slice=[])
 
     response = authenticated_client.get(URL, {"page": 3})
     assert response.status_code == status.HTTP_200_OK

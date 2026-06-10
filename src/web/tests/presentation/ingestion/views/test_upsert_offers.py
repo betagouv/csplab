@@ -1,5 +1,5 @@
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from uuid import UUID
 
 import pytest
@@ -150,14 +150,8 @@ def use_case():
 
 
 @pytest.fixture(autouse=True)
-def mock_container(use_case):
-    container = MagicMock()
-    container.upsert_offers_usecase.return_value = use_case
-    with patch(
-        "presentation.ingestion.views.offers.create_ingestion_container",
-        return_value=container,
-    ):
-        yield container
+def mock_container(mock_offers_container, use_case):
+    mock_offers_container.upsert_offers_usecase.return_value = use_case
 
 
 def test_unauthenticated_access(api_client):

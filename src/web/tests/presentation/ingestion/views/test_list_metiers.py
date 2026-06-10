@@ -13,14 +13,6 @@ fake = Faker()
 URL = reverse("ingestion:metiers_list")
 
 
-@pytest.fixture
-def mock_container():
-    with patch(
-        "presentation.ingestion.views.metiers.create_ingestion_container"
-    ) as mock:
-        yield mock
-
-
 def test_unauthenticated_access(api_client):
     response = api_client.get(URL)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -31,20 +23,20 @@ def test_post_not_allowed(authenticated_client):
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-def _make_paginated_mock(mock_container, num_metiers, metiers_slice):
+def _make_paginated_mock(mock_metiers_container, num_metiers, metiers_slice):
     mock_page = MagicMock()
     mock_page.count.return_value = num_metiers
     mock_page.slice.return_value = iter(metiers_slice)
 
     mock_usecase = MagicMock()
     mock_usecase.execute.return_value = mock_page
-    mock_container.return_value.list_metiers_usecase.return_value = mock_usecase
+    mock_metiers_container.list_metiers_usecase.return_value = mock_usecase
 
     return mock_usecase
 
 
-def test_empty_result(mock_container, authenticated_client):
-    _make_paginated_mock(mock_container, num_metiers=0, metiers_slice=[])
+def test_empty_result(mock_metiers_container, authenticated_client):
+    _make_paginated_mock(mock_metiers_container, num_metiers=0, metiers_slice=[])
 
     response = authenticated_client.get(URL)
 
@@ -57,11 +49,11 @@ def test_empty_result(mock_container, authenticated_client):
     }
 
 
-def test_call_without_arg(mock_container, authenticated_client):
+def test_call_without_arg(mock_metiers_container, authenticated_client):
     metiers = [MetierFactory.create_entity() for _ in range(2)]
 
     _make_paginated_mock(
-        mock_container, num_metiers=len(metiers), metiers_slice=metiers
+        mock_metiers_container, num_metiers=len(metiers), metiers_slice=metiers
     )
 
     response = authenticated_client.get(URL, {})
@@ -85,33 +77,33 @@ def test_call_without_arg(mock_container, authenticated_client):
 
 
 @pytest.mark.parametrize("domain", [None, "TRE"])
-def test_call_with_args(mock_container, authenticated_client, domain):
-    _make_paginated_mock(mock_container, num_metiers=0, metiers_slice=[])
+def test_call_with_args(mock_metiers_container, authenticated_client, domain):
+    _make_paginated_mock(mock_metiers_container, num_metiers=0, metiers_slice=[])
 
     params = {"domain": domain} if domain else {}
     authenticated_client.get(URL, params)
 
-    mock_container.return_value.list_metiers_usecase.return_value.execute.assert_called_once_with(
+    mock_metiers_container.list_metiers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredMetiersInput(domain=domain)
     )
 
 
-def test_returns_error_500(mock_container, authenticated_client):
+def test_returns_error_500(mock_metiers_container, authenticated_client):
     mock_usecase = MagicMock()
     mock_usecase.execute.side_effect = Exception("db error")
-    mock_container.return_value.list_metiers_usecase.return_value = mock_usecase
+    mock_metiers_container.list_metiers_usecase.return_value = mock_usecase
 
     response = authenticated_client.get(URL)
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 @patch("presentation.ingestion.views.metiers.IngestionPagination.page_size", new=2)
-def test_pagination_page_arg(mock_container, authenticated_client):
+def test_pagination_page_arg(mock_metiers_container, authenticated_client):
     num_metiers = 5
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
 
     _make_paginated_mock(
-        mock_container, num_metiers=len(metiers), metiers_slice=metiers[2:4]
+        mock_metiers_container, num_metiers=len(metiers), metiers_slice=metiers[2:4]
     )
 
     response = authenticated_client.get(URL, {"page": 2, "dummy": "arg"})
@@ -140,11 +132,13 @@ def test_pagination_page_arg(mock_container, authenticated_client):
 
 
 @patch("presentation.ingestion.views.metiers.IngestionPagination.page_size", new=2)
-def test_pagination_out_of_bond(mock_container, authenticated_client):
+def test_pagination_out_of_bond(mock_metiers_container, authenticated_client):
     num_metiers = 3
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
 
-    _make_paginated_mock(mock_container, num_metiers=len(metiers), metiers_slice=[])
+    _make_paginated_mock(
+        mock_metiers_container, num_metiers=len(metiers), metiers_slice=[]
+    )
 
     response = authenticated_client.get(URL, {"page": 3})
     assert response.status_code == status.HTTP_200_OK
@@ -163,8 +157,8 @@ def test_pagination_out_of_bond(mock_container, authenticated_client):
     assert data["next"] is None
 
 
-def test_invalid_payload(mock_container, authenticated_client):
-    _make_paginated_mock(mock_container, num_metiers=0, metiers_slice=[])
+def test_invalid_payload(mock_metiers_container, authenticated_client):
+    _make_paginated_mock(mock_metiers_container, num_metiers=0, metiers_slice=[])
 
     response = authenticated_client.get(URL, {"domain": "ABCD"})
 
