@@ -1,5 +1,4 @@
 import asyncio
-from datetime import datetime, timezone
 
 from sqlalchemy import Engine
 from sqlmodel import Session
@@ -18,12 +17,9 @@ class WebhookRepository(IWebhookRepository):
         await asyncio.to_thread(self._insert_sync, webhook)
 
     def _insert_sync(self, webhook: Webhook) -> None:
-        now = datetime.now(tz=timezone.utc)
         with Session(self._engine) as session:
             model = WebhookModel(
                 id=webhook.id,
-                created_at=now,
-                updated_at=now,
                 source_id=webhook.source_id,
                 webhook_type=WEBHOOK_TYPE_TO_SOURCE[webhook.webhook_type],
                 event_type=webhook.event_type,

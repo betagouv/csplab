@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, Index
+from sqlalchemy import Column, DateTime, Index, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
-
-
-def _now() -> datetime:
-    return datetime.now(tz=timezone.utc)
 
 
 class WebhookModel(SQLModel, table=True):  # type: ignore[call-arg]
@@ -20,8 +16,14 @@ class WebhookModel(SQLModel, table=True):  # type: ignore[call-arg]
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=_now)
-    updated_at: datetime = Field(default_factory=_now)
+    created_at: datetime = Field(
+        sa_column=Column(DateTime, default=func.now(), nullable=False)
+    )
+    updated_at: datetime = Field(
+        sa_column=Column(
+            DateTime, default=func.now(), onupdate=func.now(), nullable=False
+        )
+    )
     source_id: str
     webhook_type: str = Field(index=True)
     event_type: str = Field(index=True)
