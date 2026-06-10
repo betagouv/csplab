@@ -11,7 +11,7 @@ from presentation.middleware.api_request_logger import ApiRequestLoggerMiddlewar
 
 def _make_jwt(user_id: int) -> str:
     token = AccessToken()
-    token["user_id"] = user_id
+    token["username"] = user_id
     return str(token)
 
 

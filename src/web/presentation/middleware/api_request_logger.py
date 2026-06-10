@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import Callable, Optional
 from uuid import uuid4
 
+from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 from referentiel.entities.api_log import ApiLog
 from referentiel.repositories.api_log_repository_interface import IApiLogRepository
@@ -10,8 +11,6 @@ from rest_framework_simplejwt.authentication import JWTStatelessUserAuthenticati
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 from infrastructure.di.shared.shared_container import SharedContainer
-
-_API_PREFIX = "/api/"
 
 
 def _get_ip_address(request: HttpRequest) -> str:
@@ -63,7 +62,7 @@ class ApiRequestLoggerMiddleware:
     def __call__(self, request: HttpRequest) -> HttpResponse:
         response = self.get_response(request)
 
-        if request.path.startswith(_API_PREFIX):
+        if request.path.startswith(settings.PUBLIC_API_PREFIX):
             token, token_type = _extract_token_info(request)
             api_log = ApiLog(
                 id=uuid4(),
