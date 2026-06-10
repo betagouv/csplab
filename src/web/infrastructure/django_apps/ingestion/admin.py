@@ -2,9 +2,9 @@
 
 from django.contrib import admin
 
+from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.django_apps.ingestion.models.source import SourceModel
-from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
 
 
 @admin.register(ApiLogModel)
