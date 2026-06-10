@@ -1,9 +1,39 @@
 from django.contrib import admin
 
+from infrastructure.django_apps.shared.models.api_log import ApiLogModel
 from infrastructure.django_apps.shared.models.concours import ConcoursModel
 from infrastructure.django_apps.shared.models.corps import CorpsModel
 from infrastructure.django_apps.shared.models.metier import MetierModel
 from infrastructure.django_apps.shared.models.offer import OfferModel
+
+
+@admin.register(ApiLogModel)
+class ApiLogAdmin(admin.ModelAdmin):
+    list_display = (
+        "timestamp",
+        "method",
+        "path",
+        "status_code",
+        "ip_address",
+        "token_type",
+    )
+    list_filter = (
+        "method",
+        "status_code",
+        "token_type",
+        "timestamp",
+    )
+    search_fields = ("path", "ip_address", "auth_token")
+    readonly_fields = [f.name for f in ApiLogModel._meta.get_fields()]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(OfferModel)
