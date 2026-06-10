@@ -1,6 +1,4 @@
-import base64
 import hashlib
-import json
 from datetime import datetime, timezone
 from typing import Callable, Optional
 from uuid import uuid4
@@ -8,6 +6,8 @@ from uuid import uuid4
 from django.http import HttpRequest, HttpResponse
 from referentiel.entities.api_log import ApiLog
 from referentiel.repositories.api_log_repository_interface import IApiLogRepository
+from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 from infrastructure.di.shared.shared_container import SharedContainer
 
@@ -21,20 +21,21 @@ def _get_ip_address(request: HttpRequest) -> str:
     return request.META.get("REMOTE_ADDR", "")
 
 
-_JWT_PARTS_COUNT = 3
+_jwt_auth = JWTStatelessUserAuthentication()
 
 
-def _decode_jwt_user_id(raw_token: str) -> Optional[str]:
-    """Extract user_id from JWT payload without signature verification."""
+def _decode_jwt_user_id(request: HttpRequest) -> Optional[str]:
     try:
-        parts = raw_token.split(".")
-        if len(parts) != _JWT_PARTS_COUNT:
+        header = _jwt_auth.get_header(request)
+        if header is None:
             return None
-        padding = "=" * (4 - len(parts[1]) % 4)
-        payload = json.loads(base64.urlsafe_b64decode(parts[1] + padding))
-        user_id = payload.get("user_id")
-        return str(user_id) if user_id is not None else None
-    except Exception:
+        raw_token = _jwt_auth.get_raw_token(header)
+        if raw_token is None:
+            return None
+        validated_token = _jwt_auth.get_validated_token(raw_token)
+        user = _jwt_auth.get_user(validated_token)
+        return str(user.pk)
+    except (InvalidToken, TokenError):
         return None
 
 
@@ -43,8 +44,7 @@ def _extract_token_info(
 ) -> tuple[Optional[str], Optional[str]]:
     auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith("Bearer "):
-        raw_token = auth_header[len("Bearer ") :]
-        return _decode_jwt_user_id(raw_token), "jwt"
+        return _decode_jwt_user_id(request), "jwt"
     if auth_header.startswith("Api-Key "):
         raw_key = auth_header[len("Api-Key ") :]
         return hashlib.sha256(raw_key.encode()).hexdigest(), "api_key"

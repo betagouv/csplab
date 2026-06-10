@@ -1,28 +1,18 @@
-import base64
 import hashlib
-import json
 from unittest.mock import MagicMock
 
 import pytest
 from django.test import RequestFactory
 from referentiel.entities.api_log import ApiLog
+from rest_framework_simplejwt.tokens import AccessToken
 
 from presentation.middleware.api_request_logger import ApiRequestLoggerMiddleware
 
 
 def _make_jwt(user_id: int) -> str:
-    """Build a minimal JWT with the given user_id (unsigned, for testing)."""
-    header = (
-        base64.urlsafe_b64encode(b'{"alg":"HS256","typ":"JWT"}').rstrip(b"=").decode()
-    )
-    payload = (
-        base64.urlsafe_b64encode(
-            json.dumps({"user_id": user_id, "token_type": "access"}).encode()
-        )
-        .rstrip(b"=")
-        .decode()
-    )
-    return f"{header}.{payload}.fakesig"
+    token = AccessToken()
+    token["user_id"] = user_id
+    return str(token)
 
 
 @pytest.fixture
