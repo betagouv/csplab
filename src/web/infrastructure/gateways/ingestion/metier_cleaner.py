@@ -82,21 +82,22 @@ class MetierCleaner(IDocumentCleaner[Metier]):
 
         return entities, errors
 
+    @staticmethod
+    def _split_commentaires(items) -> List[str]:
+        result = []
+        if items:
+            for item in items:
+                if item.commentaire:
+                    result.extend(
+                        s.strip()
+                        for s in item.commentaire.split("!N!")
+                        if s.strip()
+                    )
+        return result
+
     def _dto_to_entity(self, document: IngresMetiersDocument) -> Metier:
+        activites = self._split_commentaires(document.competences.activitesDeLEr)
 
-        # Extraction des activités
-        activites = []
-        if document.competences.activitesDeLEr:
-            for activite in document.competences.activitesDeLEr:
-                if activite.commentaire:
-                    activites_list = [
-                        act.strip()
-                        for act in activite.commentaire.split("!N!")
-                        if act.strip()
-                    ]
-                    activites.extend(activites_list)
-
-        # Extraction des versants
         versants = []
         if document.definitions.fonctionPublique.PFE == "1":
             versants.append(Verse.FPE)
@@ -105,21 +106,20 @@ class MetierCleaner(IDocumentCleaner[Metier]):
         if document.definitions.fonctionPublique.FPH == "1":
             versants.append(Verse.FPH)
 
-        # Extraction des conditions particulières
-        conditions_particulieres = []
-        if document.competences.conditionsParticulieresDExerciceDAcces:
-            for (
-                condition
-            ) in document.competences.conditionsParticulieresDExerciceDAcces:
-                if condition.commentaire:
-                    conditions_particulieres.append(condition.commentaire)
+        conditions_particulieres = self._split_commentaires(
+            document.competences.conditionsParticulieresDExerciceDAcces
+        )
+
+        raw_description = (
+            document.definitions.definitionSynthetiqueDeLEr.definition or ""
+        )
+        description = raw_description.replace("!N!", "\n")
 
         return Metier(
             id=uuid4(),
             external_id=document.identifiant,
             libelle=document.definitions.libelles.libelleLong,
-            description=document.definitions.definitionSynthetiqueDeLEr.definition
-            or "",
+            description=description,
             domaine_fonctionnel_code=document.definitions.domaineFonctionnel_Famille.codeDomaineFonctionnel,
             versants=versants,
             activites=activites,
