@@ -20,6 +20,17 @@ def test_unauthenticated_access(api_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
+def test_authenticated_access(authenticated_client):
+    response = authenticated_client.get(URL)
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_logged_user_access(api_client, test_user):
+    api_client.force_login(test_user)
+    response = api_client.get(URL)
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_post_not_allowed(authenticated_client):
     response = authenticated_client.post(URL)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED

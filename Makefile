@@ -6,6 +6,7 @@ COMPOSE                 = docker compose
 COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
 
 WEB_UV = cd src/web && direnv exec .
+WEB_INTERNAL_API_UV = cd src/web && DJANGO_SETTINGS_MODULE=config.settings.schema_internal direnv exec .
 OCR_UV = cd src/ocr && direnv exec .
 INGESTION_UV = cd src/ingestion && direnv exec .
 NOTEBOOK_UV = cd src/notebook && direnv exec .
@@ -284,6 +285,7 @@ lint: \
   lint-ocr \
   lint-ingestion \
   lint-schema \
+  lint-internal-schema \
   frontend-lint
 .PHONY: lint
 
@@ -476,6 +478,12 @@ lint-schema: ## generate and check API schema is up to date
 	$(WEB_UV) python manage.py spectacular --file presentation/static/api/schema.yaml --validate --fail-on-warn
 	git diff --exit-code src/web/presentation/static/api/schema.yaml
 .PHONY: lint-schema
+
+lint-internal-schema:
+	@echo 'lint:internal schema started…'
+	$(WEB_INTERNAL_API_UV) python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate --fail-on-warn
+	git diff --exit-code src/web/presentation/static/api/internal-schema.yaml
+.PHONY: lint-internal-schema
 
 ## TEST
 test: ## test all services

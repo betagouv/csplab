@@ -1,5 +1,4 @@
-from dataclasses import dataclass, field
-from uuid import UUID, uuid4
+from dataclasses import dataclass
 
 from ddd.entity import Entity
 from pydantic import EmailStr
@@ -10,4 +9,3 @@ class Utilisateur(Entity):
     email: EmailStr
     prenom: str
     nom: str
-    entity_id: UUID = field(default_factory=uuid4)
