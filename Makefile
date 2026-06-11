@@ -218,6 +218,10 @@ storybook-build: ## build Storybook static output
 	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) build-storybook
 .PHONY: storybook-build
 
+frontend-types: ## generate TypeScript types from OpenAPI schema
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) generate-types
+.PHONY: frontend-types
+
 ### RUN
 run-notebook: ## run the notebook service
 	$(NOTEBOOK_UV) jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
