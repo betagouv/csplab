@@ -1,16 +1,24 @@
+import pytest
+
 from application.candidate.commands.soumettre_candidature_command import (
     SoumettreCandidatureCommand,
 )
-from domain.candidate.events.candidature_events import DossierCandidatureInitialise
-from domain.candidate.exceptions.candidature_errors import CandidatureNexistePas
+from domain.candidate.events.candidature_events import (
+    CandidatureSoumise,
+    DossierCandidatureInitialise,
+)
+from domain.candidate.exceptions.candidature_errors import (
+    CandidatureDejaSoumise,
+    CandidatureNexistePas,
+)
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from tests.factories.candidate.candidature_factory import CandidatureFactory
 
 
-def test_create_candidature_if_does_not_exist(soumettre_candidature_usecase):
+def test_soumettre_candidature_success(soumettre_candidature_usecase):
     factory = CandidatureFactory.build()
     soumettre_candidature_usecase.candidature_repository.get_by_offer.side_effect = (
-        CandidatureNexistePas(str(factory.candidat_id), factory.offre_id)
+        CandidatureNexistePas(factory.candidat_id, factory.offre_id)
     )
 
     candidature = soumettre_candidature_usecase.execute(
@@ -20,23 +28,23 @@ def test_create_candidature_if_does_not_exist(soumettre_candidature_usecase):
     )
 
     events = candidature.collect_events()
-    assert len(events) == 1
+    assert len(events) == 2  # noqa
     assert isinstance(events[0], DossierCandidatureInitialise)
-    assert candidature.statut == StatutCandidature.INITIAL
+    assert isinstance(events[1], CandidatureSoumise)
+    assert candidature.statut == StatutCandidature.SOUMISE
 
 
-def test_get_existing_candidature(soumettre_candidature_usecase):
-    existing = CandidatureFactory.build()
+def test_echec_soumettre_candidature(soumettre_candidature_usecase):
+    existing = CandidatureFactory.build(statut=StatutCandidature.SOUMISE)
     soumettre_candidature_usecase.candidature_repository.get_by_offer.return_value = (
         existing
     )
 
-    candidature = soumettre_candidature_usecase.execute(
-        command=SoumettreCandidatureCommand(
-            offre_id=existing.offre_id, candidat_id=existing.candidat_id
+    with pytest.raises(CandidatureDejaSoumise):
+        candidature = soumettre_candidature_usecase.execute(
+            command=SoumettreCandidatureCommand(
+                offre_id=existing.offre_id, candidat_id=existing.candidat_id
+            )
         )
-    )
-
-    assert candidature.offre_id == existing.offre_id
-    assert candidature.candidat_id == existing.candidat_id
-    assert candidature.statut == existing.statut
+        events = candidature.collect_events()
+        assert len(events) == 0

@@ -5,7 +5,10 @@ from application.candidate.commands.soumettre_candidature_command import (
     SoumettreCandidatureCommand,
 )
 from domain.candidate.entities.candidature import Candidature
-from domain.candidate.events.candidature_events import DossierCandidatureInitialise
+from domain.candidate.events.candidature_events import (
+    CandidatureSoumise,
+    DossierCandidatureInitialise,
+)
 from domain.candidate.exceptions.candidature_errors import CandidatureNexistePas
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
@@ -33,21 +36,19 @@ class SoumettreCandidatureUsecase(
         # candidate can only get access to its candidatures
         candidature = None
         try:
-            props = self.candidature_repository.get_by_offer(offre_id, candidat_id)
-            candidature = Candidature.build(
-                props.candidat_id,
-                props.offre_id,
-                props.statut,
-                props.documents,
-                props.soumise_le,
-                props.mise_a_jour_le,
+            candidature = self.candidature_repository.get_by_offer(
+                offre_id, candidat_id
             )
         except CandidatureNexistePas as e:
             self.logger.info(e.message)
             candidature = Candidature.create(
                 DossierCandidatureInitialise(offre_id, candidat_id)
             )
+        # todo entity document
+        # add document gate way and repository here
+        # candidature.deposer_documents(DocumentsDeposes())
+
+        candidature.soumettre_candidature(CandidatureSoumise())
 
         self.candidature_repository.save(candidature)
         return candidature
-        # todo entity document.

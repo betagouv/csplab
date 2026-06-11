@@ -10,6 +10,7 @@ from domain.candidate.events.candidature_events import (
     DossierCandidatureInitialise,
 )
 from domain.candidate.exceptions.candidature_errors import (
+    CandidatureDejaSoumise,
     DossierCandidatureInvalide,
 )
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
@@ -90,6 +91,8 @@ class Candidature(AggregateRoot):
 
     @mutate(CandidatureSoumise)
     def soumettre_candidature(self, event: CandidatureSoumise) -> None:
+        if self._statut == StatutCandidature.SOUMISE:
+            raise CandidatureDejaSoumise(self.candidat_id, self.offre_id)
         self._statut = StatutCandidature.SOUMISE
         self._soumise_le = event.occurred_at
         self._mise_a_jour_le = event.occurred_at

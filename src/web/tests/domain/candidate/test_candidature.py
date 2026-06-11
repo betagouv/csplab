@@ -9,6 +9,7 @@ from domain.candidate.events.candidature_events import (
     DossierCandidatureInitialise,
 )
 from domain.candidate.exceptions.candidature_errors import (
+    CandidatureDejaSoumise,
     DossierCandidatureInvalide,
 )
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
@@ -50,6 +51,8 @@ def test_candidature_invalide():
     candidature_factory = CandidatureFactory.build()
     with pytest.raises(DossierCandidatureInvalide):
         candidature_factory.deposer_documents(DocumentsDeposes(documents=()))
+    events = candidature_factory.collect_events()
+    assert len(events) == 0
 
 
 def test_candidature_soumise():
@@ -67,3 +70,11 @@ def test_candidature_soumise():
     assert isinstance(events[1], CandidatureSoumise)
     assert candidature_factory.statut == StatutCandidature.SOUMISE
     assert candidature_factory.soumise_le == ts
+
+
+def test_candidature_deja_soumise():
+    candidature_factory = CandidatureFactory.build(statut=StatutCandidature.SOUMISE)
+    with pytest.raises(CandidatureDejaSoumise):
+        candidature_factory.soumettre_candidature(CandidatureSoumise())
+    events = candidature_factory.collect_events()
+    assert len(events) == 0
