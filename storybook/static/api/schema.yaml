@@ -103,6 +103,7 @@ paths:
               - file
       security:
       - jwtAuth: []
+      - cookieAuth: []
       responses:
         '201':
           content:
@@ -256,6 +257,7 @@ paths:
       - metiers
       security:
       - jwtAuth: []
+      - cookieAuth: []
       responses:
         '200':
           content:
@@ -376,6 +378,7 @@ paths:
       - offres
       security:
       - jwtAuth: []
+      - cookieAuth: []
       responses:
         '200':
           content:
@@ -1571,6 +1574,10 @@ components:
       in: header
       name: Authorization
       description: 'API key authentication. Use the format: `Api-Key <key>`.'
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
     jwtAuth:
       type: http
       scheme: bearer
