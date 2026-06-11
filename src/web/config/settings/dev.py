@@ -62,3 +62,4 @@ SECURE_CSP["connect-src"] = [  # noqa: F405
 ]
 SECURE_CSP["style-src"] = ["'self'", "'unsafe-inline'"]  # noqa: F405
 SECURE_CSP["style-src-elem"] = ["'self'", "'unsafe-inline'"]  # noqa: F405
+SECURE_CSP["font-src"] = [*SECURE_CSP["font-src"], "http://localhost:5173"]  # noqa: F405

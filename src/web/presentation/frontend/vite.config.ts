@@ -7,7 +7,8 @@ import { defineConfig } from 'vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/static/frontend/' : '/',
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
@@ -24,10 +25,10 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    origin: 'http://localhost:5173',
     proxy: {
       '/api': 'http://localhost:8000',
       '/ats': 'http://localhost:8000',
-      '/static': 'http://localhost:8000',
     },
   },
   test: {
@@ -42,4 +43,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))
