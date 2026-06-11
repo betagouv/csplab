@@ -31,6 +31,7 @@ from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCV
 from application.candidate.usecases.soumettre_candidature import (
     SoumettreCandidatureUsecase,
 )
+from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.list_offers import ListOffersUseCase
@@ -44,6 +45,10 @@ from domain.candidate.repositories.candidature_repository_interface import (
 )
 from domain.candidate.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
+)
+from domain.identite.repositories.agent_repository_interface import IAgentRepository
+from domain.identite.repositories.utilisateur_repository_interface import (
+    IUtilisateurRepository,
 )
 from domain.ingestion.entities.document import DocumentType
 from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
@@ -415,4 +420,18 @@ def soumettre_candidature_usecase():
     candidature_repository = MagicMock(spec=ICandidatureRepository)
     return SoumettreCandidatureUsecase(
         candidature_repository=candidature_repository, logger=MagicMock()
+    )
+
+
+@pytest.fixture
+def create_agent_usecase():
+    agent_repository = cast(
+        IAgentRepository, create_interface_aware_mock(IAgentRepository)
+    )
+    utilisateur_repository = cast(
+        IUtilisateurRepository, create_interface_aware_mock(IUtilisateurRepository)
+    )
+    return CreateAgentUsecase(
+        agent_repository=agent_repository,
+        utilisateur_repository=utilisateur_repository,
     )
