@@ -7,9 +7,10 @@ from ddd.aggregate_root import AggregateRoot, factory, mutate
 from domain.candidate.events.candidature_events import (
     CandidatureSoumise,
     DocumentsDeposes,
-    DossierCandidatureCree,
+    DossierCandidatureInitialise,
 )
 from domain.candidate.exceptions.candidature_errors import (
+    CandidatureDejaSoumise,
     DossierCandidatureInvalide,
 )
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
@@ -17,7 +18,7 @@ from domain.candidate.value_objects.statut_candidature import StatutCandidature
 
 @dataclass(kw_only=True)
 class Candidature(AggregateRoot):
-    _profil_candidat_id: UUID
+    _candidat_id: UUID
     _offre_id: UUID
     _statut: StatutCandidature
     _documents: tuple[UUID, ...] | None = None
@@ -25,11 +26,11 @@ class Candidature(AggregateRoot):
     _mise_a_jour_le: datetime | None = None
 
     @classmethod
-    @factory(DossierCandidatureCree)
-    def create(cls, event: DossierCandidatureCree) -> "Candidature":
+    @factory(DossierCandidatureInitialise)
+    def create(cls, event: DossierCandidatureInitialise) -> "Candidature":
         # deduplicate
         return cls(
-            _profil_candidat_id=event.profil_candidat_id,
+            _candidat_id=event.candidat_id,
             _offre_id=event.offre_id,
             _statut=StatutCandidature.INITIAL,
             _mise_a_jour_le=event.occurred_at,
@@ -38,7 +39,7 @@ class Candidature(AggregateRoot):
     @classmethod
     def build(
         cls,
-        profil_candidat_id: UUID,
+        candidat_id: UUID,
         offre_id: UUID,
         statut: StatutCandidature,
         documents: tuple[UUID, ...] | None = None,
@@ -46,7 +47,7 @@ class Candidature(AggregateRoot):
         mise_a_jour_le: datetime | None = None,
     ) -> "Candidature":
         return cls(
-            _profil_candidat_id=profil_candidat_id,
+            _candidat_id=candidat_id,
             _offre_id=offre_id,
             _statut=statut,
             _documents=documents,
@@ -55,8 +56,8 @@ class Candidature(AggregateRoot):
         )
 
     @property
-    def profil_candidat_id(self) -> UUID:
-        return self._profil_candidat_id
+    def candidat_id(self) -> UUID:
+        return self._candidat_id
 
     @property
     def offre_id(self) -> UUID:
@@ -90,6 +91,8 @@ class Candidature(AggregateRoot):
 
     @mutate(CandidatureSoumise)
     def soumettre_candidature(self, event: CandidatureSoumise) -> None:
+        if self._statut == StatutCandidature.SOUMISE:
+            raise CandidatureDejaSoumise(self.candidat_id, self.offre_id)
         self._statut = StatutCandidature.SOUMISE
         self._soumise_le = event.occurred_at
         self._mise_a_jour_le = event.occurred_at

@@ -5,9 +5,9 @@ from ddd.domain_event import DomainEvent
 
 
 @dataclass(frozen=True)
-class DossierCandidatureCree(DomainEvent):
+class DossierCandidatureInitialise(DomainEvent):
     offre_id: UUID
-    profil_candidat_id: UUID
+    candidat_id: UUID
 
 
 @dataclass(frozen=True)
