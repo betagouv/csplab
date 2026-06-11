@@ -2,10 +2,13 @@ import json
 import logging
 from typing import cast
 
+import httpx
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import Response
 from pydantic import ValidationError
 
+from api.config import get_settings
 from api.talentsoft import verify_talentsoft_signature
 from application.use_cases.save_webhook import SaveWebhookUseCase
 from domain.repositories.sources_repository import ISourcesRepository
@@ -30,6 +33,31 @@ _OK = {"status": "ok"}
 @public_router.get("/health")
 def health():
     return {"status": "healthy"}
+
+
+@public_router.api_route(
+    "/flower/{path:path}",
+    methods=["GET", "POST", "DELETE", "PUT", "PATCH", "HEAD", "OPTIONS"],
+)
+async def flower_proxy(path: str, request: Request):
+    flower_port = get_settings().flower_port
+    if not flower_port:
+        raise HTTPException(status_code=503, detail="Flower is not configured")
+    url = f"http://localhost:{flower_port}/flower/{path}"
+    if request.url.query:
+        url = f"{url}?{request.url.query}"
+    async with httpx.AsyncClient() as client:
+        proxied = await client.request(
+            method=request.method,
+            url=url,
+            headers={k: v for k, v in request.headers.items() if k.lower() != "host"},
+            content=await request.body(),
+        )
+    return Response(
+        content=proxied.content,
+        status_code=proxied.status_code,
+        headers=dict(proxied.headers),
+    )
 
 
 @public_router.post(

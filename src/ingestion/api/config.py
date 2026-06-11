@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     redis_url: str | None = None
 
     log_level: str = "INFO"
+    flower_port: int | None = None
 
 
 class TestSettings(Settings):
