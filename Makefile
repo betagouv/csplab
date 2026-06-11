@@ -247,8 +247,11 @@ run-ocr: ## run the ocr service
 	$(OCR_UV) uvicorn api.main:app --reload --port=8001
 .PHONY: run-ocr
 
-run-ingestion: ## run the ingestion service
-	$(INGESTION_UV) uvicorn api.main:app --reload --port=8002
+run-ingestion: ## run the ingestion service (web + celery worker)
+	@trap 'kill 0' EXIT; \
+	$(INGESTION_UV) uvicorn api.main:app --reload --port=8002 & \
+	$(INGESTION_UV) celery -A infrastructure.celery_app worker --loglevel=info & \
+	wait
 .PHONY: run-ingestion
 
 dev: ## run web with sass watch and browser auto-reload

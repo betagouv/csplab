@@ -1,2 +1,3 @@
 web: bin/start_web.sh
+worker: bin/start_worker.sh
 postdeploy: bin/run_migrations.sh

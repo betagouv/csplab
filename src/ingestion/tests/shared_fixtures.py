@@ -134,6 +134,11 @@ def talentsoft_client(monkeypatch) -> TestClient:
     )
     app.state.mock_raw_offer_repository = mock_repo
 
+    mock_webhook_repo = MagicMock()
+    mock_webhook_repo.insert = AsyncMock()
+    mock_webhook_repo.get_by_id = AsyncMock()
+    app.state.container.webhook_repository.override(providers.Object(mock_webhook_repo))
+
     # Pre-populate the sources registry (the lifespan doesn't run in test mode)
     app.state.container.sources_repository().load(
         [

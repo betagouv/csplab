@@ -17,7 +17,7 @@ class SaveWebhookUseCase:
         source: Source,
         payload: dict[str, Any],
         webhook_type: WebhookType,
-    ) -> None:
+    ) -> Webhook:
         webhook = Webhook(
             source_id=source.source_id,
             webhook_type=webhook_type,
@@ -27,3 +27,4 @@ class SaveWebhookUseCase:
             payload=payload,
         )
         await self._repository.insert(webhook)
+        return webhook

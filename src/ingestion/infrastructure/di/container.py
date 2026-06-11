@@ -2,10 +2,9 @@ import logging
 
 import httpx
 from dependency_injector import containers, providers
-from dependency_injector.wiring import Provide, inject
-from fastapi import Depends, Query
 from sqlalchemy import Engine
 
+from api.config import get_settings
 from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
@@ -46,80 +45,34 @@ def _build_credentials_store(
     return store
 
 
-def _make_db_engine(database_url: str | None) -> Engine | None:
+def _make_db_engine(database_url: str | None) -> Engine:
     if not database_url:
-        return None
+        raise ValueError("DATABASE_URL is required")
     return make_engine(database_url)
-
-
-def _make_sources_repository() -> ISourcesRepository:
-    return SourcesRepository()
 
 
 def _make_sources_gateway(
     client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> ISourcesGateway | None:
+) -> ISourcesGateway:
     if not base_url or not api_key:
-        return None
+        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
     return WebSourcesGateway(client=client, base_url=base_url, api_key=api_key)
 
 
 def _make_archive_gateway(
     client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> IArchiveGateway | None:
+) -> IArchiveGateway:
     if not base_url or not api_key:
-        return None
+        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
     return WebArchiveGateway(client=client, base_url=base_url, api_key=api_key)
-
-
-def _make_archive_use_case(
-    archive_gateway: IArchiveGateway | None,
-    raw_offer_repository: IRawOfferRepository | None,
-) -> ArchiveOfferUseCase | None:
-    if archive_gateway is None or raw_offer_repository is None:
-        return None
-    return ArchiveOfferUseCase(
-        archive_gateway=archive_gateway,
-        raw_offer_repository=raw_offer_repository,
-    )
 
 
 def _make_publish_offer_gateway(
     client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> IPublishOfferGateway | None:
+) -> IPublishOfferGateway:
     if not base_url or not api_key:
-        return None
+        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
     return WebPublishOfferGateway(client=client, base_url=base_url, api_key=api_key)
-
-
-def _make_publish_offer_use_case(
-    publish_offer_gateway: IPublishOfferGateway | None,
-) -> PublishOfferUseCase | None:
-    if publish_offer_gateway is None:
-        return None
-    return PublishOfferUseCase(publish_offer_gateway=publish_offer_gateway)
-
-
-def _make_raw_offer_repository(engine: Engine | None) -> IRawOfferRepository | None:
-    if engine is None:
-        return None
-    return RawOfferRepository(engine=engine)
-
-
-def _make_webhook_repository(
-    engine: Engine | None,
-) -> IWebhookRepository | None:
-    if engine is None:
-        return None
-    return WebhookRepository(engine=engine)
-
-
-def _make_save_webhook_use_case(
-    repository: IWebhookRepository | None,
-) -> SaveWebhookUseCase | None:
-    if repository is None:
-        return None
-    return SaveWebhookUseCase(repository=repository)
 
 
 class Container(containers.DeclarativeContainer):
@@ -132,7 +85,7 @@ class Container(containers.DeclarativeContainer):
     http_client = providers.Singleton(httpx.AsyncClient)
 
     sources_repository: providers.Provider[ISourcesRepository] = providers.Singleton(
-        _make_sources_repository
+        SourcesRepository
     )
 
     credentials_store = providers.Singleton(
@@ -147,47 +100,39 @@ class Container(containers.DeclarativeContainer):
 
     talentsoft_client_repository = providers.Singleton(TalentsoftClientRepository)
 
-    raw_offer_repository: providers.Provider[IRawOfferRepository | None] = (
-        providers.Singleton(
-            _make_raw_offer_repository,
-            engine=db_engine,
-        )
+    raw_offer_repository: providers.Provider[IRawOfferRepository] = providers.Singleton(
+        RawOfferRepository,
+        engine=db_engine,
     )
 
-    webhook_repository: providers.Provider[IWebhookRepository | None] = (
-        providers.Singleton(
-            _make_webhook_repository,
-            engine=db_engine,
-        )
+    webhook_repository: providers.Provider[IWebhookRepository] = providers.Singleton(
+        WebhookRepository,
+        engine=db_engine,
     )
 
-    save_webhook_use_case: providers.Provider[SaveWebhookUseCase | None] = (
-        providers.Factory(
-            _make_save_webhook_use_case,
-            repository=webhook_repository,
-        )
+    save_webhook_use_case: providers.Provider[SaveWebhookUseCase] = providers.Factory(
+        SaveWebhookUseCase,
+        repository=webhook_repository,
     )
 
-    sources_gateway: providers.Provider[ISourcesGateway | None] = providers.Factory(
+    sources_gateway: providers.Provider[ISourcesGateway] = providers.Factory(
         _make_sources_gateway,
         client=http_client,
         base_url=config.web_base_url,
         api_key=config.web_api_key,
     )
 
-    archive_gateway: providers.Provider[IArchiveGateway | None] = providers.Factory(
+    archive_gateway: providers.Provider[IArchiveGateway] = providers.Factory(
         _make_archive_gateway,
         client=http_client,
         base_url=config.web_base_url,
         api_key=config.web_api_key,
     )
 
-    archive_offer_use_case: providers.Provider[ArchiveOfferUseCase | None] = (
-        providers.Factory(
-            _make_archive_use_case,
-            archive_gateway=archive_gateway,
-            raw_offer_repository=raw_offer_repository,
-        )
+    archive_offer_use_case: providers.Provider[ArchiveOfferUseCase] = providers.Factory(
+        ArchiveOfferUseCase,
+        archive_gateway=archive_gateway,
+        raw_offer_repository=raw_offer_repository,
     )
 
     load_sources_use_case = providers.Factory(
@@ -203,21 +148,63 @@ class Container(containers.DeclarativeContainer):
         offers_cleaner=offers_cleaner,
     )
 
-    publish_offer_gateway: providers.Provider[IPublishOfferGateway | None] = (
+    publish_offer_gateway: providers.Provider[IPublishOfferGateway] = providers.Factory(
+        _make_publish_offer_gateway,
+        client=http_client,
+        base_url=config.web_base_url,
+        api_key=config.web_api_key,
+    )
+
+    publish_offer_use_case: providers.Provider[PublishOfferUseCase] = providers.Factory(
+        PublishOfferUseCase,
+        publish_offer_gateway=publish_offer_gateway,
+    )
+
+    save_raw_offer_use_case: providers.Provider[SaveRawOfferUseCase] = (
         providers.Factory(
-            _make_publish_offer_gateway,
-            client=http_client,
-            base_url=config.web_base_url,
-            api_key=config.web_api_key,
+            SaveRawOfferUseCase,
+            raw_offer_repository=raw_offer_repository,
         )
     )
 
-    publish_offer_use_case: providers.Provider[PublishOfferUseCase | None] = (
-        providers.Factory(
-            _make_publish_offer_use_case,
-            publish_offer_gateway=publish_offer_gateway,
-        )
+    ingest_offer_pipeline: providers.Provider[IngestOfferPipeline] = providers.Factory(
+        IngestOfferPipeline,
+        clean_raw_offer=clean_raw_offer_use_case,
+        raw_offer_repository=raw_offer_repository,
+        publish_offer=publish_offer_use_case,
     )
+
+
+def create_container() -> Container:
+    settings = get_settings()
+    container = Container()
+    container.config.web_base_url.from_value(settings.web_base_url)
+    container.config.web_api_key.from_value(settings.web_api_key)
+    container.config.database_url.from_value(settings.database_url)
+    container.config.talentsoft_credentials.from_value(
+        [
+            (client_id, secret, base_url)
+            for client_id, secret, base_url in [
+                (
+                    settings.talentsoft_back_client_id,
+                    settings.talentsoft_back_client_secret,
+                    settings.talentsoft_back_base_url,
+                ),
+                (
+                    settings.talentsoft_front_client_id,
+                    settings.talentsoft_front_client_secret,
+                    settings.talentsoft_front_base_url,
+                ),
+            ]
+            if client_id and secret and base_url
+        ]
+    )
+    if settings.talentsoft_front_client_id:
+        _logger = logging.getLogger(__name__)
+        register_talentsoft_front_client(
+            container, settings.talentsoft_front_client_id, _logger
+        )
+    return container
 
 
 def register_talentsoft_front_client(
@@ -225,7 +212,7 @@ def register_talentsoft_front_client(
 ) -> None:
     creds = container.credentials_store().get_credentials(client_id)
     if not creds:
-        return
+        raise ValueError(f"No credentials found for TalentSoft client {client_id}")
     config = TalentsoftConfig(
         base_url=creds.base_url,
         client_id=creds.client_id,
@@ -233,40 +220,3 @@ def register_talentsoft_front_client(
     )
     client = TalentsoftFrontClient(config=config, logger=logger)
     container.talentsoft_client_repository().register(client_id, client)
-
-
-@inject
-def get_ingest_offer_pipeline(
-    client_id: str = Query(...),
-    sources_repository: ISourcesRepository = Depends(
-        Provide[Container.sources_repository]
-    ),
-    client_repository: TalentsoftClientRepository = Depends(
-        Provide[Container.talentsoft_client_repository]
-    ),
-    raw_offer_repository: IRawOfferRepository | None = Depends(
-        Provide[Container.raw_offer_repository]
-    ),
-    publish_offer_use_case: PublishOfferUseCase | None = Depends(
-        Provide[Container.publish_offer_use_case]
-    ),
-) -> IngestOfferPipeline | None:
-    if raw_offer_repository is None:
-        return None
-    source = sources_repository.get_by_client_id_back(client_id)
-    if source is None:
-        return None
-    client = client_repository.get(source.client_id_front)
-    if client is None:
-        return None
-    save_use_case = SaveRawOfferUseCase(
-        offers_gateway=client,
-        raw_offer_repository=raw_offer_repository,
-    )
-    clean_use_case = CleanRawOfferUseCase(offers_cleaner=OffersCleaner())
-    return IngestOfferPipeline(
-        save_raw_offer=save_use_case,
-        clean_raw_offer=clean_use_case,
-        raw_offer_repository=raw_offer_repository,
-        publish_offer=publish_offer_use_case,
-    )
