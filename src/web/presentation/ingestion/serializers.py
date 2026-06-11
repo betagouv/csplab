@@ -100,7 +100,7 @@ class ListMetiersFiltersSerializer(serializers.Serializer):
 
 class IdentityInputSerializer(serializers.Serializer):
     reference = serializers.CharField()
-    source = serializers.CharField()
+    source = serializers.UUIDField()
     versant = serializers.ChoiceField(choices=[v.value for v in Verse])
 
 

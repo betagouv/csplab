@@ -1,5 +1,4 @@
 from typing import Optional
-from uuid import UUID
 
 from ddd.mapper_interface import IToDomainMapper
 from referentiel.entities.offer import Offer
@@ -59,5 +58,5 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             localisation=self._localisation_mapper.to_domain(raw_localisation),
             beginning_date=LimitDate(debut_contrat) if debut_contrat else None,
             family_code=data["profession"]["metier"],
-            source_id=UUID(data["identification"]["source"]),
+            source_id=data["identification"]["source"],
         )

@@ -16,3 +16,4 @@ class UserModelAdmin(admin.ModelAdmin):
     list_filter = ("is_staff", "is_superuser")
     search_fields = ("email",)
     readonly_fields = ["username", "id", "date_joined", "last_login", "password"]
+    filter_horizontal = ("sources",)

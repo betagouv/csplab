@@ -19,6 +19,13 @@ class UserModel(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name", "username"]
 
+    sources = models.ManyToManyField(
+        "ingestion.SourceModel",
+        blank=True,
+        related_name="users",
+        verbose_name="Sources",
+    )
+
     class Meta:
         verbose_name = "User"
         verbose_name_plural = "Users"

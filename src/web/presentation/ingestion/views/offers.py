@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from drf_spectacular.utils import (
     PolymorphicProxySerializer,
     extend_schema,
@@ -22,6 +24,7 @@ from infrastructure.authentication.api_key_authentication import (
     UserRateThrottleExceptApiKey,
 )
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from infrastructure.django_apps.users.models import UserModel
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.ingestion.mappers import OfferInputMapper
 from presentation.ingestion.openapi import (
@@ -111,6 +114,10 @@ class OffersListView(APIView):
                 ],
                 resource_type_field_name=None,
             ),
+            403: inline_serializer(
+                name="ArchiveOfferForbidden",
+                fields={"detail": drf_serializers.CharField()},
+            ),
             404: inline_serializer(
                 name="ArchiveOfferNotFound",
                 fields={"detail": drf_serializers.CharField()},
@@ -128,13 +135,22 @@ class ArchiveOffersView(APIView):
         serializer = ArchiveOfferRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        source_id = serializer.validated_data["source_id"]
+        if isinstance(request.user, UserModel):
+            if not request.user.sources.filter(source_id=source_id).exists():
+                return Response(
+                    {"detail": "Cannot edit this source."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
         container = create_ingestion_container()
         use_case = container.archive_offer_by_reference_usecase()
         try:
             use_case.execute(
                 ArchiveOfferByReferenceInput(
                     reference=serializer.validated_data["reference"],
-                    source_id=serializer.validated_data["source_id"],
+                    source_id=source_id,
                 )
             )
         except OfferDoesNotExist:
@@ -183,6 +199,10 @@ class ArchiveOffersView(APIView):
         ),
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
+        403: inline_serializer(
+            name="UpsertOffersForbidden",
+            fields={"detail": drf_serializers.CharField()},
+        ),
         500: GenericErrorSerializer,
     },
 )
@@ -200,6 +220,25 @@ class OffersUpsertView(APIView):
         if not serializer.is_valid():
             logger.warning("OffersUpsertView: validation errors %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Make sure we can interact with the given `source`s
+        if isinstance(request.user, UserModel):
+            source_ids = {
+                UUID(offer_data["identification"]["source"])
+                for offer_data in serializer.validated_data["offres"]
+                if isinstance(offer_data.get("identification"), dict)
+                and offer_data["identification"].get("source")
+            }
+            allowed = set(
+                request.user.sources.filter(source_id__in=source_ids).values_list(
+                    "source_id", flat=True
+                )
+            )
+            if allowed != source_ids:
+                return Response(
+                    {"detail": "Cannot edit offers with this source."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
         # iterate over offers, to handle only valid ones
         valid_offers = []
