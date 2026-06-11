@@ -1,5 +1,5 @@
 import type { Utilisateur } from '@/api/utilisateur'
-import { readonly, ref } from 'vue'
+import { computed, readonly, ref } from 'vue'
 import { getMe } from '@/api/utilisateur'
 
 const user = ref<Utilisateur | null>(null)
@@ -31,9 +31,14 @@ async function fetchUser(): Promise<void> {
   return fetchPromise
 }
 
+const displayName = computed(() =>
+  user.value ? `${user.value.prenom} ${user.value.nom}` : '',
+)
+
 export function useCurrentUser() {
   return {
     user: readonly(user),
+    displayName: readonly(displayName),
     loading: readonly(loading),
     error: readonly(error),
     fetch: fetchUser,

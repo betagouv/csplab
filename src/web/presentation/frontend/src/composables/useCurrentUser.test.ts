@@ -20,7 +20,7 @@ describe('useCurrentUser', () => {
     const userData = { email: 'test@example.com', prenom: 'Jean', nom: 'Dupont' }
     mockGetMe.mockResolvedValue(userData)
 
-    const { user, loading, fetch } = useCurrentUser()
+    const { user, displayName, loading, fetch } = useCurrentUser()
 
     expect(user.value).toBeNull()
     expect(loading.value).toBe(false)
@@ -32,6 +32,7 @@ describe('useCurrentUser', () => {
 
     expect(loading.value).toBe(false)
     expect(user.value).toEqual(userData)
+    expect(displayName.value).toBe('Jean Dupont')
   })
 
   it('handles fetch error gracefully', async () => {
