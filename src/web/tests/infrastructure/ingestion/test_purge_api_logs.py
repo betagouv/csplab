@@ -15,21 +15,21 @@ class TestPurgeApiLogsTask:
     def test_deletes_logs_older_than_retention(self, db):
         ApiLogModelFactory.create_model(timestamp=date_to_aware_datetime(OLD_DATE))
 
-        purge_api_logs()
+        purge_api_logs.call_local()
 
         assert ApiLogModel.objects.count() == 0
 
     def test_keeps_logs_within_retention(self, db):
         ApiLogModelFactory.create_model(timestamp=date_to_aware_datetime(RECENT_DATE))
 
-        purge_api_logs()
+        purge_api_logs.call_local()
 
         assert ApiLogModel.objects.count() == 1
 
     def test_keeps_logs_on_cutoff_date(self, db):
         ApiLogModelFactory.create_model(timestamp=date_to_aware_datetime(CUTOFF_DATE))
 
-        purge_api_logs()
+        purge_api_logs.call_local()
 
         assert ApiLogModel.objects.count() == 1
 
@@ -37,7 +37,7 @@ class TestPurgeApiLogsTask:
         ApiLogModelFactory.create_model(timestamp=date_to_aware_datetime(OLD_DATE))
         ApiLogModelFactory.create_model(timestamp=date_to_aware_datetime(RECENT_DATE))
 
-        purge_api_logs()
+        purge_api_logs.call_local()
 
         assert ApiLogModel.objects.count() == 1
         assert ApiLogModel.objects.filter(timestamp__date=RECENT_DATE).exists()
@@ -45,9 +45,9 @@ class TestPurgeApiLogsTask:
     def test_custom_retention_days(self, db):
         ApiLogModelFactory.create_model(timestamp=date_to_aware_datetime(RECENT_DATE))
 
-        purge_api_logs(retention_days=10)
+        purge_api_logs.call_local(retention_days=10)
 
         assert ApiLogModel.objects.count() == 0
 
     def test_no_logs_does_not_raise(self, db):
-        purge_api_logs()
+        purge_api_logs.call_local()

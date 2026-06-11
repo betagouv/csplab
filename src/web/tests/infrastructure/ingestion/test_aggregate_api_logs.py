@@ -51,7 +51,7 @@ class TestAggregateApiLogsTask:
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
 
-        aggregate_api_logs(target_date=YESTERDAY)
+        aggregate_api_logs.call_local(target_date=YESTERDAY)
 
         assert _rows() == [_row("GET", "/api/v1/offres/", "jwt", 2)]
 
@@ -75,7 +75,7 @@ class TestAggregateApiLogsTask:
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
 
-        aggregate_api_logs(target_date=YESTERDAY)
+        aggregate_api_logs.call_local(target_date=YESTERDAY)
 
         rows = _rows()
         assert _row("GET", "/api/v1/offres/", "jwt", 1) in rows
@@ -102,7 +102,7 @@ class TestAggregateApiLogsTask:
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
 
-        aggregate_api_logs(target_date=YESTERDAY)
+        aggregate_api_logs.call_local(target_date=YESTERDAY)
 
         rows = _rows()
         assert _row("GET", "/api/v1/offres/", "jwt", 1) in rows
@@ -123,7 +123,7 @@ class TestAggregateApiLogsTask:
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
 
-        aggregate_api_logs(target_date=YESTERDAY)
+        aggregate_api_logs.call_local(target_date=YESTERDAY)
 
         assert _rows() == [_row("GET", "/api/v1/offres/", "jwt", 1)]
 
@@ -135,13 +135,13 @@ class TestAggregateApiLogsTask:
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
 
-        aggregate_api_logs(target_date=YESTERDAY)
-        aggregate_api_logs(target_date=YESTERDAY)
+        aggregate_api_logs.call_local(target_date=YESTERDAY)
+        aggregate_api_logs.call_local(target_date=YESTERDAY)
 
         assert _rows() == [_row("GET", "/api/v1/offres/", "jwt", 1)]
 
     def test_produces_no_rows_when_no_logs(self, db):
-        aggregate_api_logs(target_date=YESTERDAY)
+        aggregate_api_logs.call_local(target_date=YESTERDAY)
 
         assert _rows() == []
 
@@ -159,7 +159,7 @@ class TestAggregateApiLogsTask:
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
 
-        aggregate_api_logs(target_date=YESTERDAY)
+        aggregate_api_logs.call_local(target_date=YESTERDAY)
 
         rows = _rows()
         assert _row("GET", "/api/v1/offres/", "jwt", 1) in rows
