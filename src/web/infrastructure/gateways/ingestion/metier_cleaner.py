@@ -84,14 +84,12 @@ class MetierCleaner(IDocumentCleaner[Metier]):
 
     @staticmethod
     def _split_commentaires(items) -> List[str]:
-        result = []
+        result: list[str] = []
         if items:
             for item in items:
                 if item.commentaire:
                     result.extend(
-                        s.strip()
-                        for s in item.commentaire.split("!N!")
-                        if s.strip()
+                        s.strip() for s in item.commentaire.split("!N!") if s.strip()
                     )
         return result
 

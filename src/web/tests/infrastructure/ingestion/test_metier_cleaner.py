@@ -13,7 +13,6 @@ from tests.factories.ingestion.ingres_metiers_factories import (
     IngresMetiersDocumentFactory,
 )
 
-
 DATE_EFFET = "2023-01-01T00:00:00Z"
 
 
@@ -71,9 +70,7 @@ def test_conditions_particulieres_are_split_on_newline_markers(cleaner):
         dateEffet=DATE_EFFET,
         commentaire="Condition A.!N!Condition B.!N!Condition C.",
     )
-    document = _make_document(
-        competences=_competences_with_conditions([condition])
-    )
+    document = _make_document(competences=_competences_with_conditions([condition]))
 
     metier = cleaner._dto_to_entity(document)
 
@@ -95,9 +92,7 @@ def test_conditions_particulieres_multiple_entries_are_flattened(cleaner):
             commentaire="Condition C.",
         ),
     ]
-    document = _make_document(
-        competences=_competences_with_conditions(conditions)
-    )
+    document = _make_document(competences=_competences_with_conditions(conditions))
 
     metier = cleaner._dto_to_entity(document)
 
@@ -109,9 +104,7 @@ def test_conditions_particulieres_multiple_entries_are_flattened(cleaner):
 
 
 def test_conditions_particulieres_empty_when_none(cleaner):
-    document = _make_document(
-        competences=_competences_with_conditions(None)
-    )
+    document = _make_document(competences=_competences_with_conditions(None))
 
     metier = cleaner._dto_to_entity(document)
 
