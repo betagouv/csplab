@@ -8,10 +8,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.SeparateDatabaseAndState(
-            state_operations=[
-                migrations.DeleteModel(name="ApiLogModel"),
-            ],
-            database_operations=[],
-        ),
+        migrations.DeleteModel(name="ApiLogModel"),
     ]
