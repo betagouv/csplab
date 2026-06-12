@@ -42,11 +42,14 @@ class Candidature(AggregateRoot):
         candidat_id: UUID,
         offre_id: UUID,
         statut: StatutCandidature,
+        entity_id: UUID,
         documents: tuple[UUID, ...] | None = None,
         soumise_le: datetime | None = None,
         mise_a_jour_le: datetime | None = None,
     ) -> "Candidature":
+
         return cls(
+            entity_id=entity_id,
             _candidat_id=candidat_id,
             _offre_id=offre_id,
             _statut=statut,

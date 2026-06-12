@@ -87,3 +87,11 @@ class CandidateContainer(containers.DeclarativeContainer):
         metiers_repository=metiers_repository,
         logger=logger_service,
     )
+
+    # submit_application_usecase = providers.Factory(
+    #     SubmitApplicationUsecase,
+    #     candidature_repository=providers.Singleton(
+    #         PostgresCandidatureRepository
+    #     ),
+    #     logger=logger_service,
+    # )

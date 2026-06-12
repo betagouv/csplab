@@ -20,6 +20,7 @@ def make_documents() -> tuple[UUID, ...]:
 class CandidatureFactory:
     @staticmethod
     def build(
+        entity_id: UUID | None = None,
         candidat_id: UUID | None = None,
         offre_id: UUID | None = None,
         statut: StatutCandidature | None = None,
@@ -27,11 +28,12 @@ class CandidatureFactory:
         soumise_le: datetime | None = None,
         mise_a_jour_le: datetime | None = None,
     ) -> "Candidature":
+        entity_id = cast(UUID, fake.uuid4())
         candidat_id = candidat_id or cast(UUID, fake.uuid4())
         offre_id = offre_id or cast(UUID, fake.uuid4())
         statut = statut or StatutCandidature.INITIAL
-
         return Candidature.build(
+            entity_id=entity_id,
             candidat_id=candidat_id,
             offre_id=offre_id,
             statut=statut,
