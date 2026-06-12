@@ -81,7 +81,7 @@ class TestArchiveOffersView:
             ArchiveOfferByReferenceInput(
                 reference=REFERENCE,
                 source_id=SOURCE_ID,
-                user=test_user,
+                utilisateur_entity_id=UUID(test_user.username),
             )
         )
 

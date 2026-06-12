@@ -4,6 +4,9 @@ from referentiel.repositories.offers_repository_interface import IOffersReposito
 from referentiel.types import IUpsertResult
 
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
+from domain.identite.repositories.utilisateur_repository_interface import (
+    IUtilisateurRepository,
+)
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
@@ -18,16 +21,21 @@ class UpsertOffersUseCase(IUseCase[UpsertOffersInput, IUpsertResult]):
         offers_repository: IOffersRepository,
         logger: ILogger,
         user_source_repository: IUserSourceRepository,
+        utilisateur_repository: IUtilisateurRepository,
     ):
         self.offers_repository = offers_repository
         self.logger = logger
         self.user_source_repository = user_source_repository
+        self.utilisateur_repository = utilisateur_repository
 
     def execute(self, input_data: UpsertOffersInput) -> IUpsertResult:
-        if input_data.user is not None:
+        if input_data.utilisateur_entity_id is not None:
+            utilisateur = self.utilisateur_repository.get_by_entity_id(
+                input_data.utilisateur_entity_id
+            )
             source_ids = {offer.source_id for offer in input_data.offers}
             allowed = self.user_source_repository.get_allowed_source_ids(
-                input_data.user, source_ids
+                utilisateur, source_ids
             )
             if allowed != source_ids:
                 raise SourceAuthorizationError(source_ids - allowed)

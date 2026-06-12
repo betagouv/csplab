@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from drf_spectacular.utils import (
     PolymorphicProxySerializer,
     extend_schema,
@@ -137,7 +139,9 @@ class ArchiveOffersView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        user = request.user if isinstance(request.user, UserModel) else None
+        utilisateur_entity_id = (
+            UUID(request.user.username) if isinstance(request.user, UserModel) else None
+        )
         container = create_ingestion_container()
         use_case = container.archive_offer_by_reference_usecase()
         try:
@@ -145,7 +149,7 @@ class ArchiveOffersView(APIView):
                 ArchiveOfferByReferenceInput(
                     reference=serializer.validated_data["reference"],
                     source_id=serializer.validated_data["source_id"],
-                    user=user,
+                    utilisateur_entity_id=utilisateur_entity_id,
                 )
             )
         except SourceAuthorizationError as e:
@@ -247,10 +251,16 @@ class OffersUpsertView(APIView):
                     }
                 )
 
-        user = request.user if isinstance(request.user, UserModel) else None
+        utilisateur_entity_id = (
+            UUID(request.user.username) if isinstance(request.user, UserModel) else None
+        )
         try:
             usecase = container.upsert_offers_usecase()
-            result = usecase.execute(UpsertOffersInput(offers=valid_offers, user=user))
+            result = usecase.execute(
+                UpsertOffersInput(
+                    offers=valid_offers, utilisateur_entity_id=utilisateur_entity_id
+                )
+            )
             result["errors"].extend(errors)
             return Response(result, status=status.HTTP_201_CREATED)
         except SourceAuthorizationError as e:

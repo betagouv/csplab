@@ -51,6 +51,9 @@ from domain.ingestion.repositories.document_repository_interface import (
     IDocumentRepository,
 )
 from domain.ingestion.repositories.source_repository_interface import ISourceRepository
+from domain.identite.repositories.utilisateur_repository_interface import (
+    IUtilisateurRepository,
+)
 from domain.ingestion.repositories.user_source_repository_interface import (
     IUserSourceRepository,
 )
@@ -394,11 +397,15 @@ def upsert_offers_usecase():
     user_source_repo = cast(
         IUserSourceRepository, create_interface_aware_mock(IUserSourceRepository)
     )
+    utilisateur_repo = cast(
+        IUtilisateurRepository, create_interface_aware_mock(IUtilisateurRepository)
+    )
 
     return UpsertOffersUseCase(
         offers_repository=offers_repo,
         logger=logger,
         user_source_repository=user_source_repo,
+        utilisateur_repository=utilisateur_repo,
     )
 
 
