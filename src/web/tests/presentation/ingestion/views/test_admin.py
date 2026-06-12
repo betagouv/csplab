@@ -1,6 +1,5 @@
 from http import HTTPStatus
 
-import pytest
 from django.test import Client
 from django_otp.middleware import is_verified
 from django_otp.oath import totp
@@ -12,9 +11,10 @@ from tests.factories.identite.utilisateur_factory import (
 )
 
 
-@pytest.mark.django_db
 class TestAdminOTPRequired:
-    def test_admin_shows_totp_input_for_staff_without_otp_device(self, client: Client):
+    def test_admin_shows_totp_input_for_staff_without_otp_device(
+        self, db, client: Client
+    ):
         user = UtilisateurFactory.create_model()
         user.is_staff = True
         user.is_superuser = True
@@ -26,7 +26,7 @@ class TestAdminOTPRequired:
         assert response.status_code == HTTPStatus.OK
         assert b'id="id_otp_token"' in response.content
 
-    def test_admin_grants_access_with_valid_totp_token(self, client: Client):
+    def test_admin_grants_access_with_valid_totp_token(self, db, client: Client):
         user = UtilisateurFactory.create_model()
         user.is_staff = True
         user.is_superuser = True
