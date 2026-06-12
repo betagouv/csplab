@@ -13,6 +13,8 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.exceptions.exceptions import TaskError
 
+API_LOG_MIN_RETENTION_DAYS = 90
+
 
 @db_periodic_task(crontab(day="1", hour="7"))
 def vectorize_corps():
@@ -187,7 +189,7 @@ def aggregate_api_logs(target_date: date):
         logger.info("No API logs found for %s, skipping.", target_date)
         return
 
-    aggregation_repository.replace_for_date(target_date, aggregations)
+    aggregation_repository.insert_for_date(target_date, aggregations)
     logger.info("Inserted %d aggregation rows for %s.", len(aggregations), target_date)
 
 
@@ -197,7 +199,7 @@ def purge_api_logs_periodic():
 
 
 @db_task()
-def purge_api_logs(retention_days: int = 90):
+def purge_api_logs(retention_days: int = API_LOG_MIN_RETENTION_DAYS):
     logger = logging.getLogger(__name__)
 
     container = SharedContainer()

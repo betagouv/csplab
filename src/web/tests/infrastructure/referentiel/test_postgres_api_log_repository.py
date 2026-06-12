@@ -1,8 +1,8 @@
 from datetime import date
 
 import pytest
-from referentiel.entities.api_log_daily_aggregation import ApiLogDailyAggregation
 
+from domain.ingestion.entities.api_log_daily_aggregation import ApiLogDailyAggregation
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
 from tests.factories.api_log_factory import ApiLogFactory

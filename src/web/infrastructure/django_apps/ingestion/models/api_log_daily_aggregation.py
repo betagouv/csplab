@@ -1,10 +1,9 @@
 from django.db import models
-from referentiel.entities.api_log_daily_aggregation import ApiLogDailyAggregation
+
+from domain.ingestion.entities.api_log_daily_aggregation import ApiLogDailyAggregation
 
 
 class ApiLogDailyAggregationModel(models.Model):
-    objects: models.Manager = models.Manager()
-
     date = models.DateField()
     method = models.CharField(max_length=10)
     path = models.CharField(max_length=2048)

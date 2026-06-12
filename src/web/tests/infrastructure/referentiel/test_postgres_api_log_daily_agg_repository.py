@@ -1,8 +1,8 @@
 from datetime import date
 
 import pytest
-from referentiel.entities.api_log_daily_aggregation import ApiLogDailyAggregation
 
+from domain.ingestion.entities.api_log_daily_aggregation import ApiLogDailyAggregation
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.api_log_daily_aggregation import (
     ApiLogDailyAggregationModel,
@@ -33,14 +33,14 @@ def repository():
     return SharedContainer().api_log_daily_aggregation_repository()
 
 
-class TestReplaceForDate:
+class TestInsertForDate:
     def test_persists_aggregations(self, db, repository):
         aggregations = [
             _agg(YESTERDAY, method="GET", path="/api/v1/offres/", count=5),
             _agg(YESTERDAY, method="POST", path="/api/v1/offres/", count=2),
         ]
 
-        repository.replace_for_date(YESTERDAY, aggregations)
+        repository.insert_for_date(YESTERDAY, aggregations)
 
         rows = list(
             ApiLogDailyAggregationModel.objects.values(
@@ -62,26 +62,19 @@ class TestReplaceForDate:
             "count": 2,
         } in rows
 
-    def test_replaces_existing_rows_for_date(self, db, repository):
-        repository.replace_for_date(YESTERDAY, [_agg(YESTERDAY, method="GET", count=3)])
-        repository.replace_for_date(YESTERDAY, [_agg(YESTERDAY, method="GET", count=7)])
-
-        row = ApiLogDailyAggregationModel.objects.get(date=YESTERDAY, method="GET")
-        assert row.count == 7  # noqa: PLR2004
-
     def test_does_not_affect_other_dates(self, db, repository):
-        repository.replace_for_date(TODAY, [_agg(TODAY, count=10)])
-        repository.replace_for_date(YESTERDAY, [_agg(YESTERDAY, count=4)])
+        repository.insert_for_date(TODAY, [_agg(TODAY, count=10)])
+        repository.insert_for_date(YESTERDAY, [_agg(YESTERDAY, count=4)])
 
         assert ApiLogDailyAggregationModel.objects.filter(date=TODAY).count() == 1
         assert ApiLogDailyAggregationModel.objects.get(date=TODAY).count == 10  # noqa: PLR2004
 
     def test_raises_when_aggregations_empty(self, db, repository):
         with pytest.raises(ValueError):
-            repository.replace_for_date(YESTERDAY, [])
+            repository.insert_for_date(YESTERDAY, [])
 
     def test_persists_none_token_type(self, db, repository):
-        repository.replace_for_date(
+        repository.insert_for_date(
             YESTERDAY, [_agg(YESTERDAY, token_type=None, count=1)]
         )
 

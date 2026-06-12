@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Any
 
 import pytest
 
@@ -13,7 +14,7 @@ TODAY = date(2026, 6, 10)
 YESTERDAY = date(2026, 6, 9)
 
 
-def _rows() -> list[dict]:
+def _rows() -> list[Any]:
     return list(
         ApiLogDailyAggregationModel.objects.values(
             "date", "method", "path", "token_type", "count"
@@ -123,19 +124,6 @@ class TestAggregateApiLogsTask:
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
 
-        aggregate_api_logs.call_local(target_date=YESTERDAY)
-
-        assert _rows() == [_row("GET", "/api/v1/offres/", "jwt", 1)]
-
-    def test_is_idempotent(self, db):
-        ApiLogModelFactory.create_model(
-            path="/api/v1/offres/",
-            method="GET",
-            token_type="jwt",  # noqa: S106
-            timestamp=date_to_aware_datetime(YESTERDAY),
-        )
-
-        aggregate_api_logs.call_local(target_date=YESTERDAY)
         aggregate_api_logs.call_local(target_date=YESTERDAY)
 
         assert _rows() == [_row("GET", "/api/v1/offres/", "jwt", 1)]
