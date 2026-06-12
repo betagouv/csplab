@@ -1,8 +1,8 @@
 from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
 
-from application.candidate.commands.soumettre_candidature_command import (
-    SoumettreCandidatureCommand,
+from application.candidate.commands.submit_application_command import (
+    SubmitApplicationCommand,
 )
 from domain.candidate.entities.candidature import Candidature
 from domain.candidate.events.candidature_events import (
@@ -15,8 +15,8 @@ from domain.candidate.repositories.candidature_repository_interface import (
 )
 
 
-class SoumettreCandidatureUsecase(
-    IUseCase[SoumettreCandidatureCommand, Candidature],
+class SubmitApplicationUsecase(
+    IUseCase[SubmitApplicationCommand, Candidature],
 ):
     def __init__(
         self,
@@ -26,7 +26,7 @@ class SoumettreCandidatureUsecase(
         self.logger = logger
         self.candidature_repository = candidature_repository
 
-    def execute(self, command: SoumettreCandidatureCommand) -> Candidature:
+    def execute(self, command: SubmitApplicationCommand) -> Candidature:
         self.logger.info(
             "Starting candidature submission for candidate_uuid='%s', offer_uuid=%d",
         )
