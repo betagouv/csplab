@@ -52,7 +52,7 @@ class ProfilAgentModel(models.Model):
         related_name="profil_agent",
         to_field="username",
     )
-    matricule = models.CharField(max_length=50)
+    intitule_poste = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -66,12 +66,15 @@ class ProfilAgentModel(models.Model):
             email=self.utilisateur.email,
             prenom=self.utilisateur.first_name,
             nom=self.utilisateur.last_name,
-            matricule=self.matricule,
+            intitule_poste=self.intitule_poste,
         )
 
     @classmethod
     def from_entity(cls, utilisateur: Utilisateur, agent: Agent) -> "ProfilAgentModel":
-        return cls(utilisateur_id=str(utilisateur.entity_id), matricule=agent.matricule)
+        return cls(
+            utilisateur_id=str(utilisateur.entity_id),
+            intitule_poste=agent.intitule_poste,
+        )
 
     def __str__(self):
         return self.username

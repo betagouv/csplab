@@ -19,7 +19,7 @@ def test_create(entity_id):
         email=fake.email(),
         prenom=fake.first_name(),
         nom=fake.last_name(),
-        matricule=fake.bothify("MAT-####"),
+        intitule_poste=fake.word(),
     )
 
     agent = Agent.create(event, entity_id=entity_id)
@@ -41,7 +41,7 @@ def test_build():
         email=fake.email(),
         prenom=fake.first_name(),
         nom=fake.last_name(),
-        matricule=fake.bothify("MAT-####"),
+        intitule_poste=fake.bothify("MAT-####"),
     )
 
     assert agent.entity_id == entity_id

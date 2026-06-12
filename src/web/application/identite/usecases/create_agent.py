@@ -18,7 +18,7 @@ class CreateAgentInput:
     email: EmailStr
     prenom: str
     nom: str
-    matricule: str
+    intitule_poste: str
 
 
 class CreateAgentUsecase:
@@ -39,7 +39,7 @@ class CreateAgentUsecase:
             email=input_data.email,
             prenom=input_data.prenom,
             nom=input_data.nom,
-            matricule=input_data.matricule,
+            intitule_poste=input_data.intitule_poste,
         )
 
         try:

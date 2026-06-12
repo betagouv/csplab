@@ -9,4 +9,4 @@ class ProfilAgentCree(DomainEvent):
     email: EmailStr
     prenom: str
     nom: str
-    matricule: str
+    intitule_poste: str

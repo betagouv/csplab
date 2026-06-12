@@ -12,7 +12,7 @@ class Agent(AggregateRoot):
     _email: EmailStr
     _prenom: str
     _nom: str
-    _matricule: str
+    _intitule_poste: str
 
     @classmethod
     @factory(ProfilAgentCree)
@@ -22,7 +22,7 @@ class Agent(AggregateRoot):
             _email=event.email,
             _prenom=event.prenom,
             _nom=event.nom,
-            _matricule=event.matricule,
+            _intitule_poste=event.intitule_poste,
         )
 
     @classmethod
@@ -32,14 +32,14 @@ class Agent(AggregateRoot):
         email: EmailStr,
         prenom: str,
         nom: str,
-        matricule: str,
+        intitule_poste: str,
     ) -> "Agent":
         return cls(
             entity_id=entity_id,
             _email=email,
             _prenom=prenom,
             _nom=nom,
-            _matricule=matricule,
+            _intitule_poste=intitule_poste,
         )
 
     @property
@@ -55,5 +55,5 @@ class Agent(AggregateRoot):
         return self._nom
 
     @property
-    def matricule(self) -> str:
-        return self._matricule
+    def intitule_poste(self) -> str:
+        return self._intitule_poste
