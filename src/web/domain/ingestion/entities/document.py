@@ -1,8 +1,7 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
-from uuid import UUID, uuid4
 
 from ddd.entity import Entity
 
@@ -27,4 +26,3 @@ class Document(Entity):
     processed_at: Optional[datetime] = None
     processing: bool = False
     error_msg: Optional[str] = None
-    entity_id: UUID = field(default_factory=uuid4)
