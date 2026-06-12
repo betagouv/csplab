@@ -32,6 +32,7 @@ class OfferCard(_BaseCard):
     location: str
     location_value: str
     contract_type_display: str
+    metier: NotRequired[str]
 
 
 OpportunityCard = ConcoursCard | OfferCard

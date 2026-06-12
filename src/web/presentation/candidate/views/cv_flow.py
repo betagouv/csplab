@@ -87,11 +87,7 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         cv_uuid: UUID = kwargs["cv_uuid"]
         self._fetch_cv_data(request, cv_uuid)
 
-        flat_opportunities: list[tuple[Concours | Offer, float]] = [
-            (entity, score) if isinstance(entity, Concours) else (entity[0], score)
-            for entity, score in self._opportunities
-        ]
-        presenter = OpportunityListPresenter(flat_opportunities, request)
+        presenter = OpportunityListPresenter(self._opportunities, request)
         is_htmx = bool(request.headers.get("HX-Request"))
 
         if is_htmx and request.GET.get("poll") and self._status != CVStatus.PENDING:
