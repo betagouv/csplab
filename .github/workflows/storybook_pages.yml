@@ -4,14 +4,14 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "src/web/**"
+      - "src/web/presentation/frontend/**"
       - ".github/workflows/storybook_pages.yml"
       - ".github/actions/**"
   pull_request:
     branches: ["main"]
     types: [opened, synchronize, reopened, labeled, closed]
     paths:
-      - "src/web/**"
+      - "src/web/presentation/frontend/**"
       - ".github/workflows/storybook_pages.yml"
       - ".github/actions/**"
   workflow_dispatch:
