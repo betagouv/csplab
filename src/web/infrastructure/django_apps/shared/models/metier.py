@@ -4,8 +4,6 @@ from referentiel.value_objects.verse import Verse
 
 
 class MetierModel(models.Model):
-    objects: models.Manager = models.Manager()
-
     id = models.UUIDField(primary_key=True)
     external_id = models.CharField(max_length=8, unique=True)
     libelle_long = models.CharField(max_length=500)

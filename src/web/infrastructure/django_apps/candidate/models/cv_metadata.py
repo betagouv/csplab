@@ -5,8 +5,6 @@ from domain.candidate.value_objects.cv_processing_status import CVStatus
 
 
 class CVMetadataModel(models.Model):
-    objects: models.Manager = models.Manager()
-
     id = models.UUIDField(primary_key=True)
     filename = models.CharField(max_length=255)
     extracted_text = models.JSONField(null=True, blank=True)

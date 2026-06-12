@@ -15,8 +15,6 @@ from infrastructure.django_apps.ingestion.models.source import SourceModel
 
 
 class OfferModel(models.Model):
-    objects: models.Manager = models.Manager()
-
     # Contract type choices from ContractType enum
     CONTRACT_TYPE_CHOICES = [(ct.value, ct.name) for ct in ContractType]
 
