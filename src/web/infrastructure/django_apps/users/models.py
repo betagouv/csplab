@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from domain.identite.entities.agent import Agent
+from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
 
 
@@ -43,6 +44,43 @@ class UserModel(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class ProfilCandidatModel(models.Model):
+    utilisateur = models.OneToOneField(
+        UserModel,
+        on_delete=models.PROTECT,
+        related_name="profil_candidat",
+        to_field="username",
+    )
+    resume = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Profil Candidat"
+        verbose_name_plural = "Profils Candidats"
+
+    def to_entity(self) -> Candidat:
+        return Candidat.build(
+            entity_id=UUID(self.utilisateur.username),
+            email=self.utilisateur.email,
+            prenom=self.utilisateur.first_name,
+            nom=self.utilisateur.last_name,
+            resume=self.resume,
+        )
+
+    @classmethod
+    def from_entity(
+        cls, utilisateur: Utilisateur, candidat: Candidat
+    ) -> "ProfilCandidatModel":
+        return cls(
+            utilisateur_id=str(utilisateur.entity_id),
+            resume=candidat.resume,
+        )
+
+    def __str__(self):
+        return str(self.username)
 
 
 class ProfilAgentModel(models.Model):
