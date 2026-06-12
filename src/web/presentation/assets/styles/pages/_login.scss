@@ -1,0 +1,24 @@
+@use '../abstracts' as *;
+
+.csplab-login__card {
+  border: 1px solid var(--border-default-grey);
+  overflow: hidden;
+}
+
+.csplab-login__welcome {
+  @include md {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.csplab-login__welcome-content {
+  max-width: 20rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.csplab-login__signup {
+  text-align: center;
+}
