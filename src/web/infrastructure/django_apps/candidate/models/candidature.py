@@ -1,4 +1,4 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from django.db import models
 
@@ -7,7 +7,7 @@ from domain.candidate.value_objects.statut_candidature import StatutCandidature
 
 
 class CandidatureModel(models.Model):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     candidat_id = models.UUIDField()
     offre_id = models.UUIDField()
     statut = models.CharField(
