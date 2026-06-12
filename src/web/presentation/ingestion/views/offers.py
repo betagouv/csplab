@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from drf_spectacular.utils import (
     PolymorphicProxySerializer,
     extend_schema,
@@ -17,11 +19,15 @@ from application.ingestion.interfaces.archive_offer_by_reference_input import (
 )
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
+from domain.ingestion.exceptions.source_authorization_error import (
+    SourceAuthorizationError,
+)
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
     UserRateThrottleExceptApiKey,
 )
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from infrastructure.django_apps.users.models import UserModel
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.ingestion.mappers import OfferInputMapper
 from presentation.ingestion.openapi import (
@@ -111,6 +117,10 @@ class OffersListView(APIView):
                 ],
                 resource_type_field_name=None,
             ),
+            403: inline_serializer(
+                name="ArchiveOfferForbidden",
+                fields={"detail": drf_serializers.CharField()},
+            ),
             404: inline_serializer(
                 name="ArchiveOfferNotFound",
                 fields={"detail": drf_serializers.CharField()},
@@ -128,6 +138,10 @@ class ArchiveOffersView(APIView):
         serializer = ArchiveOfferRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        utilisateur_entity_id = (
+            UUID(request.user.username) if isinstance(request.user, UserModel) else None
+        )
         container = create_ingestion_container()
         use_case = container.archive_offer_by_reference_usecase()
         try:
@@ -135,7 +149,14 @@ class ArchiveOffersView(APIView):
                 ArchiveOfferByReferenceInput(
                     reference=serializer.validated_data["reference"],
                     source_id=serializer.validated_data["source_id"],
+                    utilisateur_entity_id=utilisateur_entity_id,
                 )
+            )
+        except SourceAuthorizationError as e:
+            source_ids = sorted(str(sid) for sid in e.source_ids)
+            return Response(
+                {"detail": f"Cannot edit this source: {source_ids}."},
+                status=status.HTTP_403_FORBIDDEN,
             )
         except OfferDoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -183,6 +204,10 @@ class ArchiveOffersView(APIView):
         ),
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
+        403: inline_serializer(
+            name="UpsertOffersForbidden",
+            fields={"detail": drf_serializers.CharField()},
+        ),
         500: GenericErrorSerializer,
     },
 )
@@ -226,11 +251,24 @@ class OffersUpsertView(APIView):
                     }
                 )
 
+        utilisateur_entity_id = (
+            UUID(request.user.username) if isinstance(request.user, UserModel) else None
+        )
         try:
             usecase = container.upsert_offers_usecase()
-            result = usecase.execute(UpsertOffersInput(offers=valid_offers))
+            result = usecase.execute(
+                UpsertOffersInput(
+                    offers=valid_offers, utilisateur_entity_id=utilisateur_entity_id
+                )
+            )
             result["errors"].extend(errors)
             return Response(result, status=status.HTTP_201_CREATED)
+        except SourceAuthorizationError as e:
+            source_ids = sorted(str(sid) for sid in e.source_ids)
+            return Response(
+                {"detail": f"Cannot edit offers with this source: {source_ids}."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except Exception as e:
             logger.error("OffersUpsertView: unexpected error %s", str(e))
             return Response(

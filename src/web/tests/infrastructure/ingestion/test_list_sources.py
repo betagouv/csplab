@@ -1,28 +1,5 @@
-import pytest
-
-from config.app_config import AppConfig
 from domain.ingestion.value_objects.source_type import SourceType
-from infrastructure.di.ingestion.ingestion_container import IngestionContainer
-from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.ingestion.source_factory import SourceFactory
-
-
-@pytest.fixture(name="ingestion_container")
-def ingestion_container_fixture(db):
-    container = IngestionContainer()
-    shared_container = SharedContainer()
-
-    app_config = AppConfig.from_django_settings()
-    shared_container.app_config.override(app_config)
-
-    logger_service = LoggerService()
-    shared_container.logger_service.override(logger_service)
-
-    container.shared_container.override(shared_container)
-    container.app_config.override(app_config)
-    container.logger_service.override(logger_service)
-    return container
 
 
 def test_returns_empty_list_when_no_sources(ingestion_container):

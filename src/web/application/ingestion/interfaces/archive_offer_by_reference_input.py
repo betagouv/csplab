@@ -6,3 +6,4 @@ from uuid import UUID
 class ArchiveOfferByReferenceInput:
     reference: str
     source_id: UUID
+    utilisateur_entity_id: UUID | None = None

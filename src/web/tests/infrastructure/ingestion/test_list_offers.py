@@ -4,28 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
-from config.app_config import AppConfig
-from infrastructure.di.ingestion.ingestion_container import IngestionContainer
-from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.referentiel.offer_factory import OfferFactory
-
-
-@pytest.fixture(name="documents_integration_container")
-def documents_integration_container_fixture(db):
-    container = IngestionContainer()
-    shared_container = SharedContainer()
-
-    app_config = AppConfig.from_django_settings()
-    shared_container.app_config.override(app_config)
-
-    logger_service = LoggerService()
-    shared_container.logger_service.override(logger_service)
-
-    container.shared_container.override(shared_container)
-    container.app_config.override(app_config)
-    container.logger_service.override(logger_service)
-    return container
 
 
 @pytest.fixture(name="offers")
@@ -72,14 +51,12 @@ def offers_fixture(db):
     ],
 )
 def test_list_offers_result(
-    documents_integration_container, offers, active, external_id_contains, expected_keys
+    ingestion_container, offers, active, external_id_contains, expected_keys
 ):
     input_data = GetFilteredOffersInput(
         active=active, external_id_contains=external_id_contains
     )
-    result = documents_integration_container.list_offers_usecase().execute(
-        input_data=input_data
-    )
+    result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
     assert {offer.external_id for offer in result._qs} == {
         offers[key].external_id for key in expected_keys
@@ -95,12 +72,10 @@ def test_list_offers_result(
     ],
 )
 def test_list_offers_page_slice(
-    documents_integration_container, offers, offset, limit, expected_keys
+    ingestion_container, offers, offset, limit, expected_keys
 ):
     input_data = GetFilteredOffersInput(active=True, external_id_contains=None)
-    result = documents_integration_container.list_offers_usecase().execute(
-        input_data=input_data
-    )
+    result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
     assert result.count() == len(["active_expected", "active_other"])
 
@@ -110,14 +85,12 @@ def test_list_offers_page_slice(
     }
 
 
-def test_get_filtered_raises_error(db, documents_integration_container):
-    shared_container = documents_integration_container.shared_container()
+def test_get_filtered_raises_error(db, ingestion_container):
+    shared_container = ingestion_container.shared_container()
     offers_repo = shared_container.offers_repository()
 
     offers_repo.get_filtered = MagicMock(side_effect=Exception("db error"))
 
     with pytest.raises(Exception, match="db error"):
         input_data = GetFilteredOffersInput(active=True, external_id_contains=None)
-        documents_integration_container.list_offers_usecase().execute(
-            input_data=input_data
-        )
+        ingestion_container.list_offers_usecase().execute(input_data=input_data)

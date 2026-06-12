@@ -16,11 +16,16 @@ from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 
+from domain.ingestion.exceptions.source_authorization_error import (
+    SourceAuthorizationError,
+)
 from tests.factories.ingestion.offer_payload_factory import (
     PayloadOfferFactory,
     fake_datetime,
 )
+from tests.factories.ingestion.source_factory import SourceFactory
 
 fake = Faker("fr_FR")
 
@@ -154,6 +159,19 @@ def mock_container(mock_offers_container, use_case):
     mock_offers_container.upsert_offers_usecase.return_value = use_case
 
 
+@pytest.fixture
+def source():
+    return SourceFactory.create_model(source_id=UUID(SOURCE_UUID))
+
+
+@pytest.fixture
+def authenticated_client_with_source(api_client, test_user, source):
+    test_user.sources.add(source)
+    refresh = RefreshToken.for_user(test_user)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+    return api_client
+
+
 def test_unauthenticated_access(api_client):
     response = api_client.post(URL)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -193,8 +211,18 @@ def test_invalid_payload_returns_error_400(
     assert response.json() == {"offres": [expected_msg]}
 
 
+def test_jwt_forbidden_source_id_returns_403(authenticated_client, use_case):
+    use_case.execute.side_effect = SourceAuthorizationError({UUID(SOURCE_UUID)})
+    response = authenticated_client.post(
+        URL,
+        data={"offres": [MINIMAL_VALID_OFFER]},
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
 def test_valid_payload_returns_201_and_valid_offers_to_usecase(
-    authenticated_client, use_case
+    authenticated_client_with_source, use_case
 ):
     offers_payload = [MINIMAL_VALID_OFFER, PARTIAL_VALID_OFFER, COMPLETE_VALID_OFFER]
 
@@ -203,7 +231,7 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
         "updated": 0,
         "errors": [],
     }
-    response = authenticated_client.post(
+    response = authenticated_client_with_source.post(
         URL,
         data={"offres": offers_payload},
         content_type="application/json",
@@ -232,7 +260,9 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
             assert getattr(offer, attr) == getattr(expected, attr)
 
 
-def test_mixed_valid_invalid_offers_in_payload(authenticated_client, use_case):
+def test_mixed_valid_invalid_offers_in_payload(
+    authenticated_client_with_source, use_case
+):
     offers_payload = [MINIMAL_VALID_OFFER, INVALID_PAYLOAD_OFFER, INVALID_DATA_OFFER]
 
     use_case.execute.return_value = {
@@ -240,7 +270,7 @@ def test_mixed_valid_invalid_offers_in_payload(authenticated_client, use_case):
         "updated": 0,
         "errors": ["db error on offer xxx"],
     }
-    response = authenticated_client.post(
+    response = authenticated_client_with_source.post(
         URL,
         data={"offres": offers_payload},
         content_type="application/json",
@@ -260,10 +290,10 @@ def test_mixed_valid_invalid_offers_in_payload(authenticated_client, use_case):
     ]
 
 
-def test_returns_error_500(authenticated_client, use_case):
+def test_returns_error_500(authenticated_client_with_source, use_case):
     use_case.execute.side_effect = Exception("db error")
 
-    response = authenticated_client.post(
+    response = authenticated_client_with_source.post(
         URL, data={"offres": [MINIMAL_VALID_OFFER]}, content_type="application/json"
     )
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR

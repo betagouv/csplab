@@ -56,7 +56,12 @@ from domain.ingestion.repositories.document_repository_interface import (
     IDocumentRepository,
 )
 from domain.ingestion.repositories.source_repository_interface import ISourceRepository
+from domain.ingestion.repositories.user_source_repository_interface import (
+    IUserSourceRepository,
+)
 from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
+from infrastructure.di.ingestion.ingestion_container import IngestionContainer
+from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
@@ -104,6 +109,20 @@ def authenticated_client_fixture(api_client, test_user):
 def api_key_client_fixture(api_client):
     api_client.credentials(HTTP_AUTHORIZATION="Api-Key test-ingestion-api-key")
     return api_client
+
+
+@pytest.fixture(name="ingestion_container")
+def ingestion_container_fixture(db):
+    shared_container = SharedContainer()
+    app_config = AppConfig.from_django_settings()
+    logger_service = LoggerService("ingestion")
+    shared_container.app_config.override(app_config)
+    shared_container.logger_service.override(logger_service)
+    container = IngestionContainer()
+    container.app_config.override(app_config)
+    container.logger_service.override(logger_service)
+    container.shared_container.override(shared_container)
+    return container
 
 
 def create_collection(client: QdrantClient, collection_name: str):
@@ -377,10 +396,18 @@ def upsert_offers_usecase():
     offers_repo = cast(
         IOffersRepository, create_interface_aware_mock(IOffersRepository)
     )
+    user_source_repo = cast(
+        IUserSourceRepository, create_interface_aware_mock(IUserSourceRepository)
+    )
+    utilisateur_repo = cast(
+        IUtilisateurRepository, create_interface_aware_mock(IUtilisateurRepository)
+    )
 
     return UpsertOffersUseCase(
         offers_repository=offers_repo,
         logger=logger,
+        user_source_repository=user_source_repo,
+        utilisateur_repository=utilisateur_repo,
     )
 
 

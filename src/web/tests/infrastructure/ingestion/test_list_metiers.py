@@ -3,28 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
-from config.app_config import AppConfig
-from infrastructure.di.ingestion.ingestion_container import IngestionContainer
-from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.referentiel.metier_factory import MetierFactory
-
-
-@pytest.fixture(name="documents_integration_container")
-def documents_integration_container_fixture(db):
-    container = IngestionContainer()
-    shared_container = SharedContainer()
-
-    app_config = AppConfig.from_django_settings()
-    shared_container.app_config.override(app_config)
-
-    logger_service = LoggerService()
-    shared_container.logger_service.override(logger_service)
-
-    container.shared_container.override(shared_container)
-    container.app_config.override(app_config)
-    container.logger_service.override(logger_service)
-    return container
 
 
 @pytest.fixture(name="metiers")
@@ -50,13 +29,9 @@ def metiers_fixture(db):
         pytest.param("ABC", [], id="empty_result"),
     ],
 )
-def test_list_metiers_result(
-    documents_integration_container, metiers, domain, expected_keys
-):
+def test_list_metiers_result(ingestion_container, metiers, domain, expected_keys):
     input_data = GetFilteredMetiersInput(domain=domain)
-    result = documents_integration_container.list_metiers_usecase().execute(
-        input_data=input_data
-    )
+    result = ingestion_container.list_metiers_usecase().execute(input_data=input_data)
 
     assert {metier.external_id for metier in result._qs} == {
         metiers[key].external_id for key in expected_keys
@@ -72,12 +47,10 @@ def test_list_metiers_result(
     ],
 )
 def test_list_metiers_page_slice(
-    documents_integration_container, metiers, offset, limit, expected_keys
+    ingestion_container, metiers, offset, limit, expected_keys
 ):
     input_data = GetFilteredMetiersInput(domain=None)
-    result = documents_integration_container.list_metiers_usecase().execute(
-        input_data=input_data
-    )
+    result = ingestion_container.list_metiers_usecase().execute(input_data=input_data)
 
     assert result.count() == len(["AFK1", "TRE1", "TRE2"])
 
@@ -87,14 +60,12 @@ def test_list_metiers_page_slice(
     }
 
 
-def test_get_filtered_slice_raises_error(db, documents_integration_container):
-    shared_container = documents_integration_container.shared_container()
+def test_get_filtered_slice_raises_error(db, ingestion_container):
+    shared_container = ingestion_container.shared_container()
     metiers_repo = shared_container.metiers_repository()
 
     metiers_repo.get_filtered_slice = MagicMock(side_effect=Exception("db error"))
 
     with pytest.raises(Exception, match="db error"):
         input_data = GetFilteredMetiersInput(domain=None)
-        documents_integration_container.list_metiers_usecase().execute(
-            input_data=input_data
-        )
+        ingestion_container.list_metiers_usecase().execute(input_data=input_data)
