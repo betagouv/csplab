@@ -1,10 +1,10 @@
 from django.db import models
 
 from domain.ingestion.entities.document import Document, DocumentType
+from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
-class RawDocument(models.Model):
-    id = models.UUIDField(primary_key=True)
+class RawDocument(BaseDatedModel):
     external_id = models.CharField(
         "Identifiant externe",
         max_length=255,
@@ -21,8 +21,6 @@ class RawDocument(models.Model):
         blank=True,
     )
     raw_data = models.JSONField("RawDocument")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     processed_at = models.DateTimeField(null=True, blank=True)
     processing = models.BooleanField(default=False)
     error_msg = models.TextField(null=True, blank=True)
