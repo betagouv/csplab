@@ -4,8 +4,8 @@ import pytest
 
 from domain.ingestion.entities.api_log_daily_aggregation import ApiLogDailyAggregation
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.django_apps.ingestion.models.api_log_daily_aggregation import (
-    ApiLogDailyAggregationModel,
+from tests.factories.ingestion.api_log_daily_agg_model_factory import (
+    ApiLogDailyAggregationModelFactory,
 )
 
 YESTERDAY = date(2026, 6, 9)
@@ -42,11 +42,7 @@ class TestInsertForDate:
 
         repository.insert_for_date(YESTERDAY, aggregations)
 
-        rows = list(
-            ApiLogDailyAggregationModel.objects.values(
-                "date", "method", "path", "token_type", "count"
-            )
-        )
+        rows = list(ApiLogDailyAggregationModelFactory.all_as_dicts())
         assert {
             "date": YESTERDAY,
             "method": "GET",
@@ -66,8 +62,8 @@ class TestInsertForDate:
         repository.insert_for_date(TODAY, [_agg(TODAY, count=10)])
         repository.insert_for_date(YESTERDAY, [_agg(YESTERDAY, count=4)])
 
-        assert ApiLogDailyAggregationModel.objects.filter(date=TODAY).count() == 1
-        assert ApiLogDailyAggregationModel.objects.get(date=TODAY).count == 10  # noqa: PLR2004
+        assert ApiLogDailyAggregationModelFactory.count_for_date(TODAY) == 1
+        assert ApiLogDailyAggregationModelFactory.get_for_date(TODAY).count == 10  # noqa: PLR2004
 
     def test_raises_when_aggregations_empty(self, db, repository):
         with pytest.raises(ValueError):
@@ -78,5 +74,5 @@ class TestInsertForDate:
             YESTERDAY, [_agg(YESTERDAY, token_type=None, count=1)]
         )
 
-        row = ApiLogDailyAggregationModel.objects.get(date=YESTERDAY)
+        row = ApiLogDailyAggregationModelFactory.get_for_date(YESTERDAY)
         assert row.token_type is None
