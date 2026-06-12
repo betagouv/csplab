@@ -1,5 +1,8 @@
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.errors.identite_errors import UtilisateurDoesNotExist
+from domain.identite.errors.identite_errors import (
+    UtilisateurAlreadyExists,
+    UtilisateurDoesNotExist,
+)
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
@@ -13,3 +16,17 @@ class PostgresUtilisateurRepository(IUtilisateurRepository):
         except UserModel.DoesNotExist as e:
             raise UtilisateurDoesNotExist(entity_id) from e
         return utilisateur.to_entity()
+
+    def get_by_email(self, email: str) -> Utilisateur:
+        try:
+            return UserModel.objects.get(email=email).to_entity()
+        except UserModel.DoesNotExist as e:
+            raise UtilisateurDoesNotExist(email) from e
+
+    def create(self, utilisateur: Utilisateur) -> Utilisateur:
+        if UserModel.objects.filter(username=str(utilisateur.entity_id)).exists():
+            raise UtilisateurAlreadyExists(utilisateur.entity_id)
+        model = UserModel.from_entity(utilisateur)
+        model.set_unusable_password()
+        model.save()
+        return model.to_entity()

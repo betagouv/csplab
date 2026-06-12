@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from uuid import UUID, uuid4
+from dataclasses import dataclass
+from uuid import UUID
 
 from ddd.entity import Entity
 
@@ -14,4 +14,3 @@ class Source(Entity):
     client_id_back: str
     base_url_front: str
     base_url_back: str
-    id: UUID = field(default_factory=uuid4)

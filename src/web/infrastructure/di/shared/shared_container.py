@@ -10,6 +10,9 @@ from infrastructure.repositories.shared import (
     postgres_metier_repository,
     postgres_offers_repository,
 )
+from infrastructure.repositories.shared.postgres_api_log_daily_agg_repository import (
+    PostgresApiLogDailyAggregationRepository,
+)
 from infrastructure.repositories.shared.postgres_api_log_repository import (
     PostgresApiLogRepository,
 )
@@ -21,6 +24,10 @@ class SharedContainer(containers.DeclarativeContainer):
     logger_service: providers.Dependency = providers.Dependency()
 
     api_log_repository = providers.Singleton(PostgresApiLogRepository)
+
+    api_log_daily_aggregation_repository = providers.Singleton(
+        PostgresApiLogDailyAggregationRepository
+    )
 
     corps_repository = providers.Singleton(
         postgres_corps_repository.PostgresCorpsRepository,

@@ -3,6 +3,9 @@
 from django.contrib import admin
 
 from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
+from infrastructure.django_apps.ingestion.models.api_log_daily_aggregation import (
+    ApiLogDailyAggregationModel,
+)
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.django_apps.ingestion.models.source import SourceModel
 
@@ -25,6 +28,23 @@ class ApiLogAdmin(admin.ModelAdmin):
     )
     search_fields = ("path", "ip_address", "auth_token")
     readonly_fields = [f.name for f in ApiLogModel._meta.get_fields()]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ApiLogDailyAggregationModel)
+class ApiLogDailyAggregationAdmin(admin.ModelAdmin):
+    list_display = ("date", "method", "path", "token_type", "count")
+    list_filter = ("date", "method", "token_type")
+    search_fields = ("path",)
+    readonly_fields = [f.name for f in ApiLogDailyAggregationModel._meta.get_fields()]
 
     def has_add_permission(self, request):
         return False

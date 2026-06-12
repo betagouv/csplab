@@ -3,8 +3,6 @@ from referentiel.entities.api_log import ApiLog
 
 
 class ApiLogModel(models.Model):
-    objects: models.Manager = models.Manager()
-
     id = models.UUIDField(primary_key=True)
     timestamp = models.DateTimeField()
     path = models.CharField(max_length=2048)

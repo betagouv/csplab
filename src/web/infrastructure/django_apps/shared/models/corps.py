@@ -8,8 +8,6 @@ from referentiel.value_objects.ministry import Ministry
 
 
 class CorpsModel(models.Model):
-    objects: models.Manager = models.Manager()
-
     id = models.UUIDField(primary_key=True)
     code = models.CharField(max_length=50)
     category = models.CharField(max_length=20, null=True, blank=True)

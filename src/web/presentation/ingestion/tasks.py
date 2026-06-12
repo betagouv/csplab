@@ -1,5 +1,6 @@
 import asyncio
-from datetime import datetime
+import logging
+from datetime import date, datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
 from huey import crontab
@@ -9,7 +10,10 @@ from application.ingestion.interfaces.load_documents_input import LoadDocumentsI
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.exceptions.exceptions import TaskError
+
+API_LOG_MIN_RETENTION_DAYS = 90
 
 
 @db_periodic_task(crontab(day="1", hour="7"))
@@ -162,6 +166,53 @@ def load_documents(kwargs, usecase_name):
         raise TaskError(
             message=f"Failed to load documents type {kwargs['document_type']}",
             details={"error": str(e)},
+        ) from e
+
+
+@db_periodic_task(crontab(hour="3", minute="0"))
+def aggregate_api_logs_periodic():
+    aggregate_api_logs(target_date=date.today() - timedelta(days=1))
+
+
+@db_task()
+def aggregate_api_logs(target_date: date):
+    logger = logging.getLogger(__name__)
+    logger.info("Aggregating API logs for %s…", target_date)
+
+    container = SharedContainer()
+    api_log_repository = container.api_log_repository()
+    aggregation_repository = container.api_log_daily_aggregation_repository()
+
+    aggregations = api_log_repository.get_counts_by_date(target_date)
+
+    if not aggregations:
+        logger.info("No API logs found for %s, skipping.", target_date)
+        return
+
+    aggregation_repository.insert_for_date(target_date, aggregations)
+    logger.info("Inserted %d aggregation rows for %s.", len(aggregations), target_date)
+
+
+@db_periodic_task(crontab(hour="4", minute="0"))
+def purge_api_logs_periodic():
+    purge_api_logs()
+
+
+@db_task()
+def purge_api_logs(retention_days: int = API_LOG_MIN_RETENTION_DAYS):
+    logger = logging.getLogger(__name__)
+
+    container = SharedContainer()
+    api_log_repository = container.api_log_repository()
+    cutoff = date.today() - timedelta(days=retention_days)
+
+    try:
+        deleted = api_log_repository.delete_before(cutoff)
+        logger.info("Deleted %d API log rows older than %s.", deleted, cutoff)
+    except Exception as e:
+        raise TaskError(
+            message="Failed to purge API logs",
+            details={"error": str(e), "cutoff": str(cutoff)},
         ) from e
 
 

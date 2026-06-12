@@ -7,8 +7,6 @@ from domain.ingestion.value_objects.source_type import SourceType
 
 
 class SourceModel(models.Model):
-    objects: models.Manager = models.Manager()
-
     id = models.UUIDField(primary_key=True, default=uuid4)
     source_id = models.UUIDField(unique=True, default=uuid4)
     type = models.CharField(
@@ -26,6 +24,7 @@ class SourceModel(models.Model):
 
     def to_entity(self) -> Source:
         return Source(
+            entity_id=self.id,
             source_id=self.source_id,
             type=SourceType(self.type),
             client_id_front=self.client_id_front,
@@ -37,7 +36,7 @@ class SourceModel(models.Model):
     @classmethod
     def from_entity(cls, source: Source) -> "SourceModel":
         return cls(
-            id=uuid4(),
+            id=source.entity_id,
             source_id=source.source_id,
             type=source.type.value,
             client_id_front=source.client_id_front,

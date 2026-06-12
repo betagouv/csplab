@@ -1,6 +1,5 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List
-from uuid import UUID, uuid4
 
 from ddd.entity import Entity
 
@@ -13,4 +12,3 @@ class VectorizedDocument(Entity):
     content: str
     embedding: List[float]
     metadata: Dict[str, Any]
-    entity_id: UUID = field(default_factory=uuid4)
