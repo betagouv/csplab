@@ -6,10 +6,10 @@ from uuid import uuid4
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 from referentiel.entities.api_log import ApiLog
-from referentiel.repositories.api_log_repository_interface import IApiLogRepository
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
+from domain.ingestion.repositories.api_log_repository_interface import IApiLogRepository
 from infrastructure.di.shared.shared_container import SharedContainer
 
 
