@@ -15,14 +15,14 @@ class AgentFactory:
         email: str | None = None,
         prenom: str | None = None,
         nom: str | None = None,
-        matricule: str | None = None,
+        intitule_poste: str | None = None,
     ) -> Agent:
         return Agent.build(
             entity_id=uuid4(),
             email=email or fake.email(),
             prenom=prenom or fake.first_name(),
             nom=nom or fake.last_name(),
-            matricule=matricule or fake.bothify("MAT-####"),
+            intitule_poste=intitule_poste or fake.bothify("MAT-####"),
         )
 
     @staticmethod
@@ -30,18 +30,18 @@ class AgentFactory:
         email: str | None = None,
         prenom: str | None = None,
         nom: str | None = None,
-        matricule: str | None = None,
+        intitule_poste: str | None = None,
     ) -> ProfilAgentModel:
         user = UtilisateurFactory.create_model(email=email, prenom=prenom, nom=nom)
         agent = AgentFactory.create_entity(
             email=user.email,
             prenom=user.first_name,
             nom=user.last_name,
-            matricule=matricule,
+            intitule_poste=intitule_poste,
         )
         profil = ProfilAgentModel(
             utilisateur_id=user.username,
-            matricule=agent.matricule,
+            intitule_poste=agent.intitule_poste,
         )
         profil.save()
         return profil
