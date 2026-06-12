@@ -9,7 +9,7 @@ from config.app_config import AppConfig
 from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.django_apps.shared.models.offer import OfferModel
+from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.external_gateways.external_document_gateway import MAX_OFFSET
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.ingestion.talentsoft_factories import (

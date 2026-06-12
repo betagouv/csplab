@@ -14,7 +14,7 @@ from referentiel.repositories.metier_repository_interface import IMetierReposito
 from domain.ingestion.repositories.document_repository_interface import (
     IUpsertResult,
 )
-from infrastructure.django_apps.shared.models.metier import MetierModel
+from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.mappers.queryset_page import QuerySetPage
 
 

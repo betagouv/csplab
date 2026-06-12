@@ -8,7 +8,7 @@ from polyfactory.factories import DataclassFactory
 from referentiel.entities.metier import Metier
 from referentiel.value_objects.verse import Verse
 
-from infrastructure.django_apps.shared.models.metier import MetierModel
+from infrastructure.django_apps.referentiel.models.metier import MetierModel
 
 fake = Faker()
 

@@ -13,7 +13,7 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.ministry import Ministry
 from referentiel.value_objects.nor import NOR
 
-from infrastructure.django_apps.shared.models.concours import ConcoursModel
+from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
 
 
 class NorProvider(BaseProvider):

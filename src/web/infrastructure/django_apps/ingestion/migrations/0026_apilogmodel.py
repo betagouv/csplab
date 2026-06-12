@@ -5,6 +5,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("ingestion", "0025_fix_missing_indexes"),
+        ("referentiel", "0034_remove_apilogmodel"),
     ]
 
     operations = [

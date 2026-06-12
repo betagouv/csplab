@@ -11,7 +11,7 @@ from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
-from infrastructure.django_apps.shared.models.offer import OfferModel
+from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.ingestion.document_factory import DocumentFactory
 from tests.factories.ingestion.source_factory import SourceFactory
@@ -119,7 +119,7 @@ def test_execute_handles_empty_documents(
     assert clean_documents_usecase.execute(document_type) == execute_results()
 
     # Verify no entities are saved
-    model_class = apps.get_model("shared", DOCUMENT_TYPE_MODEL_MAP[document_type])
+    model_class = apps.get_model("referentiel", DOCUMENT_TYPE_MODEL_MAP[document_type])
     assert model_class.objects.count() == 0
 
 
@@ -149,7 +149,7 @@ def test_execute_updates_existing_entities(
     assert clean_documents_usecase.execute(document_type) == execute_results(updated=1)
 
     # Verify only one entity exists
-    model_class = apps.get_model("shared", DOCUMENT_TYPE_MODEL_MAP[document_type])
+    model_class = apps.get_model("referentiel", DOCUMENT_TYPE_MODEL_MAP[document_type])
     assert model_class.objects.count() == 1
 
 

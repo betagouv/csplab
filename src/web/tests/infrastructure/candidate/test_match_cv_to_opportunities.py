@@ -10,9 +10,9 @@ from domain.candidate.value_objects.cv_processing_status import CVStatus
 from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.django_apps.shared.models.concours import ConcoursModel
-from infrastructure.django_apps.shared.models.metier import MetierModel
-from infrastructure.django_apps.shared.models.offer import OfferModel
+from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
+from infrastructure.django_apps.referentiel.models.metier import MetierModel
+from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
 from tests.factories.ingestion.vectorized_document_factory import (

@@ -10,7 +10,7 @@ from referentiel.exceptions.corps_errors import CorpsDoesNotExist
 from referentiel.repositories.corps_repository_interface import ICorpsRepository
 from referentiel.types import IUpsertError, IUpsertResult
 
-from infrastructure.django_apps.shared.models.corps import CorpsModel
+from infrastructure.django_apps.referentiel.models.corps import CorpsModel
 
 
 class PostgresCorpsRepository(ICorpsRepository):

@@ -10,7 +10,7 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.label import Label
 from referentiel.value_objects.ministry import Ministry
 
-from infrastructure.django_apps.shared.models.corps import CorpsModel
+from infrastructure.django_apps.referentiel.models.corps import CorpsModel
 
 fake = Faker()
 

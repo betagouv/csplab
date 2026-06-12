@@ -86,7 +86,7 @@ INSTALLED_APPS = [
     "django_otp",
     "django_otp.plugins.otp_totp",
     "django_otp.plugins.otp_static",
-    "infrastructure.django_apps.shared",
+    "infrastructure.django_apps.referentiel",
     "infrastructure.django_apps.ingestion",
     "infrastructure.django_apps.candidate",
     "infrastructure.django_apps.users",
