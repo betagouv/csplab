@@ -36,5 +36,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(populate_external_id, reverse_populate_external_id),
+        migrations.RunPython(populate_external_id, reverse_populate_external_id, elidable=True),
     ]

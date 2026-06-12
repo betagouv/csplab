@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                 to_field="source_id",
             ),
         ),
-        migrations.RunPython(hydrate_source, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(hydrate_source, reverse_code=migrations.RunPython.noop, elidable=True),
         migrations.AlterField(
             model_name="offermodel",
             name="source",
