@@ -5,4 +5,6 @@ from domain.identite.entities.utilisateurs import Utilisateur
 
 
 class IUserSourceRepository(Protocol):
-    def get_allowed_source_ids(self, utilisateur: Utilisateur, source_ids: set[UUID]) -> set[UUID]: ...
+    def get_allowed_source_ids(
+        self, utilisateur: Utilisateur, source_ids: set[UUID]
+    ) -> set[UUID]: ...

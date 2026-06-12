@@ -27,12 +27,12 @@ from infrastructure.gateways.ingestion import (
 )
 from infrastructure.gateways.ingestion.document_cleaner import DocumentCleaner
 from infrastructure.gateways.ingestion.text_extractor import TextExtractor
+from infrastructure.repositories.identite.postgres_utilisateur_repository import (
+    PostgresUtilisateurRepository,
+)
 from infrastructure.repositories.ingestion import (
     postgres_document_repository,
     postgres_source_repository,
-)
-from infrastructure.repositories.identite.postgres_utilisateur_repository import (
-    PostgresUtilisateurRepository,
 )
 from infrastructure.repositories.ingestion.postgres_user_source_repository import (
     PostgresUserSourceRepository,

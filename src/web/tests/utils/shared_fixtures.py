@@ -45,15 +45,15 @@ from domain.candidate.repositories.candidature_repository_interface import (
 from domain.candidate.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
 )
+from domain.identite.repositories.utilisateur_repository_interface import (
+    IUtilisateurRepository,
+)
 from domain.ingestion.entities.document import DocumentType
 from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
 from domain.ingestion.repositories.document_repository_interface import (
     IDocumentRepository,
 )
 from domain.ingestion.repositories.source_repository_interface import ISourceRepository
-from domain.identite.repositories.utilisateur_repository_interface import (
-    IUtilisateurRepository,
-)
 from domain.ingestion.repositories.user_source_repository_interface import (
     IUserSourceRepository,
 )
