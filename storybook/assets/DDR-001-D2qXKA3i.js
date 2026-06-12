@@ -1,4 +1,4 @@
-import{j as e,b as o,M as i}from"./index-BBHRJBpJ.js";import{useMDXComponents as r}from"./index-DN18wcwY.js";import"./iframe-CSgGOie0.js";import"./index-8_2S3kac.js";const a=`---
+import{j as e,b as o,M as i}from"./index-CWuLzSsT.js";import{useMDXComponents as r}from"./index-HEUClt9x.js";import"./iframe-CIJQAuuj.js";import"./index-8_2S3kac.js";const a=`---
 title: "DDR-001 : Niveaux de composition et frontières"
 created: 2026-05-12
 status: accepté
