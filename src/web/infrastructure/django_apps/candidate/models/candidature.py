@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from django.db import models
 
@@ -7,7 +7,7 @@ from domain.candidate.value_objects.statut_candidature import StatutCandidature
 
 
 class CandidatureModel(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4)
+    id = models.UUIDField(primary_key=True)
     candidat_id = models.UUIDField()
     offre_id = models.UUIDField()
     statut = models.CharField(
@@ -23,7 +23,12 @@ class CandidatureModel(models.Model):
         db_table = "candidature"
         verbose_name = "Candidature"
         verbose_name_plural = "Candidatures"
-        unique_together = [("candidat_id", "offre_id")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["candidat_id", "offre_id"],
+                name="unique_candidature_candidat_offre",
+            )
+        ]
 
     def to_entity(self) -> Candidature:
         return Candidature.build(

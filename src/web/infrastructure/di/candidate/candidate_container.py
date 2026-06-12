@@ -10,12 +10,16 @@ from application.candidate.usecases.match_cv_to_opportunities import (
     MatchCVToOpportunitiesUsecase,
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
+from application.candidate.usecases.submit_application import SubmitApplicationUsecase
 from infrastructure.external_gateways.albert_text_formatter import AlbertTextFormatter
 from infrastructure.external_gateways.ocr_extractor import OCRExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
 from infrastructure.repositories.candidate.async_postgres_cv_metadata_repository import (  # noqa E501
     AsyncPostgresCVMetadataRepository,
+)
+from infrastructure.repositories.candidate.postgres_candidature_repository import (
+    PostgresCandidatureRepository,
 )
 from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,
@@ -88,10 +92,8 @@ class CandidateContainer(containers.DeclarativeContainer):
         logger=logger_service,
     )
 
-    # submit_application_usecase = providers.Factory(
-    #     SubmitApplicationUsecase,
-    #     candidature_repository=providers.Singleton(
-    #         PostgresCandidatureRepository
-    #     ),
-    #     logger=logger_service,
-    # )
+    submit_application_usecase = providers.Factory(
+        SubmitApplicationUsecase,
+        candidature_repository=providers.Singleton(PostgresCandidatureRepository),
+        logger=logger_service,
+    )
