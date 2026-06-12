@@ -73,3 +73,17 @@ def test_submit_candidature_failure(db, candidate_container):
 
     with pytest.raises(CandidatureDejaSoumise):
         usecase.execute(command)
+
+
+def test_submit_candidature_returns_existing_entity_id(db, candidate_container):
+    existing = CandidatureFactory.build_model(statut=StatutCandidature.INITIAL)
+
+    command = SubmitApplicationCommand(
+        offre_id=existing.offre_id,
+        candidat_id=existing.candidat_id,
+    )
+
+    usecase = candidate_container.submit_application_usecase()
+    candidature = usecase.execute(command)
+
+    assert str(candidature.entity_id) == str(existing.id)
