@@ -18,6 +18,9 @@ from referentiel.value_objects.verse import Verse
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from domain.ingestion.exceptions.source_authorization_error import (
+    SourceAuthorizationError,
+)
 from tests.factories.ingestion.offer_payload_factory import (
     PayloadOfferFactory,
     fake_datetime,
@@ -208,15 +211,14 @@ def test_invalid_payload_returns_error_400(
     assert response.json() == {"offres": [expected_msg]}
 
 
-def test_jwt_forbidden_source_id_returns_403(authenticated_client, test_user, use_case):
-    assert not test_user.sources.filter(source_id=SOURCE_UUID).exists()
+def test_jwt_forbidden_source_id_returns_403(authenticated_client, use_case):
+    use_case.execute.side_effect = SourceAuthorizationError({UUID(SOURCE_UUID)})
     response = authenticated_client.post(
         URL,
         data={"offres": [MINIMAL_VALID_OFFER]},
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    use_case.execute.assert_not_called()
 
 
 def test_valid_payload_returns_201_and_valid_offers_to_usecase(

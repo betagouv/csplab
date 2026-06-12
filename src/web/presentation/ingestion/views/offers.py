@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from drf_spectacular.utils import (
     PolymorphicProxySerializer,
     extend_schema,
@@ -19,6 +17,9 @@ from application.ingestion.interfaces.archive_offer_by_reference_input import (
 )
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
+from domain.ingestion.exceptions.source_authorization_error import (
+    SourceAuthorizationError,
+)
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
     UserRateThrottleExceptApiKey,
@@ -136,22 +137,22 @@ class ArchiveOffersView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        source_id = serializer.validated_data["source_id"]
-        if isinstance(request.user, UserModel):
-            if not request.user.sources.filter(source_id=source_id).exists():
-                return Response(
-                    {"detail": "Cannot edit this source."},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
+        user = request.user if isinstance(request.user, UserModel) else None
         container = create_ingestion_container()
         use_case = container.archive_offer_by_reference_usecase()
         try:
             use_case.execute(
                 ArchiveOfferByReferenceInput(
                     reference=serializer.validated_data["reference"],
-                    source_id=source_id,
+                    source_id=serializer.validated_data["source_id"],
+                    user=user,
                 )
+            )
+        except SourceAuthorizationError as e:
+            source_ids = sorted(str(sid) for sid in e.source_ids)
+            return Response(
+                {"detail": f"Cannot edit this source: {source_ids}."},
+                status=status.HTTP_403_FORBIDDEN,
             )
         except OfferDoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -221,25 +222,6 @@ class OffersUpsertView(APIView):
             logger.warning("OffersUpsertView: validation errors %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Make sure we can interact with the given `source`s
-        if isinstance(request.user, UserModel):
-            source_ids = {
-                UUID(offer_data["identification"]["source"])
-                for offer_data in serializer.validated_data["offres"]
-                if isinstance(offer_data.get("identification"), dict)
-                and offer_data["identification"].get("source")
-            }
-            allowed = set(
-                request.user.sources.filter(source_id__in=source_ids).values_list(
-                    "source_id", flat=True
-                )
-            )
-            if allowed != source_ids:
-                return Response(
-                    {"detail": "Cannot edit offers with this source."},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
         # iterate over offers, to handle only valid ones
         valid_offers = []
         errors = []
@@ -265,11 +247,18 @@ class OffersUpsertView(APIView):
                     }
                 )
 
+        user = request.user if isinstance(request.user, UserModel) else None
         try:
             usecase = container.upsert_offers_usecase()
-            result = usecase.execute(UpsertOffersInput(offers=valid_offers))
+            result = usecase.execute(UpsertOffersInput(offers=valid_offers, user=user))
             result["errors"].extend(errors)
             return Response(result, status=status.HTTP_201_CREATED)
+        except SourceAuthorizationError as e:
+            source_ids = sorted(str(sid) for sid in e.source_ids)
+            return Response(
+                {"detail": f"Cannot edit offers with this source: {source_ids}."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except Exception as e:
             logger.error("OffersUpsertView: unexpected error %s", str(e))
             return Response(

@@ -10,6 +10,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
+from domain.ingestion.exceptions.source_authorization_error import (
+    SourceAuthorizationError,
+)
 from tests.factories.ingestion.source_factory import SourceFactory
 
 API_KEY = "test-ingestion-api-key"
@@ -69,22 +72,25 @@ class TestArchiveOffersView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_jwt_authentication_archives_offer(
-        self, authenticated_client_with_source, use_case
+        self, authenticated_client_with_source, test_user, use_case
     ):
         response = authenticated_client_with_source.post(URL, VALID_BODY, format="json")
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {"status": "ok"}
         use_case.execute.assert_called_once_with(
-            ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
+            ArchiveOfferByReferenceInput(
+                reference=REFERENCE,
+                source_id=SOURCE_ID,
+                user=test_user,
+            )
         )
 
     def test_jwt_authentication_forbidden_source_id_returns_403(
-        self, authenticated_client, test_user, use_case
+        self, authenticated_client, use_case
     ):
-        assert not test_user.sources.filter(source_id=SOURCE_ID).exists()
+        use_case.execute.side_effect = SourceAuthorizationError({SOURCE_ID})
         response = authenticated_client.post(URL, VALID_BODY, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        use_case.execute.assert_not_called()
 
     def test_api_key_authentication_archives_offer(self, api_client, use_case):
         api_client.credentials(HTTP_AUTHORIZATION=f"Api-Key {API_KEY}")

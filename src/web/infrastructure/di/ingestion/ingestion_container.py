@@ -31,6 +31,9 @@ from infrastructure.repositories.ingestion import (
     postgres_document_repository,
     postgres_source_repository,
 )
+from infrastructure.repositories.ingestion.postgres_user_source_repository import (
+    PostgresUserSourceRepository,
+)
 from infrastructure.repositories.repository_factory import RepositoryFactory
 
 
@@ -82,6 +85,10 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     source_repository = providers.Singleton(
         postgres_source_repository.PostgresSourceRepository,
+    )
+
+    user_source_repository = providers.Singleton(
+        PostgresUserSourceRepository,
     )
 
     repository_factory = providers.Singleton(
@@ -172,12 +179,14 @@ class IngestionContainer(containers.DeclarativeContainer):
         ArchiveOfferByReferenceUseCase,
         offers_repository=offers_repository,
         vector_repository=vector_repository,
+        user_source_repository=user_source_repository,
     )
 
     upsert_offers_usecase = providers.Factory(
         UpsertOffersUseCase,
         offers_repository=offers_repository,
         logger=logger_service,
+        user_source_repository=user_source_repository,
     )
 
     list_sources_usecase = providers.Factory(

@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 
-import pytest
 from dateutil.relativedelta import relativedelta
 from faker import Faker
 from pydantic import HttpUrl
@@ -14,37 +13,14 @@ from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
-from application.ingestion.interfaces.upsert_offers_input import (
-    UpsertOffersInput,
-)
-from config.app_config import AppConfig
-from infrastructure.di.ingestion.ingestion_container import IngestionContainer
-from infrastructure.di.shared.shared_container import SharedContainer
+from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
 from infrastructure.django_apps.shared.models.offer import OfferModel
-from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.referentiel.offer_factory import OfferFactory
 
 fake = Faker()
 
 
-@pytest.fixture(name="documents_integration_container")
-def documents_integration_container_fixture(db):
-    container = IngestionContainer()
-    shared_container = SharedContainer()
-
-    app_config = AppConfig.from_django_settings()
-    shared_container.app_config.override(app_config)
-
-    logger_service = LoggerService()
-    shared_container.logger_service.override(logger_service)
-
-    container.shared_container.override(shared_container)
-    container.app_config.override(app_config)
-    container.logger_service.override(logger_service)
-    return container
-
-
-def test_upsert_offers_result(documents_integration_container):
+def test_upsert_offers_result(ingestion_container):
     offer = OfferFactory.create_model(
         verse=Verse.FPE,
         category=Category.B,
@@ -82,9 +58,7 @@ def test_upsert_offers_result(documents_integration_container):
     new_offer = OfferFactory.create_entity(source_id=existing_offer.source_id)
 
     input_data = UpsertOffersInput(offers=[existing_offer, new_offer])
-    result = documents_integration_container.upsert_offers_usecase().execute(
-        input_data=input_data
-    )
+    result = ingestion_container.upsert_offers_usecase().execute(input_data=input_data)
 
     assert result == {"created": 1, "updated": 1, "errors": []}
 

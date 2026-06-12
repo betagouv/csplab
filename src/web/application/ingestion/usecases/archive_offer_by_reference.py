@@ -4,6 +4,12 @@ from referentiel.repositories.offers_repository_interface import IOffersReposito
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
+from domain.ingestion.exceptions.source_authorization_error import (
+    SourceAuthorizationError,
+)
+from domain.ingestion.repositories.user_source_repository_interface import (
+    IUserSourceRepository,
+)
 from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
 
 
@@ -12,11 +18,20 @@ class ArchiveOfferByReferenceUseCase(IUseCase[ArchiveOfferByReferenceInput, None
         self,
         offers_repository: IOffersRepository,
         vector_repository: IVectorRepository,
+        user_source_repository: IUserSourceRepository,
     ) -> None:
         self.offers_repository = offers_repository
         self.vector_repository = vector_repository
+        self.user_source_repository = user_source_repository
 
     def execute(self, input_data: ArchiveOfferByReferenceInput) -> None:
+        if input_data.user is not None:
+            allowed = self.user_source_repository.get_allowed_source_ids(
+                input_data.user, {input_data.source_id}
+            )
+            if not allowed:
+                raise SourceAuthorizationError({input_data.source_id})
+
         offer = self.offers_repository.get_by_reference_and_source_id(
             input_data.reference, input_data.source_id
         )
