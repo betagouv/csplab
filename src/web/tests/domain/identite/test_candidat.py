@@ -20,7 +20,6 @@ def test_create(entity_id):
         prenom=fake.first_name(),
         nom=fake.last_name(),
         resume=fake.text(max_nb_chars=200),
-        linkedin=fake.url(schemes=["https"]),
     )
 
     candidat = Candidat.create(event, entity_id=entity_id)
@@ -43,7 +42,6 @@ def test_build():
         prenom=fake.first_name(),
         nom=fake.last_name(),
         resume=fake.text(max_nb_chars=200),
-        linkedin=fake.url(schemes=["https"]),
     )
 
     assert candidat.entity_id == entity_id

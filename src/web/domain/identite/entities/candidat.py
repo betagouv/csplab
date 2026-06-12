@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from uuid import UUID, uuid4
 
 from ddd.aggregate_root import AggregateRoot, factory
-from pydantic import EmailStr, HttpUrl
+from pydantic import EmailStr
 
 from domain.identite.events.candidat_events import ProfilCandidatCree
 
@@ -13,7 +13,6 @@ class Candidat(AggregateRoot):
     _prenom: str
     _nom: str
     _resume: str
-    _linkedin: HttpUrl
 
     @classmethod
     @factory(ProfilCandidatCree)
@@ -26,7 +25,6 @@ class Candidat(AggregateRoot):
             _prenom=event.prenom,
             _nom=event.nom,
             _resume=event.resume,
-            _linkedin=event.linkedin,
         )
 
     @classmethod
@@ -37,7 +35,6 @@ class Candidat(AggregateRoot):
         prenom: str,
         nom: str,
         resume: str,
-        linkedin: HttpUrl,
     ) -> "Candidat":
         return cls(
             entity_id=entity_id,
@@ -45,7 +42,6 @@ class Candidat(AggregateRoot):
             _prenom=prenom,
             _nom=nom,
             _resume=resume,
-            _linkedin=linkedin,
         )
 
     @property
@@ -63,7 +59,3 @@ class Candidat(AggregateRoot):
     @property
     def resume(self) -> str:
         return self._resume
-
-    @property
-    def linkedin(self) -> HttpUrl:
-        return self._linkedin

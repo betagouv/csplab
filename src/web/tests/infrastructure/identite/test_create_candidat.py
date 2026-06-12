@@ -28,7 +28,6 @@ def test_create_candidat(identite_integration_container):
         prenom=fake.first_name(),
         nom=fake.last_name(),
         resume=fake.text(max_nb_chars=200),
-        linkedin=fake.url(schemes=["https"]),
     )
 
     result = identite_integration_container.create_candidat_usecase().execute(
@@ -48,7 +47,6 @@ def test_create_candidat_with_existing_user(identite_integration_container):
         prenom=fake.first_name(),
         nom=fake.last_name(),
         resume=fake.text(max_nb_chars=200),
-        linkedin=fake.url(schemes=["https"]),
     )
 
     result = identite_integration_container.create_candidat_usecase().execute(
@@ -65,7 +63,6 @@ def test_cannot_create_candidat_twice(identite_integration_container):
         prenom=fake.first_name(),
         nom=fake.last_name(),
         resume=fake.text(max_nb_chars=200),
-        linkedin=fake.url(schemes=["https"]),
     )
 
     with pytest.raises(ProfilCandidatAlreadyExists):

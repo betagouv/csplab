@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from pydantic import EmailStr, HttpUrl
+from pydantic import EmailStr
 
 from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
@@ -21,7 +21,6 @@ class CreateCandidatInput:
     prenom: str
     nom: str
     resume: str
-    linkedin: HttpUrl
 
 
 class CreateCandidatUsecase:
@@ -43,7 +42,6 @@ class CreateCandidatUsecase:
             prenom=input_data.prenom,
             nom=input_data.nom,
             resume=input_data.resume,
-            linkedin=input_data.linkedin,
         )
 
         try:

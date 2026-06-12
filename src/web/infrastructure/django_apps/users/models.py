@@ -2,7 +2,6 @@ from uuid import UUID
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from pydantic import HttpUrl
 
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.candidat import Candidat
@@ -55,7 +54,6 @@ class ProfilCandidatModel(models.Model):
         to_field="username",
     )
     resume = models.TextField()
-    linkedin = models.URLField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -70,7 +68,6 @@ class ProfilCandidatModel(models.Model):
             prenom=self.utilisateur.first_name,
             nom=self.utilisateur.last_name,
             resume=self.resume,
-            linkedin=HttpUrl(self.linkedin),
         )
 
     @classmethod
@@ -80,7 +77,6 @@ class ProfilCandidatModel(models.Model):
         return cls(
             utilisateur_id=str(utilisateur.entity_id),
             resume=candidat.resume,
-            linkedin=str(candidat.linkedin),
         )
 
     def __str__(self):

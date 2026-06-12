@@ -1,7 +1,6 @@
 from uuid import uuid4
 
 from faker import Faker
-from pydantic import HttpUrl
 
 from domain.identite.entities.candidat import Candidat
 from infrastructure.django_apps.users.models import ProfilCandidatModel
@@ -24,7 +23,6 @@ class CandidatFactory:
             prenom=prenom or fake.first_name(),
             nom=nom or fake.last_name(),
             resume=resume or fake.text(max_nb_chars=200),
-            linkedin=HttpUrl(fake.url(schemes=["https"])),
         )
 
     @staticmethod
@@ -44,7 +42,6 @@ class CandidatFactory:
         profil = ProfilCandidatModel(
             utilisateur_id=user.username,
             resume=candidat.resume,
-            linkedin=str(candidat.linkedin),
         )
         profil.save()
         return profil
