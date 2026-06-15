@@ -3,18 +3,16 @@ from uuid import UUID, uuid4
 import pytest
 from django.db import IntegrityError
 from faker import Faker
+from referentiel.exceptions.offer_errors import OffreInexistante
 
 from application.candidate.commands.submit_application_command import (
     SubmitApplicationCommand,
 )
 from config.app_config import AppConfig
 from domain.candidate.entities.candidature import Candidature
-from domain.candidate.exceptions.candidature_errors import (
-    CandidatInexistant,
-    CandidatureDejaSoumise,
-    OffreInexistante,
-)
+from domain.candidate.exceptions.candidature_errors import CandidatureDejaSoumise
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
+from domain.identite.exceptions.candidat_errors import CandidatInexistant
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService

@@ -27,15 +27,3 @@ class CandidatureDejaSoumise(CandidatureError):
                 f"et l'offre {offre_id} a déjà été soumise"
             )
         )
-
-
-class OffreInexistante(CandidatureError):
-    def __init__(self, offre_id: UUID):
-        self.offre_id = offre_id
-        super().__init__(f"L'offre {offre_id} n'existe pas")
-
-
-class CandidatInexistant(CandidatureError):
-    def __init__(self, candidat_id: UUID):
-        self.candidat_id = candidat_id
-        super().__init__(f"Le candidat {candidat_id} n'existe pas")

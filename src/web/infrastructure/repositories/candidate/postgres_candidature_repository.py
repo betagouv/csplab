@@ -1,16 +1,14 @@
 from uuid import UUID
 
 from django.db import IntegrityError
+from referentiel.exceptions.offer_errors import OffreInexistante
 
 from domain.candidate.entities.candidature import Candidature
-from domain.candidate.exceptions.candidature_errors import (
-    CandidatInexistant,
-    CandidatureNexistePas,
-    OffreInexistante,
-)
+from domain.candidate.exceptions.candidature_errors import CandidatureNexistePas
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
 )
+from domain.identite.exceptions.candidat_errors import CandidatInexistant
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 
 
