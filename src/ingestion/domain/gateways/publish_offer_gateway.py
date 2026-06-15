@@ -1,7 +1,7 @@
 from typing import Protocol
 
-from domain.entities.offer import Offer
+from domain.gateways.publish_offer_input import PublishOfferInput
 
 
 class IPublishOfferGateway(Protocol):
-    async def publish(self, offer: Offer) -> None: ...
+    async def publish(self, input: PublishOfferInput) -> None: ...

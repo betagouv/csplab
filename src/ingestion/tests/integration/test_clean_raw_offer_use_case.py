@@ -1,6 +1,5 @@
-"""Integration tests for CleanRawOfferUseCase wired with the real OffersCleaner."""
-
 import datetime
+from uuid import UUID
 
 import pytest
 
@@ -43,7 +42,7 @@ def test_execute_returns_offer_with_reference_and_source_id(use_case):
 
     assert isinstance(result, Offer)
     assert result.reference == REFERENCE
-    assert result.source_id == SOURCE_ID
+    assert result.source_id == UUID(SOURCE_ID)
 
 
 def test_execute_maps_title_and_organization(use_case):

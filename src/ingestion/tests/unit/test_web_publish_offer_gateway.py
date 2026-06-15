@@ -7,6 +7,7 @@ import pytest
 from pytest_httpx import HTTPXMock
 
 from domain.entities.offer import Offer
+from domain.gateways.publish_offer_input import PublishOfferInput
 from domain.value_objects.area import GeographicalArea
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
@@ -23,7 +24,7 @@ from infrastructure.external_gateways.web_publish_offer_gateway import (
 BASE_URL = "https://web.example.com"
 API_KEY = "test-api-key"
 PUBLISH_URL = f"{BASE_URL}/api/v1/offres/creer_modifier/"
-SOURCE_ID = str(UUID("11111111-2222-3333-4444-555555555555"))
+SOURCE_ID = UUID("11111111-2222-3333-4444-555555555555")
 PUBLICATION_DATE = datetime(2024, 1, 15, tzinfo=timezone.utc)
 
 MINIMAL_OFFER = Offer(
@@ -78,7 +79,7 @@ def gateway():
 async def test_publish_posts_to_correct_url(gateway, httpx_mock: HTTPXMock):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish(MINIMAL_OFFER)
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER))
 
     requests = httpx_mock.get_requests()
     assert len(requests) == 1
@@ -89,7 +90,7 @@ async def test_publish_posts_to_correct_url(gateway, httpx_mock: HTTPXMock):
 async def test_publish_sends_api_key_header(gateway, httpx_mock: HTTPXMock):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish(MINIMAL_OFFER)
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER))
 
     request = httpx_mock.get_requests()[0]
     assert request.headers["Authorization"] == f"Api-Key {API_KEY}"
@@ -99,10 +100,11 @@ async def test_publish_sends_api_key_header(gateway, httpx_mock: HTTPXMock):
 async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish(MINIMAL_OFFER)
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER))
 
     body = json.loads(httpx_mock.get_requests()[0].content)
-    assert list(body.keys()) == ["offres"]
+    assert list(body.keys()) == ["source_id", "offres"]
+    assert body["source_id"] == str(SOURCE_ID)
     assert len(body["offres"]) == 1
     offer = body["offres"][0]
 
@@ -138,7 +140,7 @@ async def test_publish_uses_beginning_date_as_fin_publication(
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish(FULL_OFFER)
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=FULL_OFFER))
 
     body = json.loads(httpx_mock.get_requests()[0].content)
     offer = body["offres"][0]
@@ -151,7 +153,7 @@ async def test_publish_defaults_fin_publication_to_one_year_when_no_beginning_da
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish(MINIMAL_OFFER)
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER))
 
     body = json.loads(httpx_mock.get_requests()[0].content)
     offer = body["offres"][0]
@@ -162,7 +164,7 @@ async def test_publish_defaults_fin_publication_to_one_year_when_no_beginning_da
 async def test_publish_serializes_localisation(gateway, httpx_mock: HTTPXMock):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish(FULL_OFFER)
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=FULL_OFFER))
 
     body = json.loads(httpx_mock.get_requests()[0].content)
     offer = body["offres"][0]
@@ -183,7 +185,7 @@ async def test_publish_serializes_localisation(gateway, httpx_mock: HTTPXMock):
 async def test_publish_serializes_category(gateway, httpx_mock: HTTPXMock):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish(FULL_OFFER)
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=FULL_OFFER))
 
     body = json.loads(httpx_mock.get_requests()[0].content)
     offer = body["offres"][0]
@@ -195,4 +197,6 @@ async def test_publish_raises_on_http_error(gateway, httpx_mock: HTTPXMock):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=500)
 
     with pytest.raises(httpx.HTTPStatusError):
-        await gateway.publish(MINIMAL_OFFER)
+        await gateway.publish(
+            PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER)
+        )

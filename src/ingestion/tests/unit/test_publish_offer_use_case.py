@@ -7,12 +7,13 @@ import pytest
 from application.use_cases.publish_offer import PublishOfferUseCase
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
+from domain.gateways.publish_offer_input import PublishOfferInput
 from domain.value_objects.contract_type import ContractType
 from domain.value_objects.verse import Verse
 
 OFFER = Offer(
     reference="2024-OFFER-001",
-    source_id=str(UUID("11111111-2222-3333-4444-555555555555")),
+    source_id=UUID("11111111-2222-3333-4444-555555555555"),
     external_id="FPT-2024-OFFER-001",
     title="Software Engineer",
     profile="Profile text",
@@ -45,7 +46,9 @@ def use_case(mock_gateway):
 async def test_execute_calls_gateway_publish(use_case, mock_gateway):
     await use_case.execute(OFFER)
 
-    mock_gateway.publish.assert_awaited_once_with(OFFER)
+    mock_gateway.publish.assert_awaited_once_with(
+        PublishOfferInput(source_id=OFFER.source_id, offer=OFFER)
+    )
 
 
 @pytest.mark.asyncio
