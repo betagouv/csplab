@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from typing import List, Optional, cast
+from uuid import UUID
 
 from pydantic import HttpUrl, ValidationError
 
@@ -82,7 +83,7 @@ class OffersCleaner:
 
         return Offer(
             reference=raw_offer.reference,
-            source_id=cast(str, raw_offer.source_id),  # guaranteed by clean()
+            source_id=UUID(cast(str, raw_offer.source_id)),
             external_id=f"{ts_verse}-{talentsoft_offer.reference}"
             if ts_verse
             else talentsoft_offer.reference,

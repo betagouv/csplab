@@ -15,7 +15,7 @@ from domain.value_objects.verse import Verse
 @dataclass
 class Offer:
     reference: str
-    source_id: str
+    source_id: UUID
     external_id: str
     title: str
     profile: str

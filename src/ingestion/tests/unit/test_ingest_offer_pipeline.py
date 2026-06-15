@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
+from uuid import UUID
 
 import pytest
 
@@ -22,7 +23,7 @@ RAW_OFFER = RawOffer(
 )
 CLEANED_OFFER = Offer(
     reference=REFERENCE,
-    source_id=SOURCE_ID,
+    source_id=UUID(SOURCE_ID),
     external_id=f"FPT-{REFERENCE}",
     title="Title",
     profile="Profile",
