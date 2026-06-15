@@ -1,5 +1,6 @@
 from django.db import models
-from referentiel.entities.api_log import ApiLog
+
+from domain.ingestion.entities.api_log import ApiLog
 
 
 class ApiLogModel(models.Model):

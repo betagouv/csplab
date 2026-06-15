@@ -3,9 +3,9 @@ from unittest.mock import MagicMock
 
 import pytest
 from django.test import RequestFactory
-from referentiel.entities.api_log import ApiLog
 from rest_framework_simplejwt.tokens import AccessToken
 
+from domain.ingestion.entities.api_log import ApiLog
 from presentation.middleware.api_request_logger import ApiRequestLoggerMiddleware
 
 

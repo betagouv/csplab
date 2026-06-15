@@ -2,8 +2,8 @@ from datetime import date
 from typing import List
 
 from django.db.models import Count
-from referentiel.entities.api_log import ApiLog
 
+from domain.ingestion.entities.api_log import ApiLog
 from domain.ingestion.entities.api_log_daily_aggregation import ApiLogDailyAggregation
 from domain.ingestion.repositories.api_log_repository_interface import IApiLogRepository
 from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
