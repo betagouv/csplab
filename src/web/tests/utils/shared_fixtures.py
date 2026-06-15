@@ -443,8 +443,11 @@ def get_opportunity_details_usecase():
 @pytest.fixture
 def submit_application_usecase():
     candidature_repository = MagicMock(spec=ICandidatureRepository)
+    actors_validator = MagicMock()
     return SubmitApplicationUsecase(
-        candidature_repository=candidature_repository, logger=MagicMock()
+        candidature_repository=candidature_repository,
+        actors_validator=actors_validator,
+        logger=MagicMock(),
     )
 
 

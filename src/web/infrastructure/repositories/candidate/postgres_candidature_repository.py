@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from django.db import IntegrityError
-from referentiel.exceptions.offer_errors import OffreInexistante
+from referentiel.exceptions.offer_errors import OfferDoesNotExist
 
 from domain.candidate.entities.candidature import Candidature
 from domain.candidate.exceptions.candidature_errors import CandidatureNexistePas
@@ -47,5 +47,5 @@ class PostgresCandidatureRepository(ICandidatureRepository):
             if "candidat_id" in error_detail:
                 raise CandidatInexistant(candidature.candidat_id) from e
             if "offre_id" in error_detail:
-                raise OffreInexistante(candidature.offre_id) from e
+                raise OfferDoesNotExist(candidature.offre_id) from e
             raise

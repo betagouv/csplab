@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 import pytest
 from django.db import IntegrityError
 from faker import Faker
-from referentiel.exceptions.offer_errors import OffreInexistante
+from referentiel.exceptions.offer_errors import OfferDoesNotExist
 
 from application.candidate.commands.submit_application_command import (
     SubmitApplicationCommand,
@@ -93,9 +93,7 @@ def test_candidature_already_exists(db, candidate_container):
         usecase.execute(command)
 
 
-# transactional_db instead of db: runs in autocommit mode so FK constraints are enforced
-# immediately on save,matching production behaviour.
-def test_candidate_does_not_exist(transactional_db, candidate_container):
+def test_candidate_does_not_exist(db, candidate_container):
     offre = OfferFactory.create_model()
     offre_id = offre.to_entity().id
     candidate_id = fake.uuid4(cast_to=None)
@@ -110,7 +108,7 @@ def test_candidate_does_not_exist(transactional_db, candidate_container):
         usecase.execute(command)
 
 
-def test_offer_does_not_exist(transactional_db, candidate_container):
+def test_offer_does_not_exist(db, candidate_container):
     offre_id = fake.uuid4(cast_to=None)
     candidate = CandidatFactory.create_model()
     candidate_id = candidate.to_entity().entity_id
@@ -121,8 +119,49 @@ def test_offer_does_not_exist(transactional_db, candidate_container):
     )
     usecase = candidate_container.submit_application_usecase()
 
-    with pytest.raises(OffreInexistante):
+    with pytest.raises(OfferDoesNotExist):
         usecase.execute(command)
+
+
+# The following 3 tests call repo.save() directly (bypassing the validator)
+# and verify the FK safety net in PostgresCandidatureRepository.
+# transactional_db: autocommit so FK constraints are enforced immediately.
+def test_save_raises_candidat_inexistant_on_fk_violation(
+    transactional_db, candidate_container
+):
+    offre = OfferFactory.create_model()
+    repo = candidate_container.candidature_repository()
+
+    candidature = Candidature.build(
+        entity_id=uuid4(),
+        candidat_id=uuid4(),  # unknown candidat → FK violation on candidat_id
+        offre_id=offre.id,
+        statut=StatutCandidature.INITIAL,
+        documents=None,
+        soumise_le=None,
+        mise_a_jour_le=None,
+    )
+    with pytest.raises(CandidatInexistant):
+        repo.save(candidature)
+
+
+def test_save_raises_offer_does_not_exist_on_fk_violation(
+    transactional_db, candidate_container
+):
+    profil = CandidatFactory.create_model()
+    repo = candidate_container.candidature_repository()
+
+    candidature = Candidature.build(
+        entity_id=uuid4(),
+        candidat_id=UUID(profil.utilisateur_id),  # type: ignore[attr-defined]
+        offre_id=uuid4(),  # unknown offer → FK violation on offre_id
+        statut=StatutCandidature.INITIAL,
+        documents=None,
+        soumise_le=None,
+        mise_a_jour_le=None,
+    )
+    with pytest.raises(OfferDoesNotExist):
+        repo.save(candidature)
 
 
 # transactional_db: FK + PK constraints enforced immediately

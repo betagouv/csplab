@@ -15,6 +15,9 @@ from domain.candidate.exceptions.candidature_errors import (
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
 )
+from domain.candidate.services.candidature_actors_validator import (
+    CandidatureActorsValidator,
+)
 
 
 class SubmitApplicationUsecase(
@@ -23,10 +26,12 @@ class SubmitApplicationUsecase(
     def __init__(
         self,
         candidature_repository: ICandidatureRepository,
+        actors_validator: CandidatureActorsValidator,
         logger: ILogger,
     ):
         self.logger = logger
         self.candidature_repository = candidature_repository
+        self.actors_validator = actors_validator
 
     def execute(self, command: SubmitApplicationCommand) -> Candidature:
         self.logger.info(
@@ -34,6 +39,9 @@ class SubmitApplicationUsecase(
         )
         offre_id = command.offre_id
         candidat_id = command.candidat_id
+
+        self.actors_validator.validate(candidat_id, offre_id)
+
         # todo: rbac should manage access:
         # candidate can only get access to its candidatures
         candidature = None

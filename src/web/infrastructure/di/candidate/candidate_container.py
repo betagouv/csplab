@@ -11,6 +11,9 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.submit_application import SubmitApplicationUsecase
+from domain.candidate.services.candidature_actors_validator import (
+    CandidatureActorsValidator,
+)
 from infrastructure.external_gateways.albert_text_formatter import AlbertTextFormatter
 from infrastructure.external_gateways.ocr_extractor import OCRExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
@@ -23,6 +26,9 @@ from infrastructure.repositories.candidate.postgres_candidature_repository impor
 )
 from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,
+)
+from infrastructure.repositories.identite.postgres_candidat_repository import (
+    PostgresCandidatRepository,
 )
 
 
@@ -59,6 +65,13 @@ class CandidateContainer(containers.DeclarativeContainer):
     )
     postgres_cv_metadata_repository = providers.Singleton(PostgresCVMetadataRepository)
     candidature_repository = providers.Singleton(PostgresCandidatureRepository)
+    candidat_repository = providers.Singleton(PostgresCandidatRepository)
+
+    actors_validator = providers.Factory(
+        CandidatureActorsValidator,
+        candidat_repo=candidat_repository,
+        offers_repo=offers_repository,
+    )
 
     initialize_cv_metadata_usecase = providers.Factory(
         InitializeCVMetadataUsecase,
@@ -96,5 +109,6 @@ class CandidateContainer(containers.DeclarativeContainer):
     submit_application_usecase = providers.Factory(
         SubmitApplicationUsecase,
         candidature_repository=candidature_repository,
+        actors_validator=actors_validator,
         logger=logger_service,
     )
