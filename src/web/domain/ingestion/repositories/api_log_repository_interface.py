@@ -1,8 +1,7 @@
 from datetime import date
 from typing import List, Protocol
 
-from referentiel.entities.api_log import ApiLog
-
+from domain.ingestion.entities.api_log import ApiLog
 from domain.ingestion.entities.api_log_daily_aggregation import ApiLogDailyAggregation
 
 
