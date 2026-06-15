@@ -51,6 +51,12 @@ class OpportunityListPresenter:
                 result.append(ConcoursToTemplateMapper.map_for_card(entity))
             elif isinstance(entity, tuple):
                 offer, metiers = entity
+                if not isinstance(offer, Offer):
+                    raise TypeError(f"Expected Offer, got {type(offer)}")
+                if not isinstance(metiers, list) or not all(
+                    isinstance(m, Metier) for m in metiers
+                ):
+                    raise TypeError(f"Expected list[Metier], got {type(metiers)}")
                 result.append(OfferToTemplateMapper.map_for_card(offer, metiers))
         return result
 
