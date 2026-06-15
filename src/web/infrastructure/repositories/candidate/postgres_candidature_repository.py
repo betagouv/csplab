@@ -35,8 +35,6 @@ class PostgresCandidatureRepository(ICandidatureRepository):
                         if candidature.documents
                         else None
                     ),
-                    "soumise_le": candidature.soumise_le,
-                    "mise_a_jour_le": candidature.mise_a_jour_le,
                 },
                 create_defaults={"id": candidature.entity_id},
             )

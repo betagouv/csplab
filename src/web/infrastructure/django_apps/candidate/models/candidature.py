@@ -4,9 +4,10 @@ from django.db import models
 
 from domain.candidate.entities.candidature import Candidature
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
+from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
-class CandidatureModel(models.Model):
+class CandidatureModel(BaseDatedModel):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     candidat = models.ForeignKey(
         "users.ProfilCandidatModel",
@@ -27,8 +28,6 @@ class CandidatureModel(models.Model):
         default=StatutCandidature.INITIAL.value,
     )
     documents = models.JSONField(null=True, blank=True)
-    soumise_le = models.DateTimeField(null=True, blank=True)
-    mise_a_jour_le = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "candidature"
@@ -50,8 +49,8 @@ class CandidatureModel(models.Model):
             documents=tuple(UUID(d) for d in self.documents)
             if self.documents
             else None,
-            soumise_le=self.soumise_le,
-            mise_a_jour_le=self.mise_a_jour_le,
+            soumise_le=self.created_at,
+            mise_a_jour_le=self.updated_at,
         )
 
     @classmethod
@@ -64,8 +63,6 @@ class CandidatureModel(models.Model):
             documents=[str(d) for d in candidature.documents]
             if candidature.documents
             else None,
-            soumise_le=candidature.soumise_le,
-            mise_a_jour_le=candidature.mise_a_jour_le,
         )
 
     def __str__(self) -> str:

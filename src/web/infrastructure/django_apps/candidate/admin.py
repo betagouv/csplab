@@ -23,16 +23,16 @@ class CandidatureAdmin(admin.ModelAdmin):
         "candidat_id",
         "offre_id",
         "statut",
-        "soumise_le",
-        "mise_a_jour_le",
+        "created_at",
+        "updated_at",
     )
     list_filter = ("statut",)
     search_fields = ("candidat_id", "offre_id")
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
-            return ("id", "candidat_id", "offre_id", "soumise_le", "mise_a_jour_le")
-        return ("id", "soumise_le", "mise_a_jour_le")
+            return ("id", "candidat_id", "offre_id", "created_at", "updated_at")
+        return ("id", "created_at", "updated_at")
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -46,8 +46,6 @@ class CandidatureAdmin(admin.ModelAdmin):
             # Sync obj avec les valeurs du usecase
             obj.id = saved.id
             obj.statut = saved.statut
-            obj.soumise_le = saved.soumise_le
-            obj.mise_a_jour_le = saved.mise_a_jour_le
             # Forcer UPDATE (pas INSERT) car le usecase a déjà créé l'enregistrement
             obj._state.adding = False
         super().save_model(request, obj, form, change)
