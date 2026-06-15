@@ -91,8 +91,8 @@ class ConcoursToTemplateMapper:
 
 class OfferToTemplateMapper:
     @staticmethod
-    def map_for_card(offer: Offer) -> OfferCard:
-        return {
+    def map_for_card(offer: Offer, metiers: list[Metier] | None = None) -> OfferCard:
+        card: OfferCard = {
             "opportunity_type": OpportunityType.OFFER,
             "opportunity_type_display": format_opportunity_type_display(
                 OpportunityType.OFFER
@@ -111,6 +111,9 @@ class OfferToTemplateMapper:
             "contract_type_display": format_contract_type_display(offer.contract_type),
             "url": str(offer.offer_url) if offer.offer_url else "#",
         }
+        if metiers:
+            card["metier"] = metiers[0].libelle
+        return card
 
     @staticmethod
     def map_for_drawer(offer: Offer, metiers: list[Metier]) -> DrawerContext:

@@ -7,6 +7,7 @@
                    class="fr-card__link"
                    data-drawer-open>{{ offer.title }}</a>
             </h3>
+            {% if offer.metier %}<p class="fr-card__desc">Métier : {{ offer.metier }}</p>{% endif %}
             <div class="fr-card__start">
                 <ul class="fr-tags-group">
                     {% if offer.opportunity_type_display %}

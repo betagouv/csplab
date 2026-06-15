@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.http import HttpRequest
 from dsfr.utils import list_pages
 from referentiel.entities.concours import Concours
+from referentiel.entities.metier import Metier
 from referentiel.entities.offer import Offer
 
 from domain.candidate.value_objects.opportunity_type import OpportunityType
@@ -28,7 +29,9 @@ from presentation.candidate.types import FilterOption, OpportunityCard
 class OpportunityListPresenter:
     def __init__(
         self,
-        raw_opportunities: Sequence[tuple[Concours | Offer, float]],
+        raw_opportunities: Sequence[
+            tuple[Concours | tuple[Offer, list[Metier]], float]
+        ],
         request: HttpRequest,
     ) -> None:
         self._raw_opportunities = raw_opportunities
@@ -46,8 +49,15 @@ class OpportunityListPresenter:
         for entity, _score in self._raw_opportunities:
             if isinstance(entity, Concours):
                 result.append(ConcoursToTemplateMapper.map_for_card(entity))
-            elif isinstance(entity, Offer):
-                result.append(OfferToTemplateMapper.map_for_card(entity))
+            elif isinstance(entity, tuple):
+                offer, metiers = entity
+                if not isinstance(offer, Offer):
+                    raise TypeError(f"Expected Offer, got {type(offer)}")
+                if not isinstance(metiers, list) or not all(
+                    isinstance(m, Metier) for m in metiers
+                ):
+                    raise TypeError(f"Expected list[Metier], got {type(metiers)}")
+                result.append(OfferToTemplateMapper.map_for_card(offer, metiers))
         return result
 
     def get_paginated_context(self) -> dict[str, object]:
