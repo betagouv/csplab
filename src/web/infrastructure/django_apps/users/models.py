@@ -87,7 +87,7 @@ class ProfilCandidatModel(models.Model):
         )
 
     def __str__(self):
-        return str(self.username)
+        return self.utilisateur_id
 
 
 class ProfilAgentModel(models.Model):
@@ -122,4 +122,4 @@ class ProfilAgentModel(models.Model):
         )
 
     def __str__(self):
-        return self.username
+        return self.utilisateur_id
