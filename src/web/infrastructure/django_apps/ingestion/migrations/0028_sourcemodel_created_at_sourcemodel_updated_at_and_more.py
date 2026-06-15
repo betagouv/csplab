@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("ingestion", "0026_apilogmodel"),
+        ("ingestion", "0027_apilogdailyaggregationmodel"),
     ]
 
     operations = [
