@@ -497,6 +497,12 @@ lint-internal-schema:
 	git diff --exit-code src/web/presentation/static/api/internal-schema.yaml
 .PHONY: lint-internal-schema
 
+lint-frontend-types: ## check frontend TypeScript types are in sync with OpenAPI schema
+	@echo 'lint:frontend-types started…'
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) generate-types
+	git diff --exit-code src/web/presentation/frontend/src/types/api.d.ts
+.PHONY: lint-frontend-types
+
 ## TEST
 test: ## test all services
 test: \
