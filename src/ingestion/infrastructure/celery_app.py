@@ -39,7 +39,7 @@ def create_celery_app() -> Celery:
         timezone="UTC",
         enable_utc=True,
     )
-    app.autodiscover_tasks(["infrastructure"])
+    app.autodiscover_tasks(["application"])
     return app
 
 

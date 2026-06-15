@@ -8,14 +8,14 @@ from celery.exceptions import Retry
 
 from domain.value_objects.webhook_event import EventType, OfferStatus
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.tasks.process_webhook import _is_transient, process_webhook
+from application.tasks.process_webhook import _is_transient, process_webhook
 from tests.factories.domain_factories import SourceFactory, WebhookFactory
 
 WEBHOOK_ID = UUID("11111111-2222-3333-4444-555555555555")
 REFERENCE = "2024-REF-001"
 SOURCE_ID = "source-abc"
 CLIENT_ID_FRONT = "front-client-id"
-_PATCH_CONTAINER = "infrastructure.tasks.process_webhook.get_container"
+_PATCH_CONTAINER = "application.tasks.process_webhook.get_container"
 
 
 def _make_mock_container(webhook=None) -> MagicMock:

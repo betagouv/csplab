@@ -19,7 +19,7 @@ from domain.value_objects.webhook_event import (
     should_save_raw_offer,
 )
 from infrastructure.di.container import Container
-from infrastructure.tasks.process_webhook import process_webhook
+from application.tasks.process_webhook import process_webhook
 from infrastructure.value_objects import webhook_source
 from presentation.dtos.talentsoft_webhook import TalentsoftWebhookPayload
 
