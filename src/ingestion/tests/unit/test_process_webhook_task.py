@@ -6,9 +6,9 @@ import pytest
 from celery.app.task import Task
 from celery.exceptions import Retry
 
+from application.tasks.process_webhook import _is_transient, process_webhook
 from domain.value_objects.webhook_event import EventType, OfferStatus
 from infrastructure.exceptions.exceptions import ExternalApiError
-from application.tasks.process_webhook import _is_transient, process_webhook
 from tests.factories.domain_factories import SourceFactory, WebhookFactory
 
 WEBHOOK_ID = UUID("11111111-2222-3333-4444-555555555555")

@@ -10,6 +10,7 @@ from pydantic import ValidationError
 
 from api.config import get_settings
 from api.talentsoft import verify_talentsoft_signature
+from application.tasks.process_webhook import process_webhook
 from application.use_cases.save_webhook import SaveWebhookUseCase
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.value_objects.source import Source
@@ -19,7 +20,6 @@ from domain.value_objects.webhook_event import (
     should_save_raw_offer,
 )
 from infrastructure.di.container import Container
-from application.tasks.process_webhook import process_webhook
 from infrastructure.value_objects import webhook_source
 from presentation.dtos.talentsoft_webhook import TalentsoftWebhookPayload
 
