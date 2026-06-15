@@ -57,7 +57,9 @@ def test_upsert_offers_result(ingestion_container):
 
     new_offer = OfferFactory.create_entity(source_id=existing_offer.source_id)
 
-    input_data = UpsertOffersInput(offers=[existing_offer, new_offer])
+    input_data = UpsertOffersInput(
+        source_id=existing_offer.source_id, offers=[existing_offer, new_offer]
+    )
     result = ingestion_container.upsert_offers_usecase().execute(input_data=input_data)
 
     assert result == {"created": 1, "updated": 1, "errors": []}

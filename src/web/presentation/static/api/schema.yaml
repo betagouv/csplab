@@ -1067,14 +1067,10 @@ components:
       properties:
         reference:
           type: string
-        source:
-          type: string
-          format: uuid
         versant:
           $ref: '#/components/schemas/VersantEnum'
       required:
       - reference
-      - source
       - versant
     LanguageInput:
       type: object
@@ -1247,6 +1243,9 @@ components:
     OffersInput:
       type: object
       properties:
+        source_id:
+          type: string
+          format: uuid
         identification:
           $ref: '#/components/schemas/IdentityInput'
         titre:
@@ -1319,6 +1318,7 @@ components:
       - organisation
       - profession
       - publication
+      - source_id
       - titre
       - titre_long
       - type_contrat
@@ -1524,6 +1524,10 @@ components:
     UpsertOffersRequest:
       type: object
       properties:
+        source_id:
+          type: string
+          format: uuid
+          description: Identifiant de la source des offres
         offres:
           type: array
           items:
@@ -1533,6 +1537,7 @@ components:
           minItems: 1
       required:
       - offres
+      - source_id
     UpsertOffersResponse:
       type: object
       properties:

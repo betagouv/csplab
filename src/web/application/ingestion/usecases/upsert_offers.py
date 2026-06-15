@@ -33,7 +33,7 @@ class UpsertOffersUseCase(IUseCase[UpsertOffersInput, IUpsertResult]):
             utilisateur = self.utilisateur_repository.get_by_entity_id(
                 input_data.utilisateur_entity_id
             )
-            source_ids = {offer.source_id for offer in input_data.offers}
+            source_ids = {input_data.source_id}
             allowed = self.user_source_repository.get_allowed_source_ids(
                 utilisateur, source_ids
             )
