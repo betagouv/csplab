@@ -32,14 +32,14 @@ ou d'un profil candidat ayant des candidatures associées est bloquée avec une 
 ```python
 # CandidatureModel
 candidat = models.ForeignKey(
-    "users.ProfilCandidatModel",
+    ProfilCandidatModel,
     to_field="utilisateur_id",  # UUID-as-string, identifiant métier du candidat
     on_delete=models.PROTECT,
     db_column="candidat_id",
     related_name="candidatures",
 )
 offre = models.ForeignKey(
-    "shared.OfferModel",
+    referentiel.OfferModel,
     on_delete=models.PROTECT,
     db_column="offre_id",
     related_name="candidatures",
