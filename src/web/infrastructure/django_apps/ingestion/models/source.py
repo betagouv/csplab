@@ -4,10 +4,10 @@ from django.db import models
 
 from domain.ingestion.entities.source import Source
 from domain.ingestion.value_objects.source_type import SourceType
+from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
-class SourceModel(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4)
+class SourceModel(BaseDatedModel):
     source_id = models.UUIDField(unique=True, default=uuid4)
     type = models.CharField(
         max_length=50, choices=[(st.value, st.value) for st in SourceType]

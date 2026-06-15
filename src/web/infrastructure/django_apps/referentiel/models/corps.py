@@ -6,9 +6,10 @@ from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.label import Label
 from referentiel.value_objects.ministry import Ministry
 
+from infrastructure.django_apps.utils.models import BaseDatedModel
 
-class CorpsModel(models.Model):
-    id = models.UUIDField(primary_key=True)
+
+class CorpsModel(BaseDatedModel):
     code = models.CharField(max_length=50)
     category = models.CharField(max_length=20, null=True, blank=True)
     ministry = models.CharField(max_length=100)
@@ -19,9 +20,6 @@ class CorpsModel(models.Model):
     processing = models.BooleanField(default=False)
     processed_at = models.DateTimeField(null=True, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "corps"

@@ -2,18 +2,16 @@ from django.db import models
 
 from domain.candidate.entities.cv_metadata import CVMetadata
 from domain.candidate.value_objects.cv_processing_status import CVStatus
+from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
-class CVMetadataModel(models.Model):
-    id = models.UUIDField(primary_key=True)
+class CVMetadataModel(BaseDatedModel):
     filename = models.CharField(max_length=255)
     extracted_text = models.JSONField(null=True, blank=True)
     search_query = models.TextField(null=True, blank=True)
     status = models.CharField(
         max_length=20, choices=[(status.value, status.value) for status in CVStatus]
     )
-    created_at = models.DateTimeField()
-    updated_at = models.DateTimeField()
 
     class Meta:
         db_table = "cv_metadata"

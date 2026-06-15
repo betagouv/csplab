@@ -2,9 +2,10 @@ from django.db import models
 from referentiel.entities.metier import Metier
 from referentiel.value_objects.verse import Verse
 
+from infrastructure.django_apps.utils.models import BaseDatedModel
 
-class MetierModel(models.Model):
-    id = models.UUIDField(primary_key=True)
+
+class MetierModel(BaseDatedModel):
     external_id = models.CharField(max_length=8, unique=True)
     libelle_long = models.CharField(max_length=500)
     definition_synthetique = models.TextField(null=True, blank=True)
@@ -17,8 +18,6 @@ class MetierModel(models.Model):
     processing = models.BooleanField(default=False)
     processed_at = models.DateTimeField(null=True, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "metiers"

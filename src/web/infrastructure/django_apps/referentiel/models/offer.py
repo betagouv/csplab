@@ -12,9 +12,10 @@ from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.ingestion.models.source import SourceModel
+from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
-class OfferModel(models.Model):
+class OfferModel(BaseDatedModel):
     # Contract type choices from ContractType enum
     CONTRACT_TYPE_CHOICES = [(ct.value, ct.name) for ct in ContractType]
 
@@ -24,7 +25,6 @@ class OfferModel(models.Model):
     # Verse choices from Verse enum
     VERSE_CHOICES = [(v.value, v.name) for v in Verse]
 
-    id = models.UUIDField(primary_key=True)
     external_id = models.CharField(max_length=100, unique=True)
     reference = models.CharField(max_length=100, null=False, blank=False)
     verse = models.CharField(
@@ -61,9 +61,6 @@ class OfferModel(models.Model):
     processing = models.BooleanField(default=False)
     processed_at = models.DateTimeField(null=True, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "offers"
