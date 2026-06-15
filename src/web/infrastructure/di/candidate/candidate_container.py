@@ -58,6 +58,7 @@ class CandidateContainer(containers.DeclarativeContainer):
         AsyncPostgresCVMetadataRepository
     )
     postgres_cv_metadata_repository = providers.Singleton(PostgresCVMetadataRepository)
+    candidature_repository = providers.Singleton(PostgresCandidatureRepository)
 
     initialize_cv_metadata_usecase = providers.Factory(
         InitializeCVMetadataUsecase,
@@ -94,6 +95,6 @@ class CandidateContainer(containers.DeclarativeContainer):
 
     submit_application_usecase = providers.Factory(
         SubmitApplicationUsecase,
-        candidature_repository=providers.Singleton(PostgresCandidatureRepository),
+        candidature_repository=candidature_repository,
         logger=logger_service,
     )

@@ -9,7 +9,9 @@ from domain.candidate.events.candidature_events import (
     CandidatureSoumise,
     DossierCandidatureInitialise,
 )
-from domain.candidate.exceptions.candidature_errors import CandidatureNexistePas
+from domain.candidate.exceptions.candidature_errors import (
+    CandidatureNexistePas,
+)
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
 )
@@ -49,6 +51,7 @@ class SubmitApplicationUsecase(
         # candidature.deposer_documents(DocumentsDeposes())
 
         candidature.soumettre_candidature(CandidatureSoumise())
-
         self.candidature_repository.save(candidature)
+
+        # todo: collect_events => save in audit logs
         return candidature
