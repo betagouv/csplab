@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
 from huey import crontab
-from huey.contrib.djhuey import db_periodic_task, db_task
+from huey.contrib.djhuey import db_periodic_task, db_task, lock_task
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
@@ -170,6 +170,7 @@ def load_documents(kwargs, usecase_name):
 
 
 @db_periodic_task(crontab(hour="3", minute="0"))
+@lock_task("aggregate-api-logs-periodic")
 def aggregate_api_logs_periodic():
     aggregate_api_logs(target_date=date.today() - timedelta(days=1))
 
@@ -194,6 +195,7 @@ def aggregate_api_logs(target_date: date):
 
 
 @db_periodic_task(crontab(hour="4", minute="0"))
+@lock_task("purge-api-logs-periodic")
 def purge_api_logs_periodic():
     purge_api_logs()
 
