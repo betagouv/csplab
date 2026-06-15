@@ -100,7 +100,6 @@ class ListMetiersFiltersSerializer(serializers.Serializer):
 
 class IdentityInputSerializer(serializers.Serializer):
     reference = serializers.CharField()
-    source = serializers.UUIDField()
     versant = serializers.ChoiceField(choices=[v.value for v in Verse])
 
 
@@ -212,6 +211,7 @@ class PublicationInputSerializer(serializers.Serializer):
 
 
 class OffersInputSerializer(serializers.Serializer):
+    source_id = serializers.UUIDField()
     identification = IdentityInputSerializer()
 
     # general infos
@@ -245,6 +245,7 @@ class OffersInputSerializer(serializers.Serializer):
 
 
 class UpsertOffersRequestSerializer(serializers.Serializer):
+    source_id = serializers.UUIDField()
     offres = serializers.ListField(
         child=serializers.DictField(),
         min_length=1,

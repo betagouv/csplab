@@ -170,12 +170,15 @@ class ArchiveOffersView(APIView):
     request=inline_serializer(
         name="UpsertOffersRequest",
         fields={
+            "source_id": serializers.UUIDField(
+                help_text="Identifiant de la source des offres"
+            ),
             "offres": serializers.ListField(
                 child=OffersInputSerializer(),
                 min_length=1,
                 max_length=100,
                 help_text="Liste d'offres à créer ou mettre à jour (min: 1, max: 100)",
-            )
+            ),
         },
     ),
     responses={
@@ -226,13 +229,17 @@ class OffersUpsertView(APIView):
             logger.warning("OffersUpsertView: validation errors %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        source_id = serializer.validated_data["source_id"]
+
         # iterate over offers, to handle only valid ones
         valid_offers = []
         errors = []
         offer_mapper = OfferInputMapper()
 
         for _, offer_data in enumerate(request.data["offres"]):
-            serializer = OffersInputSerializer(data=offer_data)
+            serializer = OffersInputSerializer(
+                data={**offer_data, "source_id": source_id}
+            )
             if not serializer.is_valid():
                 errors.append(
                     {
@@ -258,7 +265,9 @@ class OffersUpsertView(APIView):
             usecase = container.upsert_offers_usecase()
             result = usecase.execute(
                 UpsertOffersInput(
-                    offers=valid_offers, utilisateur_entity_id=utilisateur_entity_id
+                    source_id=source_id,
+                    offers=valid_offers,
+                    utilisateur_entity_id=utilisateur_entity_id,
                 )
             )
             result["errors"].extend(errors)

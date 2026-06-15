@@ -34,11 +34,11 @@ URL = reverse("ingestion:offers_upsert")
 
 
 MINIMAL_VALID_OFFER = PayloadOfferFactory.create(
-    identification={"reference": "REF-001", "source": SOURCE_UUID, "versant": "FPT"}
+    identification={"reference": "REF-001", "versant": "FPT"}
 )
 
 PARTIAL_VALID_OFFER = PayloadOfferFactory.create(
-    identification={"reference": "REF-002", "source": SOURCE_UUID, "versant": "FPE"},
+    identification={"reference": "REF-002", "versant": "FPE"},
     localisation=[],
     criteres={"diplome_niveau": 3},
     conditions={
@@ -51,7 +51,7 @@ PARTIAL_VALID_OFFER = PayloadOfferFactory.create(
 )
 
 COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
-    identification={"reference": "REF-003", "source": SOURCE_UUID, "versant": "FPH"},
+    identification={"reference": "REF-003", "versant": "FPH"},
     organisation={"nom": fake.company(), "siret": fake.siret().replace(" ", "")},
     url_offre="https://example.com/offre",
     url_candidature="https://example.com/candidature",
@@ -89,17 +89,17 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
 )
 
 INVALID_PAYLOAD_OFFER = PayloadOfferFactory.create(
-    identification={"reference": "REF-004", "source": SOURCE_UUID, "versant": "FPT"},
+    identification={"reference": "REF-004", "versant": "FPT"},
     titre=None,  # missing required field
 )
 
 INVALID_DATA_OFFER = PayloadOfferFactory.create(
-    identification={"reference": "REF-005", "source": SOURCE_UUID, "versant": "FPT"},
+    identification={"reference": "REF-005", "versant": "FPT"},
     type_contrat="ABC",  # invalid enum value
 )
 
 
-def parse_offer_from_payload(payload: dict) -> Offer:
+def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
     reference = payload["identification"]["reference"]
     versant = payload["identification"]["versant"]
 
@@ -143,7 +143,7 @@ def parse_offer_from_payload(payload: dict) -> Offer:
         localisation=localisation,
         beginning_date=debut_contrat,
         family_code=payload["profession"]["metier"],
-        source_id=UUID(payload["identification"]["source"]),
+        source_id=source_id,
     )
 
 
@@ -181,7 +181,7 @@ def test_api_key_authentication(api_key_client, use_case):
     use_case.execute.return_value = {"created": 1, "updated": 0, "errors": []}
     response = api_key_client.post(
         URL,
-        data={"offres": [MINIMAL_VALID_OFFER]},
+        data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_201_CREATED
@@ -204,7 +204,7 @@ def test_invalid_payload_returns_error_400(
 ):
     response = authenticated_client.post(
         URL,
-        data={"offres": [MINIMAL_VALID_OFFER] * num_offers},
+        data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER] * num_offers},
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -215,7 +215,7 @@ def test_jwt_forbidden_source_id_returns_403(authenticated_client, use_case):
     use_case.execute.side_effect = SourceAuthorizationError({UUID(SOURCE_UUID)})
     response = authenticated_client.post(
         URL,
-        data={"offres": [MINIMAL_VALID_OFFER]},
+        data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -233,14 +233,14 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
     }
     response = authenticated_client_with_source.post(
         URL,
-        data={"offres": offers_payload},
+        data={"source_id": SOURCE_UUID, "offres": offers_payload},
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_201_CREATED
 
     upsert_input = use_case.execute.call_args[0][0]
     for payload, offer in zip(offers_payload, upsert_input.offers, strict=True):
-        expected = parse_offer_from_payload(payload)
+        expected = parse_offer_from_payload(payload, source_id=UUID(SOURCE_UUID))
         for attr in [
             "external_id",
             "title",
@@ -272,7 +272,7 @@ def test_mixed_valid_invalid_offers_in_payload(
     }
     response = authenticated_client_with_source.post(
         URL,
-        data={"offres": offers_payload},
+        data={"source_id": SOURCE_UUID, "offres": offers_payload},
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_201_CREATED
@@ -280,11 +280,11 @@ def test_mixed_valid_invalid_offers_in_payload(
     assert errors == [
         "db error on offer xxx",
         {
-            "offer": {"reference": "REF-004", "source": SOURCE_UUID, "versant": "FPT"},
+            "offer": {"reference": "REF-004", "versant": "FPT"},
             "error": {"titre": ["Ce champ ne peut être nul."]},
         },
         {
-            "offer": {"reference": "REF-005", "source": SOURCE_UUID, "versant": "FPT"},
+            "offer": {"reference": "REF-005", "versant": "FPT"},
             "error": {"type_contrat": ["«\xa0ABC\xa0» n'est pas un choix valide."]},
         },
     ]
@@ -294,6 +294,8 @@ def test_returns_error_500(authenticated_client_with_source, use_case):
     use_case.execute.side_effect = Exception("db error")
 
     response = authenticated_client_with_source.post(
-        URL, data={"offres": [MINIMAL_VALID_OFFER]}, content_type="application/json"
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
+        content_type="application/json",
     )
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
