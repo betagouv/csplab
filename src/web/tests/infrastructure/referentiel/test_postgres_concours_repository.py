@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 from faker import Faker
 from referentiel.entities.concours import Concours
 
-from infrastructure.django_apps.shared.models.concours import ConcoursModel
+from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_concours_repository import (
     PostgresConcoursRepository,

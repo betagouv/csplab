@@ -15,7 +15,7 @@ from domain.ingestion.value_objects.similarity_type import (
 )
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.django_apps.shared.models.offer import OfferModel
+from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.referentiel.concours_factory import ConcoursFactory

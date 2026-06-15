@@ -16,7 +16,7 @@ from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
-from infrastructure.django_apps.shared.models.offer import OfferModel
+from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,

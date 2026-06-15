@@ -12,7 +12,7 @@ from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from referentiel.repositories.offers_repository_interface import IOffersRepository
 from referentiel.types import IUpsertResult
 
-from infrastructure.django_apps.shared.models.offer import OfferModel
+from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.mappers.queryset_page import QuerySetPage
 
 

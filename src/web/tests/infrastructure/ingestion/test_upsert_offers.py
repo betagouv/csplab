@@ -14,7 +14,7 @@ from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
-from infrastructure.django_apps.shared.models.offer import OfferModel
+from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from tests.factories.referentiel.offer_factory import OfferFactory
 
 fake = Faker()

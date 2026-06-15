@@ -10,7 +10,7 @@ from referentiel.exceptions.concours_errors import ConcoursDoesNotExist
 from referentiel.repositories.concours_repository_interface import IConcoursRepository
 from referentiel.types import IUpsertError, IUpsertResult
 
-from infrastructure.django_apps.shared.models.concours import ConcoursModel
+from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
 
 
 class PostgresConcoursRepository(IConcoursRepository):
