@@ -16,7 +16,7 @@ class CandidatureModel(models.Model):
         related_name="candidatures",
     )
     offre = models.ForeignKey(
-        "shared.OfferModel",
+        "referentiel.OfferModel",
         on_delete=models.PROTECT,
         db_column="offre_id",
         related_name="candidatures",
