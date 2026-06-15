@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from faker import Faker
 
@@ -12,17 +12,18 @@ fake = Faker()
 class AgentFactory:
     @staticmethod
     def create_entity(
+        entity_id: UUID | None = None,
         email: str | None = None,
         prenom: str | None = None,
         nom: str | None = None,
         intitule_poste: str | None = None,
     ) -> Agent:
         return Agent.build(
-            entity_id=uuid4(),
+            entity_id=entity_id or uuid4(),
             email=email or fake.email(),
             prenom=prenom or fake.first_name(),
             nom=nom or fake.last_name(),
-            intitule_poste=intitule_poste or fake.bothify("MAT-####"),
+            intitule_poste=intitule_poste or fake.job(),
         )
 
     @staticmethod
@@ -32,16 +33,18 @@ class AgentFactory:
         nom: str | None = None,
         intitule_poste: str | None = None,
     ) -> ProfilAgentModel:
-        user = UtilisateurFactory.create_model(email=email, prenom=prenom, nom=nom)
         agent = AgentFactory.create_entity(
-            email=user.email,
-            prenom=user.first_name,
-            nom=user.last_name,
+            email=email,
+            prenom=prenom,
+            nom=nom,
             intitule_poste=intitule_poste,
         )
-        profil = ProfilAgentModel(
-            utilisateur_id=user.username,
-            intitule_poste=agent.intitule_poste,
+        user = UtilisateurFactory.create_model(
+            entity_id=agent.entity_id,
+            email=agent.email,
+            prenom=agent.prenom,
+            nom=agent.nom,
         )
+        profil = ProfilAgentModel.from_entity(user.to_entity(), agent)
         profil.save()
         return profil
