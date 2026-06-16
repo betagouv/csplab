@@ -87,6 +87,14 @@ jobs:
       - name: Lint schema
         working-directory: ${{ github.workspace }}
         run: make lint-schema WEB_UV="cd src/web && uv run"
+      - name: Lint internal schema
+        working-directory: ${{ github.workspace }}
+        run: make lint-internal-schema WEB_INTERNAL_API_UV="cd src/web && DJANGO_SETTINGS_MODULE=config.settings.schema_internal uv run"
+      - name: Check frontend types are up to date
+        working-directory: ${{ github.workspace }}
+        run: |
+          make lint-frontend-types WEB_DIR="src/web" FRONTEND_FILTER="csplab-frontend" || \
+            (echo "::error::Les types TypeScript ne sont pas synchronisés avec le schéma OpenAPI. Lancez 'make frontend-types' et committez." && exit 1)
 
   test-web:
     needs: [check-changes, build-web]

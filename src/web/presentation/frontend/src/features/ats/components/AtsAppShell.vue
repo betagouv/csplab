@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import CspAppLayout from '@/components/layout/CspAppLayout/CspAppLayout.vue'
 import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
 import CspSidebarGroup from '@/components/layout/CspSidebar/CspSidebarGroup.vue'
@@ -7,6 +8,13 @@ import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarProvider from '@/components/layout/CspSidebar/CspSidebarProvider.vue'
 import CspSidebarTrigger from '@/components/layout/CspSidebar/CspSidebarTrigger.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
+import { useCurrentUser } from '@/composables/useCurrentUser'
+
+const { user, displayName, fetch: fetchUser } = useCurrentUser()
+
+onMounted(() => {
+  fetchUser()
+})
 </script>
 
 <template>
@@ -57,8 +65,8 @@ import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
 
           <template #footer>
             <CspSidebarUser
-              name="Marie Dupont"
-              role="RH"
+              v-if="user"
+              :name="displayName"
             />
           </template>
         </CspSidebar>

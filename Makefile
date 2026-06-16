@@ -218,6 +218,10 @@ storybook-build: ## build Storybook static output
 	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) build-storybook
 .PHONY: storybook-build
 
+frontend-types: ## generate TypeScript types from OpenAPI schema
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) generate-types
+.PHONY: frontend-types
+
 ### RUN
 run-notebook: ## run the notebook service
 	$(NOTEBOOK_UV) jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
@@ -492,6 +496,12 @@ lint-internal-schema:
 	$(WEB_INTERNAL_API_UV) python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate --fail-on-warn
 	git diff --exit-code src/web/presentation/static/api/internal-schema.yaml
 .PHONY: lint-internal-schema
+
+lint-frontend-types: ## check frontend TypeScript types are in sync with OpenAPI schema
+	@echo 'lint:frontend-types started…'
+	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) generate-types
+	git diff --exit-code src/web/presentation/frontend/src/types/api.d.ts
+.PHONY: lint-frontend-types
 
 ## TEST
 test: ## test all services
