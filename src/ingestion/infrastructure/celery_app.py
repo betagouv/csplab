@@ -38,8 +38,8 @@ def create_celery_app() -> Celery:
         accept_content=["json"],
         timezone="UTC",
         enable_utc=True,
+        include=["application.tasks.process_webhook"],
     )
-    app.autodiscover_tasks(["application"])
     return app
 
 
