@@ -10,3 +10,8 @@ WEB_BASE_URL=
 WEB_API_KEY=
 
 DATABASE_URL=psql://ingestion:pass@localhost:5432/ingestion
+REDIS_URL=redis://localhost:6379/1
+
+FLOWER_BASIC_AUTH_USER=flower
+FLOWER_BASIC_AUTH_PASSWORD=flower
+FLOWER_PORT=5555

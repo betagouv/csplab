@@ -1,8 +1,7 @@
-import json
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
-from pytest_httpx import HTTPXMock
 
 from api.main import create_app
 from presentation.dtos.talentsoft_webhook import (
@@ -10,7 +9,6 @@ from presentation.dtos.talentsoft_webhook import (
     TalentsoftOfferStatus,
 )
 from tests.conftest import (
-    SOURCE_ID,
     TALENTSOFT_BACK_BASE_URL,
     TALENTSOFT_BACK_CLIENT_ID,
     TALENTSOFT_BACK_CLIENT_SECRET,
@@ -21,40 +19,22 @@ from tests.conftest import (
 )
 
 REFERENCE = "2019-1234"
-ARCHIVE_URL = f"{WEB_BASE_URL}/api/v1/offres/archiver"
 
 
 @pytest.mark.asyncio
-async def test_vacancy_deleted_calls_archive(talentsoft_client, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(method="POST", url=ARCHIVE_URL, status_code=200)
+async def test_vacancy_deleted_enqueues_task(talentsoft_client):
     payload = {
         "event_type": TalentsoftEventType.VACANCY_DELETED,
         "reference": REFERENCE,
     }
-    response = make_signed_request(talentsoft_client, payload)
+    with patch("api.routes.process_webhook") as mock_task:
+        response = make_signed_request(talentsoft_client, payload)
+
     assert response.status_code == 200
-    requests = httpx_mock.get_requests()
-    assert len(requests) == 1
-    body = json.loads(requests[0].content)
-    assert body["reference"] == REFERENCE
-    assert body["source_id"] == SOURCE_ID
-
-
-@pytest.mark.asyncio
-async def test_vacancy_deleted_marks_offer_as_archived_in_repository(
-    talentsoft_client, httpx_mock: HTTPXMock
-):
-    httpx_mock.add_response(method="POST", url=ARCHIVE_URL, status_code=200)
-    payload = {
-        "event_type": TalentsoftEventType.VACANCY_DELETED,
-        "reference": REFERENCE,
-    }
-    make_signed_request(talentsoft_client, payload)
-
-    mock_repo = talentsoft_client.app.state.mock_raw_offer_repository
-    call_kwargs = mock_repo.mark_as_archived.call_args.kwargs
-    assert call_kwargs["reference"] == REFERENCE
-    assert call_kwargs["source_id"] == SOURCE_ID
+    assert response.json() == {"status": "ok"}
+    mock_task.delay.assert_called_once()
+    webhook_id = mock_task.delay.call_args[0][0]
+    assert isinstance(webhook_id, str)
 
 
 @pytest.mark.asyncio
@@ -66,42 +46,40 @@ async def test_vacancy_deleted_marks_offer_as_archived_in_repository(
         if status != TalentsoftOfferStatus.DIFFUSE
     ],
 )
-async def test_vacancy_status_non_diffuse_calls_archive(
-    talentsoft_client, httpx_mock: HTTPXMock, status_id: TalentsoftOfferStatus
+async def test_vacancy_status_non_diffuse_enqueues_task(
+    talentsoft_client, status_id: TalentsoftOfferStatus
 ):
-    httpx_mock.add_response(method="POST", url=ARCHIVE_URL, status_code=200)
     payload = {
         "event_type": TalentsoftEventType.VACANCY_STATUS,
         "reference": REFERENCE,
         "statusId": status_id,
     }
-    response = make_signed_request(talentsoft_client, payload)
+    with patch("api.routes.process_webhook") as mock_task:
+        response = make_signed_request(talentsoft_client, payload)
+
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
-    requests = httpx_mock.get_requests()
-    assert len(requests) == 1
-    assert requests[0].headers["authorization"] == f"Api-Key {WEB_API_KEY}"
-    body = json.loads(requests[0].content)
-    assert body["source_id"] == SOURCE_ID
+    mock_task.delay.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_vacancy_status_diffuse_does_not_call_archive(
-    talentsoft_client, httpx_mock: HTTPXMock
-):
+async def test_vacancy_status_diffuse_saves_but_does_not_enqueue(talentsoft_client):
     payload = {
         "event_type": TalentsoftEventType.VACANCY_STATUS,
         "reference": REFERENCE,
         "statusId": TalentsoftOfferStatus.DIFFUSE,
     }
-    response = make_signed_request(talentsoft_client, payload)
+    with patch("api.routes.process_webhook") as mock_task:
+        response = make_signed_request(talentsoft_client, payload)
+
     assert response.status_code == 200
-    assert httpx_mock.get_requests() == []
+    mock_task.delay.assert_not_called()
+    webhook_repo = talentsoft_client.app.state.container.webhook_repository()
+    webhook_repo.insert.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_other_event_type_returns_500(httpx_mock: HTTPXMock, monkeypatch):
-    # unknown event type — not handled, raises ValueError
+async def test_other_event_type_returns_500(httpx_mock, monkeypatch):
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
@@ -117,7 +95,7 @@ async def test_other_event_type_returns_500(httpx_mock: HTTPXMock, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_unknown_client_id_returns_403(monkeypatch, httpx_mock: HTTPXMock):
+async def test_unknown_client_id_returns_403(monkeypatch, httpx_mock):
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
     monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
@@ -125,28 +103,9 @@ async def test_unknown_client_id_returns_403(monkeypatch, httpx_mock: HTTPXMock)
     monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()
-    # Registry is empty — signature verification rejects the unknown client_id
     client = TestClient(app, raise_server_exceptions=False)
 
     payload = {"event_type": "vacancy_deleted", "reference": REFERENCE}
     response = make_signed_request(client, payload)
     assert response.status_code == 403
     assert response.json()["detail"] == "Invalid client_id"
-
-
-@pytest.mark.asyncio
-async def test_web_service_not_configured_returns_500(monkeypatch):
-    monkeypatch.setenv("TESTING", "true")
-    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
-    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
-    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
-    monkeypatch.delenv("WEB_BASE_URL", raising=False)
-    monkeypatch.delenv("WEB_API_KEY", raising=False)
-    app = create_app()
-    populate_sources_repository(app)
-    client = TestClient(app, raise_server_exceptions=False)
-
-    payload = {"event_type": "vacancy_deleted", "reference": REFERENCE}
-    response = make_signed_request(client, payload)
-    assert response.status_code == 500
-    assert response.json()["detail"] == "Web service not configured"

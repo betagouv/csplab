@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from sqlmodel import Session, select
 
@@ -5,9 +7,6 @@ from domain.entities.webhook import Webhook
 from domain.value_objects.webhook_event import EventType, OfferStatus
 from domain.value_objects.webhook_type import WebhookType
 from infrastructure.models.webhook import WebhookModel
-from infrastructure.webhook_repository import (
-    WebhookRepository,  # noqa: F401 — used via shared fixture
-)
 
 pytestmark = pytest.mark.usefixtures("clean_db")
 
@@ -16,14 +15,31 @@ REFERENCE = "2024-WEBHOOK-001"
 WEBHOOK_TYPE = WebhookType.OFFER
 
 
-def _fetch(db_engine, source_id: str, reference: str) -> WebhookModel | None:
-    with Session(db_engine) as session:
-        return session.exec(
-            select(WebhookModel).where(
-                WebhookModel.source_id == source_id,
-                WebhookModel.reference == reference,
-            )
-        ).first()
+# ---------------------------------------------------------------------------
+# get_by_id
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_by_id_returns_webhook(webhook_repository):
+    webhook = Webhook(
+        source_id=SOURCE_ID,
+        webhook_type=WEBHOOK_TYPE,
+        event_type=EventType.CREE,
+        reference=REFERENCE,
+        payload={"event_type": str(EventType.CREE), "reference": REFERENCE},
+    )
+    await webhook_repository.insert(webhook)
+
+    result = await webhook_repository.get_by_id(webhook.id)
+
+    assert result == webhook
+
+
+@pytest.mark.asyncio
+async def test_get_by_id_raises_when_not_found(webhook_repository):
+    with pytest.raises(ValueError, match=str(uuid.UUID(int=0))):
+        await webhook_repository.get_by_id(uuid.UUID(int=0))
 
 
 # ---------------------------------------------------------------------------
@@ -32,7 +48,7 @@ def _fetch(db_engine, source_id: str, reference: str) -> WebhookModel | None:
 
 
 @pytest.mark.asyncio
-async def test_insert_saves_webhook(webhook_repository, db_engine):
+async def test_insert_saves_webhook(webhook_repository):
     webhook = Webhook(
         source_id=SOURCE_ID,
         webhook_type=WEBHOOK_TYPE,
@@ -43,11 +59,9 @@ async def test_insert_saves_webhook(webhook_repository, db_engine):
 
     await webhook_repository.insert(webhook)
 
-    saved = _fetch(db_engine, SOURCE_ID, REFERENCE)
-    assert saved is not None
+    saved = await webhook_repository.get_by_id(webhook.id)
     assert saved.id == webhook.id
     assert saved.source_id == SOURCE_ID
-    assert saved.webhook_type == "talentsoft"
     assert saved.event_type == EventType.CREE
     assert saved.reference == REFERENCE
     assert saved.status_id is None
@@ -55,7 +69,7 @@ async def test_insert_saves_webhook(webhook_repository, db_engine):
 
 
 @pytest.mark.asyncio
-async def test_insert_saves_status_id(webhook_repository, db_engine):
+async def test_insert_saves_status_id(webhook_repository):
     webhook = Webhook(
         source_id=SOURCE_ID,
         webhook_type=WEBHOOK_TYPE,
@@ -67,7 +81,7 @@ async def test_insert_saves_status_id(webhook_repository, db_engine):
 
     await webhook_repository.insert(webhook)
 
-    saved = _fetch(db_engine, SOURCE_ID, REFERENCE)
+    saved = await webhook_repository.get_by_id(webhook.id)
     assert saved.status_id == OfferStatus.DIFFUSE
     assert saved.event_type == EventType.STATUT_CHANGE
 
@@ -84,9 +98,10 @@ async def test_insert_sets_timestamps(webhook_repository, db_engine):
 
     await webhook_repository.insert(webhook)
 
-    saved = _fetch(db_engine, SOURCE_ID, REFERENCE)
-    assert saved.created_at is not None
-    assert saved.updated_at is not None
+    with Session(db_engine) as session:
+        model = session.get(WebhookModel, webhook.id)
+    assert model.created_at is not None
+    assert model.updated_at is not None
 
 
 # ---------------------------------------------------------------------------
@@ -120,9 +135,7 @@ async def test_insert_allows_multiple_event_types_for_same_reference(
 
 
 @pytest.mark.asyncio
-async def test_insert_allows_same_reference_different_source_ids(
-    webhook_repository, db_engine
-):
+async def test_insert_allows_same_reference_different_source_ids(webhook_repository):
     payload = {"event_type": str(EventType.CREE), "reference": REFERENCE}
     first = Webhook(
         source_id=SOURCE_ID,
@@ -142,17 +155,13 @@ async def test_insert_allows_same_reference_different_source_ids(
     await webhook_repository.insert(first)
     await webhook_repository.insert(second)
 
-    row1 = _fetch(db_engine, SOURCE_ID, REFERENCE)
-    row2 = _fetch(db_engine, "other-source-id", REFERENCE)
-    assert row1 is not None
-    assert row2 is not None
-    assert row1.id != row2.id
+    result1 = await webhook_repository.get_by_id(first.id)
+    result2 = await webhook_repository.get_by_id(second.id)
+    assert result1.id != result2.id
 
 
 @pytest.mark.asyncio
-async def test_insert_allows_same_source_id_different_references(
-    webhook_repository, db_engine
-):
+async def test_insert_allows_same_source_id_different_references(webhook_repository):
     first = Webhook(
         source_id=SOURCE_ID,
         webhook_type=WEBHOOK_TYPE,
@@ -171,8 +180,6 @@ async def test_insert_allows_same_source_id_different_references(
     await webhook_repository.insert(first)
     await webhook_repository.insert(second)
 
-    row1 = _fetch(db_engine, SOURCE_ID, REFERENCE)
-    row2 = _fetch(db_engine, SOURCE_ID, "OTHER-REF")
-    assert row1 is not None
-    assert row2 is not None
-    assert row1.id != row2.id
+    result1 = await webhook_repository.get_by_id(first.id)
+    result2 = await webhook_repository.get_by_id(second.id)
+    assert result1.id != result2.id

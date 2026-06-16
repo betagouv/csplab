@@ -247,8 +247,12 @@ run-ocr: ## run the ocr service
 	$(OCR_UV) uvicorn api.main:app --reload --port=8001
 .PHONY: run-ocr
 
-run-ingestion: ## run the ingestion service
-	$(INGESTION_UV) uvicorn api.main:app --reload --port=8002
+run-ingestion: ## run the ingestion service (web + celery worker + flower)
+	@trap 'kill 0' EXIT; \
+	$(INGESTION_UV) uvicorn api.main:app --reload --port=8002 & \
+	$(INGESTION_UV) bin/start_worker.sh & \
+	$(INGESTION_UV) bin/start_flower.sh & \
+	wait
 .PHONY: run-ingestion
 
 dev: ## run web with sass watch and browser auto-reload
@@ -267,6 +271,7 @@ run-mvp: ## run web + ocr + ingestion + huey with unified logs
 	@echo "   Web: http://localhost:8000"
 	@echo "   OCR: http://localhost:8001"
 	@echo "   Ingestion: http://localhost:8002"
+	@echo "   Celery Flower: http://localhost:8002/flower"
 	@trap 'kill 0' EXIT; \
 	bin/manage runserver & \
 	make run-ocr & \

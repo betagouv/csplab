@@ -5,10 +5,7 @@ from fastapi import FastAPI
 
 from api.config import get_settings
 from api.routes import public_router
-from infrastructure.di.container import (
-    Container,
-    register_talentsoft_front_client,
-)
+from infrastructure.di.container import create_container
 
 _SKIP_LOG_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {
     "message",
@@ -48,48 +45,16 @@ def create_app():
             profiles_sample_rate=settings.sentry_profiles_sample_rate,
         )
 
-    container = Container()
-    container.config.web_base_url.from_value(settings.web_base_url)
-    container.config.web_api_key.from_value(settings.web_api_key)
-    container.config.database_url.from_value(settings.database_url)
-    container.config.talentsoft_credentials.from_value(
-        [
-            (client_id, secret, base_url)
-            for client_id, secret, base_url in [
-                (
-                    settings.talentsoft_back_client_id,
-                    settings.talentsoft_back_client_secret,
-                    settings.talentsoft_back_base_url,
-                ),
-                (
-                    settings.talentsoft_front_client_id,
-                    settings.talentsoft_front_client_secret,
-                    settings.talentsoft_front_base_url,
-                ),
-            ]
-            if client_id and secret and base_url
-        ]
-    )
+    container = create_container()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        if not settings.database_url:
-            logger.warning("DATABASE_URL is not set — raw offers will not be persisted")
-
-        if settings.talentsoft_front_client_id:
-            register_talentsoft_front_client(
-                container, settings.talentsoft_front_client_id, logger
-            )
-
-        if settings.web_base_url and settings.web_api_key:
-            use_case = container.load_sources_use_case()
-            await use_case.execute()
+        use_case = container.load_sources_use_case()
+        await use_case.execute()
 
         yield
 
-        engine = container.db_engine()
-        if engine is not None:
-            engine.dispose()
+        container.db_engine().dispose()
         await container.http_client().aclose()
 
     app = FastAPI(title="Ingestion Microservice", version="0.1.0", lifespan=lifespan)

@@ -10,7 +10,7 @@ WEB_SECRET_KEY=the_secret_key_for_local_dev_only_1234
 WEB_DATABASE_URL=psql://web:pass@localhost:5432/web
 
 #redis
-WEB_REDIS_URL=redis://localhost:6379
+WEB_REDIS_URL=redis://localhost:6379/0
 
 # Third-party integrations
 

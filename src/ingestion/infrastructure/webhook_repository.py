@@ -1,12 +1,17 @@
 import asyncio
+from uuid import UUID
 
 from sqlalchemy import Engine
 from sqlmodel import Session
 
 from domain.entities.webhook import Webhook
 from domain.repositories.webhook_repository import IWebhookRepository
+from domain.value_objects.webhook_event import EventType
 from infrastructure.models.webhook import WebhookModel
-from infrastructure.value_objects.webhook_source import WEBHOOK_TYPE_TO_SOURCE
+from infrastructure.value_objects.webhook_source import (
+    SOURCE_TO_WEBHOOK_TYPE,
+    WEBHOOK_TYPE_TO_SOURCE,
+)
 
 
 class WebhookRepository(IWebhookRepository):
@@ -29,3 +34,21 @@ class WebhookRepository(IWebhookRepository):
             )
             session.add(model)
             session.commit()
+
+    async def get_by_id(self, webhook_id: UUID) -> Webhook:
+        return await asyncio.to_thread(self._get_by_id_sync, webhook_id)
+
+    def _get_by_id_sync(self, webhook_id: UUID) -> Webhook:
+        with Session(self._engine) as session:
+            model = session.get(WebhookModel, webhook_id)
+            if model is None:
+                raise ValueError(f"Webhook {webhook_id} not found in database")
+            return Webhook(
+                id=model.id,
+                source_id=model.source_id,
+                event_type=EventType(model.event_type),
+                reference=model.reference,
+                payload=model.payload,
+                webhook_type=SOURCE_TO_WEBHOOK_TYPE[model.webhook_type],
+                status_id=model.status_id,
+            )
