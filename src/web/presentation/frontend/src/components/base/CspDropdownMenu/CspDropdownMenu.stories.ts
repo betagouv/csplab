@@ -1,15 +1,24 @@
 import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3-vite'
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from 'reka-ui'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
-import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import { useStoryOpenState } from '@/stories/useStoryOpenState'
 
 type CspDropdownMenuProps = ComponentPropsAndSlots<typeof CspDropdownMenu>
+
+const DEMO_SECTIONS = [
+  {
+    items: [
+      { label: 'Ouvrir', icon: 'ri:external-link-line' },
+      { label: 'Renommer', icon: 'ri:pencil-line' },
+    ],
+  },
+  {
+    items: [
+      { label: 'Dupliquer', icon: 'ri:file-copy-line', disabled: true },
+      { label: 'Supprimer', icon: 'ri:delete-bin-line', destructive: true },
+    ],
+  },
+]
 
 const meta = {
   title: 'Éléments/Génériques/CspDropdownMenu',
@@ -17,7 +26,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['align', 'side', 'sideOffset'],
+      include: ['open', 'align', 'side', 'sideOffset'],
     },
     docs: {
       description: {
@@ -26,6 +35,20 @@ const meta = {
     },
   },
   argTypes: {
+    sections: {
+      control: false,
+      description: 'Sections d\'items. Chaque section peut contenir plusieurs `{ label, icon?, disabled?, destructive?, onSelect? }`.',
+      table: {
+        type: { summary: 'CspDropdownMenuSection[]' },
+      },
+    },
+    open: {
+      control: { type: 'boolean' },
+      description: 'État d\'ouverture contrôlé. Liez avec `v-model:open`.',
+      table: {
+        type: { summary: 'boolean' },
+      },
+    },
     align: {
       control: { type: 'radio' },
       options: ['start', 'center', 'end'] satisfies NonNullable<CspDropdownMenuProps['align']>[],
@@ -114,43 +137,32 @@ const meta = {
     },
   },
   args: {
+    sections: DEMO_SECTIONS,
     align: 'start',
     side: 'bottom',
     sideOffset: 8,
   },
   render: (args: CspDropdownMenuProps) => ({
-    components: {
-      CspDropdownMenu,
-      DropdownMenuItem,
-      DropdownMenuSeparator,
-      CspButton,
-      CspIcon,
-    },
+    components: { CspDropdownMenu, CspButton },
     setup() {
-      return { args }
+      const { controlledOpen, handleUpdateOpen } = useStoryOpenState(args)
+
+      return { args, controlledOpen, handleUpdateOpen }
     },
     template: `
-      <div class="flex justify-center p-16">
-        <CspDropdownMenu v-bind="args">
-          <template #trigger>
-            <CspButton label="Ouvrir le menu" variant="secondary" />
-          </template>
-
-          <DropdownMenuItem>
-            <CspIcon name="ri:user-line" :size="16" />
-            Mon profil
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CspIcon name="ri:settings-3-line" :size="16" />
-            Paramètres
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <CspIcon name="ri:logout-box-r-line" :size="16" />
-            Se déconnecter
-          </DropdownMenuItem>
-        </CspDropdownMenu>
-      </div>
+      <CspDropdownMenu
+        v-bind="args"
+        :open="controlledOpen"
+        @update:open="handleUpdateOpen"
+      >
+        <template #trigger>
+          <CspButton
+            icon="ri:more-2-line"
+            variant="tertiary"
+            label="Ouvrir le menu déroulant"
+          />
+        </template>
+      </CspDropdownMenu>
     `,
   }),
 }
@@ -158,176 +170,70 @@ const meta = {
 export default meta
 type Story = StoryObj<CspDropdownMenuProps>
 
-const SIDES = ['top', 'right', 'bottom', 'left'] as const
-const ALIGNS = ['start', 'center', 'end'] as const
+export const Default: Story = {
+  name: 'Par défaut',
+}
 
-export const Default: Story = {}
-
-export const Positions: Story = {
-  render: args => ({
-    components: {
-      CspDropdownMenu,
-      DropdownMenuItem,
-      CspButton,
-    },
+export const Sides: Story = {
+  name: 'Côtés',
+  render: (args: CspDropdownMenuProps) => ({
+    components: { CspDropdownMenu, CspButton },
     setup() {
-      return { sides: SIDES, args }
+      const sides = [
+        { label: 'Haut', value: 'top' },
+        { label: 'Droite', value: 'right' },
+        { label: 'Bas', value: 'bottom' },
+        { label: 'Gauche', value: 'left' },
+      ] satisfies { label: string, value: NonNullable<CspDropdownMenuProps['side']> }[]
+
+      return { sides, args }
     },
     template: `
-      <div class="flex flex-wrap gap-12 justify-center p-16">
-        <CspDropdownMenu
-          v-for="side in sides"
-          :key="side"
-          v-bind="args"
-          :side="side"
-        >
-          <template #trigger>
-            <CspButton :label="side" variant="secondary" />
-          </template>
-
-          <DropdownMenuItem>Option 1</DropdownMenuItem>
-          <DropdownMenuItem>Option 2</DropdownMenuItem>
-          <DropdownMenuItem>Option 3</DropdownMenuItem>
-        </CspDropdownMenu>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
+        <div v-for="s in sides" :key="s.value" class="p-8">
+          <CspDropdownMenu
+            v-bind="args"
+            :key="s.value"
+            :side="s.value"
+          >
+            <template #trigger>
+              <CspButton :label="s.label" variant="tertiary" />
+            </template>
+            <p class="text-sm">Contenu libre du menu déroulant.</p>
+          </CspDropdownMenu>
+        </div>
       </div>
     `,
   }),
-  parameters: {
-    controls: { disable: true },
-  },
 }
 
 export const Alignments: Story = {
-  render: args => ({
-    components: {
-      CspDropdownMenu,
-      DropdownMenuItem,
-      CspButton,
-    },
+  name: 'Alignements',
+  render: (args: CspDropdownMenuProps) => ({
+    components: { CspDropdownMenu, CspButton },
     setup() {
-      return { aligns: ALIGNS, args }
+      const alignments = [
+        { label: 'Début', value: 'start' },
+        { label: 'Centre', value: 'center' },
+        { label: 'Fin', value: 'end' },
+      ] satisfies { label: string, value: NonNullable<CspDropdownMenuProps['align']> }[]
+
+      return { alignments, args }
     },
     template: `
-      <div class="flex flex-wrap gap-12 justify-center p-16">
-        <CspDropdownMenu
-          v-for="align in aligns"
-          :key="align"
-          v-bind="args"
-          side="bottom"
-          :align="align"
-        >
-          <template #trigger>
-            <CspButton :label="align" variant="tertiary" />
-          </template>
-
-          <DropdownMenuItem>Option 1</DropdownMenuItem>
-          <DropdownMenuItem>Option 2</DropdownMenuItem>
-          <DropdownMenuItem>Option 3</DropdownMenuItem>
-        </CspDropdownMenu>
-      </div>
-    `,
-  }),
-  parameters: {
-    controls: { disable: true },
-  },
-}
-
-export const WithLabelsAndGroups: Story = {
-  render: args => ({
-    components: {
-      CspDropdownMenu,
-      DropdownMenuGroup,
-      DropdownMenuItem,
-      DropdownMenuLabel,
-      DropdownMenuSeparator,
-      CspButton,
-      CspIcon,
-    },
-    setup() {
-      return { args }
-    },
-    template: `
-      <div class="flex justify-center p-16">
-        <CspDropdownMenu v-bind="args">
-          <template #trigger>
-            <CspButton label="Menu avec groupes" variant="secondary" />
-          </template>
-
-          <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
-          <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <CspIcon name="ri:user-line" :size="16" />
-              Profil
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <CspIcon name="ri:settings-3-line" :size="16" />
-              Paramètres
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-
-          <DropdownMenuSeparator />
-
-          <DropdownMenuLabel>Équipe</DropdownMenuLabel>
-          <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <CspIcon name="ri:group-line" :size="16" />
-              Membres
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <CspIcon name="ri:add-line" :size="16" />
-              Inviter
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-
-          <DropdownMenuSeparator />
-
-          <DropdownMenuItem>
-            <CspIcon name="ri:logout-box-r-line" :size="16" />
-            Se déconnecter
-          </DropdownMenuItem>
-        </CspDropdownMenu>
-      </div>
-    `,
-  }),
-}
-
-export const WithIcons: Story = {
-  render: args => ({
-    components: {
-      CspDropdownMenu,
-      DropdownMenuItem,
-      DropdownMenuSeparator,
-      CspButton,
-      CspIcon,
-    },
-    setup() {
-      return { args }
-    },
-    template: `
-      <div class="flex justify-center p-16">
-        <CspDropdownMenu v-bind="args">
-          <template #trigger>
-            <CspButton label="Actions" variant="primary" />
-          </template>
-
-          <DropdownMenuItem>
-            <CspIcon name="ri:edit-line" :size="16" />
-            Modifier
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CspIcon name="ri:eye-line" :size="16" />
-            Aperçu
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CspIcon name="ri:external-link-line" :size="16" />
-            Ouvrir dans un nouvel onglet
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <CspIcon name="ri:delete-bin-line" :size="16" />
-            Supprimer
-          </DropdownMenuItem>
-        </CspDropdownMenu>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 justify-items-center">
+        <div v-for="a in alignments" :key="a.value" class="p-8">
+          <CspDropdownMenu
+            v-bind="args"
+            :key="a.value"
+            :align="a.value"
+          >
+            <template #trigger>
+              <CspButton :label="a.label" variant="tertiary" />
+            </template>
+            <p class="text-sm">Contenu libre du menu déroulant.</p>
+          </CspDropdownMenu>
+        </div>
       </div>
     `,
   }),

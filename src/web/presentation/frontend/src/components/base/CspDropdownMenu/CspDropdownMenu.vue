@@ -1,129 +1,146 @@
 <script setup lang="ts">
 import {
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuRoot,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from 'reka-ui'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
-export interface CspDropdownMenuProps {
+withDefaults(defineProps<{
+  sections: {
+    items: {
+      label: string
+      icon?: string
+      disabled?: boolean
+      destructive?: boolean
+      onSelect?: () => void
+    }[]
+  }[]
   align?: 'start' | 'center' | 'end'
   side?: 'top' | 'right' | 'bottom' | 'left'
   sideOffset?: number
   sideFlip?: boolean
-}
-
-withDefaults(defineProps<CspDropdownMenuProps>(), {
+}>(), {
   align: 'start',
   side: 'top',
-  sideOffset: 8,
-  sideFlip: true,
 })
+
+const open = defineModel<boolean | undefined>('open')
 </script>
 
 <template>
-  <DropdownMenuRoot>
+  <DropdownMenuRoot
+    :open="open"
+    @update:open="value => open = value"
+  >
     <DropdownMenuTrigger as-child>
       <slot name="trigger" />
     </DropdownMenuTrigger>
 
     <DropdownMenuPortal>
       <DropdownMenuContent
+        class="csp-dropdown"
         :align="align"
         :side="side"
         :side-offset="sideOffset"
         :side-flip="sideFlip"
       >
-        <div class="csp-dropdown-menu">
-          <slot />
-        </div>
+        <template
+          v-for="(section, sectionIndex) in sections"
+          :key="sectionIndex"
+        >
+          <DropdownMenuSeparator
+            v-if="sectionIndex > 0"
+            class="csp-dropdown__separator"
+          />
+
+          <DropdownMenuItem
+            v-for="item in section.items"
+            :key="item.label"
+            class="csp-dropdown__item"
+            :class="{ 'csp-dropdown__item--destructive': item.destructive }"
+            :disabled="item.disabled"
+            @select="item.onSelect"
+          >
+            <CspIcon
+              v-if="item.icon"
+              class="csp-dropdown__item-icon"
+              :name="item.icon"
+            />
+            {{ item.label }}
+          </DropdownMenuItem>
+        </template>
       </DropdownMenuContent>
     </DropdownMenuPortal>
   </DropdownMenuRoot>
 </template>
 
 <style lang="scss">
-.csp-dropdown-menu {
-  z-index: var(--csp-z-dropdown);
-  min-width: 8rem;
-  overflow: hidden;
-  padding: 0.25rem;
-  border-radius: 0.375rem;
-  border: 1px solid var(--border-default-grey);
-  background-color: var(--background-default-grey);
+.csp-dropdown {
+  min-width: 10rem;
+  background-color: var(--background-overlap-grey);
   box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  animation: csp-dropdown-fade-in 0.12s ease-out;
+    inset 0 0 0 1px var(--border-default-grey),
+    var(--csp-shadow-lg);
+  padding: 0.25rem;
+  z-index: var(--csp-z-dropdown);
+  outline: none;
+}
 
-  [role='menuitem'] {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.375rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    color: var(--text-default-grey);
-    cursor: default;
-    outline: none;
-    user-select: none;
-    transition: background-color 0.1s ease;
+.csp-dropdown__separator {
+  height: 1px;
+  background-color: var(--border-default-grey);
+  margin: 0.25rem 0;
+}
 
-    svg,
-    .csp-icon {
-      width: 1rem;
-      height: 1rem;
-      flex-shrink: 0;
-      color: var(--text-mention-grey);
-    }
+.csp-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  outline: none;
+  color: var(--text-default-grey);
+  user-select: none;
 
-    &[data-highlighted] {
-      background-color: var(--background-contrast-grey);
-      color: var(--text-title-grey);
-
-      svg,
-      .csp-icon {
-        color: var(--text-default-grey);
-      }
-    }
-
-    &:focus-visible {
-      outline: var(--focus-ring);
-      outline-offset: -2px;
-    }
-
-    &[data-disabled] {
-      opacity: 0.5;
-      pointer-events: none;
-    }
+  &[data-highlighted] {
+    background-color: var(--background-default-grey-hover);
   }
 
-  [role='group'] > span:first-child {
-    display: block;
-    padding: 0.375rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-mention-grey);
-  }
+  &[data-disabled] {
+    cursor: not-allowed;
+    color: var(--text-disabled-grey);
 
-  [role='separator'] {
-    height: 1px;
-    margin: 0.25rem -0.25rem;
-    background-color: var(--border-default-grey);
+    .csp-dropdown__item-icon {
+      color: var(--text-disabled-grey);
+    }
   }
 }
 
-@keyframes csp-dropdown-fade-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
+.csp-dropdown__item--destructive {
+  color: var(--text-default-error);
+
+  .csp-dropdown__item-icon {
+    color: var(--text-default-error);
   }
 
-  to {
-    opacity: 1;
-    transform: scale(1);
+  &[data-highlighted] {
+    background-color: var(--background-default-grey-hover);
+    color: var(--text-default-error);
+
+    .csp-dropdown__item-icon {
+      color: var(--text-default-error);
+    }
   }
+}
+
+.csp-dropdown__item-icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-mention-grey);
 }
 </style>
