@@ -1,4 +1,4 @@
-import{j as e,b as i,M as o}from"./index-726T24GM.js";import{useMDXComponents as r}from"./index-qCG5kFXc.js";import"./iframe-BBIkQOXd.js";import"./index-8_2S3kac.js";const u=`---
+import{j as e,b as i,M as o}from"./index-DlTGFL5s.js";import{useMDXComponents as r}from"./index-fy7yDZr7.js";import"./iframe-CbAM7u83.js";import"./index-8_2S3kac.js";const u=`---
 title: "DDR-000 : Pourquoi des DDR (Design Decision Records)"
 created: 2026-05-13
 status: accepté
