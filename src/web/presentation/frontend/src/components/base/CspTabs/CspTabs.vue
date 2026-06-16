@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 export interface CspTabItem {
   value: string
   label: string
+  icon?: string
   disabled?: boolean
 }
 
@@ -40,6 +42,11 @@ const model = defineModel<string>()
         :disabled="tab.disabled"
         class="csp-tabs__trigger"
       >
+        <CspIcon
+          v-if="tab.icon"
+          :name="tab.icon"
+          class="csp-tabs__icon"
+        />
         {{ tab.label }}
       </TabsTrigger>
     </TabsList>
@@ -98,6 +105,7 @@ const model = defineModel<string>()
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--csp-space-2, 0.5rem);
   padding: var(--csp-space-3, 0.75rem) var(--csp-space-4, 1rem);
   font-size: 0.875rem;
   font-weight: 500;
@@ -145,5 +153,11 @@ const model = defineModel<string>()
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;
   }
+}
+
+.csp-tabs__icon {
+  width: 1.125em;
+  height: 1.125em;
+  flex-shrink: 0;
 }
 </style>

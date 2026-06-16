@@ -36,7 +36,7 @@ const meta = {
       control: { type: 'object' },
       description: 'Liste des onglets disponibles.',
       table: {
-        type: { summary: '{ value: string; label: string; disabled?: boolean }[]' },
+        type: { summary: '{ value: string; label: string; icon?: string; disabled?: boolean }[]' },
       },
     },
     defaultValue: {
@@ -143,5 +143,16 @@ export const ManualActivation: Story = {
         story: 'En mode manuel, les onglets ne s\'activent qu\'au clic et non au focus clavier.',
       },
     },
+  },
+}
+
+export const WithIcons: Story = {
+  args: {
+    tabs: [
+      { value: 'tab-1', label: 'Accueil', icon: 'ri:home-line' },
+      { value: 'tab-2', label: 'Paramètres', icon: 'ri:settings-3-line' },
+      { value: 'tab-3', label: 'Utilisateurs', icon: 'ri:user-line' },
+    ],
+    defaultValue: 'tab-1',
   },
 }
