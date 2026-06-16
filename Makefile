@@ -271,10 +271,13 @@ run-mvp: ## run web + ocr + ingestion + huey with unified logs
 	@echo "   Web: http://localhost:8000"
 	@echo "   OCR: http://localhost:8001"
 	@echo "   Ingestion: http://localhost:8002"
-	@echo "   Celery Flower: http://localhost:8002/flower"
+	@echo "   Celery Flower: http://localhost:5555/flower"
 	@trap 'kill 0' EXIT; \
 	bin/manage runserver & \
 	make run-ocr & \
+	echo "⏳ En attente que le service web soit prêt sur :8000…"; \
+	until curl -s http://localhost:8000/ > /dev/null 2>&1; do sleep 0.5; done; \
+	echo "✅ Service web prêt, démarrage de l'ingestion…"; \
 	make run-ingestion & \
 	wait
 .PHONY: run-mvp
