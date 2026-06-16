@@ -4,9 +4,9 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from pydantic import BaseModel, HttpUrl, model_serializer
+from referentiel.value_objects.language import Language
 
 from domain.entities.offer import Offer
-from domain.value_objects.language import Language
 
 
 class IdentificationPayload(BaseModel):
@@ -53,7 +53,7 @@ class LanguagePayload(BaseModel):
 
     @classmethod
     def from_language(cls, language: Language) -> LanguagePayload:
-        return cls(iso_code=language.iso_code, niveau=str(language.niveau))
+        return cls(iso_code=language.iso_code, niveau=str(language.language_level))
 
 
 class CriteresPayload(BaseModel):
@@ -138,7 +138,7 @@ class OfferUpsertPayload(BaseModel):
             localisation=localisation,
             criteres=CriteresPayload(
                 diplome_niveau=offer.education_level,
-                experience=str(offer.experience) if offer.experience else None,
+                experience=offer.experience.name if offer.experience else None,
                 diploma=offer.diploma,
                 specialisations=offer.specialisations,
                 languages=[

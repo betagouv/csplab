@@ -4,21 +4,21 @@ from typing import List, Optional, cast
 from uuid import UUID
 
 from pydantic import HttpUrl, ValidationError
+from referentiel.value_objects.area import GeographicalArea
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.language import Language
+from referentiel.value_objects.language_level import LanguageLevel
+from referentiel.value_objects.limit_date import LimitDate
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.region import Region
+from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
-from domain.value_objects.area import GeographicalArea
-from domain.value_objects.category import Category
-from domain.value_objects.contract_type import ContractType
-from domain.value_objects.country import Country
-from domain.value_objects.department import Department
-from domain.value_objects.experience import Experience
-from domain.value_objects.language import Language
-from domain.value_objects.limit_date import LimitDate
-from domain.value_objects.localisation import Localisation
-from domain.value_objects.niveau import Niveau
-from domain.value_objects.region import Region
-from domain.value_objects.verse import Verse
 from infrastructure.external_gateways.dtos.talentsoft_dtos import TalentsoftDetailOffer
 
 logger = logging.getLogger(__name__)
@@ -109,7 +109,7 @@ class OffersCleaner:
         languages = [
             Language(
                 iso_code=lang.languageName.clientCode,
-                niveau=Niveau(lang.languageLevel.clientCode),
+                language_level=LanguageLevel(lang.languageLevel.clientCode),
             )
             for lang in talentsoft_offer.languages
         ]
@@ -243,12 +243,12 @@ class OffersCleaner:
         except (ValueError, TypeError, AttributeError):
             return None
 
-    def _map_experience(self, client_code: str) -> Optional[Experience]:
-        mapping: dict[str, Optional[Experience]] = {
+    def _map_experience(self, client_code: str) -> Optional[ExperienceLevel]:
+        mapping: dict[str, Optional[ExperienceLevel]] = {
             "_TS_CO_ExperienceLevel_Nonrenseign": None,
-            "debutant": Experience.DEBUTANT,
-            "confirme": Experience.CONFIRME,
-            "expert": Experience.EXPERT,
+            "debutant": ExperienceLevel.DEBUTANT,
+            "confirme": ExperienceLevel.CONFIRME,
+            "expert": ExperienceLevel.EXPERT,
         }
         return mapping[client_code]
 

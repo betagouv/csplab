@@ -1,14 +1,13 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
-
-from domain.exceptions.offer_errors import InvalidLimitDateError
-from domain.value_objects.area import GeographicalArea
-from domain.value_objects.country import Country
-from domain.value_objects.department import Department
-from domain.value_objects.limit_date import LimitDate
-from domain.value_objects.localisation import Localisation
-from domain.value_objects.region import Region
+from referentiel.exceptions.offer_errors import InvalidLimitDateError
+from referentiel.value_objects.area import GeographicalArea
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.limit_date import LimitDate
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.region import Region
 
 
 class TestLimitDate:
@@ -66,7 +65,7 @@ class TestLocalisation:
             region=Region(code="11"),
             department=Department(code="75"),
         )
-        assert str(localisation) == "FRA - 11 - 75"
+        assert str(localisation) == "France - 11 - 75"
 
 
 class TestDepartment:

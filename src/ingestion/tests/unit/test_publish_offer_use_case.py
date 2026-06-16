@@ -3,13 +3,13 @@ from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID
 
 import pytest
+from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.verse import Verse
 
 from application.use_cases.publish_offer import PublishOfferUseCase
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.gateways.publish_offer_input import PublishOfferInput
-from domain.value_objects.contract_type import ContractType
-from domain.value_objects.verse import Verse
 
 OFFER = Offer(
     reference="2024-OFFER-001",

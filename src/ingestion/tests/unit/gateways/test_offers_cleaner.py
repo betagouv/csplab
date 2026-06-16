@@ -2,14 +2,14 @@ from datetime import datetime, timezone
 
 import pytest
 from pydantic import ValidationError
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.language import Language
+from referentiel.value_objects.language_level import LanguageLevel
+from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
-from domain.value_objects.category import Category
-from domain.value_objects.contract_type import ContractType
-from domain.value_objects.experience import Experience
-from domain.value_objects.language import Language
-from domain.value_objects.niveau import Niveau
-from domain.value_objects.verse import Verse
 from infrastructure.external_gateways.dtos.talentsoft_dtos import TalentsoftLanguage
 from infrastructure.gateways.offers_cleaner import OffersCleaner
 from tests.factories.talentsoft_factories import (
@@ -371,9 +371,9 @@ def test_clean_returns_none_education_level_when_absent(cleaner):
     "client_code, expected",
     [
         ("_TS_CO_ExperienceLevel_Nonrenseign", None),
-        ("debutant", Experience.DEBUTANT),
-        ("confirme", Experience.CONFIRME),
-        ("expert", Experience.EXPERT),
+        ("debutant", ExperienceLevel.DEBUTANT),
+        ("confirme", ExperienceLevel.CONFIRME),
+        ("expert", ExperienceLevel.EXPERT),
     ],
 )
 def test_clean_maps_experience(cleaner, client_code, expected):
@@ -443,7 +443,7 @@ def test_clean_maps_languages(cleaner):
 
     offer = cleaner.clean(raw_offer)
 
-    assert offer.languages == [Language(iso_code="EN", niveau=Niveau.B2)]
+    assert offer.languages == [Language(iso_code="EN", language_level=LanguageLevel.B2)]
 
 
 def test_clean_returns_empty_languages_when_absent(cleaner):

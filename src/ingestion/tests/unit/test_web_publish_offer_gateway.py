@@ -6,21 +6,21 @@ import httpx
 import pytest
 from pydantic import HttpUrl
 from pytest_httpx import HTTPXMock
+from referentiel.value_objects.area import GeographicalArea
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.language import Language
+from referentiel.value_objects.language_level import LanguageLevel
+from referentiel.value_objects.limit_date import LimitDate
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.region import Region
+from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_input import PublishOfferInput
-from domain.value_objects.area import GeographicalArea
-from domain.value_objects.category import Category
-from domain.value_objects.contract_type import ContractType
-from domain.value_objects.country import Country
-from domain.value_objects.department import Department
-from domain.value_objects.experience import Experience
-from domain.value_objects.language import Language
-from domain.value_objects.limit_date import LimitDate
-from domain.value_objects.localisation import Localisation
-from domain.value_objects.niveau import Niveau
-from domain.value_objects.region import Region
-from domain.value_objects.verse import Verse
 from infrastructure.external_gateways.web_publish_offer_gateway import (
     WebPublishOfferGateway,
 )
@@ -256,7 +256,7 @@ async def test_publish_serializes_criteres_with_experience(
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    offer = Offer(**{**MINIMAL_OFFER.__dict__, "experience": Experience.CONFIRME})
+    offer = Offer(**{**MINIMAL_OFFER.__dict__, "experience": ExperienceLevel.CONFIRME})
 
     await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
 
@@ -297,7 +297,7 @@ async def test_publish_serializes_criteres_with_languages(
     offer = Offer(
         **{
             **MINIMAL_OFFER.__dict__,
-            "languages": [Language(iso_code="EN", niveau=Niveau.B2)],
+            "languages": [Language(iso_code="EN", language_level=LanguageLevel.B2)],
         }
     )
 
