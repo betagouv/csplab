@@ -1,14 +1,96 @@
 {% extends "layouts/base.html" %}
+{% load static %}
 {% block page_title %}
     Connexion
 {% endblock page_title %}
 {% block main %}
-    <div class="fr-container fr-py-8w">
-        <h2>Connexion</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ form }}
-            <button class="fr-btn fr-btn--lg" type="submit">Je m'authentifie</button>
-        </form>
+    <div class="fr-container fr-py-10v fr-py-md-14v">
+        <div class="fr-grid-row fr-grid-row--center">
+            <div class="fr-col-12 fr-col-lg-10">
+                <div class="csplab-login__card fr-grid-row">
+                    <div class="fr-col-12 fr-col-md-5 fr-background-alt--grey fr-py-10v fr-py-md-14v fr-px-3w fr-hidden fr-unhidden-md csplab-login__welcome">
+                        <div class="csplab-login__welcome-content">
+                            <img class="fr-mb-3w"
+                                 src="{% static 'candidate/images/illustrations-csp/home-assis-11.svg' %}"
+                                 width="200"
+                                 height="200"
+                                 alt=""
+                                 aria-hidden="true">
+                            <h1 class="fr-h3 fr-mb-2w">Bienvenue</h1>
+                            <p class="fr-text--lg fr-text-mention--grey">Connectez-vous pour accéder à la gestion des candidatures</p>
+                        </div>
+                    </div>
+                    <div class="fr-col-12 fr-col-md-7 fr-py-10v fr-py-md-14v fr-px-3w fr-px-md-4w">
+                        <h2 class="fr-h4 fr-mb-6v">Connexion</h2>
+                        <form method="post" id="login-form">
+                            {% csrf_token %}
+                            <fieldset class="fr-fieldset"
+                                      id="login-fieldset"
+                                      aria-labelledby="login-fieldset-legend login-fieldset-messages">
+                                <legend class="fr-fieldset__legend fr-sr-only" id="login-fieldset-legend">Se connecter avec son compte</legend>
+                                {% if form.non_field_errors %}
+                                    <div class="fr-fieldset__element">
+                                        <div class="fr-alert fr-alert--error fr-alert--sm"
+                                             id="login-error"
+                                             role="alert">
+                                            <p>Adresse e-mail ou mot de passe incorrect.</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                <div class="fr-fieldset__element">
+                                    <div class="fr-input-group">
+                                        <label class="fr-label" for="username">
+                                            Email
+                                            <span class="fr-hint-text">Format attendu : nom@domaine.fr</span>
+                                        </label>
+                                        <input class="fr-input"
+                                               autocomplete="email"
+                                               name="username"
+                                               id="username"
+                                               type="email"
+                                               value="{{ form.username.value|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="fr-fieldset__element">
+                                    <div class="fr-password" id="password">
+                                        <label class="fr-label" for="password-input">Mot de passe</label>
+                                        <div class="fr-input-wrap">
+                                            <input class="fr-password__input fr-input"
+                                                   name="password"
+                                                   autocomplete="current-password"
+                                                   id="password-input"
+                                                   type="password">
+                                        </div>
+                                        <div class="fr-password__checkbox fr-checkbox-group fr-checkbox-group--sm">
+                                            <input aria-label="Afficher le mot de passe"
+                                                   id="password-show"
+                                                   type="checkbox">
+                                            <label class="fr-password__checkbox fr-label" for="password-show">Afficher</label>
+                                        </div>
+                                    </div>
+                                    <p class="fr-mt-2v">
+                                        <a href="#" class="fr-link">Mot de passe oublié ?</a>
+                                    </p>
+                                </div>
+                                <div class="fr-fieldset__element">
+                                    <ul class="fr-btns-group">
+                                        <li>
+                                            <button class="fr-mt-2v fr-btn" type="submit">Se connecter</button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="fr-messages-group"
+                                     id="login-fieldset-messages"
+                                     aria-live="assertive"></div>
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+                <p class="csplab-login__signup fr-text--sm fr-text-mention--grey fr-mt-4w">
+                    Vous n'avez pas de compte ?
+                    <a href="#" class="fr-link">Faire une demande d'accès</a>
+                </p>
+            </div>
+        </div>
     </div>
 {% endblock main %}
