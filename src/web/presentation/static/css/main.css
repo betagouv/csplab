@@ -863,6 +863,9 @@ hr {
 
 .csplab-filter-tag {
   cursor: pointer;
+  position: relative;
+  --csp-tag-check-size: 1rem;
+  --csp-tag-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='white'/%3E%3Cpath fill='%23000091' d='M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-.997-4L6.76 11.757l1.414-1.414 2.829 2.829 5.657-5.657 1.414 1.414L11.003 16z'/%3E%3C/svg%3E");
 }
 .csplab-filter-tag.fr-tag {
   background-color: var(--background-action-low-blue-france);
@@ -877,6 +880,18 @@ hr {
 }
 .csplab-filter-tag:has(input.fr-sr-only:checked):hover {
   background-color: var(--background-action-high-blue-france-hover);
+}
+.csplab-filter-tag:has(input.fr-sr-only:checked)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(30%, -30%);
+  width: var(--csp-tag-check-size);
+  height: var(--csp-tag-check-size);
+  background-image: var(--csp-tag-check-icon);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 .csplab-filter-tag:has(input.fr-sr-only:focus-visible) {
   outline: 2px solid var(--border-action-high-blue-france);
