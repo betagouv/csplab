@@ -1,6 +1,30 @@
 from http import HTTPStatus
 
 from django.test import Client
+from django.urls import reverse
+from faker import Faker
+from rest_framework import status
+
+fake = Faker()
+
+ORGANISME_UUID = fake.uuid4()
+ORGANISME_URL = reverse(
+    "recruteur:organisme", kwargs={"organisme_uuid": ORGANISME_UUID}
+)
+
+
+class TestOrganismeView:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = api_client.get(ORGANISME_URL)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_authenticated_access_is_ok(self, authenticated_client):
+        response = authenticated_client.get(ORGANISME_URL)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {
+            "nom": "COMMUNE DE BRIANCON",
+            "siret": "21050023700354",
+        }
 
 
 class TestATSBase:

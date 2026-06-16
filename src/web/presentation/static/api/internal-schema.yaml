@@ -3,6 +3,47 @@ info:
   title: CSPLab Internal API
   version: 0.0.1
 paths:
+  /recruteur/organisme/{organisme_uuid}/:
+    get:
+      operationId: recruteur_organisme_retrieve
+      summary: Detail d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organisme'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /utilisateur/me/:
     get:
       operationId: utilisateur_me_retrieve
@@ -46,6 +87,17 @@ components:
           type: string
       required:
       - error
+    Organisme:
+      type: object
+      properties:
+        nom:
+          type: string
+          format: email
+        siret:
+          type: string
+      required:
+      - nom
+      - siret
     TokenError:
       type: object
       properties:

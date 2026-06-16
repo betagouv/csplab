@@ -10,6 +10,7 @@ from presentation.identite import urls as identite_urls
 from presentation.ingestion import urls as ingestion_urls
 from presentation.pages import urls as pages_urls
 from presentation.pages.views import security_txt
+from presentation.recruteur import urls as recruteur_urls
 
 admin.site.__class__ = OTPAdminSite
 
@@ -22,6 +23,7 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path("api/v1/", include(ingestion_urls)),
     path("ats/", include(ats_urls)),
     path("utilisateur/", include(identite_urls)),
+    path("recruteur/", include(recruteur_urls)),
 ]
 
 if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:
