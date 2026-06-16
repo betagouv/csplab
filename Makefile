@@ -275,6 +275,9 @@ run-mvp: ## run web + ocr + ingestion + huey with unified logs
 	@trap 'kill 0' EXIT; \
 	bin/manage runserver & \
 	make run-ocr & \
+	echo "⏳ En attente que le service web soit prêt sur :8000…"; \
+	until curl -s http://localhost:8000/ > /dev/null 2>&1; do sleep 0.5; done; \
+	echo "✅ Service web prêt, démarrage de l'ingestion…"; \
 	make run-ingestion & \
 	wait
 .PHONY: run-mvp
