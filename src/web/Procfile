@@ -1,4 +1,3 @@
 web: bash ./start.sh
-worker: python manage.py run_huey --no-periodic
-scheduler: python manage.py run_huey --workers 0
+worker: bash ./run_worker.sh
 postdeploy: bash ./postdeploy.sh
