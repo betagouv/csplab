@@ -3,6 +3,53 @@ info:
   title: CSPLab Internal API
   version: 0.0.1
 paths:
+  /recruteur/etapes-recrutement-organisme/{organisme_uuid}/:
+    get:
+      operationId: recruteur_etapes_recrutement_organisme_list
+      summary: Liste des étapes de recrutement d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEtapeRecrutementList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organisme/{organisme_uuid}/:
     get:
       operationId: recruteur_organisme_retrieve
@@ -80,6 +127,30 @@ paths:
           description: ''
 components:
   schemas:
+    CategorieEnum:
+      enum:
+      - INITIALE
+      - EN_COURS
+      - TERMINALE
+      type: string
+      description: |-
+        * `INITIALE` - initiale
+        * `EN_COURS` - en_cours
+        * `TERMINALE` - terminale
+    EtapeRecrutement:
+      type: object
+      properties:
+        etape_uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        categorie:
+          $ref: '#/components/schemas/CategorieEnum'
+      required:
+      - categorie
+      - etape_uuid
+      - nom
     GenericError:
       type: object
       properties:
@@ -98,6 +169,29 @@ components:
       required:
       - nom
       - siret
+    PaginatedEtapeRecrutementList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EtapeRecrutement'
     TokenError:
       type: object
       properties:
