@@ -1,0 +1,1 @@
+import{b as r,O as i}from"./vue.esm-bundler-7zVN4DZj.js";import{u as l}from"./useForwardExpose-qwf_wVRM.js";function s(){const e=i(),m=r(()=>{var t,n;return["#text","#comment"].includes((t=e.value)==null?void 0:t.$el.nodeName)?(n=e.value)==null?void 0:n.$el.nextElementSibling:l(e)});return{primitiveElement:e,currentElement:m}}export{s as u};
