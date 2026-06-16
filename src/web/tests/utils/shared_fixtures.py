@@ -28,9 +28,7 @@ from application.candidate.usecases.match_cv_to_opportunities import (
     MatchCVToOpportunitiesUsecase,
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
-from application.candidate.usecases.soumettre_candidature import (
-    SoumettreCandidatureUsecase,
-)
+from application.candidate.usecases.submit_application import SubmitApplicationUsecase
 from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
@@ -443,10 +441,13 @@ def get_opportunity_details_usecase():
 
 
 @pytest.fixture
-def soumettre_candidature_usecase():
+def submit_application_usecase():
     candidature_repository = MagicMock(spec=ICandidatureRepository)
-    return SoumettreCandidatureUsecase(
-        candidature_repository=candidature_repository, logger=MagicMock()
+    actors_validator = MagicMock()
+    return SubmitApplicationUsecase(
+        candidature_repository=candidature_repository,
+        actors_validator=actors_validator,
+        logger=MagicMock(),
     )
 
 

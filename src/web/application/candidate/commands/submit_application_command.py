@@ -3,6 +3,6 @@ from uuid import UUID
 
 
 @dataclass
-class SoumettreCandidatureCommand:
+class SubmitApplicationCommand:
     offre_id: UUID
     candidat_id: UUID
