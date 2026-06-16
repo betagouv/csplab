@@ -8,30 +8,29 @@
       "DOM.Iterable"
     ],
     "useDefineForClassFields": true,
-    "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ],
       "@/app/*": [
-        "src/app/*"
+        "./src/app/*"
       ],
       "@/features/*": [
-        "src/features/*"
+        "./src/features/*"
       ],
       "@/components/*": [
-        "src/components/*"
+        "./src/components/*"
       ],
       "@/composables/*": [
-        "src/composables/*"
+        "./src/composables/*"
       ],
       "@/types/*": [
-        "src/types/*"
+        "./src/types/*"
       ],
       "@/utils/*": [
-        "src/utils/*"
+        "./src/utils/*"
       ]
     },
     "resolveJsonModule": true,

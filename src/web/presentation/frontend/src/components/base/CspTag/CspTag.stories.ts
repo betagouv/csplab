@@ -1,4 +1,4 @@
-import type { StoryObj } from '@storybook/vue3'
+import type { StoryObj } from '@storybook/vue3-vite'
 import type { CspTagSize, CspTagVariant } from '@/components/base/CspTag/tag'
 import { ref } from 'vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'

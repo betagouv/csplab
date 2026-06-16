@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3'
+import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import CspAppLayout from '../CspAppLayout/CspAppLayout.vue'
 import CspSidebar from './CspSidebar.vue'
 import CspSidebarGroup from './CspSidebarGroup.vue'
