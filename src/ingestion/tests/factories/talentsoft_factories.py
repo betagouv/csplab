@@ -191,6 +191,8 @@ class TalentsoftDetailOfferFactory(ModelFactory[TalentsoftDetailOffer]):
     urlRedirectionEmployee = None
     urlRedirectionApplicant = None
     diploma = None
+    educationLevel = None
+    experienceLevel = None
     operationalManager = None
 
     @classmethod

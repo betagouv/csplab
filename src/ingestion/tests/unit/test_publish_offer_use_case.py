@@ -23,8 +23,10 @@ OFFER = Offer(
     category=None,
     contract_type=ContractType.TITULAIRE_CONTRACTUEL,
     offer_url=None,
+    application_url=None,
     localisation=None,
     publication_date=datetime(2024, 1, 1, tzinfo=timezone.utc),
+    end_publication_date=None,
     beginning_date=None,
     family_code="INF001",
 )

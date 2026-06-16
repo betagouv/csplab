@@ -1,10 +1,16 @@
+from datetime import datetime, timezone
+
 import pytest
 from pydantic import ValidationError
 
 from domain.entities.raw_offer import RawOffer
 from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
+from domain.value_objects.experience import Experience
+from domain.value_objects.language import Language
+from domain.value_objects.niveau import Niveau
 from domain.value_objects.verse import Verse
+from infrastructure.external_gateways.dtos.talentsoft_dtos import TalentsoftLanguage
 from infrastructure.gateways.offers_cleaner import OffersCleaner
 from tests.factories.talentsoft_factories import (
     TalentsoftCodedObjectFactory,
@@ -283,6 +289,22 @@ def test_clean_returns_none_url_on_invalid_offer_url(cleaner):
     assert offer.offer_url is None
 
 
+def test_clean_maps_application_url(cleaner):
+    raw_offer = _make_raw_offer(applicationUrl="https://apply.example.com/job/123")
+
+    offer = cleaner.clean(raw_offer)
+
+    assert str(offer.application_url) == "https://apply.example.com/job/123"
+
+
+def test_clean_returns_none_application_url_when_absent(cleaner):
+    raw_offer = _make_raw_offer(applicationUrl=None)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.application_url is None
+
+
 def test_clean_returns_none_beginning_date_on_invalid_format(cleaner):
     raw_offer = _make_raw_offer(beginningDate="not-a-date")
 
@@ -297,6 +319,139 @@ def test_clean_returns_none_beginning_date_when_absent(cleaner):
     offer = cleaner.clean(raw_offer)
 
     assert offer.beginning_date is None
+
+
+def test_clean_maps_end_publication_date(cleaner):
+    raw_offer = _make_raw_offer(endPublicationDate="2025-06-30T00:00:00Z")
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.end_publication_date == datetime(2025, 6, 30, tzinfo=timezone.utc)
+
+
+def test_clean_returns_none_end_publication_date_when_absent(cleaner):
+    raw_offer = _make_raw_offer(endPublicationDate=None)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.end_publication_date is None
+
+
+@pytest.mark.parametrize(
+    "client_code, expected",
+    [
+        ("A", 1),
+        ("B", 2),
+        ("C", 3),
+        ("D", 4),
+        ("E", 5),
+        ("F", 6),
+        ("G", 7),
+        ("H", 8),
+    ],
+)
+def test_clean_maps_education_level(cleaner, client_code, expected):
+    education = TalentsoftCodedObjectFactory.build(clientCode=client_code)
+    raw_offer = _make_raw_offer(educationLevel=education)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.education_level == expected
+
+
+def test_clean_returns_none_education_level_when_absent(cleaner):
+    raw_offer = _make_raw_offer(educationLevel=None)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.education_level is None
+
+
+@pytest.mark.parametrize(
+    "client_code, expected",
+    [
+        ("_TS_CO_ExperienceLevel_Nonrenseign", None),
+        ("debutant", Experience.DEBUTANT),
+        ("confirme", Experience.CONFIRME),
+        ("expert", Experience.EXPERT),
+    ],
+)
+def test_clean_maps_experience(cleaner, client_code, expected):
+    experience = TalentsoftCodedObjectFactory.build(clientCode=client_code)
+    raw_offer = _make_raw_offer(experienceLevel=experience)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.experience == expected
+
+
+def test_clean_returns_none_experience_when_absent(cleaner):
+    raw_offer = _make_raw_offer(experienceLevel=None)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.experience is None
+
+
+def test_clean_maps_specialisations(cleaner):
+    raw_offer = _make_raw_offer(
+        specialisations=[
+            TalentsoftCodedObjectFactory.build(clientCode="SPEC_A"),
+            TalentsoftCodedObjectFactory.build(clientCode="SPEC_B"),
+        ]
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.specialisations == ["SPEC_A", "SPEC_B"]
+
+
+def test_clean_returns_empty_specialisations_when_absent(cleaner):
+    raw_offer = _make_raw_offer(specialisations=[])
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.specialisations == []
+
+
+def test_clean_maps_diploma(cleaner):
+    diploma = TalentsoftCodedObjectFactory.build(clientCode="LICENCE")
+    raw_offer = _make_raw_offer(diploma=diploma)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.diploma == "LICENCE"
+
+
+def test_clean_returns_none_diploma_when_absent(cleaner):
+    raw_offer = _make_raw_offer(diploma=None)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.diploma is None
+
+
+def test_clean_maps_languages(cleaner):
+    raw_offer = _make_raw_offer(
+        languages=[
+            TalentsoftLanguage(
+                languageName=TalentsoftCodedObjectFactory.build(clientCode="EN"),
+                languageLevel=TalentsoftCodedObjectFactory.build(clientCode="B2"),
+            )
+        ]
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.languages == [Language(iso_code="EN", niveau=Niveau.B2)]
+
+
+def test_clean_returns_empty_languages_when_absent(cleaner):
+    raw_offer = _make_raw_offer(languages=[])
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.languages == []
 
 
 def test_clean_maps_raw_region_code_without_prefix(cleaner):

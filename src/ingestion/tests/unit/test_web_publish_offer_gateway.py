@@ -4,6 +4,7 @@ from uuid import UUID
 
 import httpx
 import pytest
+from pydantic import HttpUrl
 from pytest_httpx import HTTPXMock
 
 from domain.entities.offer import Offer
@@ -13,8 +14,11 @@ from domain.value_objects.category import Category
 from domain.value_objects.contract_type import ContractType
 from domain.value_objects.country import Country
 from domain.value_objects.department import Department
+from domain.value_objects.experience import Experience
+from domain.value_objects.language import Language
 from domain.value_objects.limit_date import LimitDate
 from domain.value_objects.localisation import Localisation
+from domain.value_objects.niveau import Niveau
 from domain.value_objects.region import Region
 from domain.value_objects.verse import Verse
 from infrastructure.external_gateways.web_publish_offer_gateway import (
@@ -39,8 +43,10 @@ MINIMAL_OFFER = Offer(
     category=None,
     contract_type=ContractType.TITULAIRE_CONTRACTUEL,
     offer_url=None,
+    application_url=None,
     localisation=None,
     publication_date=PUBLICATION_DATE,
+    end_publication_date=None,
     beginning_date=None,
     family_code="INF001",
 )
@@ -57,6 +63,7 @@ FULL_OFFER = Offer(
     category=Category.A,
     contract_type=ContractType.CONTRACTUELS,
     offer_url=None,
+    application_url=None,
     localisation=Localisation(
         area=GeographicalArea.EUROPE,
         country=Country("FRA"),
@@ -64,6 +71,7 @@ FULL_OFFER = Offer(
         department=Department(code="75"),
     ),
     publication_date=PUBLICATION_DATE,
+    end_publication_date=None,
     beginning_date=LimitDate(value=datetime(2024, 6, 1, tzinfo=timezone.utc)),
     family_code="MED001",
 )
@@ -135,6 +143,24 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_publish_uses_end_publication_date_as_fin_publication(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(
+        **{
+            **MINIMAL_OFFER.__dict__,
+            "end_publication_date": datetime(2025, 3, 31, tzinfo=timezone.utc),
+        }
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["publication"]["fin_publication"] == "2025-03-31T00:00:00Z"
+
+
+@pytest.mark.asyncio
 async def test_publish_uses_beginning_date_as_fin_publication(
     gateway, httpx_mock: HTTPXMock
 ):
@@ -190,6 +216,109 @@ async def test_publish_serializes_category(gateway, httpx_mock: HTTPXMock):
     body = json.loads(httpx_mock.get_requests()[0].content)
     offer = body["offres"][0]
     assert offer["categories"] == ["A"]
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_application_url(gateway, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer_with_app_url = Offer(
+        **{
+            **MINIMAL_OFFER.__dict__,
+            "application_url": HttpUrl("https://apply.example.com/job/123"),
+        }
+    )
+
+    await gateway.publish(
+        PublishOfferInput(source_id=SOURCE_ID, offer=offer_with_app_url)
+    )
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    offer = body["offres"][0]
+    assert offer["url_candidature"] == "https://apply.example.com/job/123"
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_criteres_with_education_level(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(**{**MINIMAL_OFFER.__dict__, "education_level": 5})
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["criteres"] == {"diplome_niveau": 5}
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_criteres_with_experience(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+
+    offer = Offer(**{**MINIMAL_OFFER.__dict__, "experience": Experience.CONFIRME})
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["criteres"] == {"experience": "CONFIRME"}
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_criteres_with_diploma(gateway, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(**{**MINIMAL_OFFER.__dict__, "diploma": "LICENCE"})
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["criteres"] == {"diploma": "LICENCE"}
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_criteres_with_specialisations(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(**{**MINIMAL_OFFER.__dict__, "specialisations": ["SPEC_A", "SPEC_B"]})
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["criteres"] == {"specialisations": ["SPEC_A", "SPEC_B"]}
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_criteres_with_languages(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+
+    offer = Offer(
+        **{
+            **MINIMAL_OFFER.__dict__,
+            "languages": [Language(iso_code="EN", niveau=Niveau.B2)],
+        }
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["criteres"] == {
+        "languages": [{"iso_code": "EN", "niveau": "B2"}]
+    }
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_criteres_as_none_when_no_education_level(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["criteres"] is None
 
 
 @pytest.mark.asyncio

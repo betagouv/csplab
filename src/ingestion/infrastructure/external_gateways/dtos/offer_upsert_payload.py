@@ -3,9 +3,10 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl, model_serializer
 
 from domain.entities.offer import Offer
+from domain.value_objects.language import Language
 
 
 class IdentificationPayload(BaseModel):
@@ -46,13 +47,34 @@ class PublicationPayload(BaseModel):
     fin_publication: datetime
 
 
+class LanguagePayload(BaseModel):
+    iso_code: str
+    niveau: str
+
+    @classmethod
+    def from_language(cls, language: Language) -> LanguagePayload:
+        return cls(iso_code=language.iso_code, niveau=str(language.niveau))
+
+
+class CriteresPayload(BaseModel):
+    diplome_niveau: Optional[int] = None
+    experience: Optional[str] = None
+    diploma: Optional[str] = None
+    specialisations: list[str] = []
+    languages: list[LanguagePayload] = []
+
+    @model_serializer
+    def serialize(self) -> dict:
+        return {k: v for k, v in self.__dict__.items() if v is not None and v != []}
+
+
 class OfferUpsertPayload(BaseModel):
     identification: IdentificationPayload
     titre: str
     titre_long: str
     organisation: OrganisationPayload
-    url_offre: Optional[str] = None
-    url_candidature: Optional[str] = None
+    url_offre: Optional[HttpUrl] = None
+    url_candidature: Optional[HttpUrl] = None
     profession: ProfessionPayload
     categories: list[str] = []
     type_contrat: Optional[str] = None
@@ -60,7 +82,7 @@ class OfferUpsertPayload(BaseModel):
     vacance_poste: str = ""
     description: DescriptionPayload
     localisation: Optional[list[LocalisationItemPayload]] = None
-    criteres: None = None
+    criteres: Optional[CriteresPayload] = None
     conditions: None = None
     contacts: None = None
     publication: PublicationPayload
@@ -68,9 +90,9 @@ class OfferUpsertPayload(BaseModel):
     @classmethod
     def from_offer(cls, offer: Offer) -> OfferUpsertPayload:
         fin_publication = (
-            offer.beginning_date.value
-            if offer.beginning_date
-            else offer.publication_date + timedelta(days=365)
+            offer.end_publication_date
+            or (offer.beginning_date.value if offer.beginning_date else None)
+            or offer.publication_date + timedelta(days=365)
         )
 
         localisation = None
@@ -100,7 +122,8 @@ class OfferUpsertPayload(BaseModel):
             titre=offer.title,
             titre_long=offer.title,
             organisation=OrganisationPayload(nom=offer.organization),
-            url_offre=str(offer.offer_url) if offer.offer_url else None,
+            url_offre=offer.offer_url,
+            url_candidature=offer.application_url,
             profession=ProfessionPayload(
                 domaine=domaine,
                 metier=offer.family_code or "",
@@ -113,6 +136,21 @@ class OfferUpsertPayload(BaseModel):
                 employeur=offer.organization,
             ),
             localisation=localisation,
+            criteres=CriteresPayload(
+                diplome_niveau=offer.education_level,
+                experience=str(offer.experience) if offer.experience else None,
+                diploma=offer.diploma,
+                specialisations=offer.specialisations,
+                languages=[
+                    LanguagePayload.from_language(lang) for lang in offer.languages
+                ],
+            )
+            if offer.education_level
+            or offer.experience
+            or offer.diploma
+            or offer.specialisations
+            or offer.languages
+            else None,
             publication=PublicationPayload(
                 debut_publication=offer.publication_date,
                 fin_publication=fin_publication,
