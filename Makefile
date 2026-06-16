@@ -271,7 +271,7 @@ run-mvp: ## run web + ocr + ingestion + huey with unified logs
 	@echo "   Web: http://localhost:8000"
 	@echo "   OCR: http://localhost:8001"
 	@echo "   Ingestion: http://localhost:8002"
-	@echo "   Celery Flower: http://localhost:5555/flower"
+	@echo "   Celery Flower: http://localhost:8002/flower"
 	@trap 'kill 0' EXIT; \
 	bin/manage runserver & \
 	make run-ocr & \
