@@ -82,7 +82,7 @@ class Container(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
-    http_client = providers.Singleton(httpx.AsyncClient)
+    http_client = providers.Factory(httpx.AsyncClient)
 
     sources_repository: providers.Provider[ISourcesRepository] = providers.Singleton(
         SourcesRepository

@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 _MAX_RETRIES = 3
 _SERVER_ERROR_STATUS = 500
+_TASK_TIMEOUT_SECONDS = 15
 
 
 def _is_transient(exc: Exception) -> bool:
@@ -81,8 +82,12 @@ def process_webhook(self, webhook_id: str) -> None:
                 webhook.event_type,
             )
 
+    async def _run_with_timeout() -> None:
+        async with asyncio.timeout(_TASK_TIMEOUT_SECONDS):
+            await _run()
+
     try:
-        asyncio.run(_run())
+        asyncio.run(_run_with_timeout())
     except Exception as exc:
         if _is_transient(exc):
             raise self.retry(exc=exc, countdown=2**self.request.retries) from exc
