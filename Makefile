@@ -526,7 +526,7 @@ test-ingestion: \
   create-ingestion-db \
   create-ingestion-test-db
 	@echo 'test:ingestion started…'
-	$(INGESTION_UV) env DATABASE=$$TEST_DATABASE_URL pytest $(ARGS)
+	$(INGESTION_UV) env DATABASE=$${TEST_DATABASE_URL:-psql://ingestion:pass@localhost:5432/ingestion_test} pytest $(ARGS)
 .PHONY: test-ingestion
 
 test-a11y: ## run a11y tests with Playwright and axe-playwright-python
