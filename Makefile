@@ -15,6 +15,8 @@ DEV_UV = cd dev && direnv exec .
 DDD_UV = cd libs/ddd &&
 REFERENTIEL_UV = cd libs/referentiel &&
 
+FRONTEND_FILTER = csplab-frontend
+
 default: help
 
 ## -- Files
@@ -188,8 +190,6 @@ sass-watch: ## watch and compile SCSS files on changes
 .PHONY: sass-watch
 
 ### FRONTEND (Vue/Vite)
-FRONTEND_FILTER = csplab-frontend
-
 frontend-install: ## install frontend dependencies (pnpm)
 	$(WEB_PNPM) install
 .PHONY: frontend-install
