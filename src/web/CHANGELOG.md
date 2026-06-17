@@ -4,6 +4,102 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.11] - 2026-06-16
+
+### <!-- 0 --> Breaking Changes
+
+- ♻️(lib-domain) move ddd object in a separate lib in monorepo ([#663](https://github.com/betagouv/csplab/pull/663))
+- ♻️(lib-domain) referentiel ([#672](https://github.com/betagouv/csplab/pull/672))
+- ♻️(referentiel-infrastructure) renommer l'application django shared en referentiel ([#748](https://github.com/betagouv/csplab/pull/748))
+- ✨(web) move source_id to top-level of upsert offers endpoint ([#756](https://github.com/betagouv/csplab/pull/756))
+
+### <!-- 1 --> Added
+
+- ✨(candidate-usecase) add metiers in match cv to opportunities usecase ([#637](https://github.com/betagouv/csplab/pull/637))
+- ✨(tooling) add storybook publishing workflow ([#647](https://github.com/betagouv/csplab/pull/647))
+- ✨(ingestion) clean a raw offer after loading it ([#640](https://github.com/betagouv/csplab/pull/640))
+- ✨(notebook) publish notebook on github pages ([#641](https://github.com/betagouv/csplab/pull/641))
+- ✨(ats-presentation) add base icon an button components ([#646](https://github.com/betagouv/csplab/pull/646))
+- ✅(tooling) require PR fields ([#652](https://github.com/betagouv/csplab/pull/652))
+- 🔧(tooling) run ingestion, ocr and web workflows everytime ([#658](https://github.com/betagouv/csplab/pull/658))
+- 🔧(tooling) add workflow to push to main-(ocr|ingestion|web) ([#659](https://github.com/betagouv/csplab/pull/659))
+- ✨(web-infrastructure) set offers.source_id as a foreign key ([#651](https://github.com/betagouv/csplab/pull/651))
+- 🔧(tooling) no force push on main-* ([#660](https://github.com/betagouv/csplab/pull/660))
+- ✨(web) add reference column to offers ([#657](https://github.com/betagouv/csplab/pull/657))
+- ✅(tooling) get all commits from the repo ([#661](https://github.com/betagouv/csplab/pull/661))
+- ✨(ats-presentation) add content container components ([#687](https://github.com/betagouv/csplab/pull/687))
+- ✨(ats-presentation) add badge and avatar components ([#683](https://github.com/betagouv/csplab/pull/683))
+- ✨(ats-presentation) add base form components ([#682](https://github.com/betagouv/csplab/pull/682))
+- ✨(ingestion-presentation) accept token auth for upsert offer API ([#690](https://github.com/betagouv/csplab/pull/690))
+- 🔧(frontend) tests frontend ([#716](https://github.com/betagouv/csplab/pull/716))
+- ✨(ingestion) publish offer to web ([#692](https://github.com/betagouv/csplab/pull/692))
+- ✨(web) add 2FA authentication on Django admin ([#699](https://github.com/betagouv/csplab/pull/699))
+- 🔧(chore) auto-rebase PRs on approval ([#718](https://github.com/betagouv/csplab/pull/718))
+- ✨(web-presentation) add a security.txt URL ([#695](https://github.com/betagouv/csplab/pull/695))
+- ✨(frontend) create base layout and sidebar ([#701](https://github.com/betagouv/csplab/pull/701))
+- ✨(recruteur-domain) add organisme in recruteur contexte ([#681](https://github.com/betagouv/csplab/pull/681))
+- ✨(ingestion) store offer archived_at when archiving ([#697](https://github.com/betagouv/csplab/pull/697))
+- ✨(web-domain) add candidate candidature ([#685](https://github.com/betagouv/csplab/pull/685))
+- ✨(ingestion) save Talensoft webhooks to the database ([#694](https://github.com/betagouv/csplab/pull/694))
+- ✨(web) log API requests ([#720](https://github.com/betagouv/csplab/pull/720))
+- ✨(web) add APILog in Django Admin as readonly ([#733](https://github.com/betagouv/csplab/pull/733))
+- ✨(identite) add first identite endpoint ([#722](https://github.com/betagouv/csplab/pull/722))
+- ✨(candidate-application) soumettre candidature usecase ([#729](https://github.com/betagouv/csplab/pull/729))
+- ✨(identite-usecase) creer un utilisateur avec un profil agent ([#735](https://github.com/betagouv/csplab/pull/735))
+- ✨(identite-usecase) creer un utilisateur avec un profil candidat ([#744](https://github.com/betagouv/csplab/pull/744))
+- ✨(ingestion) aggregate and purge API logs daily ([#743](https://github.com/betagouv/csplab/pull/743))
+- ✨(users) link users to sources (m:n) and enforce source authorization on ingestion endpoints ([#742](https://github.com/betagouv/csplab/pull/742))
+- ✨(candidate) afficher le metier dans la liste des offres ([#747](https://github.com/betagouv/csplab/pull/747))
+- ✨(ingestion) type Offer.source_id as UUID and send source_id in publish payload ([#755](https://github.com/betagouv/csplab/pull/755))
+- ✨(candidate-infrastructure) submit application implementation ([#753](https://github.com/betagouv/csplab/pull/753))
+- ✨(ingestion) process webhooks asynchronously via Celery ([#737](https://github.com/betagouv/csplab/pull/737))
+- ✨(web-presentation) login page ui ([#752](https://github.com/betagouv/csplab/pull/752))
+- ♻️(ingestion) avoid hardcoding test database URL and recreate test DB from scratch ([#785](https://github.com/betagouv/csplab/pull/785))
+- ✨(ats-presentation) add tag component ([#787](https://github.com/betagouv/csplab/pull/787))
+- ✨(frontend) get current username in ATS  ([#741](https://github.com/betagouv/csplab/pull/741))
+- ✨(frontend) Add tabs component ([#790](https://github.com/betagouv/csplab/pull/790))
+
+### <!-- 2 --> Modified
+
+- 🔧(storybook) update storybook pr preview path ([#650](https://github.com/betagouv/csplab/pull/650))
+- ⚡️(users-admin) let update some fields in admin view ([#653](https://github.com/betagouv/csplab/pull/653))
+- ♻️(tooling-tests) refactor patching container creation in presentation tests ([#656](https://github.com/betagouv/csplab/pull/656))
+- ♻️(ingestion-presentation) isolate ingestion views ([#662](https://github.com/betagouv/csplab/pull/662))
+- ♻️(ats-presentation) update components and css classes naming conventions ([#664](https://github.com/betagouv/csplab/pull/664))
+- ♻️(ats-presentation) use exact dsfr color tokens ([#679](https://github.com/betagouv/csplab/pull/679))
+- ♻️(web) tests organized by layer and contexts ([#673](https://github.com/betagouv/csplab/pull/673))
+- ♻️(identite-presentation) transfert users presentation layer to identite ([#728](https://github.com/betagouv/csplab/pull/728))
+- ♻️(ingestion-tests) refactor integration container fixtures for more readibility ([#726](https://github.com/betagouv/csplab/pull/726))
+- 🔧(pages) configure gh pages to handle custom domain along with default ([#727](https://github.com/betagouv/csplab/pull/727))
+- ♻️(ingestion-domain) ajustement des entity_id des entités du domaine ingestion ([#746](https://github.com/betagouv/csplab/pull/746))
+- ♻️(tooling) replace pytest.mark.django_db decorator with db fixture in tests ([#745](https://github.com/betagouv/csplab/pull/745))
+- ♻️(web-infrastructure) ajout du modele abstrait BaseDatedModel ([#750](https://github.com/betagouv/csplab/pull/750))
+- ⚡️(identite-tooling) amélioration des factories Agent et Candidat ([#777](https://github.com/betagouv/csplab/pull/777))
+- ♻️(ingestion) apilog should be in web/ingestion ([#778](https://github.com/betagouv/csplab/pull/778))
+
+### <!-- 3 --> Removed
+
+- ♻️(web-infrastructure) remove manager declaration, since default manager is not modified ([#749](https://github.com/betagouv/csplab/pull/749))
+
+### <!-- 4 --> Fixed
+
+- 🐛(storybook) fix storybook deploy workflow ([#649](https://github.com/betagouv/csplab/pull/649))
+- 🔧(web) Fix/dependabot vitest node24 ([#674](https://github.com/betagouv/csplab/pull/674))
+- 🐛(ats-presentation) fix disabled btn states rendering ([#688](https://github.com/betagouv/csplab/pull/688))
+- 🐛(web-ingestion) fix upsert offers payload in API ([#693](https://github.com/betagouv/csplab/pull/693))
+- 🐛(ingestion-presentation): fix upsert offers test data structure ([#717](https://github.com/betagouv/csplab/pull/717))
+- ✅(web) recreate missing indexes ([#719](https://github.com/betagouv/csplab/pull/719))
+- 🐛(github-pages) resolve github pages concurrency ([#724](https://github.com/betagouv/csplab/pull/724))
+- 🐛(metiers) fix !N! displayed as-is in conditions_particulieres and description ([#739](https://github.com/betagouv/csplab/pull/739))
+- 🐛(frontend): Fix fonts for Storybook and local development ([#740](https://github.com/betagouv/csplab/pull/740))
+- 💚(storybook) narrow down path detection triggering storybook build ([#751](https://github.com/betagouv/csplab/pull/751))
+- ✨(ingestion) lock periodic API log tasks to single execution ([#754](https://github.com/betagouv/csplab/pull/754))
+- 🐛(web) fix local run-mvp ([#788](https://github.com/betagouv/csplab/pull/788))
+- 🐛(candidate) fk to offer_id require offer_id to be indexed ([#786](https://github.com/betagouv/csplab/pull/786))
+- 🐛(web-infrastructure) add missing indexes on pk ([#789](https://github.com/betagouv/csplab/pull/789))
+- 🐛(ingestion) run Flower inside web container for Scalingo compatibility ([#784](https://github.com/betagouv/csplab/pull/784))
+- 🐛(ingestion) register Celery tasks via include instead of autodiscover ([#783](https://github.com/betagouv/csplab/pull/783))
+
 ## [0.1.10] - 2026-06-02
 
 ### <!-- 0 --> Breaking Changes
