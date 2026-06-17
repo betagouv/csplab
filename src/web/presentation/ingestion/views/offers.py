@@ -237,9 +237,7 @@ class OffersUpsertView(APIView):
         offer_mapper = OfferInputMapper()
 
         for _, offer_data in enumerate(request.data["offres"]):
-            serializer = OffersInputSerializer(
-                data={**offer_data, "source_id": source_id}
-            )
+            serializer = OffersInputSerializer(data=offer_data)
             if not serializer.is_valid():
                 errors.append(
                     {
@@ -249,7 +247,9 @@ class OffersUpsertView(APIView):
                 )
                 continue
             try:
-                valid_offers.append(offer_mapper.to_domain(serializer.validated_data))
+                valid_offers.append(
+                    offer_mapper.to_domain(serializer.validated_data, source_id)
+                )
             except Exception as e:
                 errors.append(
                     {

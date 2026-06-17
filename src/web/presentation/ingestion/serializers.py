@@ -1,4 +1,3 @@
-from drf_spectacular.utils import extend_schema_serializer
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
@@ -211,9 +210,7 @@ class PublicationInputSerializer(serializers.Serializer):
     debut_vacance_poste = serializers.DateTimeField(allow_null=True, required=False)
 
 
-@extend_schema_serializer(exclude_fields=["source_id"])
 class OffersInputSerializer(serializers.Serializer):
-    source_id = serializers.UUIDField()
     identification = IdentityInputSerializer()
 
     # general infos
