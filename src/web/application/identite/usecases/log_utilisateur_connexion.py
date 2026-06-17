@@ -1,0 +1,30 @@
+from dataclasses import dataclass
+
+from domain.audit.services.audit_log_writer import AuditLogWriter
+from domain.identite.entities.utilisateurs import Utilisateur
+
+
+@dataclass
+class LogUtilisateurConnexionInput:
+    utilisateur: Utilisateur
+
+
+class LogUtilisateurConnexionUsecase:
+    """Records an audit log when a user authenticates.
+
+    Login is an authentication concern of the ``Utilisateur`` identity, not of
+    the Agent/Candidat role profiles, so the log targets the utilisateur
+    itself (``ressource_id == utilisateur_id``).
+    """
+
+    def __init__(self, audit_log_writer: AuditLogWriter) -> None:
+        self._audit_log_writer = audit_log_writer
+
+    def execute(self, input_data: LogUtilisateurConnexionInput) -> None:
+        utilisateur = input_data.utilisateur
+        self._audit_log_writer.log_action(
+            utilisateur_id=utilisateur.entity_id,
+            entity=utilisateur,
+            ressource_kind=type(utilisateur).__name__,
+            event_name="Connexion",
+        )

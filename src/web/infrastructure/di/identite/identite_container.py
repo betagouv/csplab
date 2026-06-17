@@ -5,6 +5,13 @@ from application.identite.usecases.create_candidat import CreateCandidatUsecase
 from application.identite.usecases.get_utilisateur_details import (
     GetUtilisateurDetailUsecase,
 )
+from application.identite.usecases.log_utilisateur_connexion import (
+    LogUtilisateurConnexionUsecase,
+)
+from domain.audit.services.audit_log_writer import AuditLogWriter
+from infrastructure.repositories.audit.postgres_audit_log_repository import (
+    PostgresAuditLogRepository,
+)
 from infrastructure.repositories.identite.postgres_agent_repository import (
     PostgresAgentRepository,
 )
@@ -23,6 +30,12 @@ class IdentiteContainer(containers.DeclarativeContainer):
     postgres_utilisateur_repository = providers.Singleton(PostgresUtilisateurRepository)
     postgres_agent_repository = providers.Singleton(PostgresAgentRepository)
     postgres_candidat_repository = providers.Singleton(PostgresCandidatRepository)
+    postgres_audit_log_repository = providers.Singleton(PostgresAuditLogRepository)
+
+    audit_log_writer = providers.Factory(
+        AuditLogWriter,
+        repository=postgres_audit_log_repository,
+    )
 
     get_utilisateur_details_usecase = providers.Factory(
         GetUtilisateurDetailUsecase,
@@ -39,4 +52,9 @@ class IdentiteContainer(containers.DeclarativeContainer):
         CreateCandidatUsecase,
         candidat_repository=postgres_candidat_repository,
         utilisateur_repository=postgres_utilisateur_repository,
+    )
+
+    log_utilisateur_connexion_usecase = providers.Factory(
+        LogUtilisateurConnexionUsecase,
+        audit_log_writer=audit_log_writer,
     )
