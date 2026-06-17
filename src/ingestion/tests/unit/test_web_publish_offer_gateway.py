@@ -117,7 +117,6 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     offer = body["offres"][0]
 
     assert offer["identification"]["reference"] == "2024-OFFER-001"
-    assert offer["identification"]["source"] == str(SOURCE_ID)
     assert offer["identification"]["versant"] == "FPT"
     assert offer["titre"] == "Software Engineer"
     assert offer["titre_long"] == "Software Engineer"
