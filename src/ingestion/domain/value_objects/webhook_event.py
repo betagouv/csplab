@@ -26,6 +26,11 @@ class WebhookEvent:
     status: OfferStatus | None = None
 
 
+class WebhookActionType(StrEnum):
+    ARCHIVE = "archive"
+    SAVE_RAW_OFFER = "save_raw_offer"
+
+
 def should_archive(event: WebhookEvent) -> bool:
     if event.event_type == EventType.SUPPRIME:
         return True
@@ -37,3 +42,11 @@ def should_archive(event: WebhookEvent) -> bool:
 
 def should_save_raw_offer(event: WebhookEvent) -> bool:
     return event.event_type in {EventType.CREE, EventType.MIS_A_JOUR}
+
+
+def get_action_type(event: WebhookEvent) -> WebhookActionType | None:
+    if should_archive(event):
+        return WebhookActionType.ARCHIVE
+    if should_save_raw_offer(event):
+        return WebhookActionType.SAVE_RAW_OFFER
+    return None

@@ -3,7 +3,7 @@ from typing import Any
 from domain.entities.webhook import Webhook
 from domain.repositories.webhook_repository import IWebhookRepository
 from domain.value_objects.source import Source
-from domain.value_objects.webhook_event import WebhookEvent
+from domain.value_objects.webhook_event import WebhookEvent, get_action_type
 from domain.value_objects.webhook_type import WebhookType
 
 
@@ -24,6 +24,7 @@ class SaveWebhookUseCase:
             event_type=event.event_type,
             reference=event.reference,
             status_id=event.status,
+            action_type=get_action_type(event),
             payload=payload,
         )
         await self._repository.insert(webhook)

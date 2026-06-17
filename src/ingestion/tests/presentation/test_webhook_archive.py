@@ -27,7 +27,7 @@ async def test_vacancy_deleted_enqueues_task(talentsoft_client):
         "event_type": TalentsoftEventType.VACANCY_DELETED,
         "reference": REFERENCE,
     }
-    with patch("api.routes.process_webhook") as mock_task:
+    with patch("api.routes.archive_offer_webhook") as mock_task:
         response = make_signed_request(talentsoft_client, payload)
 
     assert response.status_code == 200
@@ -54,7 +54,7 @@ async def test_vacancy_status_non_diffuse_enqueues_task(
         "reference": REFERENCE,
         "statusId": status_id,
     }
-    with patch("api.routes.process_webhook") as mock_task:
+    with patch("api.routes.archive_offer_webhook") as mock_task:
         response = make_signed_request(talentsoft_client, payload)
 
     assert response.status_code == 200
@@ -69,7 +69,7 @@ async def test_vacancy_status_diffuse_saves_but_does_not_enqueue(talentsoft_clie
         "reference": REFERENCE,
         "statusId": TalentsoftOfferStatus.DIFFUSE,
     }
-    with patch("api.routes.process_webhook") as mock_task:
+    with patch("api.routes.archive_offer_webhook") as mock_task:
         response = make_signed_request(talentsoft_client, payload)
 
     assert response.status_code == 200

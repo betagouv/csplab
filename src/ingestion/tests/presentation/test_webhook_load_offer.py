@@ -13,7 +13,7 @@ REFERENCE = "2024-VACANCY-001"
 @pytest.mark.asyncio
 async def test_vacancy_new_enqueues_task(talentsoft_client):
     payload = {"event_type": TalentsoftEventType.VACANCY_NEW, "reference": REFERENCE}
-    with patch("api.routes.process_webhook") as mock_task:
+    with patch("api.routes.save_raw_offer_webhook") as mock_task:
         response = make_signed_request(talentsoft_client, payload)
 
     assert response.status_code == 200
@@ -26,7 +26,7 @@ async def test_vacancy_new_enqueues_task(talentsoft_client):
 @pytest.mark.asyncio
 async def test_vacancy_update_enqueues_task(talentsoft_client):
     payload = {"event_type": TalentsoftEventType.VACANCY_UPDATE, "reference": REFERENCE}
-    with patch("api.routes.process_webhook") as mock_task:
+    with patch("api.routes.save_raw_offer_webhook") as mock_task:
         response = make_signed_request(talentsoft_client, payload)
 
     assert response.status_code == 200
