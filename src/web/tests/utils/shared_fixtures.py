@@ -38,6 +38,7 @@ from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.upsert_offers import UpsertOffersUseCase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from config.app_config import AppConfig
+from domain.audit.services.audit_log_writer import AuditLogWriter
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
 )
@@ -447,6 +448,7 @@ def submit_application_usecase():
     return SubmitApplicationUsecase(
         candidature_repository=candidature_repository,
         actors_validator=actors_validator,
+        audit_log_writer=MagicMock(spec=AuditLogWriter),
         logger=MagicMock(),
     )
 

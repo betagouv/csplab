@@ -4,6 +4,7 @@ from ddd.usecase_interface import IUseCase
 from application.candidate.commands.submit_application_command import (
     SubmitApplicationCommand,
 )
+from domain.audit.services.audit_log_writer import AuditLogWriter
 from domain.candidate.entities.candidature import Candidature
 from domain.candidate.exceptions.candidature_errors import (
     CandidatureNexistePas,
@@ -23,11 +24,13 @@ class SubmitApplicationUsecase(
         self,
         candidature_repository: ICandidatureRepository,
         actors_validator: CandidatureActorsValidator,
+        audit_log_writer: AuditLogWriter,
         logger: ILogger,
     ):
         self.logger = logger
         self.candidature_repository = candidature_repository
         self.actors_validator = actors_validator
+        self.audit_log_writer = audit_log_writer
 
     def execute(self, command: SubmitApplicationCommand) -> Candidature:
         self.logger.info(
@@ -58,5 +61,7 @@ class SubmitApplicationUsecase(
         candidature.soumettre_candidature()
         self.candidature_repository.save(candidature)
 
-        # todo: collect_events => save in audit logs
+        self.audit_log_writer.drain_events(
+            utilisateur_id=candidat_id, aggregate=candidature
+        )
         return candidature
