@@ -3,6 +3,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID
 
 import pytest
+from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.verse import Verse
 
 from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
@@ -10,8 +12,6 @@ from application.use_cases.publish_offer import PublishOfferUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
-from domain.value_objects.contract_type import ContractType
-from domain.value_objects.verse import Verse
 from infrastructure.exceptions.exceptions import ExternalApiError
 
 REFERENCE = "2024-OFFER-001"
@@ -33,8 +33,10 @@ CLEANED_OFFER = Offer(
     category=None,
     contract_type=ContractType.TITULAIRE_CONTRACTUEL,
     offer_url=None,
+    application_url=None,
     localisation=None,
     publication_date=datetime(2024, 1, 1, tzinfo=timezone.utc),
+    end_publication_date=None,
     beginning_date=None,
     family_code="INF001",
 )

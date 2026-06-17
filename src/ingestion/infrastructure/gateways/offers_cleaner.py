@@ -4,18 +4,21 @@ from typing import List, Optional, cast
 from uuid import UUID
 
 from pydantic import HttpUrl, ValidationError
+from referentiel.value_objects.area import GeographicalArea
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.language import Language
+from referentiel.value_objects.language_level import LanguageLevel
+from referentiel.value_objects.limit_date import LimitDate
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.region import Region
+from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
-from domain.value_objects.area import GeographicalArea
-from domain.value_objects.category import Category
-from domain.value_objects.contract_type import ContractType
-from domain.value_objects.country import Country
-from domain.value_objects.department import Department
-from domain.value_objects.limit_date import LimitDate
-from domain.value_objects.localisation import Localisation
-from domain.value_objects.region import Region
-from domain.value_objects.verse import Verse
 from infrastructure.external_gateways.dtos.talentsoft_dtos import TalentsoftDetailOffer
 
 logger = logging.getLogger(__name__)
@@ -64,8 +67,16 @@ class OffersCleaner:
         )
 
         offer_url = self._parse_url(talentsoft_offer.offerUrl)
+        application_url = (
+            self._parse_url(talentsoft_offer.applicationUrl)
+            if talentsoft_offer.applicationUrl
+            else None
+        )
         publication_date = self._parse_publication_date(
             talentsoft_offer.startPublicationDate
+        )
+        end_publication_date = self._parse_optional_date(
+            talentsoft_offer.endPublicationDate
         )
         beginning_date = self._parse_beginning_date(talentsoft_offer.beginningDate)
 
@@ -81,6 +92,32 @@ class OffersCleaner:
         if talentsoft_offer.offerFamilyCategory:
             family_code_value = talentsoft_offer.offerFamilyCategory.clientCode
 
+        education_level = (
+            self._map_education_level(talentsoft_offer.educationLevel.clientCode)
+            if talentsoft_offer.educationLevel
+            else None
+        )
+
+        experience = (
+            self._map_experience(talentsoft_offer.experienceLevel.clientCode)
+            if talentsoft_offer.experienceLevel
+            else None
+        )
+
+        specialisations = [s.clientCode for s in talentsoft_offer.specialisations]
+
+        languages = [
+            Language(
+                iso_code=lang.languageName.clientCode,
+                language_level=LanguageLevel(lang.languageLevel.clientCode),
+            )
+            for lang in talentsoft_offer.languages
+        ]
+
+        diploma = (
+            talentsoft_offer.diploma.clientCode if talentsoft_offer.diploma else None
+        )
+
         return Offer(
             reference=raw_offer.reference,
             source_id=UUID(cast(str, raw_offer.source_id)),
@@ -95,9 +132,16 @@ class OffersCleaner:
             contract_type=contract_type,
             organization=talentsoft_offer.organisationName,
             offer_url=offer_url,
+            application_url=application_url,
             localisation=localisation,
             publication_date=publication_date,
+            end_publication_date=end_publication_date,
             beginning_date=beginning_date,
+            education_level=education_level,
+            experience=experience,
+            diploma=diploma,
+            languages=languages,
+            specialisations=specialisations,
             family_code=family_code_value,
         )
 
@@ -181,6 +225,14 @@ class OffersCleaner:
     def _parse_publication_date(self, date_str: str) -> datetime:
         return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
 
+    def _parse_optional_date(self, date_str: Optional[str]) -> Optional[datetime]:
+        if not date_str:
+            return None
+        try:
+            return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        except (ValueError, TypeError, AttributeError):
+            return None
+
     def _parse_beginning_date(self, date_str: Optional[str]) -> Optional[LimitDate]:
         if not date_str:
             return None
@@ -190,6 +242,28 @@ class OffersCleaner:
             return LimitDate(value=parsed_date)
         except (ValueError, TypeError, AttributeError):
             return None
+
+    def _map_experience(self, client_code: str) -> Optional[ExperienceLevel]:
+        mapping: dict[str, Optional[ExperienceLevel]] = {
+            "_TS_CO_ExperienceLevel_Nonrenseign": None,
+            "debutant": ExperienceLevel.DEBUTANT,
+            "confirme": ExperienceLevel.CONFIRME,
+            "expert": ExperienceLevel.EXPERT,
+        }
+        return mapping[client_code]
+
+    def _map_education_level(self, client_code: str) -> Optional[int]:
+        mapping = {
+            "A": 1,
+            "B": 2,
+            "C": 3,
+            "D": 4,
+            "E": 5,
+            "F": 6,
+            "G": 7,
+            "H": 8,
+        }
+        return mapping[client_code]
 
     def _parse_category(self, category_code: Optional[str]) -> Optional[Category]:
         if category_code in ["CAT-AEF", "CAT-ESD", "CAT-ES"]:

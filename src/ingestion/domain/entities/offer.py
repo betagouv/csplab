@@ -4,12 +4,13 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import HttpUrl
-
-from domain.value_objects.category import Category
-from domain.value_objects.contract_type import ContractType
-from domain.value_objects.limit_date import LimitDate
-from domain.value_objects.localisation import Localisation
-from domain.value_objects.verse import Verse
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.language import Language
+from referentiel.value_objects.limit_date import LimitDate
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.verse import Verse
 
 
 @dataclass
@@ -25,8 +26,15 @@ class Offer:
     category: Optional[Category]
     contract_type: Optional[ContractType]
     offer_url: Optional[HttpUrl]
+    application_url: Optional[HttpUrl]
     localisation: Optional[Localisation]
     publication_date: datetime
+    end_publication_date: Optional[datetime]
     beginning_date: Optional[LimitDate]
+    education_level: Optional[int] = None
+    experience: Optional[ExperienceLevel] = None
+    diploma: Optional[str] = None
+    languages: list[Language] = field(default_factory=list)
+    specialisations: list[str] = field(default_factory=list)
     family_code: Optional[str] = None
     id: UUID = field(default_factory=uuid4)

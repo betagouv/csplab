@@ -2,14 +2,14 @@ import datetime
 from uuid import UUID
 
 import pytest
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.limit_date import LimitDate
+from referentiel.value_objects.verse import Verse
 
 from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
 from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
-from domain.value_objects.category import Category
-from domain.value_objects.contract_type import ContractType
-from domain.value_objects.limit_date import LimitDate
-from domain.value_objects.verse import Verse
 from infrastructure.gateways.offers_cleaner import OffersCleaner
 from tests.factories.talentsoft_factories import (
     TalentsoftCodedObjectFactory,
