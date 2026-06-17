@@ -219,6 +219,7 @@ storybook-build: ## build Storybook static output
 .PHONY: storybook-build
 
 frontend-types: ## generate TypeScript types from OpenAPI schema
+	$(WEB_INTERNAL_API_UV) python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate
 	$(WEB_PNPM) --filter $(FRONTEND_FILTER) generate-types
 .PHONY: frontend-types
 
@@ -297,7 +298,7 @@ lint: \
   lint-ocr \
   lint-ingestion \
   lint-schema \
-  lint-internal-schema \
+  lint-frontend-types \
   frontend-lint
 .PHONY: lint
 
@@ -491,13 +492,10 @@ lint-schema: ## generate and check API schema is up to date
 	git diff --exit-code src/web/presentation/static/api/schema.yaml
 .PHONY: lint-schema
 
-lint-internal-schema:
+lint-frontend-types: ## check types are in sync with TypeScript & DRF OpenAPI schemas
 	@echo 'lint:internal schema started…'
 	$(WEB_INTERNAL_API_UV) python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate --fail-on-warn
 	git diff --exit-code src/web/presentation/static/api/internal-schema.yaml
-.PHONY: lint-internal-schema
-
-lint-frontend-types: ## check frontend TypeScript types are in sync with OpenAPI schema
 	@echo 'lint:frontend-types started…'
 	$(WEB_PNPM) --filter $(FRONTEND_FILTER) generate-types
 	git diff --exit-code src/web/presentation/frontend/src/types/api.d.ts
