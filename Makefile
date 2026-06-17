@@ -5,6 +5,7 @@ SHELL := /bin/bash
 COMPOSE                 = docker compose
 COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
 
+WEB_PNPM = cd src/web && pnpm
 WEB_UV = cd src/web && direnv exec .
 WEB_INTERNAL_API_UV = cd src/web && DJANGO_SETTINGS_MODULE=config.settings.schema_internal direnv exec .
 OCR_UV = cd src/ocr && direnv exec .
@@ -187,39 +188,38 @@ sass-watch: ## watch and compile SCSS files on changes
 .PHONY: sass-watch
 
 ### FRONTEND (Vue/Vite)
-WEB_DIR = src/web
 FRONTEND_FILTER = csplab-frontend
 
 frontend-install: ## install frontend dependencies (pnpm)
-	cd $(WEB_DIR) && pnpm install
+	$(WEB_PNPM) install
 .PHONY: frontend-install
 
 frontend-dev: ## run frontend dev server (Vite HMR)
-	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) dev
+	$(WEB_PNPM) --filter $(FRONTEND_FILTER) dev
 .PHONY: frontend-dev
 
 frontend-build: ## build frontend for production
-	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) build
+	$(WEB_PNPM) --filter $(FRONTEND_FILTER) build
 .PHONY: frontend-build
 
 frontend-lint: ## lint frontend sources
-	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) lint
+	$(WEB_PNPM) --filter $(FRONTEND_FILTER) lint
 .PHONY: frontend-lint
 
 frontend-lint-fix: ## lint and fix frontend sources
-	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) lint:fix
+	$(WEB_PNPM) --filter $(FRONTEND_FILTER) lint:fix
 .PHONY: frontend-lint-fix
 
 storybook: ## run Storybook dev server (port 6006)
-	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) storybook
+	$(WEB_PNPM) --filter $(FRONTEND_FILTER) storybook
 .PHONY: storybook
 
 storybook-build: ## build Storybook static output
-	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) build-storybook
+	$(WEB_PNPM) --filter $(FRONTEND_FILTER) build-storybook
 .PHONY: storybook-build
 
 frontend-types: ## generate TypeScript types from OpenAPI schema
-	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) generate-types
+	$(WEB_PNPM) --filter $(FRONTEND_FILTER) generate-types
 .PHONY: frontend-types
 
 ### RUN
@@ -369,22 +369,22 @@ lint-web-fix: \
 
 lint-web-candidate-js: ## lint candidate app JS sources with ESLint
 	@echo 'lint:web-candidate-js started…'
-	cd $(WEB_DIR) && pnpm run lint:candidate-js
+	$(WEB_PNPM) run lint:candidate-js
 .PHONY: lint-web-candidate-js
 
 lint-web-candidate-js-fix: ## lint and fix candidate app JS sources with ESLint
 	@echo 'lint:web-candidate-js-fix started…'
-	cd $(WEB_DIR) && pnpm run lint:candidate-js:fix || true
+	$(WEB_PNPM) run lint:candidate-js:fix || true
 .PHONY: lint-web-candidate-js-fix
 
 lint-web-styles: ## lint Django app SCSS sources with ESLint
 	@echo 'lint:web-styles started…'
-	cd $(WEB_DIR) && pnpm run lint:styles
+	$(WEB_PNPM) run lint:styles
 .PHONY: lint-web-styles
 
 lint-web-styles-fix: ## lint, fix, and compile Django app SCSS sources
 	@echo 'lint:web-styles-fix started…'
-	cd $(WEB_DIR) && pnpm run lint:styles:fix
+	$(WEB_PNPM) run lint:styles:fix
 	@bin/sass compile
 .PHONY: lint-web-styles-fix
 
@@ -499,7 +499,7 @@ lint-internal-schema:
 
 lint-frontend-types: ## check frontend TypeScript types are in sync with OpenAPI schema
 	@echo 'lint:frontend-types started…'
-	cd $(WEB_DIR) && pnpm --filter $(FRONTEND_FILTER) generate-types
+	$(WEB_PNPM) --filter $(FRONTEND_FILTER) generate-types
 	git diff --exit-code src/web/presentation/frontend/src/types/api.d.ts
 .PHONY: lint-frontend-types
 
