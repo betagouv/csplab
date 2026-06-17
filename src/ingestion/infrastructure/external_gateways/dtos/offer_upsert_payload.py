@@ -11,7 +11,6 @@ from domain.entities.offer import Offer
 
 class IdentificationPayload(BaseModel):
     reference: str
-    source: str
     versant: Optional[str]
 
 
@@ -116,7 +115,6 @@ class OfferUpsertPayload(BaseModel):
         return cls(
             identification=IdentificationPayload(
                 reference=offer.reference,
-                source=str(offer.source_id),
                 versant=offer.verse.value if offer.verse else None,
             ),
             titre=offer.title,
