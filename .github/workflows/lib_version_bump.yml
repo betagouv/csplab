@@ -1,0 +1,46 @@
+name: Lib Version Bump Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    paths:
+      - "libs/**"
+
+permissions:
+  contents: read
+
+jobs:
+  check-version-bump:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lib: [ddd, referentiel]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check that ${{ matrix.lib }} version was bumped
+        env:
+          LIB: ${{ matrix.lib }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          LIB_PATH="libs/$LIB"
+
+          CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- "$LIB_PATH")
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changes in $LIB_PATH, skipping."
+            exit 0
+          fi
+
+          BASE_VERSION=$(git show "$BASE_SHA:$LIB_PATH/pyproject.toml" | grep -m1 '^version' | sed -E 's/version *= *"(.*)"/\1/')
+          HEAD_VERSION=$(git show "$HEAD_SHA:$LIB_PATH/pyproject.toml" | grep -m1 '^version' | sed -E 's/version *= *"(.*)"/\1/')
+
+          echo "Base version: $BASE_VERSION"
+          echo "Head version: $HEAD_VERSION"
+
+          if [ "$BASE_VERSION" = "$HEAD_VERSION" ]; then
+            echo "::error::Files changed in $LIB_PATH but the version in $LIB_PATH/pyproject.toml was not bumped (still $HEAD_VERSION)."
+            exit 1
+          fi
