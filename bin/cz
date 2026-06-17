@@ -2,4 +2,10 @@
 
 set -eo pipefail
 
-make lint && cd dev && direnv exec . uv run cz "$@"
+if [ "$1" = "-n" ]; then
+  shift
+else
+  make lint
+fi
+
+cd dev && direnv exec . uv run cz "$@"

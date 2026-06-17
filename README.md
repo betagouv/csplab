@@ -66,6 +66,8 @@ git add .
 bin/cz commit
 ```
 
+`bin/cz` lance `make lint` avant le commit ; ajoutez `-n` (ex. `bin/cz -n commit`) pour ignorer le linting.
+
 ### Format des messages de commit
 
 Les messages de commit doivent respecter le format gitmoji configuré :
