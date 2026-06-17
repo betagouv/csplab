@@ -211,7 +211,6 @@ class PublicationInputSerializer(serializers.Serializer):
 
 
 class OffersInputSerializer(serializers.Serializer):
-    source_id = serializers.UUIDField()
     identification = IdentityInputSerializer()
 
     # general infos

@@ -1243,9 +1243,6 @@ components:
     OffersInput:
       type: object
       properties:
-        source_id:
-          type: string
-          format: uuid
         identification:
           $ref: '#/components/schemas/IdentityInput'
         titre:
@@ -1318,7 +1315,6 @@ components:
       - organisation
       - profession
       - publication
-      - source_id
       - titre
       - titre_long
       - type_contrat
