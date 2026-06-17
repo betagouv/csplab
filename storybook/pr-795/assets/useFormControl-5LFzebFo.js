@@ -1,1 +1,0 @@
-import{b as t,$ as e}from"./vue.esm-bundler-7zVN4DZj.js";import{u}from"./useForwardExpose-qwf_wVRM.js";function s(o){return t(()=>{var r;return e(o)?!!((r=u(o))!=null&&r.closest("form")):!0})}export{s as u};
