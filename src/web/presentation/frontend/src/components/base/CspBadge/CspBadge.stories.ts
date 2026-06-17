@@ -1,4 +1,4 @@
-import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3'
+import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3-vite'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 
 type CspBadgeProps = ComponentPropsAndSlots<typeof CspBadge>

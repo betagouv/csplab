@@ -1,4 +1,4 @@
-import type { StoryObj } from '@storybook/vue3'
+import type { StoryObj } from '@storybook/vue3-vite'
 import { RadioGroupRoot } from 'reka-ui'
 import { ref } from 'vue'
 import CspRadio from '@/components/base/CspRadio/CspRadio.vue'

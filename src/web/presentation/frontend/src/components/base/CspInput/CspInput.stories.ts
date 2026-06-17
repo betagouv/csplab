@@ -1,4 +1,4 @@
-import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3'
+import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3-vite'
 import { ref, watch } from 'vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 

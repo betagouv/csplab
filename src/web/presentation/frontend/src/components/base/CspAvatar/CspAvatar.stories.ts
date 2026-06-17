@@ -1,4 +1,4 @@
-import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3'
+import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3-vite'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 
 type CspAvatarProps = ComponentPropsAndSlots<typeof CspAvatar>

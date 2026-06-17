@@ -1,4 +1,4 @@
-import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3'
+import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3-vite'
 import { DialogClose } from 'reka-ui'
 import { ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
