@@ -3,7 +3,7 @@ from faker import Faker
 
 from application.identite.usecases.create_candidat import CreateCandidatInput
 from config.app_config import AppConfig
-from domain.identite.errors.candidat_errors import ProfilCandidatAlreadyExists
+from domain.identite.errors.candidat_errors import ProfilCandidatExisteDeja
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.identite.candidat_factory import CandidatFactory
@@ -65,5 +65,5 @@ def test_cannot_create_candidat_twice(identite_integration_container):
         resume=fake.text(max_nb_chars=200),
     )
 
-    with pytest.raises(ProfilCandidatAlreadyExists):
+    with pytest.raises(ProfilCandidatExisteDeja):
         identite_integration_container.create_candidat_usecase().execute(input_data)

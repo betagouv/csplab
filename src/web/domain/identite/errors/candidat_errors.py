@@ -5,6 +5,6 @@ class CandidatError(DomainError):
     pass
 
 
-class ProfilCandidatAlreadyExists(CandidatError):
+class ProfilCandidatExisteDeja(CandidatError):
     def __init__(self, email: str):
         super().__init__(f"Candidat profile with email {email} already exists")
