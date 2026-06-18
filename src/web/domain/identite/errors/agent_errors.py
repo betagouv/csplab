@@ -7,11 +7,11 @@ class AgentError(DomainError):
     pass
 
 
-class ProfilAgentDoesNotExist(AgentError):
+class ProfilAgentNexistePas(AgentError):
     def __init__(self, entity_id: UUID | str):
         super().__init__(f"Agent profile with ID {entity_id} does not exist")
 
 
-class ProfilAgentAlreadyExists(AgentError):
+class ProfilAgentExisteDeja(AgentError):
     def __init__(self, email: str):
         super().__init__(f"Agent profile with email {email} already exists")

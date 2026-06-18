@@ -4,7 +4,7 @@ from pydantic import EmailStr
 
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.errors.agent_errors import ProfilAgentAlreadyExists
+from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
 from domain.identite.errors.identite_errors import UtilisateurNexistePas
 from domain.identite.events.agent_events import ProfilAgentCree
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
@@ -33,7 +33,7 @@ class CreateAgentUsecase:
     def execute(self, input_data: CreateAgentInput) -> Agent:
         existing = self.agent_repository.get_by_email(input_data.email)
         if existing is not None:
-            raise ProfilAgentAlreadyExists(input_data.email)
+            raise ProfilAgentExisteDeja(input_data.email)
 
         event = ProfilAgentCree(
             email=input_data.email,
