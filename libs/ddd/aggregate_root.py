@@ -1,9 +1,27 @@
-from dataclasses import dataclass, field, replace
+import dataclasses
+import inspect
+from dataclasses import dataclass, field
 from functools import wraps
 from typing import Callable
 
-from ddd.domain_event import DomainEvent, DomainEventMetadata
+from ddd.domain_event import DomainEvent
 from ddd.entity import Entity
+
+_BASE_EVENT_FIELDS = frozenset(f.name for f in dataclasses.fields(DomainEvent))
+
+
+def _check_payload_coverage(event_type: type, method: Callable, exclude: str) -> None:
+    required_payload = {
+        f.name
+        for f in dataclasses.fields(event_type)
+        if f.name not in _BASE_EVENT_FIELDS
+        and f.default is dataclasses.MISSING
+        and f.default_factory is dataclasses.MISSING  # type: ignore[misc]
+    }
+    method_params = set(inspect.signature(method).parameters) - {exclude}
+    missing = required_payload - method_params
+    if missing:
+        raise TypeError(f"{method.__name__}() miss event required fields")
 
 
 @dataclass(kw_only=True)
@@ -59,16 +77,11 @@ class AggregateRoot(Entity):
                 )
 
     def add_event(self, event: DomainEvent) -> None:
-        enriched = replace(
-            event,
-            metadata=DomainEventMetadata(
-                aggregate_id=self.entity_id,
-                aggregate=self.__class__.__name__,
-                event_name=event.__class__.__name__,
-                bounded_context=self.__module__,
-            ),
-        )
-        self._pending_events.append(enriched)
+        if not isinstance(event, DomainEvent):
+            raise TypeError(
+                f"add_event() expected a DomainEvent, got {type(event).__name__}."
+            )
+        self._pending_events.append(event)
 
     def collect_events(self) -> list[DomainEvent]:
         events = list(self._pending_events)
@@ -80,16 +93,17 @@ class AggregateRoot(Entity):
 # @factory does not allow for that
 def factory(event_type: type) -> Callable:
     def decorator(method: Callable) -> Callable:
+        _check_payload_coverage(event_type, method, exclude="cls")
+
         @wraps(method)
-        def wrapper(
-            cls: type, event: DomainEvent, *args: object, **kwargs: object
-        ) -> "AggregateRoot":
-            if not isinstance(event, event_type):
-                raise TypeError(
-                    f"{method.__name__}() expected {event_type.__name__}, "
-                    f"got {type(event).__name__}."
-                )
-            instance: AggregateRoot = method(cls, event, *args, **kwargs)
+        def wrapper(cls: type, **kwargs: object) -> "AggregateRoot":
+            instance: AggregateRoot = method(cls, **kwargs)
+            event = event_type(
+                aggregate_id=instance.entity_id,
+                aggregate=cls.__name__,
+                event_name=event_type.__name__,
+                **kwargs,
+            )
             instance.add_event(event)
             return instance
 
@@ -101,14 +115,17 @@ def factory(event_type: type) -> Callable:
 
 def mutate(event_type: type) -> Callable:
     def decorator(method: Callable) -> Callable:
+        _check_payload_coverage(event_type, method, exclude="self")
+
         @wraps(method)
-        def wrapper(self: "AggregateRoot", event: DomainEvent, *args, **kwargs) -> None:
-            if not isinstance(event, event_type):
-                raise TypeError(
-                    f"{method.__name__}() expected {event_type.__name__}, "
-                    f"got {type(event).__name__}."
-                )
-            method(self, event, *args, **kwargs)
+        def wrapper(self: "AggregateRoot", **kwargs: object) -> None:
+            method(self, **kwargs)
+            event = event_type(
+                aggregate_id=self.entity_id,
+                aggregate=self.__class__.__name__,
+                event_name=event_type.__name__,
+                **kwargs,
+            )
             self.add_event(event)
 
         wrapper.__is_mutation__ = True  # type: ignore[attr-defined]

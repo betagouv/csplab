@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from ddd.aggregate_root import AggregateRoot, factory
 from pydantic import EmailStr
@@ -17,14 +17,19 @@ class Candidat(AggregateRoot):
     @classmethod
     @factory(ProfilCandidatCree)
     def create(
-        cls, event: ProfilCandidatCree, entity_id: UUID | None = None
+        cls,
+        email: EmailStr,
+        prenom: str,
+        nom: str,
+        resume: str,
+        user_id: UUID,
     ) -> "Candidat":
         return cls(
-            entity_id=entity_id or uuid4(),
-            _email=event.email,
-            _prenom=event.prenom,
-            _nom=event.nom,
-            _resume=event.resume,
+            entity_id=user_id,
+            _email=email,
+            _prenom=prenom,
+            _nom=nom,
+            _resume=resume,
         )
 
     @classmethod

@@ -58,11 +58,18 @@ class Organisme(AggregateRoot):
 
     @classmethod
     @factory(OrganismeCree)
-    def create(cls, event: OrganismeCree) -> "Organisme":
+    def create(
+        cls,
+        nom: str,
+        versant: Verse,
+        localisation: Localisation | None,
+        siret: SIRET | None,
+        parent_id: UUID | None,
+    ) -> "Organisme":
         return cls(
-            _nom=event.nom,
-            _versant=event.versant,
-            _localisation=event.localisation,
-            _siret=event.siret,
-            _parent_id=event.parent_id,
+            _nom=nom,
+            _versant=versant,
+            _localisation=localisation,
+            _siret=siret,
+            _parent_id=parent_id,
         )

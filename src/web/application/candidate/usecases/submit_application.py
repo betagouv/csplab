@@ -5,10 +5,6 @@ from application.candidate.commands.submit_application_command import (
     SubmitApplicationCommand,
 )
 from domain.candidate.entities.candidature import Candidature
-from domain.candidate.events.candidature_events import (
-    CandidatureSoumise,
-    DossierCandidatureInitialise,
-)
 from domain.candidate.exceptions.candidature_errors import (
     CandidatureNexistePas,
 )
@@ -52,13 +48,14 @@ class SubmitApplicationUsecase(
         except CandidatureNexistePas as e:
             self.logger.info(e.message)
             candidature = Candidature.create(
-                DossierCandidatureInitialise(offre_id, candidat_id)
+                offre_id=offre_id,
+                candidat_id=candidat_id,
             )
         # todo entity document
         # add document gate way and repository here
         # candidature.deposer_documents(DocumentsDeposes())
 
-        candidature.soumettre_candidature(CandidatureSoumise())
+        candidature.soumettre_candidature()
         self.candidature_repository.save(candidature)
 
         # todo: collect_events => save in audit logs

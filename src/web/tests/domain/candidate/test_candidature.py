@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
+import time_machine
 
 from domain.candidate.entities.candidature import Candidature
 from domain.candidate.events.candidature_events import (
@@ -18,14 +19,14 @@ from tests.factories.candidate.candidature_factory import (
     make_documents,
 )
 
+_FROZEN_TS = datetime(2025, 6, 18, 10, 0, 0, tzinfo=timezone.utc)
+
 
 def test_dossier_candidature_cree():
     candidature_factory = CandidatureFactory.build()
     candidature = Candidature.create(
-        DossierCandidatureInitialise(
-            candidat_id=candidature_factory.candidat_id,
-            offre_id=candidature_factory.offre_id,
-        )
+        offre_id=candidature_factory.offre_id,
+        candidat_id=candidature_factory.candidat_id,
     )
     events = candidature.collect_events()
     assert len(events) == 1
@@ -33,48 +34,43 @@ def test_dossier_candidature_cree():
     assert candidature.statut == StatutCandidature.INITIAL
 
 
+@time_machine.travel(_FROZEN_TS, tick=False)
 def test_documents_deposes():
     documents = make_documents()
     candidature_factory = CandidatureFactory.build(documents=documents)
-    ts = datetime.now()
-    candidature_factory.deposer_documents(
-        DocumentsDeposes(documents=documents, occurred_at=ts)
-    )
+    candidature_factory.deposer_documents(documents=documents)
     events = candidature_factory.collect_events()
     assert len(events) == 1
     assert isinstance(events[0], DocumentsDeposes)
     assert candidature_factory.documents == documents
-    assert candidature_factory.mise_a_jour_le == ts
+    assert candidature_factory.mise_a_jour_le == _FROZEN_TS
 
 
 def test_candidature_invalide():
     candidature_factory = CandidatureFactory.build()
     with pytest.raises(DossierCandidatureInvalide):
-        candidature_factory.deposer_documents(DocumentsDeposes(documents=()))
+        candidature_factory.deposer_documents(documents=())
     events = candidature_factory.collect_events()
     assert len(events) == 0
 
 
+@time_machine.travel(_FROZEN_TS, tick=False)
 def test_candidature_soumise():
     candidature_factory = CandidatureFactory.build()
     documents = make_documents()
-    candidature_factory.deposer_documents(DocumentsDeposes(documents=documents))
-    ts = datetime.now()
-    candidature_factory.soumettre_candidature(
-        CandidatureSoumise(
-            occurred_at=ts,
-        )
-    )
+    candidature_factory.deposer_documents(documents=documents)
+    candidature_factory.soumettre_candidature()
     events = candidature_factory.collect_events()
     assert len(events) == 2  # noqa
     assert isinstance(events[1], CandidatureSoumise)
     assert candidature_factory.statut == StatutCandidature.SOUMISE
-    assert candidature_factory.soumise_le == ts
+    assert candidature_factory.soumise_le == _FROZEN_TS
+    assert candidature_factory.mise_a_jour_le == _FROZEN_TS
 
 
 def test_candidature_deja_soumise():
     candidature_factory = CandidatureFactory.build(statut=StatutCandidature.SOUMISE)
     with pytest.raises(CandidatureDejaSoumise):
-        candidature_factory.soumettre_candidature(CandidatureSoumise())
+        candidature_factory.soumettre_candidature()
     events = candidature_factory.collect_events()
     assert len(events) == 0

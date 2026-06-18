@@ -6,7 +6,6 @@ from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.errors.candidat_errors import ProfilCandidatExisteDeja
 from domain.identite.errors.identite_errors import UtilisateurNexistePas
-from domain.identite.events.candidat_events import ProfilCandidatCree
 from domain.identite.repositories.candidat_repository_interface import (
     ICandidatRepository,
 )
@@ -37,25 +36,23 @@ class CreateCandidatUsecase:
         if existing is not None:
             raise ProfilCandidatExisteDeja(input_data.email)
 
-        event = ProfilCandidatCree(
+        try:
+            utilisateur = self.utilisateur_repository.get_by_email(input_data.email)
+        except UtilisateurNexistePas:
+            utilisateur = self.utilisateur_repository.create(
+                Utilisateur(
+                    email=input_data.email,
+                    prenom=input_data.prenom,
+                    nom=input_data.nom,
+                )
+            )
+
+        candidat = Candidat.create(
             email=input_data.email,
             prenom=input_data.prenom,
             nom=input_data.nom,
             resume=input_data.resume,
+            user_id=utilisateur.entity_id,
         )
-
-        try:
-            utilisateur = self.utilisateur_repository.get_by_email(input_data.email)
-            candidat = Candidat.create(event, entity_id=utilisateur.entity_id)
-        except UtilisateurNexistePas:
-            candidat = Candidat.create(event)
-            utilisateur = self.utilisateur_repository.create(
-                Utilisateur(
-                    entity_id=candidat.entity_id,
-                    email=candidat.email,
-                    prenom=candidat.prenom,
-                    nom=candidat.nom,
-                )
-            )
 
         return self.candidat_repository.create(utilisateur, candidat)

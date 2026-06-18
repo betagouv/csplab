@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from ddd.aggregate_root import AggregateRoot
+from ddd.aggregate_root import AggregateRoot, factory
 from ddd.domain_event import DomainEvent
 from tests.example_aggregate import (
     ExampleAggregate,
@@ -12,11 +12,6 @@ from tests.example_aggregate import (
 from tests.example_aggregate_factory import ExampleAggregateFactory
 
 
-@dataclass(frozen=True)
-class _UnknownDomainEvent(DomainEvent):
-    pass
-
-
 def test_build_produces_no_pending_events():
     example = ExampleAggregateFactory.build()
     assert example.collect_events() == []
@@ -24,17 +19,20 @@ def test_build_produces_no_pending_events():
 
 def test_mutate_applies_state_change_and_emits_event():
     example = ExampleAggregateFactory.build(name="Initial")
-    example.rename(ExampleAggregateRenomme(new_name="Updated"))
+    example.rename(new_name="Updated")
     events = example.collect_events()
     assert len(events) == 1
     assert isinstance(events[0], ExampleAggregateRenomme)
     assert example.name == "Updated"
 
 
-def test_mutate_with_wrong_event_type_raises():
-    example = ExampleAggregateFactory.build()
-    with pytest.raises(TypeError, match="expected ExampleAggregateRenomme"):
-        example.rename(_UnknownDomainEvent())  # type: ignore[arg-type]
+def test_mutate_enriches_event_with_aggregate_context():
+    example = ExampleAggregateFactory.build(name="Initial")
+    example.rename(new_name="Updated")
+    event = example.collect_events()[0]
+    assert event.aggregate_id == example.entity_id
+    assert event.aggregate == "ExampleAggregate"
+    assert event.event_name == "ExampleAggregateRenomme"
 
 
 def test_public_method_without_decorator_raises():
@@ -59,17 +57,20 @@ def test_create_properties_are_read_only():
 
 
 def test_factory_emits_event_automatically():
-    event = ExampleAggregateCree(name="Nouveau")
-    example = ExampleAggregate.create(event)
+    example = ExampleAggregate.create(name="Nouveau")
     events = example.collect_events()
     assert len(events) == 1
     assert isinstance(events[0], ExampleAggregateCree)
     assert example.name == "Nouveau"
 
 
-def test_factory_with_wrong_event_type_raises():
-    with pytest.raises(TypeError, match="expected ExampleAggregateCree"):
-        ExampleAggregate.create(_UnknownDomainEvent())  # type: ignore[arg-type]
+def test_factory_enriches_event_with_aggregate_context():
+    example = ExampleAggregate.create(name="Nouveau")
+    event = example.collect_events()[0]
+    assert event.aggregate_id == example.entity_id
+    assert event.aggregate == "ExampleAggregate"
+    assert event.event_name == "ExampleAggregateCree"
+    assert event.name == "Nouveau"
 
 
 def test_create_without_factory_decorator_raises():
@@ -126,3 +127,24 @@ def test_public_non_callable_class_attribute_is_allowed():
         MAX_SIZE = 100
 
     assert AggregateWithConstant.MAX_SIZE == 100  # noqa
+
+
+def test_add_event_rejects_non_domain_event():
+    example = ExampleAggregateFactory.build()
+    with pytest.raises(TypeError, match="expected a DomainEvent"):
+        example.add_event("not_an_event")  # type: ignore[arg-type]
+
+
+def test_factory_missing_required_payload_param_raises():
+    @dataclass(frozen=True, kw_only=True)
+    class _Event(DomainEvent):
+        required_field: str
+
+    with pytest.raises(TypeError, match="miss event required field"):
+
+        @dataclass(kw_only=True)
+        class _BadAggregate(AggregateRoot):
+            @classmethod
+            @factory(_Event)
+            def create(cls) -> "_BadAggregate":  # type: ignore[override]
+                return cls()
