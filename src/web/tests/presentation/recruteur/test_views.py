@@ -40,7 +40,7 @@ class TestEtapesRecrutementOrganismeView:
         response = authenticated_client.get(ETAPES_URL)
         assert response.status_code == status.HTTP_200_OK
 
-        results = response.json()["results"]
+        results = response.json()
         assert results == [
             {
                 "etape_uuid": "11111111-1111-1111-1111-111111111111",

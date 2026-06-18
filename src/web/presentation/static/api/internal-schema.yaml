@@ -55,12 +55,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
       tags:
       - recruteur
       security:
@@ -71,7 +65,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedEtapeRecrutementList'
+                type: array
+                items:
+                  $ref: '#/components/schemas/EtapeRecrutement'
           description: ''
         '401':
           content:
@@ -168,29 +164,6 @@ components:
       required:
       - nom
       - siret
-    PaginatedEtapeRecrutementList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/EtapeRecrutement'
     TokenError:
       type: object
       properties:

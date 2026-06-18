@@ -2,7 +2,6 @@ from uuid import UUID
 
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
-from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -61,17 +60,17 @@ class OrganismeView(APIView):
         500: GenericErrorSerializer,
     },
 )
-class EtapesRecrutementOrganismeView(ListAPIView):
+class EtapesRecrutementOrganismeView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EtapeRecrutementSerializer
 
-    def get_queryset(self) -> list[dict]:
+    def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
             # TODO: wire the recruteur DI container + use case + repository
             # (infrastructure/di/recruteur/ does not exist yet) to fetch the
-            # étapes de recrutement for self.kwargs["organisme_uuid"].
+            # étapes de recrutement for organisme_uuid.
             # Static response for dev purposes until persistence is wired.
-            return [
+            etapes = [
                 {
                     "etape_uuid": "11111111-1111-1111-1111-111111111111",
                     "nom": "Candidatures ouvertes",
@@ -88,6 +87,8 @@ class EtapesRecrutementOrganismeView(ListAPIView):
                     "categorie": "TERMINALE",
                 },
             ]
+            serializer = EtapeRecrutementSerializer(etapes, many=True)
+            return Response(serializer.data)
         except ErreurRecruteur:
             return Response(
                 {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND

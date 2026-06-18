@@ -79,21 +79,6 @@ export interface components {
             nom: string;
             siret: string;
         };
-        PaginatedEtapeRecrutementList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["EtapeRecrutement"][];
-        };
         TokenError: {
             detail: string;
             code: string;
@@ -166,10 +151,7 @@ export interface operations {
     };
     recruteur_organisme_parametres_etapes_list: {
         parameters: {
-            query?: {
-                /** @description A page number within the paginated result set. */
-                page?: number;
-            };
+            query?: never;
             header?: never;
             path: {
                 organisme_uuid: string;
@@ -183,7 +165,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedEtapeRecrutementList"];
+                    "application/json": components["schemas"]["EtapeRecrutement"][];
                 };
             };
             401: {
