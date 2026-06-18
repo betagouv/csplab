@@ -39,7 +39,7 @@ class AuditLogWriter:
         )
 
     def _log_event(self, *, utilisateur_id: UUID, event: DomainEvent) -> None:
-        if event.metadata is None:
+        if event is None:
             return
 
         self._repository.store_log(
@@ -47,8 +47,8 @@ class AuditLogWriter:
                 event_id=event.event_id,
                 occurred_at=event.occurred_at,
                 utilisateur_id=utilisateur_id,
-                ressource_kind=event.metadata.aggregate,
-                ressource_id=event.metadata.aggregate_id,
-                event_name=event.metadata.event_name,
+                ressource_kind=event.aggregate,
+                ressource_id=event.aggregate_id,
+                event_name=event.event_name,
             )
         )
