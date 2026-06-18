@@ -103,13 +103,22 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
     reference = payload["identification"]["reference"]
     versant = payload["identification"]["versant"]
 
+    def parse_datetime(raw: str) -> datetime:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+
     conditions = payload.get("conditions") or {}
     debut_contrat_raw = conditions.get("debut_contrat")
     debut_contrat = (
-        LimitDate(datetime.fromisoformat(debut_contrat_raw.replace("Z", "+00:00")))
-        if debut_contrat_raw
-        else None
+        LimitDate(parse_datetime(debut_contrat_raw)) if debut_contrat_raw else None
     )
+
+    # mirrors how ConditionsInputSerializer parses datetime fields into validated_data
+    conditions = {
+        key: parse_datetime(value)
+        if key in ("debut_contrat", "fin_contrat") and value
+        else value
+        for key, value in conditions.items()
+    }
 
     categories = payload.get("categories")
     category = Category(sorted(categories)[0]) if categories else None
@@ -121,10 +130,15 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
             country=Country(loc_data[0]["pays"]),
             region=Region(code=loc_data[0]["region"]),
             department=Department(code=loc_data[0]["departement"]),
+            label=loc_data[0].get("localisation_label") or None,
+            latitude=loc_data[0].get("latitude"),
+            longitude=loc_data[0].get("longitude"),
         )
         if loc_data
         else None
     )
+
+    forme_contrat = payload.get("forme_contrat")
 
     return Offer(
         external_id=f"{versant}-{reference}",
@@ -144,6 +158,15 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         beginning_date=debut_contrat,
         family_code=payload["profession"]["metier"],
         source_id=source_id,
+        long_title=payload.get("titre_long") or None,
+        application_url=payload.get("url_candidature"),
+        contract_kind=sorted(forme_contrat) if forme_contrat else None,
+        job_vacancy=payload.get("vacance_poste") or None,
+        employer=payload["description"].get("employeur") or None,
+        complements=payload["description"].get("complements") or None,
+        criteria=payload.get("criteres") or None,
+        conditions=conditions,
+        contacts=list(payload["contacts"]) if payload.get("contacts") else None,
     )
 
 
@@ -256,6 +279,15 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
             "beginning_date",
             "family_code",
             "source_id",
+            "long_title",
+            "application_url",
+            "contract_kind",
+            "job_vacancy",
+            "employer",
+            "complements",
+            "criteria",
+            "conditions",
+            "contacts",
         ]:
             assert getattr(offer, attr) == getattr(expected, attr)
 

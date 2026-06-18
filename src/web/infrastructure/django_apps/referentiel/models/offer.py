@@ -54,6 +54,19 @@ class OfferModel(BaseDatedModel):
     country = models.CharField(max_length=3, null=True, blank=True)
     region = models.CharField(max_length=3, null=True, blank=True)
     department = models.CharField(max_length=3, null=True, blank=True)
+    location_label = models.CharField(max_length=500, null=True, blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+
+    long_title = models.CharField(max_length=1500, null=True, blank=True)
+    application_url = models.URLField(null=True, blank=True)
+    contract_kind = models.JSONField(null=True, blank=True)
+    job_vacancy = models.CharField(max_length=50, null=True, blank=True)
+    employer = models.TextField(null=True, blank=True)
+    complements = models.TextField(null=True, blank=True)
+    criteria = models.JSONField(null=True, blank=True)
+    conditions = models.JSONField(null=True, blank=True)
+    contacts = models.JSONField(null=True, blank=True)
 
     # Date fields
     publication_date = models.DateTimeField()
@@ -86,6 +99,9 @@ class OfferModel(BaseDatedModel):
                 country=Country(self.country),
                 region=Region(code=self.region),
                 department=Department(code=self.department),
+                label=self.location_label,
+                latitude=self.latitude,
+                longitude=self.longitude,
             )
 
         beginning_date = LimitDate(self.beginning_date) if self.beginning_date else None
@@ -118,6 +134,17 @@ class OfferModel(BaseDatedModel):
             archived_at=self.archived_at,
             family_code=self.code_emploi_csp,
             source_id=self.source_id,
+            long_title=self.long_title,
+            application_url=HttpUrl(self.application_url)
+            if self.application_url
+            else None,
+            contract_kind=self.contract_kind,
+            job_vacancy=self.job_vacancy,
+            employer=self.employer,
+            complements=self.complements,
+            criteria=self.criteria,
+            conditions=self.conditions,
+            contacts=self.contacts,
         )
 
     @classmethod
@@ -127,11 +154,17 @@ class OfferModel(BaseDatedModel):
         country = None
         region = None
         department = None
+        location_label = None
+        latitude = None
+        longitude = None
         if offer.localisation:
             area = offer.localisation.area.value
             country = str(offer.localisation.country)  # Use ISO-3 code (e.g., "FRA")
             region = offer.localisation.region.code
             department = offer.localisation.department.code
+            location_label = offer.localisation.label
+            latitude = offer.localisation.latitude
+            longitude = offer.localisation.longitude
 
         # Extract beginning_date
         beginning_date = None
@@ -163,6 +196,9 @@ class OfferModel(BaseDatedModel):
             country=country,
             region=region,
             department=department,
+            location_label=location_label,
+            latitude=latitude,
+            longitude=longitude,
             code_emploi_csp=offer.family_code,
             source_id=offer.source_id,
             publication_date=offer.publication_date,
@@ -170,6 +206,17 @@ class OfferModel(BaseDatedModel):
             processing=offer.processing,
             processed_at=offer.processed_at,
             archived_at=offer.archived_at,
+            long_title=offer.long_title,
+            application_url=str(offer.application_url)
+            if offer.application_url
+            else None,
+            contract_kind=offer.contract_kind,
+            job_vacancy=offer.job_vacancy,
+            employer=offer.employer,
+            complements=offer.complements,
+            criteria=offer.criteria,
+            conditions=offer.conditions,
+            contacts=offer.contacts,
         )
 
     def __str__(self) -> str:
