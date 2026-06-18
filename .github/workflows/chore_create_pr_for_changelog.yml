@@ -35,7 +35,7 @@ jobs:
         uses: orhun/git-cliff-action@v4
         with:
           config: src/web/cliff.toml
-          args: --verbose --tag ${{ steps.git_cliff_full.outputs.version }} --include-path "src/web/**"
+          args: --verbose --tag ${{ steps.git_cliff_full.outputs.version }} --include-path "src/web/**" --include-path "libs/ddd/**" --include-path "libs/referentiel/**"
         env:
           OUTPUT: src/web/CHANGELOG.md
 
@@ -43,7 +43,7 @@ jobs:
         uses: orhun/git-cliff-action@v4
         with:
           config: src/web/cliff.toml
-          args: --verbose --tag ${{ steps.git_cliff_full.outputs.version }} --include-path "src/ocr/**"
+          args: --verbose --tag ${{ steps.git_cliff_full.outputs.version }} --include-path "src/ocr/**" --include-path "libs/ddd/**" --include-path "libs/referentiel/**"
         env:
           OUTPUT: src/ocr/CHANGELOG.md
 
@@ -51,7 +51,7 @@ jobs:
         uses: orhun/git-cliff-action@v4
         with:
           config: src/web/cliff.toml
-          args: --verbose --tag ${{ steps.git_cliff_full.outputs.version }} --include-path "src/ingestion/**"
+          args: --verbose --tag ${{ steps.git_cliff_full.outputs.version }} --include-path "src/ingestion/**" --include-path "libs/ddd/**" --include-path "libs/referentiel/**"
         env:
           OUTPUT: src/ingestion/CHANGELOG.md
 
