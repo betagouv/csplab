@@ -5,7 +5,7 @@ from pydantic import EmailStr
 from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.errors.candidat_errors import ProfilCandidatAlreadyExists
-from domain.identite.errors.identite_errors import UtilisateurDoesNotExist
+from domain.identite.errors.identite_errors import UtilisateurNexistePas
 from domain.identite.events.candidat_events import ProfilCandidatCree
 from domain.identite.repositories.candidat_repository_interface import (
     ICandidatRepository,
@@ -47,7 +47,7 @@ class CreateCandidatUsecase:
         try:
             utilisateur = self.utilisateur_repository.get_by_email(input_data.email)
             candidat = Candidat.create(event, entity_id=utilisateur.entity_id)
-        except UtilisateurDoesNotExist:
+        except UtilisateurNexistePas:
             candidat = Candidat.create(event)
             utilisateur = self.utilisateur_repository.create(
                 Utilisateur(
