@@ -13,5 +13,6 @@ class ContractType(Enum):
 class ContractKind(Enum):
     CDD = "CDD"
     CDI = "CDI"
+    PERMANENT = "Permanent"
     VACATION = "Vacation"
     STAGE = "Stage"

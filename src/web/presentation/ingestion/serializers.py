@@ -114,10 +114,10 @@ class ProfessionInputSerializer(serializers.Serializer):
 
 
 class DescriptionInputSerializer(serializers.Serializer):
-    mission = serializers.CharField(max_length=3000)
-    profil = serializers.CharField(max_length=3000)
+    mission = serializers.CharField(max_length=10000)
+    profil = serializers.CharField(max_length=10000)
     employeur = serializers.CharField(max_length=3000)
-    complements = serializers.CharField(max_length=1500, allow_blank=True)
+    complements = serializers.CharField(max_length=5000, allow_blank=True)
 
 
 class LocalisationInputSerializer(serializers.Serializer):
@@ -154,7 +154,9 @@ class LanguageInputSerializer(serializers.Serializer):
 
 class CriteriaInputSerializer(serializers.Serializer):
     diplome_niveau = serializers.IntegerField(
-        min_value=Diploma.MIN_DIPLOMA_LEVEL, max_value=Diploma.MAX_DIPLOMA_LEVEL
+        min_value=Diploma.MIN_DIPLOMA_LEVEL,
+        max_value=Diploma.MAX_DIPLOMA_LEVEL,
+        required=False,
     )
     experience = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in ExperienceLevel], required=False
@@ -186,7 +188,7 @@ class ConditionsInputSerializer(serializers.Serializer):
         choices=[(c.name, c.value) for c in WorkingTime]
     )
     ouvert_aux_militaires = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in OpenToMilitary]
+        choices=[(c.name, c.value) for c in OpenToMilitary], required=False
     )
     lieu_de_travail = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in WorkingPlace],
