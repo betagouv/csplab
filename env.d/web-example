@@ -5,6 +5,7 @@ PORT=8000
 WEB_DEBUG=1
 WEB_ALLOWED_HOSTS=\*
 WEB_SECRET_KEY=the_secret_key_for_local_dev_only_1234
+WEB_ROBOTS_INDEXING=1
 
 # database
 WEB_DATABASE_URL=psql://web:pass@localhost:5432/web

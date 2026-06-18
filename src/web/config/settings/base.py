@@ -41,6 +41,7 @@ env = environ.Env(
     WEB_QDRANT_API_KEY=(str, ""),
     WEB_REDIS_URL=(str, "redis://localhost:6379"),
     WEB_REDIS_DB=(str, "0"),
+    WEB_ROBOTS_INDEXING=(bool, True),
 )
 env.prefix = "WEB_"
 
@@ -128,6 +129,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "dsfr.context_processors.site_config",
                 "presentation.context_processors.matomo",
+                "presentation.context_processors.robots",
                 "presentation.context_processors.skiplinks",
             ],
         },
@@ -253,6 +255,10 @@ LOGGING = {
 # ---------------------------------------
 MATOMO_BASE_URL = env.str("MATOMO_BASE_URL")
 MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
+
+# ROBOTS
+# ---------------------------------------
+ROBOTS_INDEXING = env.bool("ROBOTS_INDEXING")
 
 # CSP
 # ---------------------------------------
