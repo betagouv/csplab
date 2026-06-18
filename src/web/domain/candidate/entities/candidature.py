@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from ddd.aggregate_root import AggregateRoot, factory, mutate
@@ -27,13 +27,12 @@ class Candidature(AggregateRoot):
 
     @classmethod
     @factory(DossierCandidatureInitialise)
-    def create(cls, event: DossierCandidatureInitialise) -> "Candidature":
-        # deduplicate
+    def create(cls, offre_id: UUID, candidat_id: UUID) -> "Candidature":
         return cls(
-            _candidat_id=event.candidat_id,
-            _offre_id=event.offre_id,
+            _candidat_id=candidat_id,
+            _offre_id=offre_id,
             _statut=StatutCandidature.INITIAL,
-            _mise_a_jour_le=event.occurred_at,
+            _mise_a_jour_le=datetime.now(tz=timezone.utc),
         )
 
     @classmethod
@@ -83,19 +82,19 @@ class Candidature(AggregateRoot):
         return self._mise_a_jour_le
 
     @mutate(DocumentsDeposes)
-    def deposer_documents(self, event: DocumentsDeposes) -> None:
-        if len(event.documents) == 0:
+    def deposer_documents(self, documents: tuple[UUID, ...]) -> None:
+        if len(documents) == 0:
             raise DossierCandidatureInvalide(
-                ("Le dossier de candidature doit contenir au moins un document")
+                "Le dossier de candidature doit contenir au moins un document"
             )
-        else:
-            self._documents = event.documents
-            self._mise_a_jour_le = event.occurred_at
+        self._documents = documents
+        self._mise_a_jour_le = datetime.now(tz=timezone.utc)
 
     @mutate(CandidatureSoumise)
-    def soumettre_candidature(self, event: CandidatureSoumise) -> None:
+    def soumettre_candidature(self) -> None:
         if self._statut == StatutCandidature.SOUMISE:
             raise CandidatureDejaSoumise(self.candidat_id, self.offre_id)
         self._statut = StatutCandidature.SOUMISE
-        self._soumise_le = event.occurred_at
-        self._mise_a_jour_le = event.occurred_at
+        now = datetime.now(tz=timezone.utc)
+        self._soumise_le = now
+        self._mise_a_jour_le = now
