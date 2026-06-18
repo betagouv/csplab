@@ -1450,6 +1450,15 @@ wheels = [
 ]
 
 [[package]]
+name = "types-markdown"
+version = "3.10.2.20260518"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/93/82/c605b9c9cfa244922449af20b93f8c4ecdc936b926d3340830036e0f87f1/types_markdown-3.10.2.20260518.tar.gz", hash = "sha256:206b044dd55a02ed66dfb9cfc02b1e500005d60370834cee5b41d26a3d8f0f72", size = 19865, upload-time = "2026-05-18T06:01:32.268Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/db/fa5eef03f646f507d078a382ff8b239871ea847460f79effcfc44977865d/types_markdown-3.10.2.20260518-py3-none-any.whl", hash = "sha256:146fa9997a7d3aa3de1e3a51c56f3875d3947b7c545e58691e79f65fb56a663f", size = 25821, upload-time = "2026-05-18T06:01:31.35Z" },
+]
+
+[[package]]
 name = "types-python-dateutil"
 version = "2.9.0.20260518"
 source = { registry = "https://pypi.org/simple" }
@@ -1583,6 +1592,7 @@ dev = [
     { name = "responses" },
     { name = "ruff" },
     { name = "time-machine" },
+    { name = "types-markdown" },
     { name = "types-python-dateutil" },
     { name = "types-requests" },
 ]
@@ -1640,6 +1650,7 @@ dev = [
     { name = "responses", specifier = ">=0.25.8" },
     { name = "ruff", specifier = ">=0.14.3" },
     { name = "time-machine", specifier = ">=2.16.0" },
+    { name = "types-markdown", specifier = ">=3.10.2.20260518" },
     { name = "types-python-dateutil", specifier = ">=2.9.0.20260124" },
     { name = "types-requests", specifier = ">=2.32.4.20250913" },
 ]
