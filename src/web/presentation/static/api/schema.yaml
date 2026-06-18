@@ -756,7 +756,6 @@ components:
       required:
       - lieu_de_travail
       - management
-      - ouvert_aux_militaires
       - temps_travail
     ContactsInput:
       type: object
@@ -793,8 +792,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LanguageInput'
-      required:
-      - diplome_niveau
     DepartementEnum:
       enum:
       - '01'
@@ -1018,16 +1015,16 @@ components:
       properties:
         mission:
           type: string
-          maxLength: 3000
+          maxLength: 10000
         profil:
           type: string
-          maxLength: 3000
+          maxLength: 10000
         employeur:
           type: string
           maxLength: 3000
         complements:
           type: string
-          maxLength: 1500
+          maxLength: 5000
       required:
       - complements
       - employeur
@@ -1047,12 +1044,14 @@ components:
       enum:
       - CDD
       - CDI
+      - PERMANENT
       - VACATION
       - STAGE
       type: string
       description: |-
         * `CDD` - CDD
         * `CDI` - CDI
+        * `PERMANENT` - Permanent
         * `VACATION` - Vacation
         * `STAGE` - Stage
     GenericError:
