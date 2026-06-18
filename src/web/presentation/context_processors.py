@@ -11,6 +11,10 @@ def matomo(request: HttpRequest) -> dict[str, object]:
     }
 
 
+def robots(request: HttpRequest) -> dict[str, object]:
+    return {"ROBOTS_INDEXING": settings.ROBOTS_INDEXING}
+
+
 def skiplinks(request: HttpRequest) -> dict[str, Any]:
     return {
         "skiplinks": [
