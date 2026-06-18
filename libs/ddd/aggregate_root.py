@@ -1,9 +1,27 @@
+import dataclasses
+import inspect
 from dataclasses import dataclass, field
 from functools import wraps
 from typing import Callable
 
 from ddd.domain_event import DomainEvent
 from ddd.entity import Entity
+
+_BASE_EVENT_FIELDS = frozenset(f.name for f in dataclasses.fields(DomainEvent))
+
+
+def _check_payload_coverage(event_type: type, method: Callable, exclude: str) -> None:
+    required_payload = {
+        f.name
+        for f in dataclasses.fields(event_type)
+        if f.name not in _BASE_EVENT_FIELDS
+        and f.default is dataclasses.MISSING
+        and f.default_factory is dataclasses.MISSING  # type: ignore[misc]
+    }
+    method_params = set(inspect.signature(method).parameters) - {exclude}
+    missing = required_payload - method_params
+    if missing:
+        raise TypeError(f"{method.__name__}() miss event required fields")
 
 
 @dataclass(kw_only=True)
@@ -75,6 +93,8 @@ class AggregateRoot(Entity):
 # @factory does not allow for that
 def factory(event_type: type) -> Callable:
     def decorator(method: Callable) -> Callable:
+        _check_payload_coverage(event_type, method, exclude="cls")
+
         @wraps(method)
         def wrapper(cls: type, **kwargs: object) -> "AggregateRoot":
             instance: AggregateRoot = method(cls, **kwargs)
@@ -95,6 +115,8 @@ def factory(event_type: type) -> Callable:
 
 def mutate(event_type: type) -> Callable:
     def decorator(method: Callable) -> Callable:
+        _check_payload_coverage(event_type, method, exclude="self")
+
         @wraps(method)
         def wrapper(self: "AggregateRoot", **kwargs: object) -> None:
             method(self, **kwargs)

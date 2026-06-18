@@ -2,7 +2,8 @@ from dataclasses import dataclass
 
 import pytest
 
-from ddd.aggregate_root import AggregateRoot
+from ddd.aggregate_root import AggregateRoot, factory
+from ddd.domain_event import DomainEvent
 from tests.example_aggregate import (
     ExampleAggregate,
     ExampleAggregateCree,
@@ -132,3 +133,18 @@ def test_add_event_rejects_non_domain_event():
     example = ExampleAggregateFactory.build()
     with pytest.raises(TypeError, match="expected a DomainEvent"):
         example.add_event("not_an_event")  # type: ignore[arg-type]
+
+
+def test_factory_missing_required_payload_param_raises():
+    @dataclass(frozen=True, kw_only=True)
+    class _Event(DomainEvent):
+        required_field: str
+
+    with pytest.raises(TypeError, match="miss event required field"):
+
+        @dataclass(kw_only=True)
+        class _BadAggregate(AggregateRoot):
+            @classmethod
+            @factory(_Event)
+            def create(cls) -> "_BadAggregate":  # type: ignore[override]
+                return cls()
