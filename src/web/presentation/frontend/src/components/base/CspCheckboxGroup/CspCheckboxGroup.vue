@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { CspCheckboxSize } from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import { CheckboxGroupRoot } from 'reka-ui'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
@@ -15,7 +14,7 @@ export interface CspCheckboxGroupProps {
   label?: string
   name?: string
   disabled?: boolean
-  size?: CspCheckboxSize
+  size?: NonNullable<InstanceType<typeof CspCheckbox>['$props']['size']>
   error?: boolean
   errorMessage?: string
 }
