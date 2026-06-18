@@ -1,7 +1,11 @@
 import riAddLine from '@iconify-icons/ri/add-line'
 import riAlertFill from '@iconify-icons/ri/alert-fill'
+import riArrowLeftDoubleLine from '@iconify-icons/ri/arrow-left-double-line'
 import riArrowLeftLine from '@iconify-icons/ri/arrow-left-line'
+import riArrowLeftSLine from '@iconify-icons/ri/arrow-left-s-line'
+import riArrowRightDoubleLine from '@iconify-icons/ri/arrow-right-double-line'
 import riArrowRightLine from '@iconify-icons/ri/arrow-right-line'
+import riArrowRightSLine from '@iconify-icons/ri/arrow-right-s-line'
 import riBriefcaseLine from '@iconify-icons/ri/briefcase-line'
 import riCalendarLine from '@iconify-icons/ri/calendar-line'
 import riCheckLine from '@iconify-icons/ri/check-line'
@@ -34,8 +38,12 @@ import { addIcon } from '@iconify/vue'
 
 addIcon('ri:add-line', riAddLine)
 addIcon('ri:alert-fill', riAlertFill)
+addIcon('ri:arrow-left-double-line', riArrowLeftDoubleLine)
 addIcon('ri:arrow-left-line', riArrowLeftLine)
+addIcon('ri:arrow-left-s-line', riArrowLeftSLine)
+addIcon('ri:arrow-right-double-line', riArrowRightDoubleLine)
 addIcon('ri:arrow-right-line', riArrowRightLine)
+addIcon('ri:arrow-right-s-line', riArrowRightSLine)
 addIcon('ri:briefcase-line', riBriefcaseLine)
 addIcon('ri:calendar-line', riCalendarLine)
 addIcon('ri:check-line', riCheckLine)
