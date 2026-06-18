@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.country import Country
@@ -19,6 +20,9 @@ class Localisation:
     country: Country
     region: Region
     department: Department
+    label: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
     def __str__(self):
         return (

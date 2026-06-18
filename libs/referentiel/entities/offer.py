@@ -29,6 +29,15 @@ class Offer(IEntity):
     beginning_date: Optional[LimitDate]
     reference: str
     family_code: Optional[str] = None
+    long_title: Optional[str] = None
+    application_url: Optional[HttpUrl] = None
+    contract_kind: Optional[list[str]] = None
+    job_vacancy: Optional[str] = None
+    employer: Optional[str] = None
+    complements: Optional[str] = None
+    criteria: Optional[dict] = None
+    conditions: Optional[dict] = None
+    contacts: Optional[list[dict]] = None
     source_id: UUID = field(default_factory=uuid4)
     processing: bool = False
     processed_at: Optional[datetime] = None
