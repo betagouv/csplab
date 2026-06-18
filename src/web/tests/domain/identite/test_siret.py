@@ -1,17 +1,17 @@
 import pytest
 
-from domain.identite.errors.organisme_errors import InvalidSiretError
+from domain.identite.errors.organisme_errors import SiretInvalide
 from domain.identite.value_objects.siret import SIRET
 
 
 def test_invalid_siret():
-    with pytest.raises(InvalidSiretError):
+    with pytest.raises(SiretInvalide):
         SIRET("12345678")
 
-    with pytest.raises(InvalidSiretError):
+    with pytest.raises(SiretInvalide):
         SIRET("1234567890")
 
-    with pytest.raises(InvalidSiretError):
+    with pytest.raises(SiretInvalide):
         SIRET("12345678A")
 
 

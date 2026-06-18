@@ -5,7 +5,7 @@ class OrganismeError(DomainError):
     pass
 
 
-class InvalidSiretError(OrganismeError):
+class SiretInvalide(OrganismeError):
     def __init__(self, siret_str: str):
         super().__init__(f"Invalid SIRET: {siret_str}")
         self.siret_str = siret_str

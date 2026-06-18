@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 
-from domain.identite.errors.organisme_errors import InvalidSiretError
+from domain.identite.errors.organisme_errors import SiretInvalide
 
 
 def luhn_checksum(value: str) -> bool:
@@ -24,7 +24,7 @@ class SIRET:
 
     def __post_init__(self):
         if not self.is_valid():
-            raise InvalidSiretError(self.value)
+            raise SiretInvalide(self.value)
 
     def is_valid(self) -> bool:
         if not re.match(r"^\d{14}$", self.value):
