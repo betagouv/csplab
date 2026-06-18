@@ -3,9 +3,50 @@ info:
   title: CSPLab Internal API
   version: 0.0.1
 paths:
-  /recruteur/etapes-recrutement-organisme/{organisme_uuid}/:
+  /recruteur/organisme/{organisme_uuid}/:
     get:
-      operationId: recruteur_etapes_recrutement_organisme_list
+      operationId: recruteur_organisme_retrieve
+      summary: Detail d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organisme'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+  /recruteur/organisme/{organisme_uuid}/parametres/etapes/:
+    get:
+      operationId: recruteur_organisme_parametres_etapes_list
       summary: Liste des étapes de recrutement d'un organisme
       parameters:
       - in: path
@@ -31,47 +72,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedEtapeRecrutementList'
-          description: ''
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenError'
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericError'
-          description: ''
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericError'
-          description: ''
-  /recruteur/organisme/{organisme_uuid}/:
-    get:
-      operationId: recruteur_organisme_retrieve
-      summary: Detail d'un organisme
-      parameters:
-      - in: path
-        name: organisme_uuid
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - recruteur
-      security:
-      - jwtAuth: []
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Organisme'
           description: ''
         '401':
           content:

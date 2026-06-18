@@ -11,8 +11,8 @@ urlpatterns = [
         name="organisme",
     ),
     path(
-        "etapes-recrutement-organisme/<uuid:organisme_uuid>/",
+        "organisme/<uuid:organisme_uuid>/parametres/etapes/",
         EtapesRecrutementOrganismeView.as_view(),
-        name="etapes-recrutement-organisme",
+        name="organisme-parametres-etapes",
     ),
 ]

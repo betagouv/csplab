@@ -4,23 +4,6 @@
  */
 
 export interface paths {
-    "/recruteur/etapes-recrutement-organisme/{organisme_uuid}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Liste des étapes de recrutement d'un organisme */
-        get: operations["recruteur_etapes_recrutement_organisme_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/recruteur/organisme/{organisme_uuid}/": {
         parameters: {
             query?: never;
@@ -30,6 +13,23 @@ export interface paths {
         };
         /** Detail d'un organisme */
         get: operations["recruteur_organisme_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recruteur/organisme/{organisme_uuid}/parametres/etapes/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Liste des étapes de recrutement d'un organisme */
+        get: operations["recruteur_organisme_parametres_etapes_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -120,12 +120,9 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    recruteur_etapes_recrutement_organisme_list: {
+    recruteur_organisme_retrieve: {
         parameters: {
-            query?: {
-                /** @description A page number within the paginated result set. */
-                page?: number;
-            };
+            query?: never;
             header?: never;
             path: {
                 organisme_uuid: string;
@@ -139,7 +136,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedEtapeRecrutementList"];
+                    "application/json": components["schemas"]["Organisme"];
                 };
             };
             401: {
@@ -168,9 +165,12 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_retrieve: {
+    recruteur_organisme_parametres_etapes_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+            };
             header?: never;
             path: {
                 organisme_uuid: string;
@@ -184,7 +184,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Organisme"];
+                    "application/json": components["schemas"]["PaginatedEtapeRecrutementList"];
                 };
             };
             401: {

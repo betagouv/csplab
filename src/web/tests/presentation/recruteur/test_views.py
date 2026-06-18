@@ -12,7 +12,7 @@ ORGANISME_URL = reverse(
     "recruteur:organisme", kwargs={"organisme_uuid": ORGANISME_UUID}
 )
 ETAPES_URL = reverse(
-    "recruteur:etapes-recrutement-organisme",
+    "recruteur:organisme-parametres-etapes",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
 
