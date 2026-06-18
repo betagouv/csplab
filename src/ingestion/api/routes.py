@@ -10,15 +10,14 @@ from pydantic import ValidationError
 
 from api.config import get_settings
 from api.talentsoft import verify_talentsoft_signature
-from application.tasks.process_webhook import process_webhook
+from application.tasks.process_webhook import (
+    archive_offer_webhook,
+    save_raw_offer_webhook,
+)
 from application.use_cases.save_webhook import SaveWebhookUseCase
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.value_objects.source import Source
-from domain.value_objects.webhook_event import (
-    WebhookEvent,
-    should_archive,
-    should_save_raw_offer,
-)
+from domain.value_objects.webhook_event import WebhookActionType, WebhookEvent
 from infrastructure.di.container import Container
 from infrastructure.value_objects import webhook_source
 from presentation.dtos.talentsoft_webhook import TalentsoftWebhookPayload
@@ -98,7 +97,7 @@ async def talentsoft_webhook(
         logger.exception("Failed to store webhook for reference %s", event.reference)
         return _OK
 
-    if not (should_archive(event) or should_save_raw_offer(event)):
+    if webhook.action_type is None:
         logger.info(
             "Unhandled event type %s for reference %s and status %s",
             event.event_type,
@@ -108,7 +107,11 @@ async def talentsoft_webhook(
         )
         return _OK
 
-    process_webhook.delay(str(webhook.id))
+    if webhook.action_type == WebhookActionType.ARCHIVE:
+        archive_offer_webhook.delay(str(webhook.id))
+    elif webhook.action_type == WebhookActionType.SAVE_RAW_OFFER:
+        save_raw_offer_webhook.delay(str(webhook.id))
+
     logger.info(
         "Enqueued processing for event %s reference %s",
         event.event_type,

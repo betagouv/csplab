@@ -29,4 +29,5 @@ class WebhookModel(SQLModel, table=True):  # type: ignore[call-arg]
     event_type: str = Field(index=True)
     reference: str
     status_id: Optional[str] = None
+    action_type: Optional[str] = Field(default=None, index=True)
     payload: dict[str, Any] = Field(sa_column=Column(JSONB, nullable=False))

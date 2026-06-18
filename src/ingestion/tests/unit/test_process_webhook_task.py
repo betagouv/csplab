@@ -6,7 +6,11 @@ import pytest
 from celery.app.task import Task
 from celery.exceptions import Retry
 
-from application.tasks.process_webhook import _is_transient, process_webhook
+from application.tasks.process_webhook import (
+    _is_transient,
+    archive_offer_webhook,
+    save_raw_offer_webhook,
+)
 from domain.value_objects.webhook_event import EventType, OfferStatus
 from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.factories.domain_factories import SourceFactory, WebhookFactory
@@ -43,7 +47,7 @@ def test_archive_called_for_supprime_event():
     container = _make_mock_container(webhook)
 
     with patch(_PATCH_CONTAINER, return_value=container):
-        process_webhook(str(WEBHOOK_ID))
+        archive_offer_webhook(str(WEBHOOK_ID))
 
     container.archive_offer_use_case.return_value.execute.assert_awaited_once_with(
         reference=REFERENCE, source_id=SOURCE_ID
@@ -65,28 +69,11 @@ def test_archive_called_for_statut_change_non_diffuse(status_id: OfferStatus):
     container = _make_mock_container(webhook)
 
     with patch(_PATCH_CONTAINER, return_value=container):
-        process_webhook(str(WEBHOOK_ID))
+        archive_offer_webhook(str(WEBHOOK_ID))
 
     container.archive_offer_use_case.return_value.execute.assert_awaited_once_with(
         reference=REFERENCE, source_id=SOURCE_ID
     )
-
-
-def test_no_action_for_statut_change_diffuse():
-    webhook = WebhookFactory.build(
-        id=WEBHOOK_ID,
-        source_id=SOURCE_ID,
-        reference=REFERENCE,
-        event_type=EventType.STATUT_CHANGE,
-        status_id=str(OfferStatus.DIFFUSE),
-    )
-    container = _make_mock_container(webhook)
-
-    with patch(_PATCH_CONTAINER, return_value=container):
-        process_webhook(str(WEBHOOK_ID))
-
-    container.archive_offer_use_case.return_value.execute.assert_not_called()
-    container.sources_repository.return_value.get_by_source_id.assert_not_called()
 
 
 # --- Ingest path ---
@@ -102,7 +89,7 @@ def test_ingest_pipeline_called_for_cree_event():
     container = _make_mock_container(webhook)
 
     with patch(_PATCH_CONTAINER, return_value=container):
-        process_webhook(str(WEBHOOK_ID))
+        save_raw_offer_webhook(str(WEBHOOK_ID))
 
     container.ingest_offer_pipeline.return_value.execute.assert_awaited_once_with(
         reference=REFERENCE, source_id=SOURCE_ID
@@ -119,7 +106,7 @@ def test_ingest_pipeline_called_for_mis_a_jour_event():
     container = _make_mock_container(webhook)
 
     with patch(_PATCH_CONTAINER, return_value=container):
-        process_webhook(str(WEBHOOK_ID))
+        save_raw_offer_webhook(str(WEBHOOK_ID))
 
     container.ingest_offer_pipeline.return_value.execute.assert_awaited_once_with(
         reference=REFERENCE, source_id=SOURCE_ID
@@ -137,7 +124,7 @@ def test_ingest_raises_when_source_not_found():
         patch(_PATCH_CONTAINER, return_value=container),
         pytest.raises(ValueError, match=SOURCE_ID),
     ):
-        process_webhook(str(WEBHOOK_ID))
+        save_raw_offer_webhook(str(WEBHOOK_ID))
 
 
 def test_ingest_raises_when_talentsoft_client_not_found():
@@ -151,7 +138,7 @@ def test_ingest_raises_when_talentsoft_client_not_found():
         patch(_PATCH_CONTAINER, return_value=container),
         pytest.raises(ValueError, match=SOURCE_ID),
     ):
-        process_webhook(str(WEBHOOK_ID))
+        save_raw_offer_webhook(str(WEBHOOK_ID))
 
 
 # --- Edge cases ---
@@ -167,7 +154,7 @@ def test_raises_when_webhook_not_found_in_db():
         patch(_PATCH_CONTAINER, return_value=container),
         pytest.raises(ValueError, match=str(WEBHOOK_ID)),
     ):
-        process_webhook(str(WEBHOOK_ID))
+        archive_offer_webhook(str(WEBHOOK_ID))
 
 
 # --- Retries ---
@@ -209,7 +196,7 @@ def test_retries_on_transport_error():
         patch.object(Task, "retry", side_effect=Retry()) as mock_retry,
         pytest.raises(Retry),
     ):
-        process_webhook(str(WEBHOOK_ID))
+        archive_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_called_once()
     assert mock_retry.call_args.kwargs["exc"] is exc
@@ -226,7 +213,7 @@ def test_retries_on_external_api_5xx():
         patch.object(Task, "retry", side_effect=Retry()) as mock_retry,
         pytest.raises(Retry),
     ):
-        process_webhook(str(WEBHOOK_ID))
+        archive_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_called_once()
     assert mock_retry.call_args.kwargs["exc"] is exc
@@ -242,7 +229,7 @@ def test_no_retry_on_external_api_4xx():
         patch.object(Task, "retry") as mock_retry,
         pytest.raises(ExternalApiError),
     ):
-        process_webhook(str(WEBHOOK_ID))
+        archive_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_not_called()
 
@@ -258,6 +245,6 @@ def test_no_retry_on_value_error():
         patch.object(Task, "retry") as mock_retry,
         pytest.raises(ValueError),
     ):
-        process_webhook(str(WEBHOOK_ID))
+        archive_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_not_called()

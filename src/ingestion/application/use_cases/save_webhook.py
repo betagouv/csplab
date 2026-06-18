@@ -24,6 +24,7 @@ class SaveWebhookUseCase:
             event_type=event.event_type,
             reference=event.reference,
             status_id=event.status,
+            action_type=event.get_action_type(),
             payload=payload,
         )
         await self._repository.insert(webhook)

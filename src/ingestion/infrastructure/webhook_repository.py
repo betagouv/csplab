@@ -6,7 +6,7 @@ from sqlmodel import Session
 
 from domain.entities.webhook import Webhook
 from domain.repositories.webhook_repository import IWebhookRepository
-from domain.value_objects.webhook_event import EventType
+from domain.value_objects.webhook_event import EventType, WebhookActionType
 from infrastructure.models.webhook import WebhookModel
 from infrastructure.value_objects.webhook_source import (
     SOURCE_TO_WEBHOOK_TYPE,
@@ -30,6 +30,7 @@ class WebhookRepository(IWebhookRepository):
                 event_type=webhook.event_type,
                 reference=webhook.reference,
                 status_id=webhook.status_id,
+                action_type=webhook.action_type,
                 payload=webhook.payload,
             )
             session.add(model)
@@ -51,4 +52,7 @@ class WebhookRepository(IWebhookRepository):
                 payload=model.payload,
                 webhook_type=SOURCE_TO_WEBHOOK_TYPE[model.webhook_type],
                 status_id=model.status_id,
+                action_type=(
+                    WebhookActionType(model.action_type) if model.action_type else None
+                ),
             )
