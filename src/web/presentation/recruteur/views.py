@@ -1,0 +1,100 @@
+from uuid import UUID
+
+from drf_spectacular.utils import extend_schema
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from domain.recruteur.errors.erreur_recrutement import ErreurRecruteur
+from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.recruteur.serializers import (
+    EtapeRecrutementSerializer,
+    OrganismeSerializer,
+)
+
+
+@extend_schema(
+    summary="Detail d'un organisme",
+    tags=["recruteur"],
+    responses={
+        200: OrganismeSerializer,
+        401: TokenErrorSerializer,
+        404: GenericErrorSerializer,
+        500: GenericErrorSerializer,
+    },
+)
+class OrganismeView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrganismeSerializer
+
+    def get(self, request: Request, organisme_uuid: UUID) -> Response:
+        try:
+            # TODO: wire the recruteur DI container + use case + repository
+            # (infrastructure/di/recruteur/ does not exist yet) to fetch the
+            # organisme by organisme_uuid, e.g.:
+            #   organisme = usecase.execute(organisme_uuid)
+            #   return Response(OrganismeSerializer(organisme).data)
+            # Static response for dev purposes until persistence is wired.
+            serializer = OrganismeSerializer(
+                {"nom": "COMMUNE DE BRIANCON", "siret": "21050023700354"}
+            )
+            return Response(serializer.data)
+        except ErreurRecruteur:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+@extend_schema(
+    summary="Liste des étapes de recrutement d'un organisme",
+    tags=["recruteur"],
+    responses={
+        200: EtapeRecrutementSerializer(many=True),
+        401: TokenErrorSerializer,
+        404: GenericErrorSerializer,
+        500: GenericErrorSerializer,
+    },
+)
+class EtapesRecrutementOrganismeView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EtapeRecrutementSerializer
+
+    def get(self, request: Request, organisme_uuid: UUID) -> Response:
+        try:
+            # TODO: wire the recruteur DI container + use case + repository
+            # (infrastructure/di/recruteur/ does not exist yet) to fetch the
+            # étapes de recrutement for organisme_uuid.
+            # Static response for dev purposes until persistence is wired.
+            etapes = [
+                {
+                    "etape_uuid": "11111111-1111-1111-1111-111111111111",
+                    "nom": "Candidatures ouvertes",
+                    "categorie": "INITIALE",
+                },
+                {
+                    "etape_uuid": "22222222-2222-2222-2222-222222222222",
+                    "nom": "Entretien",
+                    "categorie": "EN_COURS",
+                },
+                {
+                    "etape_uuid": "33333333-3333-3333-3333-333333333333",
+                    "nom": "Offre clôturée",
+                    "categorie": "TERMINALE",
+                },
+            ]
+            serializer = EtapeRecrutementSerializer(etapes, many=True)
+            return Response(serializer.data)
+        except ErreurRecruteur:
+            return Response(
+                {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

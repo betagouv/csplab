@@ -3,6 +3,90 @@ info:
   title: CSPLab Internal API
   version: 0.0.1
 paths:
+  /recruteur/organisme/{organisme_uuid}/:
+    get:
+      operationId: recruteur_organisme_retrieve
+      summary: Detail d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organisme'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+  /recruteur/organisme/{organisme_uuid}/parametres/etapes/:
+    get:
+      operationId: recruteur_organisme_parametres_etapes_list
+      summary: Liste des étapes de recrutement d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EtapeRecrutement'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /utilisateur/me/:
     get:
       operationId: utilisateur_me_retrieve
@@ -39,6 +123,30 @@ paths:
           description: ''
 components:
   schemas:
+    CategorieEnum:
+      enum:
+      - INITIALE
+      - EN_COURS
+      - TERMINALE
+      type: string
+      description: |-
+        * `INITIALE` - initiale
+        * `EN_COURS` - en_cours
+        * `TERMINALE` - terminale
+    EtapeRecrutement:
+      type: object
+      properties:
+        etape_uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        categorie:
+          $ref: '#/components/schemas/CategorieEnum'
+      required:
+      - categorie
+      - etape_uuid
+      - nom
     GenericError:
       type: object
       properties:
@@ -46,6 +154,16 @@ components:
           type: string
       required:
       - error
+    Organisme:
+      type: object
+      properties:
+        nom:
+          type: string
+        siret:
+          type: string
+      required:
+      - nom
+      - siret
     TokenError:
       type: object
       properties:
