@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from domain.identite.errors.identite_errors import UtilisateurDoesNotExist
+from domain.identite.errors.identite_errors import UtilisateurNexistePas
 from tests.factories.identite.utilisateur_factory import UtilisateurFactory
 
 URL = reverse("identite:user-details")
@@ -55,7 +55,7 @@ def test_returned_payload(mock_container, authenticated_client, test_user):
 @pytest.mark.parametrize(
     "exception,status_code",
     [
-        (UtilisateurDoesNotExist("unknown"), status.HTTP_404_NOT_FOUND),
+        (UtilisateurNexistePas("unknown"), status.HTTP_404_NOT_FOUND),
         (Exception("db connection error"), status.HTTP_500_INTERNAL_SERVER_ERROR),
     ],
 )

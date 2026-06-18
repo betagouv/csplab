@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from domain.identite.errors.identite_errors import UtilisateurDoesNotExist
+from domain.identite.errors.identite_errors import UtilisateurNexistePas
 from infrastructure.di.identite.identite_factory import create_identite_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.identite.serializers import UtilisateurSerializer
@@ -43,7 +43,7 @@ class UtilisateurDetailsView(APIView):
             usecase = self.container.get_utilisateur_details_usecase()
             utilisateur = usecase.execute(entity_id)
             return Response(UtilisateurSerializer(utilisateur).data)
-        except UtilisateurDoesNotExist:
+        except UtilisateurNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             self.logger.error("Unexpected error in UserInfoView: %s", str(e))

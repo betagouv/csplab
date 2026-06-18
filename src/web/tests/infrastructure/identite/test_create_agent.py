@@ -3,7 +3,7 @@ from faker import Faker
 
 from application.identite.usecases.create_agent import CreateAgentInput
 from config.app_config import AppConfig
-from domain.identite.errors.agent_errors import ProfilAgentAlreadyExists
+from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.identite.agent_factory import AgentFactory
@@ -61,5 +61,5 @@ def test_cannot_create_agent_twice(identite_integration_container):
         intitule_poste=fake.bothify("MAT-####"),
     )
 
-    with pytest.raises(ProfilAgentAlreadyExists):
+    with pytest.raises(ProfilAgentExisteDeja):
         identite_integration_container.create_agent_usecase().execute(input_data)
