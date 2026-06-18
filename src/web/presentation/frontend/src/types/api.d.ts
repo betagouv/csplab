@@ -60,12 +60,12 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description * `INITIALE` - initiale
+         * @description * `ENTREE` - entree
          *     * `EN_COURS` - en_cours
          *     * `TERMINALE` - terminale
          * @enum {string}
          */
-        CategorieEnum: "INITIALE" | "EN_COURS" | "TERMINALE";
+        CategorieEnum: "ENTREE" | "EN_COURS" | "TERMINALE";
         EtapeRecrutement: {
             /** Format: uuid */
             etape_uuid: string;

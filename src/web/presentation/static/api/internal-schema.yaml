@@ -125,12 +125,12 @@ components:
   schemas:
     CategorieEnum:
       enum:
-      - INITIALE
+      - ENTREE
       - EN_COURS
       - TERMINALE
       type: string
       description: |-
-        * `INITIALE` - initiale
+        * `ENTREE` - entree
         * `EN_COURS` - en_cours
         * `TERMINALE` - terminale
     EtapeRecrutement:
