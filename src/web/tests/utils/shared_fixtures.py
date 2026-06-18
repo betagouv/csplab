@@ -30,6 +30,7 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.submit_application import SubmitApplicationUsecase
 from application.identite.usecases.create_agent import CreateAgentUsecase
+from application.identite.usecases.create_organisme import CreateOrganismeUsecase
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.list_offers import ListOffersUseCase
@@ -46,6 +47,9 @@ from domain.candidate.repositories.cv_metadata_repository_interface import (
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
+from domain.identite.repositories.organisme_repository_interface import (
+    IOrganismeRepository,
+)
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
@@ -465,3 +469,11 @@ def create_agent_usecase():
         agent_repository=agent_repository,
         utilisateur_repository=utilisateur_repository,
     )
+
+
+@pytest.fixture
+def create_organisme_usecase():
+    organisme_repository = cast(
+        IOrganismeRepository, create_interface_aware_mock(IOrganismeRepository)
+    )
+    return CreateOrganismeUsecase(organisme_repository=organisme_repository)
