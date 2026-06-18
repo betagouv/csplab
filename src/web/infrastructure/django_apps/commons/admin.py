@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from infrastructure.django_apps.audit.models import AuditLogModel
+from infrastructure.django_apps.commons.models import AuditLogModel
 
 
 @admin.register(AuditLogModel)

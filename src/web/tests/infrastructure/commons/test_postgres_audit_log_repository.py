@@ -3,11 +3,11 @@ from uuid import uuid4
 
 import pytest
 
-from infrastructure.django_apps.audit.models import AuditLogModel
-from infrastructure.repositories.audit.postgres_audit_log_repository import (
+from infrastructure.django_apps.commons.models import AuditLogModel
+from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
-from tests.factories.audit.audit_log_factory import AuditLogFactory
+from tests.factories.commons.audit_log_factory import AuditLogFactory
 
 
 @pytest.fixture(name="repository")

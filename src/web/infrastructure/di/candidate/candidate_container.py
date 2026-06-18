@@ -11,17 +11,14 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.submit_application import SubmitApplicationUsecase
-from domain.audit.services.audit_log_writer import AuditLogWriter
 from domain.candidate.services.candidature_actors_validator import (
     CandidatureActorsValidator,
 )
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from infrastructure.external_gateways.albert_text_formatter import AlbertTextFormatter
 from infrastructure.external_gateways.ocr_extractor import OCRExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
-from infrastructure.repositories.audit.postgres_audit_log_repository import (
-    PostgresAuditLogRepository,
-)
 from infrastructure.repositories.candidate.async_postgres_cv_metadata_repository import (  # noqa E501
     AsyncPostgresCVMetadataRepository,
 )
@@ -30,6 +27,9 @@ from infrastructure.repositories.candidate.postgres_candidature_repository impor
 )
 from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,
+)
+from infrastructure.repositories.commons.postgres_audit_log_repository import (
+    PostgresAuditLogRepository,
 )
 from infrastructure.repositories.identite.postgres_candidat_repository import (
     PostgresCandidatRepository,

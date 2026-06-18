@@ -4,7 +4,6 @@ from ddd.usecase_interface import IUseCase
 from application.candidate.commands.submit_application_command import (
     SubmitApplicationCommand,
 )
-from domain.audit.services.audit_log_writer import AuditLogWriter
 from domain.candidate.entities.candidature import Candidature
 from domain.candidate.exceptions.candidature_errors import (
     CandidatureNexistePas,
@@ -15,6 +14,7 @@ from domain.candidate.repositories.candidature_repository_interface import (
 from domain.candidate.services.candidature_actors_validator import (
     CandidatureActorsValidator,
 )
+from domain.commons.services.audit_log_writer import AuditLogWriter
 
 
 class SubmitApplicationUsecase(

@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
-from domain.audit.entities.audit_log import AuditLog
-from infrastructure.django_apps.audit.models import AuditLogModel
+from domain.commons.entities.audit_log import AuditLog
+from infrastructure.django_apps.commons.models import AuditLogModel
 
 
 class AuditLogFactory:

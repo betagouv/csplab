@@ -8,8 +8,8 @@ from application.identite.usecases.get_utilisateur_details import (
 from application.identite.usecases.log_utilisateur_connexion import (
     LogUtilisateurConnexionUsecase,
 )
-from domain.audit.services.audit_log_writer import AuditLogWriter
-from infrastructure.repositories.audit.postgres_audit_log_repository import (
+from domain.commons.services.audit_log_writer import AuditLogWriter
+from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
 from infrastructure.repositories.identite.postgres_agent_repository import (

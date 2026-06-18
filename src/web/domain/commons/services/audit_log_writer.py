@@ -5,8 +5,8 @@ from ddd.aggregate_root import AggregateRoot
 from ddd.domain_event import DomainEvent
 from ddd.entity import Entity
 
-from domain.audit.entities.audit_log import AuditLog
-from domain.audit.repositories.audit_log_repository_interface import (
+from domain.commons.entities.audit_log import AuditLog
+from domain.commons.repositories.audit_log_repository_interface import (
     IAuditLogRepository,
 )
 

@@ -1,7 +1,7 @@
 from typing import Protocol
 from uuid import UUID
 
-from domain.audit.entities.audit_log import AuditLog
+from domain.commons.entities.audit_log import AuditLog
 
 
 class IAuditLogRepository(Protocol):

@@ -91,7 +91,7 @@ INSTALLED_APPS = [
     "infrastructure.django_apps.ingestion",
     "infrastructure.django_apps.candidate",
     "infrastructure.django_apps.users",
-    "infrastructure.django_apps.audit",
+    "infrastructure.django_apps.commons",
     "presentation.ingestion",
     "presentation.candidate",
     "presentation.ats",

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from domain.audit.services.audit_log_writer import AuditLogWriter
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
 
 

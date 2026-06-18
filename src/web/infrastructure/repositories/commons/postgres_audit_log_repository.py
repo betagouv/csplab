@@ -1,8 +1,10 @@
 from uuid import UUID
 
-from domain.audit.entities.audit_log import AuditLog
-from domain.audit.repositories.audit_log_repository_interface import IAuditLogRepository
-from infrastructure.django_apps.audit.models import AuditLogModel
+from domain.commons.entities.audit_log import AuditLog
+from domain.commons.repositories.audit_log_repository_interface import (
+    IAuditLogRepository,
+)
+from infrastructure.django_apps.commons.models import AuditLogModel
 
 
 class PostgresAuditLogRepository(IAuditLogRepository):

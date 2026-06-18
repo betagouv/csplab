@@ -1,6 +1,6 @@
 from django.db import models
 
-from domain.audit.entities.audit_log import AuditLog
+from domain.commons.entities.audit_log import AuditLog
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
