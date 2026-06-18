@@ -12,5 +12,5 @@ class EtapeRecrutementSerializer(serializers.Serializer):
 
 
 class OrganismeSerializer(serializers.Serializer):
-    nom = serializers.EmailField()
+    nom = serializers.CharField()
     siret = serializers.CharField()

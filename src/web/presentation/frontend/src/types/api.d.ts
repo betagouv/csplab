@@ -76,7 +76,6 @@ export interface components {
             error: string;
         };
         Organisme: {
-            /** Format: email */
             nom: string;
             siret: string;
         };

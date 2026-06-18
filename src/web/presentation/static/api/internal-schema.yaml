@@ -163,7 +163,6 @@ components:
       properties:
         nom:
           type: string
-          format: email
         siret:
           type: string
       required:
