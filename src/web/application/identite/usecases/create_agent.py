@@ -6,7 +6,6 @@ from domain.identite.entities.agent import Agent
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
 from domain.identite.errors.identite_errors import UtilisateurNexistePas
-from domain.identite.events.agent_events import ProfilAgentCree
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
@@ -35,25 +34,23 @@ class CreateAgentUsecase:
         if existing is not None:
             raise ProfilAgentExisteDeja(input_data.email)
 
-        event = ProfilAgentCree(
+        try:
+            utilisateur = self.utilisateur_repository.get_by_email(input_data.email)
+        except UtilisateurNexistePas:
+            utilisateur = self.utilisateur_repository.create(
+                Utilisateur(
+                    email=input_data.email,
+                    prenom=input_data.prenom,
+                    nom=input_data.nom,
+                )
+            )
+
+        agent = Agent.create(
             email=input_data.email,
             prenom=input_data.prenom,
             nom=input_data.nom,
             intitule_poste=input_data.intitule_poste,
+            user_id=utilisateur.entity_id,
         )
-
-        try:
-            utilisateur = self.utilisateur_repository.get_by_email(input_data.email)
-            agent = Agent.create(event, entity_id=utilisateur.entity_id)
-        except UtilisateurNexistePas:
-            agent = Agent.create(event)
-            utilisateur = self.utilisateur_repository.create(
-                Utilisateur(
-                    entity_id=agent.entity_id,
-                    email=agent.email,
-                    prenom=agent.prenom,
-                    nom=agent.nom,
-                )
-            )
 
         return self.agent_repository.create(utilisateur, agent)
