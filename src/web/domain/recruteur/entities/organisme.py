@@ -28,9 +28,9 @@ class Organisme(AggregateRoot):
         return self._parametres
 
     @mutate(OrganismeParametresInitialises)
-    def initialiser_parametres(self, event: OrganismeParametresInitialises) -> None:
-        self._parametres = event.parametres
+    def initialiser_parametres(self, parametres: EtapesRecrutement) -> None:
+        self._parametres = parametres
 
     @mutate(OrganismeParametresModifies)
-    def modifier_parametres(self, event: OrganismeParametresModifies) -> None:
-        self._parametres = event.parametres
+    def modifier_parametres(self, parametres: EtapesRecrutement) -> None:
+        self._parametres = parametres
