@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { DropdownMenuItem, DropdownMenuSeparator } from 'reka-ui'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
@@ -21,8 +20,38 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
   <CspDropdownMenu
     side="right"
     align="end"
-    :side-offset="8"
-    :side-flip="false"
+    :sections="[
+      {
+        items: [
+          {
+            label: isDark ? 'Mode clair' : 'Mode sombre',
+            icon: isDark ? 'ri:sun-line' : 'ri:moon-line',
+            onSelect: toggleColorMode,
+          },
+        ],
+      },
+      {
+        items: [
+          {
+            label: 'Mon profil',
+            icon: 'ri:user-line',
+          },
+          {
+            label: 'Paramètres',
+            icon: 'ri:settings-3-line',
+          },
+        ],
+      },
+      {
+        items: [
+          {
+            label: 'Se déconnecter',
+            icon: 'ri:logout-box-r-line',
+            destructive: true,
+          },
+        ],
+      },
+    ]"
   >
     <template #trigger>
       <button
@@ -52,42 +81,6 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
         />
       </button>
     </template>
-
-    <DropdownMenuItem @select="toggleColorMode">
-      <CspIcon
-        :name="isDark ? 'ri:sun-line' : 'ri:moon-line'"
-        :size="16"
-      />
-      {{ isDark ? 'Mode clair' : 'Mode sombre' }}
-    </DropdownMenuItem>
-
-    <DropdownMenuSeparator />
-
-    <DropdownMenuItem>
-      <CspIcon
-        name="ri:user-line"
-        :size="16"
-      />
-      Mon profil
-    </DropdownMenuItem>
-
-    <DropdownMenuItem>
-      <CspIcon
-        name="ri:settings-3-line"
-        :size="16"
-      />
-      Paramètres
-    </DropdownMenuItem>
-
-    <DropdownMenuSeparator />
-
-    <DropdownMenuItem>
-      <CspIcon
-        name="ri:logout-box-r-line"
-        :size="16"
-      />
-      Se déconnecter
-    </DropdownMenuItem>
   </CspDropdownMenu>
 </template>
 
