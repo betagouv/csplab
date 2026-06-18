@@ -22,13 +22,15 @@ class Organisme(AggregateRoot):
     @classmethod
     def build(
         cls,
+        entity_id: UUID,
         nom: str,
         versant: Verse,
-        localisation: Localisation,
+        localisation: Localisation | None,
         siret: SIRET | None = None,
         parent_id: UUID | None = None,
     ) -> "Organisme":
         return cls(
+            entity_id=entity_id,
             _nom=nom,
             _versant=versant,
             _localisation=localisation,

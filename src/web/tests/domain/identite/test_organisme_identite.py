@@ -7,7 +7,7 @@ from tests.factories.identite.organisme_factory import OrganismeFactory
 
 
 def test_organisme_creation():
-    parent_organisme = OrganismeFactory.build(
+    parent_organisme = OrganismeFactory.create_entity(
         nom=(
             "Etablissement d'enseignement et de recherche"
             "- Ministère chargé de la Culture"
