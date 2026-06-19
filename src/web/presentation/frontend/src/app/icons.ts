@@ -1,4 +1,5 @@
 import riAddLine from '@iconify-icons/ri/add-line'
+import riBuildingLine from '@iconify-icons/ri/building-line'
 import riAlertFill from '@iconify-icons/ri/alert-fill'
 import riArchiveLine from '@iconify-icons/ri/archive-line'
 import riArrowDownLine from '@iconify-icons/ri/arrow-down-line'
