@@ -1,4 +1,5 @@
 import riAddLine from '@iconify-icons/ri/add-line'
+import riBuildingLine from '@iconify-icons/ri/building-line'
 import riAlertFill from '@iconify-icons/ri/alert-fill'
 import riArrowLeftDoubleLine from '@iconify-icons/ri/arrow-left-double-line'
 import riArrowLeftLine from '@iconify-icons/ri/arrow-left-line'
@@ -45,6 +46,7 @@ addIcon('ri:arrow-right-double-line', riArrowRightDoubleLine)
 addIcon('ri:arrow-right-line', riArrowRightLine)
 addIcon('ri:arrow-right-s-line', riArrowRightSLine)
 addIcon('ri:briefcase-line', riBriefcaseLine)
+addIcon('ri:building-line', riBuildingLine)
 addIcon('ri:calendar-line', riCalendarLine)
 addIcon('ri:check-line', riCheckLine)
 addIcon('ri:checkbox-circle-fill', riCheckboxCircleFill)

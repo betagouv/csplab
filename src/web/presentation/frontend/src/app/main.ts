@@ -7,7 +7,10 @@ import '@/styles/index.css'
 
 const router = createRouter({
   history: createWebHistory('/ats/'),
-  routes: [{ path: '/', name: 'home', component: () => import('@/features/ats/HomeView.vue') }],
+  routes: [
+    { path: '/', name: 'home', component: () => import('@/features/ats/HomeView.vue') },
+    { path: '/parametres', name: 'parametres', component: () => import('@/features/ats/ParametresView.vue') },
+  ],
 })
 
 const app = createApp(App)

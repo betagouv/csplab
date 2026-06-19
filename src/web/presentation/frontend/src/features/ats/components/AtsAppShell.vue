@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
 import CspAppLayout from '@/components/layout/CspAppLayout/CspAppLayout.vue'
 import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
 import CspSidebarGroup from '@/components/layout/CspSidebar/CspSidebarGroup.vue'
@@ -10,6 +11,7 @@ import CspSidebarTrigger from '@/components/layout/CspSidebar/CspSidebarTrigger.
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
 import { useCurrentUser } from '@/composables/useCurrentUser'
 
+const route = useRoute()
 const { user, displayName, fetch: fetchUser } = useCurrentUser()
 
 onMounted(() => {
@@ -32,9 +34,11 @@ onMounted(() => {
               label="Tableau de bord"
             />
             <CspSidebarItem
+              :as="RouterLink"
+              to="/"
               icon="ri:briefcase-line"
               label="Mes offres"
-              is-active
+              :is-active="route.name === 'home'"
             />
           </CspSidebarGroup>
 
@@ -58,8 +62,11 @@ onMounted(() => {
 
           <CspSidebarGroup label="Paramètres">
             <CspSidebarItem
+              :as="RouterLink"
+              to="/parametres"
               icon="ri:settings-3-line"
               label="Paramètres"
+              :is-active="route.name === 'parametres'"
             />
           </CspSidebarGroup>
 

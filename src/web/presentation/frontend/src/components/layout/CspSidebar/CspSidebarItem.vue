@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from 'reka-ui'
 import { Primitive } from 'reka-ui'
+import { useAttrs } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspTooltip from '@/components/base/CspTooltip/CspTooltip.vue'
 import { useSidebar } from '@/composables/useSidebar'
@@ -16,7 +17,12 @@ withDefaults(defineProps<CspSidebarItemProps>(), {
   isActive: false,
 })
 
+const attrs = useAttrs()
 const { isExpanded, isMobile } = useSidebar()
+
+defineOptions({
+  inheritAttrs: false,
+})
 </script>
 
 <template>
@@ -29,6 +35,7 @@ const { isExpanded, isMobile } = useSidebar()
     <Primitive
       :as="as"
       :as-child="asChild"
+      v-bind="attrs"
       class="csp-sidebar-item"
       :class="{
         'csp-sidebar-item--active': isActive,
