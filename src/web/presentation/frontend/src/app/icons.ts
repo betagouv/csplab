@@ -1,5 +1,4 @@
 import riAddLine from '@iconify-icons/ri/add-line'
-import riBuildingLine from '@iconify-icons/ri/building-line'
 import riAlertFill from '@iconify-icons/ri/alert-fill'
 import riArchiveLine from '@iconify-icons/ri/archive-line'
 import riArrowDownLine from '@iconify-icons/ri/arrow-down-line'
@@ -50,6 +49,8 @@ addIcon('ri:add-line', riAddLine)
 addIcon('ri:alert-fill', riAlertFill)
 addIcon('ri:arrow-down-line', riArrowDownLine)
 addIcon('ri:arrow-left-double-line', riArrowLeftDoubleLine)
+addIcon('ri:arrow-down-s-line', riArrowDownSLine)
+addIcon('ri:arrow-up-s-line', riArrowUpSLine)
 addIcon('ri:arrow-left-line', riArrowLeftLine)
 addIcon('ri:arrow-left-s-line', riArrowLeftSLine)
 addIcon('ri:arrow-right-double-line', riArrowRightDoubleLine)
