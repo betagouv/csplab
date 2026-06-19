@@ -161,7 +161,6 @@ const resolvedIcon = computed(() => iconByVariant[props.variant])
   background-color: var(--csp-toast-bg);
   border: 1px solid var(--csp-toast-border);
   border-left: 4px solid var(--csp-toast-accent);
-  border-radius: 0.5rem;
   color: var(--csp-toast-text);
   box-shadow: var(--csp-shadow-md);
   overflow: hidden;
