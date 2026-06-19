@@ -1,19 +1,22 @@
 import riAddLine from '@iconify-icons/ri/add-line'
-import riBuildingLine from '@iconify-icons/ri/building-line'
 import riAlertFill from '@iconify-icons/ri/alert-fill'
+import riArrowDownSLine from '@iconify-icons/ri/arrow-down-s-line'
 import riArrowLeftDoubleLine from '@iconify-icons/ri/arrow-left-double-line'
 import riArrowLeftLine from '@iconify-icons/ri/arrow-left-line'
 import riArrowLeftSLine from '@iconify-icons/ri/arrow-left-s-line'
 import riArrowRightDoubleLine from '@iconify-icons/ri/arrow-right-double-line'
 import riArrowRightLine from '@iconify-icons/ri/arrow-right-line'
 import riArrowRightSLine from '@iconify-icons/ri/arrow-right-s-line'
+import riArrowUpSLine from '@iconify-icons/ri/arrow-up-s-line'
 import riBriefcaseLine from '@iconify-icons/ri/briefcase-line'
+import riBuildingLine from '@iconify-icons/ri/building-line'
 import riCalendarLine from '@iconify-icons/ri/calendar-line'
 import riCheckLine from '@iconify-icons/ri/check-line'
 import riCheckboxCircleFill from '@iconify-icons/ri/checkbox-circle-fill'
 import riCloseLine from '@iconify-icons/ri/close-line'
 import riDashboardLine from '@iconify-icons/ri/dashboard-line'
 import riDeleteBinLine from '@iconify-icons/ri/delete-bin-line'
+import riDragMove2Line from '@iconify-icons/ri/drag-move-2-line'
 import riEditLine from '@iconify-icons/ri/edit-line'
 import riErrorWarningFill from '@iconify-icons/ri/error-warning-fill'
 import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
@@ -23,6 +26,7 @@ import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
 import riGroupLine from '@iconify-icons/ri/group-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
 import riLayoutColumnLine from '@iconify-icons/ri/layout-column-line'
+import riLockLine from '@iconify-icons/ri/lock-line'
 import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
 import riMailLine from '@iconify-icons/ri/mail-line'
 import riMenuLine from '@iconify-icons/ri/menu-line'
@@ -40,6 +44,8 @@ import { addIcon } from '@iconify/vue'
 addIcon('ri:add-line', riAddLine)
 addIcon('ri:alert-fill', riAlertFill)
 addIcon('ri:arrow-left-double-line', riArrowLeftDoubleLine)
+addIcon('ri:arrow-down-s-line', riArrowDownSLine)
+addIcon('ri:arrow-up-s-line', riArrowUpSLine)
 addIcon('ri:arrow-left-line', riArrowLeftLine)
 addIcon('ri:arrow-left-s-line', riArrowLeftSLine)
 addIcon('ri:arrow-right-double-line', riArrowRightDoubleLine)
@@ -53,6 +59,8 @@ addIcon('ri:checkbox-circle-fill', riCheckboxCircleFill)
 addIcon('ri:close-line', riCloseLine)
 addIcon('ri:dashboard-line', riDashboardLine)
 addIcon('ri:delete-bin-line', riDeleteBinLine)
+addIcon('ri:draggable', riDragMove2Line)
+addIcon('ri:lock-line', riLockLine)
 addIcon('ri:edit-line', riEditLine)
 addIcon('ri:error-warning-fill', riErrorWarningFill)
 addIcon('ri:expand-up-down-line', riExpandUpDownLine)

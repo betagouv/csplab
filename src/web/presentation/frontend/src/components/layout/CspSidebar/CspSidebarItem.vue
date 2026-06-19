@@ -12,6 +12,10 @@ interface CspSidebarItemProps extends PrimitiveProps {
   isActive?: boolean
 }
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 withDefaults(defineProps<CspSidebarItemProps>(), {
   as: 'button',
   isActive: false,
@@ -19,10 +23,6 @@ withDefaults(defineProps<CspSidebarItemProps>(), {
 
 const attrs = useAttrs()
 const { isExpanded, isMobile } = useSidebar()
-
-defineOptions({
-  inheritAttrs: false,
-})
 </script>
 
 <template>
