@@ -38,6 +38,9 @@ from application.ingestion.usecases.list_sources import ListSourcesUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.upsert_offers import UpsertOffersUseCase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
+from application.recruteur.usecases.initialize_organisme_steps import (
+    InitializeOrganismeStepsUsecase,
+)
 from config.app_config import AppConfig
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
@@ -63,6 +66,9 @@ from domain.ingestion.repositories.user_source_repository_interface import (
     IUserSourceRepository,
 )
 from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
+from domain.recruteur.repositories.organisme_repository_interface import (
+    IOrganismeRecruteurRepository,
+)
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
@@ -477,3 +483,12 @@ def create_organisme_usecase():
         IOrganismeRepository, create_interface_aware_mock(IOrganismeRepository)
     )
     return CreateOrganismeUsecase(organisme_repository=organisme_repository)
+
+
+@pytest.fixture
+def initialize_organisme_steps_usecase():
+    repository = cast(
+        IOrganismeRecruteurRepository,
+        create_interface_aware_mock(IOrganismeRecruteurRepository),
+    )
+    return InitializeOrganismeStepsUsecase(organisme_repository=repository)
