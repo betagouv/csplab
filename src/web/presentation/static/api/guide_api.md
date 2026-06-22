@@ -6,7 +6,7 @@
 > partenaires, gestion de projet) qui ont besoin de comprendre le fonctionnement de
 > l'API sans lire de code.
 
----
+
 
 ## Sommaire
 
@@ -31,7 +31,7 @@
 - [Annexe — Les codes de réponse, en clair](#annexe--les-codes-de-réponse-en-clair)
 - [Annexe — Récapitulatif des listes de valeurs autorisées](#annexe--récapitulatif-des-listes-de-valeurs-autorisées)
 
----
+
 
 ## Qu'est-ce qu'une API, en deux phrases ?
 
@@ -41,7 +41,7 @@ partenaires autorisés (par exemple des plateformes d'emploi public) de **transm
 des offres d'emploi et des concours**, et de **consulter les offres et les métiers**
 de la Fonction Publique.
 
----
+
 
 ## À qui s'adresse cette API ?
 
@@ -49,7 +49,7 @@ L'API est **à l'usage exclusif des personnes et partenaires autorisés**. Chaqu
 utilisateur dispose de son propre moyen d'identification (voir « Authentification »
 ci-dessous). Aucun accès n'est possible sans autorisation préalable.
 
----
+
 
 ## Comment fonctionne l'authentification ?
 
@@ -76,7 +76,7 @@ On envoie un **email** et un **mot de passe**, et on reçoit en retour deux jeto
 
 On envoie le jeton de rafraîchissement et on reçoit un nouveau jeton d'accès.
 
----
+
 
 ## Limitations d'usage (quotas)
 
@@ -86,7 +86,7 @@ Pour préserver le service, le nombre d'appels est plafonné :
   d'ingestion d'offres et de métiers.
 - **100 offres maximum par appel** lors d'une création/modification groupée d'offres.
 
----
+
 
 # Les fonctionnalités de l'API
 
@@ -99,7 +99,7 @@ L'API est organisée en quatre grands domaines :
 | **Métiers** (`metiers`) | Consulter le référentiel des métiers de la Fonction Publique |
 | **Concours** (`concours`) | Importer des données de concours via un fichier CSV |
 
----
+
 
 ## 1. Consulter les offres d'emploi — `GET /api/v1/offres/`
 
@@ -124,7 +124,7 @@ Chaque offre renvoyée contient notamment :
 > **Règle métier clé :** une offre dont `archived_at` est **vide** est **active** ;
 > une offre dont `archived_at` est **renseigné** est **archivée**.
 
----
+
 
 ## 2. Archiver une offre — `POST /api/v1/offres/archiver`
 
@@ -148,7 +148,7 @@ référence.
 | `403` | Action interdite pour cet utilisateur |
 | `404` | Aucune offre ne correspond à cette référence |
 
----
+
 
 ## 3. Créer ou modifier des offres — `POST /api/v1/offres/creer_modifier/`
 
@@ -270,7 +270,7 @@ Tous les champs ci-dessous sont obligatoires.
 | `403` | Action interdite pour cet utilisateur |
 | `500` | Erreur inattendue du serveur |
 
----
+
 
 ## 4. Consulter les métiers — `GET /api/v1/metiers/`
 
@@ -291,7 +291,7 @@ Chaque métier renvoyé contient :
 | `conditions_particulieres` | Conditions particulières (peut être vide) |
 | `offer_family_code` | Code de la famille d'offres (peut être vide) |
 
----
+
 
 ## 5. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`
 
@@ -331,7 +331,7 @@ Permet d'importer en masse des données de concours **GRECO** via un fichier CSV
 La réponse de succès détaille : nombre total de lignes, lignes valides, lignes
 invalides, lignes créées, lignes mises à jour, et la liste éventuelle des erreurs.
 
----
+
 
 # Annexe — Les codes de réponse, en clair
 
@@ -344,7 +344,7 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 | `404` | Introuvable | L'élément demandé n'existe pas |
 | `500` | Erreur serveur | Problème inattendu côté CSPLab |
 
----
+
 
 # Annexe — Récapitulatif des listes de valeurs autorisées
 
@@ -364,8 +364,6 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 | **Zone géographique** | AF, EU, AS, AM, OC, AN |
 | **Niveau de diplôme** | Entier de 1 à 8 |
 
----
 
-*Document généré à partir du schéma OpenAPI officiel
-(`src/web/presentation/static/api/schema.yaml`). En cas de divergence, le schéma fait
-foi.*
+
+*Document généré à partir du [schéma OpenAPI officiel](`/static/api/schema.yaml`). En cas de divergence, le schéma fait foi.*
