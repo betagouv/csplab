@@ -1,9 +1,14 @@
 from http import HTTPStatus
+from unittest.mock import MagicMock, patch
 
 from django.test import Client
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
+
+from tests.factories.recruteur.organisme_factory import (
+    OrganismeRecruteurFactory,
+)
 
 fake = Faker()
 
@@ -37,26 +42,27 @@ class TestEtapesRecrutementOrganismeView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_authenticated_access_is_ok(self, authenticated_client):
-        response = authenticated_client.get(ETAPES_URL)
-        assert response.status_code == status.HTTP_200_OK
+        organisme = OrganismeRecruteurFactory.create_entity()
+        mock_usecase = MagicMock()
+        mock_usecase.execute.return_value = organisme
 
-        results = response.json()
-        assert results == [
+        mock_container = MagicMock()
+        mock_container.initialize_organisme_steps_usecase.return_value = mock_usecase
+
+        with patch(
+            "presentation.recruteur.views.recruteur_container",
+            return_value=mock_container,
+        ):
+            response = authenticated_client.get(ETAPES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == [
             {
-                "etape_uuid": "11111111-1111-1111-1111-111111111111",
-                "nom": "Candidatures ouvertes",
-                "categorie": "INITIALE",
-            },
-            {
-                "etape_uuid": "22222222-2222-2222-2222-222222222222",
-                "nom": "Entretien",
-                "categorie": "EN_COURS",
-            },
-            {
-                "etape_uuid": "33333333-3333-3333-3333-333333333333",
-                "nom": "Offre clôturée",
-                "categorie": "TERMINALE",
-            },
+                "etape_uuid": str(etape.entity_id),
+                "nom": etape.nom,
+                "categorie": etape.categorie.name,
+            }
+            for etape in organisme.etapes
         ]
 
 

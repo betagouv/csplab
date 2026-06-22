@@ -7,7 +7,12 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.usecases.initialize_organisme_steps import (
+    InitializeOrganismeStepsCommand,
+)
+from domain.recruteur.entities.organisme_recruteur import OrganismeRecruteur
 from domain.recruteur.errors.erreur_recrutement import ErreurRecruteur
+from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
@@ -64,30 +69,26 @@ class EtapesRecrutementOrganismeView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EtapeRecrutementSerializer
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = recruteur_container()
+
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            # TODO: wire the recruteur DI container + use case + repository
-            # (infrastructure/di/recruteur/ does not exist yet) to fetch the
-            # étapes de recrutement for organisme_uuid.
-            # Static response for dev purposes until persistence is wired.
-            etapes = [
+            usecase = self.container.initialize_organisme_steps_usecase()
+            organisme: OrganismeRecruteur = usecase.execute(
+                InitializeOrganismeStepsCommand(organisme_uuid)
+            )
+            etapes = organisme.etapes or ()
+            data = [
                 {
-                    "etape_uuid": "11111111-1111-1111-1111-111111111111",
-                    "nom": "Candidatures ouvertes",
-                    "categorie": "INITIALE",
-                },
-                {
-                    "etape_uuid": "22222222-2222-2222-2222-222222222222",
-                    "nom": "Entretien",
-                    "categorie": "EN_COURS",
-                },
-                {
-                    "etape_uuid": "33333333-3333-3333-3333-333333333333",
-                    "nom": "Offre clôturée",
-                    "categorie": "TERMINALE",
-                },
+                    "etape_uuid": str(e.entity_id),
+                    "nom": e.nom,
+                    "categorie": e.categorie.name,
+                }
+                for e in etapes
             ]
-            serializer = EtapeRecrutementSerializer(etapes, many=True)
+            serializer = EtapeRecrutementSerializer(data, many=True)
             return Response(serializer.data)
         except ErreurRecruteur:
             return Response(

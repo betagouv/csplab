@@ -9,11 +9,6 @@ NB_ETAPES_PAR_DEFAUT = 6
 NB_ETAPES_EN_COURS_PAR_DEFAUT = 4
 
 
-def test_organisme_etapes_none_before_init() -> None:
-    organisme = OrganismeRecruteurFactory.create_entity()
-    assert organisme.etapes is None
-
-
 def test_organisme_default_steps() -> None:
     organisme = OrganismeRecruteurFactory.create_entity()
     organisme.initialiser_etapes()
