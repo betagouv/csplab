@@ -14,6 +14,7 @@ from application.candidate.usecases.submit_application import SubmitApplicationU
 from domain.candidate.services.candidature_actors_validator import (
     CandidatureActorsValidator,
 )
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from infrastructure.external_gateways.albert_text_formatter import AlbertTextFormatter
 from infrastructure.external_gateways.ocr_extractor import OCRExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
@@ -26,6 +27,9 @@ from infrastructure.repositories.candidate.postgres_candidature_repository impor
 )
 from infrastructure.repositories.candidate.postgres_cv_metadata_repository import (
     PostgresCVMetadataRepository,
+)
+from infrastructure.repositories.commons.postgres_audit_log_repository import (
+    PostgresAuditLogRepository,
 )
 from infrastructure.repositories.identite.postgres_candidat_repository import (
     PostgresCandidatRepository,
@@ -66,11 +70,17 @@ class CandidateContainer(containers.DeclarativeContainer):
     postgres_cv_metadata_repository = providers.Singleton(PostgresCVMetadataRepository)
     candidature_repository = providers.Singleton(PostgresCandidatureRepository)
     candidat_repository = providers.Singleton(PostgresCandidatRepository)
+    audit_log_repository = providers.Singleton(PostgresAuditLogRepository)
 
     actors_validator = providers.Factory(
         CandidatureActorsValidator,
         candidat_repo=candidat_repository,
         offers_repo=offers_repository,
+    )
+
+    audit_log_writer = providers.Factory(
+        AuditLogWriter,
+        repository=audit_log_repository,
     )
 
     initialize_cv_metadata_usecase = providers.Factory(
@@ -110,5 +120,6 @@ class CandidateContainer(containers.DeclarativeContainer):
         SubmitApplicationUsecase,
         candidature_repository=candidature_repository,
         actors_validator=actors_validator,
+        audit_log_writer=audit_log_writer,
         logger=logger_service,
     )

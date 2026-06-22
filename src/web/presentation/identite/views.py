@@ -1,6 +1,8 @@
 from uuid import UUID
 
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse
 from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -8,10 +10,34 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.identite.usecases.log_utilisateur_connexion import (
+    LogUtilisateurConnexionInput,
+)
 from domain.identite.errors.identite_errors import UtilisateurNexistePas
 from infrastructure.di.identite.identite_factory import create_identite_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.identite.serializers import UtilisateurSerializer
+
+
+class LoginView(auth_views.LoginView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = create_identite_container()
+        self.logger = self.container.logger_service()
+
+    def form_valid(self, form) -> HttpResponse:
+        response = super().form_valid(form)
+        self._audit_connexion(form.get_user())
+        return response
+
+    def _audit_connexion(self, user) -> None:
+        # Auditing must never break the login flow (e.g. a non-UUID username on
+        # a legacy/superuser account), so failures are swallowed and logged.
+        try:
+            usecase = self.container.log_utilisateur_connexion_usecase()
+            usecase.execute(LogUtilisateurConnexionInput(utilisateur=user.to_entity()))
+        except Exception as e:
+            self.logger.error("Failed to audit login: %s", str(e))
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):
