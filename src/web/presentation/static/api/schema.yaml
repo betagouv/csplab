@@ -649,7 +649,6 @@ paths:
       - offres
       security:
       - jwtAuth: []
-      - ApiKeyAuth: []
       responses:
         '200':
           content:

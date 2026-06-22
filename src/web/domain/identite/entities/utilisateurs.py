@@ -9,3 +9,4 @@ class Utilisateur(Entity):
     email: EmailStr
     prenom: str
     nom: str
+    is_superuser: bool = False

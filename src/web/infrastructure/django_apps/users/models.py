@@ -38,6 +38,7 @@ class UserModel(AbstractUser):
             email=self.email,
             prenom=self.first_name,
             nom=self.last_name,
+            is_superuser=self.is_superuser,
         )
 
     @classmethod
@@ -47,6 +48,7 @@ class UserModel(AbstractUser):
             email=utilisateur.email,
             first_name=utilisateur.prenom,
             last_name=utilisateur.nom,
+            is_superuser=utilisateur.is_superuser,
         )
 
     def __str__(self):

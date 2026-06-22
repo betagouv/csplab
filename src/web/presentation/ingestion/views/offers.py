@@ -127,7 +127,7 @@ class OffersListView(APIView):
     },
 )
 class OffersBySourceView(APIView):
-    authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
+    authentication_classes = [JWTAuthentication]
     serializer_class = OfferDetailResponseSerializer
 
     def __init__(self, **kwargs):

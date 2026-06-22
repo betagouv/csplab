@@ -17,12 +17,14 @@ class UtilisateurFactory:
         email: str | None = None,
         prenom: str | None = None,
         nom: str | None = None,
+        is_superuser: bool = False,
     ) -> Utilisateur:
         return Utilisateur(
             entity_id=entity_id or uuid4(),
             email=email or fake.email(),
             prenom=prenom or fake.first_name(),
             nom=nom or fake.last_name(),
+            is_superuser=is_superuser,
         )
 
     @staticmethod
@@ -32,12 +34,14 @@ class UtilisateurFactory:
         prenom: str | None = None,
         nom: str | None = None,
         password: str = DEFAULT_PASSWORD,
+        is_superuser: bool = False,
     ) -> UserModel:
         utilisateur = UtilisateurFactory.create_entity(
             entity_id=entity_id,
             email=email,
             prenom=prenom,
             nom=nom,
+            is_superuser=is_superuser,
         )
         user = UserModel.from_entity(utilisateur)
         user.set_password(password)

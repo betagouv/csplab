@@ -15,7 +15,6 @@ from domain.ingestion.exceptions.source_authorization_error import (
 from tests.factories.ingestion.source_factory import SourceFactory
 from tests.factories.referentiel.offer_factory import OfferFactory
 
-API_KEY = "test-ingestion-api-key"
 SOURCE_ID = UUID("12345678-1234-4234-b234-123456789abc")
 
 URL = reverse("ingestion:offers_by_source", kwargs={"source_id": SOURCE_ID})
@@ -62,9 +61,12 @@ class TestOffersBySourceView:
         response = api_client.get(URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_post_not_allowed(self, api_client):
-        api_client.credentials(HTTP_AUTHORIZATION=f"Api-Key {API_KEY}")
-        response = api_client.post(URL)
+    def test_api_key_authentication_returns_401(self, api_key_client):
+        response = api_key_client.get(URL)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_post_not_allowed(self, authenticated_client):
+        response = authenticated_client.post(URL)
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_jwt_authentication_returns_offers(
@@ -107,21 +109,8 @@ class TestOffersBySourceView:
         response = authenticated_client.get(URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_api_key_authentication_returns_offers(self, api_client, use_case):
-        offer = OfferFactory.create_entity(source_id=SOURCE_ID)
-        _make_paginated_mock(use_case, num_offers=1, offers_slice=[offer])
-        api_client.credentials(HTTP_AUTHORIZATION=f"Api-Key {API_KEY}")
-
-        response = api_client.get(URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        use_case.execute.assert_called_once_with(
-            GetOffersBySourceInput(source_id=SOURCE_ID)
-        )
-
-    def test_returns_error_500(self, api_client, use_case):
+    def test_returns_error_500(self, authenticated_client, use_case):
         use_case.execute.side_effect = Exception("db error")
-        api_client.credentials(HTTP_AUTHORIZATION=f"Api-Key {API_KEY}")
 
-        response = api_client.get(URL)
+        response = authenticated_client.get(URL)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR

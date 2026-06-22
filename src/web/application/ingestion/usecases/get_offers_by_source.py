@@ -33,10 +33,11 @@ class GetOffersBySourceUseCase(IUseCase[GetOffersBySourceInput, IPage[Offer]]):
             utilisateur = self.utilisateur_repository.get_by_entity_id(
                 input_data.utilisateur_entity_id
             )
-            allowed = self.user_source_repository.get_allowed_source_ids(
-                utilisateur, {input_data.source_id}
-            )
-            if not allowed:
-                raise SourceAuthorizationError({input_data.source_id})
+            if not utilisateur.is_superuser:
+                allowed = self.user_source_repository.get_allowed_source_ids(
+                    utilisateur, {input_data.source_id}
+                )
+                if not allowed:
+                    raise SourceAuthorizationError({input_data.source_id})
 
         return self.offers_repository.get_by_source_id(input_data.source_id)
