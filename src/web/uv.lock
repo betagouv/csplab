@@ -678,6 +678,15 @@ wheels = [
 ]
 
 [[package]]
+name = "markdown"
+version = "3.10.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/2b/f4/69fa6ed85ae003c2378ffa8f6d2e3234662abd02c10d216c0ba96081a238/markdown-3.10.2.tar.gz", hash = "sha256:994d51325d25ad8aa7ce4ebaec003febcce822c3f8c911e3b17c52f7f589f950", size = 368805, upload-time = "2026-02-09T14:57:26.942Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/1f/77fa3081e4f66ca3576c896ae5d31c3002ac6607f9747d2e3aa49227e464/markdown-3.10.2-py3-none-any.whl", hash = "sha256:e91464b71ae3ee7afd3017d9f358ef0baf158fd9a298db92f1d4761133824c36", size = 108180, upload-time = "2026-02-09T14:57:25.787Z" },
+]
+
+[[package]]
 name = "mypy"
 version = "1.19.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1441,6 +1450,15 @@ wheels = [
 ]
 
 [[package]]
+name = "types-markdown"
+version = "3.10.2.20260518"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/93/82/c605b9c9cfa244922449af20b93f8c4ecdc936b926d3340830036e0f87f1/types_markdown-3.10.2.20260518.tar.gz", hash = "sha256:206b044dd55a02ed66dfb9cfc02b1e500005d60370834cee5b41d26a3d8f0f72", size = 19865, upload-time = "2026-05-18T06:01:32.268Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/db/fa5eef03f646f507d078a382ff8b239871ea847460f79effcfc44977865d/types_markdown-3.10.2.20260518-py3-none-any.whl", hash = "sha256:146fa9997a7d3aa3de1e3a51c56f3875d3947b7c545e58691e79f65fb56a663f", size = 25821, upload-time = "2026-05-18T06:01:31.35Z" },
+]
+
+[[package]]
 name = "types-python-dateutil"
 version = "2.9.0.20260518"
 source = { registry = "https://pypi.org/simple" }
@@ -1536,6 +1554,7 @@ dependencies = [
     { name = "drf-spectacular" },
     { name = "gunicorn" },
     { name = "huey" },
+    { name = "markdown" },
     { name = "pelage" },
     { name = "polars" },
     { name = "psycopg", extra = ["binary", "pool"] },
@@ -1573,6 +1592,7 @@ dev = [
     { name = "responses" },
     { name = "ruff" },
     { name = "time-machine" },
+    { name = "types-markdown" },
     { name = "types-python-dateutil" },
     { name = "types-requests" },
 ]
@@ -1592,6 +1612,7 @@ requires-dist = [
     { name = "drf-spectacular", specifier = ">=0.29.0" },
     { name = "gunicorn", specifier = ">=23.0.0,<24.0.0" },
     { name = "huey", specifier = ">=2.6.0" },
+    { name = "markdown", specifier = ">=3.10.2" },
     { name = "pelage", specifier = ">=0.6.0,<1.0.0" },
     { name = "polars", specifier = ">=1.0.0,<2.0.0" },
     { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.3.2,<3.4.0" },
@@ -1629,6 +1650,7 @@ dev = [
     { name = "responses", specifier = ">=0.25.8" },
     { name = "ruff", specifier = ">=0.14.3" },
     { name = "time-machine", specifier = ">=2.16.0" },
+    { name = "types-markdown", specifier = ">=3.10.2.20260518" },
     { name = "types-python-dateutil", specifier = ">=2.9.0.20260124" },
     { name = "types-requests", specifier = ">=2.32.4.20250913" },
 ]

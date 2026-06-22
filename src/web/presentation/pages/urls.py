@@ -4,6 +4,7 @@ from django.urls import path
 
 from presentation.pages.views import (
     AccessibilityView,
+    ApiGuideView,
     HomeView,
     LegalNoticesView,
     PrivacyView,
@@ -18,4 +19,5 @@ urlpatterns = [
     path("accessibilite", AccessibilityView.as_view(), name="accessibility"),
     path("confidentialite", PrivacyView.as_view(), name="privacy"),
     path("mentions-legales", LegalNoticesView.as_view(), name="legal_notices"),
+    path("pages/guide_api", ApiGuideView.as_view(), name="api_guide"),
 ]
