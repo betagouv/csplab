@@ -2,6 +2,7 @@ import riAddLine from '@iconify-icons/ri/add-line'
 import riAlertFill from '@iconify-icons/ri/alert-fill'
 import riArchiveLine from '@iconify-icons/ri/archive-line'
 import riArrowDownLine from '@iconify-icons/ri/arrow-down-line'
+import riArrowDownSLine from '@iconify-icons/ri/arrow-down-s-line'
 import riArrowLeftDoubleLine from '@iconify-icons/ri/arrow-left-double-line'
 import riArrowLeftLine from '@iconify-icons/ri/arrow-left-line'
 import riArrowLeftSLine from '@iconify-icons/ri/arrow-left-s-line'
@@ -9,7 +10,9 @@ import riArrowRightDoubleLine from '@iconify-icons/ri/arrow-right-double-line'
 import riArrowRightLine from '@iconify-icons/ri/arrow-right-line'
 import riArrowRightSLine from '@iconify-icons/ri/arrow-right-s-line'
 import riArrowUpLine from '@iconify-icons/ri/arrow-up-line'
+import riArrowUpSLine from '@iconify-icons/ri/arrow-up-s-line'
 import riBriefcaseLine from '@iconify-icons/ri/briefcase-line'
+import riBuildingLine from '@iconify-icons/ri/building-line'
 import riCalendarLine from '@iconify-icons/ri/calendar-line'
 import riCheckLine from '@iconify-icons/ri/check-line'
 import riCheckboxCircleFill from '@iconify-icons/ri/checkbox-circle-fill'
@@ -25,6 +28,7 @@ import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
 import riGroupLine from '@iconify-icons/ri/group-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
 import riLayoutColumnLine from '@iconify-icons/ri/layout-column-line'
+import riLockLine from '@iconify-icons/ri/lock-line'
 import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
 import riMailLine from '@iconify-icons/ri/mail-line'
 import riMenuLine from '@iconify-icons/ri/menu-line'
@@ -50,7 +54,10 @@ addIcon('ri:arrow-right-line', riArrowRightLine)
 addIcon('ri:arrow-right-s-line', riArrowRightSLine)
 addIcon('ri:arrow-up-line', riArrowUpLine)
 addIcon('ri:archive-line', riArchiveLine)
+addIcon('ri:arrow-down-s-line', riArrowDownSLine)
+addIcon('ri:arrow-up-s-line', riArrowUpSLine)
 addIcon('ri:briefcase-line', riBriefcaseLine)
+addIcon('ri:building-line', riBuildingLine)
 addIcon('ri:calendar-line', riCalendarLine)
 addIcon('ri:check-line', riCheckLine)
 addIcon('ri:checkbox-circle-fill', riCheckboxCircleFill)
@@ -66,6 +73,7 @@ addIcon('ri:flashlight-fill', riFlashlightFill)
 addIcon('ri:group-line', riGroupLine)
 addIcon('ri:information-fill', riInformationFill)
 addIcon('ri:layout-column-line', riLayoutColumnLine)
+addIcon('ri:lock-line', riLockLine)
 addIcon('ri:logout-box-r-line', riLogoutBoxRLine)
 addIcon('ri:mail-line', riMailLine)
 addIcon('ri:menu-line', riMenuLine)
