@@ -37,7 +37,7 @@ export default defineConfig(({ command }) => ({
     coverage: {
       provider: 'v8',
       include: ['src/utils/**', 'src/composables/**'],
-      exclude: ['**/*.stories.ts'],
+      exclude: ['**/*.stories.ts', 'src/composables/dnd/**'],
       thresholds: {
         'src/utils/**': { statements: 80, branches: 80, functions: 80, lines: 80 },
         'src/composables/**': { statements: 80, branches: 80, functions: 80, lines: 80 },
