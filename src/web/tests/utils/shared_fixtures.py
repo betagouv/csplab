@@ -44,6 +44,7 @@ from domain.candidate.repositories.candidature_repository_interface import (
 from domain.candidate.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
 )
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
@@ -447,6 +448,7 @@ def submit_application_usecase():
     return SubmitApplicationUsecase(
         candidature_repository=candidature_repository,
         actors_validator=actors_validator,
+        audit_log_writer=MagicMock(spec=AuditLogWriter),
         logger=MagicMock(),
     )
 

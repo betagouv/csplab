@@ -36,6 +36,9 @@ def test_submit_application_success(submit_application_usecase):
     assert isinstance(events[0], DossierCandidatureInitialise)
     assert isinstance(events[1], CandidatureSoumise)
     assert candidature.statut == StatutCandidature.SOUMISE
+    submit_application_usecase.audit_log_writer.drain_events.assert_called_once_with(
+        utilisateur_id=factory.candidat_id, aggregate=candidature
+    )
 
 
 def test_submit_application_failure(submit_application_usecase):

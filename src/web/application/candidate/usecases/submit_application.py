@@ -14,6 +14,7 @@ from domain.candidate.repositories.candidature_repository_interface import (
 from domain.candidate.services.candidature_actors_validator import (
     CandidatureActorsValidator,
 )
+from domain.commons.services.audit_log_writer import AuditLogWriter
 
 
 class SubmitApplicationUsecase(
@@ -23,11 +24,13 @@ class SubmitApplicationUsecase(
         self,
         candidature_repository: ICandidatureRepository,
         actors_validator: CandidatureActorsValidator,
+        audit_log_writer: AuditLogWriter,
         logger: ILogger,
     ):
         self.logger = logger
         self.candidature_repository = candidature_repository
         self.actors_validator = actors_validator
+        self.audit_log_writer = audit_log_writer
 
     def execute(self, command: SubmitApplicationCommand) -> Candidature:
         self.logger.info(
@@ -58,5 +61,7 @@ class SubmitApplicationUsecase(
         candidature.soumettre_candidature()
         self.candidature_repository.save(candidature)
 
-        # todo: collect_events => save in audit logs
+        self.audit_log_writer.drain_events(
+            utilisateur_id=candidat_id, aggregate=candidature
+        )
         return candidature
