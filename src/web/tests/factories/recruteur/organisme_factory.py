@@ -51,6 +51,4 @@ class OrganismeRecruteurFactory:
     def create_entity(
         etapes: tuple[EtapeRecrutement, ...] | None = None,
     ) -> OrganismeRecruteur:
-        if etapes is None:
-            etapes = make_etapes_recrutement()
         return OrganismeRecruteur.build(entity_id=uuid4(), etapes=etapes)

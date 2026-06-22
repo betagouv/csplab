@@ -20,6 +20,10 @@ ETAPES_URL = reverse(
     "recruteur:organisme-parametres-etapes",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
+INIT_ETAPES_URL = reverse(
+    "recruteur:organisme-parametres-etapes-init",
+    kwargs={"organisme_uuid": ORGANISME_UUID},
+)
 
 
 class TestOrganismeView:
@@ -43,6 +47,42 @@ class TestEtapesRecrutementOrganismeView:
 
     def test_authenticated_access_is_ok(self, authenticated_client):
         organisme = OrganismeRecruteurFactory.create_entity()
+        mock_repo = MagicMock()
+        mock_repo.get_by_id.return_value = organisme
+
+        mock_container = MagicMock()
+        mock_container.postgres_organisme_recruteur_repository.return_value = mock_repo
+
+        with patch(
+            "presentation.recruteur.views.recruteur_container",
+            return_value=mock_container,
+        ):
+            response = authenticated_client.get(ETAPES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        steps = []
+        if organisme.etapes:
+            steps = [
+                {
+                    "etape_uuid": str(etape.entity_id),
+                    "nom": etape.nom,
+                    "categorie": etape.categorie.name,
+                }
+                for etape in organisme.etapes
+            ]
+
+        assert response.json() == steps
+
+
+class TestInitEtapesRecrutementOrganismeView:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = api_client.post(INIT_ETAPES_URL)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_authenticated_post_initialize_steps(self, authenticated_client):
+        organisme = OrganismeRecruteurFactory.create_entity()
+        organisme.initialiser_etapes()
+
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = organisme
 
@@ -53,9 +93,9 @@ class TestEtapesRecrutementOrganismeView:
             "presentation.recruteur.views.recruteur_container",
             return_value=mock_container,
         ):
-            response = authenticated_client.get(ETAPES_URL)
+            response = authenticated_client.post(INIT_ETAPES_URL)
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == [
             {
                 "etape_uuid": str(etape.entity_id),

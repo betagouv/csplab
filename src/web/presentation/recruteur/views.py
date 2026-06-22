@@ -67,7 +67,6 @@ class OrganismeView(APIView):
 )
 class EtapesRecrutementOrganismeView(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = EtapeRecrutementSerializer
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -75,10 +74,8 @@ class EtapesRecrutementOrganismeView(APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            usecase = self.container.initialize_organisme_steps_usecase()
-            organisme: OrganismeRecruteur = usecase.execute(
-                InitializeOrganismeStepsCommand(organisme_uuid)
-            )
+            repo = self.container.postgres_organisme_recruteur_repository()
+            organisme: OrganismeRecruteur = repo.get_by_id(organisme_uuid)
             etapes = organisme.etapes or ()
             data = [
                 {
@@ -90,6 +87,52 @@ class EtapesRecrutementOrganismeView(APIView):
             ]
             serializer = EtapeRecrutementSerializer(data, many=True)
             return Response(serializer.data)
+        except ErreurRecruteur:
+            return Response(
+                {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+@extend_schema(
+    summary="Initialiser les étapes de recrutement par défaut d'un organisme",
+    tags=["recruteur"],
+    request=None,
+    responses={
+        201: EtapeRecrutementSerializer(many=True),
+        401: TokenErrorSerializer,
+        404: GenericErrorSerializer,
+        500: GenericErrorSerializer,
+    },
+)
+class InitEtapesRecrutementOrganismeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = recruteur_container()
+
+    def post(self, request: Request, organisme_uuid: UUID) -> Response:
+        try:
+            usecase = self.container.initialize_organisme_steps_usecase()
+            organisme = usecase.execute(
+                InitializeOrganismeStepsCommand(organisme_id=organisme_uuid)
+            )
+            etapes = organisme.etapes or ()
+            data = [
+                {
+                    "etape_uuid": str(e.entity_id),
+                    "nom": e.nom,
+                    "categorie": e.categorie.name,
+                }
+                for e in etapes
+            ]
+            serializer = EtapeRecrutementSerializer(data, many=True)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         except ErreurRecruteur:
             return Response(
                 {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
