@@ -67,3 +67,38 @@ def test_upsert_offers_result(ingestion_container):
     for offer in [existing_offer, new_offer]:
         model = OfferModel.objects.get(external_id=offer.external_id)
         assert OfferModel.to_entity(model) == offer
+
+
+def test_upsert_offers_unarchives_offer_and_makes_it_eligible_for_reindexing(
+    ingestion_container,
+):
+    archived_offer = OfferFactory.create_model(
+        archived_at=datetime.now(),
+        processed_at=datetime.now() - relativedelta(days=1),
+        updated_at=datetime.now() - relativedelta(days=1),
+    )
+    assert archived_offer.archived_at is not None
+
+    # OffersInputSerializer never exposes archived_at, so a caller upserting
+    # an offer has no way to send it: the incoming entity always defaults to
+    # archived_at=None, regardless of the offer's current archived state.
+    existing_offer = OfferFactory.create_entity(
+        external_id=archived_offer.external_id,
+        reference=archived_offer.reference,
+        source_id=archived_offer.source_id,
+    )
+
+    input_data = UpsertOffersInput(
+        source_id=existing_offer.source_id, offers=[existing_offer]
+    )
+    result = ingestion_container.upsert_offers_usecase().execute(input_data=input_data)
+    assert result == {"created": 0, "updated": 1, "errors": []}
+
+    archived_offer.refresh_from_db()
+    assert archived_offer.archived_at is None
+
+    offers_repository = ingestion_container.offers_repository()
+    pending_offer_ids = {
+        offer.id for offer in offers_repository.get_pending_processing()
+    }
+    assert archived_offer.id in pending_offer_ids
