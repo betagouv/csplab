@@ -5,8 +5,6 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.views.generic import TemplateView
 
-DOCS_DIR = settings.BASE_DIR.parent.parent / "docs"
-
 
 def _wrap_dsfr_tables(html: str) -> str:
     html = re.sub(
@@ -77,7 +75,7 @@ class ApiGuideView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         markdown_text = _strip_sommaire_section(
-            (DOCS_DIR / "api_guide_metier.md").read_text()
+            (settings.STATIC_DIR / "api" / "guide_api.md").read_text()
         )
         md = markdown.Markdown(
             extensions=["tables", "fenced_code", "toc"],
