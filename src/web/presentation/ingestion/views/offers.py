@@ -17,6 +17,9 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
+from application.ingestion.interfaces.get_offers_by_source_input import (
+    GetOffersBySourceInput,
+)
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
 from domain.ingestion.exceptions.source_authorization_error import (
@@ -35,6 +38,7 @@ from presentation.ingestion.openapi import (
     ARCHIVE_OFFER_EXAMPLES,
     LIST_OFFERS_DESCRIPTION,
     LIST_OFFERS_EXAMPLES,
+    OFFERS_BY_SOURCE_DESCRIPTION,
     UPSERT_OFFERS_DESCRIPTION,
 )
 from presentation.ingestion.pagination import IngestionPagination
@@ -44,6 +48,7 @@ from presentation.ingestion.serializers import (
     IdentityInputSerializer,
     ListOffersFiltersSerializer,
     ListOffersResponseSerializer,
+    OfferDetailResponseSerializer,
     OffersInputSerializer,
     UpsertOffersRequestSerializer,
 )
@@ -90,6 +95,74 @@ class OffersListView(APIView):
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+@extend_schema(
+    summary="Liste des offres d'une source",
+    description=OFFERS_BY_SOURCE_DESCRIPTION,
+    tags=["offres"],
+    responses={
+        200: inline_serializer(
+            name="OffersBySourceResponse",
+            fields={
+                "count": drf_serializers.IntegerField(),
+                "next": drf_serializers.CharField(allow_null=True),
+                "previous": drf_serializers.CharField(allow_null=True),
+                "results": OfferDetailResponseSerializer(many=True),
+            },
+        ),
+        401: PolymorphicProxySerializer(
+            component_name="OffersBySource401Error",
+            serializers=[
+                TokenErrorSerializer,
+                inline_serializer(
+                    name="OffersBySourceUnauthorized",
+                    fields={"detail": drf_serializers.CharField()},
+                ),
+            ],
+            resource_type_field_name=None,
+        ),
+        500: GenericErrorSerializer,
+    },
+)
+class OffersBySourceView(APIView):
+    authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
+    serializer_class = OfferDetailResponseSerializer
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = create_ingestion_container()
+        self.logger = self.container.logger_service()
+
+    def get(self, request, source_id):
+        utilisateur_entity_id = (
+            UUID(request.user.username) if isinstance(request.user, UserModel) else None
+        )
+        try:
+            usecase = self.container.get_offers_by_source_usecase()
+            result = usecase.execute(
+                GetOffersBySourceInput(
+                    source_id=source_id,
+                    utilisateur_entity_id=utilisateur_entity_id,
+                )
+            )
+            paginator = IngestionPagination()
+            items = paginator.paginate(result, request)
+            return paginator.get_paginated_response(
+                OfferDetailResponseSerializer(items, many=True).data
+            )
+        except SourceAuthorizationError as e:
+            source_ids = sorted(str(sid) for sid in e.source_ids)
+            return Response(
+                {"detail": f"Not authorized to access this source: {source_ids}."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        except Exception as e:
+            self.logger.error("Unexpected error in OffersBySourceView: %s", str(e))
+            return Response(
+                {"error": "Unexpected error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 

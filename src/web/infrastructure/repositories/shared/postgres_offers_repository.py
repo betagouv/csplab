@@ -154,6 +154,10 @@ class PostgresOffersRepository(IOffersRepository):
 
         return QuerySetPage(qs.order_by("-updated_at"))
 
+    def get_by_source_id(self, source_id: UUID) -> IPage[Offer]:
+        qs = OfferModel.objects.filter(source_id=source_id, archived_at__isnull=True)
+        return QuerySetPage(qs.order_by("-updated_at"))
+
     @transaction.atomic
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]:
         qs = (

@@ -613,6 +613,62 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+  /api/v1/offres/sources/{source_id}:
+    get:
+      operationId: v1_offres_sources_retrieve
+      description: |2
+
+        # API de consultation des offres d'une source
+
+        Cette API retourne, paginée, la liste complète des offres d'emploi rattachées
+        à la source identifiée par son `uuid`.
+
+        L'accès à une source non autorisée pour l'utilisateur authentifié renvoie une
+        erreur `401`.
+
+
+        Cette API est à l'usage exclusif des personnes autorisées.
+
+        # Permissions
+
+        L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
+        utilisateur.
+
+        # Limitations
+
+        L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+      summary: Liste des offres d'une source
+      parameters:
+      - in: path
+        name: source_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - offres
+      security:
+      - jwtAuth: []
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffersBySourceResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffersBySource401Error'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
 components:
   schemas:
     ArchiveOffer401Error:
@@ -1239,6 +1295,143 @@ components:
       required:
       - error
       - validation_errors
+    OfferDetailResponse:
+      type: object
+      properties:
+        external_id:
+          type: string
+        reference:
+          type: string
+        source_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        long_title:
+          type: string
+          nullable: true
+        organization:
+          type: string
+        employer:
+          type: string
+          nullable: true
+        profile:
+          type: string
+        mission:
+          type: string
+        complements:
+          type: string
+          nullable: true
+        verse:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        contract_type:
+          type: string
+          nullable: true
+        contract_kind:
+          type: array
+          items:
+            type: string
+          nullable: true
+        job_vacancy:
+          type: string
+          nullable: true
+        offer_url:
+          type: string
+          nullable: true
+        application_url:
+          type: string
+          nullable: true
+        localisation:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        criteria:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        conditions:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        contacts:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          nullable: true
+        publication_date:
+          type: string
+          format: date-time
+        beginning_date:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - application_url
+      - archived_at
+      - beginning_date
+      - category
+      - complements
+      - conditions
+      - contacts
+      - contract_kind
+      - contract_type
+      - criteria
+      - employer
+      - external_id
+      - job_vacancy
+      - localisation
+      - long_title
+      - mission
+      - offer_url
+      - organization
+      - profile
+      - publication_date
+      - reference
+      - source_id
+      - title
+      - verse
+    OffersBySource401Error:
+      oneOf:
+      - $ref: '#/components/schemas/TokenError'
+      - $ref: '#/components/schemas/OffersBySourceUnauthorized'
+    OffersBySourceResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+        previous:
+          type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OfferDetailResponse'
+      required:
+      - count
+      - next
+      - previous
+      - results
+    OffersBySourceUnauthorized:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     OffersInput:
       type: object
       properties:

@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
@@ -54,6 +55,54 @@ class ListOffersResponseSerializer(serializers.Serializer):
 class ListOffersFiltersSerializer(serializers.Serializer):
     active = serializers.BooleanField(default=True)
     external_id_contains = serializers.CharField(default=None)
+
+
+class OfferDetailResponseSerializer(serializers.Serializer):
+    external_id = serializers.CharField()
+    reference = serializers.CharField()
+    source_id = serializers.UUIDField()
+    title = serializers.CharField()
+    long_title = serializers.CharField(allow_null=True)
+    organization = serializers.CharField()
+    employer = serializers.CharField(allow_null=True)
+    profile = serializers.CharField()
+    mission = serializers.CharField()
+    complements = serializers.CharField(allow_null=True)
+    verse = serializers.CharField(allow_null=True)
+    category = serializers.CharField(allow_null=True)
+    contract_type = serializers.CharField(allow_null=True)
+    contract_kind = serializers.ListField(
+        child=serializers.CharField(), allow_null=True
+    )
+    job_vacancy = serializers.CharField(allow_null=True)
+    offer_url = serializers.CharField(allow_null=True)
+    application_url = serializers.CharField(allow_null=True)
+    localisation = serializers.SerializerMethodField()
+    criteria = serializers.DictField(allow_null=True)
+    conditions = serializers.DictField(allow_null=True)
+    contacts = serializers.ListField(child=serializers.DictField(), allow_null=True)
+    publication_date = serializers.DateTimeField()
+    beginning_date = serializers.SerializerMethodField()
+    archived_at = serializers.DateTimeField(allow_null=True)
+
+    @extend_schema_field(serializers.DictField(allow_null=True))
+    def get_localisation(self, obj):
+        if obj.localisation is None:
+            return None
+        loc = obj.localisation
+        return {
+            "area": str(loc.area),
+            "country": str(loc.country),
+            "region": loc.region.code,
+            "department": loc.department.code,
+            "label": loc.label,
+            "latitude": loc.latitude,
+            "longitude": loc.longitude,
+        }
+
+    @extend_schema_field(serializers.DateTimeField(allow_null=True))
+    def get_beginning_date(self, obj):
+        return obj.beginning_date.value if obj.beginning_date else None
 
 
 class ListOffersErrorSerializer(serializers.Serializer):
