@@ -29,7 +29,7 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
             nom=model.nom,
             versant=Verse(model.versant),
             localisation=localisation,
-            siret=SIRET(model.siret) if model.siret else None,
+            siret=SIRET(model.siret),
             parent_id=UUID(str(model.parent_id)) if model.parent_id else None,
         )
 
@@ -47,7 +47,7 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
             id=organisme.entity_id,
             nom=organisme.nom,
             versant=organisme.versant.value,
-            siret=organisme.siret.value if organisme.siret else None,
+            siret=organisme.siret.value,
             parent_id=organisme.parent_id,
             localisation=localisation_data,
         )

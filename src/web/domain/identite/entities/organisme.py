@@ -16,7 +16,7 @@ class Organisme(AggregateRoot):
     _nom: str
     _versant: Verse
     _localisation: Localisation | None
-    _siret: SIRET | None
+    _siret: SIRET
     _parent_id: UUID | None
 
     @classmethod
@@ -26,7 +26,7 @@ class Organisme(AggregateRoot):
         nom: str,
         versant: Verse,
         localisation: Localisation | None,
-        siret: SIRET | None = None,
+        siret: SIRET,
         parent_id: UUID | None = None,
     ) -> "Organisme":
         return cls(
@@ -51,7 +51,7 @@ class Organisme(AggregateRoot):
         return self._localisation
 
     @property
-    def siret(self) -> SIRET | None:
+    def siret(self) -> SIRET:
         return self._siret
 
     @property
@@ -65,7 +65,7 @@ class Organisme(AggregateRoot):
         nom: str,
         versant: Verse,
         localisation: Localisation | None,
-        siret: SIRET | None,
+        siret: SIRET,
         parent_id: UUID | None,
     ) -> "Organisme":
         return cls(

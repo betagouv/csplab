@@ -1,5 +1,6 @@
 from uuid import UUID, uuid4
 
+from faker import Faker
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
@@ -27,6 +28,9 @@ def make_localisation(
     )
 
 
+_fake = Faker("fr_FR")
+
+
 class OrganismeFactory:
     @staticmethod
     def create_entity(
@@ -41,7 +45,7 @@ class OrganismeFactory:
             nom=nom,
             versant=versant,
             localisation=localisation or make_localisation(),
-            siret=siret,
+            siret=siret or SIRET(_fake.siret().replace(" ", "")),
         )
 
     @staticmethod
@@ -57,7 +61,7 @@ class OrganismeFactory:
             nom=nom,
             versant=versant,
             localisation=localisation,
-            siret=siret,
+            siret=siret or SIRET(_fake.siret().replace(" ", "")),
         )
         mapper = OrganismeIdentiteMapper()
         model = mapper.from_domain(organisme)

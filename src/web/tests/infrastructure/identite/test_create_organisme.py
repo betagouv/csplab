@@ -27,7 +27,7 @@ def test_create_organisme(identite_integration_container):
         nom="Commune de Paris",
         versant=Verse.FPT,
         localisation=None,
-        siret=None,
+        siret=SIRET("19754687200015"),
         parent_id=None,
     )
 
@@ -38,6 +38,7 @@ def test_create_organisme(identite_integration_container):
     assert organisme.nom == "Commune de Paris"
     assert organisme.versant == Verse.FPT
     assert organisme.entity_id is not None
+    assert organisme.siret == SIRET("19754687200015")
 
 
 def test_create_organisme_avec_siret(identite_integration_container):
