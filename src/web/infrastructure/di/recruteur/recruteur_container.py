@@ -1,5 +1,8 @@
 from dependency_injector import containers, providers
 
+from application.recruteur.usecases.get_organisme_recruteur import (
+    GetOrganismeRecruteurUsecase,
+)
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsUsecase,
 )
@@ -14,6 +17,11 @@ class RecruteurContainer(containers.DeclarativeContainer):
 
     postgres_organisme_recruteur_repository = providers.Singleton(
         PostgresOrganismeRecruteurRepository
+    )
+
+    get_organisme_recruteur_usecase = providers.Factory(
+        GetOrganismeRecruteurUsecase,
+        organisme_repository=postgres_organisme_recruteur_repository,
     )
 
     initialize_organisme_steps_usecase = providers.Factory(

@@ -1,5 +1,8 @@
 import pytest
 
+from application.recruteur.usecases.get_organisme_recruteur import (
+    GetOrganismeRecruteurQuery,
+)
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
@@ -19,6 +22,17 @@ def recruteur_integration_container_fixture(db):
     container.app_config.override(app_config)
     container.logger_service.override(logger_service)
     return container
+
+
+def test_get_organisme_steps(recruteur_integration_container):
+    organisme_model = OrganismeFactory.create_model()
+    organisme_model.save()
+    usecase = recruteur_integration_container.get_organisme_recruteur_usecase()
+
+    organisme = usecase.execute(command=GetOrganismeRecruteurQuery(organisme_model.id))
+    events = organisme.collect_events()
+    assert len(events) == 0
+    assert organisme.entity_id == organisme_model.id
 
 
 def test_initialize_organisme_steps(recruteur_integration_container):

@@ -32,7 +32,22 @@ class TestOrganismeView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_authenticated_access_is_ok(self, authenticated_client):
-        response = authenticated_client.get(ORGANISME_URL)
+        mock_organisme = MagicMock()
+        mock_organisme.nom = "COMMUNE DE BRIANCON"
+        mock_organisme.siret = "21050023700354"
+
+        mock_usecase = MagicMock()
+        mock_usecase.execute.return_value = mock_organisme
+
+        mock_container = MagicMock()
+        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+
+        with patch(
+            "presentation.recruteur.views.recruteur_container",
+            return_value=mock_container,
+        ):
+            response = authenticated_client.get(ORGANISME_URL)
+
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "nom": "COMMUNE DE BRIANCON",
@@ -47,11 +62,12 @@ class TestEtapesRecrutementOrganismeView:
 
     def test_authenticated_access_is_ok(self, authenticated_client):
         organisme = OrganismeRecruteurFactory.create_entity()
-        mock_repo = MagicMock()
-        mock_repo.get_by_id.return_value = organisme
+
+        mock_usecase = MagicMock()
+        mock_usecase.execute.return_value = organisme
 
         mock_container = MagicMock()
-        mock_container.postgres_organisme_recruteur_repository.return_value = mock_repo
+        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
 
         with patch(
             "presentation.recruteur.views.recruteur_container",

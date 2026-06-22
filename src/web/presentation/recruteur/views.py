@@ -7,10 +7,12 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.usecases.get_organisme_recruteur import (
+    GetOrganismeRecruteurQuery,
+)
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
-from domain.recruteur.entities.organisme_recruteur import OrganismeRecruteur
 from domain.recruteur.errors.erreur_recrutement import ErreurRecruteur
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
@@ -34,17 +36,17 @@ class OrganismeView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = OrganismeSerializer
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = recruteur_container()
+
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            # TODO: wire the recruteur DI container + use case + repository
-            # (infrastructure/di/recruteur/ does not exist yet) to fetch the
-            # organisme by organisme_uuid, e.g.:
-            #   organisme = usecase.execute(organisme_uuid)
-            #   return Response(OrganismeSerializer(organisme).data)
-            # Static response for dev purposes until persistence is wired.
-            serializer = OrganismeSerializer(
-                {"nom": "COMMUNE DE BRIANCON", "siret": "21050023700354"}
+            usecase = self.container.get_organisme_recruteur_usecase()
+            organisme = usecase.execute(
+                GetOrganismeRecruteurQuery(organisme_id=organisme_uuid)
             )
+            serializer = OrganismeSerializer(organisme)
             return Response(serializer.data)
         except ErreurRecruteur:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -74,8 +76,10 @@ class EtapesRecrutementOrganismeView(APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            repo = self.container.postgres_organisme_recruteur_repository()
-            organisme: OrganismeRecruteur = repo.get_by_id(organisme_uuid)
+            usecase = self.container.get_organisme_recruteur_usecase()
+            organisme = usecase.execute(
+                GetOrganismeRecruteurQuery(organisme_id=organisme_uuid)
+            )
             etapes = organisme.etapes or ()
             data = [
                 {
