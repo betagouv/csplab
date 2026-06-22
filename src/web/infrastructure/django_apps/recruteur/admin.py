@@ -1,17 +1,59 @@
 from django import forms
 from django.contrib import admin
+from referentiel.value_objects.area import GeographicalArea
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from application.identite.usecases.create_organisme import CreateOrganismeCommand
+from domain.identite.errors.organisme_errors import SiretInvalide
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.django_apps.recruteur.models import OrganismeModel
 
 
 class CreateOrganismeAdminForm(forms.ModelForm):
+    area = forms.ChoiceField(
+        choices=[(g.value, g.name) for g in GeographicalArea],
+        initial=GeographicalArea.EUROPE.value,
+        label="Zone géographique",
+    )
+    country = forms.CharField(
+        initial="FRA",
+        label="Pays (code ISO 3166-1 alpha-3)",
+        help_text="Ex: FRA pour France",
+    )
+    region = forms.ChoiceField(
+        choices=[(code, name) for code, name in sorted(Region.NAMES.items())],
+        label="Région",
+    )
+    department = forms.ChoiceField(
+        choices=[(code, name) for code, name in sorted(Department.NAMES.items())],
+        label="Département",
+    )
+
     class Meta:
         model = OrganismeModel
-        fields = ["nom", "versant", "siret", "parent_id"]
+        fields = [
+            "nom",
+            "versant",
+            "siret",
+            "parent_id",
+            "area",
+            "country",
+            "region",
+            "department",
+        ]
+
+    def clean_siret(self):
+        siret = self.cleaned_data["siret"]
+        try:
+            SIRET(siret)
+        except SiretInvalide as e:
+            raise forms.ValidationError(f"SIRET invalide : {siret}") from e
+        return siret
 
 
 @admin.register(OrganismeModel)
@@ -25,16 +67,28 @@ class OrganismeAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             siret_raw = form.cleaned_data.get("siret")
+            localisation = Localisation(
+                area=GeographicalArea(form.cleaned_data["area"]),
+                country=Country(form.cleaned_data["country"]),
+                region=Region(code=form.cleaned_data["region"]),
+                department=Department(code=form.cleaned_data["department"]),
+            )
             command = CreateOrganismeCommand(
                 nom=form.cleaned_data["nom"],
                 versant=Verse(form.cleaned_data["versant"]),
-                localisation=None,
-                siret=SIRET(siret_raw) if siret_raw else None,
+                localisation=localisation,
+                siret=SIRET(siret_raw),
                 parent_id=form.cleaned_data.get("parent_id"),
             )
             container = create_identite_container()
             organisme = container.create_organisme_usecase().execute(command)
-            obj.pk = organisme.entity_id
             obj.id = organisme.entity_id
+            # Create the organisme model with localisation data
+            obj.localisation = {
+                "area": localisation.area.value,
+                "country": str(localisation.country),
+                "region": localisation.region.code,
+                "department": localisation.department.code,
+            }
         else:
             super().save_model(request, obj, form, change)
