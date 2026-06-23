@@ -67,6 +67,11 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # ---------------------------------------
 X_FRAME_OPTIONS = "DENY"
 
+# Admin
+# ---------------------------------------
+# Require a verified TOTP device to log into the Django admin.
+ADMIN_OTP_REQUIRED = True
+
 # Application definition
 
 
