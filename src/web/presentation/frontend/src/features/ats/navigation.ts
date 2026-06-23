@@ -14,7 +14,7 @@ export const ATS_NAVIGATION: NavGroup[] = [
   {
     label: 'Pilotage',
     items: [
-      { icon: 'ri:briefcase-line', label: 'Mes offres', to: 'home' },
+      { icon: 'ri:briefcase-line', label: 'Mes recrutements', to: 'mes-recrutements' },
     ],
   },
 ]
