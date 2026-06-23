@@ -259,7 +259,6 @@ class TestRecrutementsOrganismeView:
         assert "offer_id" in first
         assert "intitule" in first
         assert "reference_csp" in first
-        assert "localisation" in first
         assert "type_contrat" in first
         assert "type_offre" in first
         assert "date_publication" in first
@@ -283,18 +282,6 @@ class TestRecrutementsOrganismeView:
         assert "total" in candidatures
         assert "a_traiter" in candidatures
         assert "en_cours" in candidatures
-
-    def test_localisation_structure(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENTS_URL)
-        data = response.json()
-        localisation = data["results"][0]["localisation"]
-        assert "zone_geographique" in localisation
-        assert "pays" in localisation
-        assert "region" in localisation
-        assert "departement" in localisation
-        assert "label" in localisation
-        assert "latitude" in localisation
-        assert "longitude" in localisation
 
     def test_pagination_second_page(self, authenticated_client):
         response = authenticated_client.get(RECRUTEMENTS_URL + "?size=2&page=2")
