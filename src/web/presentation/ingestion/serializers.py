@@ -115,6 +115,7 @@ class ApiKeyErrorSerializer(serializers.Serializer):
 
 class SourceSerializer(serializers.Serializer):
     source_id = serializers.UUIDField()
+    slug = serializers.CharField()
     type = serializers.CharField(source="type.value")
     client_id_front = serializers.CharField()
     client_id_back = serializers.CharField()

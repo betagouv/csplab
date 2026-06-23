@@ -53,6 +53,7 @@ def test_response_shape(mock_sources_container, api_key_client):
     assert response.status_code == status.HTTP_200_OK
     assert response.json()[0] == {
         "source_id": str(source.source_id),
+        "slug": source.slug,
         "type": source.type.value,
         "client_id_front": source.client_id_front,
         "client_id_back": source.client_id_back,
