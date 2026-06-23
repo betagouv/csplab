@@ -84,3 +84,17 @@ class RecrutementArchiveSerializer(serializers.Serializer):
     derniere_activite = serializers.DateTimeField()
     finalise = serializers.BooleanField()
     recrute = serializers.CharField(allow_null=True)
+
+
+class RecrutementActifPageSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.URLField(allow_null=True)
+    previous = serializers.URLField(allow_null=True)
+    results = RecrutementActifSerializer(many=True)
+
+
+class RecrutementArchivePageSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.URLField(allow_null=True)
+    previous = serializers.URLField(allow_null=True)
+    results = RecrutementArchiveSerializer(many=True)

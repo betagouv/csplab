@@ -19,6 +19,7 @@ from presentation.api.serializers import GenericErrorSerializer, TokenErrorSeria
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
     OrganismeSerializer,
+    RecrutementActifPageSerializer,
     RecrutementActifSerializer,
     RecrutementArchiveSerializer,
     RecrutementsFiltersSerializer,
@@ -314,7 +315,7 @@ class InitEtapesRecrutementOrganismeView(APIView):
         ),
         tags=["recruteur"],
         responses={
-            200: RecrutementActifSerializer(many=True),
+            200: RecrutementActifPageSerializer,
             400: GenericErrorSerializer,
             401: TokenErrorSerializer,
             500: GenericErrorSerializer,
@@ -342,6 +343,10 @@ class RecrutementsOrganismeView(APIView):
             dataset = _STATIC_RECRUTEMENTS_ACTIFS
             serializer_class = RecrutementActifSerializer
 
+        # TODO: switch to QuerySetPage once the use case is wired up.
+        # TODO: consolidate pagination logic with OffersListView
+        #       (see presentation/ingestion/views.py) rather than
+        # duplicating it here.
         count = len(dataset)
         offset = (page - 1) * size
         page_data = dataset[offset : offset + size]
