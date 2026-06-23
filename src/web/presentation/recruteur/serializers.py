@@ -13,6 +13,14 @@ class EtapeRecrutementSerializer(serializers.Serializer):
     )
 
 
+class UpdateEtapeRecrutementSerializer(serializers.Serializer):
+    etape_uuid = serializers.UUIDField(required=False)
+    nom = serializers.CharField()
+    categorie = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in CategorieEtapeRecrutement]
+    )
+
+
 class OrganismeSerializer(serializers.Serializer):
     nom = serializers.CharField()
     siret = serializers.CharField()

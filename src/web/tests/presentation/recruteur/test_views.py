@@ -187,6 +187,49 @@ class TestInitEtapesRecrutementOrganismeView:
         ]
 
 
+class TestPutEtapesRecrutementOrganismeView:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = api_client.put(ETAPES_URL, [], format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_invalid_body_returns_400(self, authenticated_client):
+        response = authenticated_client.put(
+            ETAPES_URL,
+            [{"nom": "Entretien", "categorie": "INVALIDE"}],
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_missing_nom_returns_400(self, authenticated_client):
+        response = authenticated_client.put(
+            ETAPES_URL,
+            [{"categorie": "EN_COURS"}],
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_put_mixed_existing_and_new_etapes(self, authenticated_client):
+        existing_uuid = str(fake.uuid4())
+        payload = [
+            {"etape_uuid": existing_uuid, "nom": "Réception", "categorie": "ENTREE"},
+            {"nom": "Nouvelle étape", "categorie": "EN_COURS"},
+            {
+                "etape_uuid": str(fake.uuid4()),
+                "nom": "Recrutement",
+                "categorie": "TERMINALE",
+            },
+        ]
+
+        response = authenticated_client.put(ETAPES_URL, payload, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert len(data) == 3  # noqa
+        assert data[0]["etape_uuid"] == existing_uuid
+        assert data[1]["etape_uuid"] is not None
+        assert data[1]["nom"] == "Nouvelle étape"
+
+
 class TestATSBase:
     def test_base_view_returns_200(self, db, client: Client):
         response = client.get("/ats/")
