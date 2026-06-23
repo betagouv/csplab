@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# For each service under src/, upgrade its locked dependencies with
+# `uv lock --upgrade`, commit on a dedicated branch, push, and return to main.
+#
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+
+if [ -n "$(git status --porcelain)" ]; then
+  echo "✖ working tree is not clean; commit or stash your changes first" >&2
+  exit 1
+fi
+
+git switch main
+git pull --ff-only origin main
+
+SERVICES=(web ocr ingestion notebook)
+
+for svc in "${SERVICES[@]}"; do
+  svc_dir="src/$svc"
+  echo "▶ [$svc] mise à jour des dépendances"
+  ( cd "$svc_dir" && uv lock --upgrade )
+
+  if git diff --quiet -- "$svc_dir/uv.lock"; then
+    echo "⚠ [$svc] no dependency changes, skipping"
+    continue
+  fi
+
+  branch="chore/upgrade-deps-$svc"
+  git switch -c "$branch"
+  git add "$svc_dir/uv.lock"
+  git commit -m "⬆️($svc) mise à jour des dépendances"
+  git push -u origin "$branch"
+  git switch main
+done
+
+echo "▶ Done."
