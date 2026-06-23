@@ -2,9 +2,8 @@ import pytest
 from pytest_httpx import HTTPXMock
 
 from application.use_cases.load_sources import LoadSourcesUseCase
-from tests.shared_fixtures import WEB_API_KEY, WEB_BASE_URL
-
-SOURCES_URL = f"{WEB_BASE_URL}/api/v1/sources/"
+from tests.conftest import SOURCES_URL
+from tests.shared_fixtures import WEB_API_KEY
 
 
 @pytest.mark.asyncio

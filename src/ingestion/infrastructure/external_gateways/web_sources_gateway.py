@@ -5,5 +5,5 @@ from infrastructure.external_gateways.base_web_gateway import BaseWebGateway
 
 class WebSourcesGateway(BaseWebGateway, ISourcesGateway):
     async def fetch_sources(self) -> list[Source]:
-        response = await self._get("/sources/")
+        response = await self._get("/sources")
         return [Source(**item) for item in response.json()]

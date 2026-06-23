@@ -24,10 +24,10 @@ from domain.gateways.publish_offer_input import PublishOfferInput
 from infrastructure.external_gateways.web_publish_offer_gateway import (
     WebPublishOfferGateway,
 )
+from tests.conftest import WEB_API_KEY as API_KEY
+from tests.conftest import WEB_BASE_URL as BASE_URL
+from tests.conftest import PUBLISH_OFFER_URL as PUBLISH_URL
 
-BASE_URL = "https://web.example.com"
-API_KEY = "test-api-key"
-PUBLISH_URL = f"{BASE_URL}/api/v1/offres/creer_modifier/"
 SOURCE_ID = UUID("11111111-2222-3333-4444-555555555555")
 PUBLICATION_DATE = datetime(2024, 1, 15, tzinfo=timezone.utc)
 

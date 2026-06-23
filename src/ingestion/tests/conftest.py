@@ -24,6 +24,8 @@ WEB_BASE_URL = "https://web.example.com"
 WEB_API_KEY = "test-api-key"
 WEBHOOK_PATH = "/webhooks/talentsoft"
 SOURCE_ID = "11111111-2222-3333-4444-555555555555"
+PUBLISH_OFFER_URL = f"{WEB_BASE_URL}/api/v1/offres/creer_modifier"
+SOURCES_URL = f"{WEB_BASE_URL}/api/v1/sources"
 
 
 # --- Signature helpers ---

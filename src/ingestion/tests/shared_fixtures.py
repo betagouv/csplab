@@ -32,6 +32,7 @@ from tests.conftest import (
     TALENTSOFT_FRONT_BASE_URL,
     TALENTSOFT_FRONT_CLIENT_ID,
     TALENTSOFT_FRONT_CLIENT_SECRET,
+    PUBLISH_OFFER_URL,
     WEB_API_KEY,
     WEB_BASE_URL,
 )
@@ -44,7 +45,6 @@ _logger = logging.getLogger(__name__)
 
 TALENTSOFT_TOKEN_URL = f"{TALENTSOFT_FRONT_BASE_URL}/api/token"
 TALENTSOFT_DETAIL_OFFER_URL = f"{TALENTSOFT_FRONT_BASE_URL}/api/v2/offers/getoffer"
-WEB_PUBLISH_OFFER_URL = f"{WEB_BASE_URL}/api/v1/offres/creer_modifier/"
 
 
 def mock_talentsoft_token_response(httpx_mock: HTTPXMock) -> None:
@@ -62,7 +62,7 @@ def mock_talentsoft_token_response(httpx_mock: HTTPXMock) -> None:
 def mock_web_publish_offer_response(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         method="POST",
-        url=WEB_PUBLISH_OFFER_URL,
+        url=PUBLISH_OFFER_URL,
         json={"created": 1, "updated": 0, "errors": []},
         status_code=201,
     )

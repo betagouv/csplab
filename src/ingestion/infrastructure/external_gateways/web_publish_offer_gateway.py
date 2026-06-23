@@ -10,7 +10,7 @@ from infrastructure.external_gateways.dtos.offer_upsert_payload import (
 class WebPublishOfferGateway(BaseWebGateway, IPublishOfferGateway):
     async def publish(self, input: PublishOfferInput) -> None:
         await self._post(
-            "/offres/creer_modifier/",
+            "/offres/creer_modifier",
             json={
                 "source_id": str(input.source_id),
                 "offres": [self._serialize(input.offer)],
