@@ -8,273 +8,272 @@ paths:
       operationId: recruteur_organisme_retrieve
       summary: Detail d'un organisme
       parameters:
-        - in: path
-          name: organisme_uuid
-          schema:
-            type: string
-            format: uuid
-          required: true
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
       tags:
-        - recruteur
+      - recruteur
       security:
-        - jwtAuth: []
-        - cookieAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Organisme"
-          description: ""
-        "401":
+                $ref: '#/components/schemas/Organisme'
+          description: ''
+        '401':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TokenError"
-          description: ""
-        "404":
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
-        "500":
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organisme/{organisme_uuid}/parametres/etapes:
     get:
       operationId: recruteur_organisme_parametres_etapes_list
       summary: Liste des étapes de recrutement d'un organisme
       parameters:
-        - in: path
-          name: organisme_uuid
-          schema:
-            type: string
-            format: uuid
-          required: true
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
       tags:
-        - recruteur
+      - recruteur
       security:
-        - jwtAuth: []
-        - cookieAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/EtapeRecrutement"
-          description: ""
-        "401":
+                  $ref: '#/components/schemas/EtapeRecrutement'
+          description: ''
+        '401':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TokenError"
-          description: ""
-        "404":
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
-        "500":
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
+                $ref: '#/components/schemas/GenericError'
+          description: ''
     put:
       operationId: recruteur_organisme_parametres_etapes_update
       summary: Modifier les étapes de recrutement d'un organisme
       parameters:
-        - in: path
-          name: organisme_uuid
-          schema:
-            type: string
-            format: uuid
-          required: true
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
       tags:
-        - recruteur
+      - recruteur
       requestBody:
         content:
           application/json:
             schema:
               type: array
               items:
-                $ref: "#/components/schemas/UpdateEtapeRecrutement"
+                $ref: '#/components/schemas/UpdateEtapeRecrutement'
           application/x-www-form-urlencoded:
             schema:
               type: array
               items:
-                $ref: "#/components/schemas/UpdateEtapeRecrutement"
+                $ref: '#/components/schemas/UpdateEtapeRecrutement'
           multipart/form-data:
             schema:
               type: array
               items:
-                $ref: "#/components/schemas/UpdateEtapeRecrutement"
+                $ref: '#/components/schemas/UpdateEtapeRecrutement'
         required: true
       security:
-        - jwtAuth: []
-        - cookieAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/EtapeRecrutement"
-          description: ""
-        "400":
+                  $ref: '#/components/schemas/EtapeRecrutement'
+          description: ''
+        '400':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
-        "401":
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TokenError"
-          description: ""
-        "404":
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
-        "500":
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organisme/{organisme_uuid}/parametres/etapes/init:
     post:
       operationId: recruteur_organisme_parametres_etapes_init_create
       summary: Initialiser les étapes de recrutement par défaut d'un organisme
       parameters:
-        - in: path
-          name: organisme_uuid
-          schema:
-            type: string
-            format: uuid
-          required: true
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
       tags:
-        - recruteur
+      - recruteur
       security:
-        - jwtAuth: []
-        - cookieAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/EtapeRecrutement"
-          description: ""
-        "401":
+                  $ref: '#/components/schemas/EtapeRecrutement'
+          description: ''
+        '401':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TokenError"
-          description: ""
-        "404":
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
-        "500":
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organisme/{organisme_uuid}/recrutements/:
     get:
       operationId: recruteur_organisme_recrutements_retrieve
-      description:
-        "Retourne la liste paginée des recrutements d'un organisme. Deux
+      description: 'Retourne la liste paginée des recrutements d''un organisme. Deux
         onglets disponibles via le paramètre `filtre` : `actifs` (recrutements en
-        cours, défaut) et `archives` (offres archivées)."
+        cours, défaut) et `archives` (offres archivées).'
       summary: Liste des recrutements d'un organisme
       parameters:
-        - in: path
-          name: organisme_uuid
-          schema:
-            type: string
-            format: uuid
-          required: true
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
       tags:
-        - recruteur
+      - recruteur
       security:
-        - jwtAuth: []
-        - cookieAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RecrutementActifPage"
-          description: ""
-        "400":
+                $ref: '#/components/schemas/RecrutementActifPage'
+          description: ''
+        '400':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
-        "401":
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TokenError"
-          description: ""
-        "500":
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '500':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /utilisateur/me:
     get:
       operationId: utilisateur_me_retrieve
       summary: Detail de l'utilisateur connecté
       tags:
-        - utilisateurs
+      - utilisateurs
       security:
-        - jwtAuth: []
-        - cookieAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Utilisateur"
-          description: ""
-        "400":
+                $ref: '#/components/schemas/Utilisateur'
+          description: ''
+        '400':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
-        "401":
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TokenError"
-          description: ""
-        "500":
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '500':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericError"
-          description: ""
+                $ref: '#/components/schemas/GenericError'
+          description: ''
 components:
   schemas:
     CandidaturesActives:
@@ -290,14 +289,14 @@ components:
           type: integer
           nullable: true
       required:
-        - a_traiter
-        - en_cours
-        - total
+      - a_traiter
+      - en_cours
+      - total
     CategorieEnum:
       enum:
-        - ENTREE
-        - EN_COURS
-        - TERMINALE
+      - ENTREE
+      - EN_COURS
+      - TERMINALE
       type: string
       description: |-
         * `ENTREE` - entree
@@ -312,25 +311,25 @@ components:
         nom:
           type: string
         categorie:
-          $ref: "#/components/schemas/CategorieEnum"
+          $ref: '#/components/schemas/CategorieEnum'
       required:
-        - categorie
-        - etape_uuid
-        - nom
+      - categorie
+      - etape_uuid
+      - nom
     GenericError:
       type: object
       properties:
         error:
           type: string
       required:
-        - error
+      - error
     KindContratEnum:
       enum:
-        - CDD
-        - CDI
-        - PERMANENT
-        - VACATION
-        - STAGE
+      - CDD
+      - CDI
+      - PERMANENT
+      - VACATION
+      - STAGE
       type: string
       description: |-
         * `CDD` - CDD
@@ -340,7 +339,7 @@ components:
         * `STAGE` - Stage
     NullEnum:
       enum:
-        - null
+      - null
     Organisme:
       type: object
       properties:
@@ -349,8 +348,8 @@ components:
         siret:
           type: string
       required:
-        - nom
-        - siret
+      - nom
+      - siret
     RecrutementActif:
       type: object
       properties:
@@ -364,37 +363,37 @@ components:
         type_contrat:
           nullable: true
           oneOf:
-            - $ref: "#/components/schemas/TypeContratEnum"
-            - $ref: "#/components/schemas/NullEnum"
+          - $ref: '#/components/schemas/TypeContratEnum'
+          - $ref: '#/components/schemas/NullEnum'
         kind_contrat:
           nullable: true
           oneOf:
-            - $ref: "#/components/schemas/KindContratEnum"
-            - $ref: "#/components/schemas/NullEnum"
+          - $ref: '#/components/schemas/KindContratEnum'
+          - $ref: '#/components/schemas/NullEnum'
         date_publication:
           type: string
           format: date-time
         responsables:
           type: array
           items:
-            $ref: "#/components/schemas/Responsable"
+            $ref: '#/components/schemas/Responsable'
         derniere_activite:
           type: string
           format: date-time
         candidatures:
           allOf:
-            - $ref: "#/components/schemas/CandidaturesActives"
+          - $ref: '#/components/schemas/CandidaturesActives'
           nullable: true
       required:
-        - candidatures
-        - date_publication
-        - derniere_activite
-        - intitule
-        - kind_contrat
-        - offer_id
-        - reference_csp
-        - responsables
-        - type_contrat
+      - candidatures
+      - date_publication
+      - derniere_activite
+      - intitule
+      - kind_contrat
+      - offer_id
+      - reference_csp
+      - responsables
+      - type_contrat
     RecrutementActifPage:
       type: object
       properties:
@@ -411,19 +410,19 @@ components:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/RecrutementActif"
+            $ref: '#/components/schemas/RecrutementActif'
       required:
-        - count
-        - next
-        - previous
-        - results
+      - count
+      - next
+      - previous
+      - results
     Responsable:
       type: object
       properties:
         nom:
           type: string
       required:
-        - nom
+      - nom
     TokenError:
       type: object
       properties:
@@ -434,11 +433,11 @@ components:
         messages:
           type: array
           items:
-            $ref: "#/components/schemas/TokenErrorMessage"
+            $ref: '#/components/schemas/TokenErrorMessage'
       required:
-        - code
-        - detail
-        - messages
+      - code
+      - detail
+      - messages
     TokenErrorMessage:
       type: object
       properties:
@@ -449,14 +448,14 @@ components:
         message:
           type: string
       required:
-        - message
-        - token_class
-        - token_type
+      - message
+      - token_class
+      - token_type
     TypeContratEnum:
       enum:
-        - TITULAIRE_CONTRACTUEL
-        - CONTRACTUELS
-        - TERRITORIAL
+      - TITULAIRE_CONTRACTUEL
+      - CONTRACTUELS
+      - TERRITORIAL
       type: string
       description: |-
         * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
@@ -471,10 +470,10 @@ components:
         nom:
           type: string
         categorie:
-          $ref: "#/components/schemas/CategorieEnum"
+          $ref: '#/components/schemas/CategorieEnum'
       required:
-        - categorie
-        - nom
+      - categorie
+      - nom
     Utilisateur:
       type: object
       properties:
@@ -486,9 +485,9 @@ components:
         nom:
           type: string
       required:
-        - email
-        - nom
-        - prenom
+      - email
+      - nom
+      - prenom
   securitySchemes:
     cookieAuth:
       type: apiKey
@@ -499,5 +498,5 @@ components:
       scheme: bearer
       bearerFormat: JWT
 tags:
-  - name: utilisateurs
-    description: Gestion des utilisateurs
+- name: utilisateurs
+  description: Gestion des utilisateurs

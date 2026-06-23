@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/recruteur/organisme/{organisme_uuid}/": {
+    "/recruteur/organisme/{organisme_uuid}": {
         parameters: {
             query?: never;
             header?: never;
@@ -21,7 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/parametres/etapes/": {
+    "/recruteur/organisme/{organisme_uuid}/parametres/etapes": {
         parameters: {
             query?: never;
             header?: never;
@@ -39,7 +39,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/parametres/etapes/init/": {
+    "/recruteur/organisme/{organisme_uuid}/parametres/etapes/init": {
         parameters: {
             query?: never;
             header?: never;
@@ -76,7 +76,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/utilisateur/me/": {
+    "/utilisateur/me": {
         parameters: {
             query?: never;
             header?: never;
