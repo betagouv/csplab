@@ -2,22 +2,20 @@
 import { CheckboxIndicator, CheckboxRoot } from 'reka-ui'
 import { computed, useAttrs } from 'vue'
 
-export type CspCheckboxSize = 'sm' | 'md' | 'lg'
-
-export interface CspCheckboxProps {
-  label: string
-  value?: string
-  disabled?: boolean
-  indeterminate?: boolean
-  size?: CspCheckboxSize
-  error?: boolean
-}
-
 defineOptions({
   inheritAttrs: false,
 })
 
-const props = withDefaults(defineProps<CspCheckboxProps>(), {
+const props = withDefaults(defineProps<{
+  variant?: 'default' | 'checkbox-only'
+  label: string
+  value?: string
+  disabled?: boolean
+  indeterminate?: boolean
+  size?: 'sm' | 'md' | 'lg'
+  error?: boolean
+}>(), {
+  variant: 'default',
   disabled: false,
   indeterminate: false,
   size: 'md',
@@ -77,7 +75,10 @@ function handleUpdate(val: unknown): void {
         force-mount
       />
     </CheckboxRoot>
-    <span class="csp-checkbox__label">{{ label }}</span>
+    <span
+      class="csp-checkbox__label"
+      :class="{ 'sr-only': variant === 'checkbox-only' }"
+    >{{ label }}</span>
   </label>
 </template>
 

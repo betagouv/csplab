@@ -134,7 +134,7 @@ const page = defineModel<number>('page', { required: true })
   display: flex;
   align-items: center;
   max-width: 100%;
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .csp-pagination__list {

@@ -10,7 +10,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['modelValue', 'label', 'size', 'disabled', 'indeterminate', 'error'],
+      include: ['variant', 'modelValue', 'label', 'size', 'disabled', 'indeterminate', 'error'],
     },
     docs: {
       description: {
@@ -19,6 +19,15 @@ const meta = {
     },
   },
   argTypes: {
+    variant: {
+      control: { type: 'radio' },
+      options: ['default', 'checkbox-only'] satisfies NonNullable<CspCheckboxProps['variant']>[],
+      description: 'Variant d\'affichage.',
+      table: {
+        type: { summary: '\'default\' | \'checkbox-only\'' },
+        defaultValue: { summary: '\'default\'' },
+      },
+    },
     modelValue: {
       control: { type: 'boolean' },
       description: 'État coché (v-model).',
@@ -122,6 +131,7 @@ const meta = {
     },
   },
   args: {
+    variant: 'default',
     modelValue: false,
     label: 'Accepter les conditions',
     disabled: false,
@@ -152,7 +162,6 @@ const meta = {
       function handleUpdate(nextValue: boolean) {
         value.value = nextValue
 
-        // Indeterminate is display-only: the parent should clear it after interaction.
         if (isIndeterminate.value) {
           isIndeterminate.value = false
         }
@@ -168,10 +177,12 @@ const meta = {
     template: `
       <div class="h-12 flex items-center">
         <CspCheckbox
+          :variant="args.variant"
           :label="args.label"
           :disabled="args.disabled"
           :indeterminate="isIndeterminate"
           :size="args.size"
+          :error="args.error"
           :model-value="value"
           @update:model-value="handleUpdate"
         />
@@ -195,6 +206,20 @@ export const Indeterminate: Story = {
   args: {
     indeterminate: true,
     modelValue: false,
+  },
+}
+
+export const CheckboxOnly: Story = {
+  args: {
+    variant: 'checkbox-only',
+    label: 'Sélectionner la ligne',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'La variante `checkbox-only` masque le libellé visuel mais conserve `label` comme nom accessible. Fournir toujours un libellé explicite.',
+      },
+    },
   },
 }
 
