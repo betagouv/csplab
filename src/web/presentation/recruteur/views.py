@@ -19,10 +19,10 @@ from presentation.api.serializers import GenericErrorSerializer, TokenErrorSeria
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
     OrganismeSerializer,
-    UpdateEtapeRecrutementSerializer,
     RecrutementActifSerializer,
     RecrutementArchiveSerializer,
     RecrutementsFiltersSerializer,
+    UpdateEtapeRecrutementSerializer,
 )
 
 # ---------------------------------------------------------------------------

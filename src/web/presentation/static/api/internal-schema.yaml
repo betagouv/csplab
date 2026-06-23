@@ -196,6 +196,52 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+  /recruteur/organisme/{organisme_uuid}/recrutements/:
+    get:
+      operationId: recruteur_organisme_recrutements_list
+      description: 'Retourne la liste paginée des recrutements d''un organisme. Deux
+        onglets disponibles via le paramètre `filtre` : `actifs` (recrutements en
+        cours, défaut) et `archives` (offres archivées).'
+      summary: Liste des recrutements d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecrutementActif'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /utilisateur/me/:
     get:
       operationId: utilisateur_me_retrieve
@@ -232,6 +278,25 @@ paths:
           description: ''
 components:
   schemas:
+    BlankEnum:
+      enum:
+      - ''
+    CandidaturesActives:
+      type: object
+      properties:
+        total:
+          type: integer
+          nullable: true
+        a_traiter:
+          type: integer
+          nullable: true
+        en_cours:
+          type: integer
+          nullable: true
+      required:
+      - a_traiter
+      - en_cours
+      - total
     CategorieEnum:
       enum:
       - ENTREE
@@ -242,6 +307,224 @@ components:
         * `ENTREE` - entree
         * `EN_COURS` - en_cours
         * `TERMINALE` - terminale
+    DepartementEnum:
+      enum:
+      - '01'
+      - '02'
+      - '03'
+      - '04'
+      - '05'
+      - '06'
+      - '07'
+      - 08
+      - 09
+      - '10'
+      - '11'
+      - '12'
+      - '13'
+      - '14'
+      - '15'
+      - '16'
+      - '17'
+      - '18'
+      - '19'
+      - '21'
+      - '22'
+      - '23'
+      - '24'
+      - '25'
+      - '26'
+      - '27'
+      - '28'
+      - '29'
+      - 2A
+      - 2B
+      - '30'
+      - '31'
+      - '32'
+      - '33'
+      - '34'
+      - '35'
+      - '36'
+      - '37'
+      - '38'
+      - '39'
+      - '40'
+      - '41'
+      - '42'
+      - '43'
+      - '44'
+      - '45'
+      - '46'
+      - '47'
+      - '48'
+      - '49'
+      - '50'
+      - '51'
+      - '52'
+      - '53'
+      - '54'
+      - '55'
+      - '56'
+      - '57'
+      - '58'
+      - '59'
+      - '60'
+      - '61'
+      - '62'
+      - '63'
+      - '64'
+      - '65'
+      - '66'
+      - '67'
+      - '68'
+      - '69'
+      - '70'
+      - '71'
+      - '72'
+      - '73'
+      - '74'
+      - '75'
+      - '76'
+      - '77'
+      - '78'
+      - '79'
+      - '80'
+      - '81'
+      - '82'
+      - '83'
+      - '84'
+      - '85'
+      - '86'
+      - '87'
+      - '88'
+      - '89'
+      - '90'
+      - '91'
+      - '92'
+      - '93'
+      - '94'
+      - '95'
+      - '971'
+      - '972'
+      - '973'
+      - '974'
+      - '975'
+      - '976'
+      - '986'
+      - '987'
+      - '988'
+      - SPM
+      - WLF
+      type: string
+      description: |-
+        * `01` - 01
+        * `02` - 02
+        * `03` - 03
+        * `04` - 04
+        * `05` - 05
+        * `06` - 06
+        * `07` - 07
+        * `08` - 08
+        * `09` - 09
+        * `10` - 10
+        * `11` - 11
+        * `12` - 12
+        * `13` - 13
+        * `14` - 14
+        * `15` - 15
+        * `16` - 16
+        * `17` - 17
+        * `18` - 18
+        * `19` - 19
+        * `21` - 21
+        * `22` - 22
+        * `23` - 23
+        * `24` - 24
+        * `25` - 25
+        * `26` - 26
+        * `27` - 27
+        * `28` - 28
+        * `29` - 29
+        * `2A` - 2A
+        * `2B` - 2B
+        * `30` - 30
+        * `31` - 31
+        * `32` - 32
+        * `33` - 33
+        * `34` - 34
+        * `35` - 35
+        * `36` - 36
+        * `37` - 37
+        * `38` - 38
+        * `39` - 39
+        * `40` - 40
+        * `41` - 41
+        * `42` - 42
+        * `43` - 43
+        * `44` - 44
+        * `45` - 45
+        * `46` - 46
+        * `47` - 47
+        * `48` - 48
+        * `49` - 49
+        * `50` - 50
+        * `51` - 51
+        * `52` - 52
+        * `53` - 53
+        * `54` - 54
+        * `55` - 55
+        * `56` - 56
+        * `57` - 57
+        * `58` - 58
+        * `59` - 59
+        * `60` - 60
+        * `61` - 61
+        * `62` - 62
+        * `63` - 63
+        * `64` - 64
+        * `65` - 65
+        * `66` - 66
+        * `67` - 67
+        * `68` - 68
+        * `69` - 69
+        * `70` - 70
+        * `71` - 71
+        * `72` - 72
+        * `73` - 73
+        * `74` - 74
+        * `75` - 75
+        * `76` - 76
+        * `77` - 77
+        * `78` - 78
+        * `79` - 79
+        * `80` - 80
+        * `81` - 81
+        * `82` - 82
+        * `83` - 83
+        * `84` - 84
+        * `85` - 85
+        * `86` - 86
+        * `87` - 87
+        * `88` - 88
+        * `89` - 89
+        * `90` - 90
+        * `91` - 91
+        * `92` - 92
+        * `93` - 93
+        * `94` - 94
+        * `95` - 95
+        * `971` - 971
+        * `972` - 972
+        * `973` - 973
+        * `974` - 974
+        * `975` - 975
+        * `976` - 976
+        * `986` - 986
+        * `987` - 987
+        * `988` - 988
+        * `SPM` - SPM
+        * `WLF` - WLF
     EtapeRecrutement:
       type: object
       properties:
@@ -263,6 +546,52 @@ components:
           type: string
       required:
       - error
+    LocalisationRecrutement:
+      type: object
+      properties:
+        zone_geographique:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/ZoneGeographiqueEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        pays:
+          type: string
+          nullable: true
+          maxLength: 3
+        region:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/RegionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        departement:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/DepartementEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        label:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+      required:
+      - departement
+      - label
+      - latitude
+      - longitude
+      - pays
+      - region
+      - zone_geographique
+    NullEnum:
+      enum:
+      - null
     Organisme:
       type: object
       properties:
@@ -273,6 +602,106 @@ components:
       required:
       - nom
       - siret
+    RecrutementActif:
+      type: object
+      properties:
+        offer_id:
+          type: string
+          format: uuid
+        intitule:
+          type: string
+        reference_csp:
+          type: string
+        localisation:
+          allOf:
+          - $ref: '#/components/schemas/LocalisationRecrutement'
+          nullable: true
+        type_contrat:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/TypeContratEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        type_offre:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/TypeOffreEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        date_publication:
+          type: string
+          format: date-time
+        responsables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Responsable'
+        derniere_activite:
+          type: string
+          format: date-time
+        candidatures:
+          allOf:
+          - $ref: '#/components/schemas/CandidaturesActives'
+          nullable: true
+      required:
+      - candidatures
+      - date_publication
+      - derniere_activite
+      - intitule
+      - localisation
+      - offer_id
+      - reference_csp
+      - responsables
+      - type_contrat
+      - type_offre
+    RegionEnum:
+      enum:
+      - '01'
+      - '02'
+      - '03'
+      - '04'
+      - '06'
+      - '11'
+      - '24'
+      - '27'
+      - '28'
+      - '32'
+      - '44'
+      - '52'
+      - '53'
+      - '75'
+      - '76'
+      - '84'
+      - '93'
+      - '94'
+      - DOM
+      - TOM
+      type: string
+      description: |-
+        * `01` - 01
+        * `02` - 02
+        * `03` - 03
+        * `04` - 04
+        * `06` - 06
+        * `11` - 11
+        * `24` - 24
+        * `27` - 27
+        * `28` - 28
+        * `32` - 32
+        * `44` - 44
+        * `52` - 52
+        * `53` - 53
+        * `75` - 75
+        * `76` - 76
+        * `84` - 84
+        * `93` - 93
+        * `94` - 94
+        * `DOM` - DOM
+        * `TOM` - TOM
+    Responsable:
+      type: object
+      properties:
+        nom:
+          type: string
+      required:
+      - nom
     TokenError:
       type: object
       properties:
@@ -301,6 +730,30 @@ components:
       - message
       - token_class
       - token_type
+    TypeContratEnum:
+      enum:
+      - TITULAIRE_CONTRACTUEL
+      - CONTRACTUELS
+      - TERRITORIAL
+      type: string
+      description: |-
+        * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+        * `CONTRACTUELS` - CONTRACTUELS
+        * `TERRITORIAL` - TERRITORIAL
+    TypeOffreEnum:
+      enum:
+      - APLUS
+      - A
+      - B
+      - C
+      - HORS_CATEGORIE
+      type: string
+      description: |-
+        * `APLUS` - APLUS
+        * `A` - A
+        * `B` - B
+        * `C` - C
+        * `HORS_CATEGORIE` - HORS_CATEGORIE
     UpdateEtapeRecrutement:
       type: object
       properties:
@@ -328,6 +781,22 @@ components:
       - email
       - nom
       - prenom
+    ZoneGeographiqueEnum:
+      enum:
+      - AF
+      - EU
+      - AS
+      - AM
+      - OC
+      - AN
+      type: string
+      description: |-
+        * `AF` - AFRIQUE
+        * `EU` - EUROPE
+        * `AS` - ASIE
+        * `AM` - AMERIQUE
+        * `OC` - OCEANIE
+        * `AN` - ANTARTIQUE
   securitySchemes:
     cookieAuth:
       type: apiKey

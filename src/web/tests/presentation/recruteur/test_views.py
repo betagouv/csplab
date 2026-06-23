@@ -232,6 +232,8 @@ class TestPutEtapesRecrutementOrganismeView:
         assert data[0]["etape_uuid"] == existing_uuid
         assert data[1]["etape_uuid"] is not None
         assert data[1]["nom"] == "Nouvelle étape"
+
+
 class TestRecrutementsOrganismeView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(RECRUTEMENTS_URL)
