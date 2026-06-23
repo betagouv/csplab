@@ -176,6 +176,20 @@ CONCOURS_UPLOAD_EXAMPLES = [
     _EXAMPLE_SERVER_ERROR,
 ]
 
+OFFERS_BY_SOURCE_DESCRIPTION = (
+    """
+# API de consultation des offres d'une source
+
+Cette API retourne, paginée, la liste complète des offres d'emploi rattachées
+à la source identifiée par son `uuid`.
+
+L'accès à une source non autorisée pour l'utilisateur authentifié renvoie une
+erreur `401`.
+
+"""
+    + _API_COMMON_FOOTER
+)
+
 ARCHIVE_OFFER_DESCRIPTION = (
     "Archive une offre selon sa référence et l'identifiant de la source.\n\n"
     "**Corps de la requête :**\n"

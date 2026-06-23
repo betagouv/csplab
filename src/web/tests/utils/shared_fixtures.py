@@ -33,6 +33,9 @@ from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.identite.usecases.create_organisme import CreateOrganismeUsecase
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
+from application.ingestion.usecases.get_offers_by_source import (
+    GetOffersBySourceUseCase,
+)
 from application.ingestion.usecases.list_offers import ListOffersUseCase
 from application.ingestion.usecases.list_sources import ListSourcesUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
@@ -418,6 +421,25 @@ def upsert_offers_usecase():
     return UpsertOffersUseCase(
         offers_repository=offers_repo,
         logger=logger,
+        user_source_repository=user_source_repo,
+        utilisateur_repository=utilisateur_repo,
+    )
+
+
+@pytest.fixture
+def get_offers_by_source_usecase():
+    offers_repo = cast(
+        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+    )
+    user_source_repo = cast(
+        IUserSourceRepository, create_interface_aware_mock(IUserSourceRepository)
+    )
+    utilisateur_repo = cast(
+        IUtilisateurRepository, create_interface_aware_mock(IUtilisateurRepository)
+    )
+
+    return GetOffersBySourceUseCase(
+        offers_repository=offers_repo,
         user_source_repository=user_source_repo,
         utilisateur_repository=utilisateur_repo,
     )

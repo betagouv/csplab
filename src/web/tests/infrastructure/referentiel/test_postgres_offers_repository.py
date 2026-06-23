@@ -181,6 +181,23 @@ class TestUpsertBatch:
         assert archived_offer.archived_at is None
 
 
+class TestGetBySourceId:
+    def test_returns_only_non_archived_offers_for_source(self, db, repository):
+        source_id = SourceFactory.create_model().source_id
+        active_offer = OfferFactory.create_model(source_id=source_id)
+        OfferFactory.create_model(source_id=source_id, archived_at=NOW)
+        OfferFactory.create_model()  # other source
+
+        page = repository.get_by_source_id(source_id)
+
+        assert [offer.id for offer in page.slice(0, 10)] == [active_offer.id]
+
+    def test_unknown_source_id_returns_empty_page(self, db, repository):
+        page = repository.get_by_source_id(fake.uuid4())
+
+        assert page.count() == 0
+
+
 class TestGetPendingProcessing:
     def test_excluded_items(self, db, repository):
         OfferFactory.create_model(archived_at=NOW)
