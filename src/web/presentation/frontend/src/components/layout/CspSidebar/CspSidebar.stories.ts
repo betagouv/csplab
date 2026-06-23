@@ -10,7 +10,7 @@ import CspSidebarTrigger from './CspSidebarTrigger.vue'
 import CspSidebarUser from './CspSidebarUser.vue'
 
 const meta: Meta<typeof CspSidebarProvider> = {
-  title: 'Compositions/Layout/CspSidebar',
+  title: 'Compositions/Génériques/CspSidebar',
   component: CspSidebarProvider,
   parameters: {
     layout: 'fullscreen',
