@@ -10,7 +10,6 @@ interface DemoItem {
 }
 
 interface StoryArgs {
-  showPosition: boolean
   showAccessibilityButtons: boolean
 }
 
@@ -20,18 +19,10 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['showPosition', 'showAccessibilityButtons'],
+      include: ['showAccessibilityButtons'],
     },
   },
   argTypes: {
-    showPosition: {
-      control: { type: 'boolean' },
-      description: 'Afficher le numéro de position.',
-      table: {
-        type: { summary: 'boolean' },
-        defaultValue: { summary: 'true' },
-      },
-    },
     showAccessibilityButtons: {
       control: { type: 'boolean' },
       description: 'Afficher les boutons monter/descendre (accessibilité).',
@@ -42,7 +33,6 @@ const meta = {
     },
   },
   args: {
-    showPosition: true,
     showAccessibilityButtons: true,
   },
 }
@@ -63,11 +53,6 @@ const itemStyle = {
 const handleStyle = {
   display: 'flex',
   cursor: 'grab',
-  color: 'var(--text-mention-grey)',
-}
-
-const positionStyle = {
-  minWidth: '1.5rem',
   color: 'var(--text-mention-grey)',
 }
 
@@ -97,7 +82,6 @@ export const Default: Story = {
         items,
         itemStyle,
         handleStyle,
-        positionStyle,
         actionsStyle,
         getItemKey: (item: DemoItem) => item.id,
         getItemLabel: (item: DemoItem) => item.label,
@@ -111,12 +95,11 @@ export const Default: Story = {
         :get-item-label="getItemLabel"
         @reorder="onReorder"
       >
-        <template #item="{ item, position, setHandleRef, isDragging, canMoveUp, canMoveDown, moveUp, moveDown }">
+        <template #item="{ item, setHandleRef, isDragging, canMoveUp, canMoveDown, moveUp, moveDown }">
           <div :style="{ ...itemStyle, opacity: isDragging ? 0.5 : 1 }">
             <span :ref="setHandleRef" :style="handleStyle">
               <CspIcon name="ri:drag-drop-line" :size="16" />
             </span>
-            <span v-if="args.showPosition" :style="positionStyle">{{ position }}</span>
             <span style="flex: 1;">{{ item.label }}</span>
             <div :style="actionsStyle">
               <template v-if="args.showAccessibilityButtons">
@@ -156,7 +139,6 @@ const iconStyle = {
 
 export const WithLockedItems: Story = {
   args: {
-    showPosition: true,
     showAccessibilityButtons: true,
   },
   render: (args: StoryArgs) => ({
@@ -179,7 +161,6 @@ export const WithLockedItems: Story = {
         items,
         itemStyle,
         iconStyle,
-        positionStyle,
         actionsStyle,
         getItemKey: (item: LockedDemoItem) => item.id,
         getItemLabel: (item: LockedDemoItem) => item.label,
@@ -195,7 +176,7 @@ export const WithLockedItems: Story = {
         :is-item-draggable="isItemDraggable"
         @reorder="onReorder"
       >
-        <template #item="{ item, position, setHandleRef, isDragging, isDraggable, canMoveUp, canMoveDown, moveUp, moveDown }">
+        <template #item="{ item, setHandleRef, isDragging, isDraggable, canMoveUp, canMoveDown, moveUp, moveDown }">
           <div :style="{ ...itemStyle, opacity: isDragging ? 0.5 : 1 }">
             <span
               v-if="isDraggable"
@@ -204,7 +185,6 @@ export const WithLockedItems: Story = {
             >
               <CspIcon name="ri:drag-drop-line" :size="16" />
             </span>
-            <span v-if="args.showPosition" :style="positionStyle">{{ position }}</span>
             <span style="flex: 1;">{{ item.label }}</span>
             <div :style="actionsStyle">
               <template v-if="isDraggable && args.showAccessibilityButtons">

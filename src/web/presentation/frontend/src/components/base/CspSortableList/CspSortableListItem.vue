@@ -22,7 +22,6 @@ const handleRef = ref<HTMLElement | null>(null)
 
 const isInteractionEnabled = computed(() => !props.disabled)
 const isDraggable = computed(() => props.draggable && isInteractionEnabled.value)
-const position = computed(() => props.index + 1)
 
 function getItemData() {
   return {
@@ -68,7 +67,6 @@ function setHandleRef(element: Element | null) {
     <slot
       :item="item"
       :index="props.index"
-      :position="position"
       :is-dragging="isDragging"
       :is-dragged-over="isDraggedOver"
       :closest-edge="closestEdge"

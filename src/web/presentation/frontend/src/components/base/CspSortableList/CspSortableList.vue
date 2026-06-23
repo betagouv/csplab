@@ -48,7 +48,7 @@ function moveItem(fromIndex: number, toIndex: number) {
   emit('reorder', newItems)
 
   const item = props.items[fromIndex]
-  announce(`${getLabel(item)} déplacé en position ${toIndex + 1} sur ${props.items.length}`)
+  announce(`${getLabel(item)} déplacé`)
 }
 
 function createMoveUp(index: number) {
@@ -90,7 +90,7 @@ onMounted(() => {
       emit('reorder', newItems)
 
       const item = props.items[startIndex]
-      announce(`${getLabel(item)} déplacé en position ${finishIndex + 1} sur ${props.items.length}`)
+      announce(`${getLabel(item)} déplacé`)
     },
   })
 })
