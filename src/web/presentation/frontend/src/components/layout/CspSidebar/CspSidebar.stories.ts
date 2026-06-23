@@ -69,26 +69,22 @@ const sidebarTemplate = `
             <CspSidebarLogo />
           </template>
 
-          <CspSidebarGroup label="Pilotage">
-            <CspSidebarItem icon="ri:dashboard-line" label="Tableau de bord" />
-            <CspSidebarItem icon="ri:briefcase-line" label="Mes offres" :is-active="true" />
+          <CspSidebarGroup label="Groupe A">
+            <CspSidebarItem icon="ri:dashboard-line" label="Première entrée" :to="{ path: '/premiere' }" />
+            <CspSidebarItem icon="ri:briefcase-line" label="Entrée active" :to="{ path: '/active' }" :is-active="true" />
           </CspSidebarGroup>
 
-          <CspSidebarGroup label="Candidatures">
-            <CspSidebarItem icon="ri:group-line" label="Toutes les candidatures" />
-            <CspSidebarItem icon="ri:layout-column-line" label="Pipeline" />
+          <CspSidebarGroup label="Groupe B">
+            <CspSidebarItem icon="ri:group-line" label="Troisième entrée" :to="{ path: '/troisieme' }" />
+            <CspSidebarItem icon="ri:layout-column-line" label="Quatrième entrée" :to="{ path: '/quatrieme' }" />
           </CspSidebarGroup>
 
-          <CspSidebarGroup label="Entretiens">
-            <CspSidebarItem icon="ri:calendar-line" label="Mes entretiens" />
-          </CspSidebarGroup>
-
-          <CspSidebarGroup label="Paramètres">
-            <CspSidebarItem icon="ri:settings-3-line" label="Paramètres" />
+          <CspSidebarGroup label="Groupe C">
+            <CspSidebarItem icon="ri:settings-3-line" label="Cinquième entrée" :to="{ path: '/cinquieme' }" />
           </CspSidebarGroup>
 
           <template #footer>
-            <CspSidebarUser name="Marie Dupont" role="RH" />
+            <CspSidebarUser name="Prénom Nom" role="Rôle" />
           </template>
         </CspSidebar>
       </template>
@@ -99,7 +95,7 @@ const sidebarTemplate = `
 
       <div style="padding: 2rem; max-width: 800px;">
         <h1 style="margin: 0 0 0.5rem; font-size: 1.5rem; font-weight: 600; color: var(--text-title-grey);">
-          Mes offres
+          Contenu
         </h1>
         <p style="color: var(--text-mention-grey); margin: 0 0 1rem;">
           Utilisez <kbd style="padding: 0.125rem 0.375rem; border-radius: 0.25rem; background: var(--background-contrast-grey); font-family: monospace; font-size: 0.75rem;">Ctrl+B</kbd> pour toggle la sidebar.
@@ -161,5 +157,48 @@ export const Mobile: Story = {
     components,
     setup: () => ({ defaultExpanded: args.defaultExpanded, persistState: args.persistState }),
     template: sidebarTemplate,
+  }),
+}
+
+export const WithRouterLinks: Story = {
+  name: 'Avec liens de navigation',
+  args: {
+    defaultExpanded: true,
+    persistState: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '`CspSidebarItem` câble la navigation via la prop `to` (passée à un `RouterLink`), l\'état actif étant piloté par `is-active`.',
+      },
+    },
+  },
+  render: args => ({
+    components,
+    setup: () => ({ defaultExpanded: args.defaultExpanded, persistState: args.persistState }),
+    template: `
+      <CspSidebarProvider :default-expanded="defaultExpanded" :persist-state="persistState">
+        <CspAppLayout>
+          <template #sidebar>
+            <CspSidebar>
+              <template #logo>
+                <CspSidebarLogo />
+              </template>
+
+              <CspSidebarGroup label="Navigation">
+                <CspSidebarItem icon="ri:dashboard-line" label="Accueil" to="/" :is-active="true" />
+                <CspSidebarItem icon="ri:briefcase-line" label="Section" to="/section" />
+              </CspSidebarGroup>
+            </CspSidebar>
+          </template>
+
+          <template #header>
+            <CspSidebarTrigger />
+          </template>
+
+          <div style="padding: 2rem;">Chaque entrée est un lien de routeur.</div>
+        </CspAppLayout>
+      </CspSidebarProvider>
+    `,
   }),
 }
