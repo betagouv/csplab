@@ -24,9 +24,9 @@ from domain.gateways.publish_offer_input import PublishOfferInput
 from infrastructure.external_gateways.web_publish_offer_gateway import (
     WebPublishOfferGateway,
 )
+from tests.conftest import PUBLISH_OFFER_URL as PUBLISH_URL
 from tests.conftest import WEB_API_KEY as API_KEY
 from tests.conftest import WEB_BASE_URL as BASE_URL
-from tests.conftest import PUBLISH_OFFER_URL as PUBLISH_URL
 
 SOURCE_ID = UUID("11111111-2222-3333-4444-555555555555")
 PUBLICATION_DATE = datetime(2024, 1, 15, tzinfo=timezone.utc)

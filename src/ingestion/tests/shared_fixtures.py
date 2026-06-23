@@ -25,6 +25,7 @@ from infrastructure.external_gateways.talentsoft_client import (
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.sources_repository import SourcesRepository
 from tests.conftest import (
+    PUBLISH_OFFER_URL,
     SOURCE_ID,
     TALENTSOFT_BACK_BASE_URL,
     TALENTSOFT_BACK_CLIENT_ID,
@@ -32,7 +33,6 @@ from tests.conftest import (
     TALENTSOFT_FRONT_BASE_URL,
     TALENTSOFT_FRONT_CLIENT_ID,
     TALENTSOFT_FRONT_CLIENT_SECRET,
-    PUBLISH_OFFER_URL,
     WEB_API_KEY,
     WEB_BASE_URL,
 )
