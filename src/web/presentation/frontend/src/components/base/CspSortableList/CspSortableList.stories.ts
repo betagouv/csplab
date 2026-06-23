@@ -114,7 +114,7 @@ export const Default: Story = {
         <template #item="{ item, position, setHandleRef, isDragging, canMoveUp, canMoveDown, moveUp, moveDown }">
           <div :style="{ ...itemStyle, opacity: isDragging ? 0.5 : 1 }">
             <span :ref="setHandleRef" :style="handleStyle">
-              <CspIcon name="ri:menu-line" :size="16" />
+              <CspIcon name="ri:drag-drop-line" :size="16" />
             </span>
             <span v-if="args.showPosition" :style="positionStyle">{{ position }}</span>
             <span style="flex: 1;">{{ item.label }}</span>
@@ -202,10 +202,7 @@ export const WithLockedItems: Story = {
               :ref="setHandleRef"
               :style="{ ...iconStyle, cursor: 'grab' }"
             >
-              <CspIcon name="ri:menu-line" :size="16" />
-            </span>
-            <span v-else :style="iconStyle">
-              <CspIcon name="ri:lock-line" :size="16" />
+              <CspIcon name="ri:drag-drop-line" :size="16" />
             </span>
             <span v-if="args.showPosition" :style="positionStyle">{{ position }}</span>
             <span style="flex: 1;">{{ item.label }}</span>

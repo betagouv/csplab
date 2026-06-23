@@ -19,6 +19,7 @@ import riCheckboxCircleFill from '@iconify-icons/ri/checkbox-circle-fill'
 import riCloseLine from '@iconify-icons/ri/close-line'
 import riDashboardLine from '@iconify-icons/ri/dashboard-line'
 import riDeleteBinLine from '@iconify-icons/ri/delete-bin-line'
+import riDragDropLine from '@iconify-icons/ri/drag-drop-line'
 import riEditLine from '@iconify-icons/ri/edit-line'
 import riErrorWarningFill from '@iconify-icons/ri/error-warning-fill'
 import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
@@ -64,6 +65,7 @@ addIcon('ri:checkbox-circle-fill', riCheckboxCircleFill)
 addIcon('ri:close-line', riCloseLine)
 addIcon('ri:dashboard-line', riDashboardLine)
 addIcon('ri:delete-bin-line', riDeleteBinLine)
+addIcon('ri:drag-drop-line', riDragDropLine)
 addIcon('ri:edit-line', riEditLine)
 addIcon('ri:error-warning-fill', riErrorWarningFill)
 addIcon('ri:expand-up-down-line', riExpandUpDownLine)
