@@ -4,7 +4,7 @@ info:
   version: 0.0.1
   description: API for CSPLab
 paths:
-  /api/token/:
+  /api/token:
     post:
       operationId: token_create
       description: |-
@@ -31,7 +31,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenObtainPair'
           description: ''
-  /api/token/refresh/:
+  /api/token/refresh:
     post:
       operationId: token_refresh_create
       description: |-
@@ -58,7 +58,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
-  /api/v1/concours/upload/:
+  /api/v1/concours/upload:
     post:
       operationId: v1_concours_upload_create
       description: |-
@@ -224,7 +224,7 @@ paths:
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
-  /api/v1/metiers/:
+  /api/v1/metiers:
     get:
       operationId: v1_metiers_retrieve
       description: |2
@@ -349,7 +349,7 @@ paths:
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
-  /api/v1/offres/:
+  /api/v1/offres:
     get:
       operationId: v1_offres_retrieve
       description: |2
@@ -549,7 +549,7 @@ paths:
                   summary: Offre introuvable
                   description: Aucune offre ne correspond à la référence fournie.
           description: ''
-  /api/v1/offres/creer_modifier/:
+  /api/v1/offres/creer_modifier:
     post:
       operationId: v1_offres_creer_modifier_create
       description: |2

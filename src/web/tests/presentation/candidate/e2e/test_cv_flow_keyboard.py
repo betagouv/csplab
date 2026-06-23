@@ -25,7 +25,7 @@ class TestCandidateFlowKeyboard:
         offer_entity = OfferFactory.create_model(title="Offre keyboard").to_entity()
 
         # 1. Upload page: select file, submit via keyboard (Enter on submit button)
-        page.goto(f"{live_server.url}/candidate/cv-upload/")
+        page.goto(f"{live_server.url}/candidate/cv-upload")
         form = page.get_by_test_id("cv-upload-form")
         form.locator("input[data-file-input]").set_input_files(str(cv_pdf_path))
 
@@ -35,10 +35,10 @@ class TestCandidateFlowKeyboard:
         page.keyboard.press("Enter")
 
         # 2. Processing page reached
-        expect(page).to_have_url(re.compile(r"/candidate/cv/[0-9a-f-]+/results/"))
+        expect(page).to_have_url(re.compile(r"/candidate/cv/[0-9a-f-]+/results"))
         expect(page.get_by_test_id("cv-processing")).to_be_visible()
 
-        match = re.search(r"/candidate/cv/([0-9a-f-]+)/results/", page.url)
+        match = re.search(r"/candidate/cv/([0-9a-f-]+)/results", page.url)
         assert match is not None
         cv_uuid = match.group(1)
 

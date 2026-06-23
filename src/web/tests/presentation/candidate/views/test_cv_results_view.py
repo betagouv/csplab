@@ -35,7 +35,7 @@ def mock_execute():
 
 
 def test_cv_results_invalid_uuid_returns_404(client, db):
-    response = client.get("/candidate/cv/invalid-uuid/results/")
+    response = client.get("/candidate/cv/invalid-uuid/results")
 
     assert response.status_code == HTTPStatus.NOT_FOUND
 

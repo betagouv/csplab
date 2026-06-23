@@ -56,7 +56,7 @@ def test_cv_upload_valid_pdf_redirects_to_results(mock_container, client, db, fi
     )
 
     # Check redirect to cv_results with correct URL pattern
-    assert response.redirect_chain[-1][0] == f"/candidate/cv/{mock_uuid}/results/"
+    assert response.redirect_chain[-1][0] == f"/candidate/cv/{mock_uuid}/results"
 
 
 def test_cv_upload_empty_submission_shows_error(client, db):

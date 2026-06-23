@@ -15,13 +15,13 @@ class TestCVUploadFlow:
     def test_user_sees_results_after_processing_completes(
         self, page: Page, live_server, cv_pdf_path: Path, db
     ) -> None:
-        page.goto(f"{live_server.url}/candidate/cv-upload/")
+        page.goto(f"{live_server.url}/candidate/cv-upload")
         form = page.get_by_test_id("cv-upload-form")
         form.locator("input[data-file-input]").set_input_files(str(cv_pdf_path))
         form.locator('button[type="submit"]:visible').click()
         expect(page.get_by_test_id("cv-processing")).to_be_visible()
 
-        match = re.search(r"/candidate/cv/([0-9a-f-]+)/results/", page.url)
+        match = re.search(r"/candidate/cv/([0-9a-f-]+)/results", page.url)
         assert match is not None
         cv_uuid = match.group(1)
 
