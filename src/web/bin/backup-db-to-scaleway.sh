@@ -31,8 +31,7 @@ install_scalingo_cli() {
     brew install scalingo
   else
     curl -fsSO https://cli-dl.scalingo.com/install
-    bash install
-    rm -f install
+    bash install -i $HOME/bin
   fi
 }
 
@@ -41,10 +40,10 @@ install_aws_cli() {
   if [[ "$(uname -s)" == "Darwin" ]] && command -v brew &>/dev/null; then
     brew install awscli
   else
-    local zip="$WORKDIR/awscliv2.zip"
+    local zip="$HOME/awscliv2.zip"
     curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "$zip"
-    unzip -q "$zip" -d "$WORKDIR"
-    "$WORKDIR/aws/install" --update
+    unzip -q "$zip" -d "$HOME"
+    "$HOME/aws/install" -i "$HOME/aws-cli" -b "$HOME/bin"
   fi
 }
 
@@ -58,8 +57,12 @@ done
 WORKDIR=$(mktemp -d)
 trap 'rm -rf "$WORKDIR"' EXIT
 
+mkdir -p "$HOME/bin"
+export PATH="$PATH:$HOME/bin"
+
 command -v scalingo &>/dev/null || install_scalingo_cli
 command -v aws &>/dev/null || install_aws_cli
+
 
 scalingo login --api-token "$SCALINGO_API_TOKEN"
 
