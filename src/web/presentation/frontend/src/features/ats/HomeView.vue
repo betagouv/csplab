@@ -6,7 +6,7 @@ import AtsAppShell from './components/AtsAppShell.vue'
   <AtsAppShell>
     <div class="home-view">
       <h1 class="home-view__title">
-        Mes offres
+        Accueil
       </h1>
     </div>
   </AtsAppShell>
