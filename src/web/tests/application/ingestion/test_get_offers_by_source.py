@@ -11,29 +11,6 @@ from domain.ingestion.exceptions.source_authorization_error import (
 )
 
 
-def test_returns_offers_for_source_when_no_utilisateur_provided(
-    get_offers_by_source_usecase,
-):
-    source_id = uuid.uuid4()
-    page = object()
-    get_offers_by_source_usecase.offers_repository.get_by_source_id = MagicMock(
-        return_value=page
-    )
-    get_offers_by_source_usecase.user_source_repository.get_allowed_source_ids = (
-        MagicMock()
-    )
-
-    result = get_offers_by_source_usecase.execute(
-        GetOffersBySourceInput(source_id=source_id)
-    )
-
-    assert result is page
-    get_offers_by_source_usecase.offers_repository.get_by_source_id.assert_called_once_with(
-        source_id
-    )
-    get_offers_by_source_usecase.user_source_repository.get_allowed_source_ids.assert_not_called()
-
-
 def test_returns_offers_when_utilisateur_is_authorized(get_offers_by_source_usecase):
     source_id = uuid.uuid4()
     utilisateur_entity_id = uuid.uuid4()

@@ -136,9 +136,7 @@ class OffersBySourceView(APIView):
         self.logger = self.container.logger_service()
 
     def get(self, request, source_id):
-        utilisateur_entity_id = (
-            UUID(request.user.username) if isinstance(request.user, UserModel) else None
-        )
+        utilisateur_entity_id = UUID(request.user.username)
         try:
             usecase = self.container.get_offers_by_source_usecase()
             result = usecase.execute(
