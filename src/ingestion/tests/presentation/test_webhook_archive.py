@@ -22,13 +22,13 @@ REFERENCE = "2019-1234"
 
 
 @pytest.mark.asyncio
-async def test_vacancy_deleted_enqueues_task(talentsoft_client):
+@patch("api.routes.archive_offer_webhook")
+async def test_vacancy_deleted_enqueues_task(mock_task, talentsoft_client):
     payload = {
         "event_type": TalentsoftEventType.VACANCY_DELETED,
         "reference": REFERENCE,
     }
-    with patch("api.routes.archive_offer_webhook") as mock_task:
-        response = make_signed_request(talentsoft_client, payload)
+    response = make_signed_request(talentsoft_client, payload)
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
@@ -46,16 +46,16 @@ async def test_vacancy_deleted_enqueues_task(talentsoft_client):
         if status != TalentsoftOfferStatus.DIFFUSE
     ],
 )
+@patch("api.routes.archive_offer_webhook")
 async def test_vacancy_status_non_diffuse_enqueues_task(
-    talentsoft_client, status_id: TalentsoftOfferStatus
+    mock_task, talentsoft_client, status_id: TalentsoftOfferStatus
 ):
     payload = {
         "event_type": TalentsoftEventType.VACANCY_STATUS,
         "reference": REFERENCE,
         "statusId": status_id,
     }
-    with patch("api.routes.archive_offer_webhook") as mock_task:
-        response = make_signed_request(talentsoft_client, payload)
+    response = make_signed_request(talentsoft_client, payload)
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
@@ -63,14 +63,16 @@ async def test_vacancy_status_non_diffuse_enqueues_task(
 
 
 @pytest.mark.asyncio
-async def test_vacancy_status_diffuse_saves_but_does_not_enqueue(talentsoft_client):
+@patch("api.routes.archive_offer_webhook")
+async def test_vacancy_status_diffuse_saves_but_does_not_enqueue(
+    mock_task, talentsoft_client
+):
     payload = {
         "event_type": TalentsoftEventType.VACANCY_STATUS,
         "reference": REFERENCE,
         "statusId": TalentsoftOfferStatus.DIFFUSE,
     }
-    with patch("api.routes.archive_offer_webhook") as mock_task:
-        response = make_signed_request(talentsoft_client, payload)
+    response = make_signed_request(talentsoft_client, payload)
 
     assert response.status_code == 200
     mock_task.delay.assert_not_called()

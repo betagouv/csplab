@@ -37,7 +37,8 @@ def _make_mock_container(webhook=None) -> MagicMock:
 # --- Archive path ---
 
 
-def test_archive_called_for_supprime_event():
+@patch(_PATCH_CONTAINER)
+def test_archive_called_for_supprime_event(mock_get_container):
     webhook = WebhookFactory.build(
         id=WEBHOOK_ID,
         source_id=SOURCE_ID,
@@ -45,9 +46,9 @@ def test_archive_called_for_supprime_event():
         reference=REFERENCE,
     )
     container = _make_mock_container(webhook)
+    mock_get_container.return_value = container
 
-    with patch(_PATCH_CONTAINER, return_value=container):
-        archive_offer_webhook(str(WEBHOOK_ID))
+    archive_offer_webhook(str(WEBHOOK_ID))
 
     container.archive_offer_use_case.return_value.execute.assert_awaited_once_with(
         reference=REFERENCE, source_id=SOURCE_ID
@@ -58,7 +59,10 @@ _NON_DIFFUSE_STATUSES = [s for s in OfferStatus if s != OfferStatus.DIFFUSE]
 
 
 @pytest.mark.parametrize("status_id", _NON_DIFFUSE_STATUSES)
-def test_archive_called_for_statut_change_non_diffuse(status_id: OfferStatus):
+@patch(_PATCH_CONTAINER)
+def test_archive_called_for_statut_change_non_diffuse(
+    mock_get_container, status_id: OfferStatus
+):
     webhook = WebhookFactory.build(
         id=WEBHOOK_ID,
         source_id=SOURCE_ID,
@@ -67,9 +71,9 @@ def test_archive_called_for_statut_change_non_diffuse(status_id: OfferStatus):
         status_id=str(status_id),
     )
     container = _make_mock_container(webhook)
+    mock_get_container.return_value = container
 
-    with patch(_PATCH_CONTAINER, return_value=container):
-        archive_offer_webhook(str(WEBHOOK_ID))
+    archive_offer_webhook(str(WEBHOOK_ID))
 
     container.archive_offer_use_case.return_value.execute.assert_awaited_once_with(
         reference=REFERENCE, source_id=SOURCE_ID
@@ -79,7 +83,8 @@ def test_archive_called_for_statut_change_non_diffuse(status_id: OfferStatus):
 # --- Ingest path ---
 
 
-def test_ingest_pipeline_called_for_cree_event():
+@patch(_PATCH_CONTAINER)
+def test_ingest_pipeline_called_for_cree_event(mock_get_container):
     webhook = WebhookFactory.build(
         id=WEBHOOK_ID,
         source_id=SOURCE_ID,
@@ -87,16 +92,17 @@ def test_ingest_pipeline_called_for_cree_event():
         reference=REFERENCE,
     )
     container = _make_mock_container(webhook)
+    mock_get_container.return_value = container
 
-    with patch(_PATCH_CONTAINER, return_value=container):
-        save_raw_offer_webhook(str(WEBHOOK_ID))
+    save_raw_offer_webhook(str(WEBHOOK_ID))
 
     container.ingest_offer_pipeline.return_value.execute.assert_awaited_once_with(
         reference=REFERENCE, source_id=SOURCE_ID
     )
 
 
-def test_ingest_pipeline_called_for_mis_a_jour_event():
+@patch(_PATCH_CONTAINER)
+def test_ingest_pipeline_called_for_mis_a_jour_event(mock_get_container):
     webhook = WebhookFactory.build(
         id=WEBHOOK_ID,
         source_id=SOURCE_ID,
@@ -104,56 +110,53 @@ def test_ingest_pipeline_called_for_mis_a_jour_event():
         reference=REFERENCE,
     )
     container = _make_mock_container(webhook)
+    mock_get_container.return_value = container
 
-    with patch(_PATCH_CONTAINER, return_value=container):
-        save_raw_offer_webhook(str(WEBHOOK_ID))
+    save_raw_offer_webhook(str(WEBHOOK_ID))
 
     container.ingest_offer_pipeline.return_value.execute.assert_awaited_once_with(
         reference=REFERENCE, source_id=SOURCE_ID
     )
 
 
-def test_ingest_raises_when_source_not_found():
+@patch(_PATCH_CONTAINER)
+def test_ingest_raises_when_source_not_found(mock_get_container):
     webhook = WebhookFactory.build(
         id=WEBHOOK_ID, source_id=SOURCE_ID, event_type=EventType.CREE
     )
     container = _make_mock_container(webhook)
     container.sources_repository.return_value.get_by_source_id.return_value = None
+    mock_get_container.return_value = container
 
-    with (
-        patch(_PATCH_CONTAINER, return_value=container),
-        pytest.raises(ValueError, match=SOURCE_ID),
-    ):
+    with pytest.raises(ValueError, match=SOURCE_ID):
         save_raw_offer_webhook(str(WEBHOOK_ID))
 
 
-def test_ingest_raises_when_talentsoft_client_not_found():
+@patch(_PATCH_CONTAINER)
+def test_ingest_raises_when_talentsoft_client_not_found(mock_get_container):
     webhook = WebhookFactory.build(
         id=WEBHOOK_ID, source_id=SOURCE_ID, event_type=EventType.CREE
     )
     container = _make_mock_container(webhook)
     container.talentsoft_client_repository.return_value.get.return_value = None
+    mock_get_container.return_value = container
 
-    with (
-        patch(_PATCH_CONTAINER, return_value=container),
-        pytest.raises(ValueError, match=SOURCE_ID),
-    ):
+    with pytest.raises(ValueError, match=SOURCE_ID):
         save_raw_offer_webhook(str(WEBHOOK_ID))
 
 
 # --- Edge cases ---
 
 
-def test_raises_when_webhook_not_found_in_db():
+@patch(_PATCH_CONTAINER)
+def test_raises_when_webhook_not_found_in_db(mock_get_container):
     container = _make_mock_container()
     container.webhook_repository.return_value.get_by_id = AsyncMock(
         side_effect=ValueError(f"Webhook {WEBHOOK_ID} not found in database")
     )
+    mock_get_container.return_value = container
 
-    with (
-        patch(_PATCH_CONTAINER, return_value=container),
-        pytest.raises(ValueError, match=str(WEBHOOK_ID)),
-    ):
+    with pytest.raises(ValueError, match=str(WEBHOOK_ID)):
         archive_offer_webhook(str(WEBHOOK_ID))
 
 
@@ -186,16 +189,15 @@ def test_is_transient_false(exc):
     assert _is_transient(exc) is False
 
 
-def test_retries_on_transport_error():
+@patch.object(Task, "retry", side_effect=Retry())
+@patch(_PATCH_CONTAINER)
+def test_retries_on_transport_error(mock_get_container, mock_retry):
     container = _make_mock_container()
     exc = httpx.ConnectError("connection refused")
     container.webhook_repository.return_value.get_by_id = AsyncMock(side_effect=exc)
+    mock_get_container.return_value = container
 
-    with (
-        patch(_PATCH_CONTAINER, return_value=container),
-        patch.object(Task, "retry", side_effect=Retry()) as mock_retry,
-        pytest.raises(Retry),
-    ):
+    with pytest.raises(Retry):
         archive_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_called_once()
@@ -203,48 +205,45 @@ def test_retries_on_transport_error():
     assert mock_retry.call_args.kwargs["countdown"] == 1  # 2**0
 
 
-def test_retries_on_external_api_5xx():
+@patch.object(Task, "retry", side_effect=Retry())
+@patch(_PATCH_CONTAINER)
+def test_retries_on_external_api_5xx(mock_get_container, mock_retry):
     container = _make_mock_container()
     exc = ExternalApiError("server error", status_code=500)
     container.webhook_repository.return_value.get_by_id = AsyncMock(side_effect=exc)
+    mock_get_container.return_value = container
 
-    with (
-        patch(_PATCH_CONTAINER, return_value=container),
-        patch.object(Task, "retry", side_effect=Retry()) as mock_retry,
-        pytest.raises(Retry),
-    ):
+    with pytest.raises(Retry):
         archive_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_called_once()
     assert mock_retry.call_args.kwargs["exc"] is exc
 
 
-def test_no_retry_on_external_api_4xx():
+@patch.object(Task, "retry")
+@patch(_PATCH_CONTAINER)
+def test_no_retry_on_external_api_4xx(mock_get_container, mock_retry):
     container = _make_mock_container()
     exc = ExternalApiError("bad request", status_code=400)
     container.webhook_repository.return_value.get_by_id = AsyncMock(side_effect=exc)
+    mock_get_container.return_value = container
 
-    with (
-        patch(_PATCH_CONTAINER, return_value=container),
-        patch.object(Task, "retry") as mock_retry,
-        pytest.raises(ExternalApiError),
-    ):
+    with pytest.raises(ExternalApiError):
         archive_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_not_called()
 
 
-def test_no_retry_on_value_error():
+@patch.object(Task, "retry")
+@patch(_PATCH_CONTAINER)
+def test_no_retry_on_value_error(mock_get_container, mock_retry):
     container = _make_mock_container()
     container.webhook_repository.return_value.get_by_id = AsyncMock(
         side_effect=ValueError(f"Webhook {WEBHOOK_ID} not found in database")
     )
+    mock_get_container.return_value = container
 
-    with (
-        patch(_PATCH_CONTAINER, return_value=container),
-        patch.object(Task, "retry") as mock_retry,
-        pytest.raises(ValueError),
-    ):
+    with pytest.raises(ValueError):
         archive_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_not_called()

@@ -148,27 +148,32 @@ async def test_execute_propagates_save_error(
 
 
 @pytest.mark.asyncio
+@patch("application.pipelines.ingest_offer_pipeline.logger")
 async def test_execute_does_not_raise_when_clean_fails(
-    pipeline, mock_save_use_case, mock_clean_use_case, mock_raw_offer_repository
+    mock_logger,
+    pipeline,
+    mock_save_use_case,
+    mock_clean_use_case,
+    mock_raw_offer_repository,
 ):
     mock_clean_use_case.execute.side_effect = ValueError("Bad data")
 
-    with patch("application.pipelines.ingest_offer_pipeline.logger") as mock_logger:
-        await pipeline.execute(reference=REFERENCE, source_id=SOURCE_ID)
-        mock_logger.exception.assert_called_once()
+    await pipeline.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
+    mock_logger.exception.assert_called_once()
     mock_raw_offer_repository.mark_as_cleaned.assert_not_called()
 
 
 @pytest.mark.asyncio
+@patch("application.pipelines.ingest_offer_pipeline.logger")
 async def test_execute_does_not_raise_when_mark_as_cleaned_fails(
-    pipeline, mock_clean_use_case, mock_raw_offer_repository
+    mock_logger, pipeline, mock_clean_use_case, mock_raw_offer_repository
 ):
     mock_raw_offer_repository.mark_as_cleaned.side_effect = RuntimeError("DB down")
 
-    with patch("application.pipelines.ingest_offer_pipeline.logger") as mock_logger:
-        await pipeline.execute(reference=REFERENCE, source_id=SOURCE_ID)
-        mock_logger.exception.assert_called_once()
+    await pipeline.execute(reference=REFERENCE, source_id=SOURCE_ID)
+
+    mock_logger.exception.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -195,7 +200,9 @@ async def test_execute_marks_as_upserted_after_publish(
 
 
 @pytest.mark.asyncio
+@patch("application.pipelines.ingest_offer_pipeline.logger")
 async def test_execute_skips_publish_when_clean_fails(
+    mock_logger,
     pipeline_with_post,
     mock_clean_use_case,
     mock_publish_offer_use_case,
@@ -203,33 +210,34 @@ async def test_execute_skips_publish_when_clean_fails(
 ):
     mock_clean_use_case.execute.side_effect = ValueError("Bad data")
 
-    with patch("application.pipelines.ingest_offer_pipeline.logger"):
-        await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
+    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
     mock_publish_offer_use_case.execute.assert_not_called()
     mock_raw_offer_repository.mark_as_upserted.assert_not_called()
 
 
 @pytest.mark.asyncio
+@patch("application.pipelines.ingest_offer_pipeline.logger")
 async def test_execute_does_not_raise_when_publish_fails(
-    pipeline_with_post, mock_publish_offer_use_case
+    mock_logger, pipeline_with_post, mock_publish_offer_use_case
 ):
     mock_publish_offer_use_case.execute.side_effect = RuntimeError("Web API down")
 
-    with patch("application.pipelines.ingest_offer_pipeline.logger") as mock_logger:
-        await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
-        mock_logger.exception.assert_called_once()
+    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
+
+    mock_logger.exception.assert_called_once()
 
 
 @pytest.mark.asyncio
+@patch("application.pipelines.ingest_offer_pipeline.logger")
 async def test_execute_does_not_raise_when_mark_as_upserted_fails(
-    pipeline_with_post, mock_raw_offer_repository
+    mock_logger, pipeline_with_post, mock_raw_offer_repository
 ):
     mock_raw_offer_repository.mark_as_upserted.side_effect = RuntimeError("DB down")
 
-    with patch("application.pipelines.ingest_offer_pipeline.logger") as mock_logger:
-        await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
-        mock_logger.exception.assert_called_once()
+    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
+
+    mock_logger.exception.assert_called_once()
 
 
 @pytest.mark.asyncio
