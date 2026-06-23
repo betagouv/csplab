@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import type { PrimitiveProps } from 'reka-ui'
+import type { RouteLocationRaw } from 'vue-router'
 import { Primitive } from 'reka-ui'
+import { RouterLink } from 'vue-router'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspTooltip from '@/components/base/CspTooltip/CspTooltip.vue'
 import { useSidebar } from '@/composables/useSidebar'
 
-interface CspSidebarItemProps extends PrimitiveProps {
+interface CspSidebarItemProps {
   icon: string
   label: string
+  to?: RouteLocationRaw
   isActive?: boolean
 }
 
 withDefaults(defineProps<CspSidebarItemProps>(), {
-  as: 'button',
   isActive: false,
 })
 
@@ -27,8 +28,9 @@ const { isExpanded, isMobile } = useSidebar()
     :side-offset="12"
   >
     <Primitive
-      :as="as"
-      :as-child="asChild"
+      :as="to ? RouterLink : 'button'"
+      :to="to"
+      :type="to ? undefined : 'button'"
       class="csp-sidebar-item"
       :class="{
         'csp-sidebar-item--active': isActive,
@@ -39,7 +41,7 @@ const { isExpanded, isMobile } = useSidebar()
       <CspIcon
         class="csp-sidebar-item__icon"
         :name="icon"
-        :size="20"
+        :size="16"
       />
       <span
         v-if="isExpanded || isMobile"
@@ -56,22 +58,15 @@ const { isExpanded, isMobile } = useSidebar()
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   width: var(--sidebar-item-size, 2.5rem);
   height: var(--sidebar-item-size, 2.5rem);
   padding: 0;
   border: none;
-  border-radius: 0.5rem;
-  background: transparent;
-  color: var(--text-mention-grey);
+  background: var(--background-alt-grey);
   text-decoration: none;
   cursor: pointer;
   flex-shrink: 0;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease,
-    width 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    padding 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &--expanded {
     justify-content: flex-start;
@@ -81,8 +76,11 @@ const { isExpanded, isMobile } = useSidebar()
   }
 
   &:hover {
-    background: var(--background-default-grey-hover);
-    color: var(--text-default-grey);
+    background: var(--background-alt-grey-hover);
+  }
+
+  &:active {
+    background: var(--background-alt-grey-active);
   }
 
   &:focus-visible {
@@ -93,28 +91,22 @@ const { isExpanded, isMobile } = useSidebar()
 
 .csp-sidebar-item__icon {
   flex-shrink: 0;
+  margin-left: 0.125rem;
 }
 
 .csp-sidebar-item__label {
   font-size: 0.875rem;
-  font-weight: 500;
   line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.csp-sidebar-item--active {
+.csp-sidebar-item--active,
+.csp-sidebar-item--active:hover,
+.csp-sidebar-item--active:active {
+  cursor: default;
   background: var(--background-action-low-blue-france);
   color: var(--text-action-high-blue-france);
-
-  &:hover {
-    background: var(--background-action-low-blue-france-hover);
-    color: var(--text-action-high-blue-france);
-  }
-
-  .csp-sidebar-item__label {
-    font-weight: 600;
-  }
 }
 </style>

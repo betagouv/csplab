@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import CspAppLayout from '@/components/layout/CspAppLayout/CspAppLayout.vue'
 import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
 import CspSidebarGroup from '@/components/layout/CspSidebar/CspSidebarGroup.vue'
@@ -9,8 +10,21 @@ import CspSidebarProvider from '@/components/layout/CspSidebar/CspSidebarProvide
 import CspSidebarTrigger from '@/components/layout/CspSidebar/CspSidebarTrigger.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
 import { useCurrentUser } from '@/composables/useCurrentUser'
+import { ATS_NAVIGATION } from '../navigation'
 
 const { user, displayName, fetch: fetchUser } = useCurrentUser()
+
+const route = useRoute()
+const router = useRouter()
+
+const navGroups = computed(() => {
+  return ATS_NAVIGATION
+    .map(group => ({
+      ...group,
+      items: group.items.filter(item => router.hasRoute(item.to)),
+    }))
+    .filter(group => group.items.length > 0)
+})
 
 onMounted(() => {
   fetchUser()
@@ -26,40 +40,18 @@ onMounted(() => {
             <CspSidebarLogo />
           </template>
 
-          <CspSidebarGroup label="Pilotage">
+          <CspSidebarGroup
+            v-for="group in navGroups"
+            :key="group.label"
+            :label="group.label"
+          >
             <CspSidebarItem
-              icon="ri:dashboard-line"
-              label="Tableau de bord"
-            />
-            <CspSidebarItem
-              icon="ri:briefcase-line"
-              label="Mes offres"
-              is-active
-            />
-          </CspSidebarGroup>
-
-          <CspSidebarGroup label="Candidatures">
-            <CspSidebarItem
-              icon="ri:group-line"
-              label="Toutes les candidatures"
-            />
-            <CspSidebarItem
-              icon="ri:layout-column-line"
-              label="Pipeline"
-            />
-          </CspSidebarGroup>
-
-          <CspSidebarGroup label="Entretiens">
-            <CspSidebarItem
-              icon="ri:calendar-line"
-              label="Mes entretiens"
-            />
-          </CspSidebarGroup>
-
-          <CspSidebarGroup label="Paramètres">
-            <CspSidebarItem
-              icon="ri:settings-3-line"
-              label="Paramètres"
+              v-for="item in group.items"
+              :key="item.to"
+              :icon="item.icon"
+              :label="item.label"
+              :to="{ name: item.to }"
+              :is-active="route.name === item.to"
             />
           </CspSidebarGroup>
 
