@@ -30,7 +30,8 @@ export interface paths {
         };
         /** Liste des étapes de recrutement d'un organisme */
         get: operations["recruteur_organisme_parametres_etapes_list"];
-        put?: never;
+        /** Modifier les étapes de recrutement d'un organisme */
+        put: operations["recruteur_organisme_parametres_etapes_update"];
         post?: never;
         delete?: never;
         options?: never;
@@ -105,6 +106,12 @@ export interface components {
             token_class: string;
             token_type: string;
             message: string;
+        };
+        UpdateEtapeRecrutement: {
+            /** Format: uuid */
+            etape_uuid?: string;
+            nom: string;
+            categorie: components["schemas"]["CategorieEnum"];
         };
         Utilisateur: {
             /** Format: email */
@@ -183,6 +190,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EtapeRecrutement"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_parametres_etapes_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEtapeRecrutement"][];
+                "application/x-www-form-urlencoded": components["schemas"]["UpdateEtapeRecrutement"][];
+                "multipart/form-data": components["schemas"]["UpdateEtapeRecrutement"][];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EtapeRecrutement"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
                 };
             };
             401: {
