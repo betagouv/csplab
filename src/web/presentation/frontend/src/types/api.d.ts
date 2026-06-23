@@ -56,6 +56,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/recruteur/organisme/{organisme_uuid}/recrutements/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Liste des recrutements d'un organisme
+         * @description Retourne la liste paginée des recrutements d'un organisme. Deux onglets disponibles via le paramètre `filtre` : `actifs` (recrutements en cours, défaut) et `archives` (offres archivées).
+         */
+        get: operations["recruteur_organisme_recrutements_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/utilisateur/me/": {
         parameters: {
             query?: never;
@@ -77,6 +97,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        CandidaturesActives: {
+            total: number | null;
+            a_traiter: number | null;
+            en_cours: number | null;
+        };
         /**
          * @description * `ENTREE` - entree
          *     * `EN_COURS` - en_cours
@@ -93,9 +118,45 @@ export interface components {
         GenericError: {
             error: string;
         };
+        /**
+         * @description * `CDD` - CDD
+         *     * `CDI` - CDI
+         *     * `PERMANENT` - Permanent
+         *     * `VACATION` - Vacation
+         *     * `STAGE` - Stage
+         * @enum {string}
+         */
+        KindContratEnum: "CDD" | "CDI" | "PERMANENT" | "VACATION" | "STAGE";
+        /** @enum {unknown} */
+        NullEnum: null;
         Organisme: {
             nom: string;
             siret: string;
+        };
+        RecrutementActif: {
+            /** Format: uuid */
+            offer_id: string;
+            intitule: string;
+            reference_csp: string;
+            type_contrat: (components["schemas"]["TypeContratEnum"] | components["schemas"]["NullEnum"]) | null;
+            kind_contrat: (components["schemas"]["KindContratEnum"] | components["schemas"]["NullEnum"]) | null;
+            /** Format: date-time */
+            date_publication: string;
+            responsables: components["schemas"]["Responsable"][];
+            /** Format: date-time */
+            derniere_activite: string;
+            candidatures: components["schemas"]["CandidaturesActives"] | null;
+        };
+        RecrutementActifPage: {
+            count: number;
+            /** Format: uri */
+            next: string | null;
+            /** Format: uri */
+            previous: string | null;
+            results: components["schemas"]["RecrutementActif"][];
+        };
+        Responsable: {
+            nom: string;
         };
         TokenError: {
             detail: string;
@@ -107,6 +168,13 @@ export interface components {
             token_type: string;
             message: string;
         };
+        /**
+         * @description * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+         *     * `CONTRACTUELS` - CONTRACTUELS
+         *     * `TERRITORIAL` - TERRITORIAL
+         * @enum {string}
+         */
+        TypeContratEnum: "TITULAIRE_CONTRACTUEL" | "CONTRACTUELS" | "TERRITORIAL";
         UpdateEtapeRecrutement: {
             /** Format: uuid */
             etape_uuid?: string;
@@ -310,6 +378,51 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_recrutements_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecrutementActifPage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
                 };
             };
             500: {

@@ -196,6 +196,50 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+  /recruteur/organisme/{organisme_uuid}/recrutements/:
+    get:
+      operationId: recruteur_organisme_recrutements_retrieve
+      description: 'Retourne la liste paginée des recrutements d''un organisme. Deux
+        onglets disponibles via le paramètre `filtre` : `actifs` (recrutements en
+        cours, défaut) et `archives` (offres archivées).'
+      summary: Liste des recrutements d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecrutementActifPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /utilisateur/me/:
     get:
       operationId: utilisateur_me_retrieve
@@ -232,6 +276,22 @@ paths:
           description: ''
 components:
   schemas:
+    CandidaturesActives:
+      type: object
+      properties:
+        total:
+          type: integer
+          nullable: true
+        a_traiter:
+          type: integer
+          nullable: true
+        en_cours:
+          type: integer
+          nullable: true
+      required:
+      - a_traiter
+      - en_cours
+      - total
     CategorieEnum:
       enum:
       - ENTREE
@@ -263,6 +323,23 @@ components:
           type: string
       required:
       - error
+    KindContratEnum:
+      enum:
+      - CDD
+      - CDI
+      - PERMANENT
+      - VACATION
+      - STAGE
+      type: string
+      description: |-
+        * `CDD` - CDD
+        * `CDI` - CDI
+        * `PERMANENT` - Permanent
+        * `VACATION` - Vacation
+        * `STAGE` - Stage
+    NullEnum:
+      enum:
+      - null
     Organisme:
       type: object
       properties:
@@ -273,6 +350,79 @@ components:
       required:
       - nom
       - siret
+    RecrutementActif:
+      type: object
+      properties:
+        offer_id:
+          type: string
+          format: uuid
+        intitule:
+          type: string
+        reference_csp:
+          type: string
+        type_contrat:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/TypeContratEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        kind_contrat:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/KindContratEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        date_publication:
+          type: string
+          format: date-time
+        responsables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Responsable'
+        derniere_activite:
+          type: string
+          format: date-time
+        candidatures:
+          allOf:
+          - $ref: '#/components/schemas/CandidaturesActives'
+          nullable: true
+      required:
+      - candidatures
+      - date_publication
+      - derniere_activite
+      - intitule
+      - kind_contrat
+      - offer_id
+      - reference_csp
+      - responsables
+      - type_contrat
+    RecrutementActifPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecrutementActif'
+      required:
+      - count
+      - next
+      - previous
+      - results
+    Responsable:
+      type: object
+      properties:
+        nom:
+          type: string
+      required:
+      - nom
     TokenError:
       type: object
       properties:
@@ -301,6 +451,16 @@ components:
       - message
       - token_class
       - token_type
+    TypeContratEnum:
+      enum:
+      - TITULAIRE_CONTRACTUEL
+      - CONTRACTUELS
+      - TERRITORIAL
+      type: string
+      description: |-
+        * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+        * `CONTRACTUELS` - CONTRACTUELS
+        * `TERRITORIAL` - TERRITORIAL
     UpdateEtapeRecrutement:
       type: object
       properties:
