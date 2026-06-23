@@ -86,21 +86,22 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
 
 <style scoped lang="scss">
 .csp-sidebar-user {
+  --container-padding-compensation: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.625rem;
-  width: 100%;
+  margin: calc(var(--container-padding-compensation) * -1);
   min-width: 0;
-  padding: 0;
-  border: none;
-  border-radius: 0.375rem;
-  background: transparent;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  background-color: var(--background-alt-grey);
 
   &:hover {
-    background-color: var(--background-alt-grey);
+    background-color: var(--background-alt-grey-hover);
+  }
+
+  &:active {
+    background-color: var(--background-alt-grey-active);
   }
 
   &:focus-visible {
@@ -111,7 +112,8 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
   &--expanded {
     justify-content: flex-start;
     min-height: var(--sidebar-item-size, 2.5rem);
-    padding: 0.375rem var(--sidebar-inset-x, 0.5rem);
+    padding: calc(0.375rem + var(--container-padding-compensation))
+      calc(var(--sidebar-inset-x, 0.5rem) + var(--container-padding-compensation));
   }
 }
 

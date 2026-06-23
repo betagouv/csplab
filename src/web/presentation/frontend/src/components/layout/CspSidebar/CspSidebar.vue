@@ -157,7 +157,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   justify-content: space-between;
   flex-shrink: 0;
   min-height: 2rem;
-  margin-bottom: 1rem;
+  padding-bottom: 2rem;
 }
 
 .csp-sidebar__brand {
