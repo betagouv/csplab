@@ -227,132 +227,139 @@ function onRowClick(row: Row<TRow>): void {
     class="csp-table-wrapper"
     :class="`csp-table-wrapper--${size}`"
   >
-    <table
-      class="csp-table"
+    <div
+      class="csp-table__scroll"
+      tabindex="0"
+      role="region"
+      :aria-label="caption"
     >
-      <caption class="sr-only csp-table__caption">
-        {{ caption }}
-      </caption>
+      <table
+        class="csp-table"
+      >
+        <caption class="sr-only csp-table__caption">
+          {{ caption }}
+        </caption>
 
-      <thead class="csp-table__head">
-        <tr>
-          <th
-            v-if="hasSelectionColumn"
-            scope="col"
-            class="csp-table__th csp-table__select"
-            @click="toggleAllVisible"
-          >
-            <div
-              class="csp-table__checkbox-wrapper"
-              @click.stop
+        <thead class="csp-table__head">
+          <tr>
+            <th
+              v-if="hasSelectionColumn"
+              scope="col"
+              class="csp-table__th csp-table__select"
+              @click="toggleAllVisible"
             >
-              <CspCheckbox
-                variant="checkbox-only"
-                label="Tout sélectionner"
-                :model-value="allVisibleSelected"
-                :indeterminate="someVisibleSelected"
-                @update:model-value="toggleAllVisible"
-              />
-            </div>
-          </th>
-
-          <th
-            v-for="header in headers"
-            :key="header.id"
-            scope="col"
-            class="csp-table__th"
-            :class="alignClass(columnAlign(header.column), 'th')"
-            :aria-sort="header.column.getCanSort() ? ariaSort(header.column) : undefined"
-            :style="columnWidth(header.column) ? { width: columnWidth(header.column) } : undefined"
-          >
-            <slot
-              :name="`header-${header.column.id}`"
-              :column="header.column"
-              :label="columnLabel(header.column)"
-              :sorted="header.column.getIsSorted()"
-              :can-sort="header.column.getCanSort()"
-              :toggle-sort="(event: Event) => header.column.getToggleSortingHandler()?.(event)"
-            >
-              <button
-                v-if="header.column.getCanSort()"
-                type="button"
-                class="csp-table__sort"
-                @click="header.column.getToggleSortingHandler()?.($event)"
+              <div
+                class="csp-table__checkbox-wrapper"
+                @click.stop
               >
-                <span>{{ columnLabel(header.column) }}</span>
-                <CspIcon
-                  class="csp-table__sort-icon"
-                  :class="{ 'csp-table__sort-icon--inactive': !header.column.getIsSorted() }"
-                  :name="sortIconName(header.column)"
-                  :size="14"
+                <CspCheckbox
+                  variant="checkbox-only"
+                  label="Tout sélectionner"
+                  :model-value="allVisibleSelected"
+                  :indeterminate="someVisibleSelected"
+                  @update:model-value="toggleAllVisible"
                 />
-              </button>
-              <span v-else>{{ columnLabel(header.column) }}</span>
-            </slot>
-          </th>
-        </tr>
-      </thead>
+              </div>
+            </th>
 
-      <tbody class="csp-table__body">
-        <tr v-if="displayRows.length === 0">
-          <td
-            class="csp-table__empty"
-            :colspan="colspan"
-          >
-            <slot name="empty">
-              {{ emptyLabel }}
-            </slot>
-          </td>
-        </tr>
-
-        <tr
-          v-for="row in displayRows"
-          v-else
-          :key="row.id"
-          class="csp-table__row"
-          :class="{
-            'csp-table__row--selected': isRowSelected(row),
-            'csp-table__row--selectable': hasRowSelection,
-          }"
-          :aria-selected="hasSelectionColumn ? isRowSelected(row) : undefined"
-          @click="onRowClick(row)"
-        >
-          <td
-            v-if="hasSelectionColumn"
-            class="csp-table__td csp-table__select"
-            @click.stop="toggleRowSelection(row.id)"
-          >
-            <div
-              class="csp-table__checkbox-wrapper"
-              @click.stop
+            <th
+              v-for="header in headers"
+              :key="header.id"
+              scope="col"
+              class="csp-table__th"
+              :class="alignClass(columnAlign(header.column), 'th')"
+              :aria-sort="header.column.getCanSort() ? ariaSort(header.column) : undefined"
+              :style="columnWidth(header.column) ? { width: columnWidth(header.column) } : undefined"
             >
-              <CspCheckbox
-                variant="checkbox-only"
-                :label="rowSelectionLabel(row)"
-                :model-value="isRowSelected(row)"
-                @update:model-value="() => toggleRowSelection(row.id)"
-              />
-            </div>
-          </td>
+              <slot
+                :name="`header-${header.column.id}`"
+                :column="header.column"
+                :label="columnLabel(header.column)"
+                :sorted="header.column.getIsSorted()"
+                :can-sort="header.column.getCanSort()"
+                :toggle-sort="(event: Event) => header.column.getToggleSortingHandler()?.(event)"
+              >
+                <button
+                  v-if="header.column.getCanSort()"
+                  type="button"
+                  class="csp-table__sort"
+                  @click="header.column.getToggleSortingHandler()?.($event)"
+                >
+                  <span>{{ columnLabel(header.column) }}</span>
+                  <CspIcon
+                    class="csp-table__sort-icon"
+                    :class="{ 'csp-table__sort-icon--inactive': !header.column.getIsSorted() }"
+                    :name="sortIconName(header.column)"
+                    :size="14"
+                  />
+                </button>
+                <span v-else>{{ columnLabel(header.column) }}</span>
+              </slot>
+            </th>
+          </tr>
+        </thead>
 
-          <td
-            v-for="cell in row.getVisibleCells()"
-            :key="cell.id"
-            class="csp-table__td"
-            :class="alignClass(columnAlign(cell.column), 'td')"
-            :style="columnWidth(cell.column) ? { width: columnWidth(cell.column) } : undefined"
-          >
-            <slot
-              :name="`cell-${cell.column.id}`"
-              :row="row.original"
-              :value="cell.getValue()"
+        <tbody class="csp-table__body">
+          <tr v-if="displayRows.length === 0">
+            <td
+              class="csp-table__empty"
+              :colspan="colspan"
             >
-              {{ formatValue(cell.getValue() as CspTableCellValue) }}
-            </slot>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              <slot name="empty">
+                {{ emptyLabel }}
+              </slot>
+            </td>
+          </tr>
+
+          <tr
+            v-for="row in displayRows"
+            v-else
+            :key="row.id"
+            class="csp-table__row"
+            :class="{
+              'csp-table__row--selected': isRowSelected(row),
+              'csp-table__row--selectable': hasRowSelection,
+            }"
+            :aria-selected="hasSelectionColumn ? isRowSelected(row) : undefined"
+            @click="onRowClick(row)"
+          >
+            <td
+              v-if="hasSelectionColumn"
+              class="csp-table__td csp-table__select"
+              @click.stop="toggleRowSelection(row.id)"
+            >
+              <div
+                class="csp-table__checkbox-wrapper"
+                @click.stop
+              >
+                <CspCheckbox
+                  variant="checkbox-only"
+                  :label="rowSelectionLabel(row)"
+                  :model-value="isRowSelected(row)"
+                  @update:model-value="() => toggleRowSelection(row.id)"
+                />
+              </div>
+            </td>
+
+            <td
+              v-for="cell in row.getVisibleCells()"
+              :key="cell.id"
+              class="csp-table__td"
+              :class="alignClass(columnAlign(cell.column), 'td')"
+              :style="columnWidth(cell.column) ? { width: columnWidth(cell.column) } : undefined"
+            >
+              <slot
+                :name="`cell-${cell.column.id}`"
+                :row="row.original"
+                :value="cell.getValue()"
+              >
+                {{ formatValue(cell.getValue() as CspTableCellValue) }}
+              </slot>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <div
       v-if="$slots.footer"
@@ -394,9 +401,19 @@ function onRowClick(row: Row<TRow>): void {
   }
 }
 
-.csp-table {
+.csp-table__scroll {
   width: 100%;
-  table-layout: fixed;
+  overflow-x: auto;
+
+  &:focus-visible {
+    outline: 2px solid var(--csp-focus-ring-color);
+    outline-offset: -2px;
+  }
+}
+
+.csp-table {
+  min-width: 100%;
+  table-layout: auto;
   border-collapse: collapse;
   font-size: var(--csp-font-size-base);
 }
@@ -412,8 +429,6 @@ function onRowClick(row: Row<TRow>): void {
   font-weight: 600;
   color: var(--text-mention-grey);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .csp-table__th--center {

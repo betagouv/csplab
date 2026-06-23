@@ -309,6 +309,49 @@ export const Sizes: Story = {
   },
 }
 
+const WIDE_COLUMNS: CspColumnDef<DemoRow>[] = [
+  { id: 'libelle', header: 'Libellé du produit', sortable: true, accessor: row => row.libelle },
+  { id: 'reference', header: 'Référence interne', sortable: true, accessor: row => row.reference },
+  { id: 'categorie', header: 'Catégorie de classement', sortable: true, accessor: row => row.categorie },
+  { id: 'date', header: 'Date de dernière mise à jour', sortable: true, accessor: row => row.date },
+  { id: 'quantite', header: 'Quantité en stock', sortable: true, align: 'end', accessor: row => row.quantite },
+]
+
+export const Overflow: Story = {
+  name: 'Débordement (scroll horizontal)',
+  render: () => ({
+    components: { CspDataTable, CspTag },
+    setup() {
+      return { columns: WIDE_COLUMNS, rows: SHORT_ROWS }
+    },
+    template: `
+      <div class="max-w-md">
+        <CspDataTable
+          :rows="rows"
+          :columns="columns"
+          :row-key="(row) => row.id"
+          caption="Tableau de données"
+        >
+          <template #cell-categorie="{ value }">
+            <CspTag :label="String(value)" variant="static" size="sm" />
+          </template>
+          <template #cell-quantite="{ value }">
+            <strong>{{ value }}</strong>
+          </template>
+        </CspDataTable>
+      </div>
+    `,
+  }),
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: 'Dans un conteneur trop étroit, la zone de contenu défile horizontalement.',
+      },
+    },
+  },
+}
+
 export const StateVariants: Story = {
   name: 'Modes de sélection',
   render: createStateGalleryRender([
