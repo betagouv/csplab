@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
-from domain.recruteur.value_objects.etapes_recrutement import CategorieEtapeRecrutement
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
 
 
 class EtapeRecrutementSerializer(serializers.Serializer):

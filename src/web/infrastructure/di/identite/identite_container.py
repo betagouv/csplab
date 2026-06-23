@@ -2,6 +2,7 @@ from dependency_injector import containers, providers
 
 from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.identite.usecases.create_candidat import CreateCandidatUsecase
+from application.identite.usecases.create_organisme import CreateOrganismeUsecase
 from application.identite.usecases.get_utilisateur_details import (
     GetUtilisateurDetailUsecase,
 )
@@ -17,6 +18,9 @@ from infrastructure.repositories.identite.postgres_agent_repository import (
 )
 from infrastructure.repositories.identite.postgres_candidat_repository import (
     PostgresCandidatRepository,
+)
+from infrastructure.repositories.identite.postgres_organisme_repository import (
+    PostgresOrganismeRepository,
 )
 from infrastructure.repositories.identite.postgres_utilisateur_repository import (
     PostgresUtilisateurRepository,
@@ -36,6 +40,7 @@ class IdentiteContainer(containers.DeclarativeContainer):
         AuditLogWriter,
         repository=postgres_audit_log_repository,
     )
+    postgres_organisme_repository = providers.Singleton(PostgresOrganismeRepository)
 
     get_utilisateur_details_usecase = providers.Factory(
         GetUtilisateurDetailUsecase,
@@ -55,6 +60,10 @@ class IdentiteContainer(containers.DeclarativeContainer):
     )
 
     log_utilisateur_connexion_usecase = providers.Factory(
-        LogUtilisateurConnexionUsecase,
-        audit_log_writer=audit_log_writer,
+        LogUtilisateurConnexionUsecase, audit_log_writer=audit_log_writer
+    )
+
+    create_organisme_usecase = providers.Factory(
+        CreateOrganismeUsecase,
+        organisme_repository=postgres_organisme_repository,
     )

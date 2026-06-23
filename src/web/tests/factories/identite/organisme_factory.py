@@ -1,3 +1,6 @@
+from uuid import UUID, uuid4
+
+from faker import Faker
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
@@ -7,6 +10,9 @@ from referentiel.value_objects.verse import Verse
 
 from domain.identite.entities.organisme import Organisme
 from domain.identite.value_objects.siret import SIRET
+from infrastructure.mappers.organisme_identite_mapper import (
+    OrganismeIdentiteMapper,
+)
 
 
 def make_localisation(
@@ -22,17 +28,42 @@ def make_localisation(
     )
 
 
+_fake = Faker("fr_FR")
+
+
 class OrganismeFactory:
     @staticmethod
-    def build(
+    def create_entity(
+        entity_id: UUID | None = None,
         nom: str = "Ministère de l'Économie, des Finances et de la Relance",
         versant: Verse = Verse.FPE,
         localisation: Localisation | None = None,
         siret: SIRET | None = None,
     ) -> Organisme:
         return Organisme.build(
+            entity_id=entity_id or uuid4(),
             nom=nom,
             versant=versant,
             localisation=localisation or make_localisation(),
-            siret=siret,
+            siret=siret or SIRET(_fake.siret().replace(" ", "")),
         )
+
+    @staticmethod
+    def create_model(
+        entity_id: UUID | None = None,
+        nom: str = "Ministère de l'Économie, des Finances et de la Relance",
+        versant: Verse = Verse.FPE,
+        localisation: Localisation | None = None,
+        siret: SIRET | None = None,
+    ):
+        organisme = OrganismeFactory.create_entity(
+            entity_id=entity_id,
+            nom=nom,
+            versant=versant,
+            localisation=localisation,
+            siret=siret or SIRET(_fake.siret().replace(" ", "")),
+        )
+        mapper = OrganismeIdentiteMapper()
+        model = mapper.from_domain(organisme)
+        model.save()
+        return model

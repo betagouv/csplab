@@ -87,6 +87,49 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+  /recruteur/organisme/{organisme_uuid}/parametres/etapes/init/:
+    post:
+      operationId: recruteur_organisme_parametres_etapes_init_create
+      summary: Initialiser les étapes de recrutement par défaut d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EtapeRecrutement'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /utilisateur/me/:
     get:
       operationId: utilisateur_me_retrieve
@@ -125,12 +168,12 @@ components:
   schemas:
     CategorieEnum:
       enum:
-      - INITIALE
+      - ENTREE
       - EN_COURS
       - TERMINALE
       type: string
       description: |-
-        * `INITIALE` - initiale
+        * `ENTREE` - entree
         * `EN_COURS` - en_cours
         * `TERMINALE` - terminale
     EtapeRecrutement:

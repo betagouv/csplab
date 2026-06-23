@@ -148,7 +148,7 @@ wheels = [
 
 [[package]]
 name = "ddd"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "../../libs/ddd" }
 
 [package.metadata]
@@ -1246,7 +1246,7 @@ wheels = [
 
 [[package]]
 name = "referentiel"
-version = "0.1.6"
+version = "0.1.7"
 source = { editable = "../../libs/referentiel" }
 dependencies = [
     { name = "ddd" },

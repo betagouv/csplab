@@ -1,6 +1,6 @@
 [project]
 name = "ddd"
-version = "0.2.0"
+version = "0.2.1"
 description = "Pure technical DDD scaffolding — AggregateRoot, DomainEvent, Entity, decorators and interfaces"
 readme = "README.md"
 requires-python = "~=3.12.0"

@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     "infrastructure.django_apps.referentiel",
     "infrastructure.django_apps.ingestion",
     "infrastructure.django_apps.candidate",
+    "infrastructure.django_apps.recruteur",
     "infrastructure.django_apps.users",
     "infrastructure.django_apps.commons",
     "presentation.ingestion",

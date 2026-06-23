@@ -30,6 +30,7 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.submit_application import SubmitApplicationUsecase
 from application.identite.usecases.create_agent import CreateAgentUsecase
+from application.identite.usecases.create_organisme import CreateOrganismeUsecase
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.list_offers import ListOffersUseCase
@@ -37,6 +38,12 @@ from application.ingestion.usecases.list_sources import ListSourcesUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.upsert_offers import UpsertOffersUseCase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
+from application.recruteur.usecases.get_organisme_recruteur import (
+    GetOrganismeRecruteurUsecase,
+)
+from application.recruteur.usecases.initialize_organisme_steps import (
+    InitializeOrganismeStepsUsecase,
+)
 from config.app_config import AppConfig
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
@@ -46,6 +53,9 @@ from domain.candidate.repositories.cv_metadata_repository_interface import (
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
+from domain.identite.repositories.organisme_repository_interface import (
+    IOrganismeRepository,
+)
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
@@ -59,6 +69,9 @@ from domain.ingestion.repositories.user_source_repository_interface import (
     IUserSourceRepository,
 )
 from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
+from domain.recruteur.repositories.organisme_repository_interface import (
+    IOrganismeRecruteurRepository,
+)
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
@@ -465,3 +478,28 @@ def create_agent_usecase():
         agent_repository=agent_repository,
         utilisateur_repository=utilisateur_repository,
     )
+
+
+@pytest.fixture
+def create_organisme_usecase():
+    organisme_repository = cast(
+        IOrganismeRepository, create_interface_aware_mock(IOrganismeRepository)
+    )
+    return CreateOrganismeUsecase(organisme_repository=organisme_repository)
+
+
+@pytest.fixture
+def get_organisme_recruteur_usecase():
+    organisme_repository = cast(
+        IOrganismeRecruteurRepository, create_interface_aware_mock(IOrganismeRepository)
+    )
+    return GetOrganismeRecruteurUsecase(organisme_repository=organisme_repository)
+
+
+@pytest.fixture
+def initialize_organisme_steps_usecase():
+    repository = cast(
+        IOrganismeRecruteurRepository,
+        create_interface_aware_mock(IOrganismeRecruteurRepository),
+    )
+    return InitializeOrganismeStepsUsecase(organisme_repository=repository)
