@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import { useRoute } from 'vue-router'
 import CspAppLayout from '../CspAppLayout/CspAppLayout.vue'
 import CspSidebar from './CspSidebar.vue'
 import CspSidebarGroup from './CspSidebarGroup.vue'
@@ -169,13 +170,27 @@ export const WithRouterLinks: Story = {
   parameters: {
     docs: {
       description: {
-        story: '`CspSidebarItem` câble la navigation via la prop `to` (passée à un `RouterLink`), l\'état actif étant piloté par `is-active`.',
+        story: 'Navigation simulée : cliquer une entrée change la route (historique mémoire) et met à jour l\'état actif en direct. Permet de tester les états actif / inactif sans câbler `is-active` à la main.',
       },
     },
   },
   render: args => ({
     components,
-    setup: () => ({ defaultExpanded: args.defaultExpanded, persistState: args.persistState }),
+    setup() {
+      const route = useRoute()
+      const items = [
+        { icon: 'ri:dashboard-line', label: 'Première entrée', to: '/premiere' },
+        { icon: 'ri:briefcase-line', label: 'Deuxième entrée', to: '/deuxieme' },
+        { icon: 'ri:group-line', label: 'Troisième entrée', to: '/troisieme' },
+        { icon: 'ri:settings-3-line', label: 'Quatrième entrée', to: '/quatrieme' },
+      ]
+      return {
+        defaultExpanded: args.defaultExpanded,
+        persistState: args.persistState,
+        route,
+        items,
+      }
+    },
     template: `
       <CspSidebarProvider :default-expanded="defaultExpanded" :persist-state="persistState">
         <CspAppLayout>
@@ -186,8 +201,14 @@ export const WithRouterLinks: Story = {
               </template>
 
               <CspSidebarGroup label="Navigation">
-                <CspSidebarItem icon="ri:dashboard-line" label="Accueil" to="/" :is-active="true" />
-                <CspSidebarItem icon="ri:briefcase-line" label="Section" to="/section" />
+                <CspSidebarItem
+                  v-for="item in items"
+                  :key="item.to"
+                  :icon="item.icon"
+                  :label="item.label"
+                  :to="item.to"
+                  :is-active="route.path === item.to"
+                />
               </CspSidebarGroup>
             </CspSidebar>
           </template>
@@ -196,7 +217,12 @@ export const WithRouterLinks: Story = {
             <CspSidebarTrigger />
           </template>
 
-          <div style="padding: 2rem;">Chaque entrée est un lien de routeur.</div>
+          <div style="padding: 2rem;">
+            <p style="color: var(--text-mention-grey); margin: 0;">
+              Cliquez une entrée pour naviguer. Route active :
+              <code style="padding: 0.125rem 0.375rem; border-radius: 0.25rem; background: var(--background-contrast-grey); font-family: monospace;">{{ route.path }}</code>
+            </p>
+          </div>
         </CspAppLayout>
       </CspSidebarProvider>
     `,
