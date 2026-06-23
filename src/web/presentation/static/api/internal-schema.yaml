@@ -296,12 +296,14 @@ components:
       enum:
       - ENTREE
       - EN_COURS
-      - TERMINALE
+      - REFUS
+      - ACCEPTE
       type: string
       description: |-
         * `ENTREE` - entree
         * `EN_COURS` - en_cours
-        * `TERMINALE` - terminale
+        * `REFUS` - refus
+        * `ACCEPTE` - accepte
     EtapeRecrutement:
       type: object
       properties:
