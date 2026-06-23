@@ -260,7 +260,7 @@ class TestRecrutementsOrganismeView:
         assert "intitule" in first
         assert "reference_csp" in first
         assert "type_contrat" in first
-        assert "type_offre" in first
+        assert "kind_contrat" in first
         assert "date_publication" in first
         assert "responsables" in first
         assert "derniere_activite" in first

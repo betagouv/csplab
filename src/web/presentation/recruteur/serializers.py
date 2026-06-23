@@ -1,5 +1,4 @@
-from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.contract_type import ContractKind, ContractType
 from rest_framework import serializers
 
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
@@ -58,8 +57,8 @@ class RecrutementActifSerializer(serializers.Serializer):
         choices=[(c.name, c.value) for c in ContractType],
         allow_null=True,
     )
-    type_offre = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in Category],
+    kind_contrat = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in ContractKind],
         allow_null=True,
     )
     date_publication = serializers.DateTimeField()
@@ -76,8 +75,8 @@ class RecrutementArchiveSerializer(serializers.Serializer):
         choices=[(c.name, c.value) for c in ContractType],
         allow_null=True,
     )
-    type_offre = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in Category],
+    kind_contrat = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in ContractKind],
         allow_null=True,
     )
     date_publication = serializers.DateTimeField()
