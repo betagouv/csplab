@@ -60,10 +60,9 @@ class IdentiteContainer(containers.DeclarativeContainer):
     )
 
     log_utilisateur_connexion_usecase = providers.Factory(
-        LogUtilisateurConnexionUsecase,
-        audit_log_writer=audit_log_writer
+        LogUtilisateurConnexionUsecase, audit_log_writer=audit_log_writer
     )
-    
+
     create_organisme_usecase = providers.Factory(
         CreateOrganismeUsecase,
         organisme_repository=postgres_organisme_repository,
