@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import type { PrimitiveProps } from 'reka-ui'
+import type { RouteLocationRaw } from 'vue-router'
 import { Primitive } from 'reka-ui'
+import { RouterLink } from 'vue-router'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspTooltip from '@/components/base/CspTooltip/CspTooltip.vue'
 import { useSidebar } from '@/composables/useSidebar'
 
-interface CspSidebarItemProps extends PrimitiveProps {
+interface CspSidebarItemProps {
   icon: string
   label: string
+  to?: RouteLocationRaw
   isActive?: boolean
 }
 
 withDefaults(defineProps<CspSidebarItemProps>(), {
-  as: 'button',
   isActive: false,
 })
 
@@ -27,8 +28,9 @@ const { isExpanded, isMobile } = useSidebar()
     :side-offset="12"
   >
     <Primitive
-      :as="as"
-      :as-child="asChild"
+      :as="to ? RouterLink : 'button'"
+      :to="to"
+      :type="to ? undefined : 'button'"
       class="csp-sidebar-item"
       :class="{
         'csp-sidebar-item--active': isActive,
