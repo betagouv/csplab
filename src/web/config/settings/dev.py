@@ -45,6 +45,9 @@ STORAGES = {
 
 SENTRY_DNS = "example.com"
 
+# Allow logging into the admin with a plain superuser, without a TOTP device.
+ADMIN_OTP_REQUIRED = False
+
 HUEY["immediate"] = True  # noqa: F405
 HUEY["consumer"]["periodic"] = False  # noqa: F405
 AUTH_PASSWORD_VALIDATORS = []
