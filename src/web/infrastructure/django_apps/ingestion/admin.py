@@ -60,6 +60,7 @@ class ApiLogDailyAggregationAdmin(admin.ModelAdmin):
 class SourceAdmin(admin.ModelAdmin):
     list_display = (
         "source_id",
+        "slug",
         "type",
         "base_url_front",
         "base_url_back",
@@ -69,6 +70,7 @@ class SourceAdmin(admin.ModelAdmin):
     list_filter = ("type",)
     search_fields = (
         "source_id",
+        "slug",
         "base_url_front",
         "base_url_back",
         "client_id_front",

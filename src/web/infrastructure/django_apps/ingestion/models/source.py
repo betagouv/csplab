@@ -9,6 +9,7 @@ from infrastructure.django_apps.utils.models import BaseDatedModel
 
 class SourceModel(BaseDatedModel):
     source_id = models.UUIDField(unique=True, default=uuid4)
+    slug = models.SlugField(max_length=255)
     type = models.CharField(
         max_length=50, choices=[(st.value, st.value) for st in SourceType]
     )
@@ -26,6 +27,7 @@ class SourceModel(BaseDatedModel):
         return Source(
             entity_id=self.id,
             source_id=self.source_id,
+            slug=self.slug,
             type=SourceType(self.type),
             client_id_front=self.client_id_front,
             client_id_back=self.client_id_back,
@@ -38,6 +40,7 @@ class SourceModel(BaseDatedModel):
         return cls(
             id=source.entity_id,
             source_id=source.source_id,
+            slug=source.slug,
             type=source.type.value,
             client_id_front=source.client_id_front,
             client_id_back=source.client_id_back,
