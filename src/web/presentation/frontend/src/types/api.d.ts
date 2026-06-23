@@ -105,10 +105,11 @@ export interface components {
         /**
          * @description * `ENTREE` - entree
          *     * `EN_COURS` - en_cours
-         *     * `TERMINALE` - terminale
+         *     * `REFUS` - refus
+         *     * `ACCEPTE` - accepte
          * @enum {string}
          */
-        CategorieEnum: "ENTREE" | "EN_COURS" | "TERMINALE";
+        CategorieEnum: "ENTREE" | "EN_COURS" | "REFUS" | "ACCEPTE";
         EtapeRecrutement: {
             /** Format: uuid */
             etape_uuid: string;
