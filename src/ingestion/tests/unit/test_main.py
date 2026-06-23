@@ -43,18 +43,22 @@ class TestPlaintextFormatter:
 
 
 class TestCreateApp:
-    def test_create_app_initializes_sentry_when_dsn_is_set(self, monkeypatch):
+    @patch("api._sentry.sentry_sdk.init")
+    def test_create_app_initializes_sentry_when_dsn_is_set(
+        self, mock_sentry_init, monkeypatch
+    ):
         monkeypatch.setenv("TESTING", "true")
         monkeypatch.setenv("SENTRY_DSN", "https://key@o123.ingest.sentry.io/123")
 
-        with patch("api._sentry.sentry_sdk.init") as mock_sentry_init:
-            create_app()
-            mock_sentry_init.assert_called_once()
+        create_app()
 
-    def test_create_app_skips_sentry_when_no_dsn(self, monkeypatch):
+        mock_sentry_init.assert_called_once()
+
+    @patch("api._sentry.sentry_sdk.init")
+    def test_create_app_skips_sentry_when_no_dsn(self, mock_sentry_init, monkeypatch):
         monkeypatch.setenv("TESTING", "true")
         monkeypatch.delenv("SENTRY_DSN", raising=False)
 
-        with patch("api._sentry.sentry_sdk.init") as mock_sentry_init:
-            create_app()
-            mock_sentry_init.assert_not_called()
+        create_app()
+
+        mock_sentry_init.assert_not_called()

@@ -113,14 +113,14 @@ async def test_execute_re_raises_original_error_when_upsert_also_fails(
 
 
 @pytest.mark.asyncio
+@patch("application.use_cases.save_raw_offer.logger")
 async def test_execute_returns_none_when_upsert_fails_after_success(
-    use_case, mock_offers_gateway, mock_raw_offer_repository
+    mock_logger, use_case, mock_offers_gateway, mock_raw_offer_repository
 ):
     mock_offers_gateway.get_detail.return_value = GATEWAY_OFFER
     mock_raw_offer_repository.upsert.side_effect = RuntimeError("DB unavailable")
 
-    with patch("application.use_cases.save_raw_offer.logger") as mock_logger:
-        result = await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
-        mock_logger.exception.assert_called_once()
+    result = await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
+    mock_logger.exception.assert_called_once()
     assert result is None
