@@ -4,11 +4,9 @@ from pytest_httpx import HTTPXMock
 
 from application.use_cases.load_sources import LoadSourcesUseCase
 from infrastructure.sources_repository import SourcesRepository
-from tests.conftest import WEB_BASE_URL
+from tests.conftest import SOURCES_URL
 
 fake = Faker()
-
-SOURCES_URL = f"{WEB_BASE_URL}/api/v1/sources/"
 
 SOURCE_DATA = {
     "source_id": "aaaa-bbbb",
