@@ -17,6 +17,7 @@ INSTALLED_APPS.extend(  # noqa: F405
     [
         "debug_toolbar",
         "django_browser_reload",
+        "django_extensions",
     ]
 )
 
