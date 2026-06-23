@@ -15,7 +15,7 @@ function readCsrfCookie(): string {
 
 function redirectToLogin(): never {
   const next = encodeURIComponent(window.location.pathname + window.location.search)
-  window.location.href = `/utilisateur/connexion/?next=${next}`
+  window.location.href = `/utilisateur/connexion?next=${next}`
   throw new Error('Redirecting to login')
 }
 

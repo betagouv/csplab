@@ -3,7 +3,7 @@ info:
   title: CSPLab Internal API
   version: 0.0.1
 paths:
-  /recruteur/organisme/{organisme_uuid}/:
+  /recruteur/organisme/{organisme_uuid}:
     get:
       operationId: recruteur_organisme_retrieve
       summary: Detail d'un organisme
@@ -44,7 +44,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/parametres/etapes/:
+  /recruteur/organisme/{organisme_uuid}/parametres/etapes:
     get:
       operationId: recruteur_organisme_parametres_etapes_list
       summary: Liste des étapes de recrutement d'un organisme
@@ -153,7 +153,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/parametres/etapes/init/:
+  /recruteur/organisme/{organisme_uuid}/parametres/etapes/init:
     post:
       operationId: recruteur_organisme_parametres_etapes_init_create
       summary: Initialiser les étapes de recrutement par défaut d'un organisme
@@ -240,7 +240,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /utilisateur/me/:
+  /utilisateur/me:
     get:
       operationId: utilisateur_me_retrieve
       summary: Detail de l'utilisateur connecté

@@ -11,17 +11,17 @@ app_name = "recruteur"
 
 urlpatterns = [
     path(
-        "organisme/<uuid:organisme_uuid>/",
+        "organisme/<uuid:organisme_uuid>",
         OrganismeView.as_view(),
         name="organisme",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/parametres/etapes/",
+        "organisme/<uuid:organisme_uuid>/parametres/etapes",
         EtapesRecrutementOrganismeView.as_view(),
         name="organisme-parametres-etapes",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/parametres/etapes/init/",
+        "organisme/<uuid:organisme_uuid>/parametres/etapes/init",
         InitEtapesRecrutementOrganismeView.as_view(),
         name="organisme-parametres-etapes-init",
     ),
