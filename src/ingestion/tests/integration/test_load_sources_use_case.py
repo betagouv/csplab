@@ -1,6 +1,7 @@
 import pytest
 from faker import Faker
 from pytest_httpx import HTTPXMock
+from referentiel.value_objects.source_type import SourceType
 
 from application.use_cases.load_sources import LoadSourcesUseCase
 from infrastructure.sources_repository import SourcesRepository
@@ -10,6 +11,7 @@ fake = Faker()
 
 SOURCE_DATA = {
     "source_id": "aaaa-bbbb",
+    "slug": "source-slug",
     "type": "talentsoft",
     "client_id_back": "client-back-1",
     "client_id_front": "client-front-1",
@@ -33,7 +35,7 @@ async def test_execute_populates_registry(
     source = sources_repository.get_by_client_id_back("client-back-1")
     assert source is not None
     assert source.source_id == "aaaa-bbbb"
-    assert source.type == "talentsoft"
+    assert source.type == SourceType.TALENTSOFT
     assert len(sources_repository) == 1
 
 

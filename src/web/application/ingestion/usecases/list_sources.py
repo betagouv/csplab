@@ -1,6 +1,7 @@
 from typing import List
 
-from domain.ingestion.entities.source import Source
+from referentiel.entities.source import Source
+
 from domain.ingestion.repositories.source_repository_interface import ISourceRepository
 
 

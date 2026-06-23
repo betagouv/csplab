@@ -2,11 +2,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from faker import Faker
+from referentiel.entities.source import Source
+from referentiel.value_objects.source_type import SourceType
 
 from application.use_cases.load_sources import LoadSourcesUseCase
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.sources_repository import ISourcesRepository
-from domain.value_objects.source import Source
 
 fake = Faker()
 
@@ -14,7 +15,8 @@ fake = Faker()
 def _make_source(**kwargs) -> Source:
     defaults = {
         "source_id": "aaaa-bbbb",
-        "type": "talentsoft",
+        "slug": "source-slug",
+        "type": SourceType.TALENTSOFT,
         "client_id_back": "client-back-1",
         "client_id_front": "client-front-1",
         "base_url_front": fake.url(),

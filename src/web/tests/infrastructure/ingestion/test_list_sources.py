@@ -1,4 +1,5 @@
-from domain.ingestion.value_objects.source_type import SourceType
+from referentiel.value_objects.source_type import SourceType
+
 from tests.factories.ingestion.source_factory import SourceFactory
 
 

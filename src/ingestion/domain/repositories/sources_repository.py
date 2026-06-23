@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from domain.value_objects.source import Source
+from referentiel.entities.source import Source
 
 
 class ISourcesRepository(Protocol):

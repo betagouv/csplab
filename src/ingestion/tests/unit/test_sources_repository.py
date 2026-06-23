@@ -1,13 +1,15 @@
 import pytest
+from referentiel.entities.source import Source
+from referentiel.value_objects.source_type import SourceType
 
-from domain.value_objects.source import Source
 from infrastructure.sources_repository import SourcesRepository
 
 
 def make_source(client_id_back: str = "back-1", source_id: str = "uuid-1") -> Source:
     return Source(
         source_id=source_id,
-        type="talentsoft",
+        slug="source-slug",
+        type=SourceType.TALENTSOFT,
         client_id_front="front-1",
         client_id_back=client_id_back,
         base_url_front="https://front.example.com",

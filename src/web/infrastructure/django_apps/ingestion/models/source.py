@@ -1,9 +1,9 @@
 from uuid import uuid4
 
 from django.db import models
+from referentiel.entities.source import Source
+from referentiel.value_objects.source_type import SourceType
 
-from domain.ingestion.entities.source import Source
-from domain.ingestion.value_objects.source_type import SourceType
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
@@ -26,7 +26,7 @@ class SourceModel(BaseDatedModel):
 
     def to_entity(self) -> Source:
         return Source(
-            entity_id=self.id,
+            id=self.id,
             source_id=self.source_id,
             slug=self.slug,
             type=SourceType(self.type),
@@ -39,7 +39,7 @@ class SourceModel(BaseDatedModel):
     @classmethod
     def from_entity(cls, source: Source) -> "SourceModel":
         return cls(
-            id=source.entity_id,
+            id=source.id,
             source_id=source.source_id,
             slug=source.slug,
             type=source.type.value,
