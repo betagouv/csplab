@@ -220,7 +220,7 @@ class TestPutEtapesRecrutementOrganismeView:
             {
                 "etape_uuid": str(fake.uuid4()),
                 "nom": "Recrutement",
-                "categorie": "TERMINALE",
+                "categorie": "ACCEPTE",
             },
         ]
 

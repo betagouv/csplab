@@ -35,11 +35,11 @@ def make_etapes_recrutement():
             nom="Proposition",
         ),
         EtapeRecrutement.create(
-            categorie=CategorieEtapeRecrutement.EN_COURS,
+            categorie=CategorieEtapeRecrutement.REFUS,
             nom="Refus",
         ),
         EtapeRecrutement.create(
-            categorie=CategorieEtapeRecrutement.TERMINALE,
+            categorie=CategorieEtapeRecrutement.ACCEPTE,
             nom="Recrutement",
         ),
     )

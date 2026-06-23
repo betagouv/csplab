@@ -6,7 +6,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 from tests.factories.recruteur.organisme_factory import OrganismeRecruteurFactory
 
 NB_ETAPES_PAR_DEFAUT = 6
-NB_ETAPES_EN_COURS_PAR_DEFAUT = 4
+NB_ETAPES_EN_COURS_PAR_DEFAUT = 3
 
 
 def test_organisme_default_steps() -> None:
@@ -24,7 +24,8 @@ def test_organisme_default_steps() -> None:
         categories.count(CategorieEtapeRecrutement.EN_COURS)
         == NB_ETAPES_EN_COURS_PAR_DEFAUT
     )
-    assert categories.count(CategorieEtapeRecrutement.TERMINALE) == 1
+    assert categories.count(CategorieEtapeRecrutement.REFUS) == 1
+    assert categories.count(CategorieEtapeRecrutement.ACCEPTE) == 1
     first_step = EtapeRecrutement.create(
         categorie=CategorieEtapeRecrutement.ENTREE,
         nom="Réception des candidatures",
