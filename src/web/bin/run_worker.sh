@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-config.settings.base}"
+
 # CONTAINER is set by Scalingo with format "worker-1", "worker-2", etc.
 INDEX="${CONTAINER##*-}"
 
