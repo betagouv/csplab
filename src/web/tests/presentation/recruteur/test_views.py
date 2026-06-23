@@ -63,7 +63,10 @@ class TestOrganismeView:
         response = api_client.get(ORGANISME_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_authenticated_access_is_ok(self, authenticated_client):
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_authenticated_access_is_ok(
+        self, mock_recruteur_container, authenticated_client
+    ):
         mock_organisme = MagicMock()
         mock_organisme.nom = "COMMUNE DE BRIANCON"
         mock_organisme.siret = "21050023700354"
@@ -73,12 +76,9 @@ class TestOrganismeView:
 
         mock_container = MagicMock()
         mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
 
-        with patch(
-            "presentation.recruteur.views.recruteur_container",
-            return_value=mock_container,
-        ):
-            response = authenticated_client.get(ORGANISME_URL)
+        response = authenticated_client.get(ORGANISME_URL)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
@@ -86,18 +86,18 @@ class TestOrganismeView:
             "siret": "21050023700354",
         }
 
-    def test_returns_404_when_organisme_not_found(self, authenticated_client):
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_returns_404_when_organisme_not_found(
+        self, mock_recruteur_container, authenticated_client
+    ):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = ErreurRecruteur("not found")
 
         mock_container = MagicMock()
         mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
 
-        with patch(
-            "presentation.recruteur.views.recruteur_container",
-            return_value=mock_container,
-        ):
-            response = authenticated_client.get(ORGANISME_URL)
+        response = authenticated_client.get(ORGANISME_URL)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": "Not found."}
@@ -108,23 +108,26 @@ class TestEtapesRecrutementOrganismeView:
         response = api_client.get(ETAPES_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_returns_404_when_organisme_not_found(self, authenticated_client):
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_returns_404_when_organisme_not_found(
+        self, mock_recruteur_container, authenticated_client
+    ):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = ErreurRecruteur("not found")
 
         mock_container = MagicMock()
         mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
 
-        with patch(
-            "presentation.recruteur.views.recruteur_container",
-            return_value=mock_container,
-        ):
-            response = authenticated_client.get(ETAPES_URL)
+        response = authenticated_client.get(ETAPES_URL)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"organisme_uuid": "Not found."}
 
-    def test_authenticated_access_is_ok(self, authenticated_client):
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_authenticated_access_is_ok(
+        self, mock_recruteur_container, authenticated_client
+    ):
         organisme = OrganismeRecruteurFactory.create_entity()
 
         mock_usecase = MagicMock()
@@ -132,12 +135,9 @@ class TestEtapesRecrutementOrganismeView:
 
         mock_container = MagicMock()
         mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
 
-        with patch(
-            "presentation.recruteur.views.recruteur_container",
-            return_value=mock_container,
-        ):
-            response = authenticated_client.get(ETAPES_URL)
+        response = authenticated_client.get(ETAPES_URL)
 
         assert response.status_code == status.HTTP_200_OK
         steps = []
@@ -159,39 +159,42 @@ class TestInitEtapesRecrutementOrganismeView:
         response = api_client.post(INIT_ETAPES_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_returns_404_when_organisme_not_found(self, authenticated_client):
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_returns_404_when_organisme_not_found(
+        self, mock_recruteur_container, authenticated_client
+    ):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = ErreurRecruteur("not found")
 
         mock_container = MagicMock()
         mock_container.initialize_organisme_steps_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
 
-        with patch(
-            "presentation.recruteur.views.recruteur_container",
-            return_value=mock_container,
-        ):
-            response = authenticated_client.post(INIT_ETAPES_URL)
+        response = authenticated_client.post(INIT_ETAPES_URL)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"organisme_uuid": "Not found."}
 
-    def test_returns_500_on_unexpected_error(self, authenticated_client):
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_returns_500_on_unexpected_error(
+        self, mock_recruteur_container, authenticated_client
+    ):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = Exception("unexpected")
 
         mock_container = MagicMock()
         mock_container.initialize_organisme_steps_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
 
-        with patch(
-            "presentation.recruteur.views.recruteur_container",
-            return_value=mock_container,
-        ):
-            response = authenticated_client.post(INIT_ETAPES_URL)
+        response = authenticated_client.post(INIT_ETAPES_URL)
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
 
-    def test_authenticated_post_initialize_steps(self, authenticated_client):
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_authenticated_post_initialize_steps(
+        self, mock_recruteur_container, authenticated_client
+    ):
         organisme = OrganismeRecruteurFactory.create_entity()
         organisme.initialiser_etapes()
 
@@ -200,12 +203,9 @@ class TestInitEtapesRecrutementOrganismeView:
 
         mock_container = MagicMock()
         mock_container.initialize_organisme_steps_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
 
-        with patch(
-            "presentation.recruteur.views.recruteur_container",
-            return_value=mock_container,
-        ):
-            response = authenticated_client.post(INIT_ETAPES_URL)
+        response = authenticated_client.post(INIT_ETAPES_URL)
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == [

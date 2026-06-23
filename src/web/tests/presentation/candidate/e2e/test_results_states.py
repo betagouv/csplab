@@ -11,33 +11,32 @@ from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
 
 @pytest.mark.e2e
 class TestResultsEmptyAndFailedStates:
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_user_sees_no_results_state_when_matching_returns_empty(
-        self, page: Page, live_server, transactional_db
+        self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"
         )
         CVMetadataModel.from_entity(cv_metadata).save()
+        mock_execute.return_value = []
 
         results_url = reverse(
             "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute"
-        ) as mock_execute:
-            mock_execute.return_value = []
+        page.goto(f"{live_server.url}{results_url}")
 
-            page.goto(f"{live_server.url}{results_url}")
-
-            expect(
-                page.get_by_text(
-                    "nous n'avons pas trouvé d'opportunité",
-                    exact=False,
-                )
-            ).to_be_visible()
-            expect(page.get_by_test_id("cv-results")).not_to_be_visible()
+        expect(
+            page.get_by_text(
+                "nous n'avons pas trouvé d'opportunité",
+                exact=False,
+            )
+        ).to_be_visible()
+        expect(page.get_by_test_id("cv-results")).not_to_be_visible()
 
     def test_user_is_redirected_to_upload_when_cv_status_is_failed(
         self, page: Page, live_server, transactional_db
