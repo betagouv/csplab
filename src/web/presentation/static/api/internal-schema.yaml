@@ -87,6 +87,72 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+    put:
+      operationId: recruteur_organisme_parametres_etapes_update
+      summary: Modifier les étapes de recrutement d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateEtapeRecrutement'
+          application/x-www-form-urlencoded:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateEtapeRecrutement'
+          multipart/form-data:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateEtapeRecrutement'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EtapeRecrutement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organisme/{organisme_uuid}/parametres/etapes/init/:
     post:
       operationId: recruteur_organisme_parametres_etapes_init_create
@@ -235,6 +301,19 @@ components:
       - message
       - token_class
       - token_type
+    UpdateEtapeRecrutement:
+      type: object
+      properties:
+        etape_uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        categorie:
+          $ref: '#/components/schemas/CategorieEnum'
+      required:
+      - categorie
+      - nom
     Utilisateur:
       type: object
       properties:

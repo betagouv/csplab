@@ -1,6 +1,6 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -19,6 +19,7 @@ from presentation.api.serializers import GenericErrorSerializer, TokenErrorSeria
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
     OrganismeSerializer,
+    UpdateEtapeRecrutementSerializer,
 )
 
 
@@ -57,15 +58,29 @@ class OrganismeView(APIView):
             )
 
 
-@extend_schema(
-    summary="Liste des étapes de recrutement d'un organisme",
-    tags=["recruteur"],
-    responses={
-        200: EtapeRecrutementSerializer(many=True),
-        401: TokenErrorSerializer,
-        404: GenericErrorSerializer,
-        500: GenericErrorSerializer,
-    },
+@extend_schema_view(
+    get=extend_schema(
+        summary="Liste des étapes de recrutement d'un organisme",
+        tags=["recruteur"],
+        responses={
+            200: EtapeRecrutementSerializer(many=True),
+            401: TokenErrorSerializer,
+            404: GenericErrorSerializer,
+            500: GenericErrorSerializer,
+        },
+    ),
+    put=extend_schema(
+        summary="Modifier les étapes de recrutement d'un organisme",
+        tags=["recruteur"],
+        request=UpdateEtapeRecrutementSerializer(many=True),
+        responses={
+            200: EtapeRecrutementSerializer(many=True),
+            400: GenericErrorSerializer,
+            401: TokenErrorSerializer,
+            404: GenericErrorSerializer,
+            500: GenericErrorSerializer,
+        },
+    ),
 )
 class EtapesRecrutementOrganismeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -100,6 +115,23 @@ class EtapesRecrutementOrganismeView(APIView):
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    def put(self, request: Request, organisme_uuid: UUID) -> Response:
+        serializer = UpdateEtapeRecrutementSerializer(data=request.data, many=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # TODO: remplacer par le use case update_organisme_steps_usecase
+        validated_etapes: list = serializer.validated_data  # type: ignore[assignment]
+        data = [
+            {
+                "etape_uuid": str(etape.get("etape_uuid") or uuid4()),
+                "nom": etape["nom"],
+                "categorie": etape["categorie"],
+            }
+            for etape in validated_etapes
+        ]
+        out_serializer = EtapeRecrutementSerializer(data, many=True)
+        return Response(out_serializer.data)
 
 
 @extend_schema(
