@@ -3,7 +3,7 @@ info:
   title: CSPLab Internal API
   version: 0.0.1
 paths:
-  /recruteur/organisme/{organisme_uuid}/:
+  /recruteur/organisme/{organisme_uuid}:
     get:
       operationId: recruteur_organisme_retrieve
       summary: Detail d'un organisme
@@ -44,7 +44,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/parametres/etapes/:
+  /recruteur/organisme/{organisme_uuid}/parametres/etapes:
     get:
       operationId: recruteur_organisme_parametres_etapes_list
       summary: Liste des étapes de recrutement d'un organisme
@@ -153,7 +153,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/parametres/etapes/init/:
+  /recruteur/organisme/{organisme_uuid}/parametres/etapes/init:
     post:
       operationId: recruteur_organisme_parametres_etapes_init_create
       summary: Initialiser les étapes de recrutement par défaut d'un organisme
@@ -196,7 +196,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements/:
+  /recruteur/organisme/{organisme_uuid}/recrutements:
     get:
       operationId: recruteur_organisme_recrutements_retrieve
       description: 'Retourne la liste paginée des recrutements d''un organisme. Deux
@@ -240,7 +240,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban/:
+  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban:
     get:
       operationId: recruteur_organisme_recrutements_kanban_retrieve
       summary: Détail d'un recrutement — vue kanban
@@ -281,7 +281,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/liste/:
+  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/liste:
     get:
       operationId: recruteur_organisme_recrutements_liste_retrieve
       summary: Détail d'un recrutement — vue liste (paginée)

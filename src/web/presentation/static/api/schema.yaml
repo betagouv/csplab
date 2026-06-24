@@ -1222,6 +1222,42 @@ components:
       - reference
       - source_id
       - title
+    Localisation:
+      type: object
+      properties:
+        zone_geographique:
+          $ref: '#/components/schemas/ZoneGeographiqueEnum'
+        pays:
+          type: string
+          maxLength: 3
+          minLength: 3
+        region:
+          oneOf:
+          - $ref: '#/components/schemas/RegionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        departement:
+          oneOf:
+          - $ref: '#/components/schemas/DepartementEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        localisation_label:
+          type: string
+          maxLength: 500
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+      required:
+      - departement
+      - latitude
+      - localisation_label
+      - longitude
+      - pays
+      - region
+      - zone_geographique
     LocalisationInput:
       type: object
       properties:
@@ -1345,8 +1381,8 @@ components:
           type: string
           nullable: true
         localisation:
-          type: object
-          additionalProperties: {}
+          allOf:
+          - $ref: '#/components/schemas/Localisation'
           nullable: true
           readOnly: true
         criteria:
@@ -1443,7 +1479,7 @@ components:
           type: string
           maxLength: 1500
         organisation:
-          $ref: '#/components/schemas/OrganizationInput'
+          $ref: '#/components/schemas/OrganismeInput'
         url_offre:
           type: string
           format: uri
@@ -1512,14 +1548,14 @@ components:
       - url_candidature
       - url_offre
       - vacance_poste
-    OrganizationInput:
+    OrganismeInput:
       type: object
       properties:
         nom:
           type: string
         siret:
           type: string
-          maxLength: 15
+          maxLength: 14
       required:
       - nom
       - siret
