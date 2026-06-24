@@ -48,6 +48,7 @@ env.prefix = "WEB_"
 DEBUG = False
 SECRET_KEY = env.str("SECRET_KEY")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+SITE_ID = 1
 
 # SESSIONS
 # ---------------------------------------
@@ -83,6 +84,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
+    "django.contrib.sites",
+    "django.contrib.redirects",
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_spectacular",
@@ -115,6 +118,7 @@ MIDDLEWARE = [
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "django.contrib.redirects.middleware.RedirectFallbackMiddleware",
     "presentation.middleware.api_request_logger.ApiRequestLoggerMiddleware",
 ]
 
