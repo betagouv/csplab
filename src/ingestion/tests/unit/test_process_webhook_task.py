@@ -17,7 +17,7 @@ from tests.factories.domain_factories import SourceFactory, WebhookFactory
 
 WEBHOOK_ID = UUID("11111111-2222-3333-4444-555555555555")
 REFERENCE = "2024-REF-001"
-SOURCE_ID = "source-abc"
+SOURCE_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 CLIENT_ID_FRONT = "front-client-id"
 _PATCH_CONTAINER = "application.tasks.process_webhook.get_container"
 

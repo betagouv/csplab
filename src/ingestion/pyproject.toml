@@ -116,6 +116,7 @@ mypy_path = "."
 namespace_packages = true
 explicit_package_bases = true
 plugins = ["pydantic.mypy"]
+strict_equality = true
 
 [[tool.mypy.overrides]]
 module = [
