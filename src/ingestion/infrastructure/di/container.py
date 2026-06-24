@@ -6,6 +6,7 @@ from sqlalchemy import Engine
 
 from api.config import get_settings
 from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
+from application.tasks.process_webhook import save_raw_offer_webhook
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
 from application.use_cases.import_offers import ImportOffersUseCase
@@ -38,10 +39,6 @@ from infrastructure.webhook_repository import WebhookRepository
 
 
 def _dispatch_save_raw_offer_webhook(webhook_id: str) -> None:
-    from application.tasks.process_webhook import (  # noqa: PLC0415
-        save_raw_offer_webhook,
-    )
-
     save_raw_offer_webhook.delay(webhook_id)
 
 

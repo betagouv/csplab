@@ -4,7 +4,8 @@ from uuid import UUID
 
 import httpx
 
-from infrastructure.celery_app import celery_app, get_container
+from infrastructure.celery_app import celery_app
+from infrastructure.di.bootstrap import get_container
 from infrastructure.exceptions.exceptions import ExternalApiError
 
 logger = logging.getLogger(__name__)
