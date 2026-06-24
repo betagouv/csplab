@@ -7,6 +7,7 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
 from pydantic import ValidationError
+from referentiel.entities.source import Source
 
 from api.config import get_settings
 from api.talentsoft import verify_talentsoft_signature
@@ -16,7 +17,6 @@ from application.tasks.process_webhook import (
 )
 from application.use_cases.save_webhook import SaveWebhookUseCase
 from domain.repositories.sources_repository import ISourcesRepository
-from domain.value_objects.source import Source
 from domain.value_objects.webhook_event import WebhookActionType, WebhookEvent
 from infrastructure.di.container import Container
 from infrastructure.value_objects import webhook_source

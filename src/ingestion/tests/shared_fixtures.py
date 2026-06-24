@@ -8,6 +8,8 @@ from faker import Faker
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
+from referentiel.entities.source import Source
+from referentiel.value_objects.source_type import SourceType
 from sqlalchemy import text
 from sqlmodel import Session
 
@@ -15,7 +17,6 @@ from api.config import get_settings
 from api.main import create_app
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
-from domain.value_objects.source import Source
 from infrastructure.database import make_engine, run_migrations
 from infrastructure.di.container import Container
 from infrastructure.external_gateways.talentsoft_client import (
@@ -144,7 +145,8 @@ def talentsoft_client(monkeypatch) -> TestClient:
         [
             Source(
                 source_id=SOURCE_ID,
-                type="talentsoft",
+                slug="talentsoft-source",
+                type=SourceType.TALENTSOFT,
                 client_id_front=TALENTSOFT_FRONT_CLIENT_ID,
                 client_id_back=TALENTSOFT_BACK_CLIENT_ID,
                 base_url_front=fake.url(),

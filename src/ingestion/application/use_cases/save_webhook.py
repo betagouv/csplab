@@ -1,8 +1,9 @@
 from typing import Any
 
+from referentiel.entities.source import Source
+
 from domain.entities.webhook import Webhook
 from domain.repositories.webhook_repository import IWebhookRepository
-from domain.value_objects.source import Source
 from domain.value_objects.webhook_event import WebhookEvent
 from domain.value_objects.webhook_type import WebhookType
 

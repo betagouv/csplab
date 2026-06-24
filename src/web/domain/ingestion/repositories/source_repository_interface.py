@@ -1,6 +1,6 @@
 from typing import List, Protocol
 
-from domain.ingestion.entities.source import Source
+from referentiel.entities.source import Source
 
 
 class ISourceRepository(Protocol):
