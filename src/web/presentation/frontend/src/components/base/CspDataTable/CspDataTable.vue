@@ -27,6 +27,7 @@ const props = withDefaults(defineProps<{
   rowKey: (row: TRow) => string
   caption: string
   selectionMode?: 'none' | 'checkbox' | 'row'
+  activationMode?: 'none' | 'row' | 'cell'
   selectedIds?: Set<string>
   selectionLabel?: (row: TRow) => string
   size?: 'sm' | 'md' | 'lg'
@@ -36,6 +37,7 @@ const props = withDefaults(defineProps<{
   emptyLabel?: string
 }>(), {
   selectionMode: 'none',
+  activationMode: 'none',
   size: 'md',
   manual: false,
   emptyLabel: 'Aucun résultat',
@@ -44,6 +46,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   toggleRow: [id: string]
   toggleAll: [visibleIds: string[]]
+  activate: [id: string]
 }>()
 const sort = defineModel<{ id: string, desc: boolean } | null>('sort', { default: null })
 const page = defineModel<number>('page', { default: 1 })
@@ -115,6 +118,12 @@ const displayRows = computed(() => table.getRowModel().rows)
 const visibleIds = computed(() => displayRows.value.map(row => row.id))
 const hasRowSelection = computed(() => props.selectionMode === 'row')
 const hasSelectionColumn = computed(() => props.selectionMode !== 'none')
+
+const hasRowActivation = computed(
+  () => props.activationMode === 'row' && !hasRowSelection.value,
+)
+const hasCellActivation = computed(() => props.activationMode === 'cell')
+
 const colspan = computed(() => table.getVisibleLeafColumns().length + (hasSelectionColumn.value ? 1 : 0))
 
 const allVisibleSelected = computed(() => {
@@ -218,7 +227,15 @@ function formatValue(value: CspTableCellValue): string {
 function onRowClick(row: Row<TRow>): void {
   if (hasRowSelection.value) {
     emit('toggleRow', row.id)
+    return
   }
+  if (hasRowActivation.value) {
+    emit('activate', row.id)
+  }
+}
+
+function onActivate(id: string): void {
+  emit('activate', id)
 }
 </script>
 
@@ -318,7 +335,7 @@ function onRowClick(row: Row<TRow>): void {
             class="csp-table__row"
             :class="{
               'csp-table__row--selected': isRowSelected(row),
-              'csp-table__row--selectable': hasRowSelection,
+              'csp-table__row--selectable': hasRowSelection || hasRowActivation,
             }"
             :aria-selected="hasSelectionColumn ? isRowSelected(row) : undefined"
             @click="onRowClick(row)"
@@ -352,6 +369,7 @@ function onRowClick(row: Row<TRow>): void {
                 :name="`cell-${cell.column.id}`"
                 :row="row.original"
                 :value="cell.getValue()"
+                :activate="hasCellActivation ? () => onActivate(row.id) : undefined"
               >
                 {{ formatValue(cell.getValue() as CspTableCellValue) }}
               </slot>
@@ -484,7 +502,11 @@ function onRowClick(row: Row<TRow>): void {
   cursor: pointer;
 
   &:hover {
-    background: var(--background-alt-grey);
+    background: var(--background-default-grey-hover);
+  }
+
+  &:active {
+    background: var(--background-default-grey-active);
   }
 
   &:focus-visible {
@@ -497,7 +519,11 @@ function onRowClick(row: Row<TRow>): void {
   background: var(--background-contrast-blue-france);
 
   &:hover {
-    background: var(--background-contrast-blue-france);
+    background: var(--background-contrast-blue-france-hover);
+  }
+
+  &:active {
+    background: var(--background-contrast-blue-france-active);
   }
 }
 

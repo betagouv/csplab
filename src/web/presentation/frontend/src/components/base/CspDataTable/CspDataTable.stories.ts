@@ -109,10 +109,10 @@ function createStateGalleryRender(demos: StateDemo[]) {
           class="grid gap-3"
         >
           <div class="flex flex-wrap items-center justify-between gap-3">
-            <p class="m-0 text-sm font-medium text-[var(--text-title-grey)]">{{ demo.name }}</p>
+            <p class="m-0 text-sm font-medium text-(--text-title-grey)">{{ demo.name }}</p>
             <p
               v-if="demo.selectionMode !== 'none'"
-              class="m-0 text-sm text-[var(--text-mention-grey)]"
+              class="m-0 text-sm text-(--text-mention-grey)"
             >
               {{ demo.count }} sélectionnée(s)
             </p>
@@ -151,7 +151,7 @@ const meta = {
   parameters: {
     layout: 'padded',
     controls: {
-      include: ['selectionMode', 'size', 'pageSize'],
+      include: ['selectionMode', 'activationMode', 'size', 'pageSize'],
     },
     docs: {
       description: {
@@ -164,6 +164,12 @@ const meta = {
       control: { type: 'radio' },
       options: ['none', 'checkbox', 'row'] satisfies NonNullable<CspDataTableProps['selectionMode']>[],
       description: 'Mode de sélection des lignes : aucun, case à cocher uniquement, ou clic sur toute la ligne.',
+      table: { defaultValue: { summary: 'none' } },
+    },
+    activationMode: {
+      control: { type: 'radio' },
+      options: ['none', 'row', 'cell'] satisfies NonNullable<CspDataTableProps['activationMode']>[],
+      description: 'Mode d’activation (navigation / ouverture d’un drawer) : aucun, clic sur toute la ligne, ou clic sur une cible précise exposée via le helper `activate` du slot de cellule. `row` est ignoré si `selectionMode="row"`.',
       table: { defaultValue: { summary: 'none' } },
     },
     size: {
@@ -200,7 +206,7 @@ const meta = {
     },
     template: `
       <div class="flex max-w-6xl flex-col gap-3">
-        <div class="flex flex-wrap items-center gap-4 text-sm text-[var(--text-mention-grey)]">
+        <div class="flex flex-wrap items-center gap-4 text-sm text-(--text-mention-grey)">
           <span>{{ count }} sélectionnée(s)</span>
         </div>
 
@@ -225,7 +231,7 @@ const meta = {
           </template>
           <template #footer="pg">
             <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <p class="m-0 text-sm text-[var(--text-mention-grey)]">
+              <p class="m-0 text-sm text-(--text-mention-grey)">
                 Affichage de {{ pg.range.from }} à {{ pg.range.to }} sur {{ pg.total }} éléments
               </p>
               <CspPagination
@@ -267,7 +273,7 @@ export const Sizes: Story = {
           :key="s"
           class="grid gap-3"
         >
-          <p class="m-0 text-sm font-medium text-[var(--text-title-grey)]">{{ s }}</p>
+          <p class="m-0 text-sm font-medium text-(--text-title-grey)">{{ s }}</p>
           <CspDataTable
             :rows="rows"
             :columns="columns"
@@ -283,7 +289,7 @@ export const Sizes: Story = {
             </template>
             <template #footer="pg">
               <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <p class="m-0 text-sm text-[var(--text-mention-grey)]">
+                <p class="m-0 text-sm text-(--text-mention-grey)">
                   Affichage de {{ pg.range.from }} à {{ pg.range.to }} sur {{ pg.total }} éléments
                 </p>
                 <CspPagination
@@ -386,6 +392,78 @@ export const StateVariants: Story = {
     docs: {
       description: {
         story: 'Compare les trois comportements de sélection attendus : aucun, checkbox uniquement, ou sélection par clic sur toute la ligne.',
+      },
+    },
+  },
+}
+
+export const ActivationModes: Story = {
+  name: 'Modes d’activation',
+  render: () => ({
+    components: { CspDataTable, CspTag },
+    setup() {
+      const lastActivated = ref<string | null>(null)
+      const onActivate = (id: string): void => {
+        lastActivated.value = id
+      }
+      return { columns: COLUMNS, rows: DEMO_ROWS.slice(0, 5), lastActivated, onActivate }
+    },
+    template: `
+      <div class="grid max-w-6xl gap-6">
+        <p class="m-0 text-sm text-(--text-mention-grey)">
+          Dernière ligne activée : <strong>{{ lastActivated ?? '—' }}</strong>
+        </p>
+
+        <section class="grid gap-3">
+          <p class="m-0 text-sm font-medium text-(--text-title-grey)">
+            Activation par ligne (clic n’importe où sur la ligne)
+          </p>
+          <CspDataTable
+            :rows="rows"
+            :columns="columns"
+            :row-key="(row) => row.id"
+            caption="Tableau de données — activation ligne"
+            activation-mode="row"
+            @activate="onActivate"
+          >
+            <template #cell-categorie="{ value }">
+              <CspTag :label="String(value)" variant="static" size="sm" />
+            </template>
+          </CspDataTable>
+        </section>
+
+        <section class="grid gap-3">
+          <p class="m-0 text-sm font-medium text-(--text-title-grey)">
+            Activation par cellule (seul le libellé est cliquable)
+          </p>
+          <CspDataTable
+            :rows="rows"
+            :columns="columns"
+            :row-key="(row) => row.id"
+            caption="Tableau de données — activation cellule"
+            activation-mode="cell"
+            @activate="onActivate"
+          >
+            <template #cell-libelle="{ value, activate }">
+              <button
+                type="button"
+                class="cursor-pointer border-0 bg-transparent p-0 font-medium text-(--text-action-high-blue-france) underline"
+                @click.stop="activate"
+              >{{ value }}</button>
+            </template>
+            <template #cell-categorie="{ value }">
+              <CspTag :label="String(value)" variant="static" size="sm" />
+            </template>
+          </CspDataTable>
+        </section>
+      </div>
+    `,
+  }),
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: 'Active une ligne (navigation ou ouverture d’un drawer) soit au clic sur toute la ligne (`row`), soit au clic sur une cible précise rendue dans un slot de cellule via le helper `activate` (`cell`). En mode `cell`, le déclencheur reste un vrai bouton focusable au clavier.',
       },
     },
   },
