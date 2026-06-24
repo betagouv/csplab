@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 
-class IngestionPagination(BasePagination):
+class WebPagination(BasePagination):
     page_size = api_settings.PAGE_SIZE
 
     def paginate(self, page: IPage, request):

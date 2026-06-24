@@ -1,8 +1,6 @@
 from drf_spectacular.utils import extend_schema_field
-from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
-from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
@@ -13,11 +11,11 @@ from referentiel.value_objects.offer_conditions import (
     WorkingPlace,
     WorkingTime,
 )
-from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
 from presentation.api.serializers import GenericErrorSerializer
+from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
 
 
 class ValidationErrorSerializer(GenericErrorSerializer):
@@ -57,6 +55,18 @@ class ListOffersFiltersSerializer(serializers.Serializer):
     external_id_contains = serializers.CharField(default=None)
 
 
+class LocalisationInputSerializer(LocalisationSerializer):
+    def validate(self, data):
+        if data.get("pays") == "FRA" and not (
+            data.get("region") and data.get("departement")
+        ):
+            raise serializers.ValidationError(
+                "La région et le département sont obligatoires"
+                "pour une offre localisée en France."
+            )
+        return data
+
+
 class OfferDetailResponseSerializer(serializers.Serializer):
     external_id = serializers.CharField()
     reference = serializers.CharField()
@@ -85,17 +95,17 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     beginning_date = serializers.SerializerMethodField()
     archived_at = serializers.DateTimeField(allow_null=True)
 
-    @extend_schema_field(serializers.DictField(allow_null=True))
+    @extend_schema_field(LocalisationSerializer(allow_null=True))
     def get_localisation(self, obj):
         if obj.localisation is None:
             return None
         loc = obj.localisation
         return {
-            "area": str(loc.area),
-            "country": str(loc.country),
+            "zone_geographique": str(loc.area),
+            "pays": str(loc.country),
             "region": loc.region.code,
-            "department": loc.department.code,
-            "label": loc.label,
+            "departement": loc.department.code,
+            "localisation_label": loc.label,
             "latitude": loc.latitude,
             "longitude": loc.longitude,
         }
@@ -153,9 +163,8 @@ class IdentityInputSerializer(serializers.Serializer):
     versant = serializers.ChoiceField(choices=[v.value for v in Verse])
 
 
-class OrganizationInputSerializer(serializers.Serializer):
-    nom = serializers.CharField()
-    siret = serializers.CharField(max_length=15, allow_blank=True)
+class OrganismeInputSerializer(OrganismeSerializer):
+    siret = serializers.CharField(max_length=14, allow_blank=True)
 
 
 class ProfessionInputSerializer(serializers.Serializer):
@@ -168,33 +177,6 @@ class DescriptionInputSerializer(serializers.Serializer):
     profil = serializers.CharField(max_length=10000)
     employeur = serializers.CharField(max_length=3000)
     complements = serializers.CharField(max_length=5000, allow_blank=True)
-
-
-class LocalisationInputSerializer(serializers.Serializer):
-    zone_geographique = serializers.ChoiceField(
-        choices=[(c.value, c.name) for c in GeographicalArea]
-    )
-    pays = serializers.CharField(max_length=3, min_length=3)
-    region = serializers.ChoiceField(
-        choices=sorted(Region.VALID_CODES, key=lambda x: x),
-        allow_blank=True,
-    )
-    departement = serializers.ChoiceField(
-        choices=sorted(Department.VALID_CODES, key=lambda x: x), allow_blank=True
-    )
-    localisation_label = serializers.CharField(max_length=500, allow_blank=True)
-    latitude = serializers.FloatField(allow_null=True)
-    longitude = serializers.FloatField(allow_null=True)
-
-    def validate(self, data):
-        if data.get("pays") == "FRA" and not (
-            data.get("region") and data.get("departement")
-        ):
-            raise serializers.ValidationError(
-                "La région et le département sont obligatoires"
-                "pour une offre localisée en France."
-            )
-        return data
 
 
 class LanguageInputSerializer(serializers.Serializer):
@@ -268,7 +250,7 @@ class OffersInputSerializer(serializers.Serializer):
     # general infos
     titre = serializers.CharField(max_length=150)
     titre_long = serializers.CharField(max_length=1500)
-    organisation = OrganizationInputSerializer()
+    organisation = OrganismeInputSerializer()
     url_offre = serializers.URLField(allow_null=True)
     url_candidature = serializers.URLField(allow_null=True)
 

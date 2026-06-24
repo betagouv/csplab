@@ -346,10 +346,10 @@ class TestRecrutementKanbanView:
     def test_localisation_structure(self, authenticated_client):
         data = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()
         localisation = data["localisation"]
-        assert "area" in localisation
-        assert "country" in localisation
+        assert "zone_geographique" in localisation
+        assert "pays" in localisation
         assert "region" in localisation
-        assert "department" in localisation
+        assert "departement" in localisation
 
     def test_organisme_recruteur_structure(self, authenticated_client):
         data = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()

@@ -1,6 +1,7 @@
 from uuid import UUID, uuid4
 
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
+from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -16,16 +17,17 @@ from application.recruteur.usecases.initialize_organisme_steps import (
 from domain.recruteur.errors.erreur_recrutement import ErreurRecruteur
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.recruteur.mappers import (
+    RecrutementKanbanMapper,
+    RecrutementListeMapper,
+)
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     EtapeRecrutementSerializer,
     OrganismeSerializer,
-    RecrutementActifPageSerializer,
     RecrutementActifSerializer,
     RecrutementArchiveSerializer,
     RecrutementDetailKanbanSerializer,
-    RecrutementDetailListePageSerializer,
-    RecrutementListeFiltersSerializer,
     RecrutementsFiltersSerializer,
     UpdateEtapeRecrutementSerializer,
 )
@@ -319,7 +321,15 @@ class InitEtapesRecrutementOrganismeView(APIView):
         ),
         tags=["recruteur"],
         responses={
-            200: RecrutementActifPageSerializer,
+            200: inline_serializer(
+                name="PaginatedRecrutementsResponse",
+                fields={
+                    "count": drf_serializers.IntegerField(),
+                    "next": drf_serializers.CharField(allow_null=True),
+                    "previous": drf_serializers.CharField(allow_null=True),
+                    "results": RecrutementActifSerializer(many=True),
+                },
+            ),
             400: GenericErrorSerializer,
             401: TokenErrorSerializer,
             500: GenericErrorSerializer,
@@ -384,11 +394,11 @@ _STATIC_RECRUTEMENT_DETAIL = {
     "intitule": "Chargé de mission numérique",
     "date_publication": "2025-06-22T10:00:00Z",
     "localisation": {
-        "area": "EU",
-        "country": "FRA",
+        "zone_geographique": "EU",
+        "pays": "FRA",
         "region": "11",
-        "department": "75",
-        "label": "Paris 8e arrondissement",
+        "departement": "75",
+        "localisation_label": "Paris 8e arrondissement",
         "latitude": 48.8748,
         "longitude": 2.3070,
     },
@@ -540,23 +550,6 @@ _STATIC_RECRUTEMENTS_DETAIL_BY_ID: dict = {
 }
 
 
-def _flatten_candidatures(detail: dict) -> list[dict]:
-    result = []
-    for etape in detail["etapes"]:
-        for candidature in etape["candidatures"]:
-            result.append(
-                {
-                    **candidature,
-                    "etape": {
-                        "etape_uuid": etape["etape_uuid"],
-                        "nom": etape["nom"],
-                        "categorie": etape["categorie"],
-                    },
-                }
-            )
-    return result
-
-
 @extend_schema(
     summary="Détail d'un recrutement — vue kanban",
     tags=["recruteur"],
@@ -573,9 +566,10 @@ class RecrutementKanbanView(APIView):
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
         # TODO: remplacer par get_recrutement_detail_usecase
-        detail = _STATIC_RECRUTEMENTS_DETAIL_BY_ID.get(str(recrutement_uuid))
-        if detail is None:
+        raw = _STATIC_RECRUTEMENTS_DETAIL_BY_ID.get(str(recrutement_uuid))
+        if raw is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        detail = RecrutementKanbanMapper().from_domain(raw)
         serializer = RecrutementDetailKanbanSerializer(detail)
         return Response(serializer.data)
 
@@ -584,7 +578,15 @@ class RecrutementKanbanView(APIView):
     summary="Détail d'un recrutement — vue liste (paginée)",
     tags=["recruteur"],
     responses={
-        200: RecrutementDetailListePageSerializer,
+        200: inline_serializer(
+            name="PaginatedCandidatureListeResponse",
+            fields={
+                "count": drf_serializers.IntegerField(),
+                "next": drf_serializers.CharField(allow_null=True),
+                "previous": drf_serializers.CharField(allow_null=True),
+                "results": CandidatureListeSerializer(many=True),
+            },
+        ),
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
         404: GenericErrorSerializer,
@@ -596,20 +598,20 @@ class RecrutementListeView(APIView):
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
-        liste_filters = RecrutementListeFiltersSerializer(data=request.query_params)
-        if not liste_filters.is_valid():
-            return Response(liste_filters.errors, status=status.HTTP_400_BAD_REQUEST)
+        filters = RecrutementsFiltersSerializer(data=request.query_params)
+        if not filters.is_valid():
+            return Response(filters.errors, status=status.HTTP_400_BAD_REQUEST)
 
         # TODO: remplacer par get_recrutement_detail_usecase
         detail = _STATIC_RECRUTEMENTS_DETAIL_BY_ID.get(str(recrutement_uuid))
         if detail is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        validated: dict = liste_filters.validated_data  # type: ignore[assignment]
+        validated: dict = filters.validated_data  # type: ignore[assignment]
         page = validated["page"]
         size = validated["size"]
 
-        all_candidatures = _flatten_candidatures(detail)
+        all_candidatures = RecrutementListeMapper().from_domain(detail) or []
         count = len(all_candidatures)
         offset = (page - 1) * size
         page_data = all_candidatures[offset : offset + size]

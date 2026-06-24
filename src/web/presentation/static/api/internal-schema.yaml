@@ -220,7 +220,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RecrutementActifPage'
+                $ref: '#/components/schemas/PaginatedRecrutementsResponse'
           description: ''
         '400':
           content:
@@ -308,7 +308,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RecrutementDetailListePage'
+                $ref: '#/components/schemas/PaginatedCandidatureListeResponse'
           description: ''
         '400':
           content:
@@ -364,22 +364,9 @@ paths:
           description: ''
 components:
   schemas:
-    AreaEnum:
+    BlankEnum:
       enum:
-      - AF
-      - EU
-      - AS
-      - AM
-      - OC
-      - AN
-      type: string
-      description: |-
-        * `AF` - AFRIQUE
-        * `EU` - EUROPE
-        * `AS` - ASIE
-        * `AM` - AMERIQUE
-        * `OC` - OCEANIE
-        * `AN` - ANTARTIQUE
+      - ''
     Candidat:
       type: object
       properties:
@@ -421,7 +408,7 @@ components:
         candidat:
           $ref: '#/components/schemas/Candidat'
         etape:
-          $ref: '#/components/schemas/EtapeRecrutementDetail'
+          $ref: '#/components/schemas/EtapeRecrutement'
       required:
       - candidat
       - date_soumission
@@ -469,21 +456,225 @@ components:
         * `B` - B
         * `C` - C
         * `HORS_CATEGORIE` - HORS_CATEGORIE
+    DepartementEnum:
+      enum:
+      - '01'
+      - '02'
+      - '03'
+      - '04'
+      - '05'
+      - '06'
+      - '07'
+      - 08
+      - 09
+      - '10'
+      - '11'
+      - '12'
+      - '13'
+      - '14'
+      - '15'
+      - '16'
+      - '17'
+      - '18'
+      - '19'
+      - '21'
+      - '22'
+      - '23'
+      - '24'
+      - '25'
+      - '26'
+      - '27'
+      - '28'
+      - '29'
+      - 2A
+      - 2B
+      - '30'
+      - '31'
+      - '32'
+      - '33'
+      - '34'
+      - '35'
+      - '36'
+      - '37'
+      - '38'
+      - '39'
+      - '40'
+      - '41'
+      - '42'
+      - '43'
+      - '44'
+      - '45'
+      - '46'
+      - '47'
+      - '48'
+      - '49'
+      - '50'
+      - '51'
+      - '52'
+      - '53'
+      - '54'
+      - '55'
+      - '56'
+      - '57'
+      - '58'
+      - '59'
+      - '60'
+      - '61'
+      - '62'
+      - '63'
+      - '64'
+      - '65'
+      - '66'
+      - '67'
+      - '68'
+      - '69'
+      - '70'
+      - '71'
+      - '72'
+      - '73'
+      - '74'
+      - '75'
+      - '76'
+      - '77'
+      - '78'
+      - '79'
+      - '80'
+      - '81'
+      - '82'
+      - '83'
+      - '84'
+      - '85'
+      - '86'
+      - '87'
+      - '88'
+      - '89'
+      - '90'
+      - '91'
+      - '92'
+      - '93'
+      - '94'
+      - '95'
+      - '971'
+      - '972'
+      - '973'
+      - '974'
+      - '975'
+      - '976'
+      - '986'
+      - '987'
+      - '988'
+      - SPM
+      - WLF
+      type: string
+      description: |-
+        * `01` - 01
+        * `02` - 02
+        * `03` - 03
+        * `04` - 04
+        * `05` - 05
+        * `06` - 06
+        * `07` - 07
+        * `08` - 08
+        * `09` - 09
+        * `10` - 10
+        * `11` - 11
+        * `12` - 12
+        * `13` - 13
+        * `14` - 14
+        * `15` - 15
+        * `16` - 16
+        * `17` - 17
+        * `18` - 18
+        * `19` - 19
+        * `21` - 21
+        * `22` - 22
+        * `23` - 23
+        * `24` - 24
+        * `25` - 25
+        * `26` - 26
+        * `27` - 27
+        * `28` - 28
+        * `29` - 29
+        * `2A` - 2A
+        * `2B` - 2B
+        * `30` - 30
+        * `31` - 31
+        * `32` - 32
+        * `33` - 33
+        * `34` - 34
+        * `35` - 35
+        * `36` - 36
+        * `37` - 37
+        * `38` - 38
+        * `39` - 39
+        * `40` - 40
+        * `41` - 41
+        * `42` - 42
+        * `43` - 43
+        * `44` - 44
+        * `45` - 45
+        * `46` - 46
+        * `47` - 47
+        * `48` - 48
+        * `49` - 49
+        * `50` - 50
+        * `51` - 51
+        * `52` - 52
+        * `53` - 53
+        * `54` - 54
+        * `55` - 55
+        * `56` - 56
+        * `57` - 57
+        * `58` - 58
+        * `59` - 59
+        * `60` - 60
+        * `61` - 61
+        * `62` - 62
+        * `63` - 63
+        * `64` - 64
+        * `65` - 65
+        * `66` - 66
+        * `67` - 67
+        * `68` - 68
+        * `69` - 69
+        * `70` - 70
+        * `71` - 71
+        * `72` - 72
+        * `73` - 73
+        * `74` - 74
+        * `75` - 75
+        * `76` - 76
+        * `77` - 77
+        * `78` - 78
+        * `79` - 79
+        * `80` - 80
+        * `81` - 81
+        * `82` - 82
+        * `83` - 83
+        * `84` - 84
+        * `85` - 85
+        * `86` - 86
+        * `87` - 87
+        * `88` - 88
+        * `89` - 89
+        * `90` - 90
+        * `91` - 91
+        * `92` - 92
+        * `93` - 93
+        * `94` - 94
+        * `95` - 95
+        * `971` - 971
+        * `972` - 972
+        * `973` - 973
+        * `974` - 974
+        * `975` - 975
+        * `976` - 976
+        * `986` - 986
+        * `987` - 987
+        * `988` - 988
+        * `SPM` - SPM
+        * `WLF` - WLF
     EtapeRecrutement:
-      type: object
-      properties:
-        etape_uuid:
-          type: string
-          format: uuid
-        nom:
-          type: string
-        categorie:
-          $ref: '#/components/schemas/CategorieEnum'
-      required:
-      - categorie
-      - etape_uuid
-      - nom
-    EtapeRecrutementDetail:
       type: object
       properties:
         etape_uuid:
@@ -540,20 +731,23 @@ components:
     Localisation:
       type: object
       properties:
-        area:
-          $ref: '#/components/schemas/AreaEnum'
-        country:
+        zone_geographique:
+          $ref: '#/components/schemas/ZoneGeographiqueEnum'
+        pays:
           type: string
-          description: 'Code ISO Alpha-3 du pays (ex: FRA)'
+          maxLength: 3
+          minLength: 3
         region:
+          oneOf:
+          - $ref: '#/components/schemas/RegionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        departement:
+          oneOf:
+          - $ref: '#/components/schemas/DepartementEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        localisation_label:
           type: string
-          description: 'Code INSEE de la région (ex: 11)'
-        department:
-          type: string
-          description: 'Code INSEE du département (ex: 75)'
-        label:
-          type: string
-          nullable: true
+          maxLength: 500
         latitude:
           type: number
           format: double
@@ -563,10 +757,13 @@ components:
           format: double
           nullable: true
       required:
-      - area
-      - country
-      - department
+      - departement
+      - latitude
+      - localisation_label
+      - longitude
+      - pays
       - region
+      - zone_geographique
     NullEnum:
       enum:
       - null
@@ -577,19 +774,50 @@ components:
           type: string
         siret:
           type: string
+          maxLength: 14
       required:
       - nom
       - siret
-    OrganismeRecruteur:
+    PaginatedCandidatureListeResponse:
       type: object
       properties:
-        nom:
+        count:
+          type: integer
+        next:
           type: string
-        siret:
+          nullable: true
+        previous:
           type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CandidatureListe'
       required:
-      - nom
-      - siret
+      - count
+      - next
+      - previous
+      - results
+    PaginatedRecrutementsResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+        previous:
+          type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecrutementActif'
+      required:
+      - count
+      - next
+      - previous
+      - results
     RecrutementActif:
       type: object
       properties:
@@ -634,28 +862,6 @@ components:
       - reference_csp
       - responsables
       - type_contrat
-    RecrutementActifPage:
-      type: object
-      properties:
-        count:
-          type: integer
-        next:
-          type: string
-          format: uri
-          nullable: true
-        previous:
-          type: string
-          format: uri
-          nullable: true
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/RecrutementActif'
-      required:
-      - count
-      - next
-      - previous
-      - results
     RecrutementDetailKanban:
       type: object
       properties:
@@ -670,7 +876,7 @@ components:
         localisation:
           $ref: '#/components/schemas/Localisation'
         organisme_recruteur:
-          $ref: '#/components/schemas/OrganismeRecruteur'
+          $ref: '#/components/schemas/Organisme'
         categorie_offre:
           $ref: '#/components/schemas/CategorieOffreEnum'
         etapes:
@@ -685,28 +891,50 @@ components:
       - localisation
       - offer_id
       - organisme_recruteur
-    RecrutementDetailListePage:
-      type: object
-      properties:
-        count:
-          type: integer
-        next:
-          type: string
-          format: uri
-          nullable: true
-        previous:
-          type: string
-          format: uri
-          nullable: true
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/CandidatureListe'
-      required:
-      - count
-      - next
-      - previous
-      - results
+    RegionEnum:
+      enum:
+      - '01'
+      - '02'
+      - '03'
+      - '04'
+      - '06'
+      - '11'
+      - '24'
+      - '27'
+      - '28'
+      - '32'
+      - '44'
+      - '52'
+      - '53'
+      - '75'
+      - '76'
+      - '84'
+      - '93'
+      - '94'
+      - DOM
+      - TOM
+      type: string
+      description: |-
+        * `01` - 01
+        * `02` - 02
+        * `03` - 03
+        * `04` - 04
+        * `06` - 06
+        * `11` - 11
+        * `24` - 24
+        * `27` - 27
+        * `28` - 28
+        * `32` - 32
+        * `44` - 44
+        * `52` - 52
+        * `53` - 53
+        * `75` - 75
+        * `76` - 76
+        * `84` - 84
+        * `93` - 93
+        * `94` - 94
+        * `DOM` - DOM
+        * `TOM` - TOM
     Responsable:
       type: object
       properties:
@@ -779,6 +1007,22 @@ components:
       - email
       - nom
       - prenom
+    ZoneGeographiqueEnum:
+      enum:
+      - AF
+      - EU
+      - AS
+      - AM
+      - OC
+      - AN
+      type: string
+      description: |-
+        * `AF` - AFRIQUE
+        * `EU` - EUROPE
+        * `AS` - ASIE
+        * `AM` - AMERIQUE
+        * `OC` - OCEANIE
+        * `AN` - ANTARTIQUE
   securitySchemes:
     cookieAuth:
       type: apiKey
