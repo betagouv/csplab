@@ -12,6 +12,7 @@ from domain.identite.errors.organisme_errors import SiretInvalide
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.django_apps.recruteur.models import OrganismeModel
+from infrastructure.mappers.organisme_identite_mapper import OrganismeIdentiteMapper
 
 
 class CreateOrganismeAdminForm(forms.ModelForm):
@@ -91,4 +92,6 @@ class OrganismeAdmin(admin.ModelAdmin):
                 "department": localisation.department.code,
             }
         else:
+            # enforce the entity invariants (mapper builds the aggregate) before saving
+            OrganismeIdentiteMapper().to_domain(obj)
             super().save_model(request, obj, form, change)

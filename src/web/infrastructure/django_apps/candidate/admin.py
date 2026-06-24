@@ -42,10 +42,8 @@ class CandidatureAdmin(admin.ModelAdmin):
             )
             container = create_candidate_container()
             candidature = container.submit_application_usecase().execute(command)
-            saved = CandidatureModel.from_entity(candidature)
-            # Sync obj avec les valeurs du usecase
-            obj.id = saved.id
-            obj.statut = saved.statut
-            # Forcer UPDATE (pas INSERT) car le usecase a déjà créé l'enregistrement
-            obj._state.adding = False
+            #  the use case already persisted; sync the obj displayed by the admin
+            obj.id = candidature.entity_id
+            obj.statut = candidature.statut.value
+            return
         super().save_model(request, obj, form, change)
