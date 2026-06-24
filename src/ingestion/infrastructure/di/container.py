@@ -8,6 +8,7 @@ from api.config import get_settings
 from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
+from application.use_cases.import_offers import ImportOffersUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
 from application.use_cases.publish_offer import PublishOfferUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
@@ -34,6 +35,14 @@ from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.sources_repository import SourcesRepository
 from infrastructure.talentsoft_client_repository import TalentsoftClientRepository
 from infrastructure.webhook_repository import WebhookRepository
+
+
+def _dispatch_save_raw_offer_webhook(webhook_id: str) -> None:
+    from application.tasks.process_webhook import (  # noqa: PLC0415
+        save_raw_offer_webhook,
+    )
+
+    save_raw_offer_webhook.delay(webhook_id)
 
 
 def _build_credentials_store(
@@ -172,6 +181,16 @@ class Container(containers.DeclarativeContainer):
         clean_raw_offer=clean_raw_offer_use_case,
         raw_offer_repository=raw_offer_repository,
         publish_offer=publish_offer_use_case,
+    )
+
+    dispatch_save_raw_offer_webhook = providers.Object(_dispatch_save_raw_offer_webhook)
+
+    import_offers_use_case: providers.Provider[ImportOffersUseCase] = providers.Factory(
+        ImportOffersUseCase,
+        sources_repository=sources_repository,
+        talentsoft_client_repository=talentsoft_client_repository,
+        webhook_repository=webhook_repository,
+        dispatch_process_webhook=dispatch_save_raw_offer_webhook,
     )
 
 

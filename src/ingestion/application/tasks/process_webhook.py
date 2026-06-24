@@ -58,7 +58,7 @@ def save_raw_offer_webhook(self, webhook_id: str) -> None:
         webhook = await container.webhook_repository().get_by_id(UUID(webhook_id))
 
         sources_repository = container.sources_repository()
-        source = sources_repository.get_by_source_id(webhook.source_id)
+        source = sources_repository.get_by_source_id(UUID(webhook.source_id))
         if source is None:
             raise ValueError(
                 f"Source {webhook.source_id} not found, "

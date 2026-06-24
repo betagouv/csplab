@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from http import HTTPStatus
 from time import time
-from typing import Any, Dict, Mapping, Optional, cast
+from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 
 from pydantic import ValidationError
 
@@ -13,11 +13,14 @@ from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
     TalentsoftDetailOffer,
+    TalentsoftOffer,
+    TalentsoftOffersResponse,
     TalentsoftTokenResponse,
 )
 from infrastructure.gateways.async_http_client import AsyncHttpClient
 
 TOKEN_ENDPOINT = "/api/token"  # noqa
+OFFERS_ENDPOINT = "/api/v2/offersummaries"
 DETAIL_OFFER_ENDPOINT = "/api/v2/offers/getoffer"
 
 
@@ -127,7 +130,6 @@ class BaseTalentsoftClient(AsyncHttpClient):
                         status_code=HTTPStatus.NOT_FOUND,
                         api_name=self.api_name,
                     )
-
                 response.raise_for_status()
                 return response
 
@@ -163,6 +165,27 @@ class TalentsoftFrontClient(BaseTalentsoftClient, IOffersGateway):
             timeout=kwargs.get("timeout", 30),
             max_retries=kwargs.get("max_retries", 2),
         )
+
+    async def get_all(
+        self, count: int = 1000, start: int = 1
+    ) -> Tuple[List[TalentsoftOffer], bool]:
+        url = f"{self.base_url}{OFFERS_ENDPOINT}"
+        params = {"count": count, "start": start}
+
+        response = await self._make_authenticated_request(url, params)
+
+        try:
+            typed_response = TalentsoftOffersResponse.model_validate(response.json())
+            offers = typed_response.data
+            pagination = typed_response.pagination
+        except ValidationError as e:
+            raise ExternalApiError(
+                f"Invalid response structure: {e}", api_name=self.api_name
+            ) from e
+
+        has_more = pagination.hasMore
+
+        return offers, has_more
 
     async def get_detail(self, reference: str) -> RawOffer:
         if not reference:
