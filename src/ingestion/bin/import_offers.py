@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-"""Import all offers from Talentsoft for a given source as CREE webhooks."""
-
 import argparse
 import asyncio
 import logging
