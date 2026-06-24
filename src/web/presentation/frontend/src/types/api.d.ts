@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/recruteur/organisme/{organisme_uuid}": {
+    "/recruteur/organisme/{organisme_uuid}/": {
         parameters: {
             query?: never;
             header?: never;
@@ -21,7 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/parametres/etapes": {
+    "/recruteur/organisme/{organisme_uuid}/parametres/etapes/": {
         parameters: {
             query?: never;
             header?: never;
@@ -39,7 +39,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/parametres/etapes/init": {
+    "/recruteur/organisme/{organisme_uuid}/parametres/etapes/init/": {
         parameters: {
             query?: never;
             header?: never;
@@ -76,6 +76,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Détail d'un recrutement — vue kanban */
+        get: operations["recruteur_organisme_recrutements_kanban_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/liste/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Détail d'un recrutement — vue liste (paginée) */
+        get: operations["recruteur_organisme_recrutements_liste_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/utilisateur/me": {
         parameters: {
             query?: never;
@@ -97,6 +131,37 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * @description * `AF` - AFRIQUE
+         *     * `EU` - EUROPE
+         *     * `AS` - ASIE
+         *     * `AM` - AMERIQUE
+         *     * `OC` - OCEANIE
+         *     * `AN` - ANTARTIQUE
+         * @enum {string}
+         */
+        AreaEnum: "AF" | "EU" | "AS" | "AM" | "OC" | "AN";
+        Candidat: {
+            /** Format: uuid */
+            uuid: string;
+            nom: string;
+            prenom: string;
+        };
+        Candidature: {
+            /** Format: uuid */
+            uuid: string;
+            /** Format: date-time */
+            date_soumission: string;
+            candidat: components["schemas"]["Candidat"];
+        };
+        CandidatureListe: {
+            /** Format: uuid */
+            uuid: string;
+            /** Format: date-time */
+            date_soumission: string;
+            candidat: components["schemas"]["Candidat"];
+            etape: components["schemas"]["EtapeRecrutementDetail"];
+        };
         CandidaturesActives: {
             total: number | null;
             a_traiter: number | null;
@@ -110,11 +175,33 @@ export interface components {
          * @enum {string}
          */
         CategorieEnum: "ENTREE" | "EN_COURS" | "REFUS" | "ACCEPTE";
+        /**
+         * @description * `APLUS` - APLUS
+         *     * `A` - A
+         *     * `B` - B
+         *     * `C` - C
+         *     * `HORS_CATEGORIE` - HORS_CATEGORIE
+         * @enum {string}
+         */
+        CategorieOffreEnum: "APLUS" | "A" | "B" | "C" | "HORS_CATEGORIE";
         EtapeRecrutement: {
             /** Format: uuid */
             etape_uuid: string;
             nom: string;
             categorie: components["schemas"]["CategorieEnum"];
+        };
+        EtapeRecrutementDetail: {
+            /** Format: uuid */
+            etape_uuid: string;
+            nom: string;
+            categorie: components["schemas"]["CategorieEnum"];
+        };
+        EtapeRecrutementDetailedCandidatures: {
+            /** Format: uuid */
+            etape_uuid: string;
+            nom: string;
+            categorie: components["schemas"]["CategorieEnum"];
+            candidatures: components["schemas"]["Candidature"][];
         };
         GenericError: {
             error: string;
@@ -128,9 +215,27 @@ export interface components {
          * @enum {string}
          */
         KindContratEnum: "CDD" | "CDI" | "PERMANENT" | "VACATION" | "STAGE";
+        Localisation: {
+            area: components["schemas"]["AreaEnum"];
+            /** @description Code ISO Alpha-3 du pays (ex: FRA) */
+            country: string;
+            /** @description Code INSEE de la région (ex: 11) */
+            region: string;
+            /** @description Code INSEE du département (ex: 75) */
+            department: string;
+            label?: string | null;
+            /** Format: double */
+            latitude?: number | null;
+            /** Format: double */
+            longitude?: number | null;
+        };
         /** @enum {unknown} */
         NullEnum: null;
         Organisme: {
+            nom: string;
+            siret: string;
+        };
+        OrganismeRecruteur: {
             nom: string;
             siret: string;
         };
@@ -155,6 +260,25 @@ export interface components {
             /** Format: uri */
             previous: string | null;
             results: components["schemas"]["RecrutementActif"][];
+        };
+        RecrutementDetailKanban: {
+            /** Format: uuid */
+            offer_id: string;
+            intitule: string;
+            /** Format: date-time */
+            date_publication: string;
+            localisation: components["schemas"]["Localisation"];
+            organisme_recruteur: components["schemas"]["OrganismeRecruteur"];
+            categorie_offre: components["schemas"]["CategorieOffreEnum"];
+            etapes: components["schemas"]["EtapeRecrutementDetailedCandidatures"][];
+        };
+        RecrutementDetailListePage: {
+            count: number;
+            /** Format: uri */
+            next: string | null;
+            /** Format: uri */
+            previous: string | null;
+            results: components["schemas"]["CandidatureListe"][];
         };
         Responsable: {
             nom: string;
@@ -427,6 +551,90 @@ export interface operations {
                 };
             };
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_recrutements_kanban_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecrutementDetailKanban"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_recrutements_liste_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecrutementDetailListePage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

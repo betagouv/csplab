@@ -3,7 +3,7 @@ info:
   title: CSPLab Internal API
   version: 0.0.1
 paths:
-  /recruteur/organisme/{organisme_uuid}:
+  /recruteur/organisme/{organisme_uuid}/:
     get:
       operationId: recruteur_organisme_retrieve
       summary: Detail d'un organisme
@@ -44,7 +44,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/parametres/etapes:
+  /recruteur/organisme/{organisme_uuid}/parametres/etapes/:
     get:
       operationId: recruteur_organisme_parametres_etapes_list
       summary: Liste des étapes de recrutement d'un organisme
@@ -153,7 +153,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/parametres/etapes/init:
+  /recruteur/organisme/{organisme_uuid}/parametres/etapes/init/:
     post:
       operationId: recruteur_organisme_parametres_etapes_init_create
       summary: Initialiser les étapes de recrutement par défaut d'un organisme
@@ -240,6 +240,94 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban/:
+    get:
+      operationId: recruteur_organisme_recrutements_kanban_retrieve
+      summary: Détail d'un recrutement — vue kanban
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: recrutement_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecrutementDetailKanban'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/liste/:
+    get:
+      operationId: recruteur_organisme_recrutements_liste_retrieve
+      summary: Détail d'un recrutement — vue liste (paginée)
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: recrutement_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecrutementDetailListePage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /utilisateur/me:
     get:
       operationId: utilisateur_me_retrieve
@@ -276,6 +364,69 @@ paths:
           description: ''
 components:
   schemas:
+    AreaEnum:
+      enum:
+      - AF
+      - EU
+      - AS
+      - AM
+      - OC
+      - AN
+      type: string
+      description: |-
+        * `AF` - AFRIQUE
+        * `EU` - EUROPE
+        * `AS` - ASIE
+        * `AM` - AMERIQUE
+        * `OC` - OCEANIE
+        * `AN` - ANTARTIQUE
+    Candidat:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        prenom:
+          type: string
+      required:
+      - nom
+      - prenom
+      - uuid
+    Candidature:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        date_soumission:
+          type: string
+          format: date-time
+        candidat:
+          $ref: '#/components/schemas/Candidat'
+      required:
+      - candidat
+      - date_soumission
+      - uuid
+    CandidatureListe:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        date_soumission:
+          type: string
+          format: date-time
+        candidat:
+          $ref: '#/components/schemas/Candidat'
+        etape:
+          $ref: '#/components/schemas/EtapeRecrutementDetail'
+      required:
+      - candidat
+      - date_soumission
+      - etape
+      - uuid
     CandidaturesActives:
       type: object
       properties:
@@ -304,6 +455,20 @@ components:
         * `EN_COURS` - en_cours
         * `REFUS` - refus
         * `ACCEPTE` - accepte
+    CategorieOffreEnum:
+      enum:
+      - APLUS
+      - A
+      - B
+      - C
+      - HORS_CATEGORIE
+      type: string
+      description: |-
+        * `APLUS` - APLUS
+        * `A` - A
+        * `B` - B
+        * `C` - C
+        * `HORS_CATEGORIE` - HORS_CATEGORIE
     EtapeRecrutement:
       type: object
       properties:
@@ -315,6 +480,39 @@ components:
         categorie:
           $ref: '#/components/schemas/CategorieEnum'
       required:
+      - categorie
+      - etape_uuid
+      - nom
+    EtapeRecrutementDetail:
+      type: object
+      properties:
+        etape_uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        categorie:
+          $ref: '#/components/schemas/CategorieEnum'
+      required:
+      - categorie
+      - etape_uuid
+      - nom
+    EtapeRecrutementDetailedCandidatures:
+      type: object
+      properties:
+        etape_uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        categorie:
+          $ref: '#/components/schemas/CategorieEnum'
+        candidatures:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidature'
+      required:
+      - candidatures
       - categorie
       - etape_uuid
       - nom
@@ -339,10 +537,50 @@ components:
         * `PERMANENT` - Permanent
         * `VACATION` - Vacation
         * `STAGE` - Stage
+    Localisation:
+      type: object
+      properties:
+        area:
+          $ref: '#/components/schemas/AreaEnum'
+        country:
+          type: string
+          description: 'Code ISO Alpha-3 du pays (ex: FRA)'
+        region:
+          type: string
+          description: 'Code INSEE de la région (ex: 11)'
+        department:
+          type: string
+          description: 'Code INSEE du département (ex: 75)'
+        label:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+      required:
+      - area
+      - country
+      - department
+      - region
     NullEnum:
       enum:
       - null
     Organisme:
+      type: object
+      properties:
+        nom:
+          type: string
+        siret:
+          type: string
+      required:
+      - nom
+      - siret
+    OrganismeRecruteur:
       type: object
       properties:
         nom:
@@ -413,6 +651,57 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RecrutementActif'
+      required:
+      - count
+      - next
+      - previous
+      - results
+    RecrutementDetailKanban:
+      type: object
+      properties:
+        offer_id:
+          type: string
+          format: uuid
+        intitule:
+          type: string
+        date_publication:
+          type: string
+          format: date-time
+        localisation:
+          $ref: '#/components/schemas/Localisation'
+        organisme_recruteur:
+          $ref: '#/components/schemas/OrganismeRecruteur'
+        categorie_offre:
+          $ref: '#/components/schemas/CategorieOffreEnum'
+        etapes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EtapeRecrutementDetailedCandidatures'
+      required:
+      - categorie_offre
+      - date_publication
+      - etapes
+      - intitule
+      - localisation
+      - offer_id
+      - organisme_recruteur
+    RecrutementDetailListePage:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CandidatureListe'
       required:
       - count
       - next
