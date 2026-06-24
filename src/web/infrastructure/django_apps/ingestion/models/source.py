@@ -58,4 +58,4 @@ class SourceModel(BaseDatedModel):
         )
 
     def __str__(self) -> str:
-        return f"{self.type} - {self.base_url_front}"
+        return f"{self.type} - {self.slug}"
