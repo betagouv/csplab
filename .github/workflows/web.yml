@@ -169,6 +169,15 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - name: Create Sentry release
+        uses: getsentry/action-release@v3
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: betagouv
+          SENTRY_PROJECT: csplab-tycho
+          SENTRY_URL: https://sentry.incubateur.net
+        with:
+          environment: production
       - uses: ./.github/actions/scalingo-deploy
         with:
           branch: main-web
