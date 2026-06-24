@@ -14,10 +14,10 @@ class SourceModel(BaseDatedModel):
     type = models.CharField(
         max_length=50, choices=[(st.value, st.value) for st in SourceType]
     )
-    client_id_front = models.CharField(max_length=255)
-    client_id_back = models.CharField(max_length=255)
-    base_url_front = models.URLField()
-    base_url_back = models.URLField()
+    client_id_front = models.CharField(max_length=255, blank=True, null=True)
+    client_id_back = models.CharField(max_length=255, blank=True, null=True)
+    base_url_front = models.URLField(blank=True, null=True)
+    base_url_back = models.URLField(blank=True, null=True)
 
     class Meta:
         db_table = "sources"
