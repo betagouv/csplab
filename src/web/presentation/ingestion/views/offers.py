@@ -32,6 +32,7 @@ from infrastructure.authentication.api_key_authentication import (
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from infrastructure.django_apps.users.models import UserModel
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.commons.pagination import WebPagination
 from presentation.ingestion.mappers import OfferInputMapper
 from presentation.ingestion.openapi import (
     ARCHIVE_OFFER_DESCRIPTION,
@@ -41,7 +42,6 @@ from presentation.ingestion.openapi import (
     OFFERS_BY_SOURCE_DESCRIPTION,
     UPSERT_OFFERS_DESCRIPTION,
 )
-from presentation.ingestion.pagination import IngestionPagination
 from presentation.ingestion.serializers import (
     ArchiveOfferRequestSerializer,
     ArchiveOfferSuccessSerializer,
@@ -85,7 +85,7 @@ class OffersListView(APIView):
 
             result = self.usecase.execute(input_data)
 
-            paginator = IngestionPagination()
+            paginator = WebPagination()
             items = paginator.paginate(result, request)
             return paginator.get_paginated_response(
                 ListOffersResponseSerializer(items, many=True).data
@@ -145,7 +145,7 @@ class OffersBySourceView(APIView):
                     utilisateur_entity_id=utilisateur_entity_id,
                 )
             )
-            paginator = IngestionPagination()
+            paginator = WebPagination()
             items = paginator.paginate(result, request)
             return paginator.get_paginated_response(
                 OfferDetailResponseSerializer(items, many=True).data

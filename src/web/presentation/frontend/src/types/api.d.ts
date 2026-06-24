@@ -56,7 +56,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/recrutements/": {
+    "/recruteur/organisme/{organisme_uuid}/recrutements": {
         parameters: {
             query?: never;
             header?: never;
@@ -68,6 +68,40 @@ export interface paths {
          * @description Retourne la liste paginée des recrutements d'un organisme. Deux onglets disponibles via le paramètre `filtre` : `actifs` (recrutements en cours, défaut) et `archives` (offres archivées).
          */
         get: operations["recruteur_organisme_recrutements_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Détail d'un recrutement — vue kanban */
+        get: operations["recruteur_organisme_recrutements_kanban_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/liste": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Détail d'un recrutement — vue liste (paginée) */
+        get: operations["recruteur_organisme_recrutements_liste_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -97,6 +131,29 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @enum {unknown} */
+        BlankEnum: "";
+        Candidat: {
+            /** Format: uuid */
+            uuid: string;
+            nom: string;
+            prenom: string;
+        };
+        Candidature: {
+            /** Format: uuid */
+            uuid: string;
+            /** Format: date-time */
+            date_soumission: string;
+            candidat: components["schemas"]["Candidat"];
+        };
+        CandidatureListe: {
+            /** Format: uuid */
+            uuid: string;
+            /** Format: date-time */
+            date_soumission: string;
+            candidat: components["schemas"]["Candidat"];
+            etape: components["schemas"]["EtapeRecrutement"];
+        };
         CandidaturesActives: {
             total: number | null;
             a_traiter: number | null;
@@ -110,11 +167,138 @@ export interface components {
          * @enum {string}
          */
         CategorieEnum: "ENTREE" | "EN_COURS" | "REFUS" | "ACCEPTE";
+        /**
+         * @description * `APLUS` - APLUS
+         *     * `A` - A
+         *     * `B` - B
+         *     * `C` - C
+         *     * `HORS_CATEGORIE` - HORS_CATEGORIE
+         * @enum {string}
+         */
+        CategorieOffreEnum: "APLUS" | "A" | "B" | "C" | "HORS_CATEGORIE";
+        /**
+         * @description * `01` - 01
+         *     * `02` - 02
+         *     * `03` - 03
+         *     * `04` - 04
+         *     * `05` - 05
+         *     * `06` - 06
+         *     * `07` - 07
+         *     * `08` - 08
+         *     * `09` - 09
+         *     * `10` - 10
+         *     * `11` - 11
+         *     * `12` - 12
+         *     * `13` - 13
+         *     * `14` - 14
+         *     * `15` - 15
+         *     * `16` - 16
+         *     * `17` - 17
+         *     * `18` - 18
+         *     * `19` - 19
+         *     * `21` - 21
+         *     * `22` - 22
+         *     * `23` - 23
+         *     * `24` - 24
+         *     * `25` - 25
+         *     * `26` - 26
+         *     * `27` - 27
+         *     * `28` - 28
+         *     * `29` - 29
+         *     * `2A` - 2A
+         *     * `2B` - 2B
+         *     * `30` - 30
+         *     * `31` - 31
+         *     * `32` - 32
+         *     * `33` - 33
+         *     * `34` - 34
+         *     * `35` - 35
+         *     * `36` - 36
+         *     * `37` - 37
+         *     * `38` - 38
+         *     * `39` - 39
+         *     * `40` - 40
+         *     * `41` - 41
+         *     * `42` - 42
+         *     * `43` - 43
+         *     * `44` - 44
+         *     * `45` - 45
+         *     * `46` - 46
+         *     * `47` - 47
+         *     * `48` - 48
+         *     * `49` - 49
+         *     * `50` - 50
+         *     * `51` - 51
+         *     * `52` - 52
+         *     * `53` - 53
+         *     * `54` - 54
+         *     * `55` - 55
+         *     * `56` - 56
+         *     * `57` - 57
+         *     * `58` - 58
+         *     * `59` - 59
+         *     * `60` - 60
+         *     * `61` - 61
+         *     * `62` - 62
+         *     * `63` - 63
+         *     * `64` - 64
+         *     * `65` - 65
+         *     * `66` - 66
+         *     * `67` - 67
+         *     * `68` - 68
+         *     * `69` - 69
+         *     * `70` - 70
+         *     * `71` - 71
+         *     * `72` - 72
+         *     * `73` - 73
+         *     * `74` - 74
+         *     * `75` - 75
+         *     * `76` - 76
+         *     * `77` - 77
+         *     * `78` - 78
+         *     * `79` - 79
+         *     * `80` - 80
+         *     * `81` - 81
+         *     * `82` - 82
+         *     * `83` - 83
+         *     * `84` - 84
+         *     * `85` - 85
+         *     * `86` - 86
+         *     * `87` - 87
+         *     * `88` - 88
+         *     * `89` - 89
+         *     * `90` - 90
+         *     * `91` - 91
+         *     * `92` - 92
+         *     * `93` - 93
+         *     * `94` - 94
+         *     * `95` - 95
+         *     * `971` - 971
+         *     * `972` - 972
+         *     * `973` - 973
+         *     * `974` - 974
+         *     * `975` - 975
+         *     * `976` - 976
+         *     * `986` - 986
+         *     * `987` - 987
+         *     * `988` - 988
+         *     * `SPM` - SPM
+         *     * `WLF` - WLF
+         * @enum {string}
+         */
+        DepartementEnum: "01" | "02" | "03" | "04" | "05" | "06" | "07" | 8 | 9 | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "21" | "22" | "23" | "24" | "25" | "26" | "27" | "28" | "29" | "2A" | "2B" | "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" | "38" | "39" | "40" | "41" | "42" | "43" | "44" | "45" | "46" | "47" | "48" | "49" | "50" | "51" | "52" | "53" | "54" | "55" | "56" | "57" | "58" | "59" | "60" | "61" | "62" | "63" | "64" | "65" | "66" | "67" | "68" | "69" | "70" | "71" | "72" | "73" | "74" | "75" | "76" | "77" | "78" | "79" | "80" | "81" | "82" | "83" | "84" | "85" | "86" | "87" | "88" | "89" | "90" | "91" | "92" | "93" | "94" | "95" | "971" | "972" | "973" | "974" | "975" | "976" | "986" | "987" | "988" | "SPM" | "WLF";
         EtapeRecrutement: {
             /** Format: uuid */
             etape_uuid: string;
             nom: string;
             categorie: components["schemas"]["CategorieEnum"];
+        };
+        EtapeRecrutementDetailedCandidatures: {
+            /** Format: uuid */
+            etape_uuid: string;
+            nom: string;
+            categorie: components["schemas"]["CategorieEnum"];
+            candidatures: components["schemas"]["Candidature"][];
         };
         GenericError: {
             error: string;
@@ -128,11 +312,34 @@ export interface components {
          * @enum {string}
          */
         KindContratEnum: "CDD" | "CDI" | "PERMANENT" | "VACATION" | "STAGE";
+        Localisation: {
+            zone_geographique: components["schemas"]["ZoneGeographiqueEnum"];
+            pays: string;
+            region: components["schemas"]["RegionEnum"] | components["schemas"]["BlankEnum"];
+            departement: components["schemas"]["DepartementEnum"] | components["schemas"]["BlankEnum"];
+            localisation_label: string;
+            /** Format: double */
+            latitude: number | null;
+            /** Format: double */
+            longitude: number | null;
+        };
         /** @enum {unknown} */
         NullEnum: null;
         Organisme: {
             nom: string;
             siret: string;
+        };
+        PaginatedCandidatureListeResponse: {
+            count: number;
+            next: string | null;
+            previous: string | null;
+            results: components["schemas"]["CandidatureListe"][];
+        };
+        PaginatedRecrutementsResponse: {
+            count: number;
+            next: string | null;
+            previous: string | null;
+            results: components["schemas"]["RecrutementActif"][];
         };
         RecrutementActif: {
             /** Format: uuid */
@@ -148,14 +355,41 @@ export interface components {
             derniere_activite: string;
             candidatures: components["schemas"]["CandidaturesActives"] | null;
         };
-        RecrutementActifPage: {
-            count: number;
-            /** Format: uri */
-            next: string | null;
-            /** Format: uri */
-            previous: string | null;
-            results: components["schemas"]["RecrutementActif"][];
+        RecrutementDetailKanban: {
+            /** Format: uuid */
+            offer_id: string;
+            intitule: string;
+            /** Format: date-time */
+            date_publication: string;
+            localisation: components["schemas"]["Localisation"];
+            organisme_recruteur: components["schemas"]["Organisme"];
+            categorie_offre: components["schemas"]["CategorieOffreEnum"];
+            etapes: components["schemas"]["EtapeRecrutementDetailedCandidatures"][];
         };
+        /**
+         * @description * `01` - 01
+         *     * `02` - 02
+         *     * `03` - 03
+         *     * `04` - 04
+         *     * `06` - 06
+         *     * `11` - 11
+         *     * `24` - 24
+         *     * `27` - 27
+         *     * `28` - 28
+         *     * `32` - 32
+         *     * `44` - 44
+         *     * `52` - 52
+         *     * `53` - 53
+         *     * `75` - 75
+         *     * `76` - 76
+         *     * `84` - 84
+         *     * `93` - 93
+         *     * `94` - 94
+         *     * `DOM` - DOM
+         *     * `TOM` - TOM
+         * @enum {string}
+         */
+        RegionEnum: "01" | "02" | "03" | "04" | "06" | "11" | "24" | "27" | "28" | "32" | "44" | "52" | "53" | "75" | "76" | "84" | "93" | "94" | "DOM" | "TOM";
         Responsable: {
             nom: string;
         };
@@ -188,6 +422,16 @@ export interface components {
             prenom: string;
             nom: string;
         };
+        /**
+         * @description * `AF` - AFRIQUE
+         *     * `EU` - EUROPE
+         *     * `AS` - ASIE
+         *     * `AM` - AMERIQUE
+         *     * `OC` - OCEANIE
+         *     * `AN` - ANTARTIQUE
+         * @enum {string}
+         */
+        ZoneGeographiqueEnum: "AF" | "EU" | "AS" | "AM" | "OC" | "AN";
     };
     responses: never;
     parameters: never;
@@ -407,7 +651,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecrutementActifPage"];
+                    "application/json": components["schemas"]["PaginatedRecrutementsResponse"];
                 };
             };
             400: {
@@ -427,6 +671,90 @@ export interface operations {
                 };
             };
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_recrutements_kanban_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecrutementDetailKanban"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_recrutements_liste_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedCandidatureListeResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

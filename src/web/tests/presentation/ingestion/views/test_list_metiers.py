@@ -97,7 +97,7 @@ def test_returns_error_500(mock_metiers_container, authenticated_client):
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@patch("presentation.ingestion.views.metiers.IngestionPagination.page_size", new=2)
+@patch("presentation.ingestion.views.metiers.WebPagination.page_size", new=2)
 def test_pagination_page_arg(mock_metiers_container, authenticated_client):
     num_metiers = 5
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
@@ -131,7 +131,7 @@ def test_pagination_page_arg(mock_metiers_container, authenticated_client):
     }
 
 
-@patch("presentation.ingestion.views.metiers.IngestionPagination.page_size", new=2)
+@patch("presentation.ingestion.views.metiers.WebPagination.page_size", new=2)
 def test_pagination_out_of_bond(mock_metiers_container, authenticated_client):
     num_metiers = 3
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]

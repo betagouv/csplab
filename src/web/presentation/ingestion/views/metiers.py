@@ -9,11 +9,11 @@ from rest_framework.views import APIView
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.commons.pagination import WebPagination
 from presentation.ingestion.openapi import (
     LIST_METIERS_DESCRIPTION,
     LIST_METIERS_EXAMPLES,
 )
-from presentation.ingestion.pagination import IngestionPagination
 from presentation.ingestion.serializers import (
     ListMetiersFiltersSerializer,
     ListMetiersResponseSerializer,
@@ -52,7 +52,7 @@ class MetiersListView(APIView):
 
             result = self.usecase.execute(input_data)
 
-            paginator = IngestionPagination()
+            paginator = WebPagination()
             items = paginator.paginate(result, request)
             return paginator.get_paginated_response(
                 ListMetiersResponseSerializer(items, many=True).data

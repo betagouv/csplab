@@ -4,6 +4,8 @@ from presentation.recruteur.views import (
     EtapesRecrutementOrganismeView,
     InitEtapesRecrutementOrganismeView,
     OrganismeView,
+    RecrutementKanbanView,
+    RecrutementListeView,
     RecrutementsOrganismeView,
 )
 
@@ -26,8 +28,18 @@ urlpatterns = [
         name="organisme-parametres-etapes-init",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/recrutements/",
+        "organisme/<uuid:organisme_uuid>/recrutements",
         RecrutementsOrganismeView.as_view(),
         name="organisme-recrutements",
+    ),
+    path(
+        "organisme/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/kanban",
+        RecrutementKanbanView.as_view(),
+        name="organisme-recrutement-kanban",
+    ),
+    path(
+        "organisme/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/liste",
+        RecrutementListeView.as_view(),
+        name="organisme-recrutement-liste",
     ),
 ]

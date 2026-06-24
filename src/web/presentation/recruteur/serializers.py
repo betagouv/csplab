@@ -1,9 +1,11 @@
+from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
 from rest_framework import serializers
 
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
 
 
 class EtapeRecrutementSerializer(serializers.Serializer):
@@ -14,17 +16,8 @@ class EtapeRecrutementSerializer(serializers.Serializer):
     )
 
 
-class UpdateEtapeRecrutementSerializer(serializers.Serializer):
+class UpdateEtapeRecrutementSerializer(EtapeRecrutementSerializer):
     etape_uuid = serializers.UUIDField(required=False)
-    nom = serializers.CharField()
-    categorie = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in CategorieEtapeRecrutement]
-    )
-
-
-class OrganismeSerializer(serializers.Serializer):
-    nom = serializers.CharField()
-    siret = serializers.CharField()
 
 
 class RecrutementsFiltersSerializer(serializers.Serializer):
@@ -49,7 +42,7 @@ class CandidaturesActivesSerializer(serializers.Serializer):
     en_cours = serializers.IntegerField(allow_null=True)
 
 
-class RecrutementActifSerializer(serializers.Serializer):
+class RecrutementSerializer(serializers.Serializer):
     offer_id = serializers.UUIDField()
     intitule = serializers.CharField()
     reference_csp = serializers.CharField()
@@ -64,37 +57,52 @@ class RecrutementActifSerializer(serializers.Serializer):
     date_publication = serializers.DateTimeField()
     responsables = ResponsableSerializer(many=True)
     derniere_activite = serializers.DateTimeField()
+
+
+class RecrutementActifSerializer(RecrutementSerializer):
     candidatures = CandidaturesActivesSerializer(allow_null=True)
 
 
-class RecrutementArchiveSerializer(serializers.Serializer):
-    offer_id = serializers.UUIDField()
-    intitule = serializers.CharField()
-    reference_csp = serializers.CharField()
-    type_contrat = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in ContractType],
-        allow_null=True,
-    )
-    kind_contrat = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in ContractKind],
-        allow_null=True,
-    )
-    date_publication = serializers.DateTimeField()
-    responsables = ResponsableSerializer(many=True)
-    derniere_activite = serializers.DateTimeField()
+class RecrutementArchiveSerializer(RecrutementSerializer):
     finalise = serializers.BooleanField()
     recrute = serializers.CharField(allow_null=True)
 
 
-class RecrutementActifPageSerializer(serializers.Serializer):
-    count = serializers.IntegerField()
-    next = serializers.URLField(allow_null=True)
-    previous = serializers.URLField(allow_null=True)
-    results = RecrutementActifSerializer(many=True)
+# ---------------------------------------------------------------------------
+# Serializers pour la vue détail d'un recrutement (kanban / liste)
+# ---------------------------------------------------------------------------
 
 
-class RecrutementArchivePageSerializer(serializers.Serializer):
-    count = serializers.IntegerField()
-    next = serializers.URLField(allow_null=True)
-    previous = serializers.URLField(allow_null=True)
-    results = RecrutementArchiveSerializer(many=True)
+class CandidatSerializer(serializers.Serializer):
+    uuid = serializers.UUIDField()
+    nom = serializers.CharField()
+    prenom = serializers.CharField()
+
+
+class CandidatureSerializer(serializers.Serializer):
+    uuid = serializers.UUIDField()
+    date_soumission = serializers.DateTimeField()
+    candidat = CandidatSerializer()
+
+
+class EtapeRecrutementDetailedCandidaturesSerializer(EtapeRecrutementSerializer):
+    candidatures = CandidatureSerializer(many=True)
+
+
+class RecrutementDetailKanbanSerializer(serializers.Serializer):
+    offer_id = serializers.UUIDField()
+    intitule = serializers.CharField()
+    date_publication = serializers.DateTimeField()
+    localisation = LocalisationSerializer()
+    organisme_recruteur = OrganismeSerializer()
+    categorie_offre = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in Category]
+    )
+    etapes = EtapeRecrutementDetailedCandidaturesSerializer(many=True)
+
+
+class CandidatureListeSerializer(serializers.Serializer):
+    uuid = serializers.UUIDField()
+    date_soumission = serializers.DateTimeField()
+    candidat = CandidatSerializer()
+    etape = EtapeRecrutementSerializer()
