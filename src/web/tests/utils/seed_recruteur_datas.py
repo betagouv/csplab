@@ -1,15 +1,23 @@
 from datetime import UTC, datetime
-from uuid import uuid4
 
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.verse import Verse
 
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
+from domain.identite.value_objects.siret import SIRET
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models import OrganismeModel
-from infrastructure.django_apps.users.models import UserModel
+from infrastructure.django_apps.referentiel.models.metier import MetierModel
+from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.django_apps.users.models import (
+    ProfilAgentModel,
+    ProfilCandidatModel,
+    UserModel,
+)
 from tests.factories.candidate.candidature_factory import CandidatureFactory
 from tests.factories.identite.agent_factory import AgentFactory
 from tests.factories.identite.candidat_factory import CandidatFactory
+from tests.factories.identite.organisme_factory import OrganismeFactory
 from tests.factories.referentiel.metier_factory import MetierFactory
 from tests.factories.referentiel.offer_factory import OfferFactory
 
@@ -18,25 +26,91 @@ _SEED_SENTINEL_EMAIL = "marie.dupont@transition-eco.gouv.fr"
 
 _ORGANISME_SIRET = "21050023700354"
 
+_AGENTS_SPECS = [
+    {"prenom": "Marie", "nom": "Dupont", "email": _SEED_SENTINEL_EMAIL},
+    {
+        "prenom": "Paul",
+        "nom": "Bernard",
+        "email": "paul.bernard@transition-eco.gouv.fr",
+    },
+    {
+        "prenom": "Claire",
+        "nom": "Moreau",
+        "email": "claire.moreau@transition-eco.gouv.fr",
+    },
+]
 
-def seed_recruteur_datas() -> dict:
+_CANDIDATS_SPECS = [
+    {"prenom": "Alice", "nom": "Martin", "email": "alice.martin@candidat.fr"},
+    {"prenom": "Thomas", "nom": "Petit", "email": "thomas.petit@candidat.fr"},
+    {"prenom": "Sophie", "nom": "Leblanc", "email": "sophie.leblanc@candidat.fr"},
+    {"prenom": "Lucas", "nom": "Fontaine", "email": "lucas.fontaine@candidat.fr"},
+    {"prenom": "Emma", "nom": "Rousseau", "email": "emma.rousseau@candidat.fr"},
+    {"prenom": "Hugo", "nom": "Garnier", "email": "hugo.garnier@candidat.fr"},
+    {"prenom": "Léa", "nom": "Chevalier", "email": "lea.chevalier@candidat.fr"},
+    {"prenom": "Nathan", "nom": "Morel", "email": "nathan.morel@candidat.fr"},
+]
+
+_ALL_SEED_EMAILS = [s["email"] for s in _AGENTS_SPECS + _CANDIDATS_SPECS]
+
+_SEED_OFFER_EXTERNAL_IDS = [
+    "SEED-ACTIF-001",
+    "SEED-ACTIF-002",
+    "SEED-ACTIF-003",
+    "SEED-ACTIF-004",
+    "SEED-ACTIF-005",
+    "SEED-ACTIF-006",
+    "SEED-ARCHIVE-001",
+    "SEED-ARCHIVE-002",
+    "SEED-ARCHIVE-003",
+]
+
+_SEED_METIER_OFFER_FAMILY_CODES = ["ERNUM001", "ERJUR001"]
+
+
+def _delete_seed_data() -> None:
+    seed_offer_ids = list(
+        OfferModel.objects.filter(external_id__in=_SEED_OFFER_EXTERNAL_IDS).values_list(
+            "id", flat=True
+        )
+    )
+    CandidatureModel.objects.filter(offre_id__in=seed_offer_ids).delete()
+
+    # ProfilAgentModel/ProfilCandidatModel utilisent to_field="username" :
+    # utilisateur_id stocke le username (UUID entité), pas le PK id.
+    seed_usernames = list(
+        UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).values_list(
+            "username", flat=True
+        )
+    )
+    ProfilAgentModel.objects.filter(utilisateur_id__in=seed_usernames).delete()
+    ProfilCandidatModel.objects.filter(utilisateur_id__in=seed_usernames).delete()
+    UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).delete()
+
+    OfferModel.objects.filter(external_id__in=_SEED_OFFER_EXTERNAL_IDS).delete()
+    MetierModel.objects.filter(
+        offer_family_code__in=_SEED_METIER_OFFER_FAMILY_CODES
+    ).delete()
+    OrganismeModel.objects.filter(siret=_ORGANISME_SIRET).delete()
+
+
+def seed_recruteur_datas(force: bool = False) -> dict:
     if UserModel.objects.filter(email=_SEED_SENTINEL_EMAIL).exists():
-        return {"status": "already_seeded"}
+        if not force:
+            return {"status": "already_seeded"}
+        _delete_seed_data()
 
     # ------------------------------------------------------------------ #
-    # 1. Organisme recruteur                                               #
+    # 1. Organisme recruteur                                             #
     # ------------------------------------------------------------------ #
-    organisme, _ = OrganismeModel.objects.get_or_create(
-        siret=_ORGANISME_SIRET,
-        defaults={
-            "id": uuid4(),
-            "nom": "Ministère de la Transition Écologique",
-            "versant": Verse.FPE.value,
-        },
+    organisme = OrganismeFactory.create_model(
+        nom="Ministère de la Transition Écologique",
+        versant=Verse.FPE,
+        siret=SIRET(_ORGANISME_SIRET),
     )
 
     # ------------------------------------------------------------------ #
-    # 2. Métiers                                                           #
+    # 2. Métiers                                                         #
     # ------------------------------------------------------------------ #
     MetierFactory.create_model(
         libelle="Chargé de mission numérique",
@@ -52,21 +126,8 @@ def seed_recruteur_datas() -> dict:
     # ------------------------------------------------------------------ #
     # 3. Agents / recruteurs                                               #
     # ------------------------------------------------------------------ #
-    AgentFactory.create_model(
-        prenom="Marie",
-        nom="Dupont",
-        email=_SEED_SENTINEL_EMAIL,
-    )
-    AgentFactory.create_model(
-        prenom="Paul",
-        nom="Bernard",
-        email="paul.bernard@transition-eco.gouv.fr",
-    )
-    AgentFactory.create_model(
-        prenom="Claire",
-        nom="Moreau",
-        email="claire.moreau@transition-eco.gouv.fr",
-    )
+    for spec in _AGENTS_SPECS:
+        AgentFactory.create_model(**spec)
 
     # ------------------------------------------------------------------ #
     # 4. Offres actives (6)                                                #
@@ -156,32 +217,7 @@ def seed_recruteur_datas() -> dict:
     # ------------------------------------------------------------------ #
     # 6. Candidats (8)                                                     #
     # ------------------------------------------------------------------ #
-    candidats = [
-        CandidatFactory.create_model(
-            prenom="Alice", nom="Martin", email="alice.martin@candidat.fr"
-        ),
-        CandidatFactory.create_model(
-            prenom="Thomas", nom="Petit", email="thomas.petit@candidat.fr"
-        ),
-        CandidatFactory.create_model(
-            prenom="Sophie", nom="Leblanc", email="sophie.leblanc@candidat.fr"
-        ),
-        CandidatFactory.create_model(
-            prenom="Lucas", nom="Fontaine", email="lucas.fontaine@candidat.fr"
-        ),
-        CandidatFactory.create_model(
-            prenom="Emma", nom="Rousseau", email="emma.rousseau@candidat.fr"
-        ),
-        CandidatFactory.create_model(
-            prenom="Hugo", nom="Garnier", email="hugo.garnier@candidat.fr"
-        ),
-        CandidatFactory.create_model(
-            prenom="Léa", nom="Chevalier", email="lea.chevalier@candidat.fr"
-        ),
-        CandidatFactory.create_model(
-            prenom="Nathan", nom="Morel", email="nathan.morel@candidat.fr"
-        ),
-    ]
+    candidats = [CandidatFactory.create_model(**spec) for spec in _CANDIDATS_SPECS]
 
     # ------------------------------------------------------------------ #
     # 7. Candidatures                                                      #

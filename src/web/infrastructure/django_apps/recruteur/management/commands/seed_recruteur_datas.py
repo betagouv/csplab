@@ -6,9 +6,19 @@ from tests.utils.seed_recruteur_datas import seed_recruteur_datas
 class Command(BaseCommand):
     help = "Seed all necessary data for recruteur review apps"
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--force",
+            action="store_true",
+            default=False,
+            help=("Supprime les données existantes et reseed depuis zéro. "),
+        )
+
     def handle(self, *args, **options):
-        self.stdout.write("Seeding recruteur data...")
-        context = seed_recruteur_datas()
+        force = options["force"]
+        suffix = " (--force activé)" if force else ""
+        self.stdout.write(f"Seeding recruteur data...{suffix}")
+        context = seed_recruteur_datas(force=force)
         if context.get("status") == "already_seeded":
             self.stdout.write(self.style.WARNING("⚠️  Data already seeded, skipping."))
         else:
