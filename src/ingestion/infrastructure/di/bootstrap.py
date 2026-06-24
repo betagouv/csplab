@@ -1,7 +1,13 @@
 import asyncio
 from typing import TYPE_CHECKING
 
+import sentry_sdk
 from celery.signals import worker_process_init
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.httpx import HttpxIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
+
+from api.config import settings
 
 if TYPE_CHECKING:
     from infrastructure.di.container import Container
@@ -28,4 +34,15 @@ def get_container() -> "Container":
 
 @worker_process_init.connect
 def _init_worker_container(**kwargs: object) -> None:
+    if settings.sentry_dsn and str(settings.sentry_dsn).strip():
+        sentry_sdk.init(
+            dsn=str(settings.sentry_dsn),
+            integrations=[
+                LoggingIntegration(),
+                CeleryIntegration(),
+                HttpxIntegration(),
+            ],
+            traces_sample_rate=settings.sentry_traces_sample_rate,
+            profiles_sample_rate=settings.sentry_profiles_sample_rate,
+        )
     init_container()

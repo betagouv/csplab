@@ -1,6 +1,7 @@
 import logging
 
 import sentry_sdk
+from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.httpx import HttpxIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
@@ -45,6 +46,7 @@ def sentry_init(dsn, traces_sample_rate, profiles_sample_rate):
         dsn=dsn,
         integrations=[
             sentry_logging,
+            CeleryIntegration(),
             HttpxIntegration(),
             StarletteIntegration(),
             FastApiIntegration(),
