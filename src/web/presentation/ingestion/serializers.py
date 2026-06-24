@@ -117,10 +117,10 @@ class SourceSerializer(serializers.Serializer):
     source_id = serializers.UUIDField()
     slug = serializers.CharField()
     type = serializers.CharField(source="type.value")
-    client_id_front = serializers.CharField()
-    client_id_back = serializers.CharField()
-    base_url_front = serializers.URLField()
-    base_url_back = serializers.URLField()
+    client_id_front = serializers.CharField(allow_null=True, required=False)
+    client_id_back = serializers.CharField(allow_null=True, required=False)
+    base_url_front = serializers.URLField(allow_null=True, required=False)
+    base_url_back = serializers.URLField(allow_null=True, required=False)
 
 
 class ArchiveOfferRequestSerializer(serializers.Serializer):

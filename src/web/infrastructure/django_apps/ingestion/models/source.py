@@ -1,7 +1,9 @@
 from uuid import uuid4
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from referentiel.entities.source import Source
+from referentiel.exceptions.source_errors import MissingTalentsoftFieldsError
 from referentiel.value_objects.source_type import SourceType
 
 from infrastructure.django_apps.utils.models import BaseDatedModel
@@ -14,15 +16,21 @@ class SourceModel(BaseDatedModel):
     type = models.CharField(
         max_length=50, choices=[(st.value, st.value) for st in SourceType]
     )
-    client_id_front = models.CharField(max_length=255)
-    client_id_back = models.CharField(max_length=255)
-    base_url_front = models.URLField()
-    base_url_back = models.URLField()
+    client_id_front = models.CharField(max_length=255, blank=True, null=True)
+    client_id_back = models.CharField(max_length=255, blank=True, null=True)
+    base_url_front = models.URLField(blank=True, null=True)
+    base_url_back = models.URLField(blank=True, null=True)
 
     class Meta:
         db_table = "sources"
         verbose_name = "Source"
         verbose_name_plural = "Sources"
+
+    def clean(self) -> None:
+        try:
+            self.to_entity()
+        except MissingTalentsoftFieldsError as e:
+            raise ValidationError(e.message) from e
 
     def to_entity(self) -> Source:
         return Source(
