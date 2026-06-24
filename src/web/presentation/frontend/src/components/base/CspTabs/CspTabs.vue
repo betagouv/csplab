@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
-import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import { TabsRoot } from 'reka-ui'
+import CspTabsList from './CspTabsList.vue'
+import CspTabsPanels from './CspTabsPanels.vue'
 
 export interface CspTabItem {
   value: string
@@ -10,13 +11,15 @@ export interface CspTabItem {
 }
 
 export interface CspTabsProps {
-  tabs: CspTabItem[]
+  /** When omitted, compose CspTabsList and CspTabsPanels in the default slot. */
+  tabs?: CspTabItem[]
   defaultValue?: string
   orientation?: 'horizontal' | 'vertical'
   activationMode?: 'automatic' | 'manual'
 }
 
 withDefaults(defineProps<CspTabsProps>(), {
+  tabs: undefined,
   defaultValue: undefined,
   orientation: 'horizontal',
   activationMode: 'automatic',
@@ -34,33 +37,19 @@ const model = defineModel<string>()
     :orientation="orientation"
     :activation-mode="activationMode"
   >
-    <TabsList class="csp-tabs__list">
-      <TabsTrigger
-        v-for="tab in tabs"
-        :key="tab.value"
-        :value="tab.value"
-        :disabled="tab.disabled"
-        class="csp-tabs__trigger"
-      >
-        <CspIcon
-          v-if="tab.icon"
-          :name="tab.icon"
-          class="csp-tabs__icon"
-        />
-        {{ tab.label }}
-      </TabsTrigger>
-    </TabsList>
-
-    <div class="csp-tabs__panels">
-      <TabsContent
-        v-for="tab in tabs"
-        :key="tab.value"
-        :value="tab.value"
-        class="csp-tabs__content"
-      >
-        <slot :name="tab.value" />
-      </TabsContent>
-    </div>
+    <slot>
+      <template v-if="tabs">
+        <CspTabsList :tabs="tabs" />
+        <CspTabsPanels :tabs="tabs">
+          <template
+            v-for="tab in tabs"
+            #[tab.value]
+          >
+            <slot :name="tab.value" />
+          </template>
+        </CspTabsPanels>
+      </template>
+    </slot>
   </TabsRoot>
 </template>
 
@@ -72,92 +61,5 @@ const model = defineModel<string>()
 
 .csp-tabs--vertical {
   flex-direction: row;
-
-  .csp-tabs__list {
-    flex-direction: column;
-    border-bottom: none;
-    border-right: 1px solid var(--border-default-grey);
-  }
-
-  .csp-tabs__trigger {
-    border-bottom: none;
-    border-right: 2px solid transparent;
-    justify-content: flex-start;
-
-    &[data-state='active'] {
-      border-bottom-color: transparent;
-      border-right-color: var(--border-action-high-blue-france);
-    }
-  }
-
-  .csp-tabs__panels {
-    padding-left: var(--csp-space-4, 1rem);
-  }
-}
-
-.csp-tabs__list {
-  display: flex;
-  border-bottom: 1px solid var(--border-default-grey);
-  gap: var(--csp-space-1, 0.25rem);
-}
-
-.csp-tabs__trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--csp-space-2, 0.5rem);
-  padding: var(--csp-space-3, 0.75rem) var(--csp-space-4, 1rem);
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.25;
-  color: var(--text-action-high-grey);
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition:
-    color 0.2s ease,
-    border-color 0.2s ease,
-    background-color 0.2s ease;
-
-  &:hover:not([data-disabled]) {
-    background-color: var(--background-default-grey-hover);
-  }
-
-  &:active:not([data-disabled]) {
-    background-color: var(--background-default-grey-active);
-  }
-
-  &[data-state='active'] {
-    color: var(--text-action-high-blue-france);
-    border-bottom-color: var(--border-action-high-blue-france);
-  }
-
-  &[data-disabled] {
-    color: var(--text-disabled-grey);
-    cursor: not-allowed;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: -2px;
-  }
-}
-
-.csp-tabs__panels {
-  padding-top: var(--csp-space-4, 1rem);
-}
-
-.csp-tabs__content {
-  &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
-  }
-}
-
-.csp-tabs__icon {
-  width: 1.125em;
-  height: 1.125em;
-  flex-shrink: 0;
 }
 </style>

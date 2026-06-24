@@ -1,6 +1,8 @@
 import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3-vite'
 import { ref, watch } from 'vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
+import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
+import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 
 type CspTabsProps = ComponentPropsAndSlots<typeof CspTabs>
 
@@ -20,7 +22,7 @@ const meta = {
     },
     docs: {
       description: {
-        component: 'Composant d\'onglets accessible basé sur Reka UI. Le contenu de chaque onglet est fourni via des slots nommés correspondant à la valeur de l\'onglet.',
+        component: 'Composant d\'onglets accessible basé sur Reka UI. Usage monolithique : passez `tabs` et fournissez un slot nommé par valeur d\'onglet. Usage composé : placez `CspTabsList` et `CspTabsPanels` dans le slot par défaut pour répartir la barre et les panneaux dans des régions de layout différentes (p. ex. la barre dans un en-tête de page).',
       },
     },
   },
@@ -98,13 +100,13 @@ const meta = {
         v-model="selected"
       >
         <template #tab-1>
-          <p>Contenu du premier onglet. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <p>Contenu du premier onglet.</p>
         </template>
         <template #tab-2>
-          <p>Contenu du deuxième onglet. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          <p>Contenu du deuxième onglet.</p>
         </template>
         <template #tab-3>
-          <p>Contenu du troisième onglet. Ut enim ad minim veniam, quis nostrud exercitation.</p>
+          <p>Contenu du troisième onglet.</p>
         </template>
       </CspTabs>
     `,
@@ -114,9 +116,43 @@ const meta = {
 export default meta
 type Story = StoryObj<CspTabsProps>
 
-export const Default: Story = {}
+export const Default: Story = {
+  name: 'Usage monolithique',
+}
+
+export const Composed: Story = {
+  name: 'Usage composé',
+  parameters: {
+    docs: {
+      description: {
+        story: 'Usage composé : la barre (CspTabsList) et les panneaux (CspTabsPanels) sont rendus séparément tout en partageant l’état, ici la barre dans un en-tête simulé et les panneaux en dessous.',
+      },
+    },
+  },
+  render: (args: CspTabsProps) => ({
+    components: { CspTabs, CspTabsList, CspTabsPanels },
+    setup() {
+      const selected = ref(args.defaultValue ?? 'tab-1')
+      return { args, selected }
+    },
+    template: `
+      <CspTabs v-model="selected" :default-value="args.defaultValue">
+        <div style="border:1px solid var(--border-default-grey);padding:1rem;margin-bottom:1rem">
+          <strong>En-tête de page</strong>
+          <CspTabsList :tabs="args.tabs" />
+        </div>
+        <CspTabsPanels :tabs="args.tabs">
+          <template #tab-1><p>Contenu du premier onglet.</p></template>
+          <template #tab-2><p>Contenu du deuxième onglet.</p></template>
+          <template #tab-3><p>Contenu du troisième onglet.</p></template>
+        </CspTabsPanels>
+      </CspTabs>
+    `,
+  }),
+}
 
 export const WithDisabledTab: Story = {
+  name: 'Avec onglet désactivé',
   args: {
     tabs: [
       { value: 'tab-1', label: 'Onglet 1' },
@@ -128,12 +164,14 @@ export const WithDisabledTab: Story = {
 }
 
 export const Vertical: Story = {
+  name: 'Orientation verticale',
   args: {
     orientation: 'vertical',
   },
 }
 
 export const ManualActivation: Story = {
+  name: 'Activation manuelle',
   args: {
     activationMode: 'manual',
   },
@@ -147,6 +185,7 @@ export const ManualActivation: Story = {
 }
 
 export const WithIcons: Story = {
+  name: 'Avec icônes',
   args: {
     tabs: [
       { value: 'tab-1', label: 'Accueil', icon: 'ri:home-line' },
