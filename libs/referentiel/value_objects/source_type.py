@@ -5,5 +5,5 @@ class SourceType(Enum):
     TALENTSOFT = "talentsoft"
     API = "api"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value
