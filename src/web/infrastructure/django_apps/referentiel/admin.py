@@ -4,10 +4,11 @@ from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
 from infrastructure.django_apps.referentiel.models.corps import CorpsModel
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 
 
 @admin.register(OfferModel)
-class OfferAdmin(admin.ModelAdmin):
+class OfferAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
         "external_id",
         "code_emploi_csp",
@@ -39,11 +40,10 @@ class OfferAdmin(admin.ModelAdmin):
         "organization",
         "code_emploi_csp",
     )
-    readonly_fields = [f.name for f in OfferModel._meta.get_fields()]
 
 
 @admin.register(CorpsModel)
-class CorpsAdmin(admin.ModelAdmin):
+class CorpsAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
         "code",
         "short_label",
@@ -62,7 +62,6 @@ class CorpsAdmin(admin.ModelAdmin):
         "archived_at",
     )
     search_fields = ("code", "short_label", "long_label")
-    readonly_fields = [f.name for f in CorpsModel._meta.get_fields()]
 
     fieldsets = (
         (
@@ -79,7 +78,7 @@ class CorpsAdmin(admin.ModelAdmin):
 
 
 @admin.register(ConcoursModel)
-class ConcoursAdmin(admin.ModelAdmin):
+class ConcoursAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
         "nor_original",
         "corps",
@@ -99,7 +98,6 @@ class ConcoursAdmin(admin.ModelAdmin):
         "archived_at",
     )
     search_fields = ("nor_original", "corps", "grade")
-    readonly_fields = [f.name for f in ConcoursModel._meta.get_fields()]
 
     fieldsets = (
         (
@@ -121,7 +119,7 @@ class ConcoursAdmin(admin.ModelAdmin):
 
 
 @admin.register(MetierModel)
-class MetierAdmin(admin.ModelAdmin):
+class MetierAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
         "external_id",
         "libelle_long",
@@ -143,4 +141,3 @@ class MetierAdmin(admin.ModelAdmin):
         "domaine_fonctionnel_code",
         "offer_family_code",
     )
-    readonly_fields = [f.name for f in MetierModel._meta.get_fields()]

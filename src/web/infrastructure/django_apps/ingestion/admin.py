@@ -8,10 +8,11 @@ from infrastructure.django_apps.ingestion.models.api_log_daily_aggregation impor
 )
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.django_apps.ingestion.models.source import SourceModel
+from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 
 
 @admin.register(ApiLogModel)
-class ApiLogAdmin(admin.ModelAdmin):
+class ApiLogAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
         "timestamp",
         "method",
@@ -27,33 +28,13 @@ class ApiLogAdmin(admin.ModelAdmin):
         "timestamp",
     )
     search_fields = ("path", "ip_address", "auth_token")
-    readonly_fields = [f.name for f in ApiLogModel._meta.get_fields()]
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
 
 
 @admin.register(ApiLogDailyAggregationModel)
-class ApiLogDailyAggregationAdmin(admin.ModelAdmin):
+class ApiLogDailyAggregationAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ("date", "method", "path", "token_type", "count")
     list_filter = ("date", "method", "token_type")
     search_fields = ("path",)
-    readonly_fields = [f.name for f in ApiLogDailyAggregationModel._meta.get_fields()]
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
 
 
 @admin.register(SourceModel)
@@ -78,9 +59,14 @@ class SourceAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("id", "source_id")
 
+    def save_model(self, request, obj, form, change):
+        # enforce the entity invariants (__post_init__) before persisting
+        obj.to_entity()
+        super().save_model(request, obj, form, change)
+
 
 @admin.register(RawDocument)
-class RawDocumentAdmin(admin.ModelAdmin):
+class RawDocumentAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     """Admin interface for RawDocument model."""
 
     list_display = (
@@ -98,4 +84,3 @@ class RawDocumentAdmin(admin.ModelAdmin):
         ("error_msg", admin.EmptyFieldListFilter),
     )
     search_fields = ("external_id", "raw_data", "error_msg")
-    readonly_fields = [f.name for f in RawDocument._meta.get_fields()]
