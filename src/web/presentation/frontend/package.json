@@ -15,6 +15,9 @@
     "generate-types": "openapi-typescript ../../presentation/static/api/internal-schema.yaml -o src/types/api.d.ts"
   },
   "dependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "^2.0.1",
+    "@atlaskit/pragmatic-drag-and-drop-hitbox": "^2.0.0",
+    "@atlaskit/pragmatic-drag-and-drop-live-region": "^2.0.0",
     "@iconify/vue": "^5.0.1",
     "@sentry/vue": "^10.58.0",
     "@tanstack/vue-table": "^8.21.3",
