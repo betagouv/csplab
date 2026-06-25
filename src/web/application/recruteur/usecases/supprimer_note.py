@@ -1,0 +1,40 @@
+from dataclasses import dataclass
+from uuid import UUID
+
+from ddd.usecase_interface import IUseCase
+
+from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.recruteur.errors.note_errors import (
+    NoteIntrouvable,
+    NoteSuppressionNonAutorisee,
+)
+from domain.recruteur.repositories.note_repository_interface import INoteRepository
+
+
+@dataclass
+class SupprimerNoteCommand:
+    candidature_id: UUID
+    note_id: UUID
+    supprime_par_id: UUID
+
+
+class SupprimerNoteUsecase(IUseCase[SupprimerNoteCommand, None]):
+    def __init__(
+        self,
+        note_repository: INoteRepository,
+        audit_log_writer: AuditLogWriter,
+    ):
+        self.note_repository = note_repository
+        self.audit_log_writer = audit_log_writer
+
+    def execute(self, command: SupprimerNoteCommand) -> None:
+        note = self.note_repository.get_by_id(command.note_id)
+        if note.candidature_id != command.candidature_id:
+            raise NoteIntrouvable(command.note_id)
+        if note.publie_par_id != command.supprime_par_id:
+            raise NoteSuppressionNonAutorisee(command.note_id)
+        note.supprimer(supprime_par_id=command.supprime_par_id)
+        self.note_repository.save(note)
+        self.audit_log_writer.drain_events(
+            utilisateur_id=command.supprime_par_id, aggregate=note
+        )

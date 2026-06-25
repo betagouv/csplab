@@ -9,14 +9,22 @@ from infrastructure.repositories.recruteur.postgres_note_repository import (
 )
 from tests.factories.candidate.candidature_factory import CandidatureFactory
 from tests.factories.identite.agent_factory import AgentFactory
+from tests.factories.identite.candidat_factory import CandidatFactory
 from tests.factories.recruteur.note_factory import NoteFactory
+from tests.factories.referentiel.offer_factory import OfferFactory
 
 fake = Faker("fr_FR")
 
 
 @pytest.fixture(name="candidature_id")
 def candidature_id_fixture(db) -> UUID:
-    return CandidatureFactory.build_model().id
+    # TODO : refactor into CandidatureFactory
+    offre = OfferFactory.create_model()
+    candidat = CandidatFactory.create_model()
+    candidature = CandidatureFactory.build_model(
+        candidat_id=candidat.utilisateur_id, offre_id=offre.id
+    )
+    return candidature.id
 
 
 @pytest.fixture(name="agent_id")
@@ -34,7 +42,7 @@ def test_create_and_get_by_id_roundtrip(candidature_id, agent_id) -> None:
     fetched = repository.get_by_id(note.entity_id)
 
     assert fetched.entity_id == note.entity_id
-    assert fetched.candidature_id == candidature_id
+    assert str(fetched.candidature_id) == candidature_id
     assert fetched.publie_par_id == agent_id
     assert fetched.message == note.message
     assert fetched.supprimee_le is None
@@ -54,6 +62,7 @@ def test_create_raises_when_candidature_unknown(agent_id) -> None:
         publie_par_id=agent_id,
     )
 
+    breakpoint()
     with pytest.raises(CandidatureIntrouvable):
         repository.create(note)
 
@@ -94,7 +103,13 @@ def test_soft_delete_excludes_from_listing_but_keeps_row(
 def test_list_by_candidature_returns_only_its_notes_ordered(
     candidature_id, agent_id
 ) -> None:
-    other_candidature = CandidatureFactory.build_model().id
+    # TODO : refactor
+    offre = OfferFactory.create_model()
+    other_candidat = CandidatFactory.create_model()
+    other_candidature = CandidatureFactory.build_model(
+        candidat_id=other_candidat.utilisateur_id, offre_id=offre.id
+    ).id
+
     note_a = NoteFactory.create_model(
         candidature_id=candidature_id, publie_par_id=agent_id
     )
