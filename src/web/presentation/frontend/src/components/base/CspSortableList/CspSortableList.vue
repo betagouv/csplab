@@ -13,6 +13,7 @@ interface Props {
   getItemKey: (item: T) => string
   getItemLabel?: (item: T) => string
   isItemDraggable?: (item: T, index: number) => boolean
+  getItemVariant?: (item: T, index: number) => 'default' | 'alt'
   disabled?: boolean
 }
 
@@ -30,6 +31,10 @@ function isDraggable(item: T, index: number) {
   if (props.disabled)
     return false
   return props.isItemDraggable?.(item, index) ?? true
+}
+
+function getVariant(item: T, index: number): 'default' | 'alt' {
+  return props.getItemVariant?.(item, index) ?? 'default'
 }
 
 function getLabel(item: T): string {
@@ -106,6 +111,7 @@ onMounted(() => {
       :index="index"
       :list-id="listId"
       :draggable="isDraggable(item, index)"
+      :variant="getVariant(item, index)"
       :disabled="disabled"
     >
       <template #default="slotProps">

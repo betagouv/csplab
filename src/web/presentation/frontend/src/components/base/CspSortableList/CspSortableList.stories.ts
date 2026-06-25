@@ -2,7 +2,6 @@ import type { StoryObj } from '@storybook/vue3-vite'
 import { ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
-import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
 
 interface DemoItem {
@@ -17,7 +16,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Liste réordonnables par drag and drop. Accessible via les fonctions `moveUp`/`moveDown` exposées dans le slot.',
+        component: 'Liste réordonnable par drag and drop. Accessible via les fonctions `moveUp`/`moveDown` exposées dans le slot.',
       },
     },
   },
@@ -51,6 +50,14 @@ const meta = {
         defaultValue: { summary: '() => true' },
       },
     },
+    getItemVariant: {
+      control: false,
+      description: 'Fonction retournant la variante visuelle de chaque élément.',
+      table: {
+        type: { summary: '(item: T, index: number) => \'default\' | \'alt\'' },
+        defaultValue: { summary: '() => \'default\'' },
+      },
+    },
     disabled: {
       control: { type: 'boolean' },
       description: 'Désactive le drag and drop sur toute la liste.',
@@ -69,7 +76,7 @@ const meta = {
     },
     item: {
       control: false,
-      description: 'Slot pour personnaliser le rendu de chaque élément. Expose : `item`, `index`, `isDragging`, `isDraggable`, `setHandleRef`, `canMoveUp`, `canMoveDown`, `moveUp`, `moveDown`.',
+      description: 'Slot pour personnaliser le contenu de chaque élément. Expose : `item`, `index`, `isDragging`, `isDraggable`, `canMoveUp`, `canMoveDown`, `moveUp`, `moveDown`.',
       table: {
         category: 'Slots',
         type: { summary: 'slot' },
@@ -105,30 +112,9 @@ const meta = {
 export default meta
 type Story = StoryObj
 
-const itemStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 'var(--csp-space-3)',
-  padding: 'var(--csp-space-3) var(--csp-space-4)',
-  borderRadius: '0.25rem',
-  boxShadow: 'inset 0 0 0 1px var(--border-default-grey)',
-  background: 'var(--background-default-grey)',
-}
-
-const handleStyle = {
-  display: 'flex',
-  cursor: 'grab',
-  color: 'var(--text-mention-grey)',
-}
-
-const iconStyle = {
-  display: 'flex',
-  color: 'var(--text-mention-grey)',
-}
-
 export const Default: Story = {
   render: () => ({
-    components: { CspSortableList, CspIcon },
+    components: { CspSortableList },
     setup() {
       const items = ref<DemoItem[]>([
         { id: '1', label: 'Élément 1' },
@@ -143,8 +129,6 @@ export const Default: Story = {
 
       return {
         items,
-        itemStyle,
-        handleStyle,
         getItemKey: (item: DemoItem) => item.id,
         getItemLabel: (item: DemoItem) => item.label,
         onReorder,
@@ -157,13 +141,8 @@ export const Default: Story = {
         :get-item-label="getItemLabel"
         @reorder="onReorder"
       >
-        <template #item="{ item, setHandleRef, isDragging }">
-          <div :style="{ ...itemStyle, opacity: isDragging ? 0.5 : 1 }">
-            <span :ref="setHandleRef" :style="handleStyle">
-              <CspIcon name="ri:draggable" :size="16" />
-            </span>
-            <span style="flex: 1;">{{ item.label }}</span>
-          </div>
+        <template #item="{ item }">
+          <span style="flex: 1;">{{ item.label }}</span>
         </template>
       </CspSortableList>
     `,
@@ -174,15 +153,9 @@ interface PinnedDemoItem extends DemoItem {
   pinned?: boolean
 }
 
-const pinnedItemStyle = {
-  ...itemStyle,
-  background: 'var(--background-disabled-grey)',
-  color: 'var(--text-disabled-grey)',
-}
-
 export const WithPinnedItems: Story = {
   render: () => ({
-    components: { CspSortableList, CspIcon },
+    components: { CspSortableList },
     setup() {
       const items = ref<PinnedDemoItem[]>([
         { id: '1', label: 'Élément épinglé', pinned: true },
@@ -202,12 +175,10 @@ export const WithPinnedItems: Story = {
 
       return {
         items,
-        itemStyle,
-        pinnedItemStyle,
-        iconStyle,
         getItemKey: (item: PinnedDemoItem) => item.id,
         getItemLabel: (item: PinnedDemoItem) => item.label,
         isItemDraggable: (item: PinnedDemoItem) => !item.pinned,
+        getItemVariant: (item: PinnedDemoItem) => item.pinned ? 'alt' : 'default',
         onReorder,
       }
     },
@@ -217,22 +188,11 @@ export const WithPinnedItems: Story = {
         :get-item-key="getItemKey"
         :get-item-label="getItemLabel"
         :is-item-draggable="isItemDraggable"
+        :get-item-variant="getItemVariant"
         @reorder="onReorder"
       >
-        <template #item="{ item, setHandleRef, isDragging, isDraggable }">
-          <div :style="{ ...(item.pinned ? pinnedItemStyle : itemStyle), opacity: isDragging ? 0.5 : 1 }">
-            <span
-              v-if="isDraggable"
-              :ref="setHandleRef"
-              :style="{ ...iconStyle, cursor: 'grab' }"
-            >
-              <CspIcon name="ri:draggable" :size="16" />
-            </span>
-            <span v-else :style="iconStyle">
-              <CspIcon name="ri:pushpin-2-line" :size="16" />
-            </span>
-            <span style="flex: 1;">{{ item.label }}</span>
-          </div>
+        <template #item="{ item }">
+          <span style="flex: 1;">{{ item.label }}</span>
         </template>
       </CspSortableList>
     `,
@@ -241,7 +201,7 @@ export const WithPinnedItems: Story = {
 
 export const WithActions: Story = {
   render: () => ({
-    components: { CspSortableList, CspIcon, CspButton, CspDropdownMenu },
+    components: { CspSortableList, CspButton, CspDropdownMenu },
     setup() {
       const items = ref<DemoItem[]>([
         { id: '1', label: 'Élément 1' },
@@ -276,8 +236,6 @@ export const WithActions: Story = {
 
       return {
         items,
-        itemStyle,
-        handleStyle,
         getItemKey: (item: DemoItem) => item.id,
         getItemLabel: (item: DemoItem) => item.label,
         onReorder,
@@ -291,27 +249,22 @@ export const WithActions: Story = {
         :get-item-label="getItemLabel"
         @reorder="onReorder"
       >
-        <template #item="{ item, setHandleRef, isDragging, canMoveUp, canMoveDown, moveUp, moveDown }">
-          <div :style="{ ...itemStyle, opacity: isDragging ? 0.5 : 1 }">
-            <span :ref="setHandleRef" :style="handleStyle">
-              <CspIcon name="ri:draggable" :size="16" />
-            </span>
-            <span style="flex: 1;">{{ item.label }}</span>
-            <CspDropdownMenu
-              :sections="getMenuSections(canMoveUp, canMoveDown, moveUp, moveDown, item.id)"
-              side="bottom"
-              align="end"
-            >
-              <template #trigger>
-                <CspButton
-                  icon="ri:more-2-fill"
-                  variant="tertiary-no-outline"
-                  size="sm"
-                  aria-label="Actions"
-                />
-              </template>
-            </CspDropdownMenu>
-          </div>
+        <template #item="{ item, canMoveUp, canMoveDown, moveUp, moveDown }">
+          <span style="flex: 1;">{{ item.label }}</span>
+          <CspDropdownMenu
+            :sections="getMenuSections(canMoveUp, canMoveDown, moveUp, moveDown, item.id)"
+            side="bottom"
+            align="end"
+          >
+            <template #trigger>
+              <CspButton
+                icon="ri:more-2-fill"
+                variant="tertiary-no-outline"
+                size="sm"
+                aria-label="Actions"
+              />
+            </template>
+          </CspDropdownMenu>
         </template>
       </CspSortableList>
     `,
