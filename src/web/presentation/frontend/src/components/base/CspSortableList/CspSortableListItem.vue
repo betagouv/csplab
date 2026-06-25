@@ -77,10 +77,19 @@ function setHandleRef(element: Element | null) {
         :ref="(el) => setHandleRef(el as Element | null)"
         class="csp-sortable-list-item__handle"
       >
-        <CspIcon name="ri:draggable" :size="16" />
+        <CspIcon
+          name="ri:draggable"
+          :size="16"
+        />
       </span>
-      <span v-else class="csp-sortable-list-item__icon">
-        <CspIcon name="ri:pushpin-2-line" :size="16" />
+      <span
+        v-else
+        class="csp-sortable-list-item__icon"
+      >
+        <CspIcon
+          name="ri:pushpin-2-line"
+          :size="16"
+        />
       </span>
 
       <slot
