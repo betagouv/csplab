@@ -2,12 +2,13 @@ import * as Sentry from '@sentry/vue'
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
+import { routes } from './routes'
 import '@/app/icons'
 import '@/styles/index.css'
 
 const router = createRouter({
   history: createWebHistory('/ats/'),
-  routes: [{ path: '/', name: 'home', component: () => import('@/features/ats/HomeView.vue') }],
+  routes,
 })
 
 const app = createApp(App)

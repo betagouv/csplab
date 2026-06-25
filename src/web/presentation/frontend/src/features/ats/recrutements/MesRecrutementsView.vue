@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import AtsAppShell from './components/AtsAppShell.vue'
+import AtsAppShell from '../components/AtsAppShell.vue'
 </script>
 
 <template>
   <AtsAppShell>
-    <div class="home-view">
-      <h1 class="home-view__title">
-        Accueil
+    <div class="mes-recrutement-view">
+      <h1 class="mes-recrutement-view__title">
+        Mes recrutements
       </h1>
     </div>
   </AtsAppShell>
 </template>
 
 <style scoped lang="scss">
-.home-view {
+.mes-recrutement-view {
   padding: 2rem;
 }
 
-.home-view__title {
+.mes-recrutement-view__title {
   margin: 0 0 0.5rem;
   font-size: 1.5rem;
   font-weight: 600;
