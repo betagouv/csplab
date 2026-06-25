@@ -1,8 +1,16 @@
+from uuid import UUID
+
 from ddd.domain_errors import DomainError
 
 
 class ErreurRecruteur(DomainError):
     pass
+
+
+class CandidatureRecruteurNexistePas(ErreurRecruteur):
+    def __init__(self, candidature_id: UUID):
+        super().__init__(f"Candidature {candidature_id} does not exist")
+        self.candidature_id = candidature_id
 
 
 class EtapeInvalide(ErreurRecruteur):

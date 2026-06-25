@@ -6,6 +6,9 @@ from application.recruteur.usecases.get_organisme_recruteur import (
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsUsecase,
 )
+from infrastructure.repositories.recruteur.postgres_candidature_recruteur_repository import (  # noqa E501
+    PostgresCandidatureRecruteurRepository,
+)
 from infrastructure.repositories.recruteur.postgres_organisme_repository import (
     PostgresOrganismeRecruteurRepository,
 )
@@ -17,6 +20,10 @@ class RecruteurContainer(containers.DeclarativeContainer):
 
     postgres_organisme_recruteur_repository = providers.Singleton(
         PostgresOrganismeRecruteurRepository
+    )
+
+    postgres_candidature_recruteur_repository = providers.Singleton(
+        PostgresCandidatureRecruteurRepository
     )
 
     get_organisme_recruteur_usecase = providers.Factory(

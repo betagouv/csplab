@@ -6,6 +6,7 @@ from application.candidate.commands.submit_application_command import (
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
+from infrastructure.mappers.candidature_mappers import CandidatureCandidatMapper
 
 
 @admin.register(CVMetadataModel)
@@ -42,7 +43,7 @@ class CandidatureAdmin(admin.ModelAdmin):
             )
             container = create_candidate_container()
             candidature = container.submit_application_usecase().execute(command)
-            saved = CandidatureModel.from_entity(candidature)
+            saved = CandidatureCandidatMapper().from_domain(candidature)
             # Sync obj avec les valeurs du usecase
             obj.id = saved.id
             obj.statut = saved.statut

@@ -3,27 +3,31 @@ from uuid import UUID
 from django.db import IntegrityError
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 
-from domain.candidate.entities.candidature import Candidature
+from domain.candidate.entities.candidature import CandidatureCandidat
 from domain.candidate.exceptions.candidature_errors import CandidatureNexistePas
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
 )
 from domain.identite.exceptions.candidat_errors import CandidatInexistant
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.mappers.candidature_mappers import CandidatureCandidatMapper
 
 
 class PostgresCandidatureRepository(ICandidatureRepository):
-    def get_by_offer(self, offer_id: UUID, candidate_id: UUID) -> Candidature:
+    def __init__(self) -> None:
+        self._mapper = CandidatureCandidatMapper()
+
+    def get_by_offer(self, offer_id: UUID, candidate_id: UUID) -> CandidatureCandidat:
         try:
             model = CandidatureModel.objects.get(  # type: ignore[attr-defined]
                 offre_id=offer_id,
                 candidat_id=str(candidate_id),  # type: ignore[misc]  # FK to_field=utilisateur_id (VARCHAR)
             )
-            return model.to_entity()
+            return self._mapper.to_domain(model)
         except CandidatureModel.DoesNotExist as e:
             raise CandidatureNexistePas(candidate_id, offer_id) from e
 
-    def save(self, candidature: Candidature) -> None:
+    def save(self, candidature: CandidatureCandidat) -> None:
         try:
             CandidatureModel.objects.update_or_create(  # type: ignore[attr-defined]
                 candidat_id=str(candidature.candidat_id),  # type: ignore[misc]  # UUID → VARCHAR(36)

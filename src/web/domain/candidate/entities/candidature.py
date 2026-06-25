@@ -17,7 +17,7 @@ from domain.candidate.value_objects.statut_candidature import StatutCandidature
 
 
 @dataclass(kw_only=True)
-class Candidature(AggregateRoot):
+class CandidatureCandidat(AggregateRoot):
     _candidat_id: UUID
     _offre_id: UUID
     _statut: StatutCandidature
@@ -27,7 +27,7 @@ class Candidature(AggregateRoot):
 
     @classmethod
     @factory(DossierCandidatureInitialise)
-    def create(cls, offre_id: UUID, candidat_id: UUID) -> "Candidature":
+    def create(cls, offre_id: UUID, candidat_id: UUID) -> "CandidatureCandidat":
         return cls(
             _candidat_id=candidat_id,
             _offre_id=offre_id,
@@ -45,7 +45,7 @@ class Candidature(AggregateRoot):
         documents: tuple[UUID, ...] | None = None,
         soumise_le: datetime | None = None,
         mise_a_jour_le: datetime | None = None,
-    ) -> "Candidature":
+    ) -> "CandidatureCandidat":
 
         return cls(
             entity_id=entity_id,

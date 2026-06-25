@@ -4,7 +4,7 @@ from ddd.usecase_interface import IUseCase
 from application.candidate.commands.submit_application_command import (
     SubmitApplicationCommand,
 )
-from domain.candidate.entities.candidature import Candidature
+from domain.candidate.entities.candidature import CandidatureCandidat
 from domain.candidate.exceptions.candidature_errors import (
     CandidatureNexistePas,
 )
@@ -18,7 +18,7 @@ from domain.commons.services.audit_log_writer import AuditLogWriter
 
 
 class SubmitApplicationUsecase(
-    IUseCase[SubmitApplicationCommand, Candidature],
+    IUseCase[SubmitApplicationCommand, CandidatureCandidat],
 ):
     def __init__(
         self,
@@ -32,7 +32,7 @@ class SubmitApplicationUsecase(
         self.actors_validator = actors_validator
         self.audit_log_writer = audit_log_writer
 
-    def execute(self, command: SubmitApplicationCommand) -> Candidature:
+    def execute(self, command: SubmitApplicationCommand) -> CandidatureCandidat:
         self.logger.info(
             "Starting candidature submission for candidate_uuid='%s', offer_uuid=%d",
         )
@@ -50,7 +50,7 @@ class SubmitApplicationUsecase(
             )
         except CandidatureNexistePas as e:
             self.logger.info(e.message)
-            candidature = Candidature.create(
+            candidature = CandidatureCandidat.create(
                 offre_id=offre_id,
                 candidat_id=candidat_id,
             )

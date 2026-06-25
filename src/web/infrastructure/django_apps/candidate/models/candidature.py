@@ -1,8 +1,7 @@
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from django.db import models
 
-from domain.candidate.entities.candidature import Candidature
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.users.models import ProfilCandidatModel
@@ -41,31 +40,6 @@ class CandidatureModel(BaseDatedModel):
                 name="unique_candidature_candidat_offre",
             )
         ]
-
-    def to_entity(self) -> Candidature:
-        return Candidature.build(
-            entity_id=self.id,
-            candidat_id=UUID(self.candidat_id),  # type: ignore[arg-type]
-            offre_id=self.offre_id,  # type: ignore[attr-defined]
-            statut=StatutCandidature(self.statut),
-            documents=tuple(UUID(d) for d in self.documents)
-            if self.documents
-            else None,
-            soumise_le=self.created_at,
-            mise_a_jour_le=self.updated_at,
-        )
-
-    @classmethod
-    def from_entity(cls, candidature: Candidature) -> "CandidatureModel":
-        return cls(
-            id=candidature.entity_id,
-            candidat_id=str(candidature.candidat_id),  # UUID → VARCHAR(36)
-            offre_id=candidature.offre_id,
-            statut=candidature.statut.value,
-            documents=[str(d) for d in candidature.documents]
-            if candidature.documents
-            else None,
-        )
 
     def __str__(self) -> str:
         return str(self.id)
