@@ -184,6 +184,59 @@ describe('cspDataTable: selection modes', () => {
   })
 })
 
+describe('cspDataTable: activation', () => {
+  it('none mode: clicking a row never activates', async () => {
+    const wrapper = mountTable({ activationMode: 'none' })
+    await wrapper.find('.csp-table__body .csp-table__row').trigger('click')
+    expect(wrapper.emitted('activate')).toBeUndefined()
+  })
+
+  it('row mode: clicking anywhere on the row activates with its id', async () => {
+    const wrapper = mountTable({ activationMode: 'row' })
+    await wrapper.find('.csp-table__body .csp-table__row').trigger('click')
+    expect(wrapper.emitted('activate')?.[0]).toEqual(['1'])
+  })
+
+  it('cell mode: only the slot target activates, not a plain row click', async () => {
+    const wrapper = mountTable({ activationMode: 'cell' }, {
+      slots: {
+        'cell-name': (slotProps: { value: unknown, activate?: () => void }) =>
+          h('button', { class: 'cell-open', onClick: slotProps.activate }, String(slotProps.value)),
+      },
+    })
+
+    await wrapper.find('.csp-table__body .csp-table__row').trigger('click')
+    expect(wrapper.emitted('activate')).toBeUndefined()
+
+    await wrapper.find('.cell-open').trigger('click')
+    expect(wrapper.emitted('activate')?.[0]).toEqual(['1'])
+  })
+
+  it('does not pass an activate helper to cell slots outside cell mode', () => {
+    const received: Array<(() => void) | undefined> = []
+    mountTable({ activationMode: 'row' }, {
+      slots: {
+        'cell-name': (slotProps: { activate?: () => void }) => {
+          received.push(slotProps.activate)
+          return h('span', 'x')
+        },
+      },
+    })
+    expect(received.every(fn => fn === undefined)).toBe(true)
+  })
+
+  it('row activation is ignored while the row is selectable', async () => {
+    const wrapper = mountTable({
+      selectionMode: 'row',
+      activationMode: 'row',
+      selectedIds: new Set<string>(),
+    })
+    await wrapper.find('.csp-table__body .csp-table__row').trigger('click')
+    expect(wrapper.emitted('activate')).toBeUndefined()
+    expect(wrapper.emitted('toggleRow')?.[0]).toEqual(['1'])
+  })
+})
+
 describe('cspDataTable: pagination', () => {
   it('renders only the rows of the current page', async () => {
     const wrapper = mountTable({ pageSize: 2, page: 1 })
