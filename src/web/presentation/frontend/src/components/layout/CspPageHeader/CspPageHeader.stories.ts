@@ -1,6 +1,9 @@
 import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3-vite'
+import { ref } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
+import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 
 type CspPageHeaderProps = ComponentPropsAndSlots<typeof CspPageHeader>
@@ -92,6 +95,37 @@ export const WithRichTitle: Story = {
           <CspBadge type="success" label="Statut" />
         </template>
       </CspPageHeader>
+    `,
+  }),
+}
+
+export const WithTabs: Story = {
+  name: 'Avec onglets',
+  parameters: {
+    docs: {
+      description: {
+        story: 'En-tête de page avec une barre d’onglets dans le slot `#tabs` (la barre seule ; les panneaux vivent dans le contenu de la page).',
+      },
+    },
+  },
+  render: (args: CspPageHeaderProps) => ({
+    components: { CspPageHeader, CspTabs, CspTabsList },
+    setup() {
+      const tabs = [
+        { value: 'tab-1', label: 'Onglet 1' },
+        { value: 'tab-2', label: 'Onglet 2' },
+      ]
+      const selected = ref('tab-1')
+      return { args, tabs, selected }
+    },
+    template: `
+      <CspTabs v-model="selected">
+        <CspPageHeader v-bind="args">
+          <template #tabs>
+            <CspTabsList :tabs="tabs" />
+          </template>
+        </CspPageHeader>
+      </CspTabs>
     `,
   }),
 }
