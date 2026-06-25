@@ -50,8 +50,12 @@ class TestCandidateFlowAccessibility:
 
         _assert_no_violations(Axe().run(page, options=AXE_OPTIONS))
 
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_results_page_has_no_axe_violations(
-        self, page: Page, live_server, transactional_db
+        self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_entity = OfferFactory.create_entity(title="Offre a11y")
         OfferModel.from_entity(offer_entity).save()
@@ -59,27 +63,24 @@ class TestCandidateFlowAccessibility:
             status=CVStatus.COMPLETED, search_query="dev"
         )
         CVMetadataModel.from_entity(cv_metadata).save()
+        mock_execute.return_value = [(offer_entity, 0.9)]
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute"
-        ) as mock_execute:
-            mock_execute.return_value = [(offer_entity, 0.9)]
+        cv_url = reverse(
+            "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
+        )
+        page.goto(f"{live_server.url}{cv_url}")
+        expect(
+            page.get_by_role("heading", name="Offres et concours les plus pertinents")
+        ).to_be_visible()
 
-            cv_url = reverse(
-                "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
-            )
-            page.goto(f"{live_server.url}{cv_url}")
-            expect(
-                page.get_by_role(
-                    "heading", name="Offres et concours les plus pertinents"
-                )
-            ).to_be_visible()
+        _assert_no_violations(Axe().run(page, options=AXE_OPTIONS))
 
-            _assert_no_violations(Axe().run(page, options=AXE_OPTIONS))
-
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_open_drawer_has_no_axe_violations(
-        self, page: Page, live_server, transactional_db
+        self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_entity = OfferFactory.create_entity(title="Offre drawer a11y")
         OfferModel.from_entity(offer_entity).save()
@@ -87,18 +88,13 @@ class TestCandidateFlowAccessibility:
             status=CVStatus.COMPLETED, search_query="dev"
         )
         CVMetadataModel.from_entity(cv_metadata).save()
+        mock_execute.return_value = [(offer_entity, 0.9)]
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute"
-        ) as mock_execute:
-            mock_execute.return_value = [(offer_entity, 0.9)]
+        cv_url = reverse(
+            "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
+        )
+        page.goto(f"{live_server.url}{cv_url}")
+        page.locator("[data-drawer-open]").first.click()
+        expect(page.locator("dialog[data-drawer][open]")).to_be_visible()
 
-            cv_url = reverse(
-                "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
-            )
-            page.goto(f"{live_server.url}{cv_url}")
-            page.locator("[data-drawer-open]").first.click()
-            expect(page.locator("dialog[data-drawer][open]")).to_be_visible()
-
-            _assert_no_violations(Axe().run(page, options=AXE_OPTIONS))
+        _assert_no_violations(Axe().run(page, options=AXE_OPTIONS))

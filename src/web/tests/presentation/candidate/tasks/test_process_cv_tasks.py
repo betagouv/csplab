@@ -7,28 +7,24 @@ CV_UUID = str(uuid4())
 CV_BYTES = b"fake pdf content"
 
 
-def test_process_cv_task_is_enqueued():
-    with patch(
-        "infrastructure.di.candidate.candidate_factory.create_candidate_container"
-    ) as mock_factory:
-        process_cv_task(CV_UUID, CV_BYTES)
+@patch("infrastructure.di.candidate.candidate_factory.create_candidate_container")
+def test_process_cv_task_is_enqueued(mock_factory):
+    process_cv_task(CV_UUID, CV_BYTES)
 
     mock_factory.assert_not_called()
 
 
-def test_process_cv_task_calls_usecase(db):
+@patch("presentation.candidate.tasks.create_candidate_container")
+def test_process_cv_task_calls_usecase(mock_create_container, db):
     mock_execute = AsyncMock()
     mock_usecase = MagicMock()
     mock_usecase.execute = mock_execute
 
     mock_container = MagicMock()
     mock_container.process_uploaded_cv_usecase.return_value = mock_usecase
+    mock_create_container.return_value = mock_container
 
-    with patch(
-        "presentation.candidate.tasks.create_candidate_container",
-        return_value=mock_container,
-    ):
-        process_cv_task.call_local(CV_UUID, CV_BYTES)
+    process_cv_task.call_local(CV_UUID, CV_BYTES)
 
     mock_container.process_uploaded_cv_usecase.assert_called_once()
     mock_execute.assert_awaited_once_with(UUID(CV_UUID), CV_BYTES)

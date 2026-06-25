@@ -234,6 +234,7 @@ class TestIntegrationLoadOffersUseCase:
         repository_get_by_external_ids.assert_not_called()
         assert result == {"created": 0, "updated": 0, "errors": []}
 
+    @patch.object(load_offers, "MAX_ITERATIONS", MAX_ITERATIONS)
     async def test_stops_after_max_iterations(
         self, db, httpx_mock, documents_ingestion_container, load_offers_usecase
     ):
@@ -251,8 +252,7 @@ class TestIntegrationLoadOffersUseCase:
             kwargs={"document_type": DocumentType.OFFERS},
         )
 
-        with patch.object(load_offers, "MAX_ITERATIONS", MAX_ITERATIONS):
-            await load_offers_usecase.execute(input_data)
+        await load_offers_usecase.execute(input_data)
 
         # (MAX_ITERATIONS - 1) * (getsummaries + getoffer calls)
         assert len(httpx_mock.get_requests()) == (MAX_ITERATIONS - 1) * 2

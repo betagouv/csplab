@@ -38,8 +38,12 @@ def fake_execute_filter_by_category_and_versant(
 
 @pytest.mark.e2e
 class TestResultsDrawer:
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_user_opens_offer_drawer_and_closes_it_with_close_button(
-        self, page: Page, live_server, transactional_db
+        self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_entity = OfferFactory.create_model(title="Offre e2e drawer").to_entity()
 
@@ -47,31 +51,30 @@ class TestResultsDrawer:
             status=CVStatus.COMPLETED, search_query="dev"
         )
         CVMetadataModel.from_entity(cv_metadata).save()
+        mock_execute.return_value = [((offer_entity, []), 0.9)]
 
         results_url = reverse(
             "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute"
-        ) as mock_execute:
-            mock_execute.return_value = [((offer_entity, []), 0.9)]
+        page.goto(f"{live_server.url}{results_url}")
+        expect(page.get_by_test_id("cv-results")).to_be_visible()
 
-            page.goto(f"{live_server.url}{results_url}")
-            expect(page.get_by_test_id("cv-results")).to_be_visible()
+        page.locator("[data-drawer-open]").first.click()
 
-            page.locator("[data-drawer-open]").first.click()
+        drawer = page.get_by_test_id("opportunity-drawer")
+        expect(drawer).to_be_visible()
+        expect(drawer).to_contain_text("Offre e2e drawer")
 
-            drawer = page.get_by_test_id("opportunity-drawer")
-            expect(drawer).to_be_visible()
-            expect(drawer).to_contain_text("Offre e2e drawer")
+        drawer.locator("[data-drawer-close]").click()
+        expect(drawer).not_to_be_visible()
 
-            drawer.locator("[data-drawer-close]").click()
-            expect(drawer).not_to_be_visible()
-
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_user_closes_drawer_with_browser_back_navigation(
-        self, page: Page, live_server, transactional_db
+        self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_entity = OfferFactory.create_model(title="Offre e2e back-nav").to_entity()
 
@@ -79,31 +82,30 @@ class TestResultsDrawer:
             status=CVStatus.COMPLETED, search_query="dev"
         )
         CVMetadataModel.from_entity(cv_metadata).save()
+        mock_execute.return_value = [((offer_entity, []), 0.9)]
 
         results_url = reverse(
             "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute"
-        ) as mock_execute:
-            mock_execute.return_value = [((offer_entity, []), 0.9)]
+        page.goto(f"{live_server.url}{results_url}")
+        expect(page.get_by_test_id("cv-results")).to_be_visible()
 
-            page.goto(f"{live_server.url}{results_url}")
-            expect(page.get_by_test_id("cv-results")).to_be_visible()
+        page.locator("[data-drawer-open]").first.click()
+        drawer = page.get_by_test_id("opportunity-drawer")
+        expect(drawer).to_be_visible()
 
-            page.locator("[data-drawer-open]").first.click()
-            drawer = page.get_by_test_id("opportunity-drawer")
-            expect(drawer).to_be_visible()
+        page.go_back()
 
-            page.go_back()
+        expect(drawer).not_to_be_visible()
+        expect(page).to_have_url(re.compile(re.escape(results_url) + r"/?$"))
 
-            expect(drawer).not_to_be_visible()
-            expect(page).to_have_url(re.compile(re.escape(results_url) + r"/?$"))
-
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_user_opens_concours_drawer_and_closes_it_with_close_button(
-        self, page: Page, live_server, transactional_db
+        self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         concours_model = ConcoursFactory.create_model(
             corps="Corps e2e drawer", grade="Grade e2e drawer"
@@ -114,34 +116,33 @@ class TestResultsDrawer:
             status=CVStatus.COMPLETED, search_query="dev"
         )
         CVMetadataModel.from_entity(cv_metadata).save()
+        mock_execute.return_value = [(concours_entity, 0.9)]
 
         results_url = reverse(
             "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute"
-        ) as mock_execute:
-            mock_execute.return_value = [(concours_entity, 0.9)]
+        page.goto(f"{live_server.url}{results_url}")
+        expect(page.get_by_test_id("cv-results")).to_be_visible()
 
-            page.goto(f"{live_server.url}{results_url}")
-            expect(page.get_by_test_id("cv-results")).to_be_visible()
+        page.locator("[data-drawer-open]").first.click()
 
-            page.locator("[data-drawer-open]").first.click()
+        drawer = page.get_by_test_id("opportunity-drawer")
+        expect(drawer).to_be_visible()
+        expect(drawer).to_contain_text("Corps e2e drawer")
 
-            drawer = page.get_by_test_id("opportunity-drawer")
-            expect(drawer).to_be_visible()
-            expect(drawer).to_contain_text("Corps e2e drawer")
-
-            drawer.locator("[data-drawer-close]").click()
-            expect(drawer).not_to_be_visible()
+        drawer.locator("[data-drawer-close]").click()
+        expect(drawer).not_to_be_visible()
 
 
 @pytest.mark.e2e
 class TestResultsPersistence:
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_user_refreshes_results_page_and_state_persists(
-        self, page: Page, live_server, transactional_db
+        self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_entity = OfferFactory.create_model(title="Offre e2e refresh").to_entity()
 
@@ -149,34 +150,31 @@ class TestResultsPersistence:
             status=CVStatus.COMPLETED, search_query="dev"
         )
         CVMetadataModel.from_entity(cv_metadata).save()
+        mock_execute.return_value = [((offer_entity, []), 0.9)]
 
         results_url = reverse(
             "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute"
-        ) as mock_execute:
-            mock_execute.return_value = [((offer_entity, []), 0.9)]
+        page.goto(f"{live_server.url}{results_url}")
+        results = page.get_by_test_id("cv-results")
+        expect(results).to_be_visible()
+        expect(results).to_contain_text("Offre e2e refresh")
 
-            page.goto(f"{live_server.url}{results_url}")
-            results = page.get_by_test_id("cv-results")
-            expect(results).to_be_visible()
-            expect(results).to_contain_text("Offre e2e refresh")
+        page.reload()
 
-            page.reload()
-
-            expect(page.get_by_test_id("cv-results")).to_be_visible()
-            expect(page.get_by_test_id("cv-results")).to_contain_text(
-                "Offre e2e refresh"
-            )
+        expect(page.get_by_test_id("cv-results")).to_be_visible()
+        expect(page.get_by_test_id("cv-results")).to_contain_text("Offre e2e refresh")
 
 
 @pytest.mark.e2e
 class TestResultsFilters:
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_user_narrows_results_by_selecting_category_filter(
-        self, page: Page, live_server, transactional_db
+        self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_a = OfferFactory.create_model(
             title="Offre alpha", category=Category.A
@@ -189,29 +187,31 @@ class TestResultsFilters:
             status=CVStatus.COMPLETED, search_query="dev"
         )
         CVMetadataModel.from_entity(cv_metadata).save()
+        mock_execute.side_effect = partial(
+            fake_execute_filter_by_category, offer_a, offer_b
+        )
 
         results_url = reverse(
             "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute",
-            side_effect=partial(fake_execute_filter_by_category, offer_a, offer_b),
-        ):
-            page.goto(f"{live_server.url}{results_url}")
-            results = page.get_by_test_id("cv-results")
-            expect(results).to_contain_text("Offre alpha")
-            expect(results).to_contain_text("Offre beta")
+        page.goto(f"{live_server.url}{results_url}")
+        results = page.get_by_test_id("cv-results")
+        expect(results).to_contain_text("Offre alpha")
+        expect(results).to_contain_text("Offre beta")
 
-            page.locator("label:has(#desktop-filter-category-a)").click()
+        page.locator("label:has(#desktop-filter-category-a)").click()
 
-            expect(results).to_contain_text("Offre alpha")
-            expect(results).not_to_contain_text("Offre beta")
-            expect(page).to_have_url(re.compile(r"filter-category=a"))
+        expect(results).to_contain_text("Offre alpha")
+        expect(results).not_to_contain_text("Offre beta")
+        expect(page).to_have_url(re.compile(r"filter-category=a"))
 
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_user_lands_on_filtered_results_via_deep_link(
-        self, page: Page, live_server, transactional_db
+        self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_a = OfferFactory.create_model(
             title="Offre alpha deep", category=Category.A
@@ -224,26 +224,28 @@ class TestResultsFilters:
             status=CVStatus.COMPLETED, search_query="dev"
         )
         CVMetadataModel.from_entity(cv_metadata).save()
+        mock_execute.side_effect = partial(
+            fake_execute_filter_by_category, offer_a, offer_b
+        )
 
         results_url = reverse(
             "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute",
-            side_effect=partial(fake_execute_filter_by_category, offer_a, offer_b),
-        ):
-            page.goto(f"{live_server.url}{results_url}?filter-category=a")
+        page.goto(f"{live_server.url}{results_url}?filter-category=a")
 
-            results = page.get_by_test_id("cv-results")
-            expect(results).to_be_visible()
-            expect(results).to_contain_text("Offre alpha deep")
-            expect(results).not_to_contain_text("Offre beta deep")
-            expect(page.locator("#desktop-filter-category-a")).to_be_checked()
+        results = page.get_by_test_id("cv-results")
+        expect(results).to_be_visible()
+        expect(results).to_contain_text("Offre alpha deep")
+        expect(results).not_to_contain_text("Offre beta deep")
+        expect(page.locator("#desktop-filter-category-a")).to_be_checked()
 
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_user_combines_category_and_versant_filters(
-        self, page: Page, live_server, transactional_db
+        self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_a_fpe = OfferFactory.create_model(
             title="Offre alpha FPE", category=Category.A
@@ -259,41 +261,41 @@ class TestResultsFilters:
             status=CVStatus.COMPLETED, search_query="dev"
         )
         CVMetadataModel.from_entity(cv_metadata).save()
+        mock_execute.side_effect = partial(
+            fake_execute_filter_by_category_and_versant,
+            offer_a_fpe,
+            offer_a_fpt,
+            offer_b_fpe,
+        )
 
         results_url = reverse(
             "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute",
-            side_effect=partial(
-                fake_execute_filter_by_category_and_versant,
-                offer_a_fpe,
-                offer_a_fpt,
-                offer_b_fpe,
-            ),
-        ):
-            page.goto(f"{live_server.url}{results_url}")
-            results = page.get_by_test_id("cv-results")
-            expect(results).to_contain_text("Offre alpha FPE")
-            expect(results).to_contain_text("Offre alpha FPT")
-            expect(results).to_contain_text("Offre beta FPE")
+        page.goto(f"{live_server.url}{results_url}")
+        results = page.get_by_test_id("cv-results")
+        expect(results).to_contain_text("Offre alpha FPE")
+        expect(results).to_contain_text("Offre alpha FPT")
+        expect(results).to_contain_text("Offre beta FPE")
 
-            page.locator("label:has(#desktop-filter-category-a)").click()
-            expect(page).to_have_url(re.compile(r"filter-category=a"))
-            expect(results).not_to_contain_text("Offre beta FPE")
+        page.locator("label:has(#desktop-filter-category-a)").click()
+        expect(page).to_have_url(re.compile(r"filter-category=a"))
+        expect(results).not_to_contain_text("Offre beta FPE")
 
-            page.locator("label:has(#desktop-filter-versant-FPE)").click()
-            expect(page).to_have_url(re.compile(r"filter-versant=FPE"))
-            expect(results).to_contain_text("Offre alpha FPE")
-            expect(results).not_to_contain_text("Offre alpha FPT")
+        page.locator("label:has(#desktop-filter-versant-FPE)").click()
+        expect(page).to_have_url(re.compile(r"filter-versant=FPE"))
+        expect(results).to_contain_text("Offre alpha FPE")
+        expect(results).not_to_contain_text("Offre alpha FPT")
 
 
 @pytest.mark.e2e
 class TestResultsPagination:
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_user_navigates_to_page_2_via_dsfr_pagination(
-        self, page: Page, live_server, transactional_db, settings
+        self, mock_execute, page: Page, live_server, transactional_db, settings
     ) -> None:
         settings.CV_RESULTS_PER_PAGE = 3
 
@@ -306,27 +308,22 @@ class TestResultsPagination:
             status=CVStatus.COMPLETED, search_query="dev"
         )
         CVMetadataModel.from_entity(cv_metadata).save()
+        mock_execute.return_value = [
+            ((offer, []), 0.9 - i * 0.05) for i, offer in enumerate(offers)
+        ]
 
         results_url = reverse(
             "candidate:cv_results", kwargs={"cv_uuid": cv_metadata.entity_id}
         )
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute"
-        ) as mock_execute:
-            mock_execute.return_value = [
-                ((offer, []), 0.9 - i * 0.05) for i, offer in enumerate(offers)
-            ]
+        page.goto(f"{live_server.url}{results_url}")
+        results = page.get_by_test_id("cv-results")
+        expect(results).to_be_visible()
+        expect(results).to_contain_text("Offre paginée 0")
+        expect(results).not_to_contain_text("Offre paginée 4")
 
-            page.goto(f"{live_server.url}{results_url}")
-            results = page.get_by_test_id("cv-results")
-            expect(results).to_be_visible()
-            expect(results).to_contain_text("Offre paginée 0")
-            expect(results).not_to_contain_text("Offre paginée 4")
+        page.locator('a.fr-pagination__link[title="Page 2"]').click()
 
-            page.locator('a.fr-pagination__link[title="Page 2"]').click()
-
-            expect(page).to_have_url(re.compile(r"page=2"))
-            expect(results).to_contain_text("Offre paginée 4")
-            expect(results).not_to_contain_text("Offre paginée 0")
+        expect(page).to_have_url(re.compile(r"page=2"))
+        expect(results).to_contain_text("Offre paginée 4")
+        expect(results).not_to_contain_text("Offre paginée 0")

@@ -12,9 +12,17 @@ from tests.factories.referentiel.offer_factory import OfferFactory
 
 @pytest.mark.e2e
 class TestCVUploadFlow:
+    @patch(
+        "application.candidate.usecases.match_cv_to_opportunities."
+        "MatchCVToOpportunitiesUsecase.execute"
+    )
     def test_user_sees_results_after_processing_completes(
-        self, page: Page, live_server, cv_pdf_path: Path, db
+        self, mock_execute, page: Page, live_server, cv_pdf_path: Path, db
     ) -> None:
+        mock_execute.return_value = [
+            ((OfferFactory.create_entity(title="Offre e2e"), []), 0.9),
+        ]
+
         page.goto(f"{live_server.url}/candidate/cv-upload")
         form = page.get_by_test_id("cv-upload-form")
         form.locator("input[data-file-input]").set_input_files(str(cv_pdf_path))
@@ -25,14 +33,7 @@ class TestCVUploadFlow:
         assert match is not None
         cv_uuid = match.group(1)
 
-        with patch(
-            "application.candidate.usecases.match_cv_to_opportunities."
-            "MatchCVToOpportunitiesUsecase.execute"
-        ) as mock_execute:
-            mock_execute.return_value = [
-                ((OfferFactory.create_entity(title="Offre e2e"), []), 0.9),
-            ]
-            CVMetadataModel.objects.filter(id=cv_uuid).update(
-                status=CVStatus.COMPLETED.value, search_query="dev"
-            )
-            expect(page.get_by_test_id("cv-results")).to_be_visible(timeout=10_000)
+        CVMetadataModel.objects.filter(id=cv_uuid).update(
+            status=CVStatus.COMPLETED.value, search_query="dev"
+        )
+        expect(page.get_by_test_id("cv-results")).to_be_visible(timeout=10_000)

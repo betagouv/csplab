@@ -46,27 +46,27 @@ class TestApiKeyRateThrottle:
     def test_scope_is_api_key(self):
         assert ApiKeyRateThrottle.scope == "api_key"
 
+    @patch.object(ApiKeyRateThrottle, "THROTTLE_RATES", {"api_key": "3/hour"})
     def test_rate_limit_allows_requests_within_limit(self, rf):
         cache.clear()
         request = rf.get("/")
         request.user = API_KEY_USER
-        with patch.object(ApiKeyRateThrottle, "THROTTLE_RATES", {"api_key": "3/hour"}):
-            for _ in range(3):
-                assert ApiKeyRateThrottle().allow_request(request, view=None) is True
+        for _ in range(3):
+            assert ApiKeyRateThrottle().allow_request(request, view=None) is True
 
+    @patch.object(ApiKeyRateThrottle, "THROTTLE_RATES", {"api_key": "3/hour"})
     def test_rate_limit_blocks_requests_over_limit(self, rf):
         cache.clear()
         request = rf.get("/")
         request.user = API_KEY_USER
-        with patch.object(ApiKeyRateThrottle, "THROTTLE_RATES", {"api_key": "3/hour"}):
-            for _ in range(3):
-                ApiKeyRateThrottle().allow_request(request, view=None)
-            assert ApiKeyRateThrottle().allow_request(request, view=None) is False
+        for _ in range(3):
+            ApiKeyRateThrottle().allow_request(request, view=None)
+        assert ApiKeyRateThrottle().allow_request(request, view=None) is False
 
+    @patch.object(ApiKeyRateThrottle, "THROTTLE_RATES", {"api_key": "3/hour"})
     def test_rate_limit_is_not_applied_to_non_api_key_user(self, rf):
         cache.clear()
         request = rf.get("/")
         request.user = object()
-        with patch.object(ApiKeyRateThrottle, "THROTTLE_RATES", {"api_key": "3/hour"}):
-            for _ in range(10):
-                assert ApiKeyRateThrottle().allow_request(request, view=None) is True
+        for _ in range(10):
+            assert ApiKeyRateThrottle().allow_request(request, view=None) is True
