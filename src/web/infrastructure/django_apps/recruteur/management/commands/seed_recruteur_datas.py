@@ -17,9 +17,7 @@ class Command(BaseCommand):
             "--force",
             action="store_true",
             default=False,
-            help=(
-                "Supprime les données existantes et reseed depuis zéro. "
-            ),
+            help=("Supprime les données existantes et reseed depuis zéro. "),
         )
 
     def handle(self, *args, **options):
