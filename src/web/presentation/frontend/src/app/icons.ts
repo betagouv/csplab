@@ -19,7 +19,7 @@ import riCheckboxCircleFill from '@iconify-icons/ri/checkbox-circle-fill'
 import riCloseLine from '@iconify-icons/ri/close-line'
 import riDashboardLine from '@iconify-icons/ri/dashboard-line'
 import riDeleteBinLine from '@iconify-icons/ri/delete-bin-line'
-import riDragDropLine from '@iconify-icons/ri/drag-drop-line'
+import riDraggable from '@iconify-icons/ri/draggable'
 import riEditLine from '@iconify-icons/ri/edit-line'
 import riErrorWarningFill from '@iconify-icons/ri/error-warning-fill'
 import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
@@ -37,6 +37,7 @@ import riMoonLine from '@iconify-icons/ri/moon-line'
 import riMore2Fill from '@iconify-icons/ri/more-2-fill'
 import riNotification3Line from '@iconify-icons/ri/notification-3-line'
 import riPriceTag3Line from '@iconify-icons/ri/price-tag-3-line'
+import riPushpin2Line from '@iconify-icons/ri/pushpin-2-line'
 import riSearchLine from '@iconify-icons/ri/search-line'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
@@ -65,7 +66,7 @@ addIcon('ri:checkbox-circle-fill', riCheckboxCircleFill)
 addIcon('ri:close-line', riCloseLine)
 addIcon('ri:dashboard-line', riDashboardLine)
 addIcon('ri:delete-bin-line', riDeleteBinLine)
-addIcon('ri:drag-drop-line', riDragDropLine)
+addIcon('ri:draggable', riDraggable)
 addIcon('ri:edit-line', riEditLine)
 addIcon('ri:error-warning-fill', riErrorWarningFill)
 addIcon('ri:expand-up-down-line', riExpandUpDownLine)
@@ -93,6 +94,7 @@ addIcon('ri:sidebar-unfold-line', {
 addIcon('ri:more-2-fill', riMore2Fill)
 addIcon('ri:notification-3-line', riNotification3Line)
 addIcon('ri:price-tag-3-line', riPriceTag3Line)
+addIcon('ri:pushpin-2-line', riPushpin2Line)
 addIcon('ri:search-line', riSearchLine)
 addIcon('ri:settings-3-line', riSettings3Line)
 addIcon('ri:spam-fill', riSpamFill)

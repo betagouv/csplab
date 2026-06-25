@@ -98,7 +98,7 @@ export const Default: Story = {
         <template #item="{ item, setHandleRef, isDragging, canMoveUp, canMoveDown, moveUp, moveDown }">
           <div :style="{ ...itemStyle, opacity: isDragging ? 0.5 : 1 }">
             <span :ref="setHandleRef" :style="handleStyle">
-              <CspIcon name="ri:drag-drop-line" :size="16" />
+              <CspIcon name="ri:draggable" :size="16" />
             </span>
             <span style="flex: 1;">{{ item.label }}</span>
             <div :style="actionsStyle">
@@ -128,8 +128,8 @@ export const Default: Story = {
   }),
 }
 
-interface LockedDemoItem extends DemoItem {
-  locked?: boolean
+interface PinnedDemoItem extends DemoItem {
+  pinned?: boolean
 }
 
 const iconStyle = {
@@ -137,22 +137,33 @@ const iconStyle = {
   color: 'var(--text-mention-grey)',
 }
 
-export const WithLockedItems: Story = {
+const pinnedItemStyle = {
+  ...itemStyle,
+  background: 'var(--background-disabled-grey)',
+  color: 'var(--text-disabled-grey)',
+  boxShadow: 'none',
+}
+
+export const WithPinnedItems: Story = {
   args: {
     showAccessibilityButtons: true,
   },
   render: (args: StoryArgs) => ({
     components: { CspSortableList, CspIcon, CspButton },
     setup() {
-      const items = ref<LockedDemoItem[]>([
-        { id: '1', label: 'Candidature reçue', locked: true },
+      const items = ref<PinnedDemoItem[]>([
+        { id: '1', label: 'Candidature reçue', pinned: true },
         { id: '2', label: 'Pré-qualification' },
         { id: '3', label: 'Entretien' },
         { id: '4', label: 'Entretien RH' },
-        { id: '5', label: 'Offre clôturée', locked: true },
+        { id: '5', label: 'Offre clôturée' },
       ])
 
-      function onReorder(newItems: LockedDemoItem[]) {
+      function onReorder(newItems: PinnedDemoItem[]) {
+        const pinnedIndex = newItems.findIndex(item => item.pinned)
+        if (pinnedIndex !== 0)
+          return
+
         items.value = newItems
       }
 
@@ -160,11 +171,12 @@ export const WithLockedItems: Story = {
         args,
         items,
         itemStyle,
+        pinnedItemStyle,
         iconStyle,
         actionsStyle,
-        getItemKey: (item: LockedDemoItem) => item.id,
-        getItemLabel: (item: LockedDemoItem) => item.label,
-        isItemDraggable: (item: LockedDemoItem) => !item.locked,
+        getItemKey: (item: PinnedDemoItem) => item.id,
+        getItemLabel: (item: PinnedDemoItem) => item.label,
+        isItemDraggable: (item: PinnedDemoItem) => !item.pinned,
         onReorder,
       }
     },
@@ -177,13 +189,16 @@ export const WithLockedItems: Story = {
         @reorder="onReorder"
       >
         <template #item="{ item, setHandleRef, isDragging, isDraggable, canMoveUp, canMoveDown, moveUp, moveDown }">
-          <div :style="{ ...itemStyle, opacity: isDragging ? 0.5 : 1 }">
+          <div :style="{ ...(item.pinned ? pinnedItemStyle : itemStyle), opacity: isDragging ? 0.5 : 1 }">
             <span
               v-if="isDraggable"
               :ref="setHandleRef"
               :style="{ ...iconStyle, cursor: 'grab' }"
             >
-              <CspIcon name="ri:drag-drop-line" :size="16" />
+              <CspIcon name="ri:draggable" :size="16" />
+            </span>
+            <span v-else :style="iconStyle">
+              <CspIcon name="ri:pushpin-2-line" :size="16" />
             </span>
             <span style="flex: 1;">{{ item.label }}</span>
             <div :style="actionsStyle">
