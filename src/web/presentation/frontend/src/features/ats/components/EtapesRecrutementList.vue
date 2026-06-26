@@ -98,6 +98,13 @@ function getMenuSections(canMoveUp: boolean, canMoveDown: boolean, moveUp: () =>
       show-position
       @reorder="onReorder"
     >
+      <template #header>
+        <span class="etapes-list__header-spacer" />
+        <span class="etapes-list__header-ordre">Ordre</span>
+        <span class="etapes-list__header-nom">Nom de l'étape</span>
+        <span class="etapes-list__header-statut">Statut visible par le candidat</span>
+        <span class="etapes-list__header-actions" />
+      </template>
       <template #item="{ item, canMoveUp, canMoveDown, moveUp, moveDown }">
         <span class="etapes-list__item-nom">{{ item.nom }}</span>
         <CspBadge
@@ -157,5 +164,29 @@ function getMenuSections(canMoveUp: boolean, canMoveDown: boolean, moveUp: () =>
 
 .etapes-list__item-badge {
   align-self: center;
+}
+
+.etapes-list__header-spacer {
+  width: 1rem;
+  flex-shrink: 0;
+}
+
+.etapes-list__header-ordre {
+  width: 3rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.etapes-list__header-nom {
+  flex: 1;
+}
+
+.etapes-list__header-statut {
+  flex-shrink: 0;
+}
+
+.etapes-list__header-actions {
+  width: 2rem;
+  flex-shrink: 0;
 }
 </style>

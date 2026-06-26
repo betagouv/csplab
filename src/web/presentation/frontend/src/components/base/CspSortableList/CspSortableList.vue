@@ -127,35 +127,53 @@ onMounted(() => {
 </script>
 
 <template>
-  <ul class="csp-sortable-list">
-    <CspSortableListItem
-      v-for="(item, index) in items"
-      :key="getItemKey(item)"
-      :item="item"
-      :item-id="getItemKey(item)"
-      :index="index"
-      :list-id="listId"
-      :draggable="isDraggable(item, index)"
-      :variant="getVariant(item, index)"
-      :disabled="disabled"
-      :show-position="showPosition"
+  <div class="csp-sortable-list">
+    <div
+      v-if="$slots.header"
+      class="csp-sortable-list__header"
     >
-      <template #default="slotProps">
-        <slot
-          name="item"
-          v-bind="slotProps"
-          :can-move-up="canMoveUp(index)"
-          :can-move-down="canMoveDown(index)"
-          :move-up="createMoveUp(index)"
-          :move-down="createMoveDown(index)"
-        />
-      </template>
-    </CspSortableListItem>
-  </ul>
+      <slot name="header" />
+    </div>
+    <ul class="csp-sortable-list__items">
+      <CspSortableListItem
+        v-for="(item, index) in items"
+        :key="getItemKey(item)"
+        :item="item"
+        :item-id="getItemKey(item)"
+        :index="index"
+        :list-id="listId"
+        :draggable="isDraggable(item, index)"
+        :variant="getVariant(item, index)"
+        :disabled="disabled"
+        :show-position="showPosition"
+      >
+        <template #default="slotProps">
+          <slot
+            name="item"
+            v-bind="slotProps"
+            :can-move-up="canMoveUp(index)"
+            :can-move-down="canMoveDown(index)"
+            :move-up="createMoveUp(index)"
+            :move-down="createMoveDown(index)"
+          />
+        </template>
+      </CspSortableListItem>
+    </ul>
+  </div>
 </template>
 
 <style scoped lang="scss">
-.csp-sortable-list {
+.csp-sortable-list__header {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-3);
+  padding: var(--csp-space-2) var(--csp-space-4);
+  font-size: var(--csp-font-size-sm);
+  font-weight: 500;
+  color: var(--text-mention-grey);
+}
+
+.csp-sortable-list__items {
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-2);
