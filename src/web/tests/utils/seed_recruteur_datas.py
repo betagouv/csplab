@@ -1,6 +1,12 @@
 from datetime import UTC, datetime
+from uuid import UUID
 
 from referentiel.value_objects.category import Category
+
+from application.recruteur.usecases.initialize_organisme_steps import (
+    InitializeOrganismeStepsCommand,
+)
+from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from referentiel.value_objects.verse import Verse
 
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
@@ -25,6 +31,7 @@ from tests.factories.referentiel.offer_factory import OfferFactory
 _SEED_SENTINEL_EMAIL = "marie.dupont@transition-eco.gouv.fr"
 
 _ORGANISME_SIRET = "21050023700354"
+_ORGANISME_UUID = UUID("00000000-0000-0000-0000-000000000000")
 
 _AGENTS_SPECS = [
     {"prenom": "Marie", "nom": "Dupont", "email": _SEED_SENTINEL_EMAIL},
@@ -104,9 +111,13 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # 1. Organisme recruteur                                             #
     # ------------------------------------------------------------------ #
     organisme = OrganismeFactory.create_model(
+        entity_id=_ORGANISME_UUID,
         nom="Ministère de la Transition Écologique",
         versant=Verse.FPE,
         siret=SIRET(_ORGANISME_SIRET),
+    )
+    recruteur_container().initialize_organisme_steps_usecase().execute(
+        InitializeOrganismeStepsCommand(organisme_id=_ORGANISME_UUID)
     )
 
     # ------------------------------------------------------------------ #
