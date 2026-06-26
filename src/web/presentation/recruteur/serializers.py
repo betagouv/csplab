@@ -106,3 +106,24 @@ class CandidatureListeSerializer(serializers.Serializer):
     date_soumission = serializers.DateTimeField()
     candidat = CandidatSerializer()
     etape = EtapeRecrutementSerializer()
+
+
+# ---------------------------------------------------------------------------
+# Serializers pour les notes attachées à une candidature
+# ---------------------------------------------------------------------------
+
+
+class NoteSerializer(serializers.Serializer):
+    uuid = serializers.UUIDField()
+    candidature_uuid = serializers.UUIDField()
+    message = serializers.CharField()
+    mis_a_jour_le = serializers.DateTimeField()
+    mis_a_jour_par_id = serializers.UUIDField()
+
+
+class CreerNoteSerializer(serializers.Serializer):
+    message = serializers.CharField()
+
+
+class EditerNoteSerializer(serializers.Serializer):
+    message = serializers.CharField()
