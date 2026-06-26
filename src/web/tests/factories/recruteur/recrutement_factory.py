@@ -7,6 +7,8 @@ from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.value_objects.position_candidature import PositionCandidature
 from domain.recruteur.value_objects.recrutement_status import RecrutementStatus
+from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
+from infrastructure.mappers.recrutement_mapper import RecrutementMapper
 from tests.factories.recruteur.organisme_factory import make_etapes_recrutement
 
 
@@ -48,6 +50,27 @@ class RecrutementFactory:
             derniere_activite_le=derniere_activite_le or datetime.now(tz=timezone.utc),
             candidat_recrute_id=candidat_recrute_id,
         )
+
+    @staticmethod
+    def create_model(
+        offre_id: UUID | None = None,
+        organisme_id: UUID | None = None,
+        responsables_ids: tuple[UUID, ...] = (),
+        status: RecrutementStatus = RecrutementStatus.ACTIF,
+        candidat_recrute_id: UUID | None = None,
+        **kwargs,
+    ) -> RecrutementModel:
+        entity = RecrutementFactory.create_entity(
+            offre_id=offre_id,
+            organisme_id=organisme_id,
+            responsables_ids=responsables_ids,
+            status=status,
+            candidat_recrute_id=candidat_recrute_id,
+            **kwargs,
+        )
+        model = RecrutementMapper().from_domain(entity)
+        model.save()
+        return model
 
     @staticmethod
     def create_entity_batch(offers: list[Offer], **kwargs) -> list[Recrutement]:

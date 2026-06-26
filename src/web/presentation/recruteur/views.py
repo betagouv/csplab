@@ -349,21 +349,35 @@ class RecrutementsOrganismeView(APIView):
         page = validated["page"]
         size = validated["size"]
 
-        # TODO: remplacer par le use case list_recrutements_usecase
-        if filtre == "archives":
-            dataset: list = _STATIC_RECRUTEMENTS_ARCHIVES
-            serializer_class = RecrutementArchiveSerializer
-        else:
-            dataset = _STATIC_RECRUTEMENTS_ACTIFS
-            serializer_class = RecrutementActifSerializer
+        recrutement_status = (
+            RecrutementStatus.ARCHIVE
+            if filtre == "archives"
+            else RecrutementStatus.ACTIF
+        )
+        serializer_class = (
+            RecrutementArchiveSerializer
+            if filtre == "archives"
+            else RecrutementActifSerializer
+        )
 
-        # TODO: switch to QuerySetPage once the use case is wired up.
-        # TODO: consolidate pagination logic with OffersListView
-        #       (see presentation/ingestion/views.py) rather than
-        # duplicating it here.
-        count = len(dataset)
-        offset = (page - 1) * size
-        page_data = dataset[offset : offset + size]
+        try:
+            usecase = self.container.get_my_recruits_by_type_usecase()
+            result = usecase.execute(
+                GetMyRecruitsByTypeQuery(
+                    organisme_id=organisme_uuid,
+                    recrutement_status=recrutement_status,
+                    page=page,
+                    size=size,
+                )
+            )
+        except ApplicationRecruteurError as e:
+            serializer = GenericErrorSerializer({"error": e.message})
+            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         serializer = serializer_class(page_data, many=True)
 
