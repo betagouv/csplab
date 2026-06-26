@@ -6,12 +6,19 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
+from application.recruteur.dtos.my_recruits_dtos import (
+    PaginatedResult,
+    RecrutementItem,
+)
 from domain.recruteur.errors.erreur_recrutement import ErreurRecruteur
-from tests.factories.recruteur.organisme_factory import (
-    OrganismeRecruteurFactory,
+from tests.factories.recruteur.organisme_factory import OrganismeRecruteurFactory
+from tests.factories.recruteur.recrutement_factory import (
+    RecrutementActifDTOFactory,
+    RecrutementArchiveDTOFactory,
 )
 
 fake = Faker()
+_CONTAINER_PATCH = "presentation.recruteur.views.recruteur_container"
 
 ORGANISME_UUID = fake.uuid4()
 ORGANISME_URL = reverse(
@@ -140,17 +147,15 @@ class TestEtapesRecrutementOrganismeView:
             response = authenticated_client.get(ETAPES_URL)
 
         assert response.status_code == status.HTTP_200_OK
-        steps = []
-        if organisme.etapes:
-            steps = [
-                {
-                    "etape_uuid": str(etape.entity_id),
-                    "nom": etape.nom,
-                    "categorie": etape.categorie.name,
-                }
-                for etape in organisme.etapes
-            ]
-
+        etapes = organisme.etapes or ()
+        steps = [
+            {
+                "etape_uuid": str(etape.entity_id),
+                "nom": etape.nom,
+                "categorie": etape.categorie.name,
+            }
+            for etape in etapes
+        ]
         assert response.json() == steps
 
 
@@ -214,7 +219,7 @@ class TestInitEtapesRecrutementOrganismeView:
                 "nom": etape.nom,
                 "categorie": etape.categorie.name,
             }
-            for etape in organisme.etapes
+            for etape in (organisme.etapes or ())
         ]
 
 
@@ -266,7 +271,15 @@ class TestRecrutementsOrganismeView:
         response = api_client.get(RECRUTEMENTS_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_returns_actifs_by_default(self, authenticated_client):
+    @patch(_CONTAINER_PATCH)
+    def test_returns_actifs_by_default(self, mock_cls, authenticated_client):
+        items: list[RecrutementItem] = [
+            RecrutementActifDTOFactory.create() for _ in range(6)
+        ]
+        mock_execute = (
+            mock_cls.return_value.get_my_recruits_by_type_usecase.return_value.execute
+        )
+        mock_execute.return_value = PaginatedResult(total=6, items=items)
         response = authenticated_client.get(RECRUTEMENTS_URL)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -277,7 +290,15 @@ class TestRecrutementsOrganismeView:
         assert data["count"] == 6  # noqa
         assert len(data["results"]) == 6  # noqa
 
-    def test_returns_actifs_with_explicit_filtre(self, authenticated_client):
+    @patch(_CONTAINER_PATCH)
+    def test_returns_actifs_with_explicit_filtre(self, mock_cls, authenticated_client):
+        items: list[RecrutementItem] = [
+            RecrutementActifDTOFactory.create() for _ in range(6)
+        ]
+        mock_execute = (
+            mock_cls.return_value.get_my_recruits_by_type_usecase.return_value.execute
+        )
+        mock_execute.return_value = PaginatedResult(total=6, items=items)
         response = authenticated_client.get(RECRUTEMENTS_URL + "?filtre=actifs")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -293,7 +314,17 @@ class TestRecrutementsOrganismeView:
         assert "derniere_activite" in first
         assert "candidatures" in first
 
-    def test_returns_archives_with_filtre_archives(self, authenticated_client):
+    @patch(_CONTAINER_PATCH)
+    def test_returns_archives_with_filtre_archives(
+        self, mock_cls, authenticated_client
+    ):
+        items: list[RecrutementItem] = [
+            RecrutementArchiveDTOFactory.create() for _ in range(3)
+        ]
+        mock_execute = (
+            mock_cls.return_value.get_my_recruits_by_type_usecase.return_value.execute
+        )
+        mock_execute.return_value = PaginatedResult(total=3, items=items)
         response = authenticated_client.get(RECRUTEMENTS_URL + "?filtre=archives")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -302,7 +333,13 @@ class TestRecrutementsOrganismeView:
         assert "finalise" in first
         assert "recrute" in first
 
-    def test_candidatures_structure(self, authenticated_client):
+    @patch(_CONTAINER_PATCH)
+    def test_candidatures_structure(self, mock_cls, authenticated_client):
+        items: list[RecrutementItem] = [RecrutementActifDTOFactory.create()]
+        mock_execute = (
+            mock_cls.return_value.get_my_recruits_by_type_usecase.return_value.execute
+        )
+        mock_execute.return_value = PaginatedResult(total=1, items=items)
         response = authenticated_client.get(RECRUTEMENTS_URL)
         data = response.json()
         candidatures = data["results"][0]["candidatures"]
@@ -310,7 +347,15 @@ class TestRecrutementsOrganismeView:
         assert "a_traiter" in candidatures
         assert "en_cours" in candidatures
 
-    def test_pagination_second_page(self, authenticated_client):
+    @patch(_CONTAINER_PATCH)
+    def test_pagination_second_page(self, mock_cls, authenticated_client):
+        items: list[RecrutementItem] = [
+            RecrutementActifDTOFactory.create() for _ in range(2)
+        ]
+        mock_execute = (
+            mock_cls.return_value.get_my_recruits_by_type_usecase.return_value.execute
+        )
+        mock_execute.return_value = PaginatedResult(total=10, items=items)
         response = authenticated_client.get(RECRUTEMENTS_URL + "?size=2&page=2")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()

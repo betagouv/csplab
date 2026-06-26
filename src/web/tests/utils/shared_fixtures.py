@@ -41,6 +41,9 @@ from application.ingestion.usecases.list_sources import ListSourcesUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.upsert_offers import UpsertOffersUseCase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
+from application.recruteur.usecases.get_my_recruits_by_type import (
+    GetMyRecruitsByTypeUsecase,
+)
 from application.recruteur.usecases.get_organisme_recruteur import (
     GetOrganismeRecruteurUsecase,
 )
@@ -56,6 +59,9 @@ from domain.candidate.repositories.cv_metadata_repository_interface import (
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
+from domain.identite.repositories.candidat_repository_interface import (
+    ICandidatRepository,
+)
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
@@ -74,6 +80,9 @@ from domain.ingestion.repositories.user_source_repository_interface import (
 from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
 from domain.recruteur.repositories.organisme_repository_interface import (
     IOrganismeRecruteurRepository,
+)
+from domain.recruteur.repositories.recrutement_repository_interface import (
+    IRecrutementRepository,
 )
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
@@ -525,3 +534,29 @@ def initialize_organisme_steps_usecase():
         create_interface_aware_mock(IOrganismeRecruteurRepository),
     )
     return InitializeOrganismeStepsUsecase(organisme_repository=repository)
+
+
+@pytest.fixture
+def get_my_recruits_by_type_usecase():
+    recrutements_repository = cast(
+        IRecrutementRepository,
+        create_interface_aware_mock(IRecrutementRepository),
+    )
+    offers_repository = cast(
+        IOffersRepository,
+        create_interface_aware_mock(IOffersRepository),
+    )
+    agents_repository = cast(
+        IAgentRepository,
+        create_interface_aware_mock(IAgentRepository),
+    )
+    candidat_repository = cast(
+        ICandidatRepository,
+        create_interface_aware_mock(ICandidatRepository),
+    )
+    return GetMyRecruitsByTypeUsecase(
+        recrutements_repository=recrutements_repository,
+        offers_repository=offers_repository,
+        agents_repository=agents_repository,
+        candidat_repository=candidat_repository,
+    )

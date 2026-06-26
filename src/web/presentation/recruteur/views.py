@@ -8,6 +8,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.errors import ApplicationRecruteurError
+from application.recruteur.usecases.get_my_recruits_by_type import (
+    GetMyRecruitsByTypeQuery,
+)
 from application.recruteur.usecases.get_organisme_recruteur import (
     GetOrganismeRecruteurQuery,
 )
@@ -15,6 +19,7 @@ from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
 from domain.recruteur.errors.erreur_recrutement import ErreurRecruteur
+from domain.recruteur.value_objects.recrutement_status import RecrutementStatus
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.recruteur.mappers import (
@@ -31,127 +36,6 @@ from presentation.recruteur.serializers import (
     RecrutementsFiltersSerializer,
     UpdateEtapeRecrutementSerializer,
 )
-
-# ---------------------------------------------------------------------------
-# Données statiques — TODO: remplacer par list_recrutements_usecase
-# ---------------------------------------------------------------------------
-
-_STATIC_RECRUTEMENTS_ACTIFS = [
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000001",
-        "intitule": "Chargé de mission numérique",
-        "reference_csp": "REF-2025-001",
-        "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2025-06-22T10:00:00Z",
-        "responsables": [{"nom": "Marie Dupont"}],
-        "derniere_activite": "2025-06-23T08:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000002",
-        "intitule": "Responsable RH",
-        "reference_csp": "REF-2025-002",
-        "type_contrat": "CONTRACTUELS",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2025-06-22T09:00:00Z",
-        "responsables": [{"nom": "Paul Bernard"}],
-        "derniere_activite": "2025-06-23T07:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000003",
-        "intitule": "Ingénieur infrastructure cloud",
-        "reference_csp": "REF-2025-003",
-        "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2025-06-21T14:00:00Z",
-        "responsables": [{"nom": "Claire Moreau"}],
-        "derniere_activite": "2025-06-22T16:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000004",
-        "intitule": "Juriste droit public",
-        "reference_csp": "REF-2025-004",
-        "type_contrat": "TERRITORIAL",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2025-06-21T10:00:00Z",
-        "responsables": [{"nom": "Marie Dupont"}, {"nom": "Paul Bernard"}],
-        "derniere_activite": "2025-06-22T10:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000005",
-        "intitule": "Chargé de communication",
-        "reference_csp": "REF-2025-005",
-        "type_contrat": "CONTRACTUELS",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2025-06-02T10:00:00Z",
-        "responsables": [{"nom": "Sophie Leroy"}],
-        "derniere_activite": "2025-06-20T10:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000006",
-        "intitule": "Analyste budgétaire",
-        "reference_csp": "REF-2025-006",
-        "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2025-06-01T10:00:00Z",
-        "responsables": [{"nom": "Claire Moreau"}],
-        "derniere_activite": "2025-06-15T10:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-]
-
-_STATIC_RECRUTEMENTS_ARCHIVES = [
-    {
-        "offer_id": "bbbbbbbb-0001-0001-0001-000000000001",
-        "intitule": "Directeur des systèmes d'information",
-        "reference_csp": "REF-2024-A01",
-        "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2024-12-01T10:00:00Z",
-        "responsables": [{"nom": "Marie Dupont"}],
-        "derniere_activite": "2025-06-23T08:00:00Z",
-        "finalise": True,
-        "recrute": "Sophie Leblanc",
-    },
-    {
-        "offer_id": "bbbbbbbb-0001-0001-0001-000000000002",
-        "intitule": "Chef de projet transformation numérique",
-        "reference_csp": "REF-2024-A02",
-        "type_contrat": "CONTRACTUELS",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2024-11-15T10:00:00Z",
-        "responsables": [{"nom": "Paul Bernard"}],
-        "derniere_activite": "2025-06-23T08:00:00Z",
-        "finalise": False,
-        "recrute": None,
-    },
-    {
-        "offer_id": "bbbbbbbb-0001-0001-0001-000000000003",
-        "intitule": "Conseiller en mobilité professionnelle",
-        "reference_csp": "REF-2024-A03",
-        "type_contrat": "TERRITORIAL",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2024-10-01T10:00:00Z",
-        "responsables": [{"nom": "Claire Moreau"}],
-        "derniere_activite": "2025-01-15T10:00:00Z",
-        "finalise": True,
-        "recrute": "Jean Martin",
-    },
-]
 
 
 @extend_schema(
@@ -339,6 +223,10 @@ class InitEtapesRecrutementOrganismeView(APIView):
 class RecrutementsOrganismeView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = recruteur_container()
+
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         filters = RecrutementsFiltersSerializer(data=request.query_params)
         if not filters.is_valid():
@@ -349,38 +237,52 @@ class RecrutementsOrganismeView(APIView):
         page = validated["page"]
         size = validated["size"]
 
-        # TODO: remplacer par le use case list_recrutements_usecase
-        if filtre == "archives":
-            dataset: list = _STATIC_RECRUTEMENTS_ARCHIVES
-            serializer_class = RecrutementArchiveSerializer
-        else:
-            dataset = _STATIC_RECRUTEMENTS_ACTIFS
-            serializer_class = RecrutementActifSerializer
+        recrutement_status = (
+            RecrutementStatus.ARCHIVE
+            if filtre == "archives"
+            else RecrutementStatus.ACTIF
+        )
+        serializer_class = (
+            RecrutementArchiveSerializer
+            if filtre == "archives"
+            else RecrutementActifSerializer
+        )
 
-        # TODO: switch to QuerySetPage once the use case is wired up.
-        # TODO: consolidate pagination logic with OffersListView
-        #       (see presentation/ingestion/views.py) rather than
-        # duplicating it here.
-        count = len(dataset)
-        offset = (page - 1) * size
-        page_data = dataset[offset : offset + size]
+        try:
+            usecase = self.container.get_my_recruits_by_type_usecase()
+            result = usecase.execute(
+                GetMyRecruitsByTypeQuery(
+                    organisme_id=organisme_uuid,
+                    recrutement_status=recrutement_status,
+                    page=page,
+                    size=size,
+                )
+            )
+        except ApplicationRecruteurError as e:
+            serializer = GenericErrorSerializer({"error": e.message})
+            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-        serializer = serializer_class(page_data, many=True)
+        out_serializer = serializer_class(result.items, many=True)
 
         base_url = request.build_absolute_uri(request.path)
 
         def build_url(p: int) -> str:
             return f"{base_url}?filtre={filtre}&page={p}&size={size}"
 
-        next_url = build_url(page + 1) if page * size < count else None
+        next_url = build_url(page + 1) if page * size < result.total else None
         previous_url = build_url(page - 1) if page > 1 else None
 
         return Response(
             {
-                "count": count,
+                "count": result.total,
                 "next": next_url,
                 "previous": previous_url,
-                "results": serializer.data,
+                "results": out_serializer.data,
             }
         )
 
