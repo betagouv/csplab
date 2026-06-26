@@ -9,6 +9,11 @@ describe('getInitials', () => {
     expect(getInitials('   ')).toBeNull()
   })
 
+  it('returns null when input is only separators', () => {
+    expect(getInitials('---')).toBeNull()
+    expect(getInitials(' - - ')).toBeNull()
+  })
+
   it('returns first two chars for single word', () => {
     expect(getInitials('Alice')).toBe('AL')
     expect(getInitials('Jo')).toBe('JO')
