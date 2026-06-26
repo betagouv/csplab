@@ -2,15 +2,14 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from referentiel.value_objects.category import Category
+from referentiel.value_objects.verse import Verse
 
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
-from infrastructure.di.recruteur.recruteur_factory import recruteur_container
-from referentiel.value_objects.verse import Verse
-
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from domain.identite.value_objects.siret import SIRET
+from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models import OrganismeModel
 from infrastructure.django_apps.referentiel.models.metier import MetierModel

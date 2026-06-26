@@ -1,10 +1,21 @@
 <script setup lang="ts">
 import type { EtapeRecrutement } from '../api/recrutement'
 import { onMounted, ref } from 'vue'
+import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
 import { getEtapesRecrutement } from '../api/recrutement'
+
+type Categorie = EtapeRecrutement['categorie']
+type BadgeType = 'info' | 'success' | 'error'
+
+const CATEGORIE_BADGE: Record<Categorie, { label: string, icon: string, type?: BadgeType }> = {
+  ENTREE: { label: 'À traiter', icon: 'ri:inbox-2-line' },
+  EN_COURS: { label: 'En cours', icon: 'ri:progress-4-line', type: 'info' },
+  REFUS: { label: 'Refusée', icon: 'ri:close-circle-line', type: 'error' },
+  ACCEPTE: { label: 'Acceptée', icon: 'ri:checkbox-circle-line', type: 'success' },
+}
 
 const etapes = ref<EtapeRecrutement[]>([])
 const loading = ref(true)
@@ -88,6 +99,13 @@ function getMenuSections(canMoveUp: boolean, canMoveDown: boolean, moveUp: () =>
     >
       <template #item="{ item, canMoveUp, canMoveDown, moveUp, moveDown }">
         <span class="etapes-list__item-nom">{{ item.nom }}</span>
+        <CspBadge
+          class="etapes-list__item-badge"
+          size="md"
+          :icon="CATEGORIE_BADGE[item.categorie].icon"
+          :type="CATEGORIE_BADGE[item.categorie].type"
+          :label="CATEGORIE_BADGE[item.categorie].label"
+        />
         <CspDropdownMenu
           :sections="getMenuSections(canMoveUp, canMoveDown, moveUp, moveDown)"
           side="bottom"
@@ -134,5 +152,9 @@ function getMenuSections(canMoveUp: boolean, canMoveDown: boolean, moveUp: () =>
 
 .etapes-list__item-nom {
   flex: 1;
+}
+
+.etapes-list__item-badge {
+  align-self: center;
 }
 </style>
