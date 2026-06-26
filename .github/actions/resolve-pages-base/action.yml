@@ -1,0 +1,25 @@
+name: Resolve GitHub Pages base path
+description: Read the repository GitHub Pages URL and expose its origin and base path.
+
+outputs:
+  origin:
+    description: Pages origin, e.g. https://pages.example.com
+    value: ${{ steps.pages.outputs.origin }}
+  base:
+    description: Pages base path without a trailing slash, e.g. /storybook-host
+    value: ${{ steps.pages.outputs.base }}
+
+runs:
+  using: composite
+  steps:
+    - id: pages
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data } = await github.rest.repos.getPages({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+          })
+          const { origin, pathname } = new URL(data.html_url)
+          core.setOutput('origin', origin)
+          core.setOutput('base', pathname.replace(/\/$/, ''))
