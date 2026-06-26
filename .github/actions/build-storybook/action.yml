@@ -1,0 +1,22 @@
+name: Build Storybook
+description: Install frontend dependencies and build Storybook for a given base URL.
+
+inputs:
+  base-url:
+    description: Public base URL the Storybook is served from (STORYBOOK_BASE_URL).
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/setup-pnpm-node
+      with:
+        lock-file-path: src/web/pnpm-lock.yaml
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+      working-directory: ./src/web
+    - run: pnpm --filter csplab-frontend build-storybook
+      shell: bash
+      working-directory: ./src/web
+      env:
+        STORYBOOK_BASE_URL: ${{ inputs.base-url }}

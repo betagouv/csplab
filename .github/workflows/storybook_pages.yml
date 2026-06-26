@@ -48,35 +48,17 @@ jobs:
   deploy-main:
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy_type == 'main')
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/web
     steps:
       - uses: actions/checkout@v5
       - name: Short SHA
         id: sha
         run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-        working-directory: .
       - name: Resolve GitHub Pages base path
         id: pages
-        uses: actions/github-script@v7
+        uses: ./.github/actions/resolve-pages-base
+      - uses: ./.github/actions/build-storybook
         with:
-          script: |
-            const { data } = await github.rest.repos.getPages({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            })
-            const { origin, pathname } = new URL(data.html_url)
-            core.setOutput('origin', origin)
-            core.setOutput('base', pathname.replace(/\/$/, ''))
-      - uses: ./.github/actions/setup-pnpm-node
-        with:
-          lock-file-path: src/web/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - name: Build Storybook
-        env:
-          STORYBOOK_BASE_URL: ${{ steps.pages.outputs.base }}/storybook/main/
-        run: pnpm --filter csplab-frontend build-storybook
+          base-url: ${{ steps.pages.outputs.base }}/storybook/main/
       - name: Prepare root site files
         run: |
           ROOT="${{ runner.temp }}/ghpages-root"
@@ -96,7 +78,6 @@ jobs:
             </body>
           </html>
           HTML
-        working-directory: .
       - name: Deploy root site files
         uses: JamesIves/github-pages-deploy-action@v4
         with:
@@ -117,9 +98,6 @@ jobs:
   deploy-branch-preview:
     if: github.event_name == 'workflow_dispatch' && inputs.deploy_type == 'branch-preview'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/web
     steps:
       - uses: actions/checkout@v5
       - name: Sanitize branch name
@@ -129,27 +107,12 @@ jobs:
           SANITIZED=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-50)
           echo "name=$SANITIZED" >> $GITHUB_OUTPUT
           echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-        working-directory: .
       - name: Resolve GitHub Pages base path
         id: pages
-        uses: actions/github-script@v7
+        uses: ./.github/actions/resolve-pages-base
+      - uses: ./.github/actions/build-storybook
         with:
-          script: |
-            const { data } = await github.rest.repos.getPages({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            })
-            const { origin, pathname } = new URL(data.html_url)
-            core.setOutput('origin', origin)
-            core.setOutput('base', pathname.replace(/\/$/, ''))
-      - uses: ./.github/actions/setup-pnpm-node
-        with:
-          lock-file-path: src/web/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - name: Build Storybook
-        env:
-          STORYBOOK_BASE_URL: ${{ steps.pages.outputs.base }}/storybook/branch/${{ steps.branch.outputs.name }}/
-        run: pnpm --filter csplab-frontend build-storybook
+          base-url: ${{ steps.pages.outputs.base }}/storybook/branch/${{ steps.branch.outputs.name }}/
       - name: Deploy branch preview
         uses: JamesIves/github-pages-deploy-action@v4
         with:
@@ -163,42 +126,23 @@ jobs:
           echo "## 📖 Storybook Preview" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "URL: ${{ steps.pages.outputs.origin }}${{ steps.pages.outputs.base }}/storybook/branch/${{ steps.branch.outputs.name }}/" >> $GITHUB_STEP_SUMMARY
-        working-directory: .
 
   deploy-preview:
     if: github.event_name == 'pull_request' && github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'storybook')
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/web
     steps:
       - uses: actions/checkout@v5
       - name: Short SHA
         id: sha
         run: echo "short=${HEAD_SHA::7}" >> "$GITHUB_OUTPUT"
-        working-directory: .
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       - name: Resolve GitHub Pages base path
         id: pages
-        uses: actions/github-script@v7
+        uses: ./.github/actions/resolve-pages-base
+      - uses: ./.github/actions/build-storybook
         with:
-          script: |
-            const { data } = await github.rest.repos.getPages({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            })
-            const { origin, pathname } = new URL(data.html_url)
-            core.setOutput('origin', origin)
-            core.setOutput('base', pathname.replace(/\/$/, ''))
-      - uses: ./.github/actions/setup-pnpm-node
-        with:
-          lock-file-path: src/web/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - name: Build Storybook
-        env:
-          STORYBOOK_BASE_URL: ${{ steps.pages.outputs.base }}/storybook/pr/${{ github.event.number }}/
-        run: pnpm --filter csplab-frontend build-storybook
+          base-url: ${{ steps.pages.outputs.base }}/storybook/pr/${{ github.event.number }}/
       - name: Deploy PR preview
         uses: JamesIves/github-pages-deploy-action@v4
         with:
@@ -234,17 +178,19 @@ jobs:
         with:
           ref: gh-pages
       - name: Remove preview folder
+        env:
+          COMMIT_MESSAGE: "🔥(storybook) cleanup PR #${{ github.event.number }} preview"
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm -rf --ignore-unmatch "storybook/pr/${{ github.event.number }}"
           git diff --cached --quiet && exit 0
-          git commit -m "🔥(storybook) cleanup PR #${{ github.event.number }} preview"
+          git commit -m "$COMMIT_MESSAGE"
           for attempt in 1 2 3; do
             if git push origin HEAD:gh-pages; then exit 0; fi
             git pull --rebase origin gh-pages
           done
-          echo "Could not push preview cleanup after 3 attempts" >&2
+          echo "Could not push gh-pages cleanup after 3 attempts" >&2
           exit 1
 
   cleanup-branch-preview:
@@ -261,6 +207,8 @@ jobs:
           SANITIZED=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-50)
           echo "name=$SANITIZED" >> $GITHUB_OUTPUT
       - name: Remove branch preview folder
+        env:
+          COMMIT_MESSAGE: "🔥(storybook) cleanup branch preview '${{ steps.branch.outputs.name }}'"
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -271,10 +219,10 @@ jobs:
           fi
           git rm -rf "$FOLDER"
           git diff --cached --quiet && exit 0
-          git commit -m "🔥(storybook) cleanup branch preview '${{ steps.branch.outputs.name }}'"
+          git commit -m "$COMMIT_MESSAGE"
           for attempt in 1 2 3; do
             if git push origin HEAD:gh-pages; then exit 0; fi
             git pull --rebase origin gh-pages
           done
-          echo "Could not push preview cleanup after 3 attempts" >&2
+          echo "Could not push gh-pages cleanup after 3 attempts" >&2
           exit 1
