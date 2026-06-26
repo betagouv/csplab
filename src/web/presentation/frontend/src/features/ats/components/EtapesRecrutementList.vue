@@ -95,6 +95,7 @@ function getMenuSections(canMoveUp: boolean, canMoveDown: boolean, moveUp: () =>
       :get-item-label="(etape) => etape.nom"
       :is-item-draggable="(etape) => !isEtapeLocked(etape)"
       :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"
+      show-position
       @reorder="onReorder"
     >
       <template #item="{ item, canMoveUp, canMoveDown, moveUp, moveDown }">

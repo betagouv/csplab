@@ -15,10 +15,12 @@ interface Props {
   isItemDraggable?: (item: T, index: number) => boolean
   getItemVariant?: (item: T, index: number) => 'default' | 'alt'
   disabled?: boolean
+  showPosition?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
+  showPosition: false,
 })
 
 const emit = defineEmits<{
@@ -136,6 +138,7 @@ onMounted(() => {
       :draggable="isDraggable(item, index)"
       :variant="getVariant(item, index)"
       :disabled="disabled"
+      :show-position="showPosition"
     >
       <template #default="slotProps">
         <slot
