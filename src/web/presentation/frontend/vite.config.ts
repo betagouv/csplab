@@ -26,9 +26,8 @@ export default defineConfig(({ command }) => ({
   server: {
     port: 5173,
     origin: 'http://localhost:5173',
-    proxy: {
-      '/api': 'http://localhost:8000',
-      '/ats': 'http://localhost:8000',
+    cors: {
+      origin: 'http://localhost:8000',
     },
   },
   test: {
