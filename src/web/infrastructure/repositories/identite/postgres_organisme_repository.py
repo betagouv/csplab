@@ -6,7 +6,7 @@ from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository as IOrganismeIdentiteRepository,
 )
 from domain.identite.value_objects.siret import SIRET
-from infrastructure.django_apps.recruteur.models import OrganismeModel
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.mappers.organisme_identite_mapper import OrganismeIdentiteMapper
 
 

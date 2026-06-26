@@ -8,7 +8,7 @@ from referentiel.value_objects.verse import Verse
 
 from domain.identite.errors.organisme_errors import SiretInvalide
 from infrastructure.django_apps.recruteur.admin import OrganismeAdmin
-from infrastructure.django_apps.recruteur.models import OrganismeModel
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 
 VALID_SIRET = "19754687200015"
 

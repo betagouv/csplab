@@ -4,7 +4,7 @@ from domain.recruteur.entities.organisme_recruteur import OrganismeRecruteur
 from domain.recruteur.repositories.organisme_repository_interface import (
     IOrganismeRecruteurRepository,
 )
-from infrastructure.django_apps.recruteur.models import OrganismeModel
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.mappers.organisme_recruteur_mapper import OrganismeRecruteurMapper
 
 

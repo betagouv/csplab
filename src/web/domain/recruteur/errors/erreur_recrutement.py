@@ -16,6 +16,12 @@ class EtapeInvalide(ErreurRecruteur):
         self.identifier = identifier
 
 
+class RecrutementInexistant(ErreurRecruteur):
+    def __init__(self, recrutement_id: UUID):
+        super().__init__(f"Recrutement {recrutement_id} does not exist")
+        self.recrutement_id = recrutement_id
+
+
 class CandidatureDejaPresente(ErreurRecruteur):
     def __init__(self, candidature_id: UUID):
         super().__init__(
