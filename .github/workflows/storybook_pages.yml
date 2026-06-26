@@ -53,6 +53,10 @@ jobs:
         working-directory: ./src/web
     steps:
       - uses: actions/checkout@v5
+      - name: Short SHA
+        id: sha
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+        working-directory: .
       - name: Resolve GitHub Pages base path
         id: pages
         uses: actions/github-script@v7
@@ -100,6 +104,7 @@ jobs:
           folder: ${{ runner.temp }}/ghpages-root
           clean: false
           force: false
+          commit-message: "🚀(storybook) deploy root files from ${{ steps.sha.outputs.short }}"
       - name: Deploy main Storybook
         uses: JamesIves/github-pages-deploy-action@v4
         with:
@@ -107,6 +112,7 @@ jobs:
           folder: src/web/presentation/frontend/storybook-static
           target-folder: storybook/main
           force: false
+          commit-message: "🚀(storybook) deploy main book from ${{ steps.sha.outputs.short }}"
 
   deploy-branch-preview:
     if: github.event_name == 'workflow_dispatch' && inputs.deploy_type == 'branch-preview'
@@ -122,6 +128,7 @@ jobs:
           BRANCH_NAME="${GITHUB_REF_NAME}"
           SANITIZED=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-50)
           echo "name=$SANITIZED" >> $GITHUB_OUTPUT
+          echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
         working-directory: .
       - name: Resolve GitHub Pages base path
         id: pages
@@ -150,6 +157,7 @@ jobs:
           folder: src/web/presentation/frontend/storybook-static
           target-folder: storybook/branch/${{ steps.branch.outputs.name }}
           force: false
+          commit-message: "🚀(storybook) deploy branch preview '${{ steps.branch.outputs.name }}' from ${{ steps.branch.outputs.short_sha }}"
       - name: Print preview URL
         run: |
           echo "## 📖 Storybook Preview" >> $GITHUB_STEP_SUMMARY
@@ -165,6 +173,12 @@ jobs:
         working-directory: ./src/web
     steps:
       - uses: actions/checkout@v5
+      - name: Short SHA
+        id: sha
+        run: echo "short=${HEAD_SHA::7}" >> "$GITHUB_OUTPUT"
+        working-directory: .
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       - name: Resolve GitHub Pages base path
         id: pages
         uses: actions/github-script@v7
@@ -192,6 +206,7 @@ jobs:
           folder: src/web/presentation/frontend/storybook-static
           target-folder: storybook/pr/${{ github.event.number }}
           force: false
+          commit-message: "🚀(storybook) deploy PR #${{ github.event.number }} preview from ${{ steps.sha.outputs.short }}"
       - uses: actions/github-script@v7
         env:
           PREVIEW_URL: ${{ steps.pages.outputs.origin }}${{ steps.pages.outputs.base }}/storybook/pr/${{ github.event.number }}/
@@ -224,7 +239,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm -rf --ignore-unmatch "storybook/pr/${{ github.event.number }}"
           git diff --cached --quiet && exit 0
-          git commit -m "chore: remove Storybook preview for PR #${{ github.event.number }}"
+          git commit -m "🔥(storybook) cleanup PR #${{ github.event.number }} preview"
           for attempt in 1 2 3; do
             if git push origin HEAD:gh-pages; then exit 0; fi
             git pull --rebase origin gh-pages
@@ -256,7 +271,7 @@ jobs:
           fi
           git rm -rf "$FOLDER"
           git diff --cached --quiet && exit 0
-          git commit -m "chore: remove Storybook preview for branch ${{ github.event.ref }}"
+          git commit -m "🔥(storybook) cleanup branch preview '${{ steps.branch.outputs.name }}'"
           for attempt in 1 2 3; do
             if git push origin HEAD:gh-pages; then exit 0; fi
             git pull --rebase origin gh-pages
