@@ -19,6 +19,12 @@ class PostgresCandidatRepository(ICandidatRepository):
         except ProfilCandidatModel.DoesNotExist as e:
             raise CandidatInexistant(candidat_id) from e
 
+    def get_by_ids(self, candidat_ids: list[UUID]) -> list[Candidat]:
+        profils = ProfilCandidatModel.objects.select_related("utilisateur").filter(
+            utilisateur_id__in=[str(id) for id in candidat_ids]  # type: ignore[misc]  # to_field='username' (VARCHAR)
+        )
+        return [profil.to_entity() for profil in profils]
+
     def get_by_email(self, email: str) -> Candidat | None:
         try:
             profil = ProfilCandidatModel.objects.select_related("utilisateur").get(
