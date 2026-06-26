@@ -21,7 +21,7 @@ class RecrutementDTO:  # base commune
     intitule: str
     reference_csp: str
     type_contrat: str | None
-    type_offre: str | None
+    kind_contrat: str | None
     date_publication: datetime
     responsables: list[ResponsableDTO]
     derniere_activite: datetime

@@ -50,7 +50,7 @@ class RecrutementMapper(IFromDomainMapper[Recrutement, RecrutementItem]):
             intitule=offer.title,
             reference_csp=offer.reference,
             type_contrat=(offer.contract_type.value if offer.contract_type else None),
-            type_offre=None,
+            kind_contrat=None,
             date_publication=offer.publication_date,
             responsables=responsables,
             derniere_activite=recrutement.derniere_activite_le,
