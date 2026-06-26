@@ -12,12 +12,14 @@ interface Props {
   draggable?: boolean
   disabled?: boolean
   variant?: 'default' | 'alt'
+  showPosition?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   draggable: true,
   disabled: false,
   variant: 'default',
+  showPosition: false,
 })
 
 const itemRef = ref<HTMLElement | null>(null)
@@ -92,6 +94,13 @@ function setHandleRef(element: Element | null) {
         />
       </span>
 
+      <span
+        v-if="showPosition"
+        class="csp-sortable-list-item__position"
+      >
+        {{ index + 1 }}
+      </span>
+
       <slot
         :item="item"
         :index="props.index"
@@ -150,6 +159,15 @@ function setHandleRef(element: Element | null) {
 .csp-sortable-list-item__icon {
   display: flex;
   flex-shrink: 0;
+  color: var(--text-mention-grey);
+}
+
+.csp-sortable-list-item__position {
+  flex-shrink: 0;
+  min-width: 1.5rem;
+  text-align: center;
+  font-size: var(--csp-font-size-sm);
+  font-weight: 500;
   color: var(--text-mention-grey);
 }
 
