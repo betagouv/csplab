@@ -41,8 +41,21 @@ function getLabel(item: T): string {
   return props.getItemLabel?.(item) ?? props.getItemKey(item)
 }
 
-function moveItem(fromIndex: number, toIndex: number) {
+function isReorderValid(newItems: T[]): boolean {
+  for (let i = 0; i < props.items.length; i++) {
+    const original = props.items[i]
+    if (isDraggable(original, i))
+      continue
+    if (props.getItemKey(newItems[i]) !== props.getItemKey(original))
+      return false
+  }
+  return true
+}
+
+function tryReorder(fromIndex: number, toIndex: number) {
   if (props.disabled)
+    return
+  if (fromIndex === toIndex)
     return
   if (toIndex < 0 || toIndex >= props.items.length)
     return
@@ -50,18 +63,35 @@ function moveItem(fromIndex: number, toIndex: number) {
     return
 
   const newItems = reorder({ list: props.items, startIndex: fromIndex, finishIndex: toIndex })
-  emit('reorder', newItems)
+  if (!isReorderValid(newItems))
+    return
 
-  const item = props.items[fromIndex]
-  announce(`${getLabel(item)} déplacé`)
+  emit('reorder', newItems)
+  announce(`${getLabel(props.items[fromIndex])} déplacé`)
+}
+
+function canMoveUp(index: number): boolean {
+  if (index <= 0)
+    return false
+  if (!isDraggable(props.items[index], index))
+    return false
+  return isDraggable(props.items[index - 1], index - 1)
+}
+
+function canMoveDown(index: number): boolean {
+  if (index >= props.items.length - 1)
+    return false
+  if (!isDraggable(props.items[index], index))
+    return false
+  return isDraggable(props.items[index + 1], index + 1)
 }
 
 function createMoveUp(index: number) {
-  return () => moveItem(index, index - 1)
+  return () => tryReorder(index, index - 1)
 }
 
 function createMoveDown(index: number) {
-  return () => moveItem(index, index + 1)
+  return () => tryReorder(index, index + 1)
 }
 
 onMounted(() => {
@@ -88,14 +118,7 @@ onMounted(() => {
         axis: 'vertical',
       })
 
-      if (finishIndex === startIndex)
-        return
-
-      const newItems = reorder({ list: props.items, startIndex, finishIndex })
-      emit('reorder', newItems)
-
-      const item = props.items[startIndex]
-      announce(`${getLabel(item)} déplacé`)
+      tryReorder(startIndex, finishIndex)
     },
   })
 })
@@ -118,8 +141,8 @@ onMounted(() => {
         <slot
           name="item"
           v-bind="slotProps"
-          :can-move-up="isDraggable(item, index) && index > 0"
-          :can-move-down="isDraggable(item, index) && index < items.length - 1"
+          :can-move-up="canMoveUp(index)"
+          :can-move-down="canMoveDown(index)"
           :move-up="createMoveUp(index)"
           :move-down="createMoveDown(index)"
         />
