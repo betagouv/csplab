@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
+from referentiel.entities.offer import Offer
+
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.value_objects.position_candidature import PositionCandidature
@@ -46,3 +48,10 @@ class RecrutementFactory:
             derniere_activite_le=derniere_activite_le or datetime.now(tz=timezone.utc),
             candidat_recrute_id=candidat_recrute_id,
         )
+
+    @staticmethod
+    def create_entity_batch(offers: list[Offer], **kwargs) -> list[Recrutement]:
+        return [
+            RecrutementFactory.create_entity(offre_id=offer.id, **kwargs)
+            for offer in offers
+        ]

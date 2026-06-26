@@ -84,6 +84,13 @@ class OfferFactory:
         )
 
     @staticmethod
+    def create_entity_batch(
+        size: int,
+        **kwargs,
+    ) -> list[Offer]:
+        return [OfferFactory.create_entity(**kwargs) for _ in range(size)]
+
+    @staticmethod
     def create_model(
         reference: Optional[str] = None,
         external_id: Optional[str] = None,

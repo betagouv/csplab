@@ -7,6 +7,7 @@ from referentiel.entities.offer import Offer
 from referentiel.repositories.offers_repository_interface import IOffersRepository
 
 from application.recruteur.dtos.my_recruits_dtos import PaginatedResult
+from application.recruteur.errors import ErreurPaginationQuery
 from application.recruteur.mappers.my_recruits_mapper import RecrutementMapper
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.candidat import Candidat
@@ -24,9 +25,15 @@ from domain.recruteur.value_objects.recrutement_status import RecrutementStatus
 @dataclass
 class GetMyRecruitsByTypeQuery:
     organisme_id: UUID
-    recrutement_status: RecrutementStatus
+    recrutement_status: RecrutementStatus = RecrutementStatus.ACTIF
     page: int = 1
     size: int = 10
+
+    def __post_init__(self):
+        if self.page < 1:
+            raise ErreurPaginationQuery(f"page must be >= 1, got {self.page}")
+        if self.size < 1:
+            raise ErreurPaginationQuery(f"size must be >= 1, got {self.size}")
 
 
 class GetMyRecruitsByTypeUsecase(IUseCase[GetMyRecruitsByTypeQuery, PaginatedResult]):
