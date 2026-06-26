@@ -44,7 +44,7 @@ const { isDragging } = useDraggableElement({
 
 const { isDraggedOver, closestEdge } = useDropTargetElement({
   element: itemRef,
-  enabled: isInteractionEnabled,
+  enabled: isDraggable,
   canDrop: source => source.type === SORTABLE_ITEM_TYPE && source.listId === props.listId,
   getData: () => getItemData(),
 })

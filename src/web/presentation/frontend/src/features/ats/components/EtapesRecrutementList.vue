@@ -2,8 +2,9 @@
 import type { EtapeRecrutement } from '../api/recrutement'
 import { onMounted, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
+import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
 import { getEtapesRecrutement } from '../api/recrutement'
-import EtapesRecrutementListItem from './EtapesRecrutementListItem.vue'
 
 const etapes = ref<EtapeRecrutement[]>([])
 const loading = ref(true)
@@ -22,6 +23,30 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+function isEtapeLocked(etape: EtapeRecrutement): boolean {
+  return etape.categorie !== 'EN_COURS'
+}
+
+function onReorder(newItems: EtapeRecrutement[]) {
+  etapes.value = newItems
+}
+
+function getMenuSections(canMoveUp: boolean, canMoveDown: boolean, moveUp: () => void, moveDown: () => void) {
+  return [
+    {
+      items: [
+        { label: 'Monter', icon: 'ri:arrow-up-s-line', disabled: !canMoveUp, onSelect: moveUp },
+        { label: 'Descendre', icon: 'ri:arrow-down-s-line', disabled: !canMoveDown, onSelect: moveDown },
+      ],
+    },
+    {
+      items: [
+        { label: 'Supprimer', icon: 'ri:delete-bin-line', destructive: true, disabled: true },
+      ],
+    },
+  ]
+}
 </script>
 
 <template>
@@ -52,23 +77,33 @@ onMounted(async () => {
       Une erreur est survenue lors du chargement des étapes.
     </div>
 
-    <div
+    <CspSortableList
       v-else
-      class="etapes-list__content"
+      :items="etapes"
+      :get-item-key="(etape) => etape.etape_uuid"
+      :get-item-label="(etape) => etape.nom"
+      :is-item-draggable="(etape) => !isEtapeLocked(etape)"
+      :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"
+      @reorder="onReorder"
     >
-      <div class="etapes-list__labels">
-        <span class="etapes-list__label etapes-list__label--ordre">Ordre</span>
-        <span class="etapes-list__label etapes-list__label--nom">Nom de l'étape</span>
-        <span class="etapes-list__label etapes-list__label--type">Type d'étape</span>
-      </div>
-
-      <EtapesRecrutementListItem
-        v-for="(etape, index) in etapes"
-        :key="etape.etape_uuid"
-        :etape="etape"
-        :ordre="index + 1"
-      />
-    </div>
+      <template #item="{ item, canMoveUp, canMoveDown, moveUp, moveDown }">
+        <span class="etapes-list__item-nom">{{ item.nom }}</span>
+        <CspDropdownMenu
+          :sections="getMenuSections(canMoveUp, canMoveDown, moveUp, moveDown)"
+          side="bottom"
+          align="end"
+        >
+          <template #trigger>
+            <CspButton
+              icon="ri:more-2-fill"
+              variant="tertiary-no-outline"
+              size="sm"
+              :aria-label="`Actions pour ${item.nom}`"
+            />
+          </template>
+        </CspDropdownMenu>
+      </template>
+    </CspSortableList>
   </div>
 </template>
 
@@ -97,29 +132,7 @@ onMounted(async () => {
   color: var(--text-default-error);
 }
 
-.etapes-list__labels {
-  display: grid;
-  grid-template-columns: 2.5rem 4.5rem 1fr 12rem 2.5rem;
-  gap: var(--csp-space-3);
-  padding-bottom: var(--csp-space-2);
-  margin-bottom: var(--csp-space-2);
-}
-
-.etapes-list__label {
-  font-size: var(--csp-font-size-xs);
-  font-weight: var(--csp-font-weight-medium);
-  color: var(--text-mention-grey);
-}
-
-.etapes-list__label--ordre {
-  grid-column: 2;
-}
-
-.etapes-list__label--nom {
-  grid-column: 3;
-}
-
-.etapes-list__label--type {
-  grid-column: 4;
+.etapes-list__item-nom {
+  flex: 1;
 }
 </style>
