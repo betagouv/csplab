@@ -16,6 +16,8 @@ import riBuildingLine from '@iconify-icons/ri/building-line'
 import riCalendarLine from '@iconify-icons/ri/calendar-line'
 import riCheckLine from '@iconify-icons/ri/check-line'
 import riCheckboxCircleFill from '@iconify-icons/ri/checkbox-circle-fill'
+import riCheckboxCircleLine from '@iconify-icons/ri/checkbox-circle-line'
+import riCloseCircleLine from '@iconify-icons/ri/close-circle-line'
 import riCloseLine from '@iconify-icons/ri/close-line'
 import riDashboardLine from '@iconify-icons/ri/dashboard-line'
 import riDeleteBinLine from '@iconify-icons/ri/delete-bin-line'
@@ -27,6 +29,7 @@ import riExternalLinkLine from '@iconify-icons/ri/external-link-line'
 import riEyeLine from '@iconify-icons/ri/eye-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
 import riGroupLine from '@iconify-icons/ri/group-line'
+import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
 import riLayoutColumnLine from '@iconify-icons/ri/layout-column-line'
 import riLockLine from '@iconify-icons/ri/lock-line'
@@ -65,6 +68,8 @@ addIcon('ri:building-line', riBuildingLine)
 addIcon('ri:calendar-line', riCalendarLine)
 addIcon('ri:check-line', riCheckLine)
 addIcon('ri:checkbox-circle-fill', riCheckboxCircleFill)
+addIcon('ri:checkbox-circle-line', riCheckboxCircleLine)
+addIcon('ri:close-circle-line', riCloseCircleLine)
 addIcon('ri:close-line', riCloseLine)
 addIcon('ri:dashboard-line', riDashboardLine)
 addIcon('ri:delete-bin-line', riDeleteBinLine)
@@ -76,6 +81,7 @@ addIcon('ri:external-link-line', riExternalLinkLine)
 addIcon('ri:eye-line', riEyeLine)
 addIcon('ri:flashlight-fill', riFlashlightFill)
 addIcon('ri:group-line', riGroupLine)
+addIcon('ri:inbox-2-line', riInbox2Line)
 addIcon('ri:information-fill', riInformationFill)
 addIcon('ri:layout-column-line', riLayoutColumnLine)
 addIcon('ri:lock-line', riLockLine)
@@ -96,6 +102,11 @@ addIcon('ri:sidebar-unfold-line', {
 addIcon('ri:more-2-fill', riMore2Fill)
 addIcon('ri:notification-3-line', riNotification3Line)
 addIcon('ri:price-tag-3-line', riPriceTag3Line)
+addIcon('ri:progress-4-line', {
+  width: 24,
+  height: 24,
+  body: '<path fill="currentColor" d="M2 12c0 5.523 4.477 10 10 10s10-4.477 10-10S17.523 2 12 2S2 6.477 2 12m18 0a8 8 0 1 1-16 0a8 8 0 0 1 16 0m-2 0a6 6 0 0 1-6 6V6a6 6 0 0 1 6 6"/>',
+})
 addIcon('ri:pushpin-2-line', riPushpin2Line)
 addIcon('ri:search-line', riSearchLine)
 addIcon('ri:settings-3-line', riSettings3Line)
