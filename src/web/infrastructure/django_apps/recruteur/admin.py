@@ -12,6 +12,8 @@ from domain.identite.errors.organisme_errors import SiretInvalide
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
+from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 from infrastructure.mappers.organisme_identite_mapper import OrganismeIdentiteMapper
 
 
@@ -95,3 +97,12 @@ class OrganismeAdmin(admin.ModelAdmin):
             # enforce the entity invariants (mapper builds the aggregate) before saving
             OrganismeIdentiteMapper().to_domain(obj)
             super().save_model(request, obj, form, change)
+
+
+@admin.register(RecrutementModel)
+class RecrutementAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    list_display = ("id", "offre_id", "organisme", "status", "updated_at")
+    list_filter = ("status",)
+    search_fields = ("offre_id", "organisme__nom")
+    readonly_fields = ("id", "etapes", "positions", "responsables_ids", "updated_at")
+    ordering = ("-updated_at",)
