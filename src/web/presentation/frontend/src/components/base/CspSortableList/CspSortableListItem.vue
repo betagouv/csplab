@@ -164,7 +164,7 @@ function setHandleRef(element: Element | null) {
 
 .csp-sortable-list-item__position {
   flex-shrink: 0;
-  min-width: 1.5rem;
+  width: 3rem;
   text-align: center;
   font-size: var(--csp-font-size-sm);
   font-weight: 500;
