@@ -26,3 +26,8 @@ class ResponsableAjoute(DomainEvent):
 @dataclass(frozen=True)
 class CandidatureRecue(DomainEvent):
     candidature_id: UUID
+
+
+@dataclass(frozen=True)
+class CandidatRecrute(DomainEvent):
+    candidat_id: UUID
