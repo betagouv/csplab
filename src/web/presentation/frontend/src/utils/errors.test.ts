@@ -15,4 +15,20 @@ describe('parseFieldErrors', () => {
       email: ['Invalid'],
     })).toEqual({ email: ['Invalid'] })
   })
+
+  it('parses string field values', () => {
+    expect(parseFieldErrors({ email: 'Invalid email' })).toEqual({
+      email: ['Invalid email'],
+    })
+  })
+
+  it('reads errors from custom handler details payload', () => {
+    expect(parseFieldErrors({
+      status: 'error',
+      details: {
+        email: ['Invalid'],
+        name: 'Required',
+      },
+    })).toEqual({ email: ['Invalid'], name: ['Required'] })
+  })
 })

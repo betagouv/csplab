@@ -60,6 +60,19 @@ describe('api client', () => {
     expect(getLastRequest().headers.get('X-CSRFToken')).toBe(MOCK_CSRF_TOKEN)
   })
 
+  it('sends an empty CSRF token when the cookie is absent', async () => {
+    Object.defineProperty(document, 'cookie', {
+      configurable: true,
+      get: () => '',
+    })
+    mockFetchResponse([], 200)
+    await api.PUT('/recruteur/organisme/{organisme_uuid}/parametres/etapes', {
+      params: { path: { organisme_uuid: 'xxx' } },
+      body: [],
+    })
+    expect(getLastRequest().headers.get('X-CSRFToken')).toBe('')
+  })
+
   it('redirects to /utilisateur/connexion on 401', async () => {
     const mockLocation = { href: '', pathname: '/ats/dashboard', search: '' }
     vi.stubGlobal('location', mockLocation)
