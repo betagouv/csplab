@@ -4,7 +4,78 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.11] - 2026-06-16
+## [0.1.12] - 2026-06-26
+
+### <!-- 0 --> Breaking Changes
+
+- 🐛(web-ingestion) hide source_id from OffersInputSerializer OpenAPI doc ([#800](https://github.com/betagouv/csplab/pull/800))
+- 🐛(ingestion) remove trailing slashes from web gateway URLs ([#843](https://github.com/betagouv/csplab/pull/843))
+- 🎨(web-presentation) harmonize trailing slash on routes ([#841](https://github.com/betagouv/csplab/pull/841))
+- ✨(recruteur) refine recruit steps categories ([#845](https://github.com/betagouv/csplab/pull/845))
+
+### <!-- 1 --> Added
+
+- ✨(ingestion) enrich Offer with new fields from Talentsoft ([#794](https://github.com/betagouv/csplab/pull/794))
+- ✨(ci) check pyproject.toml version bump on libs changes ([#801](https://github.com/betagouv/csplab/pull/801))
+- ✨(web) modifier plusieurs champs lors de l'upsert d'une offre ([#808](https://github.com/betagouv/csplab/pull/808))
+- ✨(ats-presentation) add ats ui component batch ([#795](https://github.com/betagouv/csplab/pull/795))
+- ✨(web) add robots meta tag controlled by environment variable ([#810](https://github.com/betagouv/csplab/pull/810))
+- ✨(presentation-recruteur) initialisation des interfaces Organisme et Etape de Recrutement d'un Organisme ([#798](https://github.com/betagouv/csplab/pull/798))
+- ✨(referentiel) persister les champs additionnels de l'offre ([#809](https://github.com/betagouv/csplab/pull/809))
+- ✨(ats-presentation) add pagination component ([#812](https://github.com/betagouv/csplab/pull/812))
+- ✨(frontend) Add CspToast notifications component ([#815](https://github.com/betagouv/csplab/pull/815))
+- ✨(presentation-pages) render the API business guide markdown doc at /pages/guide_api ([#820](https://github.com/betagouv/csplab/pull/820))
+- ✅(ingestion) couvrir le désarchivage d'une offre lors d'un upsert ([#824](https://github.com/betagouv/csplab/pull/824))
+- ✨(web) backup the database to Scaleway via a daily Scalingo cron job ([#833](https://github.com/betagouv/csplab/pull/833))
+- ✨(audit-domain) ajout du modele AuditLog ([#738](https://github.com/betagouv/csplab/pull/738))
+- ✨(recruteur) init recruit steps ([#819](https://github.com/betagouv/csplab/pull/819))
+- 🔧(tooling) add django_extensions in dev env ([#826](https://github.com/betagouv/csplab/pull/826))
+- ✨(recruteur-presentation) add interface to update organisme steps ([#835](https://github.com/betagouv/csplab/pull/835))
+- ✨(ingestion) ajoute l'endpoint GET /offres/sources/:uuid ([#825](https://github.com/betagouv/csplab/pull/825))
+- ✨(ingestion) ajoute un champ slug requis au modèle Source ([#837](https://github.com/betagouv/csplab/pull/837))
+- ✨(ats-presentation) add generic table component ([#817](https://github.com/betagouv/csplab/pull/817))
+- ✨(recruteur-presentation) interface my recruits ([#838](https://github.com/betagouv/csplab/pull/838))
+- ✨(ci) create Sentry releases on deploy for web, ocr and ingestion ([#850](https://github.com/betagouv/csplab/pull/850))
+- ♻️(referentiel) déplace Source dans la lib partagée referentiel ([#847](https://github.com/betagouv/csplab/pull/847))
+- ✨(referentiel) rend les champs client/url optionnels pour les sources API ([#854](https://github.com/betagouv/csplab/pull/854))
+- 🔧(web-presentation) add redirection app ([#855](https://github.com/betagouv/csplab/pull/855))
+- ✨(ingestion) importe toutes les offres Talentsoft comme webhooks CREE ([#858](https://github.com/betagouv/csplab/pull/858))
+- 🐛(ingestion) capture les exceptions Celery dans Sentry ([#861](https://github.com/betagouv/csplab/pull/861))
+- ✨(recruteur-presentation) add interface for recrutement details ([#856](https://github.com/betagouv/csplab/pull/856))
+- ✨(ats-presentation) wire simple mes-recrutements page ([#851](https://github.com/betagouv/csplab/pull/851))
+- ✨(ats-presentation) add generic CspBreadcrumb base component ([#852](https://github.com/betagouv/csplab/pull/852))
+- ✨(ats-presentation) add page header component ([#853](https://github.com/betagouv/csplab/pull/853))
+- ✨(ats-presentation) add activation behaviour on table cell or row ([#860](https://github.com/betagouv/csplab/pull/860))
+- ✨(recruteur-presentation) add seed recruteur datas in management command ([#859](https://github.com/betagouv/csplab/pull/859))
+- ✨(frontend) introduce dnd and create CspSortableList component ([#828](https://github.com/betagouv/csplab/pull/828))
+- ✨(storybook) Add workflow for on-demand branch previews ([#867](https://github.com/betagouv/csplab/pull/867))
+
+### <!-- 2 --> Modified
+
+- 🐛(ingestion) stop sending source per offer when upserting to web ([#802](https://github.com/betagouv/csplab/pull/802))
+- ♻️(identite-domain) traduction des erreurs de domaine en FR ([#807](https://github.com/betagouv/csplab/pull/807))
+- ✨(ingestion) split process_webhook task by action type ([#805](https://github.com/betagouv/csplab/pull/805))
+- ♻️(ddd-domain) simplify domain events interface ([#811](https://github.com/betagouv/csplab/pull/811))
+- 🔧(tooling-admin) disable TOTP in dev mode ([#836](https://github.com/betagouv/csplab/pull/836))
+- 🔧(tooling) secure the scalingo deployment by explicitly declaring django settings in the startup scripts ([#839](https://github.com/betagouv/csplab/pull/839))
+- 🎨(ingestion-domain) add API value in source type ([#842](https://github.com/betagouv/csplab/pull/842))
+- ♻️(ingestion) make tests more readable using patch decorator instead of context managers ([#849](https://github.com/betagouv/csplab/pull/849))
+- ✨(ats-presentation) prepare sidebar for real navigation ([#846](https://github.com/betagouv/csplab/pull/846))
+- ♻️(ingestion) casse le cycle d'import celery_app → container ([#862](https://github.com/betagouv/csplab/pull/862))
+- 🎨(ingestion-presentation) let deambiguate sources using their slug in __str__ ([#865](https://github.com/betagouv/csplab/pull/865))
+- ✨(ats-presentation) update tabs components to support composed pattern ([#857](https://github.com/betagouv/csplab/pull/857))
+- 📝(documentation-domain) imposer les règles métier dans la couche domaine - ADR ([#863](https://github.com/betagouv/csplab/pull/863))
+- ♻️(storybook) isolate gh pages deployments in subfolders ([#871](https://github.com/betagouv/csplab/pull/871))
+- ♻️(storybook) refactor storybook github actions ([#872](https://github.com/betagouv/csplab/pull/872))
+
+### <!-- 4 --> Fixed
+
+- 🐛(web-infrastructure) run a single Huey scheduler ([#782](https://github.com/betagouv/csplab/pull/782))
+- 🐛(ingestion) fix event loop closed error and add timeout to Celery tasks ([#797](https://github.com/betagouv/csplab/pull/797))
+- 🐛(tooling-ci) fix removed lint-internal-schema ([#816](https://github.com/betagouv/csplab/pull/816))
+- 🐛(tooling) fix installation paths for backup script ([#834](https://github.com/betagouv/csplab/pull/834))
+
+## [0.1.11] - 2026-06-17
 
 ### <!-- 0 --> Breaking Changes
 
