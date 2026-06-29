@@ -384,33 +384,45 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListOffersResponse'
+                $ref: '#/components/schemas/PaginatedListOffersResponse'
               examples:
                 Success-ActiveOffers:
                   value:
-                    external_id: Versant_FPE-2026-999999
-                    title: Responsable de la Division des Affaires Financières H/F
-                    organization: Ecole Nationale Supérieure de Techniques Avancées
-                      (ENSTA)
-                    contract_type: TITULAIRE_CONTRACTUEL
-                    category: A
-                    publication_date: '2026-04-17T14:44:49.873000+00:00'
-                    offer_url: https://test.com/offre-emploi/2026-999999/
-                    archived_at: null
+                    count: 1
+                    next: null
+                    previous: null
+                    results:
+                    - external_id: Versant_FPE-2026-999999
+                      reference: 2026-999999
+                      source_id: 12345678-1234-4234-b234-123456789abc
+                      title: Responsable de la Division des Affaires Financières H/F
+                      organization: Ecole Nationale Supérieure de Techniques Avancées
+                        (ENSTA)
+                      contract_type: TITULAIRE_CONTRACTUEL
+                      category: A
+                      publication_date: '2026-04-17T14:44:49.873000+00:00'
+                      offer_url: https://test.com/offre-emploi/2026-999999/
+                      archived_at: null
                   summary: Liste des offres d'emploi actives
                   description: Les offres d'emploi sans date d'archivage sont retournées
                     paginées
                 Success-ArchivedOffers:
                   value:
-                    external_id: Versant_FPE-2026-999999
-                    title: Responsable de la Division des Affaires Financières H/F
-                    organization: Ecole Nationale Supérieure de Techniques Avancées
-                      (ENSTA)
-                    contract_type: TITULAIRE_CONTRACTUEL
-                    category: A
-                    publication_date: '2026-04-17T14:44:49.873000+00:00'
-                    offer_url: https://test.com/offre-emploi/2026-999999/
-                    archived_at: '2026-05-17T12:42:42.873000+00:00'
+                    count: 1
+                    next: null
+                    previous: null
+                    results:
+                    - external_id: Versant_FPE-2026-999999
+                      reference: 2026-999999
+                      source_id: 12345678-1234-4234-b234-123456789abc
+                      title: Responsable de la Division des Affaires Financières H/F
+                      organization: Ecole Nationale Supérieure de Techniques Avancées
+                        (ENSTA)
+                      contract_type: TITULAIRE_CONTRACTUEL
+                      category: A
+                      publication_date: '2026-04-17T14:44:49.873000+00:00'
+                      offer_url: https://test.com/offre-emploi/2026-999999/
+                      archived_at: '2026-05-17T12:42:42.873000+00:00'
                   summary: Liste des offres d'emploi archivées
                   description: Les offres d'emploi avec une date d'archivage sont
                     retournées paginées
@@ -1567,6 +1579,26 @@ components:
       description: |-
         * `NON` - Non
         * `OUI` - Oui
+    PaginatedListOffersResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+        previous:
+          type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListOffersResponse'
+      required:
+      - count
+      - next
+      - previous
+      - results
     ProfessionInput:
       type: object
       properties:
