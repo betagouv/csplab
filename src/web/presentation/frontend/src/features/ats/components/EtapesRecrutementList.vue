@@ -1,49 +1,36 @@
 <script setup lang="ts">
 import type { EtapeRecrutement } from '../api/recrutement'
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
-import { getEtapesRecrutement } from '../api/recrutement'
-
-type Categorie = EtapeRecrutement['categorie']
-type BadgeType = 'info' | 'success' | 'error'
-
-const CATEGORIE_BADGE: Record<Categorie, { label: string, icon: string, type?: BadgeType }> = {
-  ENTREE: { label: 'À traiter', icon: 'ri:inbox-2-line' },
-  EN_COURS: { label: 'En cours', icon: 'ri:progress-4-line', type: 'info' },
-  REFUS: { label: 'Refusée', icon: 'ri:close-circle-line', type: 'error' },
-  ACCEPTE: { label: 'Acceptée', icon: 'ri:checkbox-circle-line', type: 'success' },
-}
-
-const etapes = ref<EtapeRecrutement[]>([])
-const loading = ref(true)
-const error = ref<Error | null>(null)
+import { useEtapesRecrutement } from '../composables/useEtapesRecrutement'
+import { CATEGORIE_BADGE } from '../constants/etape-recrutement'
 
 const TEMP_ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 
-onMounted(async () => {
-  try {
-    etapes.value = await getEtapesRecrutement(TEMP_ORGANISME_UUID)
-  }
-  catch (err) {
-    error.value = err instanceof Error ? err : new Error(String(err))
-  }
-  finally {
-    loading.value = false
-  }
-})
+const {
+  etapes,
+  loading,
+  saving,
+  error,
+  isEtapeLocked,
+  fetchEtapes,
+  reorderEtapes,
+  addEtape,
+  removeEtape,
+} = useEtapesRecrutement(TEMP_ORGANISME_UUID)
 
-function isEtapeLocked(etape: EtapeRecrutement): boolean {
-  return etape.categorie !== 'EN_COURS'
-}
+onMounted(fetchEtapes)
 
-function onReorder(newItems: EtapeRecrutement[]) {
-  etapes.value = newItems
-}
-
-function getMenuSections(canMoveUp: boolean, canMoveDown: boolean, moveUp: () => void, moveDown: () => void) {
+function getMenuSections(
+  item: EtapeRecrutement,
+  canMoveUp: boolean,
+  canMoveDown: boolean,
+  moveUp: () => void,
+  moveDown: () => void,
+) {
   return [
     {
       items: [
@@ -53,7 +40,13 @@ function getMenuSections(canMoveUp: boolean, canMoveDown: boolean, moveUp: () =>
     },
     {
       items: [
-        { label: 'Supprimer', icon: 'ri:delete-bin-line', destructive: true, disabled: true },
+        {
+          label: 'Supprimer',
+          icon: 'ri:delete-bin-line',
+          destructive: true,
+          disabled: isEtapeLocked(item),
+          onSelect: () => removeEtape(item.etape_uuid),
+        },
       ],
     },
   ]
@@ -71,6 +64,8 @@ function getMenuSections(canMoveUp: boolean, canMoveDown: boolean, moveUp: () =>
         icon="ri:add-line"
         variant="secondary"
         is-icon-left
+        :disabled="saving"
+        @click="addEtape"
       />
     </header>
 
@@ -90,13 +85,13 @@ function getMenuSections(canMoveUp: boolean, canMoveDown: boolean, moveUp: () =>
 
     <CspSortableList
       v-else
-      :items="etapes"
+      :items="[...etapes]"
       :get-item-key="(etape) => etape.etape_uuid"
       :get-item-label="(etape) => etape.nom"
       :is-item-draggable="(etape) => !isEtapeLocked(etape)"
       :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"
       show-position
-      @reorder="onReorder"
+      @reorder="reorderEtapes"
     >
       <template #header>
         <span class="etapes-list__header-spacer" />
@@ -115,7 +110,7 @@ function getMenuSections(canMoveUp: boolean, canMoveDown: boolean, moveUp: () =>
           :label="CATEGORIE_BADGE[item.categorie].label"
         />
         <CspDropdownMenu
-          :sections="getMenuSections(canMoveUp, canMoveDown, moveUp, moveDown)"
+          :sections="getMenuSections(item, canMoveUp, canMoveDown, moveUp, moveDown)"
           side="bottom"
           align="end"
         >
