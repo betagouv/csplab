@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { EtapeRecrutement } from '../api/recrutement'
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
+import { useToast } from '@/composables/useToast'
 import { useEtapesRecrutement } from '../composables/useEtapesRecrutement'
 import { CATEGORIE_BADGE } from '../constants/etape-recrutement'
 
@@ -21,6 +22,19 @@ const {
   addEtape,
   removeEtape,
 } = useEtapesRecrutement(TEMP_ORGANISME_UUID)
+
+const { addToast } = useToast()
+
+watch(error, (err) => {
+  if (!err) {
+    return
+  }
+  addToast({
+    variant: 'error',
+    title: 'Erreur',
+    description: 'Une erreur est survenue. Veuillez réessayer.',
+  })
+})
 
 onMounted(fetchEtapes)
 

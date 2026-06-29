@@ -30,7 +30,10 @@ function insertEtape(
   etapes: EtapeRecrutement[],
   nouvelle: EtapeRecrutement,
 ): EtapeRecrutement[] {
-  const insertAt = etapes.findLastIndex(e => e.categorie === 'EN_COURS') + 1
+  const finalIndex = etapes.findIndex(
+    e => e.categorie === 'REFUS' || e.categorie === 'ACCEPTE',
+  )
+  const insertAt = finalIndex === -1 ? etapes.length : finalIndex
   return [...etapes.slice(0, insertAt), nouvelle, ...etapes.slice(insertAt)]
 }
 
