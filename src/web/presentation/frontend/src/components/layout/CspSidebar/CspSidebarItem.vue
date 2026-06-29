@@ -13,6 +13,10 @@ interface CspSidebarItemProps {
   isActive?: boolean
 }
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 withDefaults(defineProps<CspSidebarItemProps>(), {
   isActive: false,
 })

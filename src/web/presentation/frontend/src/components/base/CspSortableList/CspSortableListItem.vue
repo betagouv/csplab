@@ -12,12 +12,14 @@ interface Props {
   draggable?: boolean
   disabled?: boolean
   variant?: 'default' | 'alt'
+  showPosition?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   draggable: true,
   disabled: false,
   variant: 'default',
+  showPosition: false,
 })
 
 const itemRef = ref<HTMLElement | null>(null)
@@ -44,7 +46,7 @@ const { isDragging } = useDraggableElement({
 
 const { isDraggedOver, closestEdge } = useDropTargetElement({
   element: itemRef,
-  enabled: isInteractionEnabled,
+  enabled: isDraggable,
   canDrop: source => source.type === SORTABLE_ITEM_TYPE && source.listId === props.listId,
   getData: () => getItemData(),
 })
@@ -90,6 +92,13 @@ function setHandleRef(element: Element | null) {
           name="ri:pushpin-2-line"
           :size="16"
         />
+      </span>
+
+      <span
+        v-if="showPosition"
+        class="csp-sortable-list-item__position"
+      >
+        {{ index + 1 }}
       </span>
 
       <slot
@@ -150,6 +159,15 @@ function setHandleRef(element: Element | null) {
 .csp-sortable-list-item__icon {
   display: flex;
   flex-shrink: 0;
+  color: var(--text-mention-grey);
+}
+
+.csp-sortable-list-item__position {
+  flex-shrink: 0;
+  width: 3rem;
+  text-align: center;
+  font-size: var(--csp-font-size-sm);
+  font-weight: 500;
   color: var(--text-mention-grey);
 }
 

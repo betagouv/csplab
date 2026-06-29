@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.entities.organisme_recruteur import OrganismeRecruteur
 from domain.recruteur.repositories.organisme_repository_interface import (
     IOrganismeRecruteurRepository,
@@ -13,7 +14,10 @@ class PostgresOrganismeRecruteurRepository(IOrganismeRecruteurRepository):
         self._mapper = OrganismeRecruteurMapper()
 
     def get_by_id(self, organisme_id: UUID) -> OrganismeRecruteur:
-        model = OrganismeModel.objects.get(id=organisme_id)
+        try:
+            model = OrganismeModel.objects.get(id=organisme_id)
+        except OrganismeModel.DoesNotExist as exc:
+            raise OrganismeNexistePas(str(organisme_id)) from exc
         return self._mapper.to_domain(model)
 
     def save(self, organisme: OrganismeRecruteur) -> None:

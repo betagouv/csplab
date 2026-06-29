@@ -12,10 +12,9 @@ import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
 import { useCurrentUser } from '@/composables/useCurrentUser'
 import { ATS_NAVIGATION } from '../navigation'
 
-const { user, displayName, fetch: fetchUser } = useCurrentUser()
-
 const route = useRoute()
 const router = useRouter()
+const { user, displayName, fetch: fetchUser } = useCurrentUser()
 
 const navGroups = computed(() => {
   return ATS_NAVIGATION
