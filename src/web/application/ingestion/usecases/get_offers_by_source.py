@@ -29,15 +29,16 @@ class GetOffersBySourceUseCase(IUseCase[GetOffersBySourceInput, IPage[Offer]]):
         self.utilisateur_repository = utilisateur_repository
 
     def execute(self, input_data: GetOffersBySourceInput) -> IPage[Offer]:
-        utilisateur = self.utilisateur_repository.get_by_entity_id(
-            input_data.utilisateur_entity_id
-        )
-        if not utilisateur.is_superuser:
-            source_ids = {input_data.source_id}
-            allowed = self.user_source_repository.get_allowed_source_ids(
-                utilisateur, source_ids
+        if input_data.utilisateur_entity_id is not None:
+            utilisateur = self.utilisateur_repository.get_by_entity_id(
+                input_data.utilisateur_entity_id
             )
-            if allowed != source_ids:
-                raise SourceAuthorizationError({input_data.source_id})
+            if not utilisateur.is_superuser:
+                source_ids = {input_data.source_id}
+                allowed = self.user_source_repository.get_allowed_source_ids(
+                    utilisateur, source_ids
+                )
+                if allowed != source_ids:
+                    raise SourceAuthorizationError({input_data.source_id})
 
         return self.offers_repository.get_by_source_id(input_data.source_id)

@@ -61,9 +61,16 @@ class TestOffersBySourceView:
         response = api_client.get(URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_api_key_authentication_returns_401(self, api_key_client):
+    def test_api_key_authentication_returns_offers(self, api_key_client, use_case):
+        offer = OfferFactory.create_entity(source_id=SOURCE_ID)
+        _make_paginated_mock(use_case, num_offers=1, offers_slice=[offer])
+
         response = api_key_client.get(URL)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+        assert response.status_code == status.HTTP_200_OK
+        use_case.execute.assert_called_once_with(
+            GetOffersBySourceInput(source_id=SOURCE_ID, utilisateur_entity_id=None)
+        )
 
     def test_post_not_allowed(self, authenticated_client):
         response = authenticated_client.post(URL)
