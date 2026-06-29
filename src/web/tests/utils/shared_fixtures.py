@@ -47,6 +47,9 @@ from application.recruteur.usecases.get_organisme_recruteur import (
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsUsecase,
 )
+from application.recruteur.usecases.update_organisme_steps import (
+    UpdateOrganismeStepsUsecase,
+)
 from config.app_config import AppConfig
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
@@ -525,3 +528,12 @@ def initialize_organisme_steps_usecase():
         create_interface_aware_mock(IOrganismeRecruteurRepository),
     )
     return InitializeOrganismeStepsUsecase(organisme_repository=repository)
+
+
+@pytest.fixture
+def update_organisme_steps_usecase():
+    repository = cast(
+        IOrganismeRecruteurRepository,
+        create_interface_aware_mock(IOrganismeRecruteurRepository),
+    )
+    return UpdateOrganismeStepsUsecase(organisme_repository=repository)
