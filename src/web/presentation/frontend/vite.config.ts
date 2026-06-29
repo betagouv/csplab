@@ -35,11 +35,12 @@ export default defineConfig(({ command }) => ({
     environment: 'jsdom',
     coverage: {
       provider: 'v8',
-      include: ['src/utils/**', 'src/composables/**'],
+      include: ['src/utils/**', 'src/composables/**', 'src/features/**/composables/**'],
       exclude: ['**/*.stories.ts', 'src/composables/dnd/**'],
       thresholds: {
         'src/utils/**': { statements: 80, branches: 80, functions: 80, lines: 80 },
         'src/composables/**': { statements: 80, branches: 80, functions: 80, lines: 80 },
+        'src/features/**/composables/**': { statements: 80, branches: 80, functions: 80, lines: 80 },
       },
     },
   },

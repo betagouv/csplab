@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { EtapeRecrutement } from '../api/recrutement'
-import { onMounted, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
+import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
 import { useToast } from '@/composables/useToast'
 import { useEtapesRecrutement } from '../composables/useEtapesRecrutement'
@@ -20,6 +22,8 @@ const {
   fetchEtapes,
   reorderEtapes,
   addEtape,
+  addEtapeAt,
+  renameEtape,
   removeEtape,
 } = useEtapesRecrutement(TEMP_ORGANISME_UUID)
 
@@ -38,14 +42,96 @@ watch(error, (err) => {
 
 onMounted(fetchEtapes)
 
+type ModalMode = 'add' | 'add-at' | 'rename'
+
+const modalOpen = ref(false)
+const modalMode = ref<ModalMode>('add')
+const modalNom = ref('')
+const modalEtapeUuid = ref<string | null>(null)
+const modalInsertIndex = ref<number | null>(null)
+
+const modalTitle: Record<ModalMode, string> = {
+  'add': 'Ajouter une étape',
+  'add-at': 'Ajouter une étape',
+  'rename': 'Renommer l\'étape',
+}
+
+function openAddModal() {
+  modalMode.value = 'add'
+  modalNom.value = ''
+  modalEtapeUuid.value = null
+  modalInsertIndex.value = null
+  modalOpen.value = true
+}
+
+function openAddAtModal(index: number) {
+  modalMode.value = 'add-at'
+  modalNom.value = ''
+  modalEtapeUuid.value = null
+  modalInsertIndex.value = index
+  modalOpen.value = true
+}
+
+function openRenameModal(etape: EtapeRecrutement) {
+  modalMode.value = 'rename'
+  modalNom.value = etape.nom
+  modalEtapeUuid.value = etape.etape_uuid
+  modalInsertIndex.value = null
+  modalOpen.value = true
+}
+
+async function handleModalConfirm() {
+  const nom = modalNom.value.trim()
+  if (!nom) {
+    return
+  }
+
+  if (modalMode.value === 'add') {
+    await addEtape(nom)
+  }
+  else if (modalMode.value === 'add-at' && modalInsertIndex.value !== null) {
+    await addEtapeAt(nom, modalInsertIndex.value)
+  }
+  else if (modalMode.value === 'rename' && modalEtapeUuid.value) {
+    await renameEtape(modalEtapeUuid.value, nom)
+  }
+
+  modalOpen.value = false
+}
+
 function getMenuSections(
   item: EtapeRecrutement,
+  index: number,
   canMoveUp: boolean,
   canMoveDown: boolean,
   moveUp: () => void,
   moveDown: () => void,
 ) {
   return [
+    {
+      items: [
+        {
+          label: 'Renommer',
+          icon: 'ri:edit-line',
+          disabled: isEtapeLocked(item),
+          onSelect: () => openRenameModal(item),
+        },
+      ],
+    },
+    {
+      items: [
+        {
+          label: 'Ajouter une étape au-dessus',
+          icon: 'ri:add-line',
+          onSelect: () => openAddAtModal(index),
+        },
+        {
+          label: 'Ajouter une étape en dessous',
+          icon: 'ri:add-line',
+          onSelect: () => openAddAtModal(index + 1),
+        },
+      ],
+    },
     {
       items: [
         { label: 'Monter', icon: 'ri:arrow-up-s-line', disabled: !canMoveUp, onSelect: moveUp },
@@ -79,7 +165,7 @@ function getMenuSections(
         variant="secondary"
         is-icon-left
         :disabled="saving"
-        @click="addEtape"
+        @click="openAddModal"
       />
     </header>
 
@@ -114,7 +200,7 @@ function getMenuSections(
         <span class="etapes-list__header-statut">Statut visible par le candidat</span>
         <span class="etapes-list__header-actions" />
       </template>
-      <template #item="{ item, canMoveUp, canMoveDown, moveUp, moveDown }">
+      <template #item="{ item, index, canMoveUp, canMoveDown, moveUp, moveDown }">
         <span class="etapes-list__item-nom">{{ item.nom }}</span>
         <CspBadge
           class="etapes-list__item-badge"
@@ -124,7 +210,7 @@ function getMenuSections(
           :label="CATEGORIE_BADGE[item.categorie].label"
         />
         <CspDropdownMenu
-          :sections="getMenuSections(item, canMoveUp, canMoveDown, moveUp, moveDown)"
+          :sections="getMenuSections(item, index, canMoveUp, canMoveDown, moveUp, moveDown)"
           side="bottom"
           align="end"
         >
@@ -139,6 +225,34 @@ function getMenuSections(
         </CspDropdownMenu>
       </template>
     </CspSortableList>
+
+    <CspDialog
+      v-model:open="modalOpen"
+      :title="modalTitle[modalMode]"
+      size="sm"
+    >
+      <CspInput
+        v-model="modalNom"
+        label="Nom de l'étape"
+        placeholder="Ex: Entretien technique"
+        @keydown.enter="handleModalConfirm"
+      />
+      <template #footer>
+        <div class="etapes-list__modal-footer">
+          <CspButton
+            label="Annuler"
+            variant="secondary"
+            @click="modalOpen = false"
+          />
+          <CspButton
+            :label="modalMode === 'add' ? 'Ajouter' : 'Renommer'"
+            variant="primary"
+            :disabled="!modalNom.trim() || saving"
+            @click="handleModalConfirm"
+          />
+        </div>
+      </template>
+    </CspDialog>
   </div>
 </template>
 
@@ -197,5 +311,11 @@ function getMenuSections(
 .etapes-list__header-actions {
   width: 2rem;
   flex-shrink: 0;
+}
+
+.etapes-list__modal-footer {
+  display: flex;
+  gap: var(--csp-space-3);
+  justify-content: flex-end;
 }
 </style>

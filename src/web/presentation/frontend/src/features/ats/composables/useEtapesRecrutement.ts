@@ -3,8 +3,6 @@ import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../api/recrutemen
 import { readonly, ref } from 'vue'
 import { getEtapesRecrutement, updateEtapesRecrutement } from '../api/recrutement'
 
-const NOUVELLE_ETAPE_LABEL = 'Nouvelle étape'
-
 function toUpdatePayload(items: EtapeRecrutement[]): UpdateEtapeRecrutement[] {
   return items.map((etape) => {
     const payload: UpdateEtapeRecrutement = {
@@ -18,10 +16,10 @@ function toUpdatePayload(items: EtapeRecrutement[]): UpdateEtapeRecrutement[] {
   })
 }
 
-function buildNouvelleEtape(): EtapeRecrutement {
+function buildNouvelleEtape(nom: string): EtapeRecrutement {
   return {
     etape_uuid: '',
-    nom: NOUVELLE_ETAPE_LABEL,
+    nom,
     categorie: 'EN_COURS',
   }
 }
@@ -84,8 +82,25 @@ export function useEtapesRecrutement(organismeUuid: string) {
     await saveEtapes(nouvellesEtapes)
   }
 
-  async function addEtape(): Promise<void> {
-    await saveEtapes(insertEtape(etapes.value, buildNouvelleEtape()))
+  async function addEtape(nom: string): Promise<void> {
+    await saveEtapes(insertEtape(etapes.value, buildNouvelleEtape(nom)))
+  }
+
+  async function addEtapeAt(nom: string, index: number): Promise<void> {
+    const nouvelle = buildNouvelleEtape(nom)
+    const updated = [
+      ...etapes.value.slice(0, index),
+      nouvelle,
+      ...etapes.value.slice(index),
+    ]
+    await saveEtapes(updated)
+  }
+
+  async function renameEtape(etapeUuid: string, nouveauNom: string): Promise<void> {
+    const updated = etapes.value.map(e =>
+      e.etape_uuid === etapeUuid ? { ...e, nom: nouveauNom } : e,
+    )
+    await saveEtapes(updated)
   }
 
   async function removeEtape(etapeUuid: string): Promise<void> {
@@ -101,6 +116,8 @@ export function useEtapesRecrutement(organismeUuid: string) {
     fetchEtapes,
     reorderEtapes,
     addEtape,
+    addEtapeAt,
+    renameEtape,
     removeEtape,
   }
 }

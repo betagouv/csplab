@@ -44,14 +44,14 @@ describe('useEtapesRecrutement', () => {
 
     const { fetchEtapes, addEtape } = useEtapesRecrutement(ORGANISME_UUID)
     await fetchEtapes()
-    await addEtape()
+    await addEtape('Test technique')
 
     const payload = mockUpdateEtapesRecrutement.mock.calls[0][1] as UpdateEtapeRecrutement[]
     const refusIndex = payload.findIndex(p => p.categorie === 'REFUS')
 
     expect(payload).toHaveLength(DEFAULT_ETAPES.length + 1)
     expect(payload[refusIndex - 1]).toEqual({
-      nom: 'Nouvelle étape',
+      nom: 'Test technique',
       categorie: 'EN_COURS',
     })
   })
@@ -69,5 +69,31 @@ describe('useEtapesRecrutement', () => {
     expect(etapes.value.find(e => e.etape_uuid === 'bbbb')).toBeUndefined()
     const payload = mockUpdateEtapesRecrutement.mock.calls[0][1] as UpdateEtapeRecrutement[]
     expect(payload.find(p => p.etape_uuid === 'bbbb')).toBeUndefined()
+  })
+
+  it('inserts etape at specific index', async () => {
+    mockGetEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
+    mockUpdateEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
+
+    const { fetchEtapes, addEtapeAt } = useEtapesRecrutement(ORGANISME_UUID)
+    await fetchEtapes()
+    await addEtapeAt('Nouvelle', 2)
+
+    const payload = mockUpdateEtapesRecrutement.mock.calls[0][1] as UpdateEtapeRecrutement[]
+    expect(payload).toHaveLength(DEFAULT_ETAPES.length + 1)
+    expect(payload[2]).toEqual({ nom: 'Nouvelle', categorie: 'EN_COURS' })
+  })
+
+  it('renames etape by uuid', async () => {
+    mockGetEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
+    mockUpdateEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
+
+    const { fetchEtapes, renameEtape } = useEtapesRecrutement(ORGANISME_UUID)
+    await fetchEtapes()
+    await renameEtape('bbbb', 'Présélection RH')
+
+    const payload = mockUpdateEtapesRecrutement.mock.calls[0][1] as UpdateEtapeRecrutement[]
+    const renamed = payload.find(p => p.etape_uuid === 'bbbb')
+    expect(renamed?.nom).toBe('Présélection RH')
   })
 })
