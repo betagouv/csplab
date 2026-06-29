@@ -60,7 +60,15 @@ from presentation.ingestion.serializers import (
     examples=LIST_OFFERS_EXAMPLES,
     tags=["offres"],
     responses={
-        200: ListOffersResponseSerializer,
+        200: inline_serializer(
+            name="PaginatedListOffersResponse",
+            fields={
+                "count": drf_serializers.IntegerField(),
+                "next": drf_serializers.CharField(allow_null=True),
+                "previous": drf_serializers.CharField(allow_null=True),
+                "results": ListOffersResponseSerializer(many=True),
+            },
+        ),
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
         500: GenericErrorSerializer,
