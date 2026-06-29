@@ -135,7 +135,7 @@ class OffersListView(APIView):
     },
 )
 class OffersBySourceView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
     serializer_class = OfferDetailResponseSerializer
 
     def __init__(self, **kwargs):
@@ -144,7 +144,9 @@ class OffersBySourceView(APIView):
         self.logger = self.container.logger_service()
 
     def get(self, request, source_id):
-        utilisateur_entity_id = UUID(request.user.username)
+        utilisateur_entity_id = (
+            UUID(request.user.username) if isinstance(request.user, UserModel) else None
+        )
         try:
             usecase = self.container.get_offers_by_source_usecase()
             result = usecase.execute(
