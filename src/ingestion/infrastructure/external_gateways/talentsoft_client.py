@@ -67,15 +67,21 @@ class BaseTalentsoftClient(AsyncHttpClient):
             "client_secret": self.client_secret,
         }
 
-        try:
-            response = await self.post(url, headers=headers, data=data)
-            response.raise_for_status()
-            payload = response.json()
-        except Exception as exc:
-            self.logger.error("Failed to fetch token from %s", self.api_name)
-            raise ExternalApiError(
-                message=f"Token request failed: {exc}", api_name=self.api_name
-            ) from exc
+        for attempt in range(self.max_retries + 1):
+            try:
+                response = await self.post(url, headers=headers, data=data)
+                response.raise_for_status()
+                payload = response.json()
+                break
+            except Exception as exc:
+                if attempt == self.max_retries:
+                    self.logger.error("Failed to fetch token from %s", self.api_name)
+                    raise ExternalApiError(
+                        message=f"Token request failed: {exc}", api_name=self.api_name
+                    ) from exc
+                self.logger.warning(
+                    "Token fetch attempt %d failed, retrying: %s", attempt + 1, exc
+                )
 
         try:
             token_response = TalentsoftTokenResponse(**cast(Dict[str, Any], payload))

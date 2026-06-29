@@ -108,6 +108,52 @@ class TestGetAccessToken:
             assert exc_info.value.api_name == "Talentsoft Front API"
 
     @pytest.mark.asyncio
+    @patch(
+        "infrastructure.gateways.async_http_client.AsyncHttpClient.post",
+        new_callable=AsyncMock,
+    )
+    async def test_fetching_token_retries_on_transient_error(
+        self, mock_post, talentsoft_client
+    ):
+        talentsoft_client.cached_token = None
+        expected_token = fake.uuid4()
+        failed_response = mocked_response(status_code=503)
+        failed_response.raise_for_status.side_effect = Exception("503 Unavailable")
+        success_response = mocked_response(
+            return_value={
+                "access_token": expected_token,
+                "token_type": fake.word(),
+                "expires_in": 3600,
+            }
+        )
+
+        mock_post.side_effect = [failed_response, success_response]
+        result = await talentsoft_client.get_access_token()
+
+        assert result == expected_token
+        assert mock_post.call_count == 2
+
+    @pytest.mark.asyncio
+    @patch(
+        "infrastructure.gateways.async_http_client.AsyncHttpClient.post",
+        new_callable=AsyncMock,
+    )
+    async def test_fetching_token_raises_after_max_retries(
+        self, mock_post, talentsoft_client
+    ):
+        talentsoft_client.cached_token = None
+        failed_response = mocked_response(status_code=503)
+        failed_response.raise_for_status.side_effect = Exception("503 Unavailable")
+
+        mock_post.return_value = failed_response
+
+        with pytest.raises(ExternalApiError, match="Token request failed") as exc_info:
+            await talentsoft_client.get_access_token()
+
+        assert exc_info.value.api_name == "Talentsoft Front API"
+        assert mock_post.call_count == talentsoft_client.max_retries + 1
+
+    @pytest.mark.asyncio
     async def test_fetching_returns_malformed_token(self, talentsoft_client):
         talentsoft_client.cached_token = None
         mock_response = mocked_response(return_value={"invalid": "response"})
