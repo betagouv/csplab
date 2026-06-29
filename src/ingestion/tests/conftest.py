@@ -4,6 +4,7 @@ import hmac
 import json
 import time
 import urllib.parse
+from uuid import UUID
 
 from faker import Faker
 from fastapi import FastAPI
@@ -24,8 +25,10 @@ WEB_BASE_URL = "https://web.example.com"
 WEB_API_KEY = "test-api-key"
 WEBHOOK_PATH = "/webhooks/talentsoft"
 SOURCE_ID = "11111111-2222-3333-4444-555555555555"
+SOURCE_UUID = UUID(SOURCE_ID)
 PUBLISH_OFFER_URL = f"{WEB_BASE_URL}/api/v1/offres/creer_modifier"
 SOURCES_URL = f"{WEB_BASE_URL}/api/v1/sources"
+OFFERS_BY_SOURCE_URL = f"{WEB_BASE_URL}/api/v1/offres/sources"
 
 
 # --- Signature helpers ---

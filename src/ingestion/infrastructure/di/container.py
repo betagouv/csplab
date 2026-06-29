@@ -8,6 +8,7 @@ from api.config import get_settings
 from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.tasks.process_webhook import save_raw_offer_webhook
 from application.use_cases.archive_offer import ArchiveOfferUseCase
+from application.use_cases.batch_archive_offers import BatchArchiveOffersUseCase
 from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
 from application.use_cases.import_offers import ImportOffersUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
@@ -15,6 +16,7 @@ from application.use_cases.publish_offer import PublishOfferUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from application.use_cases.save_webhook import SaveWebhookUseCase
 from domain.gateways.archive_gateway import IArchiveGateway
+from domain.gateways.offers_by_source_gateway import IOffersBySourceGateway
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
@@ -27,6 +29,9 @@ from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftFrontClient,
 )
 from infrastructure.external_gateways.web_archive_gateway import WebArchiveGateway
+from infrastructure.external_gateways.web_offers_by_source_gateway import (
+    WebOffersBySourceGateway,
+)
 from infrastructure.external_gateways.web_publish_offer_gateway import (
     WebPublishOfferGateway,
 )
@@ -71,6 +76,14 @@ def _make_archive_gateway(
     if not base_url or not api_key:
         raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
     return WebArchiveGateway(client=client, base_url=base_url, api_key=api_key)
+
+
+def _make_offers_by_source_gateway(
+    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
+) -> IOffersBySourceGateway:
+    if not base_url or not api_key:
+        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
+    return WebOffersBySourceGateway(client=client, base_url=base_url, api_key=api_key)
 
 
 def _make_publish_offer_gateway(
@@ -139,6 +152,25 @@ class Container(containers.DeclarativeContainer):
         ArchiveOfferUseCase,
         archive_gateway=archive_gateway,
         raw_offer_repository=raw_offer_repository,
+    )
+
+    offers_by_source_gateway: providers.Provider[IOffersBySourceGateway] = (
+        providers.Factory(
+            _make_offers_by_source_gateway,
+            client=http_client,
+            base_url=config.web_base_url,
+            api_key=config.web_api_key,
+        )
+    )
+
+    archive_offers_use_case: providers.Provider[BatchArchiveOffersUseCase] = (
+        providers.Factory(
+            BatchArchiveOffersUseCase,
+            web_offers_gateway=offers_by_source_gateway,
+            sources_repository=sources_repository,
+            talentsoft_client_repository=talentsoft_client_repository,
+            archive_offer_use_case=archive_offer_use_case,
+        )
     )
 
     load_sources_use_case = providers.Factory(
