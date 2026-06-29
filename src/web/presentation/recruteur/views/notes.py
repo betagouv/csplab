@@ -52,31 +52,6 @@ from presentation.recruteur.serializers import (
             500: GenericErrorSerializer,
         },
     ),
-    patch=extend_schema(
-        summary="Modifier une note d'une candidature",
-        tags=["recruteur"],
-        request=EditerNoteSerializer,
-        responses={
-            200: NoteSerializer,
-            400: GenericErrorSerializer,
-            401: TokenErrorSerializer,
-            403: GenericErrorSerializer,
-            404: GenericErrorSerializer,
-            500: GenericErrorSerializer,
-        },
-    ),
-    delete=extend_schema(
-        summary="Supprimer une note d'une candidature",
-        tags=["recruteur"],
-        responses={
-            204: None,
-            401: TokenErrorSerializer,
-            403: GenericErrorSerializer,
-            404: GenericErrorSerializer,
-            409: GenericErrorSerializer,
-            500: GenericErrorSerializer,
-        },
-    ),
 )
 class CandidatureNotesView(APIView):
     permission_classes = [IsAuthenticated]
@@ -129,6 +104,41 @@ class CandidatureNotesView(APIView):
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+@extend_schema_view(
+    patch=extend_schema(
+        summary="Modifier une note d'une candidature",
+        tags=["recruteur"],
+        request=EditerNoteSerializer,
+        responses={
+            200: NoteSerializer,
+            400: GenericErrorSerializer,
+            401: TokenErrorSerializer,
+            403: GenericErrorSerializer,
+            404: GenericErrorSerializer,
+            500: GenericErrorSerializer,
+        },
+    ),
+    delete=extend_schema(
+        summary="Supprimer une note d'une candidature",
+        tags=["recruteur"],
+        responses={
+            204: None,
+            401: TokenErrorSerializer,
+            403: GenericErrorSerializer,
+            404: GenericErrorSerializer,
+            409: GenericErrorSerializer,
+            500: GenericErrorSerializer,
+        },
+    ),
+)
+class CandidatureNoteDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = recruteur_container()
 
     def patch(
         self, request: Request, candidature_uuid: UUID, note_uuid: UUID

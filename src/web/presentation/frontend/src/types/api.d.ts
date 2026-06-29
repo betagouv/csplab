@@ -16,12 +16,10 @@ export interface paths {
         put?: never;
         /** Ajouter une note à une candidature */
         post: operations["recruteur_candidature_notes_create"];
-        /** Supprimer une note d'une candidature */
-        delete: operations["recruteur_candidature_notes_destroy"];
+        delete?: never;
         options?: never;
         head?: never;
-        /** Modifier une note d'une candidature */
-        patch: operations["recruteur_candidature_notes_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/recruteur/candidature/{candidature_uuid}/notes/{note_uuid}": {
@@ -31,17 +29,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liste des notes d'une candidature */
-        get: operations["recruteur_candidature_notes_list_2"];
+        get?: never;
         put?: never;
-        /** Ajouter une note à une candidature */
-        post: operations["recruteur_candidature_notes_create_2"];
+        post?: never;
         /** Supprimer une note d'une candidature */
-        delete: operations["recruteur_candidature_notes_destroy_2"];
+        delete: operations["recruteur_candidature_notes_destroy"];
         options?: never;
         head?: never;
         /** Modifier une note d'une candidature */
-        patch: operations["recruteur_candidature_notes_partial_update_2"];
+        patch: operations["recruteur_candidature_notes_partial_update"];
         trace?: never;
     };
     "/recruteur/organisme/{organisme_uuid}": {
@@ -600,6 +596,7 @@ export interface operations {
             header?: never;
             path: {
                 candidature_uuid: string;
+                note_uuid: string;
             };
             cookie?: never;
         };
@@ -655,232 +652,6 @@ export interface operations {
         };
     };
     recruteur_candidature_notes_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                candidature_uuid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedEditerNote"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedEditerNote"];
-                "multipart/form-data": components["schemas"]["PatchedEditerNote"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Note"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenError"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-        };
-    };
-    recruteur_candidature_notes_list_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                candidature_uuid: string;
-                note_uuid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Note"][];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenError"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-        };
-    };
-    recruteur_candidature_notes_create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                candidature_uuid: string;
-                note_uuid: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreerNote"];
-                "application/x-www-form-urlencoded": components["schemas"]["CreerNote"];
-                "multipart/form-data": components["schemas"]["CreerNote"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Note"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenError"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-        };
-    };
-    recruteur_candidature_notes_destroy_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                candidature_uuid: string;
-                note_uuid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenError"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-        };
-    };
-    recruteur_candidature_notes_partial_update_2: {
         parameters: {
             query?: never;
             header?: never;

@@ -1,6 +1,9 @@
 from django.urls import path
 
-from presentation.recruteur.views.notes import CandidatureNotesView
+from presentation.recruteur.views.notes import (
+    CandidatureNoteDetailView,
+    CandidatureNotesView,
+)
 from presentation.recruteur.views.organisme import (
     EtapesRecrutementOrganismeView,
     InitEtapesRecrutementOrganismeView,
@@ -52,7 +55,7 @@ urlpatterns = [
     ),
     path(
         "candidature/<uuid:candidature_uuid>/notes/<uuid:note_uuid>",
-        CandidatureNotesView.as_view(),
+        CandidatureNoteDetailView.as_view(),
         name="candidature-note-detail",
     ),
 ]
