@@ -1,12 +1,14 @@
 from django.urls import path
 
-from presentation.recruteur.views import (
+from presentation.recruteur.views.organisme import (
     EtapesRecrutementOrganismeView,
     InitEtapesRecrutementOrganismeView,
     OrganismeView,
+    RecrutementsOrganismeView,
+)
+from presentation.recruteur.views.recrutement import (
     RecrutementKanbanView,
     RecrutementListeView,
-    RecrutementsOrganismeView,
 )
 
 app_name = "recruteur"

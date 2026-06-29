@@ -63,7 +63,7 @@ class TestOrganismeView:
         response = api_client.get(ORGANISME_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @patch("presentation.recruteur.views.recruteur_container")
+    @patch("presentation.recruteur.views.organisme.recruteur_container")
     def test_authenticated_access_is_ok(
         self, mock_recruteur_container, authenticated_client
     ):
@@ -86,7 +86,7 @@ class TestOrganismeView:
             "siret": "21050023700354",
         }
 
-    @patch("presentation.recruteur.views.recruteur_container")
+    @patch("presentation.recruteur.views.organisme.recruteur_container")
     def test_returns_404_when_organisme_not_found(
         self, mock_recruteur_container, authenticated_client
     ):
@@ -108,7 +108,7 @@ class TestEtapesRecrutementOrganismeView:
         response = api_client.get(ETAPES_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @patch("presentation.recruteur.views.recruteur_container")
+    @patch("presentation.recruteur.views.organisme.recruteur_container")
     def test_returns_404_when_organisme_not_found(
         self, mock_recruteur_container, authenticated_client
     ):
@@ -124,7 +124,7 @@ class TestEtapesRecrutementOrganismeView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"organisme_uuid": "Not found."}
 
-    @patch("presentation.recruteur.views.recruteur_container")
+    @patch("presentation.recruteur.views.organisme.recruteur_container")
     def test_authenticated_access_is_ok(
         self, mock_recruteur_container, authenticated_client
     ):
@@ -159,7 +159,7 @@ class TestInitEtapesRecrutementOrganismeView:
         response = api_client.post(INIT_ETAPES_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @patch("presentation.recruteur.views.recruteur_container")
+    @patch("presentation.recruteur.views.organisme.recruteur_container")
     def test_returns_404_when_organisme_not_found(
         self, mock_recruteur_container, authenticated_client
     ):
@@ -175,7 +175,7 @@ class TestInitEtapesRecrutementOrganismeView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"organisme_uuid": "Not found."}
 
-    @patch("presentation.recruteur.views.recruteur_container")
+    @patch("presentation.recruteur.views.organisme.recruteur_container")
     def test_returns_500_on_unexpected_error(
         self, mock_recruteur_container, authenticated_client
     ):
@@ -191,7 +191,7 @@ class TestInitEtapesRecrutementOrganismeView:
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
 
-    @patch("presentation.recruteur.views.recruteur_container")
+    @patch("presentation.recruteur.views.organisme.recruteur_container")
     def test_authenticated_post_initialize_steps(
         self, mock_recruteur_container, authenticated_client
     ):
