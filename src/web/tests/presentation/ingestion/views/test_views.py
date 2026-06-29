@@ -18,12 +18,14 @@ class TestHueyHealthView:
         response = api_client.get(self.url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_redis_unavailable(self, authenticated_client):
-        with patch("huey.contrib.djhuey.HUEY.storage.conn.ping") as mocked_ping:
-            mocked_ping.side_effect = Exception("Redis connection refused")
-            response = authenticated_client.get(self.url)
-            assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-            assert response.data == {"status": "Huey health check failed"}
+    @patch("huey.contrib.djhuey.HUEY.storage.conn.ping")
+    def test_redis_unavailable(self, mocked_ping, authenticated_client):
+        mocked_ping.side_effect = Exception("Redis connection refused")
+
+        response = authenticated_client.get(self.url)
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.data == {"status": "Huey health check failed"}
 
 
 class TestRedocView:
