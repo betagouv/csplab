@@ -2,6 +2,7 @@ import logging
 from typing import Callable
 from uuid import UUID
 
+from application.use_cases._talentsoft_source import resolve_source_and_client
 from domain.entities.webhook import Webhook
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.repositories.webhook_repository import IWebhookRepository
@@ -28,13 +29,9 @@ class ImportOffersUseCase:
         self._dispatch_process_webhook = dispatch_process_webhook
 
     async def execute(self, source_id: UUID) -> None:
-        source = self._sources_repository.get_by_source_id(source_id)
-        if source is None:
-            raise ValueError(f"Source {source_id} not found")
-
-        client = self._talentsoft_client_repository.get(source.client_id_front)
-        if client is None:
-            raise ValueError(f"No Talentsoft client found for source {source_id}")
+        _, client = resolve_source_and_client(
+            source_id, self._sources_repository, self._talentsoft_client_repository
+        )
 
         start = 1
         has_more = True

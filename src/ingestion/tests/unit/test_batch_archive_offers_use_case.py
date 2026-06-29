@@ -1,16 +1,14 @@
 from unittest.mock import AsyncMock, MagicMock
-from uuid import UUID
 
 import pytest
 from dependency_injector import providers
 
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from infrastructure.di.container import Container
+from tests.conftest import SOURCE_UUID as SOURCE_ID
+from tests.conftest import TALENTSOFT_FRONT_CLIENT_ID as CLIENT_ID_FRONT
 from tests.factories.domain_factories import SourceFactory
 from tests.factories.talentsoft_factories import TalentsoftOfferFactory
-
-SOURCE_ID = UUID("11111111-2222-3333-4444-555555555555")
-CLIENT_ID_FRONT = "front-client-id"
 
 
 @pytest.fixture

@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
-from uuid import UUID
 
 import pytest
 from referentiel.value_objects.contract_type import ContractType
@@ -13,9 +12,9 @@ from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
 from infrastructure.exceptions.exceptions import ExternalApiError
+from tests.conftest import SOURCE_ID, SOURCE_UUID
 
 REFERENCE = "2024-OFFER-001"
-SOURCE_ID = "11111111-2222-3333-4444-555555555555"
 RAW_OFFER = RawOffer(
     reference=REFERENCE,
     source_id=SOURCE_ID,
@@ -23,7 +22,7 @@ RAW_OFFER = RawOffer(
 )
 CLEANED_OFFER = Offer(
     reference=REFERENCE,
-    source_id=UUID(SOURCE_ID),
+    source_id=SOURCE_UUID,
     external_id=f"FPT-{REFERENCE}",
     title="Title",
     profile="Profile",

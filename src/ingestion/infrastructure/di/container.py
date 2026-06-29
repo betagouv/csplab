@@ -8,7 +8,7 @@ from api.config import get_settings
 from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.tasks.process_webhook import save_raw_offer_webhook
 from application.use_cases.archive_offer import ArchiveOfferUseCase
-from application.use_cases.archive_offers import ArchiveOffersUseCase
+from application.use_cases.batch_archive_offers import BatchArchiveOffersUseCase
 from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
 from application.use_cases.import_offers import ImportOffersUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
@@ -163,9 +163,9 @@ class Container(containers.DeclarativeContainer):
         )
     )
 
-    archive_offers_use_case: providers.Provider[ArchiveOffersUseCase] = (
+    archive_offers_use_case: providers.Provider[BatchArchiveOffersUseCase] = (
         providers.Factory(
-            ArchiveOffersUseCase,
+            BatchArchiveOffersUseCase,
             web_offers_gateway=offers_by_source_gateway,
             sources_repository=sources_repository,
             talentsoft_client_repository=talentsoft_client_repository,

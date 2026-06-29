@@ -1,5 +1,3 @@
-from uuid import UUID
-
 import httpx
 import pytest
 from pytest_httpx import HTTPXMock
@@ -8,10 +6,10 @@ from infrastructure.external_gateways.web_offers_by_source_gateway import (
     WebOffersBySourceGateway,
 )
 from tests.conftest import OFFERS_BY_SOURCE_URL as BASE_OFFERS_BY_SOURCE_URL
+from tests.conftest import SOURCE_UUID as SOURCE_ID
 from tests.conftest import WEB_API_KEY as API_KEY
 from tests.conftest import WEB_BASE_URL as BASE_URL
 
-SOURCE_ID = UUID("11111111-2222-3333-4444-555555555555")
 OFFERS_BY_SOURCE_URL = f"{BASE_OFFERS_BY_SOURCE_URL}/{SOURCE_ID}"
 
 

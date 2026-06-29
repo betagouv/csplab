@@ -1,6 +1,7 @@
 import logging
 from uuid import UUID
 
+from application.use_cases._talentsoft_source import resolve_source_and_client
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from domain.gateways.offers_by_source_gateway import IOffersBySourceGateway
 from domain.repositories.sources_repository import ISourcesRepository
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 _BATCH_SIZE = 1_000
 
 
-class ArchiveOffersUseCase:
+class BatchArchiveOffersUseCase:
     def __init__(
         self,
         web_offers_gateway: IOffersBySourceGateway,
@@ -25,13 +26,9 @@ class ArchiveOffersUseCase:
         self._archive_offer_use_case = archive_offer_use_case
 
     async def execute(self, source_id: UUID) -> None:
-        source = self._sources_repository.get_by_source_id(source_id)
-        if source is None:
-            raise ValueError(f"Source {source_id} not found")
-
-        client = self._talentsoft_client_repository.get(source.client_id_front)
-        if client is None:
-            raise ValueError(f"No Talentsoft client found for source {source_id}")
+        _, client = resolve_source_and_client(
+            source_id, self._sources_repository, self._talentsoft_client_repository
+        )
 
         web_references = set(await self._web_offers_gateway.fetch_references(source_id))
 
@@ -46,6 +43,9 @@ class ArchiveOffersUseCase:
             start += 1
 
         to_archive = web_references - talentsoft_references
+
+        if to_archive:
+            logger.info("Offers to archive for source %s: %s", source_id, to_archive)
 
         for reference in to_archive:
             await self._archive_offer_use_case.execute(
