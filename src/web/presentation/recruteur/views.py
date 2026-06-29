@@ -14,6 +14,7 @@ from application.recruteur.usecases.get_organisme_recruteur import (
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
+from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.erreur_recrutement import ErreurRecruteur
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
@@ -180,7 +181,7 @@ class OrganismeView(APIView):
             )
             serializer = OrganismeSerializer(organisme)
             return Response(serializer.data)
-        except ErreurRecruteur:
+        except (ErreurRecruteur, OrganismeNexistePas):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
@@ -237,7 +238,7 @@ class EtapesRecrutementOrganismeView(APIView):
             ]
             serializer = EtapeRecrutementSerializer(data, many=True)
             return Response(serializer.data)
-        except ErreurRecruteur:
+        except (ErreurRecruteur, OrganismeNexistePas):
             return Response(
                 {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -300,7 +301,7 @@ class InitEtapesRecrutementOrganismeView(APIView):
             ]
             serializer = EtapeRecrutementSerializer(data, many=True)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except ErreurRecruteur:
+        except (ErreurRecruteur, OrganismeNexistePas):
             return Response(
                 {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
             )
