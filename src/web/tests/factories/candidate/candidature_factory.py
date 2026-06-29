@@ -7,6 +7,8 @@ from faker import Faker
 from domain.candidate.entities.candidature import Candidature
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from tests.factories.identite.candidat_factory import CandidatFactory
+from tests.factories.referentiel.offer_factory import OfferFactory
 
 fake = Faker("fr_FR")
 
@@ -50,6 +52,11 @@ class CandidatureFactory:
         statut: StatutCandidature | None = None,
         documents: tuple[UUID, ...] | None = None,
     ) -> CandidatureModel:
+        if candidat_id is None:
+            candidat_id = UUID(CandidatFactory.create_model().utilisateur_id)
+        if offre_id is None:
+            offre_id = OfferFactory.create_model().id
+
         candidature = CandidatureFactory.build(
             candidat_id=candidat_id,
             offre_id=offre_id,
