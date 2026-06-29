@@ -1,0 +1,8 @@
+{
+  "jobs": [
+    {
+      "command": "5 4 * * 1 bash bin/archive_offers.py --source-id $DEFAULT_SOURCE_ID",
+      "size": "S"
+    }
+  ]
+}
