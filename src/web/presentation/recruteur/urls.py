@@ -1,12 +1,18 @@
 from django.urls import path
 
-from presentation.recruteur.views import (
+from presentation.recruteur.views.notes import (
+    CandidatureNoteDetailView,
+    CandidatureNotesView,
+)
+from presentation.recruteur.views.organisme import (
     EtapesRecrutementOrganismeView,
     InitEtapesRecrutementOrganismeView,
     OrganismeView,
+    RecrutementsOrganismeView,
+)
+from presentation.recruteur.views.recrutement import (
     RecrutementKanbanView,
     RecrutementListeView,
-    RecrutementsOrganismeView,
 )
 
 app_name = "recruteur"
@@ -41,5 +47,15 @@ urlpatterns = [
         "organisme/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/liste",
         RecrutementListeView.as_view(),
         name="organisme-recrutement-liste",
+    ),
+    path(
+        "candidature/<uuid:candidature_uuid>/notes",
+        CandidatureNotesView.as_view(),
+        name="candidature-notes",
+    ),
+    path(
+        "candidature/<uuid:candidature_uuid>/notes/<uuid:note_uuid>",
+        CandidatureNoteDetailView.as_view(),
+        name="candidature-note-detail",
     ),
 ]
