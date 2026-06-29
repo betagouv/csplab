@@ -15,10 +15,12 @@ interface Props {
   isItemDraggable?: (item: T, index: number) => boolean
   getItemVariant?: (item: T, index: number) => 'default' | 'alt'
   disabled?: boolean
+  showPosition?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
+  showPosition: false,
 })
 
 const emit = defineEmits<{
@@ -41,8 +43,21 @@ function getLabel(item: T): string {
   return props.getItemLabel?.(item) ?? props.getItemKey(item)
 }
 
-function moveItem(fromIndex: number, toIndex: number) {
+function isReorderValid(newItems: T[]): boolean {
+  for (let i = 0; i < props.items.length; i++) {
+    const original = props.items[i]
+    if (isDraggable(original, i))
+      continue
+    if (props.getItemKey(newItems[i]) !== props.getItemKey(original))
+      return false
+  }
+  return true
+}
+
+function tryReorder(fromIndex: number, toIndex: number) {
   if (props.disabled)
+    return
+  if (fromIndex === toIndex)
     return
   if (toIndex < 0 || toIndex >= props.items.length)
     return
@@ -50,18 +65,35 @@ function moveItem(fromIndex: number, toIndex: number) {
     return
 
   const newItems = reorder({ list: props.items, startIndex: fromIndex, finishIndex: toIndex })
-  emit('reorder', newItems)
+  if (!isReorderValid(newItems))
+    return
 
-  const item = props.items[fromIndex]
-  announce(`${getLabel(item)} déplacé`)
+  emit('reorder', newItems)
+  announce(`${getLabel(props.items[fromIndex])} déplacé`)
+}
+
+function canMoveUp(index: number): boolean {
+  if (index <= 0)
+    return false
+  if (!isDraggable(props.items[index], index))
+    return false
+  return isDraggable(props.items[index - 1], index - 1)
+}
+
+function canMoveDown(index: number): boolean {
+  if (index >= props.items.length - 1)
+    return false
+  if (!isDraggable(props.items[index], index))
+    return false
+  return isDraggable(props.items[index + 1], index + 1)
 }
 
 function createMoveUp(index: number) {
-  return () => moveItem(index, index - 1)
+  return () => tryReorder(index, index - 1)
 }
 
 function createMoveDown(index: number) {
-  return () => moveItem(index, index + 1)
+  return () => tryReorder(index, index + 1)
 }
 
 onMounted(() => {
@@ -88,48 +120,60 @@ onMounted(() => {
         axis: 'vertical',
       })
 
-      if (finishIndex === startIndex)
-        return
-
-      const newItems = reorder({ list: props.items, startIndex, finishIndex })
-      emit('reorder', newItems)
-
-      const item = props.items[startIndex]
-      announce(`${getLabel(item)} déplacé`)
+      tryReorder(startIndex, finishIndex)
     },
   })
 })
 </script>
 
 <template>
-  <ul class="csp-sortable-list">
-    <CspSortableListItem
-      v-for="(item, index) in items"
-      :key="getItemKey(item)"
-      :item="item"
-      :item-id="getItemKey(item)"
-      :index="index"
-      :list-id="listId"
-      :draggable="isDraggable(item, index)"
-      :variant="getVariant(item, index)"
-      :disabled="disabled"
+  <div class="csp-sortable-list">
+    <div
+      v-if="$slots.header"
+      class="csp-sortable-list__header"
     >
-      <template #default="slotProps">
-        <slot
-          name="item"
-          v-bind="slotProps"
-          :can-move-up="isDraggable(item, index) && index > 0"
-          :can-move-down="isDraggable(item, index) && index < items.length - 1"
-          :move-up="createMoveUp(index)"
-          :move-down="createMoveDown(index)"
-        />
-      </template>
-    </CspSortableListItem>
-  </ul>
+      <slot name="header" />
+    </div>
+    <ul class="csp-sortable-list__items">
+      <CspSortableListItem
+        v-for="(item, index) in items"
+        :key="getItemKey(item)"
+        :item="item"
+        :item-id="getItemKey(item)"
+        :index="index"
+        :list-id="listId"
+        :draggable="isDraggable(item, index)"
+        :variant="getVariant(item, index)"
+        :disabled="disabled"
+        :show-position="showPosition"
+      >
+        <template #default="slotProps">
+          <slot
+            name="item"
+            v-bind="slotProps"
+            :can-move-up="canMoveUp(index)"
+            :can-move-down="canMoveDown(index)"
+            :move-up="createMoveUp(index)"
+            :move-down="createMoveDown(index)"
+          />
+        </template>
+      </CspSortableListItem>
+    </ul>
+  </div>
 </template>
 
 <style scoped lang="scss">
-.csp-sortable-list {
+.csp-sortable-list__header {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-3);
+  padding: var(--csp-space-2) var(--csp-space-4);
+  font-size: var(--csp-font-size-sm);
+  font-weight: 500;
+  color: var(--text-mention-grey);
+}
+
+.csp-sortable-list__items {
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-2);

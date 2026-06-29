@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from uuid import UUID, uuid4
 
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.verse import Verse
@@ -25,6 +26,7 @@ from tests.factories.referentiel.offer_factory import OfferFactory
 _SEED_SENTINEL_EMAIL = "marie.dupont@transition-eco.gouv.fr"
 
 _ORGANISME_SIRET = "21050023700354"
+_ORGANISME_UUID = UUID("00000000-0000-0000-0000-000000000000")
 
 _AGENTS_SPECS = [
     {"prenom": "Marie", "nom": "Dupont", "email": _SEED_SENTINEL_EMAIL},
@@ -104,10 +106,24 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # 1. Organisme recruteur                                             #
     # ------------------------------------------------------------------ #
     organisme = OrganismeFactory.create_model(
+        entity_id=_ORGANISME_UUID,
         nom="Ministère de la Transition Écologique",
         versant=Verse.FPE,
         siret=SIRET(_ORGANISME_SIRET),
     )
+    default_etapes = [
+        {
+            "entity_id": str(uuid4()),
+            "categorie": "entree",
+            "nom": "Réception des candidatures",
+        },
+        {"entity_id": str(uuid4()), "categorie": "en_cours", "nom": "Présélection"},
+        {"entity_id": str(uuid4()), "categorie": "en_cours", "nom": "Entretien"},
+        {"entity_id": str(uuid4()), "categorie": "en_cours", "nom": "Proposition"},
+        {"entity_id": str(uuid4()), "categorie": "refus", "nom": "Refus"},
+        {"entity_id": str(uuid4()), "categorie": "accepte", "nom": "Recrutement"},
+    ]
+    OrganismeModel.objects.filter(id=_ORGANISME_UUID).update(etapes=default_etapes)
 
     # ------------------------------------------------------------------ #
     # 2. Métiers                                                         #

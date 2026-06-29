@@ -6,12 +6,11 @@ type CspBadgeProps = {
   size?: 'sm' | 'md' | 'lg'
   variant?: 'default' | 'soft' | 'outline'
   label: string
+  icon?: string
 } & ({
   type?: 'info' | 'new' | 'warning' | 'error' | 'success'
-  icon?: never
   color?: never
 } | {
-  icon?: string
   color?: string
   type?: never
 })
@@ -22,6 +21,10 @@ const props = withDefaults(defineProps<CspBadgeProps>(), {
 })
 
 const resolvedIcon = computed(() => {
+  if (props.icon) {
+    return props.icon
+  }
+
   if (props.type) {
     switch (props.type) {
       case 'info':
@@ -35,10 +38,6 @@ const resolvedIcon = computed(() => {
       case 'success':
         return 'ri:checkbox-circle-fill'
     }
-  }
-
-  if (props.icon) {
-    return props.icon
   }
 
   return null

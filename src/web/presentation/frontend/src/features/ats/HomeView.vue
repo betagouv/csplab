@@ -14,13 +14,13 @@ import AtsAppShell from './components/AtsAppShell.vue'
 
 <style scoped lang="scss">
 .home-view {
-  padding: 2rem;
+  padding: var(--csp-space-8);
 }
 
 .home-view__title {
-  margin: 0 0 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 600;
+  margin: 0 0 var(--csp-space-2);
+  font-size: var(--csp-font-size-2xl);
+  font-weight: var(--csp-font-weight-bold);
   color: var(--text-title-grey);
 }
 </style>
