@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from django.core.cache import cache
 from django.test import RequestFactory
+from rest_framework.exceptions import AuthenticationFailed
 
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
@@ -59,16 +60,18 @@ class TestApiKeyAuthenticationIpRestriction:
         request.META["HTTP_AUTHORIZATION"] = "Api-Key test-ingestion-api-key"
         return request
 
-    @patch("django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["192.168.1.0/24"])
+    @patch(
+        "django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["192.168.1.0/24"]
+    )
     def test_rejects_ip_outside_allowed_range(self, rf):
-        from rest_framework.exceptions import AuthenticationFailed
-
         auth = ApiKeyAuthentication()
         request = self._make_request(rf, ip="10.0.0.1")
         with pytest.raises(AuthenticationFailed, match="IP address not allowed"):
             auth.authenticate(request)
 
-    @patch("django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["192.168.1.0/24"])
+    @patch(
+        "django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["192.168.1.0/24"]
+    )
     def test_accepts_ip_inside_allowed_range(self, rf):
         auth = ApiKeyAuthentication()
         request = self._make_request(rf, ip="192.168.1.42")
@@ -83,10 +86,10 @@ class TestApiKeyAuthenticationIpRestriction:
         result = auth.authenticate(request)
         assert result is not None
 
-    @patch("django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["192.168.1.0/24"])
+    @patch(
+        "django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["192.168.1.0/24"]
+    )
     def test_uses_first_forwarded_for_ip(self, rf):
-        from rest_framework.exceptions import AuthenticationFailed
-
         auth = ApiKeyAuthentication()
         request = self._make_request(
             rf, ip="192.168.1.1", forwarded_for="10.0.0.1, 192.168.1.1"
@@ -94,7 +97,10 @@ class TestApiKeyAuthenticationIpRestriction:
         with pytest.raises(AuthenticationFailed, match="IP address not allowed"):
             auth.authenticate(request)
 
-    @patch("django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["10.0.0.0/8", "192.168.1.0/24"])
+    @patch(
+        "django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES",
+        ["10.0.0.0/8", "192.168.1.0/24"],
+    )
     def test_accepts_ip_matched_by_any_range(self, rf):
         auth = ApiKeyAuthentication()
         request = self._make_request(rf, ip="192.168.1.5")

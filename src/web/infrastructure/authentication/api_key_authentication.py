@@ -41,7 +41,9 @@ class ApiKeyAuthentication(BaseAuthentication):
         if key != settings.INGESTION_API_KEY:
             raise AuthenticationFailed("Invalid API key.")
         allowed_ranges = settings.INGESTION_API_KEY_ALLOWED_IP_RANGES
-        if allowed_ranges and not _ip_is_allowed(_get_client_ip(request), allowed_ranges):
+        if allowed_ranges and not _ip_is_allowed(
+            _get_client_ip(request), allowed_ranges
+        ):
             raise AuthenticationFailed("IP address not allowed.")
         return (_IngestionApiKeyUser(), None)
 
