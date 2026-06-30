@@ -29,6 +29,9 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.submit_application import SubmitApplicationUsecase
+from application.commons.usecases.calculate_daily_stats import (
+    CalculateDailyStatsUseCase,
+)
 from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.identite.usecases.create_organisme import CreateOrganismeUsecase
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
@@ -54,6 +57,9 @@ from domain.candidate.repositories.candidature_repository_interface import (
 from domain.candidate.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
 )
+from domain.commons.repositories.stats_history_repository_interface import (
+    IStatsHistoryRepository,
+)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
 from domain.identite.repositories.organisme_repository_interface import (
@@ -66,6 +72,9 @@ from domain.ingestion.entities.document import DocumentType
 from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
 from domain.ingestion.repositories.document_repository_interface import (
     IDocumentRepository,
+)
+from domain.ingestion.repositories.ingestion_offers_repository_interface import (
+    IIngestionOffersRepository,
 )
 from domain.ingestion.repositories.source_repository_interface import ISourceRepository
 from domain.ingestion.repositories.user_source_repository_interface import (
@@ -381,7 +390,8 @@ def archive_offers_usecase():
         IVectorRepository, create_interface_aware_mock(IVectorRepository)
     )
     offers_repo = cast(
-        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+        IIngestionOffersRepository,
+        create_interface_aware_mock(IIngestionOffersRepository),
     )
 
     return ArchiveOffersUsecase(
@@ -409,7 +419,8 @@ def list_offers_usecase():
 def upsert_offers_usecase():
     logger = MagicMock()
     offers_repo = cast(
-        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+        IIngestionOffersRepository,
+        create_interface_aware_mock(IIngestionOffersRepository),
     )
     user_source_repo = cast(
         IUserSourceRepository, create_interface_aware_mock(IUserSourceRepository)
@@ -460,7 +471,8 @@ def list_sources_usecase():
 def get_opportunity_details_usecase():
     logger = MagicMock()
     offers_repository = cast(
-        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+        IIngestionOffersRepository,
+        create_interface_aware_mock(IIngestionOffersRepository),
     )
     concours_repository = cast(
         IConcoursRepository, create_interface_aware_mock(IConcoursRepository)
@@ -525,3 +537,19 @@ def initialize_organisme_steps_usecase():
         create_interface_aware_mock(IOrganismeRecruteurRepository),
     )
     return InitializeOrganismeStepsUsecase(organisme_repository=repository)
+
+
+@pytest.fixture
+def calculate_daily_stats_usecase():
+    offers_repo = cast(
+        IIngestionOffersRepository,
+        create_interface_aware_mock(IIngestionOffersRepository),
+    )
+    stats_history_repo = cast(
+        IStatsHistoryRepository,
+        create_interface_aware_mock(IStatsHistoryRepository),
+    )
+    return CalculateDailyStatsUseCase(
+        offers_repository=offers_repo,
+        stats_history_repository=stats_history_repo,
+    )
