@@ -1,7 +1,43 @@
 from django.db import models
 
 from domain.commons.entities.audit_log import AuditLog
+from domain.commons.entities.stats_history import StatsHistory
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+
+class StatsHistoryModel(models.Model):
+    date = models.DateField()
+    metric_name = models.CharField(max_length=255)
+    metric_value = models.BigIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "stats_history"
+        verbose_name = "Stats History"
+        verbose_name_plural = "Stats History"
+        ordering = ["-date"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["date", "metric_name"],
+                name="unique_stats_history_date_metric_name",
+            ),
+        ]
+
+    def to_entity(self) -> StatsHistory:
+        return StatsHistory(
+            date=self.date,
+            metric_name=self.metric_name,
+            metric_value=self.metric_value,
+        )
+
+    @classmethod
+    def from_entity(cls, stats_history: StatsHistory) -> "StatsHistoryModel":
+        return cls(
+            date=stats_history.date,
+            metric_name=stats_history.metric_name,
+            metric_value=stats_history.metric_value,
+        )
 
 
 class AuditLogModel(BaseDatedModel):

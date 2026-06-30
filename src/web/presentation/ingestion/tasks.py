@@ -218,6 +218,28 @@ def purge_api_logs(retention_days: int = API_LOG_MIN_RETENTION_DAYS):
         ) from e
 
 
+@db_periodic_task(crontab(hour="2", minute="0"))
+@lock_task("calculate-daily-stats-periodic")
+def calculate_daily_stats_periodic():
+    calculate_daily_stats(target_date=date.today())
+
+
+@db_task()
+def calculate_daily_stats(target_date: date):
+    container = create_ingestion_container()
+    logger = container.logger_service()
+    usecase = container.calculate_daily_stats_usecase()
+
+    try:
+        usecase.execute(target_date)
+        logger.info("✅ Daily stats calculated for %s", target_date)
+    except Exception as e:
+        raise TaskError(
+            message="Failed to calculate daily stats",
+            details={"error": str(e), "target_date": str(target_date)},
+        ) from e
+
+
 @db_periodic_task(crontab(hour="5-21", minute="15"))
 def archive_offers_periodic(reload=False):
     updated_after = datetime.now() - relativedelta(hours=24)
