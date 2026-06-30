@@ -1,17 +1,18 @@
 from datetime import date
 
-from referentiel.repositories.offers_repository_interface import IOffersRepository
-
 from domain.commons.entities.stats_history import StatsHistory
 from domain.commons.repositories.stats_history_repository_interface import (
     IStatsHistoryRepository,
+)
+from domain.ingestion.repositories.ingestion_offers_repository_interface import (
+    IIngestionOffersRepository,
 )
 
 
 class CalculateDailyStatsUseCase:
     def __init__(
         self,
-        offers_repository: IOffersRepository,
+        offers_repository: IIngestionOffersRepository,
         stats_history_repository: IStatsHistoryRepository,
     ):
         self.offers_repository = offers_repository
