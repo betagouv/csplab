@@ -42,16 +42,15 @@ def test_initialize_organisme_steps(initialize_organisme_steps_usecase):
     assert events[0].event_name == "OrganismeEtapesInitialises"
 
 
-def test_update_organisme_steps(update_organisme_steps_usecase):
-    organisme_before = OrganismeRecruteurFactory.create_entity(
-        etapes=make_etapes_recrutement()
-    )
+def test_update_organsime_steps(update_organisme_steps_usecase):
+    etapes = make_etapes_recrutement()
+    organisme_before = OrganismeRecruteurFactory.create_entity(etapes=etapes)
     update_organisme_steps_usecase.organisme_recruteur_repository.save(organisme_before)
     utilisateur_id = uuid4()
 
     nouvelles_etapes = [
         EtapeData(
-            etape_uuid=None,
+            etape_uuid=etapes[0].entity_id,
             nom="Candidatures reçues",
             categorie=CategorieEtapeRecrutement.ENTREE,
         ),
@@ -61,12 +60,12 @@ def test_update_organisme_steps(update_organisme_steps_usecase):
             categorie=CategorieEtapeRecrutement.EN_COURS,
         ),
         EtapeData(
-            etape_uuid=None,
+            etape_uuid=etapes[-2].entity_id,
             nom="Refus",
             categorie=CategorieEtapeRecrutement.REFUS,
         ),
         EtapeData(
-            etape_uuid=None,
+            etape_uuid=etapes[-1].entity_id,
             nom="Recrutement",
             categorie=CategorieEtapeRecrutement.ACCEPTE,
         ),
