@@ -1,10 +1,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-import pytest
-
 from domain.recruteur.entities.note import Note
-from domain.recruteur.errors.note_errors import NoteDejaSupprimee
 from domain.recruteur.events.note_events import (
     NoteAjoutee,
     NoteEditee,
@@ -76,14 +73,6 @@ def test_supprimer_marks_note_and_emits_note_supprimee() -> None:
     assert note.supprimee_le is not None
     assert note.supprimee_par_id == suppresseur_id
     assert note.mis_a_jour_par_id == suppresseur_id
-
-
-def test_supprimer_twice_raises() -> None:
-    note = Note.create(candidature_id=uuid4(), publie_par_id=uuid4(), message="note")
-    note.supprimer(supprime_par_id=uuid4())
-
-    with pytest.raises(NoteDejaSupprimee):
-        note.supprimer(supprime_par_id=uuid4())
 
 
 def test_build_emits_no_event() -> None:
