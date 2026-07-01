@@ -10,8 +10,12 @@ from referentiel.value_objects.verse import Verse
 
 from domain.identite.entities.organisme import Organisme
 from domain.identite.value_objects.siret import SIRET
+from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from infrastructure.mappers.organisme_identite_mapper import (
     OrganismeIdentiteMapper,
+)
+from infrastructure.mappers.organisme_recruteur_mapper import (
+    OrganismeRecruteurMapper,
 )
 
 
@@ -55,6 +59,7 @@ class OrganismeFactory:
         versant: Verse = Verse.FPE,
         localisation: Localisation | None = None,
         siret: SIRET | None = None,
+        etapes: tuple[EtapeRecrutement, ...] | None = None,
     ):
         organisme = OrganismeFactory.create_entity(
             entity_id=entity_id,
@@ -65,5 +70,7 @@ class OrganismeFactory:
         )
         mapper = OrganismeIdentiteMapper()
         model = mapper.from_domain(organisme)
+        if etapes is not None:
+            model.etapes = OrganismeRecruteurMapper().from_domain(etapes)
         model.save()
         return model

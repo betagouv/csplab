@@ -1,12 +1,21 @@
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
+from uuid import UUID
 
 from django.test import Client
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
-from domain.recruteur.errors.erreur_recrutement import ErreurRecruteur
+from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
+from domain.recruteur.errors.erreur_recrutement import (
+    ConfigurationEtapesInvalide,
+    ErreurRecruteur,
+)
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
 from tests.factories.recruteur.organisme_factory import (
     OrganismeRecruteurFactory,
 )
@@ -164,7 +173,7 @@ class TestInitEtapesRecrutementOrganismeView:
         self, mock_recruteur_container, authenticated_client
     ):
         mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = ErreurRecruteur("not found")
+        mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
 
         mock_container = MagicMock()
         mock_container.initialize_organisme_steps_usecase.return_value = mock_usecase
@@ -214,7 +223,7 @@ class TestInitEtapesRecrutementOrganismeView:
                 "nom": etape.nom,
                 "categorie": etape.categorie.name,
             }
-            for etape in organisme.etapes
+            for etape in (organisme.etapes or ())
         ]
 
 
@@ -239,13 +248,49 @@ class TestPutEtapesRecrutementOrganismeView:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_put_mixed_existing_and_new_etapes(self, authenticated_client):
-        existing_uuid = str(fake.uuid4())
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_put_mixed_existing_and_new_etapes(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        existing_uuid = fake.uuid4()
+        new_uuid = fake.uuid4()
+        other_uuid = fake.uuid4()
+
+        organisme = OrganismeRecruteurFactory.create_entity()
+        organisme._etapes = (
+            EtapeRecrutement.build(
+                entity_id=UUID(str(existing_uuid)),
+                nom="Réception",
+                categorie=CategorieEtapeRecrutement.ENTREE,
+            ),
+            EtapeRecrutement.build(
+                entity_id=UUID(str(new_uuid)),
+                nom="Nouvelle étape",
+                categorie=CategorieEtapeRecrutement.EN_COURS,
+            ),
+            EtapeRecrutement.build(
+                entity_id=UUID(str(other_uuid)),
+                nom="Recrutement",
+                categorie=CategorieEtapeRecrutement.ACCEPTE,
+            ),
+        )
+
+        mock_usecase = MagicMock()
+        mock_usecase.execute.return_value = organisme
+
+        mock_container = MagicMock()
+        mock_container.update_organisme_steps_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
         payload = [
-            {"etape_uuid": existing_uuid, "nom": "Réception", "categorie": "ENTREE"},
+            {
+                "etape_uuid": str(existing_uuid),
+                "nom": "Réception",
+                "categorie": "ENTREE",
+            },
             {"nom": "Nouvelle étape", "categorie": "EN_COURS"},
             {
-                "etape_uuid": str(fake.uuid4()),
+                "etape_uuid": str(other_uuid),
                 "nom": "Recrutement",
                 "categorie": "ACCEPTE",
             },
@@ -256,9 +301,81 @@ class TestPutEtapesRecrutementOrganismeView:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data) == 3  # noqa
-        assert data[0]["etape_uuid"] == existing_uuid
-        assert data[1]["etape_uuid"] is not None
+        assert data[0]["etape_uuid"] == str(existing_uuid)
+        assert data[1]["etape_uuid"] == str(new_uuid)
         assert data[1]["nom"] == "Nouvelle étape"
+
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_put_returns_400_on_invalid_steps(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = ConfigurationEtapesInvalide(
+            "la première étape doit être de catégorie ENTREE"
+        )
+
+        mock_container = MagicMock()
+        mock_container.update_organisme_steps_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        payload = [
+            {"nom": "Entretien", "categorie": "EN_COURS"},
+            {"nom": "Refus", "categorie": "REFUS"},
+            {"nom": "Recrutement", "categorie": "ACCEPTE"},
+        ]
+
+        response = authenticated_client.put(ETAPES_URL, payload, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            "error": "la première étape doit être de catégorie ENTREE"
+        }
+
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_put_returns_404_when_organisme_not_found(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
+
+        mock_container = MagicMock()
+        mock_container.update_organisme_steps_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        payload = [
+            {"nom": "Réception", "categorie": "ENTREE"},
+            {"nom": "Entretien", "categorie": "EN_COURS"},
+            {"nom": "Refus", "categorie": "REFUS"},
+            {"nom": "Recrutement", "categorie": "ACCEPTE"},
+        ]
+
+        response = authenticated_client.put(ETAPES_URL, payload, format="json")
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"organisme_uuid": "Not found."}
+
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_put_returns_500_on_unexpected_error(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = Exception("unexpected")
+
+        mock_container = MagicMock()
+        mock_container.update_organisme_steps_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        payload = [
+            {"nom": "Réception", "categorie": "ENTREE"},
+            {"nom": "Entretien", "categorie": "EN_COURS"},
+            {"nom": "Refus", "categorie": "REFUS"},
+            {"nom": "Recrutement", "categorie": "ACCEPTE"},
+        ]
+
+        response = authenticated_client.put(ETAPES_URL, payload, format="json")
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
 
 
 class TestRecrutementsOrganismeView:

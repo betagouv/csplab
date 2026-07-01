@@ -1,3 +1,6 @@
+from unittest.mock import MagicMock
+from uuid import uuid4
+
 import pytest
 
 from application.recruteur.usecases.get_organisme_recruteur import (
@@ -6,10 +9,17 @@ from application.recruteur.usecases.get_organisme_recruteur import (
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
+from application.recruteur.usecases.update_organisme_steps import (
+    UpdateOrganismeStepsCommand,
+)
 from config.app_config import AppConfig
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.identite.organisme_factory import OrganismeFactory
+from tests.factories.recruteur.organisme_factory import (
+    EtapeRecrutementFactory,
+)
 
 NB_ETAPES_PAR_DEFAUT = 6
 
@@ -21,6 +31,7 @@ def recruteur_integration_container_fixture(db):
     logger_service = LoggerService()
     container.app_config.override(app_config)
     container.logger_service.override(logger_service)
+    container.audit_log_writer.override(MagicMock(spec=AuditLogWriter))
     return container
 
 
@@ -47,3 +58,26 @@ def test_initialize_organisme_steps(recruteur_integration_container):
     assert len(events) == 1
     assert organisme.etapes is not None
     assert len(organisme.etapes) == NB_ETAPES_PAR_DEFAUT
+
+
+def test_update_organisme_steps(recruteur_integration_container):
+    etapes = EtapeRecrutementFactory.create_entities()
+
+    organisme_model = OrganismeFactory.create_model(etapes=etapes)
+
+    nouvelles_etapes = EtapeRecrutementFactory.to_etape_data_list(etapes)
+
+    utilisateur_id = uuid4()
+    usecase = recruteur_integration_container.update_organisme_steps_usecase()
+    organisme = usecase.execute(
+        command=UpdateOrganismeStepsCommand(
+            utilisateur_id=utilisateur_id,
+            organisme_id=organisme_model.id,
+            etapes=nouvelles_etapes,
+        )
+    )
+    assert organisme.etapes is not None
+    assert len(organisme.etapes) == len(nouvelles_etapes)
+    usecase.audit_log_writer.drain_events.assert_called_once_with(
+        utilisateur_id=utilisateur_id, aggregate=organisme
+    )

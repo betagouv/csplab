@@ -10,8 +10,8 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
 from tests.factories.recruteur.organisme_factory import (
+    EtapeRecrutementFactory,
     OrganismeRecruteurFactory,
-    make_etapes_recrutement,
 )
 
 NB_ETAPES_PAR_DEFAUT = 6
@@ -44,7 +44,7 @@ def test_organisme_default_steps() -> None:
 
 def test_organisme_update_steps() -> None:
     organisme = OrganismeRecruteurFactory.create_entity(
-        etapes=make_etapes_recrutement()
+        etapes=EtapeRecrutementFactory.create_entities()
     )
     nouvelles_etapes = (
         EtapeRecrutement.create(
@@ -80,15 +80,15 @@ def test_organisme_update_steps() -> None:
     [
         pytest.param(
             (
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Présélection",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.REFUS,
                     nom="Refus",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.ACCEPTE,
                     nom="Recrutement",
                 ),
@@ -97,19 +97,19 @@ def test_organisme_update_steps() -> None:
         ),
         pytest.param(
             (
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.ENTREE,
                     nom="Réception des candidatures",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Entretien",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Avant-dernière EN_COURS au lieu de REFUS",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.ACCEPTE,
                     nom="Recrutement",
                 ),
@@ -118,15 +118,15 @@ def test_organisme_update_steps() -> None:
         ),
         pytest.param(
             (
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.ENTREE,
                     nom="Réception des candidatures",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.REFUS,
                     nom="Refus",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.ACCEPTE,
                     nom="Recrutement",
                 ),
@@ -135,23 +135,23 @@ def test_organisme_update_steps() -> None:
         ),
         pytest.param(
             (
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.ENTREE,
                     nom="Réception des candidatures",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Entretien",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.ENTREE,
                     nom="Doublon ENTREE au milieu",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.REFUS,
                     nom="Refus",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.ACCEPTE,
                     nom="Recrutement",
                 ),
@@ -160,19 +160,19 @@ def test_organisme_update_steps() -> None:
         ),
         pytest.param(
             (
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.ENTREE,
                     nom="Réception des candidatures",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Entretien",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.REFUS,
                     nom="Refus",
                 ),
-                EtapeRecrutement.create(
+                EtapeRecrutementFactory.create_entity(
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Étape parasite en fin",
                 ),
@@ -185,7 +185,7 @@ def test_organisme_update_steps_fails(
     etapes_invalides: tuple[EtapeRecrutement, ...],
 ) -> None:
     organisme = OrganismeRecruteurFactory.create_entity(
-        etapes=make_etapes_recrutement()
+        etapes=EtapeRecrutementFactory.create_entities()
     )
 
     with pytest.raises(ConfigurationEtapesInvalide):
