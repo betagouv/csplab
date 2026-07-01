@@ -29,6 +29,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.recruteur.mappers import (
+    EtapesMapper,
     RecrutementKanbanMapper,
     RecrutementListeMapper,
 )
@@ -237,15 +238,7 @@ class EtapesRecrutementOrganismeView(APIView):
             organisme = usecase.execute(
                 GetOrganismeRecruteurQuery(organisme_id=organisme_uuid)
             )
-            etapes_result = organisme.etapes or ()
-            data = [
-                {
-                    "etape_uuid": str(e.entity_id),
-                    "nom": e.nom,
-                    "categorie": e.categorie.name,
-                }
-                for e in etapes_result
-            ]
+            data = EtapesMapper().from_domain(organisme)
             serializer = EtapeRecrutementSerializer(data, many=True)
             return Response(serializer.data)
         except (ErreurRecruteur, OrganismeNexistePas):
@@ -278,15 +271,7 @@ class EtapesRecrutementOrganismeView(APIView):
             organisme = usecase.execute(
                 UpdateOrganismeStepsCommand(utilisateur_id, organisme_uuid, etapes)
             )
-            etapes_result = organisme.etapes or ()
-            data = [
-                {
-                    "etape_uuid": str(e.entity_id),
-                    "nom": e.nom,
-                    "categorie": e.categorie.name,
-                }
-                for e in etapes_result
-            ]
+            data = EtapesMapper().from_domain(organisme)
             out_serializer = EtapeRecrutementSerializer(data, many=True)
             return Response(out_serializer.data)
         except ConfigurationEtapesInvalide as e:
@@ -326,15 +311,7 @@ class InitEtapesRecrutementOrganismeView(APIView):
             organisme = usecase.execute(
                 InitializeOrganismeStepsCommand(organisme_id=organisme_uuid)
             )
-            etapes = organisme.etapes or ()
-            data = [
-                {
-                    "etape_uuid": str(e.entity_id),
-                    "nom": e.nom,
-                    "categorie": e.categorie.name,
-                }
-                for e in etapes
-            ]
+            data = EtapesMapper().from_domain(organisme)
             serializer = EtapeRecrutementSerializer(data, many=True)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except (ErreurRecruteur, OrganismeNexistePas):
