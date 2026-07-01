@@ -19,7 +19,10 @@ from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsCommand,
 )
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.errors.erreur_recrutement import ErreurRecruteur
+from domain.recruteur.errors.erreur_recrutement import (
+    ConfigurationEtapesInvalide,
+    ErreurRecruteur,
+)
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -270,9 +273,10 @@ class EtapesRecrutementOrganismeView(APIView):
             for etape in validated_etapes
         ]
         try:
+            utilisateur_id = UUID(request.user.username)
             usecase = self.container.update_organisme_steps_usecase()
             organisme = usecase.execute(
-                UpdateOrganismeStepsCommand(organisme_uuid, etapes)
+                UpdateOrganismeStepsCommand(utilisateur_id, organisme_uuid, etapes)
             )
             etapes_result = organisme.etapes or ()
             data = [
@@ -285,6 +289,8 @@ class EtapesRecrutementOrganismeView(APIView):
             ]
             out_serializer = EtapeRecrutementSerializer(data, many=True)
             return Response(out_serializer.data)
+        except ConfigurationEtapesInvalide as e:
+            return Response({"error": e.raison}, status=status.HTTP_400_BAD_REQUEST)
         except OrganismeNexistePas:
             return Response(
                 {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
