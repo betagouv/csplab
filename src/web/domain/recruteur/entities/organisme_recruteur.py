@@ -4,7 +4,10 @@ from uuid import UUID
 from ddd.aggregate_root import AggregateRoot, mutate
 
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
-from domain.recruteur.events.organisme_events import OrganismeEtapesInitialises
+from domain.recruteur.events.organisme_events import (
+    OrganismeEtapesInitialises,
+    OrganismeEtapesModifiees,
+)
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -55,3 +58,7 @@ class OrganismeRecruteur(AggregateRoot):
                 nom="Recrutement",
             ),
         )
+
+    @mutate(OrganismeEtapesModifiees)
+    def modifier_etapes(self, etapes: tuple[EtapeRecrutement, ...]) -> None:
+        self._etapes = etapes

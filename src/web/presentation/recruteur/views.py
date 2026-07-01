@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
 from rest_framework import serializers as drf_serializers
@@ -14,8 +14,15 @@ from application.recruteur.usecases.get_organisme_recruteur import (
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
+from application.recruteur.usecases.update_organisme_steps import (
+    EtapeInput,
+    UpdateOrganismeStepsCommand,
+)
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.erreur_recrutement import ErreurRecruteur
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.recruteur.mappers import (
@@ -252,18 +259,45 @@ class EtapesRecrutementOrganismeView(APIView):
         serializer = UpdateEtapeRecrutementSerializer(data=request.data, many=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        # TODO: remplacer par le use case update_organisme_steps_usecase
+
         validated_etapes: list = serializer.validated_data  # type: ignore[assignment]
-        data = [
-            {
-                "etape_uuid": str(etape.get("etape_uuid") or uuid4()),
-                "nom": etape["nom"],
-                "categorie": etape["categorie"],
-            }
+        etapes_input = tuple(
+            EtapeInput(
+                etape_uuid=etape.get("etape_uuid"),
+                nom=etape["nom"],
+                categorie=CategorieEtapeRecrutement[etape["categorie"]],
+            )
             for etape in validated_etapes
-        ]
-        out_serializer = EtapeRecrutementSerializer(data, many=True)
-        return Response(out_serializer.data)
+        )
+
+        try:
+            usecase = self.container.update_organisme_steps_usecase()
+            organisme = usecase.execute(
+                UpdateOrganismeStepsCommand(
+                    organisme_id=organisme_uuid,
+                    etapes=etapes_input,
+                )
+            )
+            etapes = organisme.etapes or ()
+            data = [
+                {
+                    "etape_uuid": str(e.entity_id),
+                    "nom": e.nom,
+                    "categorie": e.categorie.name,
+                }
+                for e in etapes
+            ]
+            out_serializer = EtapeRecrutementSerializer(data, many=True)
+            return Response(out_serializer.data)
+        except (ErreurRecruteur, OrganismeNexistePas):
+            return Response(
+                {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 @extend_schema(

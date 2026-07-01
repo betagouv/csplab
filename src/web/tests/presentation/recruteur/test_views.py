@@ -6,7 +6,11 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
+from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.erreur_recrutement import ErreurRecruteur
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
 from tests.factories.recruteur.organisme_factory import (
     OrganismeRecruteurFactory,
 )
@@ -239,13 +243,49 @@ class TestPutEtapesRecrutementOrganismeView:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_put_mixed_existing_and_new_etapes(self, authenticated_client):
-        existing_uuid = str(fake.uuid4())
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_put_mixed_existing_and_new_etapes(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        existing_uuid = fake.uuid4()
+        new_uuid = fake.uuid4()
+        other_uuid = fake.uuid4()
+
+        organisme = OrganismeRecruteurFactory.create_entity()
+        organisme._etapes = (
+            EtapeRecrutement.build(
+                entity_id=existing_uuid,
+                nom="Réception",
+                categorie=CategorieEtapeRecrutement.ENTREE,
+            ),
+            EtapeRecrutement.build(
+                entity_id=new_uuid,
+                nom="Nouvelle étape",
+                categorie=CategorieEtapeRecrutement.EN_COURS,
+            ),
+            EtapeRecrutement.build(
+                entity_id=other_uuid,
+                nom="Recrutement",
+                categorie=CategorieEtapeRecrutement.ACCEPTE,
+            ),
+        )
+
+        mock_usecase = MagicMock()
+        mock_usecase.execute.return_value = organisme
+
+        mock_container = MagicMock()
+        mock_container.update_organisme_steps_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
         payload = [
-            {"etape_uuid": existing_uuid, "nom": "Réception", "categorie": "ENTREE"},
+            {
+                "etape_uuid": str(existing_uuid),
+                "nom": "Réception",
+                "categorie": "ENTREE",
+            },
             {"nom": "Nouvelle étape", "categorie": "EN_COURS"},
             {
-                "etape_uuid": str(fake.uuid4()),
+                "etape_uuid": str(other_uuid),
                 "nom": "Recrutement",
                 "categorie": "ACCEPTE",
             },
@@ -256,8 +296,8 @@ class TestPutEtapesRecrutementOrganismeView:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data) == 3  # noqa
-        assert data[0]["etape_uuid"] == existing_uuid
-        assert data[1]["etape_uuid"] is not None
+        assert data[0]["etape_uuid"] == str(existing_uuid)
+        assert data[1]["etape_uuid"] == str(new_uuid)
         assert data[1]["nom"] == "Nouvelle étape"
 
 
