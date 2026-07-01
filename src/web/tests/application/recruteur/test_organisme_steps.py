@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
@@ -40,11 +42,12 @@ def test_initialize_organisme_steps(initialize_organisme_steps_usecase):
     assert events[0].event_name == "OrganismeEtapesInitialises"
 
 
-def test_update_organsime_steps(update_organisme_steps_usecase):
+def test_update_organisme_steps(update_organisme_steps_usecase):
     organisme_before = OrganismeRecruteurFactory.create_entity(
         etapes=make_etapes_recrutement()
     )
     update_organisme_steps_usecase.organisme_recruteur_repository.save(organisme_before)
+    utilisateur_id = uuid4()
 
     nouvelles_etapes = [
         EtapeData(
@@ -71,6 +74,7 @@ def test_update_organsime_steps(update_organisme_steps_usecase):
 
     organisme = update_organisme_steps_usecase.execute(
         command=UpdateOrganismeStepsCommand(
+            utilisateur_id=utilisateur_id,
             organisme_id=organisme_before.entity_id,
             etapes=nouvelles_etapes,
         )
@@ -81,3 +85,6 @@ def test_update_organsime_steps(update_organisme_steps_usecase):
     assert events[0].event_name == "OrganismeEtapesMisesAJour"
     assert organisme.etapes is not None
     assert len(organisme.etapes) == len(nouvelles_etapes)
+    update_organisme_steps_usecase.audit_log_writer.drain_events.assert_called_once_with(
+        utilisateur_id=utilisateur_id, aggregate=organisme
+    )
