@@ -572,4 +572,5 @@ def update_organisme_steps_usecase():
     return UpdateOrganismeStepsUsecase(
         organisme_repository=organisme_repo,
         organisme_recruteur_repository=organisme_recruteur_repo,
+        audit_log_writer=MagicMock(spec=AuditLogWriter),
     )
