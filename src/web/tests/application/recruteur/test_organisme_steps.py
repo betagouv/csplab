@@ -4,15 +4,11 @@ from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
 from application.recruteur.usecases.update_organisme_steps import (
-    EtapeData,
     UpdateOrganismeStepsCommand,
 )
-from domain.recruteur.value_objects.categorie_etapes_recrutement import (
-    CategorieEtapeRecrutement,
-)
 from tests.factories.recruteur.organisme_factory import (
+    EtapeRecrutementFactory,
     OrganismeRecruteurFactory,
-    make_etapes_recrutement,
 )
 
 
@@ -43,33 +39,12 @@ def test_initialize_organisme_steps(initialize_organisme_steps_usecase):
 
 
 def test_update_organsime_steps(update_organisme_steps_usecase):
-    etapes = make_etapes_recrutement()
+    etapes = EtapeRecrutementFactory.create_entities()
     organisme_before = OrganismeRecruteurFactory.create_entity(etapes=etapes)
     update_organisme_steps_usecase.organisme_recruteur_repository.save(organisme_before)
     utilisateur_id = uuid4()
 
-    nouvelles_etapes = [
-        EtapeData(
-            etape_uuid=etapes[0].entity_id,
-            nom="Candidatures reçues",
-            categorie=CategorieEtapeRecrutement.ENTREE,
-        ),
-        EtapeData(
-            etape_uuid=None,
-            nom="Entretien RH",
-            categorie=CategorieEtapeRecrutement.EN_COURS,
-        ),
-        EtapeData(
-            etape_uuid=etapes[-2].entity_id,
-            nom="Refus",
-            categorie=CategorieEtapeRecrutement.REFUS,
-        ),
-        EtapeData(
-            etape_uuid=etapes[-1].entity_id,
-            nom="Recrutement",
-            categorie=CategorieEtapeRecrutement.ACCEPTE,
-        ),
-    ]
+    nouvelles_etapes = EtapeRecrutementFactory.to_etape_data_list(etapes)
 
     organisme = update_organisme_steps_usecase.execute(
         command=UpdateOrganismeStepsCommand(
