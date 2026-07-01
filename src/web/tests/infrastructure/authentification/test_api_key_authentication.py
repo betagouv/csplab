@@ -20,32 +20,36 @@ def rf():
     return RequestFactory()
 
 
+@pytest.mark.parametrize(
+    "ip, allowed_ranges, expected",
+    [
+        ("1.2.3.4", [], True),
+        ("192.168.1.50", ["192.168.1.0/24"], True),
+        ("10.0.0.1", ["192.168.1.0/24"], False),
+        ("10.0.0.1", ["192.168.1.0/24", "10.0.0.0/8"], True),
+        ("172.16.0.1", ["192.168.1.0/24", "10.0.0.0/8"], False),
+        ("1.2.3.4", ["1.2.3.4/32"], True),
+        ("1.2.3.5", ["1.2.3.4/32"], False),
+        ("not-an-ip", ["192.168.1.0/24"], False),
+        ("::1", ["::1/128"], True),
+        ("::2", ["::1/128"], False),
+    ],
+    ids=[
+        "no_restriction_when_list_is_empty",
+        "ip_in_allowed_range",
+        "ip_not_in_allowed_range",
+        "ip_matched_by_one_of_multiple_ranges",
+        "ip_not_matched_by_any_range",
+        "exact_host_cidr_match",
+        "exact_host_cidr_no_match",
+        "invalid_ip_returns_false",
+        "ipv6_in_allowed_range",
+        "ipv6_not_in_allowed_range",
+    ],
+)
 class TestIpIsAllowed:
-    def test_no_restriction_when_list_is_empty(self):
-        assert _ip_is_allowed("1.2.3.4", []) is True
-
-    def test_ip_in_allowed_range(self):
-        assert _ip_is_allowed("192.168.1.50", ["192.168.1.0/24"]) is True
-
-    def test_ip_not_in_allowed_range(self):
-        assert _ip_is_allowed("10.0.0.1", ["192.168.1.0/24"]) is False
-
-    def test_ip_matched_by_one_of_multiple_ranges(self):
-        assert _ip_is_allowed("10.0.0.1", ["192.168.1.0/24", "10.0.0.0/8"]) is True
-
-    def test_ip_not_matched_by_any_range(self):
-        assert _ip_is_allowed("172.16.0.1", ["192.168.1.0/24", "10.0.0.0/8"]) is False
-
-    def test_exact_host_cidr(self):
-        assert _ip_is_allowed("1.2.3.4", ["1.2.3.4/32"]) is True
-        assert _ip_is_allowed("1.2.3.5", ["1.2.3.4/32"]) is False
-
-    def test_invalid_ip_returns_false(self):
-        assert _ip_is_allowed("not-an-ip", ["192.168.1.0/24"]) is False
-
-    def test_ipv6_in_allowed_range(self):
-        assert _ip_is_allowed("::1", ["::1/128"]) is True
-        assert _ip_is_allowed("::2", ["::1/128"]) is False
+    def test_ip_is_allowed(self, ip, allowed_ranges, expected):
+        assert _ip_is_allowed(ip, allowed_ranges) is expected
 
 
 class TestApiKeyAuthenticationIpRestriction:
