@@ -1,6 +1,5 @@
 from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
-from referentiel.repositories.offers_repository_interface import IOffersRepository
 from referentiel.types import IUpsertResult
 
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
@@ -10,6 +9,9 @@ from domain.identite.repositories.utilisateur_repository_interface import (
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
+from domain.ingestion.repositories.ingestion_offers_repository_interface import (
+    IIngestionOffersRepository,
+)
 from domain.ingestion.repositories.user_source_repository_interface import (
     IUserSourceRepository,
 )
@@ -18,7 +20,7 @@ from domain.ingestion.repositories.user_source_repository_interface import (
 class UpsertOffersUseCase(IUseCase[UpsertOffersInput, IUpsertResult]):
     def __init__(
         self,
-        offers_repository: IOffersRepository,
+        offers_repository: IIngestionOffersRepository,
         logger: ILogger,
         user_source_repository: IUserSourceRepository,
         utilisateur_repository: IUtilisateurRepository,

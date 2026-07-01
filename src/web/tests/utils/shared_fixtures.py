@@ -67,6 +67,9 @@ from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeEr
 from domain.ingestion.repositories.document_repository_interface import (
     IDocumentRepository,
 )
+from domain.ingestion.repositories.ingestion_offers_repository_interface import (
+    IIngestionOffersRepository,
+)
 from domain.ingestion.repositories.source_repository_interface import ISourceRepository
 from domain.ingestion.repositories.user_source_repository_interface import (
     IUserSourceRepository,
@@ -381,7 +384,8 @@ def archive_offers_usecase():
         IVectorRepository, create_interface_aware_mock(IVectorRepository)
     )
     offers_repo = cast(
-        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+        IIngestionOffersRepository,
+        create_interface_aware_mock(IIngestionOffersRepository),
     )
 
     return ArchiveOffersUsecase(
@@ -409,7 +413,8 @@ def list_offers_usecase():
 def upsert_offers_usecase():
     logger = MagicMock()
     offers_repo = cast(
-        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+        IIngestionOffersRepository,
+        create_interface_aware_mock(IIngestionOffersRepository),
     )
     user_source_repo = cast(
         IUserSourceRepository, create_interface_aware_mock(IUserSourceRepository)
@@ -460,7 +465,8 @@ def list_sources_usecase():
 def get_opportunity_details_usecase():
     logger = MagicMock()
     offers_repository = cast(
-        IOffersRepository, create_interface_aware_mock(IOffersRepository)
+        IIngestionOffersRepository,
+        create_interface_aware_mock(IIngestionOffersRepository),
     )
     concours_repository = cast(
         IConcoursRepository, create_interface_aware_mock(IConcoursRepository)
