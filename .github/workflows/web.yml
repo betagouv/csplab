@@ -174,7 +174,7 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: betagouv
-          SENTRY_PROJECT: csplab-tycho
+          SENTRY_PROJECT: csplab-web
           SENTRY_URL: https://sentry.incubateur.net
         with:
           environment: production
