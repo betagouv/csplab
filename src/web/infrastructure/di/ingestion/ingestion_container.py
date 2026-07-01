@@ -3,6 +3,9 @@ from ddd.entity import Entity
 from dependency_injector import containers, providers
 from referentiel.types import IUpsertResult
 
+from application.commons.usecases.calculate_daily_stats import (
+    CalculateDailyStatsUseCase,
+)
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.usecases.archive_offer_by_reference import (
     ArchiveOfferByReferenceUseCase,
@@ -211,4 +214,10 @@ class IngestionContainer(containers.DeclarativeContainer):
         offers_repository=offers_repository,
         user_source_repository=user_source_repository,
         utilisateur_repository=utilisateur_repository,
+    )
+
+    calculate_daily_stats_usecase = providers.Factory(
+        CalculateDailyStatsUseCase,
+        offer_stats_query_service=shared_container.offer_stats_query_service,
+        stat_snapshot_writer=shared_container.stat_snapshot_writer,
     )

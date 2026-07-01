@@ -1,0 +1,6 @@
+from typing import Protocol
+
+
+class IOfferStatsQueryService(Protocol):
+    def count_published(self) -> int: ...
+    def count_archived(self) -> int: ...

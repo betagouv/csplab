@@ -4,6 +4,12 @@ from infrastructure.external_gateways.albert_embedding_generator import (
     AlbertEmbeddingGenerator,
 )
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
+from infrastructure.repositories.commons.postgres_offer_stats_query_service import (
+    PostgresOfferStatsQueryService,
+)
+from infrastructure.repositories.commons.postgres_stat_snapshot_writer import (
+    PostgresStatSnapshotWriter,
+)
 from infrastructure.repositories.shared import (
     postgres_concours_repository,
     postgres_corps_repository,
@@ -28,6 +34,10 @@ class SharedContainer(containers.DeclarativeContainer):
     api_log_daily_aggregation_repository = providers.Singleton(
         PostgresApiLogDailyAggregationRepository
     )
+
+    offer_stats_query_service = providers.Singleton(PostgresOfferStatsQueryService)
+
+    stat_snapshot_writer = providers.Singleton(PostgresStatSnapshotWriter)
 
     corps_repository = providers.Singleton(
         postgres_corps_repository.PostgresCorpsRepository,
