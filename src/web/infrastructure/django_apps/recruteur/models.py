@@ -48,22 +48,6 @@ class NoteModel(BaseDatedModel):
         db_column="publie_par_id",
         related_name="notes_publiees",
     )
-    mis_a_jour_par = models.ForeignKey(
-        ProfilAgentModel,
-        on_delete=models.PROTECT,
-        to_field="utilisateur_id",  # UUID-as-string (VARCHAR(36))
-        db_column="mis_a_jour_par_id",
-        related_name="notes_modifiees",
-    )
-    supprimee_par = models.ForeignKey(
-        ProfilAgentModel,
-        on_delete=models.PROTECT,
-        to_field="utilisateur_id",  # UUID-as-string (VARCHAR(36))
-        db_column="supprimee_par_id",
-        related_name="notes_supprimees",
-        null=True,
-        blank=True,
-    )
     supprimee_le = models.DateTimeField(null=True, blank=True)
 
     class Meta:
