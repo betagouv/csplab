@@ -106,19 +106,20 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
     def parse_datetime(raw: str) -> datetime:
         return datetime.fromisoformat(raw.replace("Z", "+00:00"))
 
-    conditions = payload.get("conditions") or {}
-    debut_contrat_raw = conditions.get("debut_contrat")
+    conditions = payload.get("conditions") or None
+    debut_contrat_raw = conditions.get("debut_contrat") if conditions else None
     debut_contrat = (
         LimitDate(parse_datetime(debut_contrat_raw)) if debut_contrat_raw else None
     )
 
     # mirrors how ConditionsInputSerializer parses datetime fields into validated_data
-    conditions = {
-        key: parse_datetime(value)
-        if key in ("debut_contrat", "fin_contrat") and value
-        else value
-        for key, value in conditions.items()
-    }
+    if conditions:
+        conditions = {
+            key: parse_datetime(value)
+            if key in ("debut_contrat", "fin_contrat") and value
+            else value
+            for key, value in conditions.items()
+        }
 
     categories = payload.get("categories")
     category = Category(sorted(categories)[0]) if categories else None
