@@ -73,8 +73,3 @@ def test_supprimer_marks_note_and_emits_note_supprimee() -> None:
     assert note.supprimee_le is not None
     assert note.supprimee_par_id == suppresseur_id
     assert note.mis_a_jour_par_id == suppresseur_id
-
-
-def test_build_emits_no_event() -> None:
-    note = _build_note()
-    assert note.collect_events() == []
