@@ -9,12 +9,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="StatsHistoryModel",
+            name="StatSnapshotModel",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(primary_key=True, serialize=False),
-                ),
+                ("pk", models.CompositePrimaryKey("date", "metric_name", blank=True, editable=False, primary_key=True, serialize=False)),
                 ("date", models.DateField()),
                 ("metric_name", models.CharField(max_length=255)),
                 ("metric_value", models.BigIntegerField()),
@@ -22,17 +19,10 @@ class Migration(migrations.Migration):
                 ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                "verbose_name": "Stats History",
-                "verbose_name_plural": "Stats History",
-                "db_table": "stats_history",
+                "verbose_name": "Stat Snapshot",
+                "verbose_name_plural": "Stat Snapshots",
+                "db_table": "stat_snapshots",
                 "ordering": ["-date"],
             },
-        ),
-        migrations.AddConstraint(
-            model_name="statshistorymodel",
-            constraint=models.UniqueConstraint(
-                fields=["date", "metric_name"],
-                name="unique_stats_history_date_metric_name",
-            ),
         ),
     ]

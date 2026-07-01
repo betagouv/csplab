@@ -1,35 +1,33 @@
 from datetime import date
 
-from domain.commons.entities.stats_history import StatsHistory
-from domain.commons.repositories.stats_history_repository_interface import (
-    IStatsHistoryRepository,
+from domain.commons.services.offer_stats_query_service_interface import (
+    IOfferStatsQueryService,
 )
-from domain.ingestion.repositories.ingestion_offers_repository_interface import (
-    IIngestionOffersRepository,
-)
+from domain.commons.services.stat_snapshot_writer_interface import IStatSnapshotWriter
+from domain.commons.value_objects.stat_snapshot import StatSnapshot
 
 
 class CalculateDailyStatsUseCase:
     def __init__(
         self,
-        offers_repository: IIngestionOffersRepository,
-        stats_history_repository: IStatsHistoryRepository,
+        offer_stats_query_service: IOfferStatsQueryService,
+        stat_snapshot_writer: IStatSnapshotWriter,
     ):
-        self.offers_repository = offers_repository
-        self.stats_history_repository = stats_history_repository
+        self.offer_stats_query_service = offer_stats_query_service
+        self.stat_snapshot_writer = stat_snapshot_writer
 
     def execute(self, target_date: date) -> None:
-        stats = [
-            StatsHistory(
+        snapshots = [
+            StatSnapshot(
                 date=target_date,
                 metric_name="nb_published_offers",
-                metric_value=self.offers_repository.count_published(),
+                metric_value=self.offer_stats_query_service.count_published(),
             ),
-            StatsHistory(
+            StatSnapshot(
                 date=target_date,
                 metric_name="nb_archived_offers",
-                metric_value=self.offers_repository.count_archived(),
+                metric_value=self.offer_stats_query_service.count_archived(),
             ),
         ]
-        for stat in stats:
-            self.stats_history_repository.save(stat)
+        for snapshot in snapshots:
+            self.stat_snapshot_writer.write(snapshot)

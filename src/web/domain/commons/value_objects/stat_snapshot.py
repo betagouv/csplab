@@ -3,7 +3,7 @@ from datetime import date
 
 
 @dataclass
-class StatsHistory:
+class StatSnapshot:
     date: date
     metric_name: str
     metric_value: int

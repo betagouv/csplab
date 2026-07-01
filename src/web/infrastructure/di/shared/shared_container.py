@@ -4,8 +4,8 @@ from infrastructure.external_gateways.albert_embedding_generator import (
     AlbertEmbeddingGenerator,
 )
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
-from infrastructure.repositories.commons.postgres_stats_history_repository import (
-    PostgresStatsHistoryRepository,
+from infrastructure.repositories.commons.postgres_stat_snapshot_writer import (
+    PostgresStatSnapshotWriter,
 )
 from infrastructure.repositories.shared import (
     postgres_concours_repository,
@@ -32,7 +32,7 @@ class SharedContainer(containers.DeclarativeContainer):
         PostgresApiLogDailyAggregationRepository
     )
 
-    stats_history_repository = providers.Singleton(PostgresStatsHistoryRepository)
+    stat_snapshot_writer = providers.Singleton(PostgresStatSnapshotWriter)
 
     corps_repository = providers.Singleton(
         postgres_corps_repository.PostgresCorpsRepository,

@@ -57,10 +57,11 @@ from domain.candidate.repositories.candidature_repository_interface import (
 from domain.candidate.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
 )
-from domain.commons.repositories.stats_history_repository_interface import (
-    IStatsHistoryRepository,
-)
 from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.commons.services.offer_stats_query_service_interface import (
+    IOfferStatsQueryService,
+)
+from domain.commons.services.stat_snapshot_writer_interface import IStatSnapshotWriter
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
@@ -541,15 +542,15 @@ def initialize_organisme_steps_usecase():
 
 @pytest.fixture
 def calculate_daily_stats_usecase():
-    offers_repo = cast(
-        IIngestionOffersRepository,
-        create_interface_aware_mock(IIngestionOffersRepository),
+    offer_stats_query_service = cast(
+        IOfferStatsQueryService,
+        create_interface_aware_mock(IOfferStatsQueryService),
     )
-    stats_history_repo = cast(
-        IStatsHistoryRepository,
-        create_interface_aware_mock(IStatsHistoryRepository),
+    stat_snapshot_writer = cast(
+        IStatSnapshotWriter,
+        create_interface_aware_mock(IStatSnapshotWriter),
     )
     return CalculateDailyStatsUseCase(
-        offers_repository=offers_repo,
-        stats_history_repository=stats_history_repo,
+        offer_stats_query_service=offer_stats_query_service,
+        stat_snapshot_writer=stat_snapshot_writer,
     )
