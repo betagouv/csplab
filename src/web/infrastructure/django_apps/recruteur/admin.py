@@ -11,7 +11,8 @@ from application.identite.usecases.create_organisme import CreateOrganismeComman
 from domain.identite.errors.organisme_errors import SiretInvalide
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_factory import create_identite_container
-from infrastructure.django_apps.recruteur.models import OrganismeModel
+from infrastructure.django_apps.recruteur.models import NoteModel, OrganismeModel
+from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 from infrastructure.mappers.organisme_identite_mapper import OrganismeIdentiteMapper
 
 
@@ -95,3 +96,10 @@ class OrganismeAdmin(admin.ModelAdmin):
             # enforce the entity invariants (mapper builds the aggregate) before saving
             OrganismeIdentiteMapper().to_domain(obj)
             super().save_model(request, obj, form, change)
+
+
+@admin.register(NoteModel)
+class NoteAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    list_display = ("candidature", "publie_par", "created_at", "supprimee_le")
+    list_filter = ("created_at", "supprimee_le")
+    date_hierarchy = "created_at"

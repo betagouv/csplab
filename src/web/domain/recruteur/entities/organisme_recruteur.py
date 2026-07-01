@@ -18,6 +18,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 class OrganismeRecruteur(AggregateRoot):
     _etapes: tuple[EtapeRecrutement, ...] | None
     # _formulaire_candidature
+    # TODO : add candidature_id
 
     @classmethod
     def build(
