@@ -5,12 +5,10 @@ from domain.commons.entities.stats_history import StatsHistory
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
-class StatsHistoryModel(models.Model):
+class StatsHistoryModel(BaseDatedModel):
     date = models.DateField()
     metric_name = models.CharField(max_length=255)
     metric_value = models.BigIntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "stats_history"
