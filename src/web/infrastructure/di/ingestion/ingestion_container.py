@@ -218,6 +218,6 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     calculate_daily_stats_usecase = providers.Factory(
         CalculateDailyStatsUseCase,
-        offer_stats_query_service=offers_repository,
+        offer_stats_query_service=shared_container.offer_stats_query_service,
         stat_snapshot_writer=shared_container.stat_snapshot_writer,
     )

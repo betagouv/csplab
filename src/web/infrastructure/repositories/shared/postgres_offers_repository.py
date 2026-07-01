@@ -200,9 +200,3 @@ class PostgresOffersRepository(IIngestionOffersRepository):
             ).update(archived_at=timezone.now())
         except Exception as e:
             raise DatabaseError(f"Database error during update: {str(e)}") from e
-
-    def count_published(self) -> int:
-        return OfferModel.objects.filter(archived_at__isnull=True).count()
-
-    def count_archived(self) -> int:
-        return OfferModel.objects.filter(archived_at__isnull=False).count()
