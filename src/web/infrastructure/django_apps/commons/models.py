@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 
 from domain.commons.entities.audit_log import AuditLog
@@ -32,6 +34,7 @@ class StatsHistoryModel(BaseDatedModel):
     @classmethod
     def from_entity(cls, stats_history: StatsHistory) -> "StatsHistoryModel":
         return cls(
+            id=uuid.uuid4(),
             date=stats_history.date,
             metric_name=stats_history.metric_name,
             metric_value=stats_history.metric_value,
