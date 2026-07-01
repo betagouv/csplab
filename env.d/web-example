@@ -41,6 +41,9 @@ WEB_OCR_API_KEY=verysecretkey
 WEB_OCR_BASE_URL=http://localhost:8001
 
 WEB_INGESTION_API_KEY=verysecretkey
+# Comma-separated list of allowed IP ranges in CIDR notation (empty = no restriction)
+# Example: WEB_INGESTION_API_KEY_ALLOWED_IP_RANGES=192.168.1.0/24,10.0.0.0/8
+WEB_INGESTION_API_KEY_ALLOWED_IP_RANGES=
 
 WEB_TALENTSOFT_CLIENT_ID=
 WEB_TALENTSOFT_CLIENT_SECRET=
