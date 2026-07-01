@@ -29,6 +29,9 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.submit_application import SubmitApplicationUsecase
+from application.commons.usecases.calculate_daily_stats import (
+    CalculateDailyStatsUseCase,
+)
 from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.identite.usecases.create_organisme import CreateOrganismeUsecase
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
@@ -55,6 +58,10 @@ from domain.candidate.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.commons.services.offer_stats_query_service_interface import (
+    IOfferStatsQueryService,
+)
+from domain.commons.services.stat_snapshot_writer_interface import IStatSnapshotWriter
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
@@ -531,3 +538,19 @@ def initialize_organisme_steps_usecase():
         create_interface_aware_mock(IOrganismeRecruteurRepository),
     )
     return InitializeOrganismeStepsUsecase(organisme_repository=repository)
+
+
+@pytest.fixture
+def calculate_daily_stats_usecase():
+    offer_stats_query_service = cast(
+        IOfferStatsQueryService,
+        create_interface_aware_mock(IOfferStatsQueryService),
+    )
+    stat_snapshot_writer = cast(
+        IStatSnapshotWriter,
+        create_interface_aware_mock(IStatSnapshotWriter),
+    )
+    return CalculateDailyStatsUseCase(
+        offer_stats_query_service=offer_stats_query_service,
+        stat_snapshot_writer=stat_snapshot_writer,
+    )

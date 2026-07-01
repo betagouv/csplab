@@ -4,6 +4,21 @@ from domain.commons.entities.audit_log import AuditLog
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
+class StatSnapshotModel(models.Model):
+    pk = models.CompositePrimaryKey("date", "metric_name")
+    date = models.DateField()
+    metric_name = models.CharField(max_length=255)
+    metric_value = models.BigIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "stat_snapshots"
+        verbose_name = "Stat Snapshot"
+        verbose_name_plural = "Stat Snapshots"
+        ordering = ["-date"]
+
+
 class AuditLogModel(BaseDatedModel):
     event_id = models.UUIDField(db_index=True, null=True)
     occurred_at = models.DateTimeField()
