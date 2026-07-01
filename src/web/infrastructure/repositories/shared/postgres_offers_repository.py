@@ -9,14 +9,16 @@ from django.db.models import F, Q
 from django.utils import timezone
 from referentiel.entities.offer import Offer
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
-from referentiel.repositories.offers_repository_interface import IOffersRepository
 from referentiel.types import IUpsertResult
 
+from domain.ingestion.repositories.ingestion_offers_repository_interface import (
+    IIngestionOffersRepository,
+)
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.mappers.queryset_page import QuerySetPage
 
 
-class PostgresOffersRepository(IOffersRepository):
+class PostgresOffersRepository(IIngestionOffersRepository):
     def __init__(self, logger: ILogger):
         self.logger = logger
 

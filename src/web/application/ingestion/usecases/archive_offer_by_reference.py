@@ -1,5 +1,4 @@
 from ddd.usecase_interface import IUseCase
-from referentiel.repositories.offers_repository_interface import IOffersRepository
 
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
@@ -10,6 +9,9 @@ from domain.identite.repositories.utilisateur_repository_interface import (
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
+from domain.ingestion.repositories.ingestion_offers_repository_interface import (
+    IIngestionOffersRepository,
+)
 from domain.ingestion.repositories.user_source_repository_interface import (
     IUserSourceRepository,
 )
@@ -19,7 +21,7 @@ from domain.ingestion.repositories.vector_repository_interface import IVectorRep
 class ArchiveOfferByReferenceUseCase(IUseCase[ArchiveOfferByReferenceInput, None]):
     def __init__(
         self,
-        offers_repository: IOffersRepository,
+        offers_repository: IIngestionOffersRepository,
         vector_repository: IVectorRepository,
         user_source_repository: IUserSourceRepository,
         utilisateur_repository: IUtilisateurRepository,

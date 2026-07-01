@@ -3,10 +3,12 @@ from typing import Union
 from referentiel.repositories.concours_repository_interface import IConcoursRepository
 from referentiel.repositories.corps_repository_interface import ICorpsRepository
 from referentiel.repositories.metier_repository_interface import IMetierRepository
-from referentiel.repositories.offers_repository_interface import IOffersRepository
 
 from domain.ingestion.entities.document import DocumentType
 from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
+from domain.ingestion.repositories.ingestion_offers_repository_interface import (
+    IIngestionOffersRepository,
+)
 from domain.ingestion.repositories.repository_factory_interface import (
     IRepositoryFactory,
 )
@@ -17,7 +19,7 @@ class RepositoryFactory(IRepositoryFactory):
         self,
         corps_repository: ICorpsRepository,
         concours_repository: IConcoursRepository,
-        offers_repository: IOffersRepository,
+        offers_repository: IIngestionOffersRepository,
         metiers_repository: IMetierRepository,
     ):
         self.corps_repository = corps_repository
@@ -28,7 +30,10 @@ class RepositoryFactory(IRepositoryFactory):
     def get_repository(
         self, document_type: DocumentType
     ) -> Union[
-        ICorpsRepository, IConcoursRepository, IOffersRepository, IMetierRepository
+        ICorpsRepository,
+        IConcoursRepository,
+        IIngestionOffersRepository,
+        IMetierRepository,
     ]:
         match document_type:
             case DocumentType.CORPS:
