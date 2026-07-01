@@ -4,7 +4,6 @@ from uuid import UUID
 
 from ddd.aggregate_root import AggregateRoot, factory, mutate, query
 
-from domain.recruteur.errors.note_errors import NoteDejaSupprimee
 from domain.recruteur.events.note_events import (
     NoteAjoutee,
     NoteEditee,
@@ -110,8 +109,6 @@ class Note(AggregateRoot):
 
     @mutate(NoteSupprimee)
     def supprimer(self, supprime_par_id: UUID) -> None:
-        if self._supprimee_le is not None:
-            raise NoteDejaSupprimee(self.entity_id)
         now = datetime.now(tz=timezone.utc)
         self._supprimee_par_id = supprime_par_id
         self._supprimee_le = now

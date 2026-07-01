@@ -18,11 +18,6 @@ class CandidatureIntrouvable(NoteError):
         super().__init__(f"La candidature {candidature_id} est introuvable")
 
 
-class NoteDejaSupprimee(NoteError):
-    def __init__(self, note_id: UUID):
-        super().__init__(f"La note {note_id} est déjà supprimée")
-
-
 class NoteModificationNonAutorisee(NoteError):
     def __init__(self, note_id: UUID):
         super().__init__(f"La note {note_id} ne peut être modifiée que par son auteur")
