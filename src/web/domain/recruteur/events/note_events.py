@@ -14,9 +14,8 @@ class NoteAjoutee(DomainEvent):
 @dataclass(frozen=True)
 class NoteEditee(DomainEvent):
     message: str
-    mis_a_jour_par_id: UUID
 
 
 @dataclass(frozen=True)
 class NoteSupprimee(DomainEvent):
-    supprime_par_id: UUID
+    pass

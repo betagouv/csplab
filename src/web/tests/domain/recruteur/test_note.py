@@ -17,8 +17,6 @@ def _build_note() -> Note:
         publie_par_id=uuid4(),
         message="message initial",
         publie_le=now,
-        mis_a_jour_le=now,
-        mis_a_jour_par_id=uuid4(),
     )
 
 
@@ -38,23 +36,18 @@ def test_create_emits_note_ajoutee() -> None:
     assert events[0].candidature_id == candidature_id
     assert events[0].publie_par_id == publie_par_id
     assert events[0].message == "première note"
-    assert note.publie_le == note.mis_a_jour_le
-    assert note.mis_a_jour_par_id == publie_par_id
-    assert note.est_supprimee() is False
 
 
 def test_modifier_message_emits_note_editee() -> None:
     note = Note.create(candidature_id=uuid4(), publie_par_id=uuid4(), message="avant")
     note.collect_events()
-    editeur_id = uuid4()
 
-    note.modifier(message="après", mis_a_jour_par_id=editeur_id)
+    note.modifier(message="après")
 
     events = note.collect_events()
     assert len(events) == 1
     assert isinstance(events[0], NoteEditee)
     assert note.message == "après"
-    assert note.mis_a_jour_par_id == editeur_id
 
 
 def test_supprimer_marks_note_and_emits_note_supprimee() -> None:
@@ -62,14 +55,10 @@ def test_supprimer_marks_note_and_emits_note_supprimee() -> None:
         candidature_id=uuid4(), publie_par_id=uuid4(), message="à supprimer"
     )
     note.collect_events()
-    suppresseur_id = uuid4()
 
-    note.supprimer(supprime_par_id=suppresseur_id)
+    note.supprimer()
 
     events = note.collect_events()
     assert len(events) == 1
     assert isinstance(events[0], NoteSupprimee)
-    assert note.est_supprimee() is True
     assert note.supprimee_le is not None
-    assert note.supprimee_par_id == suppresseur_id
-    assert note.mis_a_jour_par_id == suppresseur_id
