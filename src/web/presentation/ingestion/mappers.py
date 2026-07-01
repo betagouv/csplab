@@ -41,8 +41,8 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
         category = (
             Category(sorted(data["categories"])[0]) if data.get("categories") else None
         )
-        conditions = data.get("conditions") or {}
-        debut_contrat = conditions.get("debut_contrat")
+        conditions = data.get("conditions") or None
+        debut_contrat = conditions.get("debut_contrat") if conditions else None
 
         localisations = data.get("localisation", [])
         raw_localisation = localisations[0] if localisations else None

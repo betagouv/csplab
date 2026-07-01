@@ -167,6 +167,26 @@ class TestUpsertBatch:
         saved_offer = OfferModel.objects.get()
         assert OfferModel.to_entity(saved_offer) == entity
 
+    def test_upsert_offer_with_datetime_in_conditions(self, db, repository):
+        existing = OfferFactory.create_model()
+        source_id = existing.source_id
+
+        contract_start = datetime(2019, 8, 24, 14, 15, 22, tzinfo=timezone.utc)
+        contract_end = datetime(2019, 8, 24, 14, 15, 22, tzinfo=timezone.utc)
+        entity = OfferFactory.create_entity(source_id=source_id)
+        entity.conditions = {
+            "debut_contrat": contract_start,
+            "fin_contrat": contract_end,
+            "temps_travail": "TEMPS_PLEIN",
+        }
+
+        result = repository.upsert_batch([entity])
+
+        assert result == {"created": 1, "updated": 0, "errors": []}
+        saved = OfferModel.objects.get(external_id=entity.external_id)
+        assert saved.conditions["debut_contrat"] == "2019-08-24T14:15:22Z"
+        assert saved.conditions["fin_contrat"] == "2019-08-24T14:15:22Z"
+
     def test_upsert_unarchives_archived_offer(self, db, repository):
         archived_offer = OfferFactory.create_model(archived_at=NOW)
         assert archived_offer.archived_at is not None

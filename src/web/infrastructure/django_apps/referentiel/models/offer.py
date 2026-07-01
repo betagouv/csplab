@@ -1,3 +1,4 @@
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
@@ -60,13 +61,13 @@ class OfferModel(BaseDatedModel):
 
     long_title = models.CharField(max_length=1500, null=True, blank=True)
     application_url = models.URLField(null=True, blank=True)
-    contract_kind = models.JSONField(null=True, blank=True)
+    contract_kind = models.JSONField(null=True, blank=True, encoder=DjangoJSONEncoder)
     job_vacancy = models.CharField(max_length=50, null=True, blank=True)
     employer = models.TextField(null=True, blank=True)
     complements = models.TextField(null=True, blank=True)
-    criteria = models.JSONField(null=True, blank=True)
-    conditions = models.JSONField(null=True, blank=True)
-    contacts = models.JSONField(null=True, blank=True)
+    criteria = models.JSONField(null=True, blank=True, encoder=DjangoJSONEncoder)
+    conditions = models.JSONField(null=True, blank=True, encoder=DjangoJSONEncoder)
+    contacts = models.JSONField(null=True, blank=True, encoder=DjangoJSONEncoder)
 
     # Date fields
     publication_date = models.DateTimeField()
