@@ -32,4 +32,4 @@ class CalculateDailyStatsUseCase:
             ),
         ]
         for stat in stats:
-            self.stats_history_repository.save_stat(stat)
+            self.stats_history_repository.save(stat)

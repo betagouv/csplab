@@ -6,5 +6,5 @@ from infrastructure.django_apps.commons.models import StatsHistoryModel
 
 
 class PostgresStatsHistoryRepository(IStatsHistoryRepository):
-    def save_stat(self, stats_history: StatsHistory) -> None:
+    def save(self, stats_history: StatsHistory) -> None:
         StatsHistoryModel.from_entity(stats_history).save()

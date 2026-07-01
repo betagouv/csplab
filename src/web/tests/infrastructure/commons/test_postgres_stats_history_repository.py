@@ -25,7 +25,7 @@ class TestSaveStat:
             target_date=TODAY, metric_name="nb_published_offers", metric_value=100
         )
 
-        repository.save_stat(stat)
+        repository.save(stat)
 
         saved = StatsHistoryModel.objects.get(
             date=TODAY, metric_name="nb_published_offers"
@@ -38,21 +38,21 @@ class TestSaveStat:
         )
 
         with pytest.raises(IntegrityError):
-            repository.save_stat(
+            repository.save(
                 StatsHistory(
                     date=TODAY, metric_name="nb_published_offers", metric_value=150
                 )
             )
 
     def test_different_metrics_on_same_date_are_independent(self, db, repository):
-        repository.save_stat(
+        repository.save(
             StatsHistoryFactory.create_entity(
                 target_date=TODAY,
                 metric_name="nb_published_offers",
                 metric_value=10,
             )
         )
-        repository.save_stat(
+        repository.save(
             StatsHistoryFactory.create_entity(
                 target_date=TODAY,
                 metric_name="nb_archived_offers",
@@ -63,12 +63,12 @@ class TestSaveStat:
         assert StatsHistoryModel.objects.count() == 2  # noqa: PLR2004
 
     def test_same_metric_on_different_dates_are_independent(self, db, repository):
-        repository.save_stat(
+        repository.save(
             StatsHistoryFactory.create_entity(
                 target_date=TODAY, metric_name="nb_published_offers", metric_value=10
             )
         )
-        repository.save_stat(
+        repository.save(
             StatsHistoryFactory.create_entity(
                 target_date=YESTERDAY,
                 metric_name="nb_published_offers",
