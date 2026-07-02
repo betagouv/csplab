@@ -44,6 +44,7 @@ import riMore2Fill from '@iconify-icons/ri/more-2-fill'
 import riNotification3Line from '@iconify-icons/ri/notification-3-line'
 import riPriceTag3Line from '@iconify-icons/ri/price-tag-3-line'
 import riPushpin2Line from '@iconify-icons/ri/pushpin-2-line'
+import riRestartLine from '@iconify-icons/ri/restart-line'
 import riSearchLine from '@iconify-icons/ri/search-line'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
@@ -114,6 +115,7 @@ addIcon('ri:progress-4-line', {
   body: '<path fill="currentColor" d="M2 12c0 5.523 4.477 10 10 10s10-4.477 10-10S17.523 2 12 2S2 6.477 2 12m18 0a8 8 0 1 1-16 0a8 8 0 0 1 16 0m-2 0a6 6 0 0 1-6 6V6a6 6 0 0 1 6 6"/>',
 })
 addIcon('ri:pushpin-2-line', riPushpin2Line)
+addIcon('ri:restart-line', riRestartLine)
 addIcon('ri:search-line', riSearchLine)
 addIcon('ri:settings-3-line', riSettings3Line)
 addIcon('ri:spam-fill', riSpamFill)

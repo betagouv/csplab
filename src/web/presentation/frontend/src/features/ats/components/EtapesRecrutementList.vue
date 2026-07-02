@@ -25,6 +25,7 @@ const {
   addEtapeAt,
   renameEtape,
   removeEtape,
+  resetEtapes,
 } = useEtapesRecrutement(TEMP_ORGANISME_UUID)
 
 const { addToast } = useToast()
@@ -73,6 +74,13 @@ async function handleDeleteConfirm() {
 
   await removeEtape(deleteEtapeUuid.value)
   deleteModalOpen.value = false
+}
+
+const resetModalOpen = ref(false)
+
+async function handleResetConfirm() {
+  await resetEtapes()
+  resetModalOpen.value = false
 }
 
 function openAddModal() {
@@ -178,14 +186,24 @@ function getMenuSections(
       <h2 class="etapes-list__title">
         Étapes de recrutement
       </h2>
-      <CspButton
-        label="Ajouter une étape"
-        icon="ri:add-line"
-        variant="secondary"
-        is-icon-left
-        :disabled="saving"
-        @click="openAddModal"
-      />
+      <div class="etapes-list__actions">
+        <CspButton
+          label="Réinitialiser"
+          icon="ri:restart-line"
+          variant="tertiary"
+          is-icon-left
+          :disabled="saving || loading"
+          @click="resetModalOpen = true"
+        />
+        <CspButton
+          label="Ajouter une étape"
+          icon="ri:add-line"
+          variant="secondary"
+          is-icon-left
+          :disabled="saving"
+          @click="openAddModal"
+        />
+      </div>
     </header>
 
     <div
@@ -295,6 +313,29 @@ function getMenuSections(
         </div>
       </template>
     </CspDialog>
+
+    <CspDialog
+      v-model:open="resetModalOpen"
+      title="Réinitialiser les étapes"
+      description="Voulez-vous vraiment réinitialiser les étapes de recrutement ? Toutes vos personnalisations seront perdues et remplacées par la configuration par défaut."
+      size="sm"
+    >
+      <template #footer>
+        <div class="etapes-list__modal-footer">
+          <CspButton
+            label="Annuler"
+            variant="secondary"
+            @click="resetModalOpen = false"
+          />
+          <CspButton
+            label="Réinitialiser"
+            variant="primary"
+            :disabled="saving"
+            @click="handleResetConfirm"
+          />
+        </div>
+      </template>
+    </CspDialog>
   </div>
 </template>
 
@@ -311,6 +352,11 @@ function getMenuSections(
   font-size: var(--csp-font-size-lg);
   font-weight: var(--csp-font-weight-bold);
   color: var(--text-title-grey);
+}
+
+.etapes-list__actions {
+  display: flex;
+  gap: var(--csp-space-3);
 }
 
 .etapes-list__loading,

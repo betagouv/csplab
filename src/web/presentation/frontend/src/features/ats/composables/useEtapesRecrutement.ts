@@ -1,7 +1,7 @@
-import type { Ref } from 'vue'
 import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../api/recrutement'
 import { readonly, ref } from 'vue'
-import { getEtapesRecrutement, updateEtapesRecrutement } from '../api/recrutement'
+import { runAsyncAction } from '@/composables/useAsyncState'
+import { getEtapesRecrutement, initEtapesRecrutement, updateEtapesRecrutement } from '../api/recrutement'
 
 function toUpdatePayload(items: EtapeRecrutement[]): UpdateEtapeRecrutement[] {
   return items.map((etape) => {
@@ -35,24 +35,6 @@ function insertEtape(
   return [...etapes.slice(0, insertAt), nouvelle, ...etapes.slice(insertAt)]
 }
 
-async function runWithFlag(
-  flag: Ref<boolean>,
-  error: Ref<Error | null>,
-  action: () => Promise<void>,
-): Promise<void> {
-  flag.value = true
-  error.value = null
-  try {
-    await action()
-  }
-  catch (err) {
-    error.value = err as Error
-  }
-  finally {
-    flag.value = false
-  }
-}
-
 export function useEtapesRecrutement(organismeUuid: string) {
   const etapes = ref<EtapeRecrutement[]>([])
   const loading = ref(true)
@@ -64,13 +46,13 @@ export function useEtapesRecrutement(organismeUuid: string) {
   }
 
   async function fetchEtapes(): Promise<void> {
-    await runWithFlag(loading, error, async () => {
+    await runAsyncAction(loading, error, async () => {
       etapes.value = await getEtapesRecrutement(organismeUuid)
     })
   }
 
   async function saveEtapes(nouvellesEtapes: EtapeRecrutement[]): Promise<void> {
-    await runWithFlag(saving, error, async () => {
+    await runAsyncAction(saving, error, async () => {
       etapes.value = await updateEtapesRecrutement(
         organismeUuid,
         toUpdatePayload(nouvellesEtapes),
@@ -107,6 +89,12 @@ export function useEtapesRecrutement(organismeUuid: string) {
     await saveEtapes(etapes.value.filter(e => e.etape_uuid !== etapeUuid))
   }
 
+  async function resetEtapes(): Promise<void> {
+    await runAsyncAction(saving, error, async () => {
+      etapes.value = await initEtapesRecrutement(organismeUuid)
+    })
+  }
+
   return {
     etapes,
     loading: readonly(loading),
@@ -119,5 +107,6 @@ export function useEtapesRecrutement(organismeUuid: string) {
     addEtapeAt,
     renameEtape,
     removeEtape,
+    resetEtapes,
   }
 }

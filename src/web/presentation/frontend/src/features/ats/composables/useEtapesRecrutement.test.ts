@@ -6,10 +6,12 @@ const ORGANISME_UUID = '00000000-0000-0000-0000-000000000001'
 
 const mockGetEtapesRecrutement = vi.fn()
 const mockUpdateEtapesRecrutement = vi.fn()
+const mockInitEtapesRecrutement = vi.fn()
 
 vi.mock('../api/recrutement', () => ({
   getEtapesRecrutement: (...args: unknown[]) => mockGetEtapesRecrutement(...args),
   updateEtapesRecrutement: (...args: unknown[]) => mockUpdateEtapesRecrutement(...args),
+  initEtapesRecrutement: (...args: unknown[]) => mockInitEtapesRecrutement(...args),
 }))
 
 const DEFAULT_ETAPES: EtapeRecrutement[] = [
@@ -95,5 +97,18 @@ describe('useEtapesRecrutement', () => {
     const payload = mockUpdateEtapesRecrutement.mock.calls[0][1] as UpdateEtapeRecrutement[]
     const renamed = payload.find(p => p.etape_uuid === 'bbbb')
     expect(renamed?.nom).toBe('Présélection RH')
+  })
+
+  it('resets etapes to defaults', async () => {
+    const customEtapes = DEFAULT_ETAPES.map(e => ({ ...e, nom: 'Custom' }))
+    mockGetEtapesRecrutement.mockResolvedValue(customEtapes)
+    mockInitEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
+
+    const { etapes, fetchEtapes, resetEtapes } = useEtapesRecrutement(ORGANISME_UUID)
+    await fetchEtapes()
+    await resetEtapes()
+
+    expect(mockInitEtapesRecrutement).toHaveBeenCalledWith(ORGANISME_UUID)
+    expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
 })

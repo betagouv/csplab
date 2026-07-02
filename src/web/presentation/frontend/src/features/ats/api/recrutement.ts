@@ -21,3 +21,10 @@ export async function updateEtapesRecrutement(
   })
   return data!
 }
+
+export async function initEtapesRecrutement(organismeUuid: string): Promise<EtapeRecrutement[]> {
+  const { data } = await api.POST('/recruteur/organisme/{organisme_uuid}/parametres/etapes/init', {
+    params: { path: { organisme_uuid: organismeUuid } },
+  })
+  return data!
+}
