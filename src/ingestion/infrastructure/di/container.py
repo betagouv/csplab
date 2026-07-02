@@ -22,6 +22,7 @@ from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.repositories.webhook_repository import IWebhookRepository
+from domain.value_objects.credentials import Credentials
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from infrastructure.credentials_store import CredentialsStore
 from infrastructure.database import make_engine
@@ -51,10 +52,18 @@ def _dispatch_save_raw_offer_webhook(webhook_id: str) -> None:
 def _build_credentials_store(
     credentials: list[TalentsoftCredential],
 ) -> CredentialsStore:
+    seen_client_ids = {credential.client_id for credential in credentials}
+    if len(seen_client_ids) != len(credentials):
+        raise ValueError("Duplicate client_id found in TALENTSOFT_CREDENTIALS")
+
     store = CredentialsStore()
     for credential in credentials:
         store.register(
-            credential.client_id, credential.client_secret, credential.base_url
+            Credentials(
+                client_id=credential.client_id,
+                client_secret=credential.client_secret,
+                base_url=credential.base_url,
+            )
         )
     return store
 
