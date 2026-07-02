@@ -16,7 +16,6 @@ class Note(AggregateRoot):
     _candidature_id: UUID
     _message: str
     _publie_par_id: UUID
-    _publie_le: datetime
     _supprimee_le: datetime | None = None
 
     @classmethod
@@ -27,12 +26,10 @@ class Note(AggregateRoot):
         message: str,
         publie_par_id: UUID,
     ) -> "Note":
-        now = datetime.now(tz=timezone.utc)
         return cls(
             _candidature_id=candidature_id,
             _message=message,
             _publie_par_id=publie_par_id,
-            _publie_le=now,
         )
 
     @classmethod
@@ -42,7 +39,6 @@ class Note(AggregateRoot):
         candidature_id: UUID,
         message: str,
         publie_par_id: UUID,
-        publie_le: datetime,
         supprimee_le: datetime | None = None,
     ) -> "Note":
         return cls(
@@ -50,7 +46,6 @@ class Note(AggregateRoot):
             _candidature_id=candidature_id,
             _message=message,
             _publie_par_id=publie_par_id,
-            _publie_le=publie_le,
             _supprimee_le=supprimee_le,
         )
 
@@ -65,10 +60,6 @@ class Note(AggregateRoot):
     @property
     def publie_par_id(self) -> UUID:
         return self._publie_par_id
-
-    @property
-    def publie_le(self) -> datetime:
-        return self._publie_le
 
     @property
     def supprimee_le(self) -> datetime | None:

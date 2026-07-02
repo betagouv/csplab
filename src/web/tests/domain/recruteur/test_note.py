@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from uuid import uuid4
 
 from domain.recruteur.entities.note import Note
@@ -7,17 +6,6 @@ from domain.recruteur.events.note_events import (
     NoteEditee,
     NoteSupprimee,
 )
-
-
-def _build_note() -> Note:
-    now = datetime.now(tz=timezone.utc)
-    return Note.build(
-        entity_id=uuid4(),
-        candidature_id=uuid4(),
-        publie_par_id=uuid4(),
-        message="message initial",
-        publie_le=now,
-    )
 
 
 def test_create_emits_note_ajoutee() -> None:
