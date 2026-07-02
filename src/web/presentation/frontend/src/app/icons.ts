@@ -1,5 +1,6 @@
 import riAddLine from '@iconify-icons/ri/add-line'
 import riAlertFill from '@iconify-icons/ri/alert-fill'
+import riAlertLine from '@iconify-icons/ri/alert-line'
 import riArchiveLine from '@iconify-icons/ri/archive-line'
 import riArrowDownLine from '@iconify-icons/ri/arrow-down-line'
 import riArrowDownSLine from '@iconify-icons/ri/arrow-down-s-line'
@@ -24,6 +25,7 @@ import riDeleteBinLine from '@iconify-icons/ri/delete-bin-line'
 import riDraggable from '@iconify-icons/ri/draggable'
 import riEditLine from '@iconify-icons/ri/edit-line'
 import riErrorWarningFill from '@iconify-icons/ri/error-warning-fill'
+import riErrorWarningLine from '@iconify-icons/ri/error-warning-line'
 import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
 import riExternalLinkLine from '@iconify-icons/ri/external-link-line'
 import riEyeLine from '@iconify-icons/ri/eye-line'
@@ -31,6 +33,7 @@ import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
 import riGroupLine from '@iconify-icons/ri/group-line'
 import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
+import riInformationLine from '@iconify-icons/ri/information-line'
 import riLayoutColumnLine from '@iconify-icons/ri/layout-column-line'
 import riLockLine from '@iconify-icons/ri/lock-line'
 import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
@@ -50,6 +53,7 @@ import { addIcon } from '@iconify/vue'
 
 addIcon('ri:add-line', riAddLine)
 addIcon('ri:alert-fill', riAlertFill)
+addIcon('ri:alert-line', riAlertLine)
 addIcon('ri:arrow-down-line', riArrowDownLine)
 addIcon('ri:arrow-left-double-line', riArrowLeftDoubleLine)
 addIcon('ri:arrow-down-s-line', riArrowDownSLine)
@@ -76,6 +80,7 @@ addIcon('ri:delete-bin-line', riDeleteBinLine)
 addIcon('ri:draggable', riDraggable)
 addIcon('ri:edit-line', riEditLine)
 addIcon('ri:error-warning-fill', riErrorWarningFill)
+addIcon('ri:error-warning-line', riErrorWarningLine)
 addIcon('ri:expand-up-down-line', riExpandUpDownLine)
 addIcon('ri:external-link-line', riExternalLinkLine)
 addIcon('ri:eye-line', riEyeLine)
@@ -83,6 +88,7 @@ addIcon('ri:flashlight-fill', riFlashlightFill)
 addIcon('ri:group-line', riGroupLine)
 addIcon('ri:inbox-2-line', riInbox2Line)
 addIcon('ri:information-fill', riInformationFill)
+addIcon('ri:information-line', riInformationLine)
 addIcon('ri:layout-column-line', riLayoutColumnLine)
 addIcon('ri:lock-line', riLockLine)
 addIcon('ri:logout-box-r-line', riLogoutBoxRLine)
