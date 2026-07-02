@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from infrastructure.django_apps.commons.models import AuditLogModel
+from infrastructure.django_apps.commons.models import AuditLogModel, StatSnapshotModel
 from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 
 
@@ -19,3 +19,17 @@ class AuditLogAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
         "occurred_at",
     )
     search_fields = ("utilisateur_id", "ressource_id")
+
+
+@admin.register(StatSnapshotModel)
+class StatSnapshotAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    list_display = (
+        "date",
+        "metric_name",
+        "metric_value",
+    )
+    list_filter = (
+        "metric_name",
+        "date",
+    )
+    search_fields = ("metric_name",)
