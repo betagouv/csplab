@@ -5,12 +5,8 @@ class CredentialsStore:
     def __init__(self) -> None:
         self._credentials: dict[str, Credentials] = {}
 
-    def register(self, client_id: str, client_secret: str, base_url: str) -> None:
-        self._credentials[client_id] = Credentials(
-            client_id=client_id,
-            client_secret=client_secret,
-            base_url=base_url,
-        )
+    def register(self, credentials: Credentials) -> None:
+        self._credentials[credentials.client_id] = credentials
 
     def get_secret(self, client_id: str) -> str | None:
         creds = self._credentials.get(client_id)

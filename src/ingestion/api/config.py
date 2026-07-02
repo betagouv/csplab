@@ -3,6 +3,8 @@ import os
 from pydantic import HttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from domain.value_objects.talentsoft_credential import TalentsoftCredential
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
@@ -11,13 +13,12 @@ class Settings(BaseSettings):
     sentry_profiles_sample_rate: float | None = 0.1
     sentry_traces_sample_rate: float | None = 0.1
 
-    talentsoft_front_client_id: str | None = None
-    talentsoft_front_client_secret: str | None = None
-    talentsoft_front_base_url: str | None = None
-
-    talentsoft_back_client_id: str | None = None
-    talentsoft_back_client_secret: str | None = None
-    talentsoft_back_base_url: str | None = None
+    # JSON list of {"client_id", "client_secret", "base_url", "role"}, e.g.
+    # TALENTSOFT_CREDENTIALS='[{"client_id":"...","client_secret":"...",
+    # "base_url":"...","role":"front"}]'
+    # "front" credentials get an active TalentsoftFrontClient registered; "back"
+    # credentials are only used to verify webhook signatures.
+    talentsoft_credentials: list[TalentsoftCredential] = []
 
     web_base_url: str | None = None
     web_api_key: str | None = None
