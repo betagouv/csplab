@@ -1,0 +1,46 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+    <form method="get" class="stat-snapshot-filter">
+        <label for="metric_name">Metric name</label>
+        <select name="metric_name" id="metric_name" onchange="this.form.submit()">
+            <option value="">All</option>
+            {% for metric_name in metric_names %}
+                <option value="{{ metric_name }}"
+                        {% if metric_name == selected_metric_name %}selected{% endif %}>{{ metric_name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Metric name</th>
+                <th scope="col">Metric value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for snapshot in page_obj %}
+                <tr>
+                    <td>{{ snapshot.date }}</td>
+                    <td>{{ snapshot.metric_name }}</td>
+                    <td>{{ snapshot.metric_value }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3">No stat snapshots.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if page_obj.has_previous or page_obj.has_next %}
+        <p>
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if selected_metric_name %}&metric_name={{ selected_metric_name }}{% endif %}">Previous</a>
+            {% endif %}
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if selected_metric_name %}&metric_name={{ selected_metric_name }}{% endif %}">Next</a>
+            {% endif %}
+        </p>
+    {% endif %}
+{% endblock content %}
