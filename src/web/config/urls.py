@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.urls import URLPattern, URLResolver, include, path
 from django_otp.admin import OTPAdminSite
 
+from infrastructure.django_apps.commons.admin import stat_snapshot_list_view
 from presentation.api import urls as api_urls
 from presentation.ats import urls as ats_urls
 from presentation.candidate import urls as candidate_urls
@@ -19,6 +20,11 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path(".well-known/security.txt", security_txt),
     path("", include(pages_urls)),
     path("api/", include(api_urls)),
+    path(
+        "admin/stat-snapshots/",
+        admin.site.admin_view(stat_snapshot_list_view),
+        name="admin_stat_snapshot_list",
+    ),
     path("admin/", admin.site.urls),
     path("candidate/", include(candidate_urls)),
     path("api/v1/", include(ingestion_urls)),
