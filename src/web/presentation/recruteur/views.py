@@ -241,7 +241,7 @@ class EtapesRecrutementOrganismeView(APIView):
             data = EtapesMapper().from_domain(organisme)
             serializer = EtapeRecrutementSerializer(data, many=True)
             return Response(serializer.data)
-        except (ErreurRecruteur, OrganismeNexistePas):
+        except OrganismeNexistePas:
             return Response(
                 {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -269,7 +269,7 @@ class EtapesRecrutementOrganismeView(APIView):
             utilisateur_id = UUID(request.user.username)
             usecase = self.container.update_organisme_steps_usecase()
             organisme = usecase.execute(
-                UpdateOrganismeStepsCommand(utilisateur_id, organisme_uuid, etapes)
+                UpdateOrganismeStepsCommand(organisme_uuid, utilisateur_id, etapes)
             )
             data = EtapesMapper().from_domain(organisme)
             out_serializer = EtapeRecrutementSerializer(data, many=True)
