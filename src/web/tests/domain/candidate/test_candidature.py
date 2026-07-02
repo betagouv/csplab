@@ -19,7 +19,7 @@ from tests.factories.candidate.candidature_factory import (
     make_documents,
 )
 
-_FROZEN_TS = datetime(2025, 6, 18, 10, 0, 0, tzinfo=timezone.utc)
+_FROZEN_TS = datetime.now(tz=timezone.utc)
 
 
 def test_dossier_candidature_cree():
