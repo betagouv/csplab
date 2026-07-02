@@ -38,7 +38,7 @@ def test_modifier_message_emits_note_editee() -> None:
     assert note.message == "après"
 
 
-def test_supprimer_marks_note_and_emits_note_supprimee() -> None:
+def test_supprimer_emits_note_supprimee() -> None:
     note = Note.create(
         candidature_id=uuid4(), publie_par_id=uuid4(), message="à supprimer"
     )
@@ -49,4 +49,3 @@ def test_supprimer_marks_note_and_emits_note_supprimee() -> None:
     events = note.collect_events()
     assert len(events) == 1
     assert isinstance(events[0], NoteSupprimee)
-    assert note.supprimee_le is not None

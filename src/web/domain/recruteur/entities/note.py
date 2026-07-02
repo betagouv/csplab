@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from uuid import UUID
 
 from ddd.aggregate_root import AggregateRoot, factory, mutate
@@ -16,7 +15,6 @@ class Note(AggregateRoot):
     _candidature_id: UUID
     _message: str
     _publie_par_id: UUID
-    _supprimee_le: datetime | None = None
 
     @classmethod
     @factory(NoteAjoutee)
@@ -39,14 +37,12 @@ class Note(AggregateRoot):
         candidature_id: UUID,
         message: str,
         publie_par_id: UUID,
-        supprimee_le: datetime | None = None,
     ) -> "Note":
         return cls(
             entity_id=entity_id,
             _candidature_id=candidature_id,
             _message=message,
             _publie_par_id=publie_par_id,
-            _supprimee_le=supprimee_le,
         )
 
     @property
@@ -61,15 +57,10 @@ class Note(AggregateRoot):
     def publie_par_id(self) -> UUID:
         return self._publie_par_id
 
-    @property
-    def supprimee_le(self) -> datetime | None:
-        return self._supprimee_le
-
     @mutate(NoteEditee)
     def modifier(self, message: str) -> None:
         self._message = message
 
     @mutate(NoteSupprimee)
     def supprimer(self) -> None:
-        now = datetime.now(tz=timezone.utc)
-        self._supprimee_le = now
+        pass

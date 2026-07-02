@@ -13,7 +13,6 @@ class NoteMapper(IFromDomainMapper, IToDomainMapper):
             candidature_id=model.candidature_id,
             message=model.message,
             publie_par_id=UUID(model.publie_par_id),  # type: ignore[arg-type]
-            supprimee_le=model.supprimee_le,
         )
 
     def from_domain(self, note: Note) -> NoteModel:
