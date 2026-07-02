@@ -56,6 +56,25 @@ const modalTitle: Record<ModalMode, string> = {
   'rename': 'Renommer l\'étape',
 }
 
+const deleteModalOpen = ref(false)
+const deleteEtapeUuid = ref<string | null>(null)
+const deleteEtapeNom = ref('')
+
+function openDeleteModal(etape: EtapeRecrutement) {
+  deleteEtapeUuid.value = etape.etape_uuid
+  deleteEtapeNom.value = etape.nom
+  deleteModalOpen.value = true
+}
+
+async function handleDeleteConfirm() {
+  if (!deleteEtapeUuid.value) {
+    return
+  }
+
+  await removeEtape(deleteEtapeUuid.value)
+  deleteModalOpen.value = false
+}
+
 function openAddModal() {
   modalMode.value = 'add'
   modalNom.value = ''
@@ -145,7 +164,7 @@ function getMenuSections(
           icon: 'ri:delete-bin-line',
           destructive: true,
           disabled: isEtapeLocked(item),
-          onSelect: () => removeEtape(item.etape_uuid),
+          onSelect: () => openDeleteModal(item),
         },
       ],
     },
@@ -249,6 +268,29 @@ function getMenuSections(
             variant="primary"
             :disabled="!modalNom.trim() || saving"
             @click="handleModalConfirm"
+          />
+        </div>
+      </template>
+    </CspDialog>
+
+    <CspDialog
+      v-model:open="deleteModalOpen"
+      title="Supprimer l'étape"
+      :description="`Voulez-vous vraiment supprimer l'étape « ${deleteEtapeNom} » ? Cette action est irréversible.`"
+      size="sm"
+    >
+      <template #footer>
+        <div class="etapes-list__modal-footer">
+          <CspButton
+            label="Annuler"
+            variant="secondary"
+            @click="deleteModalOpen = false"
+          />
+          <CspButton
+            label="Supprimer"
+            variant="primary"
+            :disabled="saving"
+            @click="handleDeleteConfirm"
           />
         </div>
       </template>
