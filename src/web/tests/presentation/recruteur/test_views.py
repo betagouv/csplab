@@ -122,7 +122,7 @@ class TestEtapesRecrutementOrganismeView:
         self, mock_recruteur_container, authenticated_client
     ):
         mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = ErreurRecruteur("not found")
+        mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
 
         mock_container = MagicMock()
         mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
