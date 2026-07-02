@@ -46,7 +46,7 @@ jobs:
           sign-commits: true
           branch: chore/next-release-changelog
           delete-branch: true
-          title: "📝(release): ${{ steps.git_cliff_full.outputs.version }}"
+          title: "📝(release) update CHANGELOG.md for ${{ steps.git_cliff_full.outputs.version }}"
           body: ${{ steps.git_cliff_latest.outputs.content }}
           labels: |
             pending-release

@@ -19,7 +19,7 @@ jobs:
           github-token: ${{ secrets.GH_TOKEN || github.token }}
           script: |
             const validLabels = new Set([
-              'breaking', 'added', 'modified', 'removed', 'bugfix', 'dependencies', 'documentation'
+              'breaking', 'added', 'modified', 'removed', 'bugfix', 'dependencies', 'documentation', 'pending-release'
             ]);
             const labels = context.payload.pull_request.labels.map(l => l.name);
             const matching = labels.filter(l => validLabels.has(l));
