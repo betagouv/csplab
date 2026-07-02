@@ -66,6 +66,7 @@ class UpdateOrganismeStepsUsecase(
             for etape_data in command.etapes
         )
 
+        # todo with atomic transaction in the repository
         organisme_recruteur.mettre_a_jour_etapes(etapes=etapes)
         self.organisme_recruteur_repository.save(organisme_recruteur)
         self.audit_log_writer.drain_events(
