@@ -22,6 +22,7 @@ from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.repositories.webhook_repository import IWebhookRepository
+from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from infrastructure.credentials_store import CredentialsStore
 from infrastructure.database import make_engine
 from infrastructure.external_gateways.talentsoft_client import (
@@ -48,11 +49,13 @@ def _dispatch_save_raw_offer_webhook(webhook_id: str) -> None:
 
 
 def _build_credentials_store(
-    credentials: list[tuple[str, str, str]],
+    credentials: list[TalentsoftCredential],
 ) -> CredentialsStore:
     store = CredentialsStore()
-    for client_id, client_secret, base_url in credentials:
-        store.register(client_id, client_secret, base_url)
+    for credential in credentials:
+        store.register(
+            credential.client_id, credential.client_secret, credential.base_url
+        )
     return store
 
 
@@ -229,42 +232,25 @@ def create_container() -> Container:
     container.config.web_base_url.from_value(settings.web_base_url)
     container.config.web_api_key.from_value(settings.web_api_key)
     container.config.database_url.from_value(settings.database_url)
-    container.config.talentsoft_credentials.from_value(
-        [
-            (client_id, secret, base_url)
-            for client_id, secret, base_url in [
-                (
-                    settings.talentsoft_back_client_id,
-                    settings.talentsoft_back_client_secret,
-                    settings.talentsoft_back_base_url,
-                ),
-                (
-                    settings.talentsoft_front_client_id,
-                    settings.talentsoft_front_client_secret,
-                    settings.talentsoft_front_base_url,
-                ),
-            ]
-            if client_id and secret and base_url
-        ]
+    container.config.talentsoft_credentials.from_value(settings.talentsoft_credentials)
+
+    _logger = logging.getLogger(__name__)
+    register_talentsoft_front_clients(
+        container, settings.talentsoft_credentials, _logger
     )
-    if settings.talentsoft_front_client_id:
-        _logger = logging.getLogger(__name__)
-        register_talentsoft_front_client(
-            container, settings.talentsoft_front_client_id, _logger
-        )
     return container
 
 
-def register_talentsoft_front_client(
-    container: Container, client_id: str, logger: logging.Logger
+def register_talentsoft_front_clients(
+    container: Container,
+    credentials: list[TalentsoftCredential],
+    logger: logging.Logger,
 ) -> None:
-    creds = container.credentials_store().get_credentials(client_id)
-    if not creds:
-        raise ValueError(f"No credentials found for TalentSoft client {client_id}")
-    config = TalentsoftConfig(
-        base_url=creds.base_url,
-        client_id=creds.client_id,
-        client_secret=creds.client_secret,
-    )
-    client = TalentsoftFrontClient(config=config, logger=logger)
-    container.talentsoft_client_repository().register(client_id, client)
+    for credential in [c for c in credentials if c.role == "front"]:
+        config = TalentsoftConfig(
+            base_url=credential.base_url,
+            client_id=credential.client_id,
+            client_secret=credential.client_secret,
+        )
+        client = TalentsoftFrontClient(config=config, logger=logger)
+        container.talentsoft_client_repository().register(credential.client_id, client)

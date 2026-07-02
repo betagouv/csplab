@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.main import create_app
+from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from presentation.dtos.talentsoft_webhook import (
     TalentsoftEventType,
     TalentsoftOfferStatus,
@@ -16,6 +17,7 @@ from tests.conftest import (
     WEB_BASE_URL,
     make_signed_request,
     populate_sources_repository,
+    talentsoft_credentials_env,
 )
 
 REFERENCE = "2019-1234"
@@ -83,9 +85,17 @@ async def test_vacancy_status_diffuse_saves_but_does_not_enqueue(
 @pytest.mark.asyncio
 async def test_other_event_type_returns_500(httpx_mock, monkeypatch):
     monkeypatch.setenv("TESTING", "true")
-    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
-    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
-    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
+    monkeypatch.setenv(
+        "TALENTSOFT_CREDENTIALS",
+        talentsoft_credentials_env(
+            TalentsoftCredential(
+                client_id=TALENTSOFT_BACK_CLIENT_ID,
+                client_secret=TALENTSOFT_BACK_CLIENT_SECRET,
+                base_url=TALENTSOFT_BACK_BASE_URL,
+                role="back",
+            )
+        ),
+    )
     monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()
@@ -99,9 +109,17 @@ async def test_other_event_type_returns_500(httpx_mock, monkeypatch):
 @pytest.mark.asyncio
 async def test_unknown_client_id_returns_403(monkeypatch, httpx_mock):
     monkeypatch.setenv("TESTING", "true")
-    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_ID", TALENTSOFT_BACK_CLIENT_ID)
-    monkeypatch.setenv("TALENTSOFT_BACK_CLIENT_SECRET", TALENTSOFT_BACK_CLIENT_SECRET)
-    monkeypatch.setenv("TALENTSOFT_BACK_BASE_URL", TALENTSOFT_BACK_BASE_URL)
+    monkeypatch.setenv(
+        "TALENTSOFT_CREDENTIALS",
+        talentsoft_credentials_env(
+            TalentsoftCredential(
+                client_id=TALENTSOFT_BACK_CLIENT_ID,
+                client_secret=TALENTSOFT_BACK_CLIENT_SECRET,
+                base_url=TALENTSOFT_BACK_BASE_URL,
+                role="back",
+            )
+        ),
+    )
     monkeypatch.setenv("WEB_BASE_URL", WEB_BASE_URL)
     monkeypatch.setenv("WEB_API_KEY", WEB_API_KEY)
     app = create_app()

@@ -1,10 +1,8 @@
-TALENTSOFT_FRONT_CLIENT_ID=
-TALENTSOFT_FRONT_CLIENT_SECRET=
-TALENTSOFT_FRONT_BASE_URL=
-
-TALENTSOFT_BACK_CLIENT_ID=
-TALENTSOFT_BACK_CLIENT_SECRET=
-TALENTSOFT_BACK_BASE_URL=
+# JSON list of {"client_id", "client_secret", "base_url", "role"} objects.
+# "front" credentials get an active TalentsoftFrontClient registered for
+# import/archive calls; "back" credentials are only used to verify webhook
+# signatures. Add as many entries as needed.
+TALENTSOFT_CREDENTIALS=[]
 
 WEB_BASE_URL=
 WEB_API_KEY=

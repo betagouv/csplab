@@ -1,4 +1,5 @@
 import base64
+import dataclasses
 import hashlib
 import hmac
 import json
@@ -12,6 +13,8 @@ from fastapi.testclient import TestClient
 from httpx import Response
 from referentiel.entities.source import Source
 from referentiel.value_objects.source_type import SourceType
+
+from domain.value_objects.talentsoft_credential import TalentsoftCredential
 
 # --- Constants ---
 
@@ -110,6 +113,10 @@ def make_signed_request(client: TestClient, body: dict) -> Response:
         content=body_bytes,
         headers={"Content-Type": content_type, **ts_rec_headers},
     )
+
+
+def talentsoft_credentials_env(*credentials: TalentsoftCredential) -> str:
+    return json.dumps([dataclasses.asdict(credential) for credential in credentials])
 
 
 def populate_sources_repository(app: FastAPI) -> None:
