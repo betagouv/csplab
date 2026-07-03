@@ -44,11 +44,25 @@ const { isDragging } = useDraggableElement({
   getInitialData: getItemData,
 })
 
-const { isDraggedOver, closestEdge } = useDropTargetElement({
+const { isDraggedOver, sourceIndex } = useDropTargetElement({
   element: itemRef,
   enabled: isDraggable,
-  canDrop: source => source.type === SORTABLE_ITEM_TYPE && source.listId === props.listId,
+  canDrop: source => source.type === SORTABLE_ITEM_TYPE && source.listId === props.listId && source.itemId !== props.itemId,
   getData: () => getItemData(),
+})
+
+const isSourceBeforeMe = computed(() => sourceIndex.value !== null && sourceIndex.value < props.index)
+const isSourceAfterMe = computed(() => sourceIndex.value !== null && sourceIndex.value > props.index)
+
+const showTopIndicator = computed(() => isDraggedOver.value && isSourceAfterMe.value)
+const showBottomIndicator = computed(() => isDraggedOver.value && isSourceBeforeMe.value)
+
+const closestEdge = computed(() => {
+  if (showTopIndicator.value)
+    return 'top'
+  if (showBottomIndicator.value)
+    return 'bottom'
+  return null
 })
 
 function setHandleRef(element: Element | null) {
@@ -69,7 +83,7 @@ function setHandleRef(element: Element | null) {
     ]"
   >
     <div
-      v-if="isDraggedOver && closestEdge === 'top'"
+      v-if="showTopIndicator"
       class="csp-sortable-list-item__indicator csp-sortable-list-item__indicator--top"
     />
 
@@ -109,7 +123,7 @@ function setHandleRef(element: Element | null) {
     </div>
 
     <div
-      v-if="isDraggedOver && closestEdge === 'bottom'"
+      v-if="showBottomIndicator"
       class="csp-sortable-list-item__indicator csp-sortable-list-item__indicator--bottom"
     />
   </li>
@@ -174,11 +188,23 @@ function setHandleRef(element: Element | null) {
 
 .csp-sortable-list-item__indicator {
   position: absolute;
-  left: 0;
+  left: calc(1rem + var(--csp-space-2));
   right: 0;
   height: 2px;
   background: var(--background-action-high-blue-france);
   pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--background-action-high-blue-france);
+  }
 }
 
 .csp-sortable-list-item__indicator--top {

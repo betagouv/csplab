@@ -15,6 +15,7 @@ interface UseDropTargetElementOptions {
 export function useDropTargetElement(options: UseDropTargetElementOptions) {
   const isDraggedOver = ref(false)
   const closestEdge = ref<Edge | null>(null)
+  const sourceIndex = ref<number | null>(null)
   const enabled = options.enabled ?? ref(true)
 
   watch(
@@ -38,9 +39,10 @@ export function useDropTargetElement(options: UseDropTargetElementOptions) {
             allowedEdges: ['top', 'bottom'],
           },
         ),
-        onDragEnter: ({ self }) => {
+        onDragEnter: ({ self, source }) => {
           isDraggedOver.value = true
           closestEdge.value = extractClosestEdge(self.data)
+          sourceIndex.value = typeof source.data.index === 'number' ? source.data.index : null
         },
         onDrag: ({ self }) => {
           closestEdge.value = extractClosestEdge(self.data)
@@ -48,10 +50,12 @@ export function useDropTargetElement(options: UseDropTargetElementOptions) {
         onDragLeave: () => {
           isDraggedOver.value = false
           closestEdge.value = null
+          sourceIndex.value = null
         },
         onDrop: () => {
           isDraggedOver.value = false
           closestEdge.value = null
+          sourceIndex.value = null
         },
       })
 
@@ -60,5 +64,5 @@ export function useDropTargetElement(options: UseDropTargetElementOptions) {
     { flush: 'post', immediate: true },
   )
 
-  return { isDraggedOver, closestEdge }
+  return { isDraggedOver, closestEdge, sourceIndex }
 }

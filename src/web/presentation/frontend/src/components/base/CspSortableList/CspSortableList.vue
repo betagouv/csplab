@@ -1,5 +1,4 @@
 <script setup lang="ts" generic="T">
-import { extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import { getReorderDestinationIndex } from '@atlaskit/pragmatic-drag-and-drop-hitbox/util/get-reorder-destination-index'
 import { announce } from '@atlaskit/pragmatic-drag-and-drop-live-region'
 import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
@@ -113,10 +112,12 @@ onMounted(() => {
       if (typeof startIndex !== 'number' || typeof indexOfTarget !== 'number')
         return
 
+      const closestEdgeOfTarget: 'top' | 'bottom' = indexOfTarget > startIndex ? 'bottom' : 'top'
+
       const finishIndex = getReorderDestinationIndex({
         startIndex,
         indexOfTarget,
-        closestEdgeOfTarget: extractClosestEdge(destination.data),
+        closestEdgeOfTarget,
         axis: 'vertical',
       })
 
