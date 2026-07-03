@@ -59,7 +59,7 @@ const tableColumns = computed(() =>
     columnHelper.accessor((row: TRow) => col.accessor?.(row) ?? '', {
       id: col.id,
       enableSorting: col.sortable ?? false,
-      meta: { align: col.align, width: col.width, label: col.header },
+      meta: { align: col.align, width: col.width, label: col.header, cellComponent: col.cellComponent },
     }),
   ),
 )
@@ -372,7 +372,16 @@ function onActivate(id: string): void {
                 :value="cell.getValue()"
                 :activate="hasCellActivation ? () => onActivate(row.id) : undefined"
               >
-                {{ formatValue(cell.getValue() as CspTableCellValue) }}
+                <component
+                  :is="cell.column.columnDef.meta?.cellComponent"
+                  v-if="cell.column.columnDef.meta?.cellComponent"
+                  :row="row.original"
+                  :value="cell.getValue()"
+                  :activate="hasCellActivation ? () => onActivate(row.id) : undefined"
+                />
+                <template v-else>
+                  {{ formatValue(cell.getValue() as CspTableCellValue) }}
+                </template>
               </slot>
             </td>
           </tr>
