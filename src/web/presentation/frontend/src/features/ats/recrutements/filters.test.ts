@@ -1,4 +1,4 @@
-import type { RecrutementBase } from '../types'
+import type { RecrutementBase } from './types'
 import { describe, expect, it } from 'vitest'
 import {
   emptyRecrutementsFilters,

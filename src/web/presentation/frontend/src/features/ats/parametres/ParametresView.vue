@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
-import AtsAppShell from './components/AtsAppShell.vue'
+import AtsAppShell from '../components/AtsAppShell.vue'
 import EtapesRecrutementList from './components/EtapesRecrutementList.vue'
 
 const tabs = [

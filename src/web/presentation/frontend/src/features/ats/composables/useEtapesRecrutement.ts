@@ -1,7 +1,7 @@
-import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../api/recrutement'
+import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../parametres/api'
 import { readonly, ref } from 'vue'
 import { runAsyncAction } from '@/composables/useAsyncState'
-import { getEtapesRecrutement, initEtapesRecrutement, updateEtapesRecrutement } from '../api/recrutement'
+import { getEtapesRecrutement, initEtapesRecrutement, updateEtapesRecrutement } from '../parametres/api'
 
 function toUpdatePayload(items: EtapeRecrutement[]): UpdateEtapeRecrutement[] {
   return items.map((etape) => {

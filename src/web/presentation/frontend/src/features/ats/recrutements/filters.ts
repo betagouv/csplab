@@ -1,6 +1,6 @@
-import type { KindContrat, RecrutementBase, TypeContrat } from '../types'
+import type { KindContrat, RecrutementBase, TypeContrat } from './types'
 import type { CspSelectOption } from '@/components/base/CspSelect/CspSelect.vue'
-import { KIND_CONTRAT_LABELS, TYPE_CONTRAT_LABELS } from '../format'
+import { KIND_CONTRAT_LABELS, TYPE_CONTRAT_LABELS } from './format'
 
 export interface RecrutementsFilters extends Record<string, unknown> {
   responsable: string | null

@@ -6,7 +6,7 @@ import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
-import { FILTER_ALL, KIND_CONTRAT_OPTIONS, TYPE_CONTRAT_OPTIONS, withAllOption } from '../utils/filters'
+import { FILTER_ALL, KIND_CONTRAT_OPTIONS, TYPE_CONTRAT_OPTIONS, withAllOption } from '../filters'
 
 defineProps<{
   responsableOptions: CspSelectOption[]

@@ -1,4 +1,4 @@
-import type { RecrutementActif, RecrutementArchive } from './types'
+import type { RecrutementActif, RecrutementArchive } from '../types'
 import { computed, ref } from 'vue'
 import { useDebounce } from '@/composables/useDebounce'
 import { useDraft } from '@/composables/useDraft'
@@ -9,7 +9,7 @@ import {
   matchesFilters,
   matchesSearch,
   withAllOption,
-} from './utils/filters'
+} from '../filters'
 
 const SEARCH_DEBOUNCE_MS = 250
 

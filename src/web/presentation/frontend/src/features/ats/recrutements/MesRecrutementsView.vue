@@ -13,8 +13,8 @@ import { useDisclosure } from '@/composables/useDisclosure'
 import AtsAppShell from '../components/AtsAppShell.vue'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from './columns'
 import RecrutementsFiltersDrawer from './components/RecrutementsFiltersDrawer.vue'
-import { useRecrutements } from './useRecrutements'
-import { useRecrutementsFilters } from './useRecrutementsFilters'
+import { useRecrutements } from './composables/useRecrutements.js'
+import { useRecrutementsFilters } from './composables/useRecrutementsFilters.js'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },

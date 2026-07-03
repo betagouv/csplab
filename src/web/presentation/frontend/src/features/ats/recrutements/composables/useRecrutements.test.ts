@@ -1,10 +1,10 @@
-import type { RecrutementsQuery } from '../api/recrutement'
+import type { RecrutementsQuery } from '../api'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getRecrutements } from '../api/recrutement'
-import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from './mock'
+import { getRecrutements } from '../api'
+import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from '../mock'
 import { useRecrutements } from './useRecrutements'
 
-vi.mock('../api/recrutement', () => ({
+vi.mock('../api', () => ({
   getRecrutements: vi.fn(),
 }))
 

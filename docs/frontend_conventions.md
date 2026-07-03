@@ -7,14 +7,17 @@ Vue.js guidelines. For technical setup, see [frontend_vue.md](./frontend_vue.md)
 ```
 src/
 ├── app/                    # Bootstrap (main.ts, App.vue, router)
-├── features/               # Business modules
-│   └── candidates/
-│       ├── CandidateList.vue
-│       ├── CandidateDetail.vue
-│       ├── components/     # Feature-specific components
-│       ├── composables/    # Feature-specific hooks
-│       ├── types.ts        # Feature types
-│       └── api.ts          # Feature API calls
+├── features/               # Bounded contexts
+│   └── ats/                # Context: shell only at root (AppShell, navigation, HomeView)
+│       ├── components/     # Context-wide components
+│       └── recrutements/   # Feature insides context
+│           ├── MesRecrutementsView.vue
+│           ├── api.ts      # Feature API calls (feature endpoints only)
+│           ├── types.ts    # Feature types
+│           ├── filters.ts  # Flat domain modules at feature root
+│           ├── columns.ts
+│           ├── components/ # Feature-specific components
+│           └── composables/# Feature-specific hooks
 ├── components/             # Shared UI components
 ├── composables/            # Shared hooks
 ├── types/                  # Global types
@@ -22,6 +25,10 @@ src/
 ```
 
 **Rule**: all business code lives in its feature. Root folders (`components/`, `composables/`) are for truly reusable code only.
+
+**Rule**: `features/` top level maps to bounded contexts (e.g. `ats/`); each feature lives one level below.
+
+**Rule**: pure `.ts` domain modules sit flat at feature root.
 
 ## Components
 

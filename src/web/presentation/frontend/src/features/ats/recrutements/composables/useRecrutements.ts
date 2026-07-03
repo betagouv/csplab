@@ -1,9 +1,9 @@
 import type {
   RecrutementActif,
   RecrutementArchive,
-} from './types'
+} from '../types'
 import { reactive, ref } from 'vue'
-import { getRecrutements } from '../api/recrutement'
+import { getRecrutements } from '../api'
 
 const FETCH_SIZE = 100
 

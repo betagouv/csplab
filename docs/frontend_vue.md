@@ -131,14 +131,14 @@ In dev mode, CSP allows `localhost:5173` for HMR. Configured in `config/settings
 
 ## Feature Structure
 
-Each business feature is a module under `src/features/`:
+`src/features/` top level maps to bounded contexts; features live one level below:
 
 ```
 src/features/
-└── ats/
-    ├── HomeView.vue
-    ├── components/       # ATS-specific components
-    └── composables/      # ATS-specific hooks
+└── ats/                  # Bounded context: shell only (AppShell, navigation, HomeView)
+    ├── components/       # Context-wide components
+    ├── recrutements/     # Feature (view, api.ts, types.ts, domain modules, components/, composables/)
+    └── parametres/       # Feature
 ```
 
 Shared components go in `src/components/`.

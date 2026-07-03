@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { EtapeRecrutement } from '../api/recrutement'
 import { onMounted, ref, watch } from 'vue'
+import type { EtapeRecrutement } from '../api'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
@@ -8,8 +8,8 @@ import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.v
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
 import { useToast } from '@/composables/useToast'
-import { useEtapesRecrutement } from '../composables/useEtapesRecrutement'
-import { CATEGORIE_BADGE } from '../constants/etape-recrutement'
+import { useEtapesRecrutement } from '../../composables/useEtapesRecrutement'
+import { CATEGORIE_BADGE } from '../../constants/etape-recrutement'
 
 const TEMP_ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 

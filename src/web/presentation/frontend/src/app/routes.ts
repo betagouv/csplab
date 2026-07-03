@@ -14,6 +14,6 @@ export const routes: Array<RouteRecordRaw> = [
   {
     path: '/parametres',
     name: 'parametres',
-    component: () => import('@/features/ats/ParametresView.vue'),
+    component: () => import('@/features/ats/parametres/ParametresView.vue'),
   },
 ]

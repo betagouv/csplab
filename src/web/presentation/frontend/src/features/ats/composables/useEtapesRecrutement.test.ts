@@ -1,4 +1,4 @@
-import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../api/recrutement'
+import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../parametres/api'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useEtapesRecrutement } from './useEtapesRecrutement'
 
@@ -8,7 +8,7 @@ const mockGetEtapesRecrutement = vi.fn()
 const mockUpdateEtapesRecrutement = vi.fn()
 const mockInitEtapesRecrutement = vi.fn()
 
-vi.mock('../api/recrutement', () => ({
+vi.mock('../parametres/api', () => ({
   getEtapesRecrutement: (...args: unknown[]) => mockGetEtapesRecrutement(...args),
   updateEtapesRecrutement: (...args: unknown[]) => mockUpdateEtapesRecrutement(...args),
   initEtapesRecrutement: (...args: unknown[]) => mockInitEtapesRecrutement(...args),
