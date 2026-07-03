@@ -7,6 +7,7 @@ import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
@@ -55,11 +56,11 @@ const recrutementsArchivesPage = ref(1)
 const PAGE_SIZE = 6
 const {
   draft: filtersDraft,
-  applied: appliedFilters,
   canReset: canResetFilters,
   syncDraft: syncFiltersDraft,
   apply: applyFiltersDraft,
   reset: resetFilters,
+  search,
   filteredActifs,
   filteredArchives,
   activeFiltersCount,
@@ -82,8 +83,11 @@ function applyFilters() {
   closeFiltersDrawer()
 }
 
-watch(appliedFilters, () => {
+watch(filteredActifs, () => {
   recrutementsActifsPage.value = 1
+})
+
+watch(filteredArchives, () => {
   recrutementsArchivesPage.value = 1
 })
 
@@ -129,13 +133,22 @@ const countLabel = computed(() => {
             <p class="mes-recrutement-view__count">
               {{ countLabel }}
             </p>
-            <CspButton
-              :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
-              variant="tertiary"
-              icon="ri:filter-line"
-              is-icon-left
-              @click="openFilters"
-            />
+            <div class="mes-recrutement-view__actions">
+              <CspInput
+                v-model="search"
+                type="search"
+                aria-label="Rechercher un recrutement"
+                placeholder="Rechercher une offre, un candidat,…"
+                class="mes-recrutement-view__search"
+              />
+              <CspButton
+                :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
+                variant="tertiary"
+                icon="ri:filter-line"
+                is-icon-left
+                @click="openFilters"
+              />
+            </div>
           </div>
           <CspTabsPanels :tabs="TABS">
             <template #actifs>
@@ -220,6 +233,17 @@ const countLabel = computed(() => {
   margin: 0;
   font-size: 0.9375rem;
   color: var(--text-mention-grey);
+}
+
+.mes-recrutement-view__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.mes-recrutement-view__search {
+  min-width: 32rem;
 }
 
 .mes-recrutement-view__candidatures-head {

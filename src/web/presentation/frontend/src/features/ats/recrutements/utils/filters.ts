@@ -25,6 +25,28 @@ export function countActiveFilters(filters: RecrutementsFilters): number {
   return Object.values(filters).filter(value => value !== null).length
 }
 
+function normalize(value: string): string {
+  return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
+}
+
+function searchableText(row: RecrutementBase): string[] {
+  const recrute = 'recrute' in row ? (row as { recrute: string | null }).recrute : null
+  return [
+    row.intitule,
+    row.reference_csp,
+    ...row.responsables.map(r => r.nom),
+    recrute,
+  ].filter((value): value is string => Boolean(value))
+}
+
+export function matchesSearch(row: RecrutementBase, search: string): boolean {
+  const term = normalize(search.trim())
+  if (!term) {
+    return true
+  }
+  return searchableText(row).some(text => normalize(text).includes(term))
+}
+
 export const FILTER_ALL = 'all'
 
 export function withAllOption(label: string, options: CspSelectOption[]): CspSelectOption[] {
