@@ -204,12 +204,37 @@ paths:
         cours, défaut) et `archives` (offres archivées).'
       summary: Liste des recrutements d'un organisme
       parameters:
+      - in: query
+        name: filtre
+        schema:
+          enum:
+          - actifs
+          - archives
+          type: string
+          default: actifs
+          minLength: 1
+        description: |-
+          * `actifs` - actifs
+          * `archives` - archives
       - in: path
         name: organisme_uuid
         schema:
           type: string
           format: uuid
         required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - in: query
+        name: size
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 10
       tags:
       - recruteur
       security:
@@ -812,12 +837,16 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/RecrutementActif'
+            $ref: '#/components/schemas/Recrutement'
       required:
       - count
       - next
       - previous
       - results
+    Recrutement:
+      oneOf:
+      - $ref: '#/components/schemas/RecrutementActif'
+      - $ref: '#/components/schemas/RecrutementArchive'
     RecrutementActif:
       type: object
       properties:
@@ -859,6 +888,52 @@ components:
       - intitule
       - kind_contrat
       - offer_id
+      - reference_csp
+      - responsables
+      - type_contrat
+    RecrutementArchive:
+      type: object
+      properties:
+        offer_id:
+          type: string
+          format: uuid
+        intitule:
+          type: string
+        reference_csp:
+          type: string
+        type_contrat:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/TypeContratEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        kind_contrat:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/KindContratEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        date_publication:
+          type: string
+          format: date-time
+        responsables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Responsable'
+        derniere_activite:
+          type: string
+          format: date-time
+        finalise:
+          type: boolean
+        recrute:
+          type: string
+          nullable: true
+      required:
+      - date_publication
+      - derniere_activite
+      - finalise
+      - intitule
+      - kind_contrat
+      - offer_id
+      - recrute
       - reference_csp
       - responsables
       - type_contrat

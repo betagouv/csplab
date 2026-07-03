@@ -1,6 +1,11 @@
 from uuid import UUID
 
-from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
+from drf_spectacular.utils import (
+    PolymorphicProxySerializer,
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -334,6 +339,7 @@ class InitEtapesRecrutementOrganismeView(APIView):
             "`actifs` (recrutements en cours, défaut) et `archives` (offres archivées)."
         ),
         tags=["recruteur"],
+        parameters=[RecrutementsFiltersSerializer],
         responses={
             200: inline_serializer(
                 name="PaginatedRecrutementsResponse",
@@ -341,7 +347,15 @@ class InitEtapesRecrutementOrganismeView(APIView):
                     "count": drf_serializers.IntegerField(),
                     "next": drf_serializers.CharField(allow_null=True),
                     "previous": drf_serializers.CharField(allow_null=True),
-                    "results": RecrutementActifSerializer(many=True),
+                    "results": PolymorphicProxySerializer(
+                        component_name="Recrutement",
+                        serializers=[
+                            RecrutementActifSerializer,
+                            RecrutementArchiveSerializer,
+                        ],
+                        resource_type_field_name=None,
+                        many=True,
+                    ),
                 },
             ),
             400: GenericErrorSerializer,

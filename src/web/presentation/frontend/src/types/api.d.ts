@@ -339,8 +339,9 @@ export interface components {
             count: number;
             next: string | null;
             previous: string | null;
-            results: components["schemas"]["RecrutementActif"][];
+            results: components["schemas"]["Recrutement"][];
         };
+        Recrutement: components["schemas"]["RecrutementActif"] | components["schemas"]["RecrutementArchive"];
         RecrutementActif: {
             /** Format: uuid */
             offer_id: string;
@@ -354,6 +355,21 @@ export interface components {
             /** Format: date-time */
             derniere_activite: string;
             candidatures: components["schemas"]["CandidaturesActives"] | null;
+        };
+        RecrutementArchive: {
+            /** Format: uuid */
+            offer_id: string;
+            intitule: string;
+            reference_csp: string;
+            type_contrat: (components["schemas"]["TypeContratEnum"] | components["schemas"]["NullEnum"]) | null;
+            kind_contrat: (components["schemas"]["KindContratEnum"] | components["schemas"]["NullEnum"]) | null;
+            /** Format: date-time */
+            date_publication: string;
+            responsables: components["schemas"]["Responsable"][];
+            /** Format: date-time */
+            derniere_activite: string;
+            finalise: boolean;
+            recrute: string | null;
         };
         RecrutementDetailKanban: {
             /** Format: uuid */
@@ -637,7 +653,15 @@ export interface operations {
     };
     recruteur_organisme_recrutements_retrieve: {
         parameters: {
-            query?: never;
+            query?: {
+                /**
+                 * @description * `actifs` - actifs
+                 *     * `archives` - archives
+                 */
+                filtre?: "actifs" | "archives";
+                page?: number;
+                size?: number;
+            };
             header?: never;
             path: {
                 organisme_uuid: string;
