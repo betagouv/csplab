@@ -44,10 +44,10 @@
 
   /* Z-index */
   --csp-z-base: 0;
-  --csp-z-dropdown: 100;
   --csp-z-sticky: 200;
   --csp-z-overlay: 1000;
   --csp-z-modal: 1100;
+  --csp-z-dropdown: 1120;
   --csp-z-tooltip: 1150;
   --csp-z-toast: 1200;
 }

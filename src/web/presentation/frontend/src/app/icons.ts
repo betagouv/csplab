@@ -29,6 +29,7 @@ import riErrorWarningLine from '@iconify-icons/ri/error-warning-line'
 import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
 import riExternalLinkLine from '@iconify-icons/ri/external-link-line'
 import riEyeLine from '@iconify-icons/ri/eye-line'
+import riFilterLine from '@iconify-icons/ri/filter-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
 import riGroupLine from '@iconify-icons/ri/group-line'
 import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
@@ -45,6 +46,7 @@ import riNotification3Line from '@iconify-icons/ri/notification-3-line'
 import riPriceTag3Line from '@iconify-icons/ri/price-tag-3-line'
 import riPushpin2Line from '@iconify-icons/ri/pushpin-2-line'
 import riRestartLine from '@iconify-icons/ri/restart-line'
+import riRefreshLine from '@iconify-icons/ri/refresh-line'
 import riSearchLine from '@iconify-icons/ri/search-line'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
@@ -85,6 +87,7 @@ addIcon('ri:error-warning-line', riErrorWarningLine)
 addIcon('ri:expand-up-down-line', riExpandUpDownLine)
 addIcon('ri:external-link-line', riExternalLinkLine)
 addIcon('ri:eye-line', riEyeLine)
+addIcon('ri:filter-line', riFilterLine)
 addIcon('ri:flashlight-fill', riFlashlightFill)
 addIcon('ri:group-line', riGroupLine)
 addIcon('ri:inbox-2-line', riInbox2Line)
@@ -116,6 +119,9 @@ addIcon('ri:progress-4-line', {
 })
 addIcon('ri:pushpin-2-line', riPushpin2Line)
 addIcon('ri:restart-line', riRestartLine)
+addIcon('ri:refresh-line', riRefreshLine)
+addIcon('ri:restart-line', riRestartLine)
+addIcon('ri:refresh-line', riRefreshLine)
 addIcon('ri:search-line', riSearchLine)
 addIcon('ri:settings-3-line', riSettings3Line)
 addIcon('ri:spam-fill', riSpamFill)

@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
+import { useDisclosure } from '@/composables/useDisclosure'
 import AtsAppShell from '../components/AtsAppShell.vue'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from './columns'
+import RecrutementsFiltersDrawer from './components/RecrutementsFiltersDrawer.vue'
 import { useRecrutements } from './useRecrutements'
+import { useRecrutementsFilters } from './useRecrutementsFilters'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },
@@ -44,6 +48,49 @@ function openOffre(offreUuid: string) {
 
 const recrutementsActifsPage = ref(1)
 const recrutementsArchivesPage = ref(1)
+
+const {
+  draft: filtersDraft,
+  applied: appliedFilters,
+  canReset: canResetFilters,
+  syncDraft: syncFiltersDraft,
+  apply: applyFiltersDraft,
+  reset: resetFilters,
+  filteredActifs,
+  filteredArchives,
+  activeFiltersCount,
+  responsableOptions,
+} = useRecrutementsFilters(recrutementsData)
+
+const {
+  isOpen: isFiltersDrawerOpen,
+  open: openFiltersDrawer,
+  close: closeFiltersDrawer,
+} = useDisclosure()
+
+function openFilters() {
+  syncFiltersDraft()
+  openFiltersDrawer()
+}
+
+function applyFilters() {
+  applyFiltersDraft()
+  closeFiltersDrawer()
+}
+
+watch(appliedFilters, () => {
+  recrutementsActifsPage.value = 1
+  recrutementsArchivesPage.value = 1
+})
+
+const countLabel = computed(() => {
+  if (activeTab.value === 'actifs') {
+    const count = filteredActifs.value.length
+    return `${count} recrutement${count > 1 ? 's' : ''} en cours`
+  }
+  const count = filteredArchives.value.length
+  return `${count} offre${count > 1 ? 's' : ''} archivée${count > 1 ? 's' : ''}`
+})
 </script>
 
 <template>
@@ -76,53 +123,68 @@ const recrutementsArchivesPage = ref(1)
         >
           Une erreur est survenue lors du chargement des recrutements.
         </div>
-        <CspTabsPanels
-          v-else
-          :tabs="TABS"
-        >
-          <template #actifs>
+        <div v-else>
+          <div class="mes-recrutement-view__toolbar">
             <p class="mes-recrutement-view__count">
-              {{ recrutementsData.actifs.length }} recrutement{{ recrutementsData.actifs.length > 1 ? 's' : '' }} en cours
+              {{ countLabel }}
             </p>
-            <CspDataTable
-              v-model:page="recrutementsActifsPage"
-              :rows="recrutementsData.actifs"
-              :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
-              :row-key="row => row.offer_id"
-              activation-mode="cell"
-              caption="Recrutements en cours"
-              empty-label="Aucun recrutement en cours"
-              :page-size="PAGE_SIZE"
-              @activate="openOffre"
-            >
-              <template #header-candidatures="{ label }">
-                <div class="mes-recrutement-view__candidatures-head">
-                  <span>{{ label }}</span>
-                  <span class="mes-recrutement-view__candidatures-legend">
-                    # • À traiter • En cours
-                  </span>
-                </div>
-              </template>
-            </CspDataTable>
-          </template>
-
-          <template #archives>
-            <p class="mes-recrutement-view__count">
-              {{ recrutementsData.archives.length }} offre{{ recrutementsData.archives.length > 1 ? 's' : '' }} archivée{{ recrutementsData.archives.length > 1 ? 's' : '' }}
-            </p>
-            <CspDataTable
-              v-model:page="recrutementsArchivesPage"
-              :rows="recrutementsData.archives"
-              :columns="RECRUTEMENTS_ARCHIVES_COLUMNS"
-              :row-key="row => row.offer_id"
-              activation-mode="cell"
-              caption="Offres archivées"
-              empty-label="Aucune offre archivée"
-              :page-size="PAGE_SIZE"
-              @activate="openOffre"
+            <CspButton
+              :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
+              variant="tertiary"
+              icon="ri:filter-line"
+              is-icon-left
+              @click="openFilters"
             />
-          </template>
-        </CspTabsPanels>
+          </div>
+          <CspTabsPanels :tabs="TABS">
+            <template #actifs>
+              <CspDataTable
+                v-model:page="recrutementsActifsPage"
+                :rows="filteredActifs"
+                :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
+                :row-key="row => row.offer_id"
+                activation-mode="cell"
+                caption="Recrutements en cours"
+                empty-label="Aucun recrutement en cours"
+                :page-size="PAGE_SIZE"
+                @activate="openOffre"
+              >
+                <template #header-candidatures="{ label }">
+                  <div class="mes-recrutement-view__candidatures-head">
+                    <span>{{ label }}</span>
+                    <span class="mes-recrutement-view__candidatures-legend">
+                      # • À traiter • En cours
+                    </span>
+                  </div>
+                </template>
+              </CspDataTable>
+            </template>
+
+            <template #archives>
+              <CspDataTable
+                v-model:page="recrutementsArchivesPage"
+                :rows="filteredArchives"
+                :columns="RECRUTEMENTS_ARCHIVES_COLUMNS"
+                :row-key="row => row.offer_id"
+                activation-mode="cell"
+                caption="Offres archivées"
+                empty-label="Aucune offre archivée"
+                :page-size="PAGE_SIZE"
+                @activate="openOffre"
+              />
+            </template>
+          </CspTabsPanels>
+          <RecrutementsFiltersDrawer
+            v-model:open="isFiltersDrawerOpen"
+            v-model:responsable="filtersDraft.responsable"
+            v-model:type-contrat="filtersDraft.typeContrat"
+            v-model:kind-contrat="filtersDraft.kindContrat"
+            :responsable-options="responsableOptions"
+            :can-reset="canResetFilters"
+            @apply="applyFilters"
+            @reset="resetFilters"
+          />
+        </div>
       </CspTabs>
     </div>
   </AtsAppShell>
@@ -144,8 +206,17 @@ const recrutementsArchivesPage = ref(1)
   color: var(--text-default-error);
 }
 
+.mes-recrutement-view__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
 .mes-recrutement-view__count {
-  margin: 0 0 1rem;
+  margin: 0;
   font-size: 0.9375rem;
   color: var(--text-mention-grey);
 }
