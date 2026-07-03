@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { reactive } from 'vue'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick, reactive } from 'vue'
 import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from './mock'
 import { useRecrutementsFilters } from './useRecrutementsFilters'
 
@@ -47,5 +47,34 @@ describe('useRecrutementsFilters', () => {
     reset()
     expect(filteredActifs.value).toEqual(RECRUTEMENTS_ACTIFS)
     expect(canReset.value).toBe(false)
+  })
+})
+
+describe('useRecrutementsFilters: search', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
+  it('combines search with applied filters', async () => {
+    const { draft, apply, search, filteredActifs } = useRecrutementsFilters(makeData())
+    draft.typeContrat = 'CONTRACTUELS'
+    apply()
+    search.value = 'zzz-no-match'
+    await nextTick()
+    vi.advanceTimersByTime(250)
+    expect(filteredActifs.value).toEqual([])
+  })
+
+  it('clears search on reset', async () => {
+    const { search, reset, filteredActifs } = useRecrutementsFilters(makeData())
+    search.value = 'back'
+    await nextTick()
+    vi.advanceTimersByTime(250)
+    expect(filteredActifs.value.length).toBeLessThan(RECRUTEMENTS_ACTIFS.length)
+
+    reset()
+    await nextTick()
+    vi.advanceTimersByTime(250)
+    expect(search.value).toBe('')
+    expect(filteredActifs.value).toEqual(RECRUTEMENTS_ACTIFS)
   })
 })
