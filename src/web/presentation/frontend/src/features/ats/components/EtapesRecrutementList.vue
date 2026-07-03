@@ -233,7 +233,6 @@ function getMenuSections(
       @reorder="reorderEtapes"
     >
       <template #header>
-        <span class="etapes-list__header-spacer" />
         <span class="etapes-list__header-ordre">Ordre</span>
         <span class="etapes-list__header-nom">Nom de l'étape</span>
         <span class="etapes-list__header-statut">Statut visible par le candidat</span>
@@ -377,11 +376,6 @@ function getMenuSections(
 
 .etapes-list__item-badge {
   align-self: center;
-}
-
-.etapes-list__header-spacer {
-  width: 1rem;
-  flex-shrink: 0;
 }
 
 .etapes-list__header-ordre {

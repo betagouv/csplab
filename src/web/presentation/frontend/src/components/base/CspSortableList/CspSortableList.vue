@@ -132,7 +132,13 @@ onMounted(() => {
       v-if="$slots.header"
       class="csp-sortable-list__header"
     >
-      <slot name="header" />
+      <span
+        class="csp-sortable-list__header-handle-spacer"
+        aria-hidden="true"
+      />
+      <div class="csp-sortable-list__header-content">
+        <slot name="header" />
+      </div>
     </div>
     <ul class="csp-sortable-list__items">
       <CspSortableListItem
@@ -165,6 +171,18 @@ onMounted(() => {
 <style scoped lang="scss">
 .csp-sortable-list__header {
   display: flex;
+  align-items: center;
+  gap: var(--csp-space-3);
+}
+
+.csp-sortable-list__header-handle-spacer {
+  flex-shrink: 0;
+  width: 1rem;
+}
+
+.csp-sortable-list__header-content {
+  display: flex;
+  flex: 1;
   align-items: center;
   gap: var(--csp-space-3);
   padding: var(--csp-space-2) var(--csp-space-4);

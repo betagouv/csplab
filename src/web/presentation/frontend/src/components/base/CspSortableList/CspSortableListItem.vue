@@ -73,27 +73,23 @@ function setHandleRef(element: Element | null) {
       class="csp-sortable-list-item__indicator csp-sortable-list-item__indicator--top"
     />
 
-    <div class="csp-sortable-list-item__content">
-      <span
-        v-if="isDraggable"
-        :ref="(el) => setHandleRef(el as Element | null)"
-        class="csp-sortable-list-item__handle"
-      >
-        <CspIcon
-          name="ri:draggable"
-          :size="16"
-        />
-      </span>
-      <span
-        v-else
-        class="csp-sortable-list-item__icon"
-      >
-        <CspIcon
-          name="ri:pushpin-2-line"
-          :size="16"
-        />
-      </span>
+    <span
+      v-if="isDraggable"
+      :ref="(el) => setHandleRef(el as Element | null)"
+      class="csp-sortable-list-item__handle"
+    >
+      <CspIcon
+        name="ri:draggable"
+        :size="16"
+      />
+    </span>
+    <span
+      v-else
+      class="csp-sortable-list-item__handle-spacer"
+      aria-hidden="true"
+    />
 
+    <div class="csp-sortable-list-item__content">
       <span
         v-if="showPosition"
         class="csp-sortable-list-item__position"
@@ -122,11 +118,37 @@ function setHandleRef(element: Element | null) {
 <style scoped lang="scss">
 .csp-sortable-list-item {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-3);
   list-style: none;
+}
+
+.csp-sortable-list-item--dragging {
+  opacity: 0.5;
+}
+
+.csp-sortable-list-item__handle,
+.csp-sortable-list-item__handle-spacer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+}
+
+.csp-sortable-list-item__handle {
+  cursor: grab;
+  color: var(--text-mention-grey);
+
+  &:active {
+    cursor: grabbing;
+  }
 }
 
 .csp-sortable-list-item__content {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: var(--csp-space-3);
   padding: var(--csp-space-3) var(--csp-space-4);
@@ -139,27 +161,6 @@ function setHandleRef(element: Element | null) {
 
 .csp-sortable-list-item--alt .csp-sortable-list-item__content {
   background-color: var(--background-alt-grey);
-}
-
-.csp-sortable-list-item--dragging .csp-sortable-list-item__content {
-  opacity: 0.5;
-}
-
-.csp-sortable-list-item__handle {
-  display: flex;
-  flex-shrink: 0;
-  cursor: grab;
-  color: var(--text-mention-grey);
-
-  &:active {
-    cursor: grabbing;
-  }
-}
-
-.csp-sortable-list-item__icon {
-  display: flex;
-  flex-shrink: 0;
-  color: var(--text-mention-grey);
 }
 
 .csp-sortable-list-item__position {
