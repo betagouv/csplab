@@ -134,13 +134,13 @@ function getMenuSections(
   moveUp: () => void,
   moveDown: () => void,
 ) {
+  const isLocked = isEtapeLocked(item)
   return [
     {
       items: [
         {
           label: 'Renommer',
           icon: 'ri:edit-line',
-          disabled: isEtapeLocked(item),
           onSelect: () => openRenameModal(item),
         },
       ],
@@ -150,19 +150,21 @@ function getMenuSections(
         {
           label: 'Ajouter une étape au-dessus',
           icon: 'ri:add-line',
+          disabled: isLocked,
           onSelect: () => openAddAtModal(index),
         },
         {
           label: 'Ajouter une étape en dessous',
           icon: 'ri:add-line',
+          disabled: isLocked,
           onSelect: () => openAddAtModal(index + 1),
         },
       ],
     },
     {
       items: [
-        { label: 'Monter', icon: 'ri:arrow-up-s-line', disabled: !canMoveUp, onSelect: moveUp },
-        { label: 'Descendre', icon: 'ri:arrow-down-s-line', disabled: !canMoveDown, onSelect: moveDown },
+        { label: 'Monter', icon: 'ri:arrow-up-s-line', disabled: !canMoveUp || isLocked, onSelect: moveUp },
+        { label: 'Descendre', icon: 'ri:arrow-down-s-line', disabled: !canMoveDown || isLocked, onSelect: moveDown },
       ],
     },
     {
@@ -171,7 +173,7 @@ function getMenuSections(
           label: 'Supprimer',
           icon: 'ri:delete-bin-line',
           destructive: true,
-          disabled: isEtapeLocked(item),
+          disabled: isLocked,
           onSelect: () => openDeleteModal(item),
         },
       ],
