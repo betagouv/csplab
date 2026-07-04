@@ -8,7 +8,7 @@ export default antfu(
     },
     vue: true,
     typescript: true,
-    ignores: ['node_modules/', 'dist/', '../static/frontend/', 'storybook-static/', 'src/types/'],
+    ignores: ['node_modules/', 'dist/', 'storybook-static/', 'src/types/'],
   },
   {
     files: ['**/*.vue'],
