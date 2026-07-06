@@ -333,6 +333,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/liste:
     get:
       operationId: recruteur_organisme_recrutements_liste_retrieve
@@ -442,10 +448,14 @@ components:
         date_soumission:
           type: string
           format: date-time
+        date_derniere_activite:
+          type: string
+          format: date-time
         candidat:
           $ref: '#/components/schemas/Candidat'
       required:
       - candidat
+      - date_derniere_activite
       - date_soumission
       - uuid
     CandidatureListe:
@@ -459,10 +469,14 @@ components:
           format: date-time
         candidat:
           $ref: '#/components/schemas/Candidat'
+        date_derniere_activite:
+          type: string
+          format: date-time
         etape:
           $ref: '#/components/schemas/EtapeRecrutement'
       required:
       - candidat
+      - date_derniere_activite
       - date_soumission
       - etape
       - uuid

@@ -20,13 +20,6 @@ class UpdateEtapeRecrutementSerializer(EtapeRecrutementSerializer):
     etape_uuid = serializers.UUIDField(required=False)
 
 
-class RecrutementsPaginationSerializer(serializers.Serializer):
-    page = serializers.IntegerField(default=1, min_value=1, required=False)
-    size = serializers.IntegerField(
-        default=10, min_value=1, max_value=100, required=False
-    )
-
-
 class ResponsableSerializer(serializers.Serializer):
     nom = serializers.CharField()
 
@@ -74,6 +67,7 @@ class CandidatSerializer(serializers.Serializer):
 class CandidatureSerializer(serializers.Serializer):
     uuid = serializers.UUIDField()
     date_soumission = serializers.DateTimeField()
+    date_derniere_activite = serializers.DateTimeField()
     candidat = CandidatSerializer()
 
 
@@ -97,4 +91,5 @@ class CandidatureListeSerializer(serializers.Serializer):
     uuid = serializers.UUIDField()
     date_soumission = serializers.DateTimeField()
     candidat = CandidatSerializer()
+    date_derniere_activite = serializers.DateTimeField()
     etape = EtapeRecrutementSerializer()

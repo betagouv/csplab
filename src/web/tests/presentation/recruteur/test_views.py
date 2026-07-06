@@ -626,6 +626,14 @@ class TestRecrutementKanbanView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": "Not found."}
 
+    @patch("presentation.recruteur.views.RecrutementKanbanMapper")
+    def test_returns_500_on_unexpected_error(self, mock_mapper, authenticated_client):
+        mock_mapper.return_value.from_domain.side_effect = Exception("unexpected")
+
+        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
+
 
 class TestRecrutementListeView:
     def test_anonymous_access_is_unauthorized(self, api_client):
@@ -687,9 +695,13 @@ class TestRecrutementListeView:
         assert data["next"] is None
         assert data["previous"] is None
 
-    def test_invalid_page_returns_400(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENT_LISTE_URL + "?page=0")
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+    @patch("presentation.recruteur.views.RecrutementListeMapper")
+    def test_returns_500_on_unexpected_error(self, mock_mapper, authenticated_client):
+        mock_mapper.return_value.from_domain.side_effect = Exception("unexpected")
+
+        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
 
 
 class TestATSBase:

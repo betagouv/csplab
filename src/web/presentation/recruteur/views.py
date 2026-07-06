@@ -43,7 +43,6 @@ from presentation.recruteur.serializers import (
     RecrutementDetailKanbanSerializer,
     RecrutementsActifsSerializer,
     RecrutementsArchivesSerializer,
-    RecrutementsPaginationSerializer,
     UpdateEtapeRecrutementSerializer,
 )
 
@@ -358,14 +357,6 @@ class RecrutementsActifsView(APIView):
             usecase = self.container.get_organisme_recruteur_usecase()
             usecase.execute(GetOrganismeRecruteurQuery(organisme_id=organisme_uuid))
 
-            pagination_params = RecrutementsPaginationSerializer(
-                data=request.query_params
-            )
-            if not pagination_params.is_valid():
-                return Response(
-                    pagination_params.errors, status=status.HTTP_400_BAD_REQUEST
-                )
-
             # TODO: remplacer par list_recrutements_usecase une fois disponible.
             result = ListPage(_STATIC_RECRUTEMENTS_ACTIFS)
 
@@ -422,14 +413,6 @@ class RecrutementsArchivesView(APIView):
             usecase = self.container.get_organisme_recruteur_usecase()
             usecase.execute(GetOrganismeRecruteurQuery(organisme_id=organisme_uuid))
 
-            pagination_params = RecrutementsPaginationSerializer(
-                data=request.query_params
-            )
-            if not pagination_params.is_valid():
-                return Response(
-                    pagination_params.errors, status=status.HTTP_400_BAD_REQUEST
-                )
-
             # TODO: remplacer par list_recrutements_archives_usecase
             # une fois disponible.
             result = ListPage(_STATIC_RECRUTEMENTS_ARCHIVES)
@@ -485,6 +468,7 @@ _STATIC_RECRUTEMENT_DETAIL = {
                         "nom": "Dupont",
                         "prenom": "Alice",
                     },
+                    "date_derniere_activite": "2025-06-11T10:00:00Z",
                 },
                 {
                     "uuid": "dddddddd-0001-0001-0001-000000000002",
@@ -494,6 +478,7 @@ _STATIC_RECRUTEMENT_DETAIL = {
                         "nom": "Martin",
                         "prenom": "Bruno",
                     },
+                    "date_derniere_activite": "2025-06-12T09:15:00Z",
                 },
                 {
                     "uuid": "dddddddd-0001-0001-0001-000000000003",
@@ -503,6 +488,7 @@ _STATIC_RECRUTEMENT_DETAIL = {
                         "nom": "Leroy",
                         "prenom": "Camille",
                     },
+                    "date_derniere_activite": "2025-06-12T11:00:00Z",
                 },
                 {
                     "uuid": "dddddddd-0001-0001-0001-000000000004",
@@ -512,6 +498,7 @@ _STATIC_RECRUTEMENT_DETAIL = {
                         "nom": "Moreau",
                         "prenom": "David",
                     },
+                    "date_derniere_activite": "2025-06-13T08:45:00Z",
                 },
             ],
         },
@@ -528,6 +515,7 @@ _STATIC_RECRUTEMENT_DETAIL = {
                         "nom": "Bernard",
                         "prenom": "Élise",
                     },
+                    "date_derniere_activite": "2025-06-11T10:00:00Z",
                 },
                 {
                     "uuid": "dddddddd-0001-0001-0001-000000000006",
@@ -537,6 +525,7 @@ _STATIC_RECRUTEMENT_DETAIL = {
                         "nom": "Petit",
                         "prenom": "François",
                     },
+                    "date_derniere_activite": "2025-06-12T09:15:00Z",
                 },
                 {
                     "uuid": "dddddddd-0001-0001-0001-000000000007",
@@ -546,6 +535,7 @@ _STATIC_RECRUTEMENT_DETAIL = {
                         "nom": "Roux",
                         "prenom": "Géraldine",
                     },
+                    "date_derniere_activite": "2025-06-12T11:00:00Z",
                 },
             ],
         },
@@ -562,6 +552,7 @@ _STATIC_RECRUTEMENT_DETAIL = {
                         "nom": "Simon",
                         "prenom": "Hélène",
                     },
+                    "date_derniere_activite": "2025-06-11T10:00:00Z",
                 },
                 {
                     "uuid": "dddddddd-0001-0001-0001-000000000009",
@@ -571,6 +562,7 @@ _STATIC_RECRUTEMENT_DETAIL = {
                         "nom": "Michel",
                         "prenom": "Ivan",
                     },
+                    "date_derniere_activite": "2025-06-13T08:45:00Z",
                 },
             ],
         },
@@ -587,6 +579,7 @@ _STATIC_RECRUTEMENT_DETAIL = {
                         "nom": "Thomas",
                         "prenom": "Juliette",
                     },
+                    "date_derniere_activite": "2025-06-11T10:00:00Z",
                 },
                 {
                     "uuid": "dddddddd-0001-0001-0001-000000000011",
@@ -596,6 +589,7 @@ _STATIC_RECRUTEMENT_DETAIL = {
                         "nom": "Richard",
                         "prenom": "Kevin",
                     },
+                    "date_derniere_activite": "2025-06-12T09:15:00Z",
                 },
             ],
         },
@@ -621,6 +615,7 @@ _STATIC_RECRUTEMENTS_DETAIL_BY_ID: dict = {
         200: RecrutementDetailKanbanSerializer,
         401: TokenErrorSerializer,
         404: GenericErrorSerializer,
+        500: GenericErrorSerializer,
     },
 )
 class RecrutementKanbanView(APIView):
@@ -629,13 +624,21 @@ class RecrutementKanbanView(APIView):
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
-        # TODO: remplacer par get_recrutement_detail_usecase
-        raw = _STATIC_RECRUTEMENTS_DETAIL_BY_ID.get(str(recrutement_uuid))
-        if raw is None:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        detail = RecrutementKanbanMapper().from_domain(raw)
-        serializer = RecrutementDetailKanbanSerializer(detail)
-        return Response(serializer.data)
+        try:
+            # TODO: remplacer par get_recrutement_detail_usecase
+            raw = _STATIC_RECRUTEMENTS_DETAIL_BY_ID.get(str(recrutement_uuid))
+            if raw is None:
+                return Response(
+                    {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                )
+            detail = RecrutementKanbanMapper().from_domain(raw)
+            serializer = RecrutementDetailKanbanSerializer(detail)
+            return Response(serializer.data)
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 @extend_schema(
@@ -662,39 +665,24 @@ class RecrutementListeView(APIView):
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
-        filters = RecrutementsPaginationSerializer(data=request.query_params)
-        if not filters.is_valid():
-            return Response(filters.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            # TODO: remplacer par get_recrutement_detail_usecase
+            detail = _STATIC_RECRUTEMENTS_DETAIL_BY_ID.get(str(recrutement_uuid))
+            if detail is None:
+                return Response(
+                    {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                )
 
-        # TODO: remplacer par get_recrutement_detail_usecase
-        detail = _STATIC_RECRUTEMENTS_DETAIL_BY_ID.get(str(recrutement_uuid))
-        if detail is None:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            all_candidatures = RecrutementListeMapper().from_domain(detail) or []
+            result = ListPage(all_candidatures)
 
-        validated: dict = filters.validated_data  # type: ignore[assignment]
-        page = validated["page"]
-        size = validated["size"]
-
-        all_candidatures = RecrutementListeMapper().from_domain(detail) or []
-        count = len(all_candidatures)
-        offset = (page - 1) * size
-        page_data = all_candidatures[offset : offset + size]
-
-        serializer = CandidatureListeSerializer(page_data, many=True)
-
-        base_url = request.build_absolute_uri(request.path)
-
-        def build_url(p: int) -> str:
-            return f"{base_url}?page={p}&size={size}"
-
-        next_url = build_url(page + 1) if page * size < count else None
-        previous_url = build_url(page - 1) if page > 1 else None
-
-        return Response(
-            {
-                "count": count,
-                "next": next_url,
-                "previous": previous_url,
-                "results": serializer.data,
-            }
-        )
+            paginator = WebPagination()
+            items = paginator.paginate(result, request)
+            return paginator.get_paginated_response(
+                CandidatureListeSerializer(items, many=True).data
+            )
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
