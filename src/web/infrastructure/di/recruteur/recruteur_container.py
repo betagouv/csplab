@@ -25,6 +25,9 @@ from infrastructure.repositories.identite.postgres_agent_repository import (
 from infrastructure.repositories.identite.postgres_organisme_repository import (
     PostgresOrganismeRepository,
 )
+from infrastructure.repositories.recruteur.postgres_note_query_service import (
+    PostgresNoteQueryService,
+)
 from infrastructure.repositories.recruteur.postgres_note_repository import (
     PostgresNoteRepository,
 )
@@ -48,6 +51,7 @@ class RecruteurContainer(containers.DeclarativeContainer):
         PostgresOrganismeRecruteurRepository
     )
     postgres_note_repository = providers.Singleton(PostgresNoteRepository)
+    postgres_note_query_service = providers.Singleton(PostgresNoteQueryService)
     postgres_candidature_repository = providers.Singleton(PostgresCandidatureRepository)
     postgres_agent_repository = providers.Singleton(PostgresAgentRepository)
 
