@@ -352,6 +352,9 @@ class RecrutementsActifsView(APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
+            # todo will be replaced by list_recrutements_archives_usecase once available
+            # why this usecase in the meanwhile? a way to generate 404 if the organisme
+            # does not exist
             usecase = self.container.get_organisme_recruteur_usecase()
             usecase.execute(GetOrganismeRecruteurQuery(organisme_id=organisme_uuid))
 
@@ -413,6 +416,9 @@ class RecrutementsArchivesView(APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
+            # todo will be replaced by list_recrutements_archives_usecase once available
+            # why this usecase in the meanwhile? a way to generate 404 if the organisme
+            # does not exist
             usecase = self.container.get_organisme_recruteur_usecase()
             usecase.execute(GetOrganismeRecruteurQuery(organisme_id=organisme_uuid))
 
