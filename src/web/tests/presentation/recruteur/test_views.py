@@ -695,10 +695,6 @@ class TestRecrutementListeView:
         assert data["next"] is None
         assert data["previous"] is None
 
-    def test_invalid_page_returns_400(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENT_LISTE_URL + "?page=0")
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
     @patch("presentation.recruteur.views.RecrutementListeMapper")
     def test_returns_500_on_unexpected_error(self, mock_mapper, authenticated_client):
         mock_mapper.return_value.from_domain.side_effect = Exception("unexpected")

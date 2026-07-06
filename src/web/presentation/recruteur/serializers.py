@@ -20,13 +20,6 @@ class UpdateEtapeRecrutementSerializer(EtapeRecrutementSerializer):
     etape_uuid = serializers.UUIDField(required=False)
 
 
-class RecrutementsPaginationSerializer(serializers.Serializer):
-    page = serializers.IntegerField(default=1, min_value=1, required=False)
-    size = serializers.IntegerField(
-        default=10, min_value=1, max_value=100, required=False
-    )
-
-
 class ResponsableSerializer(serializers.Serializer):
     nom = serializers.CharField()
 

@@ -43,7 +43,6 @@ from presentation.recruteur.serializers import (
     RecrutementDetailKanbanSerializer,
     RecrutementsActifsSerializer,
     RecrutementsArchivesSerializer,
-    RecrutementsPaginationSerializer,
     UpdateEtapeRecrutementSerializer,
 )
 
@@ -358,14 +357,6 @@ class RecrutementsActifsView(APIView):
             usecase = self.container.get_organisme_recruteur_usecase()
             usecase.execute(GetOrganismeRecruteurQuery(organisme_id=organisme_uuid))
 
-            pagination_params = RecrutementsPaginationSerializer(
-                data=request.query_params
-            )
-            if not pagination_params.is_valid():
-                return Response(
-                    pagination_params.errors, status=status.HTTP_400_BAD_REQUEST
-                )
-
             # TODO: remplacer par list_recrutements_usecase une fois disponible.
             result = ListPage(_STATIC_RECRUTEMENTS_ACTIFS)
 
@@ -421,14 +412,6 @@ class RecrutementsArchivesView(APIView):
             # does not exist
             usecase = self.container.get_organisme_recruteur_usecase()
             usecase.execute(GetOrganismeRecruteurQuery(organisme_id=organisme_uuid))
-
-            pagination_params = RecrutementsPaginationSerializer(
-                data=request.query_params
-            )
-            if not pagination_params.is_valid():
-                return Response(
-                    pagination_params.errors, status=status.HTTP_400_BAD_REQUEST
-                )
 
             # TODO: remplacer par list_recrutements_archives_usecase
             # une fois disponible.
@@ -683,10 +666,6 @@ class RecrutementListeView(APIView):
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
         try:
-            filters = RecrutementsPaginationSerializer(data=request.query_params)
-            if not filters.is_valid():
-                return Response(filters.errors, status=status.HTTP_400_BAD_REQUEST)
-
             # TODO: remplacer par get_recrutement_detail_usecase
             detail = _STATIC_RECRUTEMENTS_DETAIL_BY_ID.get(str(recrutement_uuid))
             if detail is None:
