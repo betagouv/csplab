@@ -74,6 +74,7 @@ class CandidatSerializer(serializers.Serializer):
 class CandidatureSerializer(serializers.Serializer):
     uuid = serializers.UUIDField()
     date_soumission = serializers.DateTimeField()
+    date_derniere_activite = serializers.DateTimeField()
     candidat = CandidatSerializer()
 
 
@@ -97,4 +98,5 @@ class CandidatureListeSerializer(serializers.Serializer):
     uuid = serializers.UUIDField()
     date_soumission = serializers.DateTimeField()
     candidat = CandidatSerializer()
+    date_derniere_activite = serializers.DateTimeField()
     etape = EtapeRecrutementSerializer()
