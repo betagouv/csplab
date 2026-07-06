@@ -6,7 +6,8 @@ from presentation.recruteur.views import (
     OrganismeView,
     RecrutementKanbanView,
     RecrutementListeView,
-    RecrutementsOrganismeView,
+    RecrutementsActifsView,
+    RecrutementsArchivesView,
 )
 
 app_name = "recruteur"
@@ -28,9 +29,14 @@ urlpatterns = [
         name="organisme-parametres-etapes-init",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/recrutements",
-        RecrutementsOrganismeView.as_view(),
-        name="organisme-recrutements",
+        "organisme/<uuid:organisme_uuid>/recrutements-actifs",
+        RecrutementsActifsView.as_view(),
+        name="organisme-recrutements-actifs",
+    ),
+    path(
+        "organisme/<uuid:organisme_uuid>/recrutements-archives",
+        RecrutementsArchivesView.as_view(),
+        name="organisme-recrutements-archives",
     ),
     path(
         "organisme/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/kanban",

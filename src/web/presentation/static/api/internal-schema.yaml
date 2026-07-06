@@ -196,13 +196,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements:
+  /recruteur/organisme/{organisme_uuid}/recrutements-actifs:
     get:
-      operationId: recruteur_organisme_recrutements_retrieve
-      description: 'Retourne la liste paginée des recrutements d''un organisme. Deux
-        onglets disponibles via le paramètre `filtre` : `actifs` (recrutements en
-        cours, défaut) et `archives` (offres archivées).'
-      summary: Liste des recrutements d'un organisme
+      operationId: recruteur_organisme_recrutements_actifs_retrieve
+      description: 'Retourne la liste paginée des recrutements d''un organisme. '
+      summary: Liste des recrutements actifs d'un organisme
       parameters:
       - in: path
         name: organisme_uuid
@@ -220,7 +218,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedRecrutementsResponse'
+                $ref: '#/components/schemas/PaginatedRecrutementsActifsResponse'
           description: ''
         '400':
           content:
@@ -233,6 +231,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+  /recruteur/organisme/{organisme_uuid}/recrutements-archives:
+    get:
+      operationId: recruteur_organisme_recrutements_archives_retrieve
+      description: 'Retourne la liste paginée des recrutements archivés d''un organisme. '
+      summary: Liste des recrutements archivés d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRecrutementsArchivesResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
           description: ''
         '500':
           content:
@@ -714,20 +766,6 @@ components:
           type: string
       required:
       - error
-    KindContratEnum:
-      enum:
-      - CDD
-      - CDI
-      - PERMANENT
-      - VACATION
-      - STAGE
-      type: string
-      description: |-
-        * `CDD` - CDD
-        * `CDI` - CDI
-        * `PERMANENT` - Permanent
-        * `VACATION` - Vacation
-        * `STAGE` - Stage
     Localisation:
       type: object
       properties:
@@ -798,7 +836,7 @@ components:
       - next
       - previous
       - results
-    PaginatedRecrutementsResponse:
+    PaginatedRecrutementsActifsResponse:
       type: object
       properties:
         count:
@@ -812,56 +850,32 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/RecrutementActif'
+            $ref: '#/components/schemas/RecrutementsActifs'
       required:
       - count
       - next
       - previous
       - results
-    RecrutementActif:
+    PaginatedRecrutementsArchivesResponse:
       type: object
       properties:
-        offer_id:
+        count:
+          type: integer
+        next:
           type: string
-          format: uuid
-        intitule:
-          type: string
-        reference_csp:
-          type: string
-        type_contrat:
           nullable: true
-          oneOf:
-          - $ref: '#/components/schemas/TypeContratEnum'
-          - $ref: '#/components/schemas/NullEnum'
-        kind_contrat:
-          nullable: true
-          oneOf:
-          - $ref: '#/components/schemas/KindContratEnum'
-          - $ref: '#/components/schemas/NullEnum'
-        date_publication:
+        previous:
           type: string
-          format: date-time
-        responsables:
+          nullable: true
+        results:
           type: array
           items:
-            $ref: '#/components/schemas/Responsable'
-        derniere_activite:
-          type: string
-          format: date-time
-        candidatures:
-          allOf:
-          - $ref: '#/components/schemas/CandidaturesActives'
-          nullable: true
+            $ref: '#/components/schemas/RecrutementsArchives'
       required:
-      - candidatures
-      - date_publication
-      - derniere_activite
-      - intitule
-      - kind_contrat
-      - offer_id
-      - reference_csp
-      - responsables
-      - type_contrat
+      - count
+      - next
+      - previous
+      - results
     RecrutementDetailKanban:
       type: object
       properties:
@@ -891,6 +905,80 @@ components:
       - localisation
       - offer_id
       - organisme_recruteur
+    RecrutementsActifs:
+      type: object
+      properties:
+        offer_id:
+          type: string
+          format: uuid
+        intitule:
+          type: string
+        reference_csp:
+          type: string
+        type_contrat:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/TypeContratEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        responsables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Responsable'
+        date_publication:
+          type: string
+          format: date-time
+        candidatures:
+          allOf:
+          - $ref: '#/components/schemas/CandidaturesActives'
+          nullable: true
+        derniere_activite:
+          type: string
+          format: date-time
+      required:
+      - candidatures
+      - date_publication
+      - derniere_activite
+      - intitule
+      - offer_id
+      - reference_csp
+      - responsables
+      - type_contrat
+    RecrutementsArchives:
+      type: object
+      properties:
+        offer_id:
+          type: string
+          format: uuid
+        intitule:
+          type: string
+        reference_csp:
+          type: string
+        type_contrat:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/TypeContratEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        responsables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Responsable'
+        date_archivage:
+          type: string
+          format: date-time
+        finalise:
+          type: boolean
+        recrute:
+          type: string
+          nullable: true
+      required:
+      - date_archivage
+      - finalise
+      - intitule
+      - offer_id
+      - recrute
+      - reference_csp
+      - responsables
+      - type_contrat
     RegionEnum:
       enum:
       - '01'

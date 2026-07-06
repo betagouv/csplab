@@ -56,7 +56,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/recrutements": {
+    "/recruteur/organisme/{organisme_uuid}/recrutements-actifs": {
         parameters: {
             query?: never;
             header?: never;
@@ -64,10 +64,30 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Liste des recrutements d'un organisme
-         * @description Retourne la liste paginée des recrutements d'un organisme. Deux onglets disponibles via le paramètre `filtre` : `actifs` (recrutements en cours, défaut) et `archives` (offres archivées).
+         * Liste des recrutements actifs d'un organisme
+         * @description Retourne la liste paginée des recrutements d'un organisme.
          */
-        get: operations["recruteur_organisme_recrutements_retrieve"];
+        get: operations["recruteur_organisme_recrutements_actifs_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recruteur/organisme/{organisme_uuid}/recrutements-archives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Liste des recrutements archivés d'un organisme
+         * @description Retourne la liste paginée des recrutements archivés d'un organisme.
+         */
+        get: operations["recruteur_organisme_recrutements_archives_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -303,15 +323,6 @@ export interface components {
         GenericError: {
             error: string;
         };
-        /**
-         * @description * `CDD` - CDD
-         *     * `CDI` - CDI
-         *     * `PERMANENT` - Permanent
-         *     * `VACATION` - Vacation
-         *     * `STAGE` - Stage
-         * @enum {string}
-         */
-        KindContratEnum: "CDD" | "CDI" | "PERMANENT" | "VACATION" | "STAGE";
         Localisation: {
             zone_geographique: components["schemas"]["ZoneGeographiqueEnum"];
             pays: string;
@@ -335,25 +346,17 @@ export interface components {
             previous: string | null;
             results: components["schemas"]["CandidatureListe"][];
         };
-        PaginatedRecrutementsResponse: {
+        PaginatedRecrutementsActifsResponse: {
             count: number;
             next: string | null;
             previous: string | null;
-            results: components["schemas"]["RecrutementActif"][];
+            results: components["schemas"]["RecrutementsActifs"][];
         };
-        RecrutementActif: {
-            /** Format: uuid */
-            offer_id: string;
-            intitule: string;
-            reference_csp: string;
-            type_contrat: (components["schemas"]["TypeContratEnum"] | components["schemas"]["NullEnum"]) | null;
-            kind_contrat: (components["schemas"]["KindContratEnum"] | components["schemas"]["NullEnum"]) | null;
-            /** Format: date-time */
-            date_publication: string;
-            responsables: components["schemas"]["Responsable"][];
-            /** Format: date-time */
-            derniere_activite: string;
-            candidatures: components["schemas"]["CandidaturesActives"] | null;
+        PaginatedRecrutementsArchivesResponse: {
+            count: number;
+            next: string | null;
+            previous: string | null;
+            results: components["schemas"]["RecrutementsArchives"][];
         };
         RecrutementDetailKanban: {
             /** Format: uuid */
@@ -365,6 +368,31 @@ export interface components {
             organisme_recruteur: components["schemas"]["Organisme"];
             categorie_offre: components["schemas"]["CategorieOffreEnum"];
             etapes: components["schemas"]["EtapeRecrutementDetailedCandidatures"][];
+        };
+        RecrutementsActifs: {
+            /** Format: uuid */
+            offer_id: string;
+            intitule: string;
+            reference_csp: string;
+            type_contrat: (components["schemas"]["TypeContratEnum"] | components["schemas"]["NullEnum"]) | null;
+            responsables: components["schemas"]["Responsable"][];
+            /** Format: date-time */
+            date_publication: string;
+            candidatures: components["schemas"]["CandidaturesActives"] | null;
+            /** Format: date-time */
+            derniere_activite: string;
+        };
+        RecrutementsArchives: {
+            /** Format: uuid */
+            offer_id: string;
+            intitule: string;
+            reference_csp: string;
+            type_contrat: (components["schemas"]["TypeContratEnum"] | components["schemas"]["NullEnum"]) | null;
+            responsables: components["schemas"]["Responsable"][];
+            /** Format: date-time */
+            date_archivage: string;
+            finalise: boolean;
+            recrute: string | null;
         };
         /**
          * @description * `01` - 01
@@ -635,7 +663,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_retrieve: {
+    recruteur_organisme_recrutements_actifs_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -651,7 +679,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedRecrutementsResponse"];
+                    "application/json": components["schemas"]["PaginatedRecrutementsActifsResponse"];
                 };
             };
             400: {
@@ -668,6 +696,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_recrutements_archives_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedRecrutementsArchivesResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
                 };
             };
             500: {
