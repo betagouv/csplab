@@ -4,7 +4,7 @@ from typing import Protocol
 from uuid import UUID
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class NoteReadModel:
     entity_id: UUID
     candidature_id: UUID
