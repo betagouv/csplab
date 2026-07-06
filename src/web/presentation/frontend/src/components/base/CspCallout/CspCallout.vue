@@ -88,15 +88,26 @@ const resolvedIcon = computed(() => props.icon ?? iconByVariant[props.variant])
   --csp-callout-text: var(--text-default-grey);
   --csp-callout-icon: var(--text-action-high-grey);
 
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--csp-space-3);
   padding: var(--csp-space-4);
+  padding-left: calc(var(--csp-space-4) + 4px);
   background-color: var(--csp-callout-bg);
   border: 1px solid var(--csp-callout-border);
-  border-left: 4px solid var(--csp-callout-accent);
-  border-radius: 0.25rem;
+  border-left: none;
   color: var(--csp-callout-text);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    bottom: -1px;
+    width: 4px;
+    background-color: var(--csp-callout-accent);
+  }
 }
 
 .csp-callout__icon {
