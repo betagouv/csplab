@@ -17,9 +17,7 @@ from domain.commons.services.audit_log_writer import AuditLogWriter
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.factories.identite.organisme_factory import OrganismeFactory
-from tests.factories.recruteur.organisme_factory import (
-    EtapeRecrutementFactory,
-)
+from tests.factories.recruteur.etapes_recrutement_factory import EtapeRecrutementFactory
 
 NB_ETAPES_PAR_DEFAUT = 6
 

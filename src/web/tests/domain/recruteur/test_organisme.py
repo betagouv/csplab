@@ -9,10 +9,8 @@ from domain.recruteur.events.organisme_events import (
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
-from tests.factories.recruteur.organisme_factory import (
-    EtapeRecrutementFactory,
-    OrganismeRecruteurFactory,
-)
+from tests.factories.recruteur.etapes_recrutement_factory import EtapeRecrutementFactory
+from tests.factories.recruteur.organisme_factory import OrganismeRecruteurFactory
 
 NB_ETAPES_PAR_DEFAUT = 6
 NB_ETAPES_EN_COURS_PAR_DEFAUT = 3
