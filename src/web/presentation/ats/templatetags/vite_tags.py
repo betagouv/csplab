@@ -5,6 +5,7 @@ from pathlib import Path
 from django import template
 from django.conf import settings
 from django.templatetags.static import static
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -48,4 +49,4 @@ def vite_css(entry: str) -> str:
         f'<link rel="stylesheet" href="{static(f"frontend/{css}")}">'
         for css in css_files
     ]
-    return "\n".join(links)
+    return mark_safe("\n".join(links))  # noqa: S308

@@ -1,5 +1,6 @@
 import riAddLine from '@iconify-icons/ri/add-line'
 import riAlertFill from '@iconify-icons/ri/alert-fill'
+import riAlertLine from '@iconify-icons/ri/alert-line'
 import riArchiveLine from '@iconify-icons/ri/archive-line'
 import riArrowDownLine from '@iconify-icons/ri/arrow-down-line'
 import riArrowDownSLine from '@iconify-icons/ri/arrow-down-s-line'
@@ -24,6 +25,7 @@ import riDeleteBinLine from '@iconify-icons/ri/delete-bin-line'
 import riDraggable from '@iconify-icons/ri/draggable'
 import riEditLine from '@iconify-icons/ri/edit-line'
 import riErrorWarningFill from '@iconify-icons/ri/error-warning-fill'
+import riErrorWarningLine from '@iconify-icons/ri/error-warning-line'
 import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
 import riExternalLinkLine from '@iconify-icons/ri/external-link-line'
 import riEyeLine from '@iconify-icons/ri/eye-line'
@@ -31,6 +33,7 @@ import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
 import riGroupLine from '@iconify-icons/ri/group-line'
 import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
+import riInformationLine from '@iconify-icons/ri/information-line'
 import riLayoutColumnLine from '@iconify-icons/ri/layout-column-line'
 import riLockLine from '@iconify-icons/ri/lock-line'
 import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
@@ -41,6 +44,7 @@ import riMore2Fill from '@iconify-icons/ri/more-2-fill'
 import riNotification3Line from '@iconify-icons/ri/notification-3-line'
 import riPriceTag3Line from '@iconify-icons/ri/price-tag-3-line'
 import riPushpin2Line from '@iconify-icons/ri/pushpin-2-line'
+import riRestartLine from '@iconify-icons/ri/restart-line'
 import riSearchLine from '@iconify-icons/ri/search-line'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
@@ -50,6 +54,7 @@ import { addIcon } from '@iconify/vue'
 
 addIcon('ri:add-line', riAddLine)
 addIcon('ri:alert-fill', riAlertFill)
+addIcon('ri:alert-line', riAlertLine)
 addIcon('ri:arrow-down-line', riArrowDownLine)
 addIcon('ri:arrow-left-double-line', riArrowLeftDoubleLine)
 addIcon('ri:arrow-down-s-line', riArrowDownSLine)
@@ -76,6 +81,7 @@ addIcon('ri:delete-bin-line', riDeleteBinLine)
 addIcon('ri:draggable', riDraggable)
 addIcon('ri:edit-line', riEditLine)
 addIcon('ri:error-warning-fill', riErrorWarningFill)
+addIcon('ri:error-warning-line', riErrorWarningLine)
 addIcon('ri:expand-up-down-line', riExpandUpDownLine)
 addIcon('ri:external-link-line', riExternalLinkLine)
 addIcon('ri:eye-line', riEyeLine)
@@ -83,6 +89,7 @@ addIcon('ri:flashlight-fill', riFlashlightFill)
 addIcon('ri:group-line', riGroupLine)
 addIcon('ri:inbox-2-line', riInbox2Line)
 addIcon('ri:information-fill', riInformationFill)
+addIcon('ri:information-line', riInformationLine)
 addIcon('ri:layout-column-line', riLayoutColumnLine)
 addIcon('ri:lock-line', riLockLine)
 addIcon('ri:logout-box-r-line', riLogoutBoxRLine)
@@ -108,6 +115,7 @@ addIcon('ri:progress-4-line', {
   body: '<path fill="currentColor" d="M2 12c0 5.523 4.477 10 10 10s10-4.477 10-10S17.523 2 12 2S2 6.477 2 12m18 0a8 8 0 1 1-16 0a8 8 0 0 1 16 0m-2 0a6 6 0 0 1-6 6V6a6 6 0 0 1 6 6"/>',
 })
 addIcon('ri:pushpin-2-line', riPushpin2Line)
+addIcon('ri:restart-line', riRestartLine)
 addIcon('ri:search-line', riSearchLine)
 addIcon('ri:settings-3-line', riSettings3Line)
 addIcon('ri:spam-fill', riSpamFill)

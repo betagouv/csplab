@@ -1,5 +1,4 @@
 <script setup lang="ts" generic="T">
-import { extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import { getReorderDestinationIndex } from '@atlaskit/pragmatic-drag-and-drop-hitbox/util/get-reorder-destination-index'
 import { announce } from '@atlaskit/pragmatic-drag-and-drop-live-region'
 import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
@@ -113,10 +112,12 @@ onMounted(() => {
       if (typeof startIndex !== 'number' || typeof indexOfTarget !== 'number')
         return
 
+      const closestEdgeOfTarget: 'top' | 'bottom' = indexOfTarget > startIndex ? 'bottom' : 'top'
+
       const finishIndex = getReorderDestinationIndex({
         startIndex,
         indexOfTarget,
-        closestEdgeOfTarget: extractClosestEdge(destination.data),
+        closestEdgeOfTarget,
         axis: 'vertical',
       })
 
@@ -132,7 +133,13 @@ onMounted(() => {
       v-if="$slots.header"
       class="csp-sortable-list__header"
     >
-      <slot name="header" />
+      <span
+        class="csp-sortable-list__header-handle-spacer"
+        aria-hidden="true"
+      />
+      <div class="csp-sortable-list__header-content">
+        <slot name="header" />
+      </div>
     </div>
     <ul class="csp-sortable-list__items">
       <CspSortableListItem
@@ -165,6 +172,18 @@ onMounted(() => {
 <style scoped lang="scss">
 .csp-sortable-list__header {
   display: flex;
+  align-items: center;
+  gap: var(--csp-space-3);
+}
+
+.csp-sortable-list__header-handle-spacer {
+  flex-shrink: 0;
+  width: 1rem;
+}
+
+.csp-sortable-list__header-content {
+  display: flex;
+  flex: 1;
   align-items: center;
   gap: var(--csp-space-3);
   padding: var(--csp-space-2) var(--csp-space-4);
