@@ -164,6 +164,8 @@ export interface components {
             uuid: string;
             /** Format: date-time */
             date_soumission: string;
+            /** Format: date-time */
+            date_derniere_activite: string;
             candidat: components["schemas"]["Candidat"];
         };
         CandidatureListe: {
@@ -172,6 +174,8 @@ export interface components {
             /** Format: date-time */
             date_soumission: string;
             candidat: components["schemas"]["Candidat"];
+            /** Format: date-time */
+            date_derniere_activite: string;
             etape: components["schemas"]["EtapeRecrutement"];
         };
         CandidaturesActives: {
@@ -798,6 +802,14 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
