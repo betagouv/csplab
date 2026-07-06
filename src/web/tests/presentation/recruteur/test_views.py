@@ -34,10 +34,25 @@ INIT_ETAPES_URL = reverse(
     "recruteur:organisme-parametres-etapes-init",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
-RECRUTEMENTS_URL = reverse(
-    "recruteur:organisme-recrutements",
+UNKNOWN_ORGANISME_UUID = "ffffffff-ffff-4fff-bfff-ffffffffffff"
+
+RECRUTEMENTS_ACTIFS_URL = reverse(
+    "recruteur:organisme-recrutements-actifs",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
+UNKNOWN_RECRUTEMENTS_ACTIFS_URL = reverse(
+    "recruteur:organisme-recrutements-actifs",
+    kwargs={"organisme_uuid": UNKNOWN_ORGANISME_UUID},
+)
+RECRUTEMENTS_ARCHIVES_URL = reverse(
+    "recruteur:organisme-recrutements-archives",
+    kwargs={"organisme_uuid": ORGANISME_UUID},
+)
+UNKNOWN_RECRUTEMENTS_ARCHIVES_URL = reverse(
+    "recruteur:organisme-recrutements-archives",
+    kwargs={"organisme_uuid": UNKNOWN_ORGANISME_UUID},
+)
+
 
 # UUID du recrutement statique défini dans views.py
 RECRUTEMENT_UUID = "aaaaaaaa-0001-0001-0001-000000000001"
@@ -378,24 +393,51 @@ class TestPutEtapesRecrutementOrganismeView:
         assert response.json() == {"error": "Unexpected error"}
 
 
-class TestRecrutementsOrganismeView:
+class TestRecrutementsActifsView:
     def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.get(RECRUTEMENTS_URL)
+        response = api_client.get(RECRUTEMENTS_ACTIFS_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_returns_actifs_by_default(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENTS_URL)
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_pagination_second_page(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_container = MagicMock()
+        mock_usecase = mock_container.get_organisme_recruteur_usecase.return_value
+        mock_usecase.execute.return_value = MagicMock()
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL + "?size=2&page=2")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert "count" in data
-        assert "next" in data
-        assert "previous" in data
-        assert "results" in data
-        assert data["count"] == 6  # noqa
-        assert len(data["results"]) == 6  # noqa
+        assert len(data["results"]) == 2  # noqa
+        assert data["next"] is not None
+        assert data["previous"] is not None
 
-    def test_returns_actifs_with_explicit_filtre(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENTS_URL + "?filtre=actifs")
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_candidatures_structure(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_container = MagicMock()
+        mock_usecase = mock_container.get_organisme_recruteur_usecase.return_value
+        mock_usecase.execute.return_value = MagicMock()
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
+        data = response.json()
+        candidatures = data["results"][0]["candidatures"]
+        assert "total" in candidatures
+        assert "a_traiter" in candidatures
+        assert "en_cours" in candidatures
+
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_returns_actifs(self, mock_recruteur_container, authenticated_client):
+        mock_container = MagicMock()
+        mock_usecase = mock_container.get_organisme_recruteur_usecase.return_value
+        mock_usecase.execute.return_value = MagicMock()
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["count"] == 6  # noqa
@@ -404,40 +446,115 @@ class TestRecrutementsOrganismeView:
         assert "intitule" in first
         assert "reference_csp" in first
         assert "type_contrat" in first
-        assert "kind_contrat" in first
         assert "date_publication" in first
         assert "responsables" in first
         assert "derniere_activite" in first
         assert "candidatures" in first
 
-    def test_returns_archives_with_filtre_archives(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENTS_URL + "?filtre=archives")
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["count"] == 3  # noqa
-        first = data["results"][0]
-        assert "finalise" in first
-        assert "recrute" in first
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_returns_404_for_unknown_organisme(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
 
-    def test_candidatures_structure(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENTS_URL)
-        data = response.json()
-        candidatures = data["results"][0]["candidatures"]
-        assert "total" in candidatures
-        assert "a_traiter" in candidatures
-        assert "en_cours" in candidatures
+        mock_container = MagicMock()
+        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
 
-    def test_pagination_second_page(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENTS_URL + "?size=2&page=2")
+        response = authenticated_client.get(UNKNOWN_RECRUTEMENTS_ACTIFS_URL)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": "Not found."}
+
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_returns_500_on_unexpected_error(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = Exception("unexpected")
+
+        mock_container = MagicMock()
+        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
+
+
+class TestRecrutementsArchivesView:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = api_client.get(RECRUTEMENTS_ARCHIVES_URL)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_pagination_second_page(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_container = MagicMock()
+        mock_usecase = mock_container.get_organisme_recruteur_usecase.return_value
+        mock_usecase.execute.return_value = MagicMock()
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(
+            RECRUTEMENTS_ARCHIVES_URL + "?size=2&page=1"
+        )
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data["results"]) == 2  # noqa
         assert data["next"] is not None
-        assert data["previous"] is not None
+        assert data["previous"] is None
 
-    def test_invalid_filtre_returns_400(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENTS_URL + "?filtre=inconnu")
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_returns_archives(self, mock_recruteur_container, authenticated_client):
+        mock_container = MagicMock()
+        mock_usecase = mock_container.get_organisme_recruteur_usecase.return_value
+        mock_usecase.execute.return_value = MagicMock()
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == 3  # noqa
+        first = data["results"][0]
+        assert "offer_id" in first
+        assert "intitule" in first
+        assert "reference_csp" in first
+        assert "type_contrat" in first
+        assert "date_archivage" in first
+        assert "responsables" in first
+        assert "finalise" in first
+        assert "recrute" in first
+
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_returns_404_for_unknown_organisme(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
+
+        mock_container = MagicMock()
+        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(UNKNOWN_RECRUTEMENTS_ARCHIVES_URL)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": "Not found."}
+
+    @patch("presentation.recruteur.views.recruteur_container")
+    def test_returns_500_on_unexpected_error(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = Exception("unexpected")
+
+        mock_container = MagicMock()
+        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
 
 
 class TestRecrutementKanbanView:

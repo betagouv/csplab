@@ -1,5 +1,5 @@
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.contract_type import ContractType
 from rest_framework import serializers
 
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
@@ -20,12 +20,7 @@ class UpdateEtapeRecrutementSerializer(EtapeRecrutementSerializer):
     etape_uuid = serializers.UUIDField(required=False)
 
 
-class RecrutementsFiltersSerializer(serializers.Serializer):
-    filtre = serializers.ChoiceField(
-        choices=["actifs", "archives"],
-        default="actifs",
-        required=False,
-    )
+class RecrutementsPaginationSerializer(serializers.Serializer):
     page = serializers.IntegerField(default=1, min_value=1, required=False)
     size = serializers.IntegerField(
         default=10, min_value=1, max_value=100, required=False
@@ -42,7 +37,7 @@ class CandidaturesActivesSerializer(serializers.Serializer):
     en_cours = serializers.IntegerField(allow_null=True)
 
 
-class RecrutementSerializer(serializers.Serializer):
+class RecrutementsSerializer(serializers.Serializer):
     offer_id = serializers.UUIDField()
     intitule = serializers.CharField()
     reference_csp = serializers.CharField()
@@ -50,20 +45,17 @@ class RecrutementSerializer(serializers.Serializer):
         choices=[(c.name, c.value) for c in ContractType],
         allow_null=True,
     )
-    kind_contrat = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in ContractKind],
-        allow_null=True,
-    )
-    date_publication = serializers.DateTimeField()
     responsables = ResponsableSerializer(many=True)
+
+
+class RecrutementsActifsSerializer(RecrutementsSerializer):
+    date_publication = serializers.DateTimeField()
+    candidatures = CandidaturesActivesSerializer(allow_null=True)
     derniere_activite = serializers.DateTimeField()
 
 
-class RecrutementActifSerializer(RecrutementSerializer):
-    candidatures = CandidaturesActivesSerializer(allow_null=True)
-
-
-class RecrutementArchiveSerializer(RecrutementSerializer):
+class RecrutementsArchivesSerializer(RecrutementsSerializer):
+    date_archivage = serializers.DateTimeField()
     finalise = serializers.BooleanField()
     recrute = serializers.CharField(allow_null=True)
 

@@ -1,5 +1,7 @@
+from typing import Generic, TypeVar
 from uuid import UUID
 
+from ddd.page_interface import IPage
 from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
@@ -28,6 +30,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 )
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.commons.pagination import WebPagination
 from presentation.recruteur.mappers import (
     EtapesMapper,
     RecrutementKanbanMapper,
@@ -37,10 +40,10 @@ from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     EtapeRecrutementSerializer,
     OrganismeSerializer,
-    RecrutementActifSerializer,
-    RecrutementArchiveSerializer,
     RecrutementDetailKanbanSerializer,
-    RecrutementsFiltersSerializer,
+    RecrutementsActifsSerializer,
+    RecrutementsArchivesSerializer,
+    RecrutementsPaginationSerializer,
     UpdateEtapeRecrutementSerializer,
 )
 
@@ -48,14 +51,26 @@ from presentation.recruteur.serializers import (
 # Données statiques — TODO: remplacer par list_recrutements_usecase
 # ---------------------------------------------------------------------------
 
+T = TypeVar("T")
+
+
+class ListPage(IPage[T], Generic[T]):
+    def __init__(self, items: list[T]):
+        self._items = items
+
+    def count(self) -> int:
+        return len(self._items)
+
+    def slice(self, offset: int, limit: int):
+        return iter(self._items[offset : offset + limit])
+
+
 _STATIC_RECRUTEMENTS_ACTIFS = [
     {
         "offer_id": "aaaaaaaa-0001-0001-0001-000000000001",
         "intitule": "Chargé de mission numérique",
         "reference_csp": "REF-2025-001",
         "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "kind_contrat": None,
-        "type_offre": None,
         "date_publication": "2025-06-22T10:00:00Z",
         "responsables": [{"nom": "Marie Dupont"}],
         "derniere_activite": "2025-06-23T08:00:00Z",
@@ -66,8 +81,6 @@ _STATIC_RECRUTEMENTS_ACTIFS = [
         "intitule": "Responsable RH",
         "reference_csp": "REF-2025-002",
         "type_contrat": "CONTRACTUELS",
-        "kind_contrat": None,
-        "type_offre": None,
         "date_publication": "2025-06-22T09:00:00Z",
         "responsables": [{"nom": "Paul Bernard"}],
         "derniere_activite": "2025-06-23T07:00:00Z",
@@ -78,8 +91,6 @@ _STATIC_RECRUTEMENTS_ACTIFS = [
         "intitule": "Ingénieur infrastructure cloud",
         "reference_csp": "REF-2025-003",
         "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "kind_contrat": None,
-        "type_offre": None,
         "date_publication": "2025-06-21T14:00:00Z",
         "responsables": [{"nom": "Claire Moreau"}],
         "derniere_activite": "2025-06-22T16:00:00Z",
@@ -90,8 +101,6 @@ _STATIC_RECRUTEMENTS_ACTIFS = [
         "intitule": "Juriste droit public",
         "reference_csp": "REF-2025-004",
         "type_contrat": "TERRITORIAL",
-        "kind_contrat": None,
-        "type_offre": None,
         "date_publication": "2025-06-21T10:00:00Z",
         "responsables": [{"nom": "Marie Dupont"}, {"nom": "Paul Bernard"}],
         "derniere_activite": "2025-06-22T10:00:00Z",
@@ -102,8 +111,6 @@ _STATIC_RECRUTEMENTS_ACTIFS = [
         "intitule": "Chargé de communication",
         "reference_csp": "REF-2025-005",
         "type_contrat": "CONTRACTUELS",
-        "kind_contrat": None,
-        "type_offre": None,
         "date_publication": "2025-06-02T10:00:00Z",
         "responsables": [{"nom": "Sophie Leroy"}],
         "derniere_activite": "2025-06-20T10:00:00Z",
@@ -114,8 +121,6 @@ _STATIC_RECRUTEMENTS_ACTIFS = [
         "intitule": "Analyste budgétaire",
         "reference_csp": "REF-2025-006",
         "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "kind_contrat": None,
-        "type_offre": None,
         "date_publication": "2025-06-01T10:00:00Z",
         "responsables": [{"nom": "Claire Moreau"}],
         "derniere_activite": "2025-06-15T10:00:00Z",
@@ -129,11 +134,8 @@ _STATIC_RECRUTEMENTS_ARCHIVES = [
         "intitule": "Directeur des systèmes d'information",
         "reference_csp": "REF-2024-A01",
         "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2024-12-01T10:00:00Z",
+        "date_archivage": "2024-12-01T10:00:00Z",
         "responsables": [{"nom": "Marie Dupont"}],
-        "derniere_activite": "2025-06-23T08:00:00Z",
         "finalise": True,
         "recrute": "Sophie Leblanc",
     },
@@ -142,11 +144,8 @@ _STATIC_RECRUTEMENTS_ARCHIVES = [
         "intitule": "Chef de projet transformation numérique",
         "reference_csp": "REF-2024-A02",
         "type_contrat": "CONTRACTUELS",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2024-11-15T10:00:00Z",
+        "date_archivage": "2024-11-15T10:00:00Z",
         "responsables": [{"nom": "Paul Bernard"}],
-        "derniere_activite": "2025-06-23T08:00:00Z",
         "finalise": False,
         "recrute": None,
     },
@@ -155,11 +154,8 @@ _STATIC_RECRUTEMENTS_ARCHIVES = [
         "intitule": "Conseiller en mobilité professionnelle",
         "reference_csp": "REF-2024-A03",
         "type_contrat": "TERRITORIAL",
-        "kind_contrat": None,
-        "type_offre": None,
-        "date_publication": "2024-10-01T10:00:00Z",
+        "date_archivage": "2024-10-01T10:00:00Z",
         "responsables": [{"nom": "Claire Moreau"}],
-        "derniere_activite": "2025-01-15T10:00:00Z",
         "finalise": True,
         "recrute": "Jean Martin",
     },
@@ -327,76 +323,124 @@ class InitEtapesRecrutementOrganismeView(APIView):
 
 @extend_schema_view(
     get=extend_schema(
-        summary="Liste des recrutements d'un organisme",
-        description=(
-            "Retourne la liste paginée des recrutements d'un organisme. "
-            "Deux onglets disponibles via le paramètre `filtre` : "
-            "`actifs` (recrutements en cours, défaut) et `archives` (offres archivées)."
-        ),
+        summary="Liste des recrutements actifs d'un organisme",
+        description=("Retourne la liste paginée des recrutements d'un organisme. "),
         tags=["recruteur"],
         responses={
             200: inline_serializer(
-                name="PaginatedRecrutementsResponse",
+                name="PaginatedRecrutementsActifsResponse",
                 fields={
                     "count": drf_serializers.IntegerField(),
                     "next": drf_serializers.CharField(allow_null=True),
                     "previous": drf_serializers.CharField(allow_null=True),
-                    "results": RecrutementActifSerializer(many=True),
+                    "results": RecrutementsActifsSerializer(many=True),
                 },
             ),
             400: GenericErrorSerializer,
             401: TokenErrorSerializer,
+            404: GenericErrorSerializer,
             500: GenericErrorSerializer,
         },
     ),
 )
-class RecrutementsOrganismeView(APIView):
+class RecrutementsActifsView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = recruteur_container()
+
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
-        filters = RecrutementsFiltersSerializer(data=request.query_params)
-        if not filters.is_valid():
-            return Response(filters.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            usecase = self.container.get_organisme_recruteur_usecase()
+            usecase.execute(GetOrganismeRecruteurQuery(organisme_id=organisme_uuid))
 
-        validated: dict = filters.validated_data  # type: ignore[assignment]
-        filtre = validated["filtre"]
-        page = validated["page"]
-        size = validated["size"]
+            pagination_params = RecrutementsPaginationSerializer(
+                data=request.query_params
+            )
+            if not pagination_params.is_valid():
+                return Response(
+                    pagination_params.errors, status=status.HTTP_400_BAD_REQUEST
+                )
 
-        # TODO: remplacer par le use case list_recrutements_usecase
-        if filtre == "archives":
-            dataset: list = _STATIC_RECRUTEMENTS_ARCHIVES
-            serializer_class = RecrutementArchiveSerializer
-        else:
-            dataset = _STATIC_RECRUTEMENTS_ACTIFS
-            serializer_class = RecrutementActifSerializer
+            # TODO: remplacer par list_recrutements_usecase une fois disponible.
+            result = ListPage(_STATIC_RECRUTEMENTS_ACTIFS)
 
-        # TODO: switch to QuerySetPage once the use case is wired up.
-        # TODO: consolidate pagination logic with OffersListView
-        #       (see presentation/ingestion/views.py) rather than
-        # duplicating it here.
-        count = len(dataset)
-        offset = (page - 1) * size
-        page_data = dataset[offset : offset + size]
+            paginator = WebPagination()
+            items = paginator.paginate(result, request)
+            return paginator.get_paginated_response(
+                RecrutementsActifsSerializer(items, many=True).data
+            )
+        except OrganismeNexistePas:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-        serializer = serializer_class(page_data, many=True)
 
-        base_url = request.build_absolute_uri(request.path)
+@extend_schema_view(
+    get=extend_schema(
+        summary="Liste des recrutements archivés d'un organisme",
+        description=(
+            "Retourne la liste paginée des recrutements archivés d'un organisme. "
+        ),
+        tags=["recruteur"],
+        responses={
+            200: inline_serializer(
+                name="PaginatedRecrutementsArchivesResponse",
+                fields={
+                    "count": drf_serializers.IntegerField(),
+                    "next": drf_serializers.CharField(allow_null=True),
+                    "previous": drf_serializers.CharField(allow_null=True),
+                    "results": RecrutementsArchivesSerializer(many=True),
+                },
+            ),
+            400: GenericErrorSerializer,
+            401: TokenErrorSerializer,
+            404: GenericErrorSerializer,
+            500: GenericErrorSerializer,
+        },
+    ),
+)
+class RecrutementsArchivesView(APIView):
+    permission_classes = [IsAuthenticated]
 
-        def build_url(p: int) -> str:
-            return f"{base_url}?filtre={filtre}&page={p}&size={size}"
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = recruteur_container()
 
-        next_url = build_url(page + 1) if page * size < count else None
-        previous_url = build_url(page - 1) if page > 1 else None
+    def get(self, request: Request, organisme_uuid: UUID) -> Response:
+        try:
+            usecase = self.container.get_organisme_recruteur_usecase()
+            usecase.execute(GetOrganismeRecruteurQuery(organisme_id=organisme_uuid))
 
-        return Response(
-            {
-                "count": count,
-                "next": next_url,
-                "previous": previous_url,
-                "results": serializer.data,
-            }
-        )
+            pagination_params = RecrutementsPaginationSerializer(
+                data=request.query_params
+            )
+            if not pagination_params.is_valid():
+                return Response(
+                    pagination_params.errors, status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # TODO: remplacer par list_recrutements_archives_usecase
+            # une fois disponible.
+            result = ListPage(_STATIC_RECRUTEMENTS_ARCHIVES)
+
+            paginator = WebPagination()
+            items = paginator.paginate(result, request)
+            return paginator.get_paginated_response(
+                RecrutementsArchivesSerializer(items, many=True).data
+            )
+
+        except OrganismeNexistePas:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -612,7 +656,7 @@ class RecrutementListeView(APIView):
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
-        filters = RecrutementsFiltersSerializer(data=request.query_params)
+        filters = RecrutementsPaginationSerializer(data=request.query_params)
         if not filters.is_valid():
             return Response(filters.errors, status=status.HTTP_400_BAD_REQUEST)
 
