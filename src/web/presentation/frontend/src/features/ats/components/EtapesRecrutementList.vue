@@ -3,6 +3,7 @@ import type { EtapeRecrutement } from '../api/recrutement'
 import { onMounted, ref, watch } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspCallout from '@/components/base/CspCallout/CspCallout.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
@@ -184,85 +185,95 @@ function getMenuSections(
 
 <template>
   <div class="etapes-list">
-    <header class="etapes-list__header">
-      <h2 class="etapes-list__title">
-        Étapes de recrutement
-      </h2>
-      <div class="etapes-list__actions">
-        <CspButton
-          label="Réinitialiser"
-          icon="ri:restart-line"
-          variant="tertiary"
-          is-icon-left
-          :disabled="saving || loading"
-          @click="resetModalOpen = true"
-        />
-        <CspButton
-          label="Ajouter une étape"
-          icon="ri:add-line"
-          variant="secondary"
-          is-icon-left
-          :disabled="saving"
-          @click="openAddModal"
-        />
+    <div class="etapes-list__main">
+      <header class="etapes-list__header">
+        <h2 class="etapes-list__title">
+          Étapes de recrutement
+        </h2>
+        <div class="etapes-list__actions">
+          <CspButton
+            label="Réinitialiser"
+            icon="ri:restart-line"
+            variant="tertiary"
+            is-icon-left
+            :disabled="saving || loading"
+            @click="resetModalOpen = true"
+          />
+          <CspButton
+            label="Ajouter une étape"
+            icon="ri:add-line"
+            variant="secondary"
+            is-icon-left
+            :disabled="saving"
+            @click="openAddModal"
+          />
+        </div>
+      </header>
+
+      <div
+        v-if="loading"
+        class="etapes-list__loading"
+      >
+        Chargement...
       </div>
-    </header>
 
-    <div
-      v-if="loading"
-      class="etapes-list__loading"
-    >
-      Chargement...
+      <div
+        v-else-if="error"
+        class="etapes-list__error"
+      >
+        Une erreur est survenue lors du chargement des étapes.
+      </div>
+
+      <CspSortableList
+        v-else
+        :items="[...etapes]"
+        :get-item-key="(etape) => etape.etape_uuid"
+        :get-item-label="(etape) => etape.nom"
+        :is-item-draggable="(etape) => !isEtapeLocked(etape)"
+        :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"
+        show-position
+        @reorder="reorderEtapes"
+      >
+        <template #header>
+          <span class="etapes-list__header-ordre">Ordre</span>
+          <span class="etapes-list__header-nom">Nom de l'étape</span>
+          <span class="etapes-list__header-statut">Statut visible par le candidat</span>
+          <span class="etapes-list__header-actions" />
+        </template>
+        <template #item="{ item, index, canMoveUp, canMoveDown, moveUp, moveDown }">
+          <span class="etapes-list__item-nom">{{ item.nom }}</span>
+          <CspBadge
+            class="etapes-list__item-badge"
+            size="md"
+            :icon="CATEGORIE_BADGE[item.categorie].icon"
+            :type="CATEGORIE_BADGE[item.categorie].type"
+            :label="CATEGORIE_BADGE[item.categorie].label"
+          />
+          <CspDropdownMenu
+            :sections="getMenuSections(item, index, canMoveUp, canMoveDown, moveUp, moveDown)"
+            side="bottom"
+            align="end"
+          >
+            <template #trigger>
+              <CspButton
+                icon="ri:more-2-fill"
+                variant="tertiary-no-outline"
+                size="sm"
+                :aria-label="`Actions pour ${item.nom}`"
+              />
+            </template>
+          </CspDropdownMenu>
+        </template>
+      </CspSortableList>
     </div>
 
-    <div
-      v-else-if="error"
-      class="etapes-list__error"
-    >
-      Une erreur est survenue lors du chargement des étapes.
-    </div>
-
-    <CspSortableList
-      v-else
-      :items="[...etapes]"
-      :get-item-key="(etape) => etape.etape_uuid"
-      :get-item-label="(etape) => etape.nom"
-      :is-item-draggable="(etape) => !isEtapeLocked(etape)"
-      :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"
-      show-position
-      @reorder="reorderEtapes"
-    >
-      <template #header>
-        <span class="etapes-list__header-ordre">Ordre</span>
-        <span class="etapes-list__header-nom">Nom de l'étape</span>
-        <span class="etapes-list__header-statut">Statut visible par le candidat</span>
-        <span class="etapes-list__header-actions" />
-      </template>
-      <template #item="{ item, index, canMoveUp, canMoveDown, moveUp, moveDown }">
-        <span class="etapes-list__item-nom">{{ item.nom }}</span>
-        <CspBadge
-          class="etapes-list__item-badge"
-          size="md"
-          :icon="CATEGORIE_BADGE[item.categorie].icon"
-          :type="CATEGORIE_BADGE[item.categorie].type"
-          :label="CATEGORIE_BADGE[item.categorie].label"
-        />
-        <CspDropdownMenu
-          :sections="getMenuSections(item, index, canMoveUp, canMoveDown, moveUp, moveDown)"
-          side="bottom"
-          align="end"
-        >
-          <template #trigger>
-            <CspButton
-              icon="ri:more-2-fill"
-              variant="tertiary-no-outline"
-              size="sm"
-              :aria-label="`Actions pour ${item.nom}`"
-            />
-          </template>
-        </CspDropdownMenu>
-      </template>
-    </CspSortableList>
+    <aside class="etapes-list__aside">
+      <CspCallout
+        variant="info"
+        title="Modification des étapes de recrutement"
+        description="Ce modèle d'étapes sera appliqué par défaut à tous les nouveaux recrutements. Les modifications apportées à ce modèle ne s'appliqueront qu'aux nouvelles offres."
+      />
+    </aside>
 
     <CspDialog
       v-model:open="modalOpen"
@@ -341,6 +352,21 @@ function getMenuSections(
 </template>
 
 <style scoped lang="scss">
+.etapes-list {
+  display: flex;
+  gap: var(--csp-space-8);
+}
+
+.etapes-list__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.etapes-list__aside {
+  flex-shrink: 0;
+  width: 20rem;
+}
+
 .etapes-list__header {
   display: flex;
   align-items: center;
