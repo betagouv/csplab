@@ -1,13 +1,17 @@
 import type { RecrutementsActifs, RecrutementsArchives } from './types'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { useDebounce } from '@/composables/useDebounce'
 import { useDraft } from '@/composables/useDraft'
 import {
   responsableOptions as buildResponsableOptions,
   countActiveFilters,
   emptyRecrutementsFilters,
   matchesFilters,
+  matchesSearch,
   withAllOption,
 } from './utils/filters'
+
+const SEARCH_DEBOUNCE_MS = 250
 
 export function useRecrutementsFilters(recrutements: {
   actifs: RecrutementsActifs[]
@@ -19,16 +23,18 @@ export function useRecrutementsFilters(recrutements: {
     canReset,
     syncDraft,
     apply,
-    reset,
+    reset: resetDraft,
   } = useDraft(emptyRecrutementsFilters)
 
-  const filteredActifs = computed(() =>
-    recrutements.actifs.filter(row => matchesFilters(row, applied)),
-  )
+  const search = ref('')
+  const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS)
 
-  const filteredArchives = computed(() =>
-    recrutements.archives.filter(row => matchesFilters(row, applied)),
-  )
+  function matches(row: RecrutementsActifs | RecrutementsArchives): boolean {
+    return matchesFilters(row, applied) && matchesSearch(row, debouncedSearch.value)
+  }
+
+  const filteredActifs = computed(() => recrutements.actifs.filter(matches))
+  const filteredArchives = computed(() => recrutements.archives.filter(matches))
 
   const activeFiltersCount = computed(() => countActiveFilters(applied))
 
@@ -39,6 +45,11 @@ export function useRecrutementsFilters(recrutements: {
     ])),
   )
 
+  function reset(): void {
+    resetDraft()
+    search.value = ''
+  }
+
   return {
     draft,
     applied,
@@ -46,6 +57,7 @@ export function useRecrutementsFilters(recrutements: {
     syncDraft,
     apply,
     reset,
+    search,
     filteredActifs,
     filteredArchives,
     activeFiltersCount,
