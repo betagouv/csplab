@@ -210,6 +210,10 @@ frontend-lint-fix: ## lint and fix frontend sources
 	$(WEB_PNPM) --filter $(FRONTEND_FILTER) lint:fix
 .PHONY: frontend-lint-fix
 
+frontend-typecheck: ## run TypeScript type checking
+	$(WEB_PNPM) --filter $(FRONTEND_FILTER) typecheck
+.PHONY: frontend-typecheck
+
 storybook: ## run Storybook dev server (port 6006)
 	$(WEB_PNPM) --filter $(FRONTEND_FILTER) storybook
 .PHONY: storybook
