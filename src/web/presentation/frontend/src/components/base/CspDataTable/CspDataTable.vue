@@ -20,6 +20,7 @@ import {
 import { computed } from 'vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import CspPagination from '@/components/base/CspPagination/CspPagination.vue'
 
 const props = withDefaults(defineProps<{
   rows: TRow[]
@@ -58,7 +59,7 @@ const tableColumns = computed(() =>
     columnHelper.accessor((row: TRow) => col.accessor?.(row) ?? '', {
       id: col.id,
       enableSorting: col.sortable ?? false,
-      meta: { align: col.align, width: col.width, label: col.header },
+      meta: { align: col.align, width: col.width, label: col.header, cellComponent: col.cellComponent },
     }),
   ),
 )
@@ -371,7 +372,16 @@ function onActivate(id: string): void {
                 :value="cell.getValue()"
                 :activate="hasCellActivation ? () => onActivate(row.id) : undefined"
               >
-                {{ formatValue(cell.getValue() as CspTableCellValue) }}
+                <component
+                  :is="cell.column.columnDef.meta?.cellComponent"
+                  v-if="cell.column.columnDef.meta?.cellComponent"
+                  :row="row.original"
+                  :value="cell.getValue()"
+                  :activate="hasCellActivation ? () => onActivate(row.id) : undefined"
+                />
+                <template v-else>
+                  {{ formatValue(cell.getValue() as CspTableCellValue) }}
+                </template>
               </slot>
             </td>
           </tr>
@@ -380,13 +390,26 @@ function onActivate(id: string): void {
     </div>
 
     <div
-      v-if="$slots.footer"
+      v-if="$slots.footer || pageSize"
       class="csp-table__footer"
     >
       <slot
         name="footer"
         v-bind="paginationContext"
-      />
+      >
+        <div class="csp-table__footer-default">
+          <p class="csp-table__footer-info">
+            Affichage de {{ paginationContext.range.from }} à {{ paginationContext.range.to }} sur {{ paginationContext.total }}
+          </p>
+          <CspPagination
+            :page="paginationContext.page"
+            :page-count="paginationContext.pageCount"
+            :show-direction-labels="false"
+            :show-first-last="false"
+            @update:page="paginationContext.setPage"
+          />
+        </div>
+      </slot>
     </div>
   </div>
 </template>
@@ -562,5 +585,23 @@ function onActivate(id: string): void {
   padding: var(--csp-table-footer-padding);
   border-top: 1px solid var(--border-default-grey);
   background: var(--background-alt-grey);
+}
+
+.csp-table__footer-default {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.csp-table__footer-info {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-mention-grey);
 }
 </style>

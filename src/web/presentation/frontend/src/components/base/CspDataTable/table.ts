@@ -1,4 +1,5 @@
 import type { RowData } from '@tanstack/vue-table'
+import type { Component } from 'vue'
 
 export type CspTableAlign = 'start' | 'center' | 'end'
 
@@ -11,6 +12,7 @@ export interface CspColumnDef<TRow> {
   align?: CspTableAlign
   width?: string
   accessor?: (row: TRow) => CspTableCellValue
+  cellComponent?: Component
 }
 
 declare module '@tanstack/vue-table' {
@@ -20,5 +22,6 @@ declare module '@tanstack/vue-table' {
     align?: CspTableAlign
     width?: string
     label?: string
+    cellComponent?: Component
   }
 }
