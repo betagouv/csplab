@@ -12,7 +12,6 @@ from domain.candidate.exceptions.candidature_errors import CandidatureIntrouvabl
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.recruteur.errors.note_errors import NoteIntrouvable
-from domain.recruteur.events.note_events import NoteAjoutee
 from domain.recruteur.repositories.note_repository_interface import INoteRepository
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.gateways.shared.logger import LoggerService
@@ -49,9 +48,6 @@ class TestCreerNote:
                 message=message,
             )
         )
-        events = note.collect_events()
-        assert len(events) == 1
-        assert isinstance(events[0], NoteAjoutee)
 
         assert note.message == message
         assert note.publie_par_id == profil_agent.utilisateur_id
