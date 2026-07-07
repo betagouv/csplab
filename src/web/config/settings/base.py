@@ -104,6 +104,7 @@ INSTALLED_APPS = [
     "infrastructure.django_apps.commons",
     "presentation.ingestion",
     "presentation.candidate",
+    "presentation.identite",
     "presentation.ats",
 ]
 
@@ -256,6 +257,16 @@ LOGGING = {
             "propagate": False,
         },
         "ingestion": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "identite": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "recruteur": {
             "handlers": ["console"],
             "level": LOG_LEVEL,
             "propagate": False,
