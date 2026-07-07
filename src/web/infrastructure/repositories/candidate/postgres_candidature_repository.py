@@ -23,6 +23,11 @@ class PostgresCandidatureRepository(ICandidatureRepository):
         except CandidatureModel.DoesNotExist as e:
             raise CandidatureNexistePas(candidate_id, offer_id) from e
 
+    def exists(self, candidature_id: UUID) -> bool:
+        return CandidatureModel.objects.filter(  # type: ignore[attr-defined]
+            id=candidature_id
+        ).exists()
+
     def save(self, candidature: Candidature) -> None:
         try:
             CandidatureModel.objects.update_or_create(  # type: ignore[attr-defined]
