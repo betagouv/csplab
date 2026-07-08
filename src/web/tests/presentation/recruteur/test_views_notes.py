@@ -127,8 +127,6 @@ class TestNoteDetailView:
         assert response.status_code == status.HTTP_200_OK
         mock_usecase.execute.assert_called_once_with(
             EditerNoteCommand(
-                # TODO supprimer candidature_id
-                candidature_id=UUID(CANDIDATURE_UUID),
                 note_id=UUID(NOTE_UUID),
                 message="modifiée",
                 mis_a_jour_par_id=UUID(test_user.username),
@@ -164,8 +162,6 @@ class TestNoteDetailView:
         assert response.status_code == status.HTTP_204_NO_CONTENT
         mock_usecase.execute.assert_called_once_with(
             SupprimerNoteCommand(
-                # TODO supprimer candidature_id
-                candidature_id=UUID(CANDIDATURE_UUID),
                 note_id=UUID(NOTE_UUID),
                 supprime_par_id=UUID(test_user.username),
             )

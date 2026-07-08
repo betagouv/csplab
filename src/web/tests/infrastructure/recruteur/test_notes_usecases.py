@@ -113,7 +113,6 @@ class TestEditerNote:
 
         note = usecase.execute(
             command=EditerNoteCommand(
-                candidature_id=UUID(note_model.candidature_id),
                 note_id=note_model.id,
                 message=nouveau_message,
                 mis_a_jour_par_id=UUID(note_model.publie_par_id),
@@ -130,26 +129,9 @@ class TestEditerNote:
         with pytest.raises(NoteIntrouvable):
             usecase.execute(
                 command=EditerNoteCommand(
-                    candidature_id=uuid4(),
                     note_id=uuid4(),
                     message=fake.sentence(),
                     mis_a_jour_par_id=uuid4(),
-                )
-            )
-
-    def test_editer_note_raises_note_introuvable_when_candidature_mismatch(
-        self, db, recruteur_integration_container
-    ):
-        note_model = NoteFactory.create_model()
-        usecase = recruteur_integration_container.editer_note_usecase()
-
-        with pytest.raises(NoteIntrouvable):
-            usecase.execute(
-                command=EditerNoteCommand(
-                    candidature_id=uuid4(),
-                    note_id=note_model.id,
-                    message=fake.sentence(),
-                    mis_a_jour_par_id=UUID(note_model.publie_par_id),
                 )
             )
 
@@ -162,7 +144,6 @@ class TestEditerNote:
         with pytest.raises(NoteIntrouvable):
             usecase.execute(
                 command=EditerNoteCommand(
-                    candidature_id=UUID(note_model.candidature_id),
                     note_id=note_model.id,
                     message=fake.sentence(),
                     mis_a_jour_par_id=uuid4(),
@@ -183,7 +164,6 @@ class TestEditerNote:
         with pytest.raises(Exception, match="db error"):
             usecase.execute(
                 command=EditerNoteCommand(
-                    candidature_id=UUID(note_model.candidature_id),
                     note_id=note_model.id,
                     message=fake.sentence(),
                     mis_a_jour_par_id=UUID(note_model.publie_par_id),
@@ -198,7 +178,6 @@ class TestSupprimerNote:
 
         usecase.execute(
             command=SupprimerNoteCommand(
-                candidature_id=UUID(note_model.candidature_id),
                 note_id=note_model.id,
                 supprime_par_id=UUID(note_model.publie_par_id),
             )
@@ -215,24 +194,8 @@ class TestSupprimerNote:
         with pytest.raises(NoteIntrouvable):
             usecase.execute(
                 command=SupprimerNoteCommand(
-                    candidature_id=uuid4(),
                     note_id=uuid4(),
                     supprime_par_id=uuid4(),
-                )
-            )
-
-    def test_supprimer_note_raises_note_introuvable_when_candidature_mismatch(
-        self, db, recruteur_integration_container
-    ):
-        note_model = NoteFactory.create_model()
-        usecase = recruteur_integration_container.supprimer_note_usecase()
-
-        with pytest.raises(NoteIntrouvable):
-            usecase.execute(
-                command=SupprimerNoteCommand(
-                    candidature_id=uuid4(),
-                    note_id=note_model.id,
-                    supprime_par_id=UUID(note_model.publie_par_id),
                 )
             )
 
@@ -245,7 +208,6 @@ class TestSupprimerNote:
         with pytest.raises(NoteIntrouvable):
             usecase.execute(
                 command=SupprimerNoteCommand(
-                    candidature_id=UUID(note_model.candidature_id),
                     note_id=note_model.id,
                     supprime_par_id=uuid4(),
                 )
@@ -265,7 +227,6 @@ class TestSupprimerNote:
         with pytest.raises(Exception, match="db error"):
             usecase.execute(
                 command=SupprimerNoteCommand(
-                    candidature_id=UUID(note_model.candidature_id),
                     note_id=note_model.id,
                     supprime_par_id=UUID(note_model.publie_par_id),
                 )

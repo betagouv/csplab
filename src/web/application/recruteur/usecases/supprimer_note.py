@@ -10,7 +10,6 @@ from domain.recruteur.repositories.note_repository_interface import INoteReposit
 
 @dataclass
 class SupprimerNoteCommand:
-    candidature_id: UUID
     note_id: UUID
     supprime_par_id: UUID
 
@@ -26,11 +25,7 @@ class SupprimerNoteUsecase(IUseCase[SupprimerNoteCommand, None]):
 
     def execute(self, command: SupprimerNoteCommand) -> None:
         note = self.note_repository.get_by_id(command.note_id)
-        if (
-            # TODO supprimer candidature_id
-            note.candidature_id != command.candidature_id
-            or note.publie_par_id != command.supprime_par_id
-        ):
+        if note.publie_par_id != command.supprime_par_id:
             raise NoteIntrouvable(command.note_id)
 
         note.supprimer()
