@@ -6,8 +6,8 @@ from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
     RecrutementModel,
-    RecrutementResponsableModel,
 )
 from tests.factories.identite.agent_factory import AgentFactory
 from tests.factories.identite.organisme_factory import OrganismeFactory
@@ -58,7 +58,7 @@ class RecrutementFactory:
             organisme_id=organisme_id,
             ordre_etapes=ordre_etapes or [str(etape.entity_id) for etape in etapes],
         )
-        recrutement.save(force_insert=True)
+        recrutement.save()
 
         for etape in etapes:
             model = EtapeModel(
@@ -68,16 +68,16 @@ class RecrutementFactory:
                 nom=etape.nom,
                 ordre_candidatures=None,
             )
-            model.save(force_insert=True)
+            model.save()
 
         if responsables_agent_ids is None:
             responsables_agent_ids = (UUID(AgentFactory.create_model().utilisateur_id),)
 
         for agent_id in responsables_agent_ids:
-            RecrutementResponsableModel(
+            RecrutementAgentModel(
                 id=uuid4(),
                 recrutement=recrutement,
                 agent_id=str(agent_id),
-            ).save(force_insert=True)
+            ).save()
 
         return recrutement

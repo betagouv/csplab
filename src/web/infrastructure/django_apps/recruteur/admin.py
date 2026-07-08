@@ -15,8 +15,8 @@ from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
     RecrutementModel,
-    RecrutementResponsableModel,
 )
 from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 from infrastructure.mappers.organisme_identite_mapper import OrganismeIdentiteMapper
@@ -113,7 +113,7 @@ class NoteAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
 
 @admin.register(RecrutementModel)
 class RecrutementAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
-    list_display = ("offre_id", "organisme_id", "created_at", "updated_at")
+    list_display = ("offre", "organisme", "created_at", "updated_at")
     date_hierarchy = "created_at"
 
 
@@ -125,7 +125,11 @@ class EtapeAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     date_hierarchy = "created_at"
 
 
-@admin.register(RecrutementResponsableModel)
-class RecrutementResponsableAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
-    list_display = ("id", "recrutement", "agent", "created_at")
-    search_fields = ("recrutement_id", "utilisateur_id")
+@admin.register(RecrutementAgentModel)
+class RecrutementAgentModelAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    list_display = ("recrutement", "agent", "created_at")
+    search_fields = (
+        "recrutement__offre__reference",
+        "agent__utilisateur__first_name",
+        "agent__utilisateur__last_name",
+    )

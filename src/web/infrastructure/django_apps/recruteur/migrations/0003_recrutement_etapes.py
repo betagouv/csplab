@@ -46,18 +46,18 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='RecrutementResponsableModel',
+            name='RecrutementAgentModel',
             fields=[
                 ('id', models.UUIDField(primary_key=True, serialize=False)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('agent', models.ForeignKey(db_column='agent_id', on_delete=django.db.models.deletion.PROTECT, related_name='recrutements_responsables', to='users.profilagentmodel', to_field='utilisateur_id')),
+                ('agent', models.ForeignKey(db_column='agent_id', on_delete=django.db.models.deletion.PROTECT, related_name='recrutements_agents', to='users.profilagentmodel', to_field='utilisateur_id')),
                 ('recrutement', models.ForeignKey(db_column='recrutement_id', on_delete=django.db.models.deletion.CASCADE, related_name='responsables_liaisons', to='recruteur.recrutementmodel')),
             ],
             options={
-                'verbose_name': 'Responsable de recrutement',
-                'verbose_name_plural': 'Responsables de recrutement',
-                'db_table': 'recrutement_responsable',
+                'verbose_name': 'Agent de recrutement',
+                'verbose_name_plural': 'Agents de recrutement',
+                'db_table': 'recrutement_agent',
                 'constraints': [models.UniqueConstraint(fields=('recrutement_id', 'agent_id'), name='unique_recrutement_agent')],
             },
         ),

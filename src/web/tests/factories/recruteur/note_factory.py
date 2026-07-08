@@ -62,5 +62,5 @@ class NoteFactory:
             message=message,
         )
         model = NoteMapper().from_domain(note)
-        model.save(force_insert=True)
+        model.save()
         return model

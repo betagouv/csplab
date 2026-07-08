@@ -8,9 +8,7 @@ from infrastructure.django_apps.users.models import (
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
-class RecrutementModel(BaseDatedModel):
-    # Override the inherited id field to use the same PK as the related OfferModel
-    id = None  # type: ignore[assignment]
+class RecrutementModel(models.Model):
     offre = models.OneToOneField(
         OfferModel,
         on_delete=models.PROTECT,
@@ -31,6 +29,8 @@ class RecrutementModel(BaseDatedModel):
             "EtapeModel.recrutement (FK), jamais par ce champ."
         ),
     )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "recrutement"
@@ -38,10 +38,10 @@ class RecrutementModel(BaseDatedModel):
         verbose_name_plural = "Recrutements"
 
     def __str__(self) -> str:
-        return str(self.id)
+        return str(self.offre)
 
 
-class RecrutementResponsableModel(BaseDatedModel):
+class RecrutementAgentModel(BaseDatedModel):
     recrutement = models.ForeignKey(
         RecrutementModel,
         on_delete=models.CASCADE,
@@ -53,13 +53,13 @@ class RecrutementResponsableModel(BaseDatedModel):
         to_field="utilisateur_id",
         on_delete=models.PROTECT,
         db_column="agent_id",
-        related_name="recrutements_responsables",
+        related_name="recrutements_agents",
     )
 
     class Meta:
-        db_table = "recrutement_responsable"
-        verbose_name = "Responsable de recrutement"
-        verbose_name_plural = "Responsables de recrutement"
+        db_table = "recrutement_agent"
+        verbose_name = "Agent de recrutement"
+        verbose_name_plural = "Agents de recrutement"
         constraints = [
             models.UniqueConstraint(
                 fields=["recrutement_id", "agent_id"],

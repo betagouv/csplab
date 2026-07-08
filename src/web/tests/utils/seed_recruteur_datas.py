@@ -81,12 +81,8 @@ def _delete_seed_data() -> None:
     )
     CandidatureModel.objects.filter(offre_id__in=seed_offer_ids).delete()
 
-    # Recrutements du seed : supprimés avant offres/organisme (FK PROTECT).
-    # La suppression cascade sur EtapeModel et RecrutementResponsableModel.
     RecrutementModel.objects.filter(offre_id__in=seed_offer_ids).delete()  # type: ignore[attr-defined]
 
-    # ProfilAgentModel/ProfilCandidatModel utilisent to_field="username" :
-    # utilisateur_id stocke le username (UUID entité), pas le PK id.
     seed_usernames = list(
         UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).values_list(
             "username", flat=True
@@ -270,9 +266,9 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         RecrutementFactory.create_model(
             offre_id=offre.id,
             organisme_id=_ORGANISME_UUID,
-            responsables_agent_ids=(UUID(agents[index % len(agents)].utilisateur_id),),
+            responsables_agent_ids=(UUID(agents[0].utilisateur_id),),
         )
-        for index, offre in enumerate(offres_actives)
+        for offre in offres_actives
     ]
 
     return {
