@@ -1,9 +1,11 @@
 from django.urls import path
 
-from presentation.recruteur.views import (
+from presentation.recruteur.views.organismes import (
     EtapesRecrutementOrganismeView,
     InitEtapesRecrutementOrganismeView,
     OrganismeView,
+)
+from presentation.recruteur.views.recrutements import (
     RecrutementKanbanView,
     RecrutementListeView,
     RecrutementsActifsView,
