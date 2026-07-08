@@ -4,7 +4,7 @@ from typing import Protocol
 from uuid import UUID
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class NoteReadModel:
     entity_id: UUID
     candidature_id: UUID
@@ -16,4 +16,4 @@ class NoteReadModel:
 
 
 class INoteQueryService(Protocol):
-    def list_for_candidature(self, candidature_id: UUID) -> list[NoteReadModel]: ...
+    def get_by_candidature(self, candidature_id: UUID) -> list[NoteReadModel]: ...

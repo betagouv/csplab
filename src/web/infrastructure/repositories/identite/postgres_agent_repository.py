@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
@@ -13,6 +15,11 @@ class PostgresAgentRepository(IAgentRepository):
             return profil.to_entity()
         except ProfilAgentModel.DoesNotExist:
             return None
+
+    def exists(self, agent_id: UUID) -> bool:
+        return ProfilAgentModel.objects.filter(
+            utilisateur__username=str(agent_id)
+        ).exists()
 
     def create(self, utilisateur: Utilisateur, agent: Agent) -> Agent:
         ProfilAgentModel.from_entity(utilisateur, agent).save()

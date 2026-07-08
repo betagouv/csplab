@@ -19,6 +19,12 @@ class CandidatureNexistePas(CandidatureError):
         )
 
 
+class CandidatureIntrouvable(CandidatureError):
+    def __init__(self, candidature_id: UUID):
+        self.candidature_id = candidature_id
+        super().__init__(f"La candidature {candidature_id} est introuvable")
+
+
 class CandidatureDejaSoumise(CandidatureError):
     def __init__(self, candidat_id: UUID, offre_id: UUID):
         super().__init__(
