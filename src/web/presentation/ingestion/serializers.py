@@ -226,7 +226,7 @@ class ConditionsInputSerializer(serializers.Serializer):
         choices=[(c.name, c.value) for c in WorkingPlace],
     )
     management = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in Management],
+        choices=[(c.name, c.value) for c in Management], required=False
     )
     complements = serializers.CharField(max_length=1500, required=False)
     bases_legales = serializers.CharField(max_length=1500, required=False)
