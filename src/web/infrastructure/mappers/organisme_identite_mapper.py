@@ -10,7 +10,7 @@ from referentiel.value_objects.verse import Verse
 
 from domain.identite.entities.organisme import Organisme
 from domain.identite.value_objects.siret import SIRET
-from infrastructure.django_apps.recruteur.models import OrganismeModel
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 
 
 class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):

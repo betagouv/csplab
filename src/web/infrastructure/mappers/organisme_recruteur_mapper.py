@@ -7,7 +7,7 @@ from domain.recruteur.entities.organisme_recruteur import OrganismeRecruteur
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
-from infrastructure.django_apps.recruteur.models import OrganismeModel
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 
 
 class OrganismeRecruteurMapper(IFromDomainMapper, IToDomainMapper):

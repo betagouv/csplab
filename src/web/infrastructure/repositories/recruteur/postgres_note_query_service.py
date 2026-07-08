@@ -4,7 +4,7 @@ from domain.recruteur.services.note_query_service_interface import (
     INoteQueryService,
     NoteReadModel,
 )
-from infrastructure.django_apps.recruteur.models import NoteModel
+from infrastructure.django_apps.recruteur.models.note import NoteModel
 
 
 class PostgresNoteQueryService(INoteQueryService):

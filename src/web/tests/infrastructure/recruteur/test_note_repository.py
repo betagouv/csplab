@@ -9,7 +9,7 @@ from faker import Faker
 from config.app_config import AppConfig
 from domain.recruteur.errors.note_errors import NoteIntrouvable
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
-from infrastructure.django_apps.recruteur.models import NoteModel
+from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.note_mapper import NoteMapper
 from infrastructure.repositories.recruteur.postgres_note_repository import (

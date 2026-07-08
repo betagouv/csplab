@@ -3,7 +3,7 @@ from uuid import UUID
 from ddd.mapper_interface import IFromDomainMapper, IToDomainMapper
 
 from domain.recruteur.entities.note import Note
-from infrastructure.django_apps.recruteur.models import NoteModel
+from infrastructure.django_apps.recruteur.models.note import NoteModel
 
 
 class NoteMapper(IFromDomainMapper, IToDomainMapper):

@@ -6,7 +6,7 @@ from django.utils import timezone
 from domain.recruteur.entities.note import Note
 from domain.recruteur.errors.note_errors import NoteIntrouvable
 from domain.recruteur.repositories.note_repository_interface import INoteRepository
-from infrastructure.django_apps.recruteur.models import NoteModel
+from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.mappers.note_mapper import NoteMapper
 
 

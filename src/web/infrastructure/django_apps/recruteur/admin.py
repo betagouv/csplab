@@ -11,7 +11,13 @@ from application.identite.usecases.create_organisme import CreateOrganismeComman
 from domain.identite.errors.organisme_errors import SiretInvalide
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_factory import create_identite_container
-from infrastructure.django_apps.recruteur.models import NoteModel, OrganismeModel
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.recruteur.models.note import NoteModel
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
+    RecrutementModel,
+)
 from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 from infrastructure.mappers.organisme_identite_mapper import OrganismeIdentiteMapper
 
@@ -103,3 +109,27 @@ class NoteAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ("candidature", "publie_par", "created_at", "supprimee_le")
     list_filter = ("created_at", "supprimee_le")
     date_hierarchy = "created_at"
+
+
+@admin.register(RecrutementModel)
+class RecrutementAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    list_display = ("offre", "organisme", "created_at", "updated_at")
+    date_hierarchy = "created_at"
+
+
+@admin.register(EtapeModel)
+class EtapeAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    list_display = ("id", "recrutement", "categorie", "nom")
+    list_filter = ("categorie",)
+    search_fields = ("nom",)
+    date_hierarchy = "created_at"
+
+
+@admin.register(RecrutementAgentModel)
+class RecrutementAgentModelAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    list_display = ("recrutement", "agent", "created_at")
+    search_fields = (
+        "recrutement__offre__reference",
+        "agent__utilisateur__first_name",
+        "agent__utilisateur__last_name",
+    )
