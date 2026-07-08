@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.verse import Verse
@@ -8,6 +8,7 @@ from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.users.models import (
@@ -19,6 +20,8 @@ from tests.factories.candidate.candidature_factory import CandidatureFactory
 from tests.factories.identite.agent_factory import AgentFactory
 from tests.factories.identite.candidat_factory import CandidatFactory
 from tests.factories.identite.organisme_factory import OrganismeFactory
+from tests.factories.recruteur.etapes_recrutement_factory import EtapeRecrutementFactory
+from tests.factories.recruteur.recrutement_factory import RecrutementFactory
 from tests.factories.referentiel.metier_factory import MetierFactory
 from tests.factories.referentiel.offer_factory import OfferFactory
 
@@ -78,6 +81,10 @@ def _delete_seed_data() -> None:
     )
     CandidatureModel.objects.filter(offre_id__in=seed_offer_ids).delete()
 
+    # Recrutements du seed : supprimés avant offres/organisme (FK PROTECT).
+    # La suppression cascade sur EtapeModel et RecrutementResponsableModel.
+    RecrutementModel.objects.filter(offre_id__in=seed_offer_ids).delete()  # type: ignore[attr-defined]
+
     # ProfilAgentModel/ProfilCandidatModel utilisent to_field="username" :
     # utilisateur_id stocke le username (UUID entité), pas le PK id.
     seed_usernames = list(
@@ -111,18 +118,8 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         versant=Verse.FPE,
         siret=SIRET(_ORGANISME_SIRET),
     )
-    default_etapes = [
-        {
-            "entity_id": str(uuid4()),
-            "categorie": "entree",
-            "nom": "Réception des candidatures",
-        },
-        {"entity_id": str(uuid4()), "categorie": "en_cours", "nom": "Présélection"},
-        {"entity_id": str(uuid4()), "categorie": "en_cours", "nom": "Entretien"},
-        {"entity_id": str(uuid4()), "categorie": "en_cours", "nom": "Proposition"},
-        {"entity_id": str(uuid4()), "categorie": "refus", "nom": "Refus"},
-        {"entity_id": str(uuid4()), "categorie": "accepte", "nom": "Recrutement"},
-    ]
+    default_etapes = EtapeRecrutementFactory.create_entities()
+
     OrganismeModel.objects.filter(id=_ORGANISME_UUID).update(etapes=default_etapes)
 
     # ------------------------------------------------------------------ #
@@ -142,8 +139,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # ------------------------------------------------------------------ #
     # 3. Agents / recruteurs                                               #
     # ------------------------------------------------------------------ #
-    for spec in _AGENTS_SPECS:
-        AgentFactory.create_model(**spec)
+    agents = [AgentFactory.create_model(**spec) for spec in _AGENTS_SPECS]
 
     # ------------------------------------------------------------------ #
     # 4. Offres actives (6)                                                #
@@ -258,11 +254,25 @@ def seed_recruteur_datas(force: bool = False) -> dict:
             statut=statut,
         )
 
+    # ------------------------------------------------------------------ #
+    # 8. Recrutements (1 par offre active) : étapes + responsables         #
+    # ------------------------------------------------------------------ #
+    recrutements = [
+        RecrutementFactory.create_model(
+            offre_id=offre.id,
+            organisme_id=_ORGANISME_UUID,
+            etapes=default_etapes,
+            responsables_agent_ids=(UUID(agents[index % len(agents)].utilisateur_id),),
+        )
+        for index, offre in enumerate(offres_actives)
+    ]
+
     return {
         "status": "seeded",
         "organisme_id": str(organisme.id),
         "nb_offres_actives": len(offres_actives),
         "nb_offres_archivees": 3,
         "nb_candidats": len(candidats),
-        "nb_agents": 3,
+        "nb_agents": len(agents),
+        "nb_recrutements": len(recrutements),
     }
