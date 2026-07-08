@@ -60,7 +60,6 @@ urlpatterns = [
         name="candidature-notes",
     ),
     path(
-        # TODO supprimer candidature_id
         "candidature/<uuid:candidature_uuid>/notes/<uuid:note_uuid>",
         CandidatureNoteDetailView.as_view(),
         name="candidature-note-detail",
