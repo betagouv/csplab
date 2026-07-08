@@ -11,7 +11,8 @@ from application.identite.usecases.create_organisme import CreateOrganismeComman
 from domain.identite.errors.organisme_errors import SiretInvalide
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_factory import create_identite_container
-from infrastructure.django_apps.recruteur.models import NoteModel, OrganismeModel
+from infrastructure.django_apps.recruteur.models.note import NoteModel
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 from infrastructure.mappers.organisme_identite_mapper import OrganismeIdentiteMapper
 

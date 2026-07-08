@@ -3,6 +3,7 @@ from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel  # noqa: F401
 
 
 class EtapeRecrutementFactory:

@@ -5,7 +5,7 @@ from faker import Faker
 
 from domain.recruteur.entities.note import Note
 from domain.recruteur.services.note_query_service_interface import NoteReadModel
-from infrastructure.django_apps.recruteur.models import NoteModel
+from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.mappers.note_mapper import NoteMapper
 from tests.factories.candidate.candidature_factory import CandidatureFactory
 from tests.factories.identite.agent_factory import AgentFactory
