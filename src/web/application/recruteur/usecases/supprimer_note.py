@@ -27,6 +27,7 @@ class SupprimerNoteUsecase(IUseCase[SupprimerNoteCommand, None]):
     def execute(self, command: SupprimerNoteCommand) -> None:
         note = self.note_repository.get_by_id(command.note_id)
         if (
+            # TODO supprimer candidature_id
             note.candidature_id != command.candidature_id
             or note.publie_par_id != command.supprime_par_id
         ):

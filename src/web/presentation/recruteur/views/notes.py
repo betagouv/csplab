@@ -144,6 +144,7 @@ class CandidatureNoteDetailView(APIView):
             usecase = self.container.editer_note_usecase()
             note = usecase.execute(
                 EditerNoteCommand(
+                    # TODO supprimer candidature_id
                     candidature_id=candidature_uuid,
                     note_id=note_uuid,
                     message=serializer.validated_data["message"],
@@ -166,6 +167,7 @@ class CandidatureNoteDetailView(APIView):
             usecase = self.container.supprimer_note_usecase()
             usecase.execute(
                 SupprimerNoteCommand(
+                    # TODO supprimer candidature_id
                     candidature_id=candidature_uuid,
                     note_id=note_uuid,
                     supprime_par_id=UUID(request.user.username),

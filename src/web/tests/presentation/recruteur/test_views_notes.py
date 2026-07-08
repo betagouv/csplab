@@ -23,6 +23,7 @@ NOTES_URL = reverse(
 )
 NOTE_DETAIL_URL = reverse(
     "recruteur:candidature-note-detail",
+    # TODO supprimer candidature_id
     kwargs={"candidature_uuid": CANDIDATURE_UUID, "note_uuid": NOTE_UUID},
 )
 
@@ -126,6 +127,7 @@ class TestNoteDetailView:
         assert response.status_code == status.HTTP_200_OK
         mock_usecase.execute.assert_called_once_with(
             EditerNoteCommand(
+                # TODO supprimer candidature_id
                 candidature_id=UUID(CANDIDATURE_UUID),
                 note_id=UUID(NOTE_UUID),
                 message="modifiée",
@@ -162,6 +164,7 @@ class TestNoteDetailView:
         assert response.status_code == status.HTTP_204_NO_CONTENT
         mock_usecase.execute.assert_called_once_with(
             SupprimerNoteCommand(
+                # TODO supprimer candidature_id
                 candidature_id=UUID(CANDIDATURE_UUID),
                 note_id=UUID(NOTE_UUID),
                 supprime_par_id=UUID(test_user.username),

@@ -29,6 +29,7 @@ class EditerNoteUsecase(IUseCase[EditerNoteCommand, Note]):
     def execute(self, command: EditerNoteCommand) -> Note:
         note = self.note_repository.get_by_id(command.note_id)
         if (
+            # TODO supprimer candidature_id
             note.candidature_id != command.candidature_id
             or note.publie_par_id != command.mis_a_jour_par_id
         ):
