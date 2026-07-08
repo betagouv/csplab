@@ -118,9 +118,18 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         versant=Verse.FPE,
         siret=SIRET(_ORGANISME_SIRET),
     )
-    default_etapes = EtapeRecrutementFactory.create_entities()
+    default_etapes_entities = EtapeRecrutementFactory.create_entities()
 
-    OrganismeModel.objects.filter(id=_ORGANISME_UUID).update(etapes=default_etapes)
+    OrganismeModel.objects.filter(id=_ORGANISME_UUID).update(
+        etapes=[
+            {
+                "entity_id": str(e.entity_id),
+                "categorie": e.categorie.value,
+                "nom": e.nom,
+            }
+            for e in default_etapes_entities
+        ]
+    )
 
     # ------------------------------------------------------------------ #
     # 2. Métiers                                                         #
@@ -261,7 +270,6 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         RecrutementFactory.create_model(
             offre_id=offre.id,
             organisme_id=_ORGANISME_UUID,
-            etapes=default_etapes,
             responsables_agent_ids=(UUID(agents[index % len(agents)].utilisateur_id),),
         )
         for index, offre in enumerate(offres_actives)

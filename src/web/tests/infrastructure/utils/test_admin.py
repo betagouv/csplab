@@ -1,5 +1,6 @@
 import pytest
 from django.contrib import admin
+from django.db import models
 from django.test import RequestFactory
 
 import config.urls  # noqa: F401  # side effect: ensures admin modules are registered
@@ -45,5 +46,7 @@ class TestReadOnlyAdmin:
 
     def test_all_fields_are_readonly(self, model, request_):
         admin_obj = self._admin(model)
-        expected = [f.name for f in model._meta.get_fields()]
+        expected = [
+            f.name for f in model._meta.get_fields() if isinstance(f, models.Field)
+        ]
         assert list(admin_obj.get_readonly_fields(request_)) == expected
