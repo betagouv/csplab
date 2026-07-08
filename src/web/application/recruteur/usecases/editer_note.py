@@ -11,7 +11,6 @@ from domain.recruteur.repositories.note_repository_interface import INoteReposit
 
 @dataclass
 class EditerNoteCommand:
-    candidature_id: UUID
     note_id: UUID
     message: str
     mis_a_jour_par_id: UUID
@@ -28,10 +27,8 @@ class EditerNoteUsecase(IUseCase[EditerNoteCommand, Note]):
 
     def execute(self, command: EditerNoteCommand) -> Note:
         note = self.note_repository.get_by_id(command.note_id)
-        if (
-            note.candidature_id != command.candidature_id
-            or note.publie_par_id != command.mis_a_jour_par_id
-        ):
+        # TODO : refactor with upcoming RBAC
+        if note.publie_par_id != command.mis_a_jour_par_id:
             raise NoteIntrouvable(command.note_id)
 
         note.modifier(message=command.message)

@@ -138,7 +138,6 @@ class TestEditerNote:
 
         edited = usecase.execute(
             EditerNoteCommand(
-                candidature_id=note.candidature_id,
                 note_id=note.entity_id,
                 message=fake.sentence(),
                 mis_a_jour_par_id=note.publie_par_id,
@@ -160,7 +159,6 @@ class TestEditerNote:
         with pytest.raises(Exception, match="db error"):
             usecase.execute(
                 EditerNoteCommand(
-                    candidature_id=uuid4(),
                     note_id=uuid4(),
                     message=fake.sentence(),
                     mis_a_jour_par_id=uuid4(),
@@ -182,7 +180,6 @@ class TestSupprimerNote:
 
         usecase.execute(
             SupprimerNoteCommand(
-                candidature_id=note.candidature_id,
                 note_id=note.entity_id,
                 supprime_par_id=note.publie_par_id,
             )
@@ -205,7 +202,6 @@ class TestSupprimerNote:
         with pytest.raises(Exception, match="db error"):
             usecase.execute(
                 SupprimerNoteCommand(
-                    candidature_id=note.candidature_id,
                     note_id=note.entity_id,
                     supprime_par_id=note.publie_par_id,
                 )
