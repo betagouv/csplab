@@ -20,10 +20,8 @@ defineProps<{
 <style scoped lang="scss">
 .candidatures-kanban-board {
   display: flex;
-  gap: var(--csp-space-4);
+  gap: var(--csp-space-3);
   overflow-x: auto;
-  padding: var(--csp-space-4);
-  background-color: var(--background-alt-grey);
-  border-radius: 0.25rem;
+  padding-bottom: var(--csp-space-2);
 }
 </style>

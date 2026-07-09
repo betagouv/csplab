@@ -31,7 +31,7 @@ defineProps<{
   padding: var(--csp-space-4);
   background-color: var(--background-default-grey);
   border-radius: 0.25rem;
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 6%), inset 0 0 0 1px var(--border-default-grey);
 }
 
 .candidature-kanban-card__name {

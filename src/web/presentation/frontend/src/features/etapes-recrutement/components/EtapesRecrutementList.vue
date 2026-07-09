@@ -11,7 +11,7 @@ import CspSortableList from '@/components/base/CspSortableList/CspSortableList.v
 import { useToast } from '@/composables/ui/useToast'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { useEtapesRecrutement } from '../composables/useEtapesRecrutement'
-import { CATEGORIE_BADGE } from '../constants/etape-recrutement'
+import { CATEGORIE_CONFIG } from '../constants/etape-recrutement'
 
 const {
   etapes,
@@ -244,9 +244,9 @@ function getMenuSections(
           <CspBadge
             class="etapes-list__item-badge"
             size="md"
-            :icon="CATEGORIE_BADGE[item.categorie].icon"
-            :type="CATEGORIE_BADGE[item.categorie].type"
-            :label="CATEGORIE_BADGE[item.categorie].label"
+            :icon="CATEGORIE_CONFIG[item.categorie].icon"
+            :type="CATEGORIE_CONFIG[item.categorie].type"
+            :label="CATEGORIE_CONFIG[item.categorie].label"
           />
           <CspDropdownMenu
             :sections="getMenuSections(item, index, canMoveUp, canMoveDown, moveUp, moveDown)"
