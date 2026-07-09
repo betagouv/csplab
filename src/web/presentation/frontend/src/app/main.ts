@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/vue'
+import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { routes } from '@/router'
@@ -12,6 +13,7 @@ const router = createRouter({
 })
 
 const app = createApp(App)
+app.use(createPinia())
 app.use(router)
 
 if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
