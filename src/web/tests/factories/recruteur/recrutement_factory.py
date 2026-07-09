@@ -1,6 +1,12 @@
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
+from application.recruteur.dtos.recrutement_read_models import (
+    CandidaturesCompteurDto,
+    RecrutementActifsReadModel,
+    RecrutementArchivesReadModel,
+    ResponsableDto,
+)
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
@@ -36,6 +42,51 @@ class RecrutementFactory:
             status=status or StatutRecrutement.ACTIF,
             candidat_recrute_id=candidat_recrute_id,
             derniere_activite_le=derniere_activite_le or datetime.now(tz=timezone.utc),
+        )
+
+    @staticmethod
+    def create_actif_read_model(
+        offer_id: UUID | None = None,
+        intitule: str | None = None,
+        reference_csp: str | None = None,
+        type_contrat: str | None = None,
+        date_publication: datetime | None = None,
+        responsables: list[ResponsableDto] | None = None,
+        derniere_activite: datetime | None = None,
+        candidatures: CandidaturesCompteurDto | None = None,
+    ) -> RecrutementActifsReadModel:
+        return RecrutementActifsReadModel(
+            offer_id=offer_id or uuid4(),
+            intitule=intitule or "",
+            reference_csp=reference_csp or "",
+            type_contrat=type_contrat or "TITULAIRE_CONTRACTUEL",
+            date_publication=date_publication or datetime.now(tz=timezone.utc),
+            responsables=responsables or [ResponsableDto(nom="Dupont")],
+            derniere_activite=derniere_activite or datetime.now(tz=timezone.utc),
+            candidatures=candidatures
+            or CandidaturesCompteurDto(total=0, a_traiter=0, en_cours=0),
+        )
+
+    @staticmethod
+    def create_archive_read_model(
+        offer_id: UUID | None = None,
+        intitule: str | None = None,
+        reference_csp: str | None = None,
+        type_contrat: str | None = None,
+        date_archivage: datetime | None = None,
+        responsables: list[ResponsableDto] | None = None,
+        finalise: bool = False,
+        recrute: str | None = None,
+    ) -> RecrutementArchivesReadModel:
+        return RecrutementArchivesReadModel(
+            offer_id=offer_id or uuid4(),
+            intitule=intitule or "",
+            reference_csp=reference_csp or "",
+            type_contrat=type_contrat or "TITULAIRE_CONTRACTUEL",
+            date_archivage=date_archivage or datetime.now(tz=timezone.utc),
+            responsables=responsables or [ResponsableDto(nom="Dupont")],
+            finalise=finalise,
+            recrute=recrute,
         )
 
     @staticmethod

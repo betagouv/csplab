@@ -15,13 +15,14 @@ _FROZEN_TS = datetime.now(tz=timezone.utc)
 def test_candidature_recruteur_recue() -> None:
     recrutement_id = uuid4()
     etape_id = uuid4()
+    candidat_id = uuid4()
 
     candidature = CandidatureRecruteurFactory.create_entity(
         recrutement_id=recrutement_id,
         etape_id=etape_id,
         derniere_activite_le=_FROZEN_TS,
     )
-    candidature.recevoir_candidature(etape_id=etape_id)
+    candidature.recevoir_candidature(etape_id=etape_id, candidat_id=candidat_id)
 
     events = candidature.collect_events()
     assert len(events) == 1
@@ -30,3 +31,4 @@ def test_candidature_recruteur_recue() -> None:
     assert candidature.recrutement_id == recrutement_id
     assert candidature.etape_id == etape_id
     assert candidature.derniere_activite_le == _FROZEN_TS
+    assert candidature.candidat_id == candidat_id
