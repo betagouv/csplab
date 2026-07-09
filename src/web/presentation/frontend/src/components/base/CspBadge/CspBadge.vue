@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
 import { computed } from 'vue'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 type CspBadgeProps = {
   size?: 'sm' | 'md' | 'lg'
@@ -60,10 +60,9 @@ const resolvedIcon = computed(() => {
     <span
       v-if="resolvedIcon"
     >
-      <Icon
-        :icon="resolvedIcon"
-        :width="12"
-        :height="12"
+      <CspIcon
+        :name="resolvedIcon"
+        :size="12"
         aria-hidden="true"
         class="badge__icon"
       />

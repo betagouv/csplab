@@ -16,6 +16,11 @@ function parse(iso: string): Date | null {
 
 const autoDay = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' })
 const alwaysDay = new Intl.RelativeTimeFormat('fr', { numeric: 'always' })
+const longDate = new Intl.DateTimeFormat('fr-FR', {
+  day: '2-digit',
+  month: 'long',
+  year: 'numeric',
+})
 
 export function formatElapsedDays(iso: string, now: Date = new Date()): string {
   const date = parse(iso)
@@ -24,4 +29,12 @@ export function formatElapsedDays(iso: string, now: Date = new Date()): string {
   }
   const days = calendarDaysBetween(date, now)
   return days <= 0 ? autoDay.format(0, 'day') : alwaysDay.format(-days, 'day')
+}
+
+export function formatDateLong(iso: string): string {
+  const date = parse(iso)
+  if (!date) {
+    return PLACEHOLDER
+  }
+  return longDate.format(date)
 }
