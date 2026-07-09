@@ -3,21 +3,35 @@ import type { EtapeRecrutementDetailedCandidatures } from '../types'
 import { computed, ref } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
+import { useDropTargetKanbanColumn } from '@/composables/dnd/useKanbanDnd'
 import { CATEGORIE_CONFIG } from '@/features/etapes-recrutement/constants/etape-recrutement'
 import CandidatureKanbanCard from './CandidatureKanbanCard.vue'
 
 const props = defineProps<{
   etape: EtapeRecrutementDetailedCandidatures
+  boardId: string
 }>()
 
 const categorieConfig = computed(() => CATEGORIE_CONFIG[props.etape.categorie])
 const isSelected = ref(false)
+
+const columnRef = ref<HTMLElement | null>(null)
+
+const { isDraggedOver } = useDropTargetKanbanColumn({
+  element: columnRef,
+  boardId: props.boardId,
+  columnId: props.etape.etape_uuid,
+})
 </script>
 
 <template>
   <section
+    ref="columnRef"
     class="candidature-kanban-column"
-    :class="`candidature-kanban-column--${categorieConfig.cssModifier}`"
+    :class="[
+      `candidature-kanban-column--${categorieConfig.cssModifier}`,
+      { 'candidature-kanban-column--drag-over': isDraggedOver },
+    ]"
   >
     <header class="candidature-kanban-column__header">
       <h2 class="candidature-kanban-column__title">
@@ -39,11 +53,16 @@ const isSelected = ref(false)
     </header>
     <ul class="candidature-kanban-column__cards">
       <li
-        v-for="candidature in etape.candidatures"
+        v-for="(candidature, index) in etape.candidatures"
         :key="candidature.uuid"
         class="candidature-kanban-column__card-item"
       >
-        <CandidatureKanbanCard :candidature="candidature" />
+        <CandidatureKanbanCard
+          :candidature="candidature"
+          :board-id="boardId"
+          :column-id="etape.etape_uuid"
+          :card-index="index"
+        />
       </li>
     </ul>
     <footer class="candidature-kanban-column__hint">
@@ -86,6 +105,10 @@ const isSelected = ref(false)
 
 .candidature-kanban-column--accepte {
   border-top-color: var(--border-plain-success);
+}
+
+.candidature-kanban-column--drag-over {
+  background-color: var(--background-contrast-grey);
 }
 
 .candidature-kanban-column__header {

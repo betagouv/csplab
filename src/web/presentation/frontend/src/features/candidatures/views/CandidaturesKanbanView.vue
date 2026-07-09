@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
+import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
 import { computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
@@ -17,7 +18,18 @@ const {
   pending,
   error,
   load,
+  moveCandidature,
 } = useCandidaturesKanban(TEMP_ORGANISME_UUID, recrutementUuid)
+
+const boardId = computed(() => `kanban-${recrutementUuid.value}`)
+
+function handleMove(event: KanbanDropEvent) {
+  moveCandidature({
+    sourceColumnId: event.sourceColumnId,
+    targetColumnId: event.targetColumnId,
+    cardId: event.cardId,
+  })
+}
 
 onMounted(() => {
   void load()
@@ -67,7 +79,11 @@ const isNotFound = computed(() => !pending.value && (Boolean(error.value) || !ka
       <p class="candidatures-kanban-view__count">
         {{ countLabel }}
       </p>
-      <CandidaturesKanbanBoard :etapes="etapes" />
+      <CandidaturesKanbanBoard
+        :etapes="etapes"
+        :board-id="boardId"
+        @move="handleMove"
+      />
     </template>
   </div>
 </template>

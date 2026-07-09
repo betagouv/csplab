@@ -100,4 +100,35 @@ describe('useCandidaturesKanban', () => {
     expect(error.value).toBeInstanceOf(Error)
     expect(kanban.value).toBeNull()
   })
+
+  it('moves a candidature between etapes', async () => {
+    const { etapes, load, moveCandidature } = useCandidaturesKanban(ORGANISME_UUID, RECRUTEMENT_UUID)
+    await load()
+
+    const sourceColumnId = 'cccccccc-0001-0001-0001-000000000001'
+    const targetColumnId = 'cccccccc-0001-0001-0001-000000000002'
+    const cardId = 'dddddddd-0001-0001-0001-000000000001'
+
+    moveCandidature({ sourceColumnId, targetColumnId, cardId })
+
+    const sourceEtape = etapes.value.find(e => e.etape_uuid === sourceColumnId)
+    const targetEtape = etapes.value.find(e => e.etape_uuid === targetColumnId)
+
+    expect(sourceEtape?.candidatures).toHaveLength(1)
+    expect(targetEtape?.candidatures).toHaveLength(2)
+    expect(targetEtape?.candidatures[1]?.uuid).toBe(cardId)
+  })
+
+  it('does not move if source and target are the same', async () => {
+    const { etapes, load, moveCandidature } = useCandidaturesKanban(ORGANISME_UUID, RECRUTEMENT_UUID)
+    await load()
+
+    const columnId = 'cccccccc-0001-0001-0001-000000000001'
+    const cardId = 'dddddddd-0001-0001-0001-000000000001'
+
+    moveCandidature({ sourceColumnId: columnId, targetColumnId: columnId, cardId })
+
+    const etape = etapes.value.find(e => e.etape_uuid === columnId)
+    expect(etape?.candidatures).toHaveLength(2)
+  })
 })

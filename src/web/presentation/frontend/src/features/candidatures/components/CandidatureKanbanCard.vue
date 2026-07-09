@@ -1,16 +1,35 @@
 <script setup lang="ts">
 import type { Candidature } from '../types'
+import { ref } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
 import { formatElapsedDays } from '@/utils/date'
 import { formatCandidatNom } from '../utils/candidat'
 
-defineProps<{
+const props = defineProps<{
   candidature: Candidature
+  boardId: string
+  columnId: string
+  cardIndex: number
 }>()
+
+const cardRef = ref<HTMLElement | null>(null)
+
+const { isDragging } = useDraggableKanbanCard({
+  element: cardRef,
+  boardId: props.boardId,
+  columnId: props.columnId,
+  cardId: props.candidature.uuid,
+  cardIndex: props.cardIndex,
+})
 </script>
 
 <template>
-  <article class="candidature-kanban-card">
+  <article
+    ref="cardRef"
+    class="candidature-kanban-card"
+    :class="{ 'candidature-kanban-card--dragging': isDragging }"
+  >
     <h3 class="candidature-kanban-card__name">
       {{ formatCandidatNom(candidature.candidat) }}
     </h3>
@@ -31,7 +50,18 @@ defineProps<{
   padding: var(--csp-space-4);
   background-color: var(--background-default-grey);
   border-radius: 0.25rem;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 6%), inset 0 0 0 1px var(--border-default-grey);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 6%),
+    inset 0 0 0 1px var(--border-default-grey);
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.candidature-kanban-card--dragging {
+  opacity: 0.5;
 }
 
 .candidature-kanban-card__name {

@@ -1,10 +1,26 @@
 <script setup lang="ts">
 import type { EtapeRecrutementDetailedCandidatures } from '../types'
+import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
+import { useKanbanBoardMonitor } from '@/composables/dnd/useKanbanDnd'
 import CandidatureKanbanColumn from './CandidatureKanbanColumn.vue'
 
-defineProps<{
+const props = defineProps<{
   etapes: EtapeRecrutementDetailedCandidatures[]
+  boardId: string
 }>()
+
+const emit = defineEmits<{
+  move: [event: KanbanDropEvent]
+}>()
+
+useKanbanBoardMonitor({
+  boardId: props.boardId,
+  onDrop: (event) => {
+    if (event.sourceColumnId !== event.targetColumnId) {
+      emit('move', event)
+    }
+  },
+})
 </script>
 
 <template>
@@ -13,6 +29,7 @@ defineProps<{
       v-for="etape in etapes"
       :key="etape.etape_uuid"
       :etape="etape"
+      :board-id="boardId"
     />
   </div>
 </template>
