@@ -31,7 +31,6 @@ export default defineConfig(({ command }) => ({
     },
   },
   test: {
-    globals: true,
     environment: 'jsdom',
     coverage: {
       provider: 'v8',

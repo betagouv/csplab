@@ -13,24 +13,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@/app/*": [
-        "./src/app/*"
-      ],
-      "@/features/*": [
-        "./src/features/*"
-      ],
-      "@/components/*": [
-        "./src/components/*"
-      ],
-      "@/composables/*": [
-        "./src/composables/*"
-      ],
-      "@/types/*": [
-        "./src/types/*"
-      ],
-      "@/utils/*": [
-        "./src/utils/*"
       ]
     },
     "resolveJsonModule": true,
