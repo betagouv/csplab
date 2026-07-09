@@ -2,26 +2,147 @@
 
 Vue.js guidelines. For technical setup, see [frontend_vue.md](./frontend_vue.md).
 
-## Feature Structure
+## Project Structure
+
+The project **is** the ATS, so there is no top-level `ats/` feature. Business code is split into features; reusable business-agnostic code lives in root folders.
 
 ```
 src/
-├── app/                    # Bootstrap (main.ts, App.vue, router)
-├── features/               # Business modules
-│   └── candidates/
-│       ├── CandidateList.vue
-│       ├── CandidateDetail.vue
-│       ├── components/     # Feature-specific components
-│       ├── composables/    # Feature-specific hooks
-│       ├── types.ts        # Feature types
-│       └── api.ts          # Feature API calls
-├── components/             # Shared UI components
-├── composables/            # Shared hooks
-├── types/                  # Global types
-└── utils/                  # Pure helpers
+├── app/                    # Bootstrap & app config (main.ts, App.vue, navigation.ts, icons)
+├── router/                 # index.ts — app-level routes + aggregates feature routes
+├── views/                  # App-level pages WITHOUT business logic (Home, ParametresView, NotFound)
+│
+├── features/               # Business modules (self-contained) — business views & components ONLY
+│   ├── recrutements/
+│   │   ├── views/          # Route-level pages (*View.vue)
+│   │   ├── components/     # Feature-specific components
+│   │   ├── composables/    # Feature-specific hooks
+│   │   ├── stores/         # Feature Pinia stores (if needed)
+│   │   ├── utils/          # Feature-specific helpers
+│   │   ├── routes.ts       # Feature routes (optional — a feature may have none)
+│   │   ├── api.ts          # Feature API calls
+│   │   └── types.ts        # Feature types
+│   └── etapes-recrutement/ # Config feature mounted inside views/ParametresView.vue (no route)
+│
+├── components/             # Reusable UI components
+│   ├── base/               # UI primitives (CspButton, CspInput…)
+│   ├── layout/             # Layout blocks + concrete app shell (CspAppLayout, CspSidebar, AppShell…)
+│   └── ErrorBoundary.vue   # Generic technical components (non-Csp) live at the root
+│
+├── composables/            # Global TECHNICAL composables
+│   ├── async/              # useAsyncState, useDebounce
+│   ├── ui/                 # useDisclosure, useSidebar, useToast, useColorMode
+│   └── dnd/                # Drag & drop
+│
+├── stores/                 # Global Pinia stores (session, ui)
+├── api/                    # HTTP client
+├── utils/                  # Pure helpers
+├── types/                  # Global technical types
+├── constants/              # Global constants
+├── styles/                 # Global CSS (tokens, reset)
+└── assets/                 # Static assets (images, fonts)
 ```
 
-**Rule**: all business code lives in its feature. Root folders (`components/`, `composables/`) are for truly reusable code only.
+### Where does the code go?
+
+| Code                                | Location                              |
+| ----------------------------------- | ------------------------------------- |
+| Business route-level page           | `features/<feature>/views/*View.vue`  |
+| App-level page (no business logic)  | `views/*View.vue`                     |
+| Feature-specific component          | `features/<feature>/components/`       |
+| Feature-specific hook               | `features/<feature>/composables/`      |
+| Feature API calls                   | `features/<feature>/api.ts`            |
+| Feature store                       | `features/<feature>/stores/`           |
+| Concrete app shell                  | `components/layout/AppShell.vue`      |
+| App config (navigation…)            | `app/` (e.g. `navigation.ts`)         |
+| Generic UI ingredient (`Csp*`)      | `components/base/`                     |
+| Generic layout block (`Csp*`)       | `components/layout/`                   |
+| Generic technical component         | `components/` (e.g. `ErrorBoundary`)  |
+| Technical reusable hook             | `composables/<category>/`             |
+| Global store                        | `stores/`                             |
+
+**Rule**: business code lives in its feature. Root folders hold only reusable, business-agnostic code. App config (navigation) lives in `app/`. The concrete app shell lives in `components/layout/` alongside the layout blocks it composes.
+
+### What is (and isn't) a feature
+
+A feature is a **business domain** (`recrutements`, `etapes-recrutement`, `candidatures`). It contains only business views and business components (with their composables, api, types, stores). A feature does **not** need to own a route — it may just expose a component mounted by a page (e.g. `etapes-recrutement` lives inside `ParametresView`).
+
+The following are **not** features:
+
+| Not a feature            | Where it goes                          |
+| ------------------------ | -------------------------------------- |
+| A page with no business logic (Home, 404) | `views/`                  |
+| A container page hosting several features (Parametres) | `views/`      |
+| The concrete app shell (sidebar + nav + user)         | `components/layout/AppShell.vue` |
+| App navigation config                     | `app/navigation.ts`       |
+| Generic UI / layout building blocks       | `components/`             |
+| Technical, business-agnostic logic        | `composables/`, `utils/` |
+
+- **There is no `features/shared/`.** Cross-feature business code either becomes its own feature, or is promoted to a root folder if it is business-agnostic.
+- When two features need the same *business* type, the owning feature exposes it and the other imports it (e.g. `candidatures` imports `EtapeRecrutement` from `etapes-recrutement`). A dependency between features is fine when it mirrors the domain.
+
+### Container pages vs features
+
+A settings/dashboard page is often just a **container**: it arranges tabs/sections, each rendering a feature component. The container page has no business logic → it lives in `views/`. The business logic of each panel lives in its feature.
+
+```
+views/ParametresView.vue                      # tabs container (no business logic)
+features/etapes-recrutement/
+  ├── components/EtapesRecrutementList.vue     # the actual config UI
+  ├── composables/useEtapesRecrutement.ts
+  ├── constants/etape-recrutement.ts
+  ├── api.ts
+  └── types.ts
+```
+
+### App shell
+
+The shell wraps `<RouterView>` **once** (in `App.vue`), so views never import it themselves:
+
+```vue
+<!-- app/App.vue -->
+<template>
+  <CspToaster>
+    <ErrorBoundary>
+      <AppShell>
+        <RouterView />
+      </AppShell>
+    </ErrorBoundary>
+  </CspToaster>
+</template>
+```
+
+## Routing
+
+- A feature that owns route-level pages declares them in `features/<feature>/routes.ts`.
+- App-level pages (`views/`) declare their routes directly in `router/index.ts`.
+- `router/index.ts` aggregates everything. Never hardcode a feature's routes in the router.
+
+```ts
+// features/recrutements/routes.ts
+import type { RouteRecordRaw } from 'vue-router';
+
+export const recrutementsRoutes: RouteRecordRaw[] = [
+  {
+    path: '/mes-recrutements',
+    name: 'mes-recrutements',
+    component: () => import('./views/MesRecrutementsView.vue'),
+  },
+];
+```
+
+```ts
+// router/index.ts
+import type { RouteRecordRaw } from 'vue-router';
+import { recrutementsRoutes } from '@/features/recrutements/routes';
+
+const appRoutes: RouteRecordRaw[] = [
+  { path: '/', name: 'home', component: () => import('@/views/HomeView.vue') },
+  { path: '/parametres', name: 'parametres', component: () => import('@/views/ParametresView.vue') },
+];
+
+export const routes = [...appRoutes, ...recrutementsRoutes];
+```
 
 ## Components
 
@@ -81,6 +202,21 @@ function handleSave() {
 ## Composables
 
 A composable encapsulates reusable logic with reactive state.
+
+### Where to Place a Composable
+
+| Type                                            | Location                          |
+| ----------------------------------------------- | --------------------------------- |
+| Business logic of a feature                     | `features/<feature>/composables/` |
+| Technical, business-agnostic (reused anywhere)  | `composables/<category>/`         |
+
+Global technical composables are grouped by category to avoid a flat dumping ground:
+
+- `composables/async/` — `useAsyncState`, `useDebounce`
+- `composables/ui/` — `useDisclosure`, `useSidebar`, `useToast`, `useColorMode`
+- `composables/dnd/` — drag & drop primitives
+
+A composable is "technical" only if it contains **no** business/domain knowledge. As soon as it references a domain concept (recrutement, étape, candidature…), it belongs to a feature.
 
 ### When to Create a Composable
 
@@ -157,31 +293,39 @@ export const useCandidatesStore = defineStore('candidates', () => {
 - Use **setup stores** (Composition API)
 - One store per entity/domain, not per component
 - `use*Store` prefix
+- **Location**: a store tied to a feature lives in `features/<feature>/stores/`; a cross-cutting store (session, UI, current user) lives in the root `stores/`.
 
 ## API Calls
 
 ### Where to Place Code
 
-- Feature-specific calls → `features/xxx/api.ts`
-- Shared HTTP client → `utils/http.ts`
+- HTTP client + error handling → `api/client.ts`, `api/errors.ts`
+- Cross-cutting API modules (e.g. current user) → `api/`
+- Feature-specific calls → `features/<feature>/api.ts`
 
 ### Convention
 
 ```ts
 // features/candidates/api.ts
-import { http } from '@/utils/http';
+import { api } from '@/api/client';
 import type { Candidate } from './types';
 
-export const candidatesApi = {
-  getAll: () => http.get<Candidate[]>('/api/candidates/'),
-  getById: (id: string) => http.get<Candidate>(`/api/candidates/${id}/`),
-  create: (data: CreateCandidateDto) => http.post<Candidate>('/api/candidates/', data),
-};
+export async function getCandidates(): Promise<Candidate[]> {
+  const { data } = await api.GET('/candidates');
+  return data!;
+}
+
+export async function getCandidate(uuid: string): Promise<Candidate> {
+  const { data } = await api.GET('/candidates/{uuid}', {
+    params: { path: { uuid } },
+  });
+  return data!;
+}
 ```
 
-- Group by entity in an object
-- Type the returns
-- Relative URLs (Vite proxy handles dev)
+- One exported `async` function per endpoint
+- Types come from the generated OpenAPI schema (`@/types/api`)
+- The client (`api`) handles CSRF, auth redirect and error mapping
 
 ## TypeScript
 

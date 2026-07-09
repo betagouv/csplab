@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provideSidebar } from '@/composables/useSidebar'
+import { provideSidebar } from '@/composables/ui/useSidebar'
 
 interface CspSidebarProviderProps {
   defaultExpanded?: boolean

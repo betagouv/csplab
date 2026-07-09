@@ -1,7 +1,7 @@
-import type { RecrutementsActifs, RecrutementsArchives } from './types'
+import type { RecrutementsActifs, RecrutementsArchives } from '../types'
 import { computed, ref } from 'vue'
-import { useDebounce } from '@/composables/useDebounce'
-import { useDraft } from '@/composables/useDraft'
+import { useDebounce } from '@/composables/async/useDebounce'
+import { useDraft } from '@/composables/storage/useDraft'
 import {
   responsableOptions as buildResponsableOptions,
   countActiveFilters,
@@ -9,7 +9,7 @@ import {
   matchesFilters,
   matchesSearch,
   withAllOption,
-} from './utils/filters'
+} from '../utils/filters'
 
 const SEARCH_DEBOUNCE_MS = 250
 

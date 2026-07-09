@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import { useSidebar } from '@/composables/useSidebar'
+import { useSidebar } from '@/composables/ui/useSidebar'
 
 const { toggle, isMobile } = useSidebar()
 </script>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { NavGroup } from './AppShell.types'
+import { storeToRefs } from 'pinia'
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspAppLayout from '@/components/layout/CspAppLayout/CspAppLayout.vue'
@@ -9,15 +11,19 @@ import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarProvider from '@/components/layout/CspSidebar/CspSidebarProvider.vue'
 import CspSidebarTrigger from '@/components/layout/CspSidebar/CspSidebarTrigger.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
-import { useCurrentUser } from '@/composables/useCurrentUser'
-import { ATS_NAVIGATION } from '../navigation'
+import { useCurrentUserStore } from '@/stores/currentUser'
+
+const props = defineProps<{
+  navigation: NavGroup[]
+}>()
 
 const route = useRoute()
 const router = useRouter()
-const { user, displayName, fetch: fetchUser } = useCurrentUser()
+const currentUserStore = useCurrentUserStore()
+const { user, displayName } = storeToRefs(currentUserStore)
 
 const navGroups = computed(() => {
-  return ATS_NAVIGATION
+  return props.navigation
     .map(group => ({
       ...group,
       items: group.items.filter(item => router.hasRoute(item.to)),
@@ -26,7 +32,7 @@ const navGroups = computed(() => {
 })
 
 onMounted(() => {
-  fetchUser()
+  currentUserStore.fetch()
 })
 </script>
 

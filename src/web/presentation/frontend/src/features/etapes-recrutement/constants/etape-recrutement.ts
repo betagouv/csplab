@@ -1,4 +1,4 @@
-import type { EtapeRecrutement } from '../api/recrutement'
+import type { EtapeRecrutement } from '../types'
 
 type Categorie = EtapeRecrutement['categorie']
 type BadgeType = 'info' | 'success' | 'error'
