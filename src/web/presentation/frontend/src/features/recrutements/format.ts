@@ -1,4 +1,6 @@
 import type {
+  CandidatureListe,
+  RecrutementBase,
   RecrutementDetail,
   TypeContrat,
 } from './types'
@@ -10,6 +12,14 @@ export const TYPE_CONTRAT_LABELS = {
   CONTRACTUELS: 'Contractuels',
   TERRITORIAL: 'Territorial',
 } satisfies Record<TypeContrat, string>
+
+export function formatResponsablesLabel(row: RecrutementBase): string {
+  return row.responsables.map(r => r.nom).join(', ') || '-'
+}
+
+export function formatCandidatName(candidat: CandidatureListe['candidat']): string {
+  return `${candidat.prenom} ${candidat.nom}`
+}
 
 export function formatRecrutementMeta(detail: RecrutementDetail): CspMetaItem[] {
   return [
