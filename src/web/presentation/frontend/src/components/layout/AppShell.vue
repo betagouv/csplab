@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ATS_NAVIGATION } from '@/app/navigation'
 import CspAppLayout from '@/components/layout/CspAppLayout/CspAppLayout.vue'
 import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
 import CspSidebarGroup from '@/components/layout/CspSidebar/CspSidebarGroup.vue'
@@ -9,8 +10,7 @@ import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarProvider from '@/components/layout/CspSidebar/CspSidebarProvider.vue'
 import CspSidebarTrigger from '@/components/layout/CspSidebar/CspSidebarTrigger.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
-import { useCurrentUser } from '@/composables/useCurrentUser'
-import { ATS_NAVIGATION } from '../navigation'
+import { useCurrentUser } from '@/composables/session/useCurrentUser'
 
 const route = useRoute()
 const router = useRouter()

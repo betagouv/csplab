@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, reactive } from 'vue'
-import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from './mock'
+import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from '../mock'
 import { useRecrutementsFilters } from './useRecrutementsFilters'
 
 function makeData() {

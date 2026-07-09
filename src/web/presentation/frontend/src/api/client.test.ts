@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { api } from './api'
+import { api } from './client'
 import { HttpError, NetworkError, ValidationError } from './errors'
 
 const MOCK_CSRF_TOKEN = 'test-csrf-token'

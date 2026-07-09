@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EtapeRecrutement } from '../api/recrutement'
+import type { EtapeRecrutement } from '../types'
 import { onMounted, ref, watch } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -8,7 +8,7 @@ import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
-import { useToast } from '@/composables/useToast'
+import { useToast } from '@/composables/ui/useToast'
 import { useEtapesRecrutement } from '../composables/useEtapesRecrutement'
 import { CATEGORIE_BADGE } from '../constants/etape-recrutement'
 

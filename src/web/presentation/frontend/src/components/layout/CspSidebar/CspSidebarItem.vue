@@ -4,7 +4,7 @@ import { Primitive } from 'reka-ui'
 import { RouterLink } from 'vue-router'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspTooltip from '@/components/base/CspTooltip/CspTooltip.vue'
-import { useSidebar } from '@/composables/useSidebar'
+import { useSidebar } from '@/composables/ui/useSidebar'
 
 interface CspSidebarItemProps {
   icon: string

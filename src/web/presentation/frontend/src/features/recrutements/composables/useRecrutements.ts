@@ -2,10 +2,10 @@ import type {
   RecrutementKey,
   RecrutementsActifs,
   RecrutementsArchives,
-} from './types'
+} from '../types'
 import { reactive, ref } from 'vue'
-import { getRecrutementsActifs, getRecrutementsArchives } from '../api/recrutement'
-import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from './mock'
+import { getRecrutementsActifs, getRecrutementsArchives } from '../api'
+import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from '../mock'
 
 export function useRecrutements(options: {
   organismeUuid?: string

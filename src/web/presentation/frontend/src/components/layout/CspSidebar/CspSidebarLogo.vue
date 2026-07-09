@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useSidebar } from '@/composables/useSidebar'
+import { useSidebar } from '@/composables/ui/useSidebar'
 
 const { isExpanded, isMobile } = useSidebar()
 </script>

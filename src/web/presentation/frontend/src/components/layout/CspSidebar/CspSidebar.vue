@@ -8,7 +8,7 @@ import {
 import { computed, useSlots } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED, useSidebar } from '@/composables/useSidebar'
+import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED, useSidebar } from '@/composables/ui/useSidebar'
 
 const slots = useSlots()
 const hasLogo = computed(() => Boolean(slots.logo))

@@ -1,8 +1,8 @@
 import * as Sentry from '@sentry/vue'
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import { routes } from '@/router'
 import App from './App.vue'
-import { routes } from './routes'
 import '@/app/icons'
 import '@/styles/index.css'
 

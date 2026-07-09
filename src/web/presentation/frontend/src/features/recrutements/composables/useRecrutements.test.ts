@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getRecrutementsActifs, getRecrutementsArchives } from '../api/recrutement'
-import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from './mock'
+import { getRecrutementsActifs, getRecrutementsArchives } from '../api'
+import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from '../mock'
 import { useRecrutements } from './useRecrutements'
 
-vi.mock('../api/recrutement', () => ({
+vi.mock('../api', () => ({
   getRecrutementsActifs: vi.fn(),
   getRecrutementsArchives: vi.fn(),
 }))

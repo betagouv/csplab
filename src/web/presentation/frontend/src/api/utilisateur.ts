@@ -1,5 +1,5 @@
 import type { components } from '@/types/api'
-import { api } from '@/utils/api'
+import { api } from '@/api/client'
 
 export type Utilisateur = components['schemas']['Utilisateur']
 

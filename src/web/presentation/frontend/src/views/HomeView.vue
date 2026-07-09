@@ -1,15 +1,9 @@
-<script setup lang="ts">
-import AtsAppShell from './components/AtsAppShell.vue'
-</script>
-
 <template>
-  <AtsAppShell>
-    <div class="home-view">
-      <h1 class="home-view__title">
-        Accueil
-      </h1>
-    </div>
-  </AtsAppShell>
+  <div class="home-view">
+    <h1 class="home-view__title">
+      Accueil
+    </h1>
+  </div>
 </template>
 
 <style scoped lang="scss">

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CspToast from '@/components/base/CspToast/CspToast.vue'
 import CspToastProvider from '@/components/base/CspToast/CspToastProvider.vue'
-import { useToast } from '@/composables/useToast'
+import { useToast } from '@/composables/ui/useToast'
 
 const { toasts, dismissToast } = useToast()
 </script>

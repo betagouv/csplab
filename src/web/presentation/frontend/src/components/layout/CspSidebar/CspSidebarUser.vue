@@ -2,8 +2,8 @@
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import { useColorMode } from '@/composables/useColorMode'
-import { useSidebar } from '@/composables/useSidebar'
+import { useColorMode } from '@/composables/ui/useColorMode'
+import { useSidebar } from '@/composables/ui/useSidebar'
 
 interface CspSidebarUserProps {
   name: string
