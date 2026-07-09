@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calendarDaysBetween, formatElapsedDays } from './date'
+import { calendarDaysBetween, formatDateLong, formatElapsedDays } from './date'
 
 const NOW = new Date('2026-06-23T12:00:00')
 
@@ -24,5 +24,15 @@ describe('formatElapsedDays', () => {
 
   it('returns - for invalid input', () => {
     expect(formatElapsedDays('not-a-date', NOW)).toBe('-')
+  })
+})
+
+describe('formatDateLong', () => {
+  it('formats ISO dates in french', () => {
+    expect(formatDateLong('2026-05-02T10:00:00Z')).toBe('02 mai 2026')
+  })
+
+  it('returns - for invalid input', () => {
+    expect(formatDateLong('not-a-date')).toBe('-')
   })
 })

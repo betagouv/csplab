@@ -5,6 +5,7 @@ import type {
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
@@ -17,6 +18,7 @@ import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
 import RecrutementsFiltersDrawer from '../components/RecrutementsFiltersDrawer.vue'
 import { useRecrutements } from '../composables/useRecrutements'
+
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
@@ -46,9 +48,9 @@ onMounted(() => {
   }, { immediate: true })
 })
 
-function openOffre(offreUuid: string) {
-  // eslint-disable-next-line no-console
-  console.log('openOffre', offreUuid)
+const router = useRouter()
+function openOffre(recrutementUuid: string) {
+  router.push({ name: 'recrutement-candidatures', params: { recrutementUuid } })
 }
 
 const recrutementsActifsPage = ref(1)
