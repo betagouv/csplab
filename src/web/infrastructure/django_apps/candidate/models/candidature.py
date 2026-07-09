@@ -1,27 +1,17 @@
-from uuid import UUID, uuid4
-
 from django.db import models
 
-from domain.candidate.entities.candidature import Candidature
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
-from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.users.models import ProfilCandidatModel
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
 class CandidatureModel(BaseDatedModel):
-    id = models.UUIDField(primary_key=True, default=uuid4)
     candidat = models.ForeignKey(
         ProfilCandidatModel,
         to_field="utilisateur_id",  # UUID-as-string (VARCHAR(36))
         on_delete=models.PROTECT,
         db_column="candidat_id",
-        related_name="candidatures",
-    )
-    offre = models.ForeignKey(
-        OfferModel,
-        on_delete=models.PROTECT,
-        db_column="offre_id",
         related_name="candidatures",
     )
     statut = models.CharField(
@@ -30,6 +20,16 @@ class CandidatureModel(BaseDatedModel):
         default=StatutCandidature.INITIAL.value,
     )
     documents = models.JSONField(null=True, blank=True)
+    etape = models.ForeignKey(
+        EtapeModel,
+        on_delete=models.PROTECT,
+        db_column="etape_id",
+        related_name="candidatures",
+        help_text=(
+            "Étape courante du recrutement (par défaut, l'étape ENTREE "
+            "du recrutement correspondant à l'offre)."
+        ),
+    )
 
     class Meta:
         db_table = "candidature"
@@ -37,35 +37,10 @@ class CandidatureModel(BaseDatedModel):
         verbose_name_plural = "Candidatures"
         constraints = [
             models.UniqueConstraint(
-                fields=["candidat_id", "offre_id"],
+                fields=["candidat_id", "etape_id"],
                 name="unique_candidature_candidat_offre",
             )
         ]
-
-    def to_entity(self) -> Candidature:
-        return Candidature.build(
-            entity_id=self.id,
-            candidat_id=UUID(self.candidat_id),  # type: ignore[arg-type]
-            offre_id=self.offre_id,  # type: ignore[attr-defined]
-            statut=StatutCandidature(self.statut),
-            documents=tuple(UUID(d) for d in self.documents)
-            if self.documents
-            else None,
-            soumise_le=self.created_at,
-            mise_a_jour_le=self.updated_at,
-        )
-
-    @classmethod
-    def from_entity(cls, candidature: Candidature) -> "CandidatureModel":
-        return cls(
-            id=candidature.entity_id,
-            candidat_id=str(candidature.candidat_id),  # UUID → VARCHAR(36)
-            offre_id=candidature.offre_id,
-            statut=candidature.statut.value,
-            documents=[str(d) for d in candidature.documents]
-            if candidature.documents
-            else None,
-        )
 
     def __str__(self) -> str:
         return str(self.id)
