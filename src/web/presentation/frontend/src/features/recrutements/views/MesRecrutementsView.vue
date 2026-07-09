@@ -13,6 +13,7 @@ import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
+import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
 import RecrutementsFiltersDrawer from '../components/RecrutementsFiltersDrawer.vue'
 import { useRecrutements } from '../composables/useRecrutements'
@@ -30,11 +31,12 @@ const TABS: CspTabItem[] = [
   { value: 'archives', label: 'Offres archivées' },
 ]
 const {
-  state: recrutementsState,
+  pending: recrutementsPending,
+  error: recrutementsError,
   data: recrutementsData,
   load: loadRecrutements,
   has: hasRecrutements,
-} = useRecrutements({ source: 'mock' })
+} = useRecrutements(TEMP_ORGANISME_UUID)
 
 onMounted(() => {
   watch(activeTab, (newTab) => {
@@ -112,16 +114,13 @@ const countLabel = computed(() => {
     >
       <CspTabsList :tabs="TABS" />
       <div
-        v-if="(
-          recrutementsState === 'idle'
-          || recrutementsState === 'loading'
-        )"
+        v-if="recrutementsPending"
         class="mes-recrutement-view__loading"
       >
         Chargement des recrutements...
       </div>
       <div
-        v-else-if="recrutementsState === 'error'"
+        v-else-if="recrutementsError"
         class="mes-recrutement-view__error"
       >
         Une erreur est survenue lors du chargement des recrutements.

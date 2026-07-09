@@ -22,39 +22,38 @@ describe('useRecrutements', () => {
     vi.mocked(getRecrutementsArchives).mockResolvedValue(buildPaginatedResponse(RECRUTEMENTS_ARCHIVES))
   })
 
-  it('loads actifs from mocks when mock source is enabled', async () => {
-    const { state, error, data, load } = useRecrutements({ source: 'mock' })
-    await load()
-
-    expect(state.value).toBe('success')
-    expect(error.value).toBeNull()
-    expect(data.actifs).toEqual(RECRUTEMENTS_ACTIFS)
-    expect(data.archives).toEqual([])
-    expect(getRecrutementsActifs).not.toHaveBeenCalled()
-  })
-
-  it('loads archives from mocks on demand', async () => {
-    const { data, load } = useRecrutements({ source: 'mock' })
-    await load('archives')
-
-    expect(data.archives).toEqual(RECRUTEMENTS_ARCHIVES)
-    expect(getRecrutementsArchives).not.toHaveBeenCalled()
-  })
-
-  it('calls the api in api mode', async () => {
-    const { load } = useRecrutements({ organismeUuid: ORGANISME_UUID, source: 'api' })
+  it('loads actifs from the api', async () => {
+    const { data, load, pending } = useRecrutements(ORGANISME_UUID)
     await load()
 
     expect(getRecrutementsActifs).toHaveBeenCalledWith(ORGANISME_UUID)
+    expect(data.actifs).toEqual(RECRUTEMENTS_ACTIFS)
+    expect(pending.value).toBe(false)
   })
 
-  it('handles api error', async () => {
+  it('loads archives on demand', async () => {
+    const { data, load } = useRecrutements(ORGANISME_UUID)
+    await load('archives')
+
+    expect(getRecrutementsArchives).toHaveBeenCalledWith(ORGANISME_UUID)
+    expect(data.archives).toEqual(RECRUTEMENTS_ARCHIVES)
+  })
+
+  it('tracks loaded state per tab with has()', async () => {
+    const { has, load } = useRecrutements(ORGANISME_UUID)
+    expect(has('actifs')).toBe(false)
+
+    await load('actifs')
+    expect(has('actifs')).toBe(true)
+    expect(has('archives')).toBe(false)
+  })
+
+  it('stores the error on api failure', async () => {
     vi.mocked(getRecrutementsActifs).mockRejectedValue(new Error('emulated API error'))
 
-    const { state, error, data, load } = useRecrutements({ organismeUuid: ORGANISME_UUID, source: 'api' })
-    void load()
+    const { error, data, load } = useRecrutements(ORGANISME_UUID)
+    await load()
 
-    await vi.waitFor(() => expect(state.value).toBe('error'))
     expect(error.value).toBeInstanceOf(Error)
     expect(data.actifs).toEqual([])
   })

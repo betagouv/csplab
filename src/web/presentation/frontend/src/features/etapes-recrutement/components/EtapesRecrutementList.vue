@@ -9,10 +9,9 @@ import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.v
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
 import { useToast } from '@/composables/ui/useToast'
+import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { useEtapesRecrutement } from '../composables/useEtapesRecrutement'
 import { CATEGORIE_BADGE } from '../constants/etape-recrutement'
-
-const TEMP_ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 
 const {
   etapes,
