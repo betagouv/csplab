@@ -23,7 +23,7 @@ _FROZEN_TS = datetime.now(tz=timezone.utc)
 
 
 def test_dossier_candidature_cree():
-    candidature_factory = CandidatureFactory.build()
+    candidature_factory = CandidatureFactory.create_entity()
     candidature = Candidature.create(
         offre_id=candidature_factory.offre_id,
         candidat_id=candidature_factory.candidat_id,
@@ -37,7 +37,7 @@ def test_dossier_candidature_cree():
 @time_machine.travel(_FROZEN_TS, tick=False)
 def test_documents_deposes():
     documents = make_documents()
-    candidature_factory = CandidatureFactory.build(documents=documents)
+    candidature_factory = CandidatureFactory.create_entity(documents=documents)
     candidature_factory.deposer_documents(documents=documents)
     events = candidature_factory.collect_events()
     assert len(events) == 1
@@ -47,7 +47,7 @@ def test_documents_deposes():
 
 
 def test_candidature_invalide():
-    candidature_factory = CandidatureFactory.build()
+    candidature_factory = CandidatureFactory.create_entity()
     with pytest.raises(DossierCandidatureInvalide):
         candidature_factory.deposer_documents(documents=())
     events = candidature_factory.collect_events()
@@ -56,7 +56,7 @@ def test_candidature_invalide():
 
 @time_machine.travel(_FROZEN_TS, tick=False)
 def test_candidature_soumise():
-    candidature_factory = CandidatureFactory.build()
+    candidature_factory = CandidatureFactory.create_entity()
     documents = make_documents()
     candidature_factory.deposer_documents(documents=documents)
     candidature_factory.soumettre_candidature()
@@ -69,7 +69,9 @@ def test_candidature_soumise():
 
 
 def test_candidature_deja_soumise():
-    candidature_factory = CandidatureFactory.build(statut=StatutCandidature.SOUMISE)
+    candidature_factory = CandidatureFactory.create_entity(
+        statut=StatutCandidature.SOUMISE
+    )
     with pytest.raises(CandidatureDejaSoumise):
         candidature_factory.soumettre_candidature()
     events = candidature_factory.collect_events()

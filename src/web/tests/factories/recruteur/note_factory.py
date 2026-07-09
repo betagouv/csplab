@@ -52,7 +52,7 @@ class NoteFactory:
         message: str | None = None,
     ) -> NoteModel:
         if candidature_id is None:
-            candidature_id = CandidatureFactory.build_model().id
+            candidature_id = CandidatureFactory.create_model().id
         if publie_par_id is None:
             publie_par_id = UUID(AgentFactory.create_model().utilisateur_id)
 
