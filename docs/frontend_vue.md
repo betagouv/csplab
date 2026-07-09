@@ -13,12 +13,18 @@ src/web/presentation/
 │
 ├── frontend/                     # Vue/Vite source code
 │   ├── src/
-│   │   ├── app/                  # Entry point (main.ts, App.vue)
-│   │   ├── features/             # Business modules (ats/, ...)
-│   │   ├── components/           # Reusable UI components
-│   │   ├── composables/          # Vue hooks
-│   │   ├── types/                # TypeScript types
-│   │   └── utils/                # Helpers
+│   │   ├── app/                  # Bootstrap & app config (main.ts, App.vue, navigation.ts)
+│   │   ├── router/              # App-level routes + feature routes aggregation
+│   │   ├── views/              # App-level pages without business logic (Home, Parametres, ...)
+│   │   ├── features/            # Business modules (recrutements, etapes-recrutement, ...)
+│   │   ├── components/          # Design system (base/, layout/)
+│   │   ├── composables/         # Technical hooks (async/, ui/, dnd/)
+│   │   ├── stores/             # Global Pinia stores
+│   │   ├── api/                # HTTP client + cross-cutting API modules
+│   │   ├── types/             # Global TypeScript types
+│   │   ├── utils/            # Pure helpers
+│   │   ├── constants/       # Global constants
+│   │   └── styles/         # Global CSS
 │   ├── vite.config.ts
 │   ├── tsconfig.json
 │   └── package.json
@@ -131,16 +137,23 @@ In dev mode, CSP allows `localhost:5173` for HMR. Configured in `config/settings
 
 ## Feature Structure
 
-Each business feature is a module under `src/features/`:
+The project **is** the ATS: there is no top-level `ats/` feature. Each business domain is a self-contained module under `src/features/`:
 
 ```
 src/features/
-└── ats/
-    ├── HomeView.vue
-    ├── components/       # ATS-specific components
-    └── composables/      # ATS-specific hooks
+└── recrutements/
+    ├── views/           # Route-level pages (*View.vue)
+    ├── components/       # Feature-specific components
+    ├── composables/      # Feature-specific hooks
+    ├── stores/           # Feature Pinia stores (if needed)
+    ├── routes.ts         # Feature routes (aggregated by src/router/)
+    ├── api.ts            # Feature API calls
+    └── types.ts          # Feature types
 ```
 
-Shared components go in `src/components/`.
+- A feature owns its routes (`routes.ts`), aggregated in `src/router/index.ts`.
+- Cross-feature business code is **not** dumped in a `shared/` folder: it either becomes its own feature or is imported from the owning feature.
+- The design system lives in `src/components/` (`base/` for `Csp*` primitives, `layout/` for app chrome).
+- Only business-agnostic, reusable code belongs in root folders (`components/`, `composables/`, `utils/`…).
 
-For coding conventions, see [frontend_conventions.md](./frontend_conventions.md).
+For coding conventions and the full structure, see [frontend_conventions.md](./frontend_conventions.md).
