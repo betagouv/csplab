@@ -31,6 +31,7 @@ import riExternalLinkLine from '@iconify-icons/ri/external-link-line'
 import riEyeLine from '@iconify-icons/ri/eye-line'
 import riFilterLine from '@iconify-icons/ri/filter-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
+import riGovernmentLine from '@iconify-icons/ri/government-line'
 import riGroupLine from '@iconify-icons/ri/group-line'
 import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
@@ -39,6 +40,7 @@ import riLayoutColumnLine from '@iconify-icons/ri/layout-column-line'
 import riLockLine from '@iconify-icons/ri/lock-line'
 import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
 import riMailLine from '@iconify-icons/ri/mail-line'
+import riMapPin2Line from '@iconify-icons/ri/map-pin-2-line'
 import riMenuLine from '@iconify-icons/ri/menu-line'
 import riMoonLine from '@iconify-icons/ri/moon-line'
 import riMore2Fill from '@iconify-icons/ri/more-2-fill'
@@ -68,6 +70,7 @@ addIcon('ri:arrow-right-line', riArrowRightLine)
 addIcon('ri:arrow-right-s-line', riArrowRightSLine)
 addIcon('ri:arrow-up-line', riArrowUpLine)
 addIcon('ri:archive-line', riArchiveLine)
+addIcon('ri:government-line', riGovernmentLine)
 addIcon('ri:arrow-down-s-line', riArrowDownSLine)
 addIcon('ri:arrow-up-s-line', riArrowUpSLine)
 addIcon('ri:briefcase-line', riBriefcaseLine)
@@ -97,6 +100,7 @@ addIcon('ri:layout-column-line', riLayoutColumnLine)
 addIcon('ri:lock-line', riLockLine)
 addIcon('ri:logout-box-r-line', riLogoutBoxRLine)
 addIcon('ri:mail-line', riMailLine)
+addIcon('ri:map-pin-2-line', riMapPin2Line)
 addIcon('ri:menu-line', riMenuLine)
 addIcon('ri:moon-line', riMoonLine)
 addIcon('ri:sidebar-fold-line', {
