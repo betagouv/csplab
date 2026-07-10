@@ -3,12 +3,18 @@ import type { RouteRecordRaw } from 'vue-router'
 export const candidaturesRoutes: RouteRecordRaw[] = [
   {
     path: '/mes-recrutements/:recrutementUuid',
-    name: 'recrutement-candidatures',
-    component: () => import('./views/CandidaturesListeView.vue'),
-  },
-  {
-    path: '/mes-recrutements/:recrutementUuid/kanban',
-    name: 'recrutement-candidatures-kanban',
-    component: () => import('./views/CandidaturesKanbanView.vue'),
+    component: () => import('./views/CandidaturesView.vue'),
+    children: [
+      {
+        path: '',
+        name: 'recrutement-candidatures',
+        component: () => import('./views/CandidaturesListeView.vue'),
+      },
+      {
+        path: 'kanban',
+        name: 'recrutement-candidatures-kanban',
+        component: () => import('./views/CandidaturesKanbanView.vue'),
+      },
+    ],
   },
 ]

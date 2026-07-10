@@ -1,26 +1,17 @@
 <script setup lang="ts">
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
-import { computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
+import { computed } from 'vue'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
-import CandidaturesLayout from '../components/CandidaturesLayout.vue'
-import { useCandidaturesKanban } from '../composables/useCandidaturesKanban'
-
-const route = useRoute()
-const recrutementUuid = computed(() => String(route.params.recrutementUuid))
+import { useCandidatures } from '../composables/useCandidatures'
 
 const {
-  kanban,
+  recrutementUuid,
   etapes,
   totalCount,
-  pending,
-  error,
-  load,
   moveCandidature,
-} = useCandidaturesKanban(TEMP_ORGANISME_UUID, recrutementUuid)
+} = useCandidatures()
 
-const boardId = computed(() => `kanban-${recrutementUuid.value}`)
+const boardId = computed(() => `kanban-${recrutementUuid}`)
 
 function handleMove(event: KanbanDropEvent) {
   moveCandidature({
@@ -30,14 +21,6 @@ function handleMove(event: KanbanDropEvent) {
   })
 }
 
-onMounted(() => {
-  void load()
-})
-
-watch(recrutementUuid, () => {
-  void load()
-})
-
 const countLabel = computed(() => {
   const count = totalCount.value
   return `${count} candidature${count > 1 ? 's' : ''}`
@@ -45,14 +28,8 @@ const countLabel = computed(() => {
 </script>
 
 <template>
-  <CandidaturesLayout
-    :recrutement-uuid="recrutementUuid"
-    :recrutement-detail="kanban"
-    current-view="kanban"
-    :pending="pending"
-    :error="error"
-  >
-    <p class="candidatures-kanban-view__count">
+  <div class="candidatures-kanban-content">
+    <p class="candidatures-kanban-content__count">
       {{ countLabel }}
     </p>
     <CandidaturesKanbanBoard
@@ -60,11 +37,11 @@ const countLabel = computed(() => {
       :board-id="boardId"
       @move="handleMove"
     />
-  </CandidaturesLayout>
+  </div>
 </template>
 
 <style scoped lang="scss">
-.candidatures-kanban-view__count {
+.candidatures-kanban-content__count {
   margin: 0 0 var(--csp-space-4);
   font-size: 0.9375rem;
   color: var(--text-mention-grey);
