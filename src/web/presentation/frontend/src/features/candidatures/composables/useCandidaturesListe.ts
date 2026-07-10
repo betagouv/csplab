@@ -1,21 +1,21 @@
-import type { PaginatedCandidatureListeResponse, RecrutementDetail } from '../types'
+import type { PaginatedCandidatureListeResponse, RecrutementDetailKanban } from '../types'
 import { ref } from 'vue'
 import { useAsyncState } from '@/composables/async/useAsyncState'
-import { getCandidatureListe, getRecrutementDetail } from '../api'
+import { getCandidatureListe, getRecrutementKanban } from '../api'
 
-export function useRecrutementCandidatures(
+export function useCandidaturesListe(
   organismeUuid: string,
   recrutementUuid: string,
 ) {
   const { pending, error, run } = useAsyncState(true)
   const candidatureListe = ref<PaginatedCandidatureListeResponse>()
-  const recrutementDetail = ref<RecrutementDetail>()
+  const recrutementDetail = ref<RecrutementDetailKanban>()
 
   async function load(): Promise<void> {
     await run(async () => {
       const [detail, liste] = await Promise.all([
-        getRecrutementDetail({ organismeUuid, recrutementUuid }),
-        getCandidatureListe({ organismeUuid, recrutementUuid }),
+        getRecrutementKanban(organismeUuid, recrutementUuid),
+        getCandidatureListe(organismeUuid, recrutementUuid),
       ])
 
       recrutementDetail.value = detail
