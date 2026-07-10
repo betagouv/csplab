@@ -90,7 +90,6 @@ const { isDraggedOver } = useDropTargetKanbanColumn({
   min-height: 12rem;
   padding: var(--csp-space-3);
   background-color: var(--background-alt-grey);
-  border-radius: 0.25rem;
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
   border-top: 3px solid var(--border-default-grey);
 }
