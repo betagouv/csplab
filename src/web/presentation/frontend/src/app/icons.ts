@@ -37,6 +37,7 @@ import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
 import riInformationLine from '@iconify-icons/ri/information-line'
 import riLayoutColumnLine from '@iconify-icons/ri/layout-column-line'
+import riListUnordered from '@iconify-icons/ri/list-unordered'
 import riLockLine from '@iconify-icons/ri/lock-line'
 import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
 import riMailLine from '@iconify-icons/ri/mail-line'
@@ -53,6 +54,7 @@ import riSearchLine from '@iconify-icons/ri/search-line'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
 import riSunLine from '@iconify-icons/ri/sun-line'
+import riTableLine from '@iconify-icons/ri/table-line'
 import riUserLine from '@iconify-icons/ri/user-line'
 import { addIcon } from '@iconify/vue'
 
@@ -97,6 +99,7 @@ addIcon('ri:inbox-2-line', riInbox2Line)
 addIcon('ri:information-fill', riInformationFill)
 addIcon('ri:information-line', riInformationLine)
 addIcon('ri:layout-column-line', riLayoutColumnLine)
+addIcon('ri:list-unordered', riListUnordered)
 addIcon('ri:lock-line', riLockLine)
 addIcon('ri:logout-box-r-line', riLogoutBoxRLine)
 addIcon('ri:mail-line', riMailLine)
@@ -128,4 +131,5 @@ addIcon('ri:search-line', riSearchLine)
 addIcon('ri:settings-3-line', riSettings3Line)
 addIcon('ri:spam-fill', riSpamFill)
 addIcon('ri:sun-line', riSunLine)
+addIcon('ri:table-line', riTableLine)
 addIcon('ri:user-line', riUserLine)

@@ -6,6 +6,7 @@ import { useRoute } from 'vue-router'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
+import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
 import { useCandidaturesKanban } from '../composables/useCandidaturesKanban'
 
 const route = useRoute()
@@ -59,7 +60,14 @@ const isNotFound = computed(() => !pending.value && (Boolean(error.value) || !ka
       :title="kanban?.intitule ?? 'Candidatures'"
       :breadcrumb="breadcrumb"
       class="candidatures-kanban-view__header"
-    />
+    >
+      <template #actions>
+        <CandidaturesViewSwitch
+          :recrutement-uuid="recrutementUuid"
+          current="kanban"
+        />
+      </template>
+    </CspPageHeader>
 
     <div
       v-if="pending"

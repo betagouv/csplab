@@ -10,6 +10,7 @@ import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
+import CandidaturesViewSwitch from '@/features/candidatures/components/CandidaturesViewSwitch.vue'
 import { CANDIDATURE_LISTE_COLUMNS } from '../columns'
 import { useRecrutementCandidatures } from '../composables/useRecrutementCandidatures'
 import { formatRecrutementMeta } from '../format'
@@ -54,7 +55,14 @@ const candidatureListePage = ref(1)
     <CspPageHeader
       :title="title"
       :breadcrumb="breadcrumb"
-    />
+    >
+      <template #actions>
+        <CandidaturesViewSwitch
+          :recrutement-uuid="recrutementUuid"
+          current="liste"
+        />
+      </template>
+    </CspPageHeader>
     <CspMetaList :items="metaItems" />
     <CspTabs
       v-model="activeTab"
