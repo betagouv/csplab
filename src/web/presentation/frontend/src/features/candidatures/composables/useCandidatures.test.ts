@@ -1,5 +1,7 @@
 import type { PaginatedCandidatureListeResponse, RecrutementDetailKanban } from '../types'
+import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, h } from 'vue'
 import { getCandidatureListe, getRecrutementKanban } from '../api'
 import { provideCandidatures, useCandidatures } from './useCandidatures'
 
@@ -113,11 +115,98 @@ describe('useCandidatures', () => {
       expect(sourceEtape?.candidatures).toHaveLength(1)
       expect(targetEtape?.candidatures).toHaveLength(2)
     })
+
+    it('ignores move when source and target are the same', async () => {
+      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+
+      const columnId = 'cccccccc-0001-0001-0001-000000000001'
+      const cardId = 'dddddddd-0001-0001-0001-000000000001'
+      const etapesBefore = structuredClone(context.etapes.value)
+
+      context.moveCandidature({ sourceColumnId: columnId, targetColumnId: columnId, cardId })
+
+      expect(context.etapes.value).toEqual(etapesBefore)
+    })
+
+    it('ignores move when source column is unknown', async () => {
+      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+
+      const etapesBefore = structuredClone(context.etapes.value)
+
+      context.moveCandidature({
+        sourceColumnId: 'unknown-source',
+        targetColumnId: 'cccccccc-0001-0001-0001-000000000002',
+        cardId: 'dddddddd-0001-0001-0001-000000000001',
+      })
+
+      expect(context.etapes.value).toEqual(etapesBefore)
+    })
+
+    it('ignores move when target column is unknown', async () => {
+      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+
+      const etapesBefore = structuredClone(context.etapes.value)
+
+      context.moveCandidature({
+        sourceColumnId: 'cccccccc-0001-0001-0001-000000000001',
+        targetColumnId: 'unknown-target',
+        cardId: 'dddddddd-0001-0001-0001-000000000001',
+      })
+
+      expect(context.etapes.value).toEqual(etapesBefore)
+    })
+
+    it('ignores move when card is not in source column', async () => {
+      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+
+      const etapesBefore = structuredClone(context.etapes.value)
+
+      context.moveCandidature({
+        sourceColumnId: 'cccccccc-0001-0001-0001-000000000001',
+        targetColumnId: 'cccccccc-0001-0001-0001-000000000002',
+        cardId: 'unknown-card',
+      })
+
+      expect(context.etapes.value).toEqual(etapesBefore)
+    })
   })
 
   describe('useCandidatures', () => {
     it('throws if called outside provider', () => {
       expect(() => useCandidatures()).toThrow('useCandidatures must be used within CandidaturesView')
+    })
+
+    it('returns context when used within provider', async () => {
+      let injectedContext: ReturnType<typeof useCandidatures> | undefined
+
+      const Child = defineComponent({
+        setup() {
+          injectedContext = useCandidatures()
+          return () => h('div')
+        },
+      })
+
+      const Parent = defineComponent({
+        setup() {
+          provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+          return () => h(Child)
+        },
+      })
+
+      mount(Parent)
+
+      await vi.waitFor(() => expect(injectedContext?.pending.value).toBe(false))
+
+      expect(injectedContext?.recrutementUuid).toBe(RECRUTEMENT_UUID)
+      expect(injectedContext?.totalCount.value).toBe(3)
     })
   })
 })
