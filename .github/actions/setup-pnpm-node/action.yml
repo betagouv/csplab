@@ -2,9 +2,6 @@ name: Set up pnpm and Node.js
 description: Install pnpm and Node.js with dependency caching.
 
 inputs:
-  pnpm-version:
-    description: pnpm version to install
-    default: "11.1.3"
   node-version:
     description: Node.js version to install
     default: "24"
@@ -17,8 +14,6 @@ runs:
   steps:
     - name: Setup pnpm
       uses: pnpm/action-setup@v6
-      with:
-        version: ${{ inputs.pnpm-version }}
     - name: Setup Node.js
       uses: actions/setup-node@v6
       with:
