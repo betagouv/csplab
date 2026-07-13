@@ -10,10 +10,14 @@ import CandidatureKanbanCard from './CandidatureKanbanCard.vue'
 const props = defineProps<{
   etape: EtapeRecrutementDetailedCandidatures
   boardId: string
+  isSelected?: boolean
+}>()
+
+const emit = defineEmits<{
+  'toggle-selection': [etape: EtapeRecrutementDetailedCandidatures]
 }>()
 
 const categorieConfig = computed(() => CATEGORIE_CONFIG[props.etape.categorie])
-const isSelected = ref(false)
 
 const columnRef = ref<HTMLElement | null>(null)
 const cardsRef = ref<HTMLElement | null>(null)
@@ -33,6 +37,10 @@ watch(isDraggedOver, async (isOver, wasOver) => {
     })
   }
 })
+
+function handleCheckboxChange(): void {
+  emit('toggle-selection', props.etape)
+}
 </script>
 
 <template>
@@ -47,11 +55,12 @@ watch(isDraggedOver, async (isOver, wasOver) => {
     <header class="candidature-kanban-column__header">
       <h2 class="candidature-kanban-column__title">
         <CspCheckbox
-          v-model="isSelected"
+          :model-value="isSelected"
           class="candidature-kanban-column__select"
           variant="checkbox-only"
           size="sm"
           :label="`Sélectionner la colonne ${etape.nom}`"
+          @update:model-value="handleCheckboxChange"
         />
         <span class="candidature-kanban-column__title-text">{{ etape.nom }}</span>
         <CspBadge

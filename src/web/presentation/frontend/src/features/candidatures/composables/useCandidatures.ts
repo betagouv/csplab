@@ -16,6 +16,11 @@ export interface MoveCandidatureParams {
   cardId: string
 }
 
+export interface MoveCandidaturesBatchParams {
+  candidaturesByEtape: Map<string, string[]>
+  targetColumnId: string
+}
+
 export const useCandidatures = defineQuery(() => {
   const route = useRoute()
   const recrutementUuid = computed<string | null>(() => {
@@ -107,6 +112,65 @@ export const useCandidatures = defineQuery(() => {
     queryCache.setQueryData(key, { ...detail, etapes: newEtapes })
   }
 
+  function moveCandidaturesBatch(params: MoveCandidaturesBatchParams): void {
+    const { candidaturesByEtape, targetColumnId } = params
+
+    const detail = kanban.data.value
+    if (!detail)
+      return
+
+    const targetEtape = detail.etapes.find(e => e.etape_uuid === targetColumnId)
+    if (!targetEtape)
+      return
+
+    const candidaturesToMove: Candidature[] = []
+
+    for (const [sourceEtapeUuid, candidatureUuids] of candidaturesByEtape) {
+      if (sourceEtapeUuid === targetColumnId)
+        continue
+
+      const sourceEtape = detail.etapes.find(e => e.etape_uuid === sourceEtapeUuid)
+      if (!sourceEtape)
+        continue
+
+      for (const uuid of candidatureUuids) {
+        const candidature = sourceEtape.candidatures.find(c => c.uuid === uuid)
+        if (candidature) {
+          candidaturesToMove.push(candidature as Candidature)
+        }
+      }
+    }
+
+    if (candidaturesToMove.length === 0)
+      return
+
+    const movedUuids = new Set(candidaturesToMove.map(c => c.uuid))
+
+    const newEtapes = detail.etapes.map((etape) => {
+      if (etape.etape_uuid === targetColumnId) {
+        return {
+          ...etape,
+          candidatures: [...etape.candidatures, ...candidaturesToMove],
+        }
+      }
+
+      if (candidaturesByEtape.has(etape.etape_uuid)) {
+        return {
+          ...etape,
+          candidatures: etape.candidatures.filter(c => !movedUuids.has(c.uuid)),
+        }
+      }
+
+      return etape
+    })
+
+    const { key } = recrutementKanbanQuery({
+      organismeUuid: TEMP_ORGANISME_UUID,
+      recrutementUuid: recrutementUuid.value!,
+    })
+    queryCache.setQueryData(key, { ...detail, etapes: newEtapes })
+  }
+
   const filters = useCandidaturesFilters(etapes, candidatureListe)
 
   watch(recrutementUuid, () => {
@@ -123,6 +187,7 @@ export const useCandidatures = defineQuery(() => {
     pending,
     error,
     moveCandidature,
+    moveCandidaturesBatch,
     filters,
   }
 })

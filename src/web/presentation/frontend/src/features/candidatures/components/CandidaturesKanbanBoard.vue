@@ -7,10 +7,12 @@ import CandidatureKanbanColumn from './CandidatureKanbanColumn.vue'
 const props = defineProps<{
   etapes: EtapeRecrutementDetailedCandidatures[]
   boardId: string
+  isColumnSelected: (etapeUuid: string) => boolean
 }>()
 
 const emit = defineEmits<{
-  move: [event: KanbanDropEvent]
+  'move': [event: KanbanDropEvent]
+  'toggle-column-selection': [etape: EtapeRecrutementDetailedCandidatures]
 }>()
 
 useKanbanBoardMonitor({
@@ -30,6 +32,8 @@ useKanbanBoardMonitor({
       :key="etape.etape_uuid"
       :etape="etape"
       :board-id="boardId"
+      :is-selected="isColumnSelected(etape.etape_uuid)"
+      @toggle-selection="emit('toggle-column-selection', $event)"
     />
   </div>
 </template>

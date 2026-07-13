@@ -1,16 +1,21 @@
 <script setup lang="ts">
+import type { EtapeRecrutementDetailedCandidatures } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
-import { computed } from 'vue'
+import { computed, ref, toRef } from 'vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
+import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
 import { useCandidatures } from '../composables/useCandidatures'
+import { useKanbanSelection } from '../composables/useKanbanSelection'
 
 const {
   recrutementUuid,
+  etapes,
   pending,
   moveCandidature,
+  moveCandidaturesBatch,
   filters,
 } = useCandidatures()
 
@@ -18,7 +23,31 @@ const { filteredEtapes } = filters
 
 const showSkeleton = useMinimumPending(pending)
 
+const {
+  selectedByEtape,
+  selectedCount,
+  currentEtapeUuid,
+  isColumnSelected,
+  toggleColumnSelection,
+  toggleCandidatureSelection,
+  clearSelection,
+  hasSelection,
+} = useKanbanSelection(toRef(() => filteredEtapes.value))
+
 const boardId = computed(() => `kanban-${recrutementUuid.value}`)
+const isDrawerOpen = ref(false)
+
+const sourceEtape = computed(() => {
+  if (!currentEtapeUuid.value)
+    return null
+  return etapes.value.find(e => e.etape_uuid === currentEtapeUuid.value) ?? null
+})
+
+const selectedCandidatureUuids = computed(() => {
+  if (!currentEtapeUuid.value)
+    return new Set<string>()
+  return selectedByEtape.value.get(currentEtapeUuid.value) ?? new Set<string>()
+})
 
 function handleMove(event: KanbanDropEvent) {
   moveCandidature({
@@ -28,9 +57,54 @@ function handleMove(event: KanbanDropEvent) {
   })
 }
 
+function handleToggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
+  toggleColumnSelection(etape)
+  if (hasSelection.value) {
+    isDrawerOpen.value = true
+  }
+  else {
+    isDrawerOpen.value = false
+  }
+}
+
+function handleConfirmBatchMove(targetEtapeUuid: string): void {
+  const candidaturesByEtape = new Map<string, string[]>()
+
+  for (const [etapeUuid, uuids] of selectedByEtape.value) {
+    candidaturesByEtape.set(etapeUuid, [...uuids])
+  }
+
+  moveCandidaturesBatch({
+    candidaturesByEtape,
+    targetColumnId: targetEtapeUuid,
+  })
+
+  clearSelection()
+  isDrawerOpen.value = false
+}
+
+function handleDrawerClose(open: boolean): void {
+  isDrawerOpen.value = open
+  if (!open) {
+    clearSelection()
+  }
+}
+
+function handleToggleCandidature(candidatureUuid: string, etapeUuid: string): void {
+  toggleCandidatureSelection(candidatureUuid, etapeUuid)
+  if (!hasSelection.value) {
+    isDrawerOpen.value = false
+  }
+}
+
 const countLabel = computed(() => {
   const count = filteredEtapes.value.reduce((sum, etape) => sum + etape.candidatures.length, 0)
   return `${count} candidature${count > 1 ? 's' : ''}`
+})
+
+const selectedCountLabel = computed(() => {
+  const count = selectedCount.value
+  return `${count} candidat${count > 1 ? 's' : ''} sélectionné${count > 1 ? 's' : ''}`
 })
 </script>
 
@@ -53,13 +127,34 @@ const countLabel = computed(() => {
     v-else
     class="candidatures-kanban-content"
   >
-    <p class="candidatures-kanban-content__count">
+    <p
+      v-if="!hasSelection"
+      class="candidatures-kanban-content__count"
+    >
       {{ countLabel }}
+    </p>
+    <p
+      v-else
+      class="candidatures-kanban-content__selection"
+    >
+      {{ selectedCountLabel }}
     </p>
     <CandidaturesKanbanBoard
       :etapes="filteredEtapes"
       :board-id="boardId"
+      :is-column-selected="isColumnSelected"
       @move="handleMove"
+      @toggle-column-selection="handleToggleColumnSelection"
+    />
+
+    <ChangerEtapeDrawer
+      :open="isDrawerOpen"
+      :source-etape="sourceEtape"
+      :selected-candidature-uuids="selectedCandidatureUuids"
+      :etapes="etapes"
+      @update:open="handleDrawerClose"
+      @confirm="handleConfirmBatchMove"
+      @toggle-candidature="handleToggleCandidature"
     />
   </div>
 </template>
@@ -80,5 +175,15 @@ const countLabel = computed(() => {
 
 .candidatures-kanban-content__count-skeleton {
   margin: var(--csp-space-1) 0 calc(var(--csp-space-4) + 0.15rem);
+}
+
+.candidatures-kanban-content__selection {
+  margin: 0 0 var(--csp-space-4);
+  padding: var(--csp-space-3) var(--csp-space-4);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-default-grey);
+  background-color: var(--background-alt-grey);
+  border-radius: 0.25rem;
 }
 </style>
