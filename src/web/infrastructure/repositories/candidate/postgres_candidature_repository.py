@@ -3,6 +3,7 @@ from uuid import UUID
 from django.db import IntegrityError
 
 from domain.candidate.entities.candidature import Candidature
+from domain.candidate.exceptions.candidature_errors import CandidatureDejaSoumise
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
 )
@@ -55,6 +56,11 @@ class PostgresCandidatureRepository(ICandidatureRepository):
             )
         except IntegrityError as e:
             error_detail = str(e)
+            if "unique_candidature_candidat_etape" in error_detail:
+                raise CandidatureDejaSoumise(
+                    candidat_id=candidature.candidat_id,
+                    offre_id=candidature.offre_id,
+                ) from e
             if "candidat_id" in error_detail:
                 raise CandidatInexistant(candidature.candidat_id) from e
             raise

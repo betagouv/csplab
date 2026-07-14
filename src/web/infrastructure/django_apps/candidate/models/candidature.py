@@ -38,7 +38,7 @@ class CandidatureModel(BaseDatedModel):
         constraints = [
             models.UniqueConstraint(
                 fields=["candidat_id", "etape_id"],
-                name="unique_candidature_candidat_offre",
+                name="unique_candidature_candidat_etape",
             )
         ]
 

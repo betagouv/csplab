@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='candidaturemodel',
-            constraint=models.UniqueConstraint(fields=('candidat_id', 'etape_id'), name='unique_candidature_candidat_offre'),
+            constraint=models.UniqueConstraint(fields=('candidat_id', 'etape_id'), name='unique_candidature_candidat_etape'),
         ),
         migrations.RemoveField(
             model_name='candidaturemodel',

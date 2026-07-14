@@ -10,6 +10,7 @@ from application.candidate.commands.submit_application_command import (
 )
 from config.app_config import AppConfig
 from domain.candidate.entities.candidature import Candidature
+from domain.candidate.exceptions.candidature_errors import CandidatureDejaSoumise
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from domain.identite.exceptions.candidat_errors import CandidatInexistant
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
@@ -126,3 +127,36 @@ def test_save_raises_candidat_inexistant_on_fk_violation(
     )
     with pytest.raises(CandidatInexistant):
         candidate_container.candidature_repository().save(candidature)
+
+
+def test_save_raises_candidature_deja_soumise_on_duplicate(
+    transactional_db, candidate_container
+):
+    offre = OfferFactory.create_model()
+    recrutement = RecrutementFactory.create_model(offre_id=offre.id)
+    candidate = CandidatFactory.create_model()
+
+    # First save: creates the candidature successfully
+    candidature1 = Candidature.build(
+        entity_id=uuid4(),
+        candidat_id=candidate.to_entity().entity_id,
+        offre_id=recrutement.offre_id,  # type: ignore[attr-defined]
+        statut=StatutCandidature.INITIAL,
+        documents=None,
+        soumise_le=None,
+        mise_a_jour_le=None,
+    )
+    candidate_container.candidature_repository().save(candidature1)
+
+    # Second save: same candidat, same offre → unique constraint violation
+    candidature2 = Candidature.build(
+        entity_id=uuid4(),  # different UUID
+        candidat_id=candidate.to_entity().entity_id,
+        offre_id=recrutement.offre_id,  # type: ignore[attr-defined]
+        statut=StatutCandidature.INITIAL,
+        documents=None,
+        soumise_le=None,
+        mise_a_jour_le=None,
+    )
+    with pytest.raises(CandidatureDejaSoumise):
+        candidate_container.candidature_repository().save(candidature2)
