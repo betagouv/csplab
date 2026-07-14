@@ -25,6 +25,12 @@ class PostgresCandidatureRepository(ICandidatureRepository):
             id=candidature_id
         ).exists()
 
+    def exists_by_candidat_and_offre(self, candidat_id: UUID, offre_id: UUID) -> bool:
+        return CandidatureModel.objects.filter(  # type: ignore[attr-defined]
+            candidat_id=str(candidat_id),  # type: ignore[misc]  # UUID → VARCHAR(36)
+            etape__recrutement_id=offre_id,
+        ).exists()
+
     def save(self, candidature: Candidature) -> None:
         try:
             CandidatureModel.objects.update_or_create(  # type: ignore[attr-defined]

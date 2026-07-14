@@ -13,6 +13,7 @@ from domain.candidate.events.candidature_events import (
     CandidatureSoumise,
     DossierCandidatureInitialise,
 )
+from domain.candidate.exceptions.candidature_errors import CandidatureDejaSoumise
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
 )
@@ -37,6 +38,7 @@ def submit_application_usecase():
     recrutement_repository = MagicMock(spec=IRecrutementRepository)
     candidat_repository = MagicMock(spec=ICandidatRepository)
     candidature_repository = MagicMock(spec=ICandidatureRepository)
+    candidature_repository.exists_by_candidat_and_offre.return_value = False
     return SubmitApplicationUsecase(
         recrutement_repository=recrutement_repository,
         candidat_repository=candidat_repository,
@@ -97,4 +99,22 @@ def test_submit_application_raises_when_recrutement_not_found(
     with pytest.raises(RecrutementInexistant):
         submit_application_usecase.execute(
             command=SubmitApplicationCommand(offre_id=offre_id, candidat_id=uuid4())
+        )
+
+
+def test_submit_candidature_twice(submit_application_usecase):
+    offre_id = uuid4()
+    candidat_id = uuid4()
+
+    submit_application_usecase.candidat_repository.get_by_id.return_value = MagicMock()
+    submit_application_usecase.recrutement_repository.get_by_id.return_value = (
+        MagicMock()
+    )
+    submit_application_usecase.candidature_repository.exists_by_candidat_and_offre.return_value = (  # noqa: E501
+        True
+    )
+
+    with pytest.raises(CandidatureDejaSoumise):
+        submit_application_usecase.execute(
+            command=SubmitApplicationCommand(offre_id=offre_id, candidat_id=candidat_id)
         )

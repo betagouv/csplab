@@ -5,6 +5,7 @@ from application.candidate.commands.submit_application_command import (
     SubmitApplicationCommand,
 )
 from domain.candidate.entities.candidature import Candidature
+from domain.candidate.exceptions.candidature_errors import CandidatureDejaSoumise
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
 )
@@ -41,6 +42,11 @@ class SubmitApplicationUsecase(
         # todo: rbac should manage access and existence:
         self.candidat_repository.get_by_id(command.candidat_id)
         self.recrutement_repository.get_by_id(command.offre_id)
+
+        if self.candidature_repository.exists_by_candidat_and_offre(
+            command.candidat_id, command.offre_id
+        ):
+            raise CandidatureDejaSoumise(command.candidat_id, command.offre_id)
 
         candidature = Candidature.create(
             offre_id=command.offre_id,

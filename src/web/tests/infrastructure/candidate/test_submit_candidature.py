@@ -160,3 +160,24 @@ def test_save_raises_candidature_deja_soumise_on_duplicate(
     )
     with pytest.raises(CandidatureDejaSoumise):
         candidate_container.candidature_repository().save(candidature2)
+
+
+def test_submit_candidature_twice(db, candidate_container):
+    offre = OfferFactory.create_model()
+    candidate = CandidatFactory.create_model()
+
+    RecrutementFactory.create_model(offre_id=offre.id)
+
+    command = SubmitApplicationCommand(
+        offre_id=offre.id,  # type: ignore[attr-defined]
+        candidat_id=candidate.to_entity().entity_id,
+    )
+
+    usecase = candidate_container.submit_application_usecase()
+
+    # First submission: should succeed
+    usecase.execute(command)
+
+    # Second submission: should raise CandidatureDejaSoumise
+    with pytest.raises(CandidatureDejaSoumise):
+        usecase.execute(command)
