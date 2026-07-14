@@ -12,13 +12,6 @@ class DossierCandidatureInvalide(CandidatureError):
         super().__init__(f"Le dossier de candidature est invalide : {raison}")
 
 
-class CandidatureNexistePas(CandidatureError):
-    def __init__(self, candidat_id: UUID, offre_id: UUID):
-        super().__init__(
-            (f"Pas de candidature pour le candidat {candidat_id} et l'offre {offre_id}")
-        )
-
-
 class CandidatureIntrouvable(CandidatureError):
     def __init__(self, candidature_id: UUID):
         self.candidature_id = candidature_id

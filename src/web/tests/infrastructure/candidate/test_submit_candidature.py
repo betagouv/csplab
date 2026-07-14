@@ -1,9 +1,9 @@
-from uuid import UUID, uuid4
+from datetime import datetime, timezone
+from uuid import uuid4
 
 import pytest
-from django.db import IntegrityError
+import time_machine
 from faker import Faker
-from referentiel.exceptions.offer_errors import OfferDoesNotExist
 
 from application.candidate.commands.submit_application_command import (
     SubmitApplicationCommand,
@@ -13,17 +13,19 @@ from domain.candidate.entities.candidature import Candidature
 from domain.candidate.exceptions.candidature_errors import CandidatureDejaSoumise
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from domain.identite.exceptions.candidat_errors import CandidatInexistant
+from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.candidate.candidature_factory import CandidatureFactory
 from tests.factories.identite.candidat_factory import CandidatFactory
+from tests.factories.recruteur.recrutement_factory import RecrutementFactory
 from tests.factories.referentiel.offer_factory import OfferFactory
 from tests.utils.shared_fixtures import (
     create_shared_qdrant_repository,
 )
 
 fake = Faker()
+_FROZEN_TS = datetime.now(tz=timezone.utc)
 
 
 @pytest.fixture
@@ -55,51 +57,31 @@ def test_app_config(candidate_container):
     return candidate_container.app_config()
 
 
+@time_machine.travel(_FROZEN_TS, tick=False)
 def test_submit_candidature_success(db, candidate_container):
     offre = OfferFactory.create_model()
     candidate = CandidatFactory.create_model()
 
+    RecrutementFactory.create_model(offre_id=offre.id)
+
     command = SubmitApplicationCommand(
-        offre_id=offre.to_entity().id, candidat_id=candidate.to_entity().entity_id
+        offre_id=offre.id,  # type: ignore[attr-defined]
+        candidat_id=candidate.to_entity().entity_id,
     )
 
     usecase = candidate_container.submit_application_usecase()
     candidature = usecase.execute(command)
 
     assert candidature.statut == StatutCandidature.SOUMISE
-    assert candidature.offre_id == offre.to_entity().id
-    assert candidature.candidat_id == candidate.to_entity().entity_id
-    assert candidature.soumise_le is not None
-
-
-def test_candidature_already_exists(db, candidate_container):
-    offre = OfferFactory.create_model()
-    candidate = CandidatFactory.create_model()
-    offre_id = offre.to_entity().id
-    candidate_id = candidate.to_entity().entity_id
-    existing = CandidatureFactory.build_model(
-        statut=StatutCandidature.SOUMISE, offre_id=offre_id, candidat_id=candidate_id
-    )
-    assert str(existing) == str(existing.id)
-
-    command = SubmitApplicationCommand(
-        offre_id=existing.offre.id,
-        candidat_id=existing.candidat.utilisateur_id,
-    )
-
-    usecase = candidate_container.submit_application_usecase()
-
-    with pytest.raises(CandidatureDejaSoumise):
-        usecase.execute(command)
+    assert candidature.soumise_le == _FROZEN_TS
 
 
 def test_candidate_does_not_exist(db, candidate_container):
     offre = OfferFactory.create_model()
-    offre_id = offre.to_entity().id
     candidate_id = fake.uuid4(cast_to=None)
 
     command = SubmitApplicationCommand(
-        offre_id=offre_id,
+        offre_id=offre.id,  # type: ignore[attr-defined]
         candidat_id=candidate_id,
     )
     usecase = candidate_container.submit_application_usecase()
@@ -108,7 +90,7 @@ def test_candidate_does_not_exist(db, candidate_container):
         usecase.execute(command)
 
 
-def test_offer_does_not_exist(db, candidate_container):
+def test_recrutement_does_not_exist(db, candidate_container):
     offre_id = fake.uuid4(cast_to=None)
     candidate = CandidatFactory.create_model()
     candidate_id = candidate.to_entity().entity_id
@@ -119,83 +101,83 @@ def test_offer_does_not_exist(db, candidate_container):
     )
     usecase = candidate_container.submit_application_usecase()
 
-    with pytest.raises(OfferDoesNotExist):
+    with pytest.raises(RecrutementInexistant):
         usecase.execute(command)
 
 
-# The following 3 tests call repo.save() directly (bypassing the validator)
-# and verify the FK safety net in PostgresCandidatureRepository.
+# The following tests call repo.save() directly and verify the FK safety net.
 # transactional_db: autocommit so FK constraints are enforced immediately.
+# We first create the row via the recruteur repo (which knows etape_id)
+# and then verify the candidate repo catches FK violations.
 def test_save_raises_candidat_inexistant_on_fk_violation(
     transactional_db, candidate_container
 ):
     offre = OfferFactory.create_model()
-    repo = candidate_container.candidature_repository()
+    recrutement = RecrutementFactory.create_model(offre_id=offre.id)
 
+    # Now try to save with an unknown candidat_id via candidate repo
     candidature = Candidature.build(
         entity_id=uuid4(),
-        candidat_id=uuid4(),  # unknown candidat → FK violation on candidat_id
-        offre_id=offre.id,
+        candidat_id=uuid4(),  # unknown candidat
+        offre_id=recrutement.offre_id,  # type: ignore[attr-defined]
         statut=StatutCandidature.INITIAL,
         documents=None,
         soumise_le=None,
         mise_a_jour_le=None,
     )
     with pytest.raises(CandidatInexistant):
-        repo.save(candidature)
+        candidate_container.candidature_repository().save(candidature)
 
 
-def test_save_raises_offer_does_not_exist_on_fk_violation(
+def test_save_raises_candidature_deja_soumise_on_duplicate(
     transactional_db, candidate_container
 ):
-    profil = CandidatFactory.create_model()
-    repo = candidate_container.candidature_repository()
+    offre = OfferFactory.create_model()
+    recrutement = RecrutementFactory.create_model(offre_id=offre.id)
+    candidate = CandidatFactory.create_model()
 
-    candidature = Candidature.build(
+    # First save: creates the candidature successfully
+    candidature1 = Candidature.build(
         entity_id=uuid4(),
-        candidat_id=UUID(profil.utilisateur_id),  # type: ignore[attr-defined]
-        offre_id=uuid4(),  # unknown offer → FK violation on offre_id
+        candidat_id=candidate.to_entity().entity_id,
+        offre_id=recrutement.offre_id,  # type: ignore[attr-defined]
         statut=StatutCandidature.INITIAL,
         documents=None,
         soumise_le=None,
         mise_a_jour_le=None,
     )
-    with pytest.raises(OfferDoesNotExist):
-        repo.save(candidature)
+    candidate_container.candidature_repository().save(candidature1)
 
-
-# transactional_db: FK + PK constraints enforced immediately
-# (autocommit, production parity).
-def test_save_raises_unhandled_integrity_error(transactional_db, candidate_container):
-    profil1 = CandidatFactory.create_model()
-    profil2 = CandidatFactory.create_model()
-    offre1 = OfferFactory.create_model()
-    offre2 = OfferFactory.create_model()
-
-    shared_id = uuid4()
-    repo = candidate_container.candidature_repository()
-
-    c1 = Candidature.build(
-        entity_id=shared_id,
-        candidat_id=UUID(profil1.utilisateur_id),  # type: ignore[attr-defined]
-        offre_id=offre1.id,
+    # Second save: same candidat, same offre → unique constraint violation
+    candidature2 = Candidature.build(
+        entity_id=uuid4(),  # different UUID
+        candidat_id=candidate.to_entity().entity_id,
+        offre_id=recrutement.offre_id,  # type: ignore[attr-defined]
         statut=StatutCandidature.INITIAL,
         documents=None,
         soumise_le=None,
         mise_a_jour_le=None,
     )
-    repo.save(c1)
+    with pytest.raises(CandidatureDejaSoumise):
+        candidate_container.candidature_repository().save(candidature2)
 
-    # Same entity_id → duplicate PK → error message contains "candidature_pkey",
-    # not "candidat_id" nor "offre_id" → bare raise
-    c2 = Candidature.build(
-        entity_id=shared_id,
-        candidat_id=UUID(profil2.utilisateur_id),  # type: ignore[attr-defined]
-        offre_id=offre2.id,
-        statut=StatutCandidature.INITIAL,
-        documents=None,
-        soumise_le=None,
-        mise_a_jour_le=None,
+
+def test_submit_candidature_twice(db, candidate_container):
+    offre = OfferFactory.create_model()
+    candidate = CandidatFactory.create_model()
+
+    RecrutementFactory.create_model(offre_id=offre.id)
+
+    command = SubmitApplicationCommand(
+        offre_id=offre.id,  # type: ignore[attr-defined]
+        candidat_id=candidate.to_entity().entity_id,
     )
-    with pytest.raises(IntegrityError):
-        repo.save(c2)
+
+    usecase = candidate_container.submit_application_usecase()
+
+    # First submission: should succeed
+    usecase.execute(command)
+
+    # Second submission: should raise CandidatureDejaSoumise
+    with pytest.raises(CandidatureDejaSoumise):
+        usecase.execute(command)

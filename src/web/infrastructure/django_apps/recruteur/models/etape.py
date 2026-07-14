@@ -35,4 +35,4 @@ class EtapeModel(BaseDatedModel):
         verbose_name_plural = "Étapes de recrutement"
 
     def __str__(self) -> str:
-        return str(self.id)
+        return str(self.recrutement)

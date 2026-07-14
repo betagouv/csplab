@@ -37,7 +37,7 @@ def repository_fixture(recruteur_integration_container) -> PostgresNoteRepositor
 
 @pytest.fixture(name="candidature_id")
 def candidature_id_fixture(db) -> UUID:
-    return CandidatureFactory.build_model().id
+    return CandidatureFactory.create_model().id
 
 
 @pytest.fixture(name="agent_id")

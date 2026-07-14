@@ -74,14 +74,17 @@ _SEED_METIER_OFFER_FAMILY_CODES = ["ERNUM001", "ERJUR001"]
 
 
 def _delete_seed_data() -> None:
-    seed_offer_ids = list(
-        OfferModel.objects.filter(external_id__in=_SEED_OFFER_EXTERNAL_IDS).values_list(
-            "id", flat=True
+    seed_usernames = list(
+        UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).values_list(
+            "username", flat=True
         )
     )
-    CandidatureModel.objects.filter(offre_id__in=seed_offer_ids).delete()
+    CandidatureModel.objects.filter(candidat_id__in=seed_usernames).delete()
 
-    RecrutementModel.objects.filter(offre_id__in=seed_offer_ids).delete()  # type: ignore[attr-defined]
+    seed_offre_ids = OfferModel.objects.filter(
+        external_id__in=_SEED_OFFER_EXTERNAL_IDS
+    ).values_list("id", flat=True)
+    RecrutementModel.objects.filter(offre_id__in=seed_offre_ids).delete()  # type: ignore[attr-defined]
 
     seed_usernames = list(
         UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).values_list(
@@ -237,7 +240,21 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     candidats = [CandidatFactory.create_model(**spec) for spec in _CANDIDATS_SPECS]
 
     # ------------------------------------------------------------------ #
-    # 7. Candidatures                                                      #
+    # 7. Recrutements (1 par offre active) : étapes + responsables         #
+    # ------------------------------------------------------------------ #
+    # Doit précéder les candidatures car CandidatureFactory.create_model()
+    # crée désormais un recrutement lié.
+    recrutements = [
+        RecrutementFactory.create_model(
+            offre_id=offre.id,
+            organisme_id=_ORGANISME_UUID,
+            responsables_agent_ids=(UUID(agents[0].utilisateur_id),),
+        )
+        for offre in offres_actives
+    ]
+
+    # ------------------------------------------------------------------ #
+    # 8. Candidatures                                                      #
     # ------------------------------------------------------------------ #
     candidatures_specs = [
         (candidats[0], offres_actives[0], StatutCandidature.SOUMISE),
@@ -253,23 +270,11 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     ]
 
     for candidat_model, offre_model, statut in candidatures_specs:
-        CandidatureFactory.build_model(
+        CandidatureFactory.create_model(
             candidat_id=candidat_model.to_entity().entity_id,
             offre_id=offre_model.id,
             statut=statut,
         )
-
-    # ------------------------------------------------------------------ #
-    # 8. Recrutements (1 par offre active) : étapes + responsables         #
-    # ------------------------------------------------------------------ #
-    recrutements = [
-        RecrutementFactory.create_model(
-            offre_id=offre.id,
-            organisme_id=_ORGANISME_UUID,
-            responsables_agent_ids=(UUID(agents[0].utilisateur_id),),
-        )
-        for offre in offres_actives
-    ]
 
     return {
         "status": "seeded",

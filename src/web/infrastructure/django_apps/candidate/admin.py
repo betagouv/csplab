@@ -1,9 +1,5 @@
 from django.contrib import admin
 
-from application.candidate.commands.submit_application_command import (
-    SubmitApplicationCommand,
-)
-from infrastructure.di.candidate.candidate_factory import create_candidate_container
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
@@ -17,33 +13,17 @@ class CVMetadataAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(CandidatureModel)
-class CandidatureAdmin(admin.ModelAdmin):
+class CandidatureAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
-        "id",
-        "candidat_id",
-        "offre_id",
-        "statut",
+        "candidat",
+        "etape__categorie",
+        "etape__recrutement",
         "created_at",
         "updated_at",
     )
     list_filter = ("statut",)
-    search_fields = ("candidat_id", "offre_id")
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj:
-            return ("id", "candidat_id", "offre_id", "created_at", "updated_at")
-        return ("id", "created_at", "updated_at")
-
-    def save_model(self, request, obj, form, change):
-        if not change:
-            command = SubmitApplicationCommand(
-                offre_id=obj.offre_id,
-                candidat_id=obj.candidat_id,
-            )
-            container = create_candidate_container()
-            candidature = container.submit_application_usecase().execute(command)
-            #  the use case already persisted; sync the obj displayed by the admin
-            obj.id = candidature.entity_id
-            obj.statut = candidature.statut.value
-            return
-        super().save_model(request, obj, form, change)
+    search_fields = (
+        "etape__recrutement__offre__reference",
+        "candidat__utilisateur__first_name",
+        "candidat__utilisateur__last_name",
+    )

@@ -6,8 +6,15 @@ from faker import Faker
 
 from domain.candidate.entities.candidature import Candidature
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
+from infrastructure.mappers.candidature_mapper import CandidatureMapper
 from tests.factories.identite.candidat_factory import CandidatFactory
+from tests.factories.recruteur.recrutement_factory import RecrutementFactory
 from tests.factories.referentiel.offer_factory import OfferFactory
 
 fake = Faker("fr_FR")
@@ -22,7 +29,7 @@ def make_documents() -> tuple[UUID, ...]:
 
 class CandidatureFactory:
     @staticmethod
-    def build(
+    def create_entity(
         entity_id: UUID | None = None,
         candidat_id: UUID | None = None,
         offre_id: UUID | None = None,
@@ -46,7 +53,7 @@ class CandidatureFactory:
         )
 
     @staticmethod
-    def build_model(
+    def create_model(
         candidat_id: UUID | None = None,
         offre_id: UUID | None = None,
         statut: StatutCandidature | None = None,
@@ -57,12 +64,28 @@ class CandidatureFactory:
         if offre_id is None:
             offre_id = OfferFactory.create_model().id
 
-        candidature = CandidatureFactory.build(
+        candidature = CandidatureFactory.create_entity(
             candidat_id=candidat_id,
             offre_id=offre_id,
             statut=statut,
             documents=documents,
         )
-        model = CandidatureModel.from_entity(candidature)
+
+        # Réutiliser un recrutement existant ou en créer un
+        recrutement = RecrutementModel.objects.filter(  # type: ignore[attr-defined]
+            offre_id=offre_id
+        ).first()
+        if recrutement is None:
+            recrutement = RecrutementFactory.create_model(offre_id=offre_id)
+
+        first_etape = EtapeModel.objects.filter(  # type: ignore[attr-defined]
+            recrutement_id=offre_id,
+            categorie=CategorieEtapeRecrutement.ENTREE.value,
+        ).first()
+        first_etape_id = (
+            first_etape.id if first_etape else UUID(recrutement.ordre_etapes[0])
+        )  # type: ignore[attr-defined]
+
+        model = CandidatureMapper().from_domain(candidature, etape_id=first_etape_id)
         model.save()
         return model

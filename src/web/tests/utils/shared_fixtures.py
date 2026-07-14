@@ -28,7 +28,6 @@ from application.candidate.usecases.match_cv_to_opportunities import (
     MatchCVToOpportunitiesUsecase,
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
-from application.candidate.usecases.submit_application import SubmitApplicationUsecase
 from application.commons.usecases.calculate_daily_stats import (
     CalculateDailyStatsUseCase,
 )
@@ -54,9 +53,6 @@ from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsUsecase,
 )
 from config.app_config import AppConfig
-from domain.candidate.repositories.candidature_repository_interface import (
-    ICandidatureRepository,
-)
 from domain.candidate.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
 )
@@ -489,18 +485,6 @@ def get_opportunity_details_usecase():
         offers_repository=offers_repository,
         concours_repository=concours_repository,
         metiers_repository=metiers_repository,
-    )
-
-
-@pytest.fixture
-def submit_application_usecase():
-    candidature_repository = MagicMock(spec=ICandidatureRepository)
-    actors_validator = MagicMock()
-    return SubmitApplicationUsecase(
-        candidature_repository=candidature_repository,
-        actors_validator=actors_validator,
-        audit_log_writer=MagicMock(spec=AuditLogWriter),
-        logger=MagicMock(),
     )
 
 

@@ -13,6 +13,7 @@ from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsUsecase,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
+from infrastructure.mappers.candidature_mapper import CandidatureMapper
 from infrastructure.repositories.candidate.postgres_candidature_repository import (
     PostgresCandidatureRepository,
 )
@@ -50,9 +51,13 @@ class RecruteurContainer(containers.DeclarativeContainer):
     postgres_organisme_recruteur_repository = providers.Singleton(
         PostgresOrganismeRecruteurRepository
     )
+    candidature_mapper = providers.Factory(CandidatureMapper)
     postgres_note_repository = providers.Singleton(PostgresNoteRepository)
     postgres_note_query_service = providers.Singleton(PostgresNoteQueryService)
-    postgres_candidature_repository = providers.Singleton(PostgresCandidatureRepository)
+    postgres_candidature_repository = providers.Singleton(
+        PostgresCandidatureRepository,
+        mapper=candidature_mapper,
+    )
     postgres_agent_repository = providers.Singleton(PostgresAgentRepository)
 
     creer_note_usecase = providers.Factory(

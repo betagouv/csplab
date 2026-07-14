@@ -11,14 +11,13 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.candidate.usecases.submit_application import SubmitApplicationUsecase
-from domain.candidate.services.candidature_actors_validator import (
-    CandidatureActorsValidator,
-)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from infrastructure.external_gateways.albert_text_formatter import AlbertTextFormatter
 from infrastructure.external_gateways.ocr_extractor import OCRExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
+from infrastructure.mappers.candidature_mapper import CandidatureMapper
+from infrastructure.mappers.recrutement_mapper import RecrutementMapper
 from infrastructure.repositories.candidate.async_postgres_cv_metadata_repository import (  # noqa E501
     AsyncPostgresCVMetadataRepository,
 )
@@ -33,6 +32,9 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 )
 from infrastructure.repositories.identite.postgres_candidat_repository import (
     PostgresCandidatRepository,
+)
+from infrastructure.repositories.recruteur.postgres_recrutement_repository import (
+    PostgresRecrutementRepository,
 )
 
 
@@ -68,15 +70,19 @@ class CandidateContainer(containers.DeclarativeContainer):
         AsyncPostgresCVMetadataRepository
     )
     postgres_cv_metadata_repository = providers.Singleton(PostgresCVMetadataRepository)
-    candidature_repository = providers.Singleton(PostgresCandidatureRepository)
+    candidature_mapper = providers.Factory(CandidatureMapper)
+    candidature_repository = providers.Singleton(
+        PostgresCandidatureRepository,
+        mapper=candidature_mapper,
+    )
+    recrutement_mapper = providers.Factory(RecrutementMapper)
+
+    recrutement_repository = providers.Singleton(
+        PostgresRecrutementRepository,
+        mapper=recrutement_mapper,
+    )
     candidat_repository = providers.Singleton(PostgresCandidatRepository)
     audit_log_repository = providers.Singleton(PostgresAuditLogRepository)
-
-    actors_validator = providers.Factory(
-        CandidatureActorsValidator,
-        candidat_repo=candidat_repository,
-        offers_repo=offers_repository,
-    )
 
     audit_log_writer = providers.Factory(
         AuditLogWriter,
@@ -118,8 +124,9 @@ class CandidateContainer(containers.DeclarativeContainer):
 
     submit_application_usecase = providers.Factory(
         SubmitApplicationUsecase,
+        candidat_repository=candidat_repository,
         candidature_repository=candidature_repository,
-        actors_validator=actors_validator,
+        recrutement_repository=recrutement_repository,
         audit_log_writer=audit_log_writer,
         logger=logger_service,
     )

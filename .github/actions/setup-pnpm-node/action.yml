@@ -4,7 +4,7 @@ description: Install pnpm and Node.js with dependency caching.
 inputs:
   pnpm-version:
     description: pnpm version to install
-    default: "11"
+    default: "11.1.3"
   node-version:
     description: Node.js version to install
     default: "24"

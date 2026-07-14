@@ -38,7 +38,7 @@ class TestCreerNote:
         message = fake.sentence()
         profil_agent = AgentFactory.create_model()
         # pourquoi candidature factory n'a pas un build model ?
-        candidature = CandidatureFactory.build_model()
+        candidature = CandidatureFactory.create_model()
         usecase = recruteur_integration_container.creer_note_usecase()
 
         note = usecase.execute(
@@ -71,7 +71,7 @@ class TestCreerNote:
     def test_creer_note_raises_profil_agent_nexiste_pas(
         self, db, recruteur_integration_container
     ):
-        candidature = CandidatureFactory.build_model()
+        candidature = CandidatureFactory.create_model()
         usecase = recruteur_integration_container.creer_note_usecase()
 
         with pytest.raises(ProfilAgentNexistePas):
@@ -87,7 +87,7 @@ class TestCreerNote:
         self, db, recruteur_integration_container
     ):
         profil_agent = AgentFactory.create_model()
-        candidature = CandidatureFactory.build_model()
+        candidature = CandidatureFactory.create_model()
         note_repository = MagicMock(spec=INoteRepository)
         note_repository.create = MagicMock(side_effect=Exception("db error"))
         recruteur_integration_container.postgres_note_repository.override(
