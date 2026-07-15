@@ -2,10 +2,10 @@ from datetime import datetime
 from uuid import UUID
 
 import pytest
-
 from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsQuery,
 )
+
 from config.app_config import AppConfig
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,

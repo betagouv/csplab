@@ -1,3 +1,6 @@
+from application.recruteur.usecases.lister_mes_recrutements import (
+    ListerMesRecrutementsUsecase,
+)
 from dependency_injector import containers, providers
 
 from application.recruteur.usecases.creer_note import CreerNoteUsecase
@@ -7,9 +10,6 @@ from application.recruteur.usecases.get_organisme_recruteur import (
 )
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsUsecase,
-)
-from application.recruteur.usecases.lister_mes_recrutements import (
-    ListerMesRecrutementsUsecase,
 )
 from application.recruteur.usecases.supprimer_note import SupprimerNoteUsecase
 from application.recruteur.usecases.update_organisme_steps import (
