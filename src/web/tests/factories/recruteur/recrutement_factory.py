@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
+from faker import Faker
+
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
@@ -13,6 +15,8 @@ from tests.factories.identite.agent_factory import AgentFactory
 from tests.factories.identite.organisme_factory import OrganismeFactory
 from tests.factories.recruteur.etapes_recrutement_factory import EtapeRecrutementFactory
 from tests.factories.referentiel.offer_factory import OfferFactory
+
+fake = Faker("fr_FR")
 
 
 class RecrutementFactory:

@@ -1,3 +1,6 @@
+from application.recruteur.usecases.lister_mes_recrutements import (
+    ListerMesRecrutementsUsecase,
+)
 from dependency_injector import containers, providers
 
 from application.recruteur.usecases.creer_note import CreerNoteUsecase
