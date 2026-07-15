@@ -144,7 +144,7 @@ RecrutementModel.objects
     .select_related("offre")
     .prefetch_related("responsables_liaisons")
     .annotate(candidatures_total=Count("etapes__candidatures"))
-# → Une seule requête SQL
+# → Une seule requête SQL par table accédée
 ```
 
 Cette approche est structurellement plus efficace que de charger un aggregate complet pour n'en utiliser que quelques champs.
