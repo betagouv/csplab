@@ -9,16 +9,19 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.recruteur.usecases.get_organisme_recruteur import (
-    GetOrganismeRecruteurQuery,
+from application.recruteur.usecases.lister_mes_recrutements import (
+    ListerMesRecrutementsQuery,
 )
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
 from presentation.recruteur.mappers import (
     RecrutementKanbanMapper,
     RecrutementListeMapper,
+    RecrutementsActifsMapper,
+    RecrutementsArchivesMapper,
 )
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
@@ -45,103 +48,6 @@ class ListPage(IPage[T], Generic[T]):
         return iter(self._items[offset : offset + limit])
 
 
-_STATIC_RECRUTEMENTS_ACTIFS = [
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000001",
-        "intitule": "Chargé de mission numérique",
-        "reference_csp": "REF-2025-001",
-        "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "date_publication": "2025-06-22T10:00:00Z",
-        "responsables": [{"nom": "Marie Dupont"}],
-        "derniere_activite": "2025-06-23T08:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000002",
-        "intitule": "Responsable RH",
-        "reference_csp": "REF-2025-002",
-        "type_contrat": "CONTRACTUELS",
-        "date_publication": "2025-06-22T09:00:00Z",
-        "responsables": [{"nom": "Paul Bernard"}],
-        "derniere_activite": "2025-06-23T07:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000003",
-        "intitule": "Ingénieur infrastructure cloud",
-        "reference_csp": "REF-2025-003",
-        "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "date_publication": "2025-06-21T14:00:00Z",
-        "responsables": [{"nom": "Claire Moreau"}],
-        "derniere_activite": "2025-06-22T16:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000004",
-        "intitule": "Juriste droit public",
-        "reference_csp": "REF-2025-004",
-        "type_contrat": "TERRITORIAL",
-        "date_publication": "2025-06-21T10:00:00Z",
-        "responsables": [{"nom": "Marie Dupont"}, {"nom": "Paul Bernard"}],
-        "derniere_activite": "2025-06-22T10:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000005",
-        "intitule": "Chargé de communication",
-        "reference_csp": "REF-2025-005",
-        "type_contrat": "CONTRACTUELS",
-        "date_publication": "2025-06-02T10:00:00Z",
-        "responsables": [{"nom": "Sophie Leroy"}],
-        "derniere_activite": "2025-06-20T10:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-    {
-        "offer_id": "aaaaaaaa-0001-0001-0001-000000000006",
-        "intitule": "Analyste budgétaire",
-        "reference_csp": "REF-2025-006",
-        "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "date_publication": "2025-06-01T10:00:00Z",
-        "responsables": [{"nom": "Claire Moreau"}],
-        "derniere_activite": "2025-06-15T10:00:00Z",
-        "candidatures": {"total": None, "a_traiter": None, "en_cours": None},
-    },
-]
-
-_STATIC_RECRUTEMENTS_ARCHIVES = [
-    {
-        "offer_id": "bbbbbbbb-0001-0001-0001-000000000001",
-        "intitule": "Directeur des systèmes d'information",
-        "reference_csp": "REF-2024-A01",
-        "type_contrat": "TITULAIRE_CONTRACTUEL",
-        "date_archivage": "2024-12-01T10:00:00Z",
-        "responsables": [{"nom": "Marie Dupont"}],
-        "finalise": True,
-        "recrute": "Sophie Leblanc",
-    },
-    {
-        "offer_id": "bbbbbbbb-0001-0001-0001-000000000002",
-        "intitule": "Chef de projet transformation numérique",
-        "reference_csp": "REF-2024-A02",
-        "type_contrat": "CONTRACTUELS",
-        "date_archivage": "2024-11-15T10:00:00Z",
-        "responsables": [{"nom": "Paul Bernard"}],
-        "finalise": False,
-        "recrute": None,
-    },
-    {
-        "offer_id": "bbbbbbbb-0001-0001-0001-000000000003",
-        "intitule": "Conseiller en mobilité professionnelle",
-        "reference_csp": "REF-2024-A03",
-        "type_contrat": "TERRITORIAL",
-        "date_archivage": "2024-10-01T10:00:00Z",
-        "responsables": [{"nom": "Claire Moreau"}],
-        "finalise": True,
-        "recrute": "Jean Martin",
-    },
-]
-
-
 @extend_schema_view(
     get=extend_schema(
         summary="Liste des recrutements actifs d'un organisme",
@@ -166,19 +72,18 @@ class RecrutementsActifsView(APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            # todo will be replaced by list_recrutements_archives_usecase once available
-            # why this usecase in the meanwhile? a way to generate 404 if the organisme
-            # does not exist
-            usecase = self.container.get_organisme_recruteur_usecase()
-            usecase.execute(GetOrganismeRecruteurQuery(organisme_id=organisme_uuid))
-
-            # TODO: remplacer par list_recrutements_usecase une fois disponible.
-            result = ListPage(_STATIC_RECRUTEMENTS_ACTIFS)
+            list_usecase = self.container.lister_mes_recrutements_usecase()
+            result = list_usecase.execute(
+                ListerMesRecrutementsQuery(
+                    organisme_id=organisme_uuid, statut=StatutRecrutement.ACTIF
+                )
+            )
 
             paginator = WebPagination()
             items = paginator.paginate(result, request)
+            mapped = [RecrutementsActifsMapper().from_domain(item) for item in items]
             return paginator.get_paginated_response(
-                RecrutementsActifsSerializer(items, many=True).data
+                RecrutementsActifsSerializer(mapped, many=True).data
             )
         except OrganismeNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -215,20 +120,18 @@ class RecrutementsArchivesView(APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            # todo will be replaced by list_recrutements_archives_usecase once available
-            # why this usecase in the meanwhile? a way to generate 404 if the organisme
-            # does not exist
-            usecase = self.container.get_organisme_recruteur_usecase()
-            usecase.execute(GetOrganismeRecruteurQuery(organisme_id=organisme_uuid))
-
-            # TODO: remplacer par list_recrutements_archives_usecase
-            # une fois disponible.
-            result = ListPage(_STATIC_RECRUTEMENTS_ARCHIVES)
+            list_usecase = self.container.lister_mes_recrutements_usecase()
+            result = list_usecase.execute(
+                ListerMesRecrutementsQuery(
+                    organisme_id=organisme_uuid, statut=StatutRecrutement.ARCHIVE
+                )
+            )
 
             paginator = WebPagination()
             items = paginator.paginate(result, request)
+            mapped = [RecrutementsArchivesMapper().from_domain(item) for item in items]
             return paginator.get_paginated_response(
-                RecrutementsArchivesSerializer(items, many=True).data
+                RecrutementsArchivesSerializer(mapped, many=True).data
             )
 
         except OrganismeNexistePas:
