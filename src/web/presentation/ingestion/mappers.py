@@ -5,7 +5,7 @@ from ddd.mapper_interface import IToDomainMapper
 from referentiel.entities.offer import Offer
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
@@ -67,7 +67,9 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             source_id=source_id,
             long_title=data.get("titre_long") or None,
             application_url=data.get("url_candidature"),
-            contract_kind=sorted(forme_contrat) if forme_contrat else None,
+            contract_kind=[ContractKind[name] for name in sorted(forme_contrat)]
+            if forme_contrat
+            else None,
             job_vacancy=data.get("vacance_poste") or None,
             employer=data["description"].get("employeur") or None,
             complements=data["description"].get("complements") or None,

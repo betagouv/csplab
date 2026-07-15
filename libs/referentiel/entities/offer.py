@@ -7,6 +7,7 @@ from ddd.entity_interface import IEntity
 from pydantic import HttpUrl
 
 from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_type import ContractKind
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
@@ -31,7 +32,7 @@ class Offer(IEntity):
     family_code: Optional[str] = None
     long_title: Optional[str] = None
     application_url: Optional[HttpUrl] = None
-    contract_kind: Optional[list[str]] = None
+    contract_kind: Optional[list[ContractKind]] = None
     job_vacancy: Optional[str] = None
     employer: Optional[str] = None
     complements: Optional[str] = None

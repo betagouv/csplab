@@ -21,7 +21,25 @@ jobs:
             const validLabels = new Set([
               'breaking', 'added', 'modified', 'removed', 'bugfix', 'dependencies', 'documentation', 'pending-release'
             ]);
-            const labels = context.payload.pull_request.labels.map(l => l.name);
+
+            const { owner, repo } = context.repo;
+            let prNumber, labels;
+
+            if (context.eventName === 'merge_group') {
+              // head_ref looks like refs/heads/gh-readonly-queue/main/pr-123-<sha>
+              const match = context.payload.merge_group.head_ref.match(/\/pr-(\d+)-/);
+              if (!match) {
+                core.setFailed(`Could not determine PR number from merge_group head_ref: ${context.payload.merge_group.head_ref}`);
+                return;
+              }
+              prNumber = Number(match[1]);
+              const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+              labels = pr.labels.map(l => l.name);
+            } else {
+              prNumber = context.payload.pull_request.number;
+              labels = context.payload.pull_request.labels.map(l => l.name);
+            }
+
             const matching = labels.filter(l => validLabels.has(l));
             if (matching.length !== 1) {
               core.setFailed(
@@ -29,9 +47,6 @@ jobs:
               );
               return;
             }
-
-            const { owner, repo } = context.repo;
-            const prNumber = context.payload.pull_request.number;
 
             const query = `
               query($owner: String!, $repo: String!, $number: Int!) {

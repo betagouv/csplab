@@ -4,7 +4,7 @@ from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
@@ -115,6 +115,12 @@ class OfferModel(BaseDatedModel):
 
         verse = Verse(self.verse) if self.verse else None
 
+        contract_kind = (
+            [ContractKind[name] for name in self.contract_kind]
+            if self.contract_kind
+            else None
+        )
+
         return Offer(
             id=self.id,
             external_id=self.external_id,
@@ -139,7 +145,7 @@ class OfferModel(BaseDatedModel):
             application_url=HttpUrl(self.application_url)
             if self.application_url
             else None,
-            contract_kind=self.contract_kind,
+            contract_kind=contract_kind,
             job_vacancy=self.job_vacancy,
             employer=self.employer,
             complements=self.complements,
@@ -181,6 +187,10 @@ class OfferModel(BaseDatedModel):
         # Extract offer_url
         offer_url = str(offer.offer_url) if offer.offer_url else None
 
+        contract_kind = (
+            [ck.name for ck in offer.contract_kind] if offer.contract_kind else None
+        )
+
         return cls(
             id=offer.id,
             external_id=offer.external_id,
@@ -211,7 +221,7 @@ class OfferModel(BaseDatedModel):
             application_url=str(offer.application_url)
             if offer.application_url
             else None,
-            contract_kind=offer.contract_kind,
+            contract_kind=contract_kind,
             job_vacancy=offer.job_vacancy,
             employer=offer.employer,
             complements=offer.complements,
