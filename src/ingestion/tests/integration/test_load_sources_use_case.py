@@ -44,6 +44,30 @@ async def test_execute_populates_registry(
 
 
 @pytest.mark.asyncio
+async def test_execute_loads_only_talentsoft_sources(
+    load_sources_use_case: LoadSourcesUseCase,
+    sources_repository: SourcesRepository,
+    httpx_mock: HTTPXMock,
+):
+    api_source = {
+        "source_id": "33333333-0000-0000-0000-000000000000",
+        "slug": "api-source",
+        "type": "api",
+    }
+
+    httpx_mock.add_response(
+        method="GET", url=SOURCES_URL, json=[SOURCE_DATA, api_source], status_code=200
+    )
+
+    await load_sources_use_case.execute()
+
+    assert len(sources_repository) == 1
+    source = sources_repository.get_by_client_id_back("client-back-1")
+    assert source is not None
+    assert source.type == SourceType.TALENTSOFT
+
+
+@pytest.mark.asyncio
 async def test_execute_with_empty_response_leaves_registry_empty(
     load_sources_use_case: LoadSourcesUseCase,
     sources_repository: SourcesRepository,
