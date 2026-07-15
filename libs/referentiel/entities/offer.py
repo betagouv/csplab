@@ -24,7 +24,6 @@ class Offer(IEntity):
     verse: Optional[Verse]
     category: Optional[Category]
     contract_type: Optional[ContractType]
-    contract_kind: Optional[ContractKind]
     offer_url: Optional[HttpUrl]
     localisation: Optional[Localisation]
     publication_date: datetime
@@ -33,7 +32,7 @@ class Offer(IEntity):
     family_code: Optional[str] = None
     long_title: Optional[str] = None
     application_url: Optional[HttpUrl] = None
-    contract_kind: Optional[list[str]] = None
+    contract_kind: Optional[list[ContractKind]] = None
     job_vacancy: Optional[str] = None
     employer: Optional[str] = None
     complements: Optional[str] = None
