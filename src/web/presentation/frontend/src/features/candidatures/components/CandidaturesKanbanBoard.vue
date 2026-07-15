@@ -11,8 +11,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'move': [event: KanbanDropEvent]
-  'toggle-column-selection': [etape: EtapeRecrutementDetailedCandidatures]
+  move: [event: KanbanDropEvent]
+  toggleColumnSelection: [etape: EtapeRecrutementDetailedCandidatures]
 }>()
 
 useKanbanBoardMonitor({
@@ -33,7 +33,7 @@ useKanbanBoardMonitor({
       :etape="etape"
       :board-id="boardId"
       :is-selected="isColumnSelected(etape.etape_uuid)"
-      @toggle-selection="emit('toggle-column-selection', $event)"
+      @toggle-selection="emit('toggleColumnSelection', $event)"
     />
   </div>
 </template>

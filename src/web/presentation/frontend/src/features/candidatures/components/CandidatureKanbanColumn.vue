@@ -14,7 +14,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'toggle-selection': [etape: EtapeRecrutementDetailedCandidatures]
+  toggleSelection: [etape: EtapeRecrutementDetailedCandidatures]
 }>()
 
 const categorieConfig = computed(() => CATEGORIE_CONFIG[props.etape.categorie])
@@ -39,7 +39,7 @@ watch(isDraggedOver, async (isOver, wasOver) => {
 })
 
 function handleCheckboxChange(): void {
-  emit('toggle-selection', props.etape)
+  emit('toggleSelection', props.etape)
 }
 </script>
 

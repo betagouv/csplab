@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { Candidature, EtapeRecrutementDetailedCandidatures } from '../types'
-import { computed, ref, watch } from 'vue'
 import { RadioGroupIndicator, RadioGroupItem, RadioGroupRoot } from 'reka-ui'
-import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
+import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
+import CspSeparator from '@/components/base/CspSeparator/CspSeparator.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
 
@@ -17,7 +18,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:open': [value: boolean]
   'confirm': [targetEtapeUuid: string]
-  'toggle-candidature': [candidatureUuid: string, etapeUuid: string]
+  'toggleCandidature': [candidatureUuid: string, etapeUuid: string]
 }>()
 
 const selectedEtapeUuid = ref<string>('')
@@ -56,13 +57,13 @@ const selectedUuidsModel = computed({
 
     for (const uuid of uuids) {
       if (!prev.has(uuid)) {
-        emit('toggle-candidature', uuid, etapeUuid)
+        emit('toggleCandidature', uuid, etapeUuid)
       }
     }
 
     for (const uuid of prev) {
       if (!uuids.includes(uuid)) {
-        emit('toggle-candidature', uuid, etapeUuid)
+        emit('toggleCandidature', uuid, etapeUuid)
       }
     }
   },
@@ -98,20 +99,24 @@ const selectedUuidsModel = computed({
           {{ selectedCount }} candidature{{ selectedCount > 1 ? 's' : '' }} sélectionnée{{ selectedCount > 1 ? 's' : '' }}
         </p>
 
-        <CspTagGroup
-          v-model="selectedUuidsModel"
-          type="multiple"
-          size="md"
-        >
-          <CspTag
-            v-for="candidature in sourceEtape.candidatures"
-            :key="candidature.uuid"
-            :value="candidature.uuid"
-            :label="getCandidatName(candidature)"
-            variant="selectable"
-          />
-        </CspTagGroup>
+        <div class="changer-etape-drawer__tags">
+          <CspTagGroup
+            v-model="selectedUuidsModel"
+            type="multiple"
+            size="md"
+          >
+            <CspTag
+              v-for="candidature in sourceEtape.candidatures"
+              :key="candidature.uuid"
+              :value="candidature.uuid"
+              :label="getCandidatName(candidature)"
+              variant="selectable"
+            />
+          </CspTagGroup>
+        </div>
       </section>
+
+      <CspSeparator />
 
       <section class="changer-etape-drawer__etapes">
         <p class="changer-etape-drawer__etapes-label">
@@ -153,12 +158,14 @@ const selectedUuidsModel = computed({
     </div>
 
     <template #footer>
-      <CspButton
-        label="Valider le changement d'étape"
-        icon="ri:arrow-left-right-line"
-        :disabled="!canConfirm"
-        @click="handleConfirm"
-      />
+      <div class="changer-etape-drawer__footer">
+        <CspButton
+          label="Valider le changement d'étape"
+          icon="ri:arrow-left-right-line"
+          :disabled="!canConfirm"
+          @click="handleConfirm"
+        />
+      </div>
     </template>
   </CspDrawer>
 </template>
@@ -189,6 +196,20 @@ const selectedUuidsModel = computed({
   color: var(--text-default-grey);
 }
 
+.changer-etape-drawer__tags {
+  max-height: 12rem;
+  overflow-y: auto;
+  padding-top: var(--csp-space-2);
+}
+
+.changer-etape-drawer__footer {
+  width: 100%;
+
+  :deep(.csp-btn) {
+    width: 100%;
+  }
+}
+
 .changer-etape-drawer__etapes {
   display: flex;
   flex-direction: column;
@@ -198,6 +219,7 @@ const selectedUuidsModel = computed({
 .changer-etape-drawer__etapes-label {
   margin: 0;
   font-size: 0.875rem;
+  font-weight: 600;
   color: var(--text-default-grey);
 }
 
