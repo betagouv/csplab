@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { RouteLocationRaw } from 'vue-router'
+import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import { computed, useSlots } from 'vue'
 import { RouterLink } from 'vue-router'
 import CspBreadcrumb from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'

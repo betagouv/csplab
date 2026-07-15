@@ -8,7 +8,7 @@ export type Candidature = components['schemas']['Candidature']
 
 export type Candidat = components['schemas']['Candidat']
 
-export type PaginatedCandidatureListeResponse = components['schemas']['PaginatedCandidatureListeResponse']
+export type PaginatedCandidatureListeList = components['schemas']['PaginatedCandidatureListeList']
 
 export type CandidatureListe = components['schemas']['CandidatureListe']
 

@@ -1,4 +1,4 @@
-import type { PaginatedCandidatureListeResponse, RecrutementDetailKanban } from '../types'
+import type { PaginatedCandidatureListeList, RecrutementDetailKanban } from '../types'
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
@@ -64,7 +64,7 @@ const MOCK_KANBAN: RecrutementDetailKanban = {
   ],
 }
 
-const MOCK_LISTE: PaginatedCandidatureListeResponse = {
+const MOCK_LISTE: PaginatedCandidatureListeList = {
   count: 3,
   next: null,
   previous: null,

@@ -1,4 +1,4 @@
-import type { PaginatedCandidatureListeResponse, RecrutementDetailKanban } from './types'
+import type { PaginatedCandidatureListeList, RecrutementDetailKanban } from './types'
 import { api } from '@/api/client'
 
 export async function getRecrutementKanban(
@@ -22,7 +22,7 @@ export async function getRecrutementKanban(
 export async function getCandidatureListe(
   organismeUuid: string,
   recrutementUuid: string,
-): Promise<PaginatedCandidatureListeResponse> {
+): Promise<PaginatedCandidatureListeList> {
   const { data } = await api.GET(
     '/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/liste',
     {

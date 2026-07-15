@@ -2,7 +2,7 @@ import type { InjectionKey, Ref, ShallowRef } from 'vue'
 import type {
   Candidature,
   EtapeRecrutementDetailedCandidatures,
-  PaginatedCandidatureListeResponse,
+  PaginatedCandidatureListeList,
   RecrutementDetailKanban,
 } from '../types'
 import { computed, inject, provide, ref, shallowRef } from 'vue'
@@ -18,7 +18,7 @@ export interface MoveCandidatureParams {
 export interface CandidaturesContext {
   recrutementUuid: string
   recrutementDetail: Ref<RecrutementDetailKanban | null>
-  candidatureListe: Ref<PaginatedCandidatureListeResponse | undefined>
+  candidatureListe: Ref<PaginatedCandidatureListeList | undefined>
   etapes: ShallowRef<EtapeRecrutementDetailedCandidatures[]>
   totalCount: Ref<number>
   pending: Ref<boolean>
@@ -34,7 +34,7 @@ export function provideCandidatures(
 ): CandidaturesContext {
   const { pending, error, run } = useAsyncState(true)
   const recrutementDetail = ref<RecrutementDetailKanban | null>(null)
-  const candidatureListe = ref<PaginatedCandidatureListeResponse>()
+  const candidatureListe = ref<PaginatedCandidatureListeList>()
   const etapes = shallowRef<EtapeRecrutementDetailedCandidatures[]>([])
 
   const totalCount = computed(() =>
