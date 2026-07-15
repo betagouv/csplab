@@ -2,8 +2,7 @@ from typing import Generic, TypeVar
 from uuid import UUID
 
 from ddd.page_interface import IPage
-from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
-from rest_framework import serializers as drf_serializers
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -149,15 +148,7 @@ _STATIC_RECRUTEMENTS_ARCHIVES = [
         description=("Retourne la liste paginée des recrutements d'un organisme. "),
         tags=["recruteur"],
         responses={
-            200: inline_serializer(
-                name="PaginatedRecrutementsActifsResponse",
-                fields={
-                    "count": drf_serializers.IntegerField(),
-                    "next": drf_serializers.CharField(allow_null=True),
-                    "previous": drf_serializers.CharField(allow_null=True),
-                    "results": RecrutementsActifsSerializer(many=True),
-                },
-            ),
+            200: RecrutementsActifsSerializer(many=True),
             400: GenericErrorSerializer,
             401: TokenErrorSerializer,
             404: GenericErrorSerializer,
@@ -167,6 +158,7 @@ _STATIC_RECRUTEMENTS_ARCHIVES = [
 )
 class RecrutementsActifsView(APIView):
     permission_classes = [IsAuthenticated]
+    pagination_class = WebPagination
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -205,15 +197,7 @@ class RecrutementsActifsView(APIView):
         ),
         tags=["recruteur"],
         responses={
-            200: inline_serializer(
-                name="PaginatedRecrutementsArchivesResponse",
-                fields={
-                    "count": drf_serializers.IntegerField(),
-                    "next": drf_serializers.CharField(allow_null=True),
-                    "previous": drf_serializers.CharField(allow_null=True),
-                    "results": RecrutementsArchivesSerializer(many=True),
-                },
-            ),
+            200: RecrutementsArchivesSerializer(many=True),
             400: GenericErrorSerializer,
             401: TokenErrorSerializer,
             404: GenericErrorSerializer,
@@ -223,6 +207,7 @@ class RecrutementsActifsView(APIView):
 )
 class RecrutementsArchivesView(APIView):
     permission_classes = [IsAuthenticated]
+    pagination_class = WebPagination
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -468,15 +453,7 @@ class RecrutementKanbanView(APIView):
     summary="Détail d'un recrutement — vue liste (paginée)",
     tags=["recruteur"],
     responses={
-        200: inline_serializer(
-            name="PaginatedCandidatureListeResponse",
-            fields={
-                "count": drf_serializers.IntegerField(),
-                "next": drf_serializers.CharField(allow_null=True),
-                "previous": drf_serializers.CharField(allow_null=True),
-                "results": CandidatureListeSerializer(many=True),
-            },
-        ),
+        200: CandidatureListeSerializer(many=True),
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
         404: GenericErrorSerializer,
@@ -484,6 +461,7 @@ class RecrutementKanbanView(APIView):
 )
 class RecrutementListeView(APIView):
     permission_classes = [IsAuthenticated]
+    pagination_class = WebPagination
 
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID

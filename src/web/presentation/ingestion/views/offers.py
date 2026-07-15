@@ -60,15 +60,7 @@ from presentation.ingestion.serializers import (
     examples=LIST_OFFERS_EXAMPLES,
     tags=["offres"],
     responses={
-        200: inline_serializer(
-            name="PaginatedListOffersResponse",
-            fields={
-                "count": drf_serializers.IntegerField(),
-                "next": drf_serializers.CharField(allow_null=True),
-                "previous": drf_serializers.CharField(allow_null=True),
-                "results": ListOffersResponseSerializer(many=True),
-            },
-        ),
+        200: ListOffersResponseSerializer(many=True),
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
         500: GenericErrorSerializer,
@@ -76,6 +68,7 @@ from presentation.ingestion.serializers import (
 )
 class OffersListView(APIView):
     serializer_class = ListOffersResponseSerializer
+    pagination_class = WebPagination
     usecase = None
 
     def __init__(self, **kwargs):
@@ -111,15 +104,7 @@ class OffersListView(APIView):
     description=OFFERS_BY_SOURCE_DESCRIPTION,
     tags=["offres"],
     responses={
-        200: inline_serializer(
-            name="OffersBySourceResponse",
-            fields={
-                "count": drf_serializers.IntegerField(),
-                "next": drf_serializers.CharField(allow_null=True),
-                "previous": drf_serializers.CharField(allow_null=True),
-                "results": OfferDetailResponseSerializer(many=True),
-            },
-        ),
+        200: OfferDetailResponseSerializer(many=True),
         401: PolymorphicProxySerializer(
             component_name="OffersBySource401Error",
             serializers=[
@@ -137,6 +122,7 @@ class OffersListView(APIView):
 class OffersBySourceView(APIView):
     authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
     serializer_class = OfferDetailResponseSerializer
+    pagination_class = WebPagination
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

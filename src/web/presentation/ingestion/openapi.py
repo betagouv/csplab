@@ -282,25 +282,18 @@ LIST_OFFERS_EXAMPLES = [
             "Les offres d'emploi sans date d'archivage sont retournées paginées"
         ),
         value={
-            "count": 1,
-            "next": None,
-            "previous": None,
-            "results": [
-                {
-                    "external_id": "Versant_FPE-2026-999999",
-                    "reference": "2026-999999",
-                    "source_id": "12345678-1234-4234-b234-123456789abc",
-                    "title": "Responsable de la Division des Affaires Financières H/F",
-                    "organization": (
-                        "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
-                    ),
-                    "contract_type": "TITULAIRE_CONTRACTUEL",
-                    "category": "A",
-                    "publication_date": "2026-04-17T14:44:49.873000+00:00",
-                    "offer_url": "https://test.com/offre-emploi/2026-999999/",
-                    "archived_at": None,
-                }
-            ],
+            "external_id": "Versant_FPE-2026-999999",
+            "reference": "2026-999999",
+            "source_id": "12345678-1234-4234-b234-123456789abc",
+            "title": "Responsable de la Division des Affaires Financières H/F",
+            "organization": (
+                "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
+            ),
+            "contract_type": "TITULAIRE_CONTRACTUEL",
+            "category": "A",
+            "publication_date": "2026-04-17T14:44:49.873000+00:00",
+            "offer_url": "https://test.com/offre-emploi/2026-999999/",
+            "archived_at": None,
         },
         response_only=True,
         status_codes=["200"],
@@ -312,25 +305,18 @@ LIST_OFFERS_EXAMPLES = [
             "Les offres d'emploi avec une date d'archivage sont retournées paginées"
         ),
         value={
-            "count": 1,
-            "next": None,
-            "previous": None,
-            "results": [
-                {
-                    "external_id": "Versant_FPE-2026-999999",
-                    "reference": "2026-999999",
-                    "source_id": "12345678-1234-4234-b234-123456789abc",
-                    "title": "Responsable de la Division des Affaires Financières H/F",
-                    "organization": (
-                        "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
-                    ),
-                    "contract_type": "TITULAIRE_CONTRACTUEL",
-                    "category": "A",
-                    "publication_date": "2026-04-17T14:44:49.873000+00:00",
-                    "offer_url": "https://test.com/offre-emploi/2026-999999/",
-                    "archived_at": "2026-05-17T12:42:42.873000+00:00",
-                }
-            ],
+            "external_id": "Versant_FPE-2026-999999",
+            "reference": "2026-999999",
+            "source_id": "12345678-1234-4234-b234-123456789abc",
+            "title": "Responsable de la Division des Affaires Financières H/F",
+            "organization": (
+                "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
+            ),
+            "contract_type": "TITULAIRE_CONTRACTUEL",
+            "category": "A",
+            "publication_date": "2026-04-17T14:44:49.873000+00:00",
+            "offer_url": "https://test.com/offre-emploi/2026-999999/",
+            "archived_at": "2026-05-17T12:42:42.873000+00:00",
         },
         response_only=True,
         status_codes=["200"],
@@ -359,8 +345,8 @@ LIST_METIERS_EXAMPLES = [
             "libelle": "Cheffe / Chef de projet politique de la ville",
             "description": (
                 "Mettre en oeuvre les orientations stratégiques en matière"
-                "de développement social et de redynamisation des espaces urbains des"
-                "Quartiers Politique de la Ville"
+                "de développement social et de redynamisation des espaces "
+                "urbains des Quartiers Politique de la Ville"
             ),
             "domaine_fonctionnel_code": "AMT",
             "versants": ["FPT"],
@@ -393,16 +379,18 @@ LIST_METIERS_EXAMPLES = [
         value={
             "libelle": "Personne ressource en santé et protection animales",
             "description": (
-                "Mobilise sa compétence dans la gestion et le suivi de la santé et de"
-                "la protection animale en appui aux services territoriaux de l'État"
+                "Mobilise sa compétence dans la gestion et le suivi de la "
+                "santé et de la protection animale en appui aux services "
+                "territoriaux de l'État"
             ),
             "domaine_fonctionnel_code": "AGR",
             "versants": ["FPE"],
             "activites": [
                 (
-                    "Mettre en oeuvre la compétence technique et scientifique dans"
-                    "son domaine de compétence par un appui ponctuel à un service"
-                    "départemental confronté à une situation particulière"
+                    "Mettre en oeuvre la compétence technique et "
+                    "scientifique dans son domaine de compétence par un "
+                    "appui ponctuel à un service départemental confronté "
+                    "à une situation particulière"
                 ),
                 (
                     "Apporter un appui dans l'élaboration des normes,"
