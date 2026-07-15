@@ -6,6 +6,9 @@ from faker import Faker
 
 from application.recruteur.usecases.creer_note import CreerNoteCommand
 from application.recruteur.usecases.editer_note import EditerNoteCommand
+from application.recruteur.usecases.lister_notes_candidature import (
+    ListerNotesCandidatureQuery,
+)
 from application.recruteur.usecases.supprimer_note import SupprimerNoteCommand
 from config.app_config import AppConfig
 from domain.candidate.exceptions.candidature_errors import CandidatureIntrouvable
@@ -231,3 +234,16 @@ class TestSupprimerNote:
                     supprime_par_id=UUID(note_model.publie_par_id),
                 )
             )
+
+
+class TestListerNotesCandidature:
+    def test_lister_notes_candidature(self, db, recruteur_integration_container):
+        note_model = NoteFactory.create_model()
+        usecase = recruteur_integration_container.lister_notes_candidature_usecase()
+
+        notes = usecase.execute(
+            ListerNotesCandidatureQuery(candidature_id=note_model.candidature_id)
+        )
+
+        assert len(notes) == 1
+        assert notes[0].message == note_model.message

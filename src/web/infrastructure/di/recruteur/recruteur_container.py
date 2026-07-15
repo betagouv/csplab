@@ -8,6 +8,9 @@ from application.recruteur.usecases.get_organisme_recruteur import (
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsUsecase,
 )
+from application.recruteur.usecases.lister_notes_candidature import (
+    ListerNotesCandidatureUsecase,
+)
 from application.recruteur.usecases.supprimer_note import SupprimerNoteUsecase
 from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsUsecase,
@@ -66,6 +69,11 @@ class RecruteurContainer(containers.DeclarativeContainer):
         candidature_repository=postgres_candidature_repository,
         agent_repository=postgres_agent_repository,
         audit_log_writer=audit_log_writer,
+    )
+
+    lister_notes_candidature_usecase = providers.Factory(
+        ListerNotesCandidatureUsecase,
+        note_query_service=postgres_note_query_service,
     )
 
     editer_note_usecase = providers.Factory(
