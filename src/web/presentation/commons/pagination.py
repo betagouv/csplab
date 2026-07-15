@@ -1,3 +1,4 @@
+from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from ddd.page_interface import IPage
@@ -9,7 +10,7 @@ from rest_framework.settings import api_settings
 class WebPagination(BasePagination):
     page_size = api_settings.PAGE_SIZE
 
-    def paginate(self, page: IPage, request):
+    def paginate(self, page: IPage, request) -> list[Any]:
         self.request = request
         self.count = page.count()
         self.page_size = int(self.request.query_params.get("size", self.page_size))
@@ -20,7 +21,7 @@ class WebPagination(BasePagination):
 
         return self.results
 
-    def get_paginated_response(self, data):
+    def get_paginated_response(self, data: list[Any]) -> Response:
         return Response(
             {
                 "count": self.count,
@@ -29,6 +30,28 @@ class WebPagination(BasePagination):
                 "results": data,
             }
         )
+
+    def get_paginated_response_schema(self, schema: dict) -> dict:
+        return {
+            "type": "object",
+            "required": ["count", "results"],
+            "properties": {
+                "count": {"type": "integer", "example": 1},
+                "next": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": True,
+                    "example": None,
+                },
+                "previous": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": True,
+                    "example": None,
+                },
+                "results": schema,
+            },
+        }
 
     def _get_next_url(self):
         if self.page_num * self.page_size >= self.count:
