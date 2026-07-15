@@ -393,7 +393,7 @@ paths:
           description: ''
   /recruteur/organisme/{organisme_uuid}/recrutements-actifs:
     get:
-      operationId: recruteur_organisme_recrutements_actifs_retrieve
+      operationId: recruteur_organisme_recrutements_actifs_list
       description: 'Retourne la liste paginée des recrutements d''un organisme. '
       summary: Liste des recrutements actifs d'un organisme
       parameters:
@@ -413,7 +413,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedRecrutementsActifsResponse'
+                $ref: '#/components/schemas/PaginatedRecrutementsActifsList'
           description: ''
         '400':
           content:
@@ -441,7 +441,7 @@ paths:
           description: ''
   /recruteur/organisme/{organisme_uuid}/recrutements-archives:
     get:
-      operationId: recruteur_organisme_recrutements_archives_retrieve
+      operationId: recruteur_organisme_recrutements_archives_list
       description: 'Retourne la liste paginée des recrutements archivés d''un organisme. '
       summary: Liste des recrutements archivés d'un organisme
       parameters:
@@ -461,7 +461,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedRecrutementsArchivesResponse'
+                $ref: '#/components/schemas/PaginatedRecrutementsArchivesList'
           description: ''
         '400':
           content:
@@ -536,7 +536,7 @@ paths:
           description: ''
   /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/liste:
     get:
-      operationId: recruteur_organisme_recrutements_liste_retrieve
+      operationId: recruteur_organisme_recrutements_liste_list
       summary: Détail d'un recrutement — vue liste (paginée)
       parameters:
       - in: path
@@ -561,7 +561,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedCandidatureListeResponse'
+                $ref: '#/components/schemas/PaginatedCandidatureListeList'
           description: ''
         '400':
           content:
@@ -1080,66 +1080,75 @@ components:
       required:
       - nom
       - siret
-    PaginatedCandidatureListeResponse:
+    PaginatedCandidatureListeList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
+          example: 1
         next:
           type: string
+          format: uri
           nullable: true
+          example: null
         previous:
           type: string
+          format: uri
           nullable: true
+          example: null
         results:
           type: array
           items:
             $ref: '#/components/schemas/CandidatureListe'
+    PaginatedRecrutementsActifsList:
+      type: object
       required:
       - count
-      - next
-      - previous
       - results
-    PaginatedRecrutementsActifsResponse:
-      type: object
       properties:
         count:
           type: integer
+          example: 1
         next:
           type: string
+          format: uri
           nullable: true
+          example: null
         previous:
           type: string
+          format: uri
           nullable: true
+          example: null
         results:
           type: array
           items:
             $ref: '#/components/schemas/RecrutementsActifs'
+    PaginatedRecrutementsArchivesList:
+      type: object
       required:
       - count
-      - next
-      - previous
       - results
-    PaginatedRecrutementsArchivesResponse:
-      type: object
       properties:
         count:
           type: integer
+          example: 1
         next:
           type: string
+          format: uri
           nullable: true
+          example: null
         previous:
           type: string
+          format: uri
           nullable: true
+          example: null
         results:
           type: array
           items:
             $ref: '#/components/schemas/RecrutementsArchives'
-      required:
-      - count
-      - next
-      - previous
-      - results
     PatchedEditerNote:
       type: object
       properties:
