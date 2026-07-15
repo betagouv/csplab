@@ -32,4 +32,5 @@ class RecrutementMapper(IFromDomainMapper, IToDomainMapper):
             candidatures=(),
             responsables=responsables,
             status=StatutRecrutement.ACTIF,
+            derniere_activite_le=model.updated_at,
         )

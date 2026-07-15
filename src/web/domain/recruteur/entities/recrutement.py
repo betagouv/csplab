@@ -26,7 +26,7 @@ class Recrutement(AggregateRoot):
     _responsables: tuple[UUID, ...]
     _status: StatutRecrutement
     _candidat_recrute_id: UUID | None = None
-    _derniere_activite_le: datetime | None = None
+    _derniere_activite_le: datetime
 
     @classmethod
     def build(
@@ -37,8 +37,8 @@ class Recrutement(AggregateRoot):
         candidatures: tuple[UUID, ...],
         responsables: tuple[UUID, ...],
         status: StatutRecrutement,
+        derniere_activite_le: datetime,
         candidat_recrute_id: UUID | None = None,
-        derniere_activite_le: datetime | None = None,
     ) -> "Recrutement":
         return cls(
             _offre_id=offre_id,
@@ -80,5 +80,5 @@ class Recrutement(AggregateRoot):
         return self._candidat_recrute_id
 
     @property
-    def derniere_activite_le(self) -> datetime | None:
+    def derniere_activite_le(self) -> datetime:
         return self._derniere_activite_le

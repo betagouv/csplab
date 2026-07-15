@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import cast
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -34,7 +35,11 @@ def organisme_repository_fixture():
 class TestListerMesRecrutements:
     def test_lister_mes_recrutements_actifs(self, service, organisme_repository):
         organisme_id = uuid4()
-        recrutements_actifs = [RecrutementFactory.create_actif_read_model()]
+        recrutements_actifs = [
+            RecrutementFactory.create_actif_read_model(
+                derniere_activite=datetime.now(timezone.utc)
+            )
+        ]
         service.get_actifs_by_organisme = MagicMock(return_value=recrutements_actifs)
         usecase = ListerMesRecrutementsUsecase(
             recrutement_query_service=service,

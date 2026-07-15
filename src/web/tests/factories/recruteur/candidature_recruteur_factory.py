@@ -7,11 +7,11 @@ from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 class CandidatureRecruteurFactory:
     @staticmethod
     def create_entity(
+        derniere_activite_le: datetime,
         entity_id: UUID | None = None,
         candidat_id: UUID | None = None,
         recrutement_id: UUID | None = None,
         etape_id: UUID | None = None,
-        derniere_activite_le: datetime | None = None,
     ) -> CandidatureRecruteur:
         return CandidatureRecruteur.build(
             entity_id=entity_id or uuid4(),

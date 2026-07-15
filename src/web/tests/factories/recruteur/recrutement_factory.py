@@ -24,6 +24,7 @@ from tests.factories.referentiel.offer_factory import OfferFactory
 class RecrutementFactory:
     @staticmethod
     def create_entity(
+        derniere_activite_le: datetime,
         offre_id: UUID | None = None,
         organisme_id: UUID | None = None,
         etapes: tuple[EtapeRecrutement, ...] | None = None,
@@ -31,7 +32,6 @@ class RecrutementFactory:
         responsables: tuple[UUID, ...] | None = None,
         status: StatutRecrutement | None = None,
         candidat_recrute_id: UUID | None = None,
-        derniere_activite_le: datetime | None = None,
     ) -> Recrutement:
         return Recrutement.build(
             offre_id=offre_id or uuid4(),
@@ -46,13 +46,13 @@ class RecrutementFactory:
 
     @staticmethod
     def create_actif_read_model(
+        derniere_activite: datetime,
         offer_id: UUID | None = None,
         intitule: str | None = None,
         reference_csp: str | None = None,
         type_contrat: str | None = None,
         date_publication: datetime | None = None,
         responsables: list[ResponsableDto] | None = None,
-        derniere_activite: datetime | None = None,
         candidatures: CandidaturesCompteurDto | None = None,
     ) -> RecrutementActifsReadModel:
         return RecrutementActifsReadModel(

@@ -56,5 +56,5 @@ class CandidatureRecruteur(AggregateRoot):
         return self._etape_id
 
     @property
-    def derniere_activite_le(self) -> datetime | None:
+    def derniere_activite_le(self) -> datetime:
         return self._derniere_activite_le

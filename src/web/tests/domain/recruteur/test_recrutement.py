@@ -18,6 +18,7 @@ def test_recrutement() -> None:
     responsables = (uuid4(), uuid4())
 
     recrutement = RecrutementFactory.create_entity(
+        derniere_activite_le=_FROZEN_TS,
         offre_id=offre_id,
         organisme_id=uuid4(),
         etapes=etapes,
@@ -44,6 +45,7 @@ def test_recrutement_termine() -> None:
     candidat_recrute_id = uuid4()
 
     recrutement = RecrutementFactory.create_entity(
+        derniere_activite_le=_FROZEN_TS,
         offre_id=offre_id,
         organisme_id=uuid4(),
         etapes=etapes,
