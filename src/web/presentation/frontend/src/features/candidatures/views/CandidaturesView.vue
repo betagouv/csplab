@@ -54,6 +54,8 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
     <CspPageHeader
       :title="title"
       :breadcrumb="breadcrumb"
+      :back-to="{ name: 'mes-recrutements' }"
+      back-label="Retour à mes recrutements"
       class="candidatures-view__header"
     />
 
