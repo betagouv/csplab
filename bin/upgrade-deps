@@ -18,6 +18,20 @@ git pull --ff-only origin main
 
 SERVICES=(web ocr ingestion notebook)
 
+existing_branches=()
+for svc in "${SERVICES[@]}"; do
+  branch="chore/upgrade-deps-$svc"
+  if git ls-remote --exit-code --heads origin "$branch" > /dev/null 2>&1; then
+    existing_branches+=("$branch")
+  fi
+done
+
+if [ "${#existing_branches[@]}" -gt 0 ]; then
+  echo "✖ remote branches already exist, aborting:" >&2
+  printf '  - %s\n' "${existing_branches[@]}" >&2
+  exit 1
+fi
+
 for svc in "${SERVICES[@]}"; do
   svc_dir="src/$svc"
   echo "▶ [$svc] mise à jour des dépendances"
