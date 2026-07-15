@@ -4,6 +4,49 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.13] - 2026-07-15
+
+### <!-- 0 --> Breaking Changes
+
+- ✨(recruteur-presentation) interface mes recrutements update ([#911](https://github.com/betagouv/csplab/pull/911))
+- ♻️(recruteur-presentation) interface recrutement detail update ([#912](https://github.com/betagouv/csplab/pull/912))
+
+### <!-- 1 --> Added
+
+- ✨(admin) ajoute un modèle admin readonly pour StatSnapshot ([#894](https://github.com/betagouv/csplab/pull/894))
+- ✨(recruteur-domain) ajout de l'aggregat et du modèle Note (partie 1) ([#870](https://github.com/betagouv/csplab/pull/870))
+- ✨(recruteur-frontend) update organisme steps ([#880](https://github.com/betagouv/csplab/pull/880))
+- ✨(frontend) Composant CspCallout ([#910](https://github.com/betagouv/csplab/pull/910))
+- 🔧(identite-presentation) add command to ease user+source creation ([#914](https://github.com/betagouv/csplab/pull/914))
+- ✨(ats-presentation) setup mes-recrutements data fetching ([#897](https://github.com/betagouv/csplab/pull/897))
+- ✨(ats-presentation) add mes recrutements page tables ([#898](https://github.com/betagouv/csplab/pull/898))
+- ✨(ats-presentation) add mes recrutements filter feature ([#899](https://github.com/betagouv/csplab/pull/899))
+- ✨(ats-presentation) add simple client search feature for mes recrutements ([#900](https://github.com/betagouv/csplab/pull/900))
+- ✨(frontend) add frontend check commands ([#916](https://github.com/betagouv/csplab/pull/916))
+- ✨(ats-frontend) Add user guidance for recruitment pipeline steps ([#915](https://github.com/betagouv/csplab/pull/915))
+- ✨(recruteur-domain) ajout des usecases de lecture/ecriture des Note (partie 2) ([#878](https://github.com/betagouv/csplab/pull/878))
+- ✨(recruteur-domain) des endpoints CRUD pour Note (partie 3) ([#879](https://github.com/betagouv/csplab/pull/879))
+- 🎨(identite-presentation) get better admin readibility on profil ([#938](https://github.com/betagouv/csplab/pull/938))
+- ✨(recruteur) add entities and orm models for recrutement ([#913](https://github.com/betagouv/csplab/pull/913))
+- 🔧(frontend) improve ide setup and dx ([#926](https://github.com/betagouv/csplab/pull/926))
+- ✨(ats-presentation) setup single offre view and start candidature list integration ([#946](https://github.com/betagouv/csplab/pull/946))
+- ✨(frontend) Add CspSeparator component ([#956](https://github.com/betagouv/csplab/pull/956))
+- 🐛(ingestion) filter out non-talentsoft sources in WebSourcesGateway ([#965](https://github.com/betagouv/csplab/pull/965))
+- ✨(ingestion) map contract_kind from Talentsoft offers ([#968](https://github.com/betagouv/csplab/pull/968))
+
+### <!-- 2 --> Modified
+
+- ♻️(recruteur-presentation) split views ([#928](https://github.com/betagouv/csplab/pull/928))
+- ✨(ingestion-presentation) make management condition optionnal ([#939](https://github.com/betagouv/csplab/pull/939))
+- ♻️(frontend) Refacto frontend ([#944](https://github.com/betagouv/csplab/pull/944))
+- ✨(recruteur-infrastructure) update models candidature fk etapes ([#943](https://github.com/betagouv/csplab/pull/943))
+- 🎨(web-presentation) add webpagination typing ([#957](https://github.com/betagouv/csplab/pull/957))
+
+### <!-- 4 --> Fixed
+
+- 🐛(tooling) résolution des incompatibilités entre la PR de changelog et les actions github ([#895](https://github.com/betagouv/csplab/pull/895))
+- 🐛(candidate-infrastructure) update albert new api ([#966](https://github.com/betagouv/csplab/pull/966))
+
 ## [0.1.12] - 2026-07-02
 
 ### <!-- 0 --> Breaking Changes
