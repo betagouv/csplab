@@ -27,7 +27,7 @@ from presentation.ingestion.serializers import (
     tags=["metiers"],
     parameters=[ListMetiersFiltersSerializer],
     responses={
-        200: ListMetiersResponseSerializer,
+        200: ListMetiersResponseSerializer(many=True),
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
         500: GenericErrorSerializer,
@@ -35,6 +35,7 @@ from presentation.ingestion.serializers import (
 )
 class MetiersListView(APIView):
     serializer_class = ListMetiersResponseSerializer
+    pagination_class = WebPagination
     usecase = None
 
     def __init__(self, **kwargs):

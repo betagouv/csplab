@@ -226,7 +226,7 @@ paths:
           description: ''
   /api/v1/metiers:
     get:
-      operationId: v1_metiers_retrieve
+      operationId: v1_metiers_list
       description: |2
 
         # API de consultation des métiers de la Fonction Publique
@@ -253,6 +253,18 @@ paths:
           type: string
           maxLength: 3
           minLength: 1
+      - name: page
+        required: false
+        in: query
+        description: Numéro de la page.
+        schema:
+          type: integer
+      - name: size
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
       tags:
       - metiers
       security:
@@ -263,46 +275,54 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListMetiersResponse'
+                $ref: '#/components/schemas/PaginatedListMetiersResponseList'
               examples:
                 Success-All:
                   value:
-                    libelle: Cheffe / Chef de projet politique de la ville
-                    description: Mettre en oeuvre les orientations stratégiques en
-                      matièrede développement social et de redynamisation des espaces
-                      urbains desQuartiers Politique de la Ville
-                    domaine_fonctionnel_code: AMT
-                    versants:
-                    - FPT
-                    activites:
-                    - Animer et participer aux instances techniques etde pilotage
-                      de la politique de la ville
-                    - Instruire les programmations d'actions :suivi administratif,
-                      financier et opérationnel
-                    - Assurer un rôle de conseil et d'information auprèsdes différents
-                      interlocuteurs
-                    conditions_particulieres: []
-                    offer_family_code: ERAMT001
+                    count: 1
+                    next: null
+                    previous: null
+                    results:
+                    - libelle: Cheffe / Chef de projet politique de la ville
+                      description: Mettre en oeuvre les orientations stratégiques
+                        en matièrede développement social et de redynamisation des
+                        espaces urbains des Quartiers Politique de la Ville
+                      domaine_fonctionnel_code: AMT
+                      versants:
+                      - FPT
+                      activites:
+                      - Animer et participer aux instances techniques etde pilotage
+                        de la politique de la ville
+                      - Instruire les programmations d'actions :suivi administratif,
+                        financier et opérationnel
+                      - Assurer un rôle de conseil et d'information auprèsdes différents
+                        interlocuteurs
+                      conditions_particulieres: []
+                      offer_family_code: ERAMT001
                   summary: Liste de tous les métiers
                   description: Les métiers sont retournés paginés
                 Success-Filtered:
                   value:
-                    libelle: Personne ressource en santé et protection animales
-                    description: Mobilise sa compétence dans la gestion et le suivi
-                      de la santé et dela protection animale en appui aux services
-                      territoriaux de l'État
-                    domaine_fonctionnel_code: AGR
-                    versants:
-                    - FPE
-                    activites:
-                    - Mettre en oeuvre la compétence technique et scientifique dansson
-                      domaine de compétence par un appui ponctuel à un servicedépartemental
-                      confronté à une situation particulière
-                    - Apporter un appui dans l'élaboration des normes,des instructions
-                      et des méthodes d'inspection
-                    conditions_particulieres:
-                    - Déplacements nationaux et internationaux
-                    offer_family_code: ERAGR001
+                    count: 1
+                    next: null
+                    previous: null
+                    results:
+                    - libelle: Personne ressource en santé et protection animales
+                      description: Mobilise sa compétence dans la gestion et le suivi
+                        de la santé et de la protection animale en appui aux services
+                        territoriaux de l'État
+                      domaine_fonctionnel_code: AGR
+                      versants:
+                      - FPE
+                      activites:
+                      - Mettre en oeuvre la compétence technique et scientifique dans
+                        son domaine de compétence par un appui ponctuel à un service
+                        départemental confronté à une situation particulière
+                      - Apporter un appui dans l'élaboration des normes,des instructions
+                        et des méthodes d'inspection
+                      conditions_particulieres:
+                      - Déplacements nationaux et internationaux
+                      offer_family_code: ERAGR001
                   summary: Liste des métiers correspondants à un code domaine fonctionnel
                   description: Les métiers possédant ce code domaine fonctionnel sont
                     retournés paginés
@@ -351,7 +371,7 @@ paths:
           description: ''
   /api/v1/offres:
     get:
-      operationId: v1_offres_retrieve
+      operationId: v1_offres_list
       description: |2
 
         # API de consultation des offres d'emploi de la Fonction Publique
@@ -374,6 +394,19 @@ paths:
 
         L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
       summary: Liste des offres
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Numéro de la page.
+        schema:
+          type: integer
+      - name: size
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
       tags:
       - offres
       security:
@@ -384,7 +417,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedListOffersResponse'
+                $ref: '#/components/schemas/PaginatedListOffersResponseList'
               examples:
                 Success-ActiveOffers:
                   value:
@@ -627,7 +660,7 @@ paths:
           description: ''
   /api/v1/offres/sources/{source_id}:
     get:
-      operationId: v1_offres_sources_retrieve
+      operationId: v1_offres_sources_list
       description: |2
 
         # API de consultation des offres d'une source
@@ -651,6 +684,18 @@ paths:
         L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
       summary: Liste des offres d'une source
       parameters:
+      - name: page
+        required: false
+        in: query
+        description: Numéro de la page.
+        schema:
+          type: integer
+      - name: size
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
       - in: path
         name: source_id
         schema:
@@ -667,7 +712,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OffersBySourceResponse'
+                $ref: '#/components/schemas/PaginatedOfferDetailResponseList'
           description: ''
         '401':
           content:
@@ -1452,26 +1497,6 @@ components:
       oneOf:
       - $ref: '#/components/schemas/TokenError'
       - $ref: '#/components/schemas/OffersBySourceUnauthorized'
-    OffersBySourceResponse:
-      type: object
-      properties:
-        count:
-          type: integer
-        next:
-          type: string
-          nullable: true
-        previous:
-          type: string
-          nullable: true
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/OfferDetailResponse'
-      required:
-      - count
-      - next
-      - previous
-      - results
     OffersBySourceUnauthorized:
       type: object
       properties:
@@ -1579,26 +1604,75 @@ components:
       description: |-
         * `NON` - Non
         * `OUI` - Oui
-    PaginatedListOffersResponse:
+    PaginatedListMetiersResponseList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
+          example: 1
         next:
           type: string
+          format: uri
           nullable: true
+          example: null
         previous:
           type: string
+          format: uri
           nullable: true
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListMetiersResponse'
+    PaginatedListOffersResponseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 1
+        next:
+          type: string
+          format: uri
+          nullable: true
+          example: null
+        previous:
+          type: string
+          format: uri
+          nullable: true
+          example: null
         results:
           type: array
           items:
             $ref: '#/components/schemas/ListOffersResponse'
+    PaginatedOfferDetailResponseList:
+      type: object
       required:
       - count
-      - next
-      - previous
       - results
+      properties:
+        count:
+          type: integer
+          example: 1
+        next:
+          type: string
+          format: uri
+          nullable: true
+          example: null
+        previous:
+          type: string
+          format: uri
+          nullable: true
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OfferDetailResponse'
     ProfessionInput:
       type: object
       properties:

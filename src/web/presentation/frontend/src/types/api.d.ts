@@ -103,7 +103,7 @@ export interface paths {
          * Liste des recrutements actifs d'un organisme
          * @description Retourne la liste paginée des recrutements d'un organisme.
          */
-        get: operations["recruteur_organisme_recrutements_actifs_retrieve"];
+        get: operations["recruteur_organisme_recrutements_actifs_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -123,7 +123,7 @@ export interface paths {
          * Liste des recrutements archivés d'un organisme
          * @description Retourne la liste paginée des recrutements archivés d'un organisme.
          */
-        get: operations["recruteur_organisme_recrutements_archives_retrieve"];
+        get: operations["recruteur_organisme_recrutements_archives_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -157,7 +157,7 @@ export interface paths {
             cookie?: never;
         };
         /** Détail d'un recrutement — vue liste (paginée) */
-        get: operations["recruteur_organisme_recrutements_liste_retrieve"];
+        get: operations["recruteur_organisme_recrutements_liste_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -405,22 +405,49 @@ export interface components {
             nom: string;
             siret: string;
         };
-        PaginatedCandidatureListeResponse: {
+        PaginatedCandidatureListeList: {
+            /** @example 1 */
             count: number;
-            next: string | null;
-            previous: string | null;
+            /**
+             * Format: uri
+             * @example null
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example null
+             */
+            previous?: string | null;
             results: components["schemas"]["CandidatureListe"][];
         };
-        PaginatedRecrutementsActifsResponse: {
+        PaginatedRecrutementsActifsList: {
+            /** @example 1 */
             count: number;
-            next: string | null;
-            previous: string | null;
+            /**
+             * Format: uri
+             * @example null
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example null
+             */
+            previous?: string | null;
             results: components["schemas"]["RecrutementsActifs"][];
         };
-        PaginatedRecrutementsArchivesResponse: {
+        PaginatedRecrutementsArchivesList: {
+            /** @example 1 */
             count: number;
-            next: string | null;
-            previous: string | null;
+            /**
+             * Format: uri
+             * @example null
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example null
+             */
+            previous?: string | null;
             results: components["schemas"]["RecrutementsArchives"][];
         };
         PatchedEditerNote: {
@@ -924,9 +951,14 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_actifs_retrieve: {
+    recruteur_organisme_recrutements_actifs_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Numéro de la page. */
+                page?: number;
+                /** @description Nombre d'éléments par page. */
+                size?: number;
+            };
             header?: never;
             path: {
                 organisme_uuid: string;
@@ -940,7 +972,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedRecrutementsActifsResponse"];
+                    "application/json": components["schemas"]["PaginatedRecrutementsActifsList"];
                 };
             };
             400: {
@@ -977,9 +1009,14 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_archives_retrieve: {
+    recruteur_organisme_recrutements_archives_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Numéro de la page. */
+                page?: number;
+                /** @description Nombre d'éléments par page. */
+                size?: number;
+            };
             header?: never;
             path: {
                 organisme_uuid: string;
@@ -993,7 +1030,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedRecrutementsArchivesResponse"];
+                    "application/json": components["schemas"]["PaginatedRecrutementsArchivesList"];
                 };
             };
             400: {
@@ -1076,9 +1113,14 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_liste_retrieve: {
+    recruteur_organisme_recrutements_liste_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Numéro de la page. */
+                page?: number;
+                /** @description Nombre d'éléments par page. */
+                size?: number;
+            };
             header?: never;
             path: {
                 organisme_uuid: string;
@@ -1093,7 +1135,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedCandidatureListeResponse"];
+                    "application/json": components["schemas"]["PaginatedCandidatureListeList"];
                 };
             };
             400: {
