@@ -2,8 +2,6 @@ from datetime import datetime
 from typing import cast
 from uuid import UUID
 
-from django.db.models import Count, Max, Q
-
 from application.recruteur.dtos.recrutement_read_models import (
     CandidaturesCompteurDto,
     RecrutementActifsReadModel,
@@ -13,6 +11,8 @@ from application.recruteur.dtos.recrutement_read_models import (
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
 )
+from django.db.models import Count, Max, Q
+
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
