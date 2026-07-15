@@ -19,4 +19,5 @@ class WebSourcesGateway(BaseWebGateway, ISourcesGateway):
                 }
             )
             for item in response.json()
+            if item["type"] == SourceType.TALENTSOFT.value
         ]
