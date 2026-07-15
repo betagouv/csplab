@@ -8,6 +8,9 @@ from application.recruteur.usecases.get_organisme_recruteur import (
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsUsecase,
 )
+from application.recruteur.usecases.lister_mes_recrutements import (
+    ListerMesRecrutementsUsecase,
+)
 from application.recruteur.usecases.supprimer_note import SupprimerNoteUsecase
 from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsUsecase,
@@ -35,6 +38,9 @@ from infrastructure.repositories.recruteur.postgres_note_repository import (
 from infrastructure.repositories.recruteur.postgres_organisme_repository import (
     PostgresOrganismeRecruteurRepository,
 )
+from infrastructure.repositories.recruteur.postgres_recrutement_query_service import (
+    PostgresRecrutementQueryService,
+)
 
 
 class RecruteurContainer(containers.DeclarativeContainer):
@@ -59,6 +65,9 @@ class RecruteurContainer(containers.DeclarativeContainer):
         mapper=candidature_mapper,
     )
     postgres_agent_repository = providers.Singleton(PostgresAgentRepository)
+    postgres_recrutement_query_service = providers.Singleton(
+        PostgresRecrutementQueryService
+    )
 
     creer_note_usecase = providers.Factory(
         CreerNoteUsecase,
@@ -95,4 +104,11 @@ class RecruteurContainer(containers.DeclarativeContainer):
         organisme_repository=postgres_organisme_repository,
         organisme_recruteur_repository=postgres_organisme_recruteur_repository,
         audit_log_writer=audit_log_writer,
+    )
+
+    lister_mes_recrutements_usecase = providers.Factory(
+        ListerMesRecrutementsUsecase,
+        recrutement_query_service=postgres_recrutement_query_service,
+        organisme_repository=postgres_organisme_repository,
+        logger=logger_service,
     )
