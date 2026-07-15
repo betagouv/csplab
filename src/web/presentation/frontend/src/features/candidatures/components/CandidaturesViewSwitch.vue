@@ -37,7 +37,7 @@ function switchTo(view: CandidaturesViewName) {
       label="Liste"
       is-icon-left
       size="sm"
-      :variant="current === 'liste' ? 'primary' : 'tertiary'"
+      :variant="current === 'liste' ? 'secondary' : 'tertiary'"
       :aria-pressed="current === 'liste'"
       @click="switchTo('liste')"
     />
@@ -46,7 +46,7 @@ function switchTo(view: CandidaturesViewName) {
       label="Kanban"
       is-icon-left
       size="sm"
-      :variant="current === 'kanban' ? 'primary' : 'tertiary'"
+      :variant="current === 'kanban' ? 'secondary' : 'tertiary'"
       :aria-pressed="current === 'kanban'"
       @click="switchTo('kanban')"
     />
