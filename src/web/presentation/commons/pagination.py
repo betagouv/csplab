@@ -31,6 +31,24 @@ class WebPagination(BasePagination):
             }
         )
 
+    def get_schema_operation_parameters(self, view) -> list[dict]:
+        return [
+            {
+                "name": "page",
+                "required": False,
+                "in": "query",
+                "description": "Numéro de la page.",
+                "schema": {"type": "integer"},
+            },
+            {
+                "name": "size",
+                "required": False,
+                "in": "query",
+                "description": "Nombre d'éléments par page.",
+                "schema": {"type": "integer"},
+            },
+        ]
+
     def get_paginated_response_schema(self, schema: dict) -> dict:
         return {
             "type": "object",

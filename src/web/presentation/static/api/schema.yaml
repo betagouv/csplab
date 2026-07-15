@@ -253,6 +253,18 @@ paths:
           type: string
           maxLength: 3
           minLength: 1
+      - name: page
+        required: false
+        in: query
+        description: Numéro de la page.
+        schema:
+          type: integer
+      - name: size
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
       tags:
       - metiers
       security:
@@ -382,6 +394,19 @@ paths:
 
         L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
       summary: Liste des offres
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Numéro de la page.
+        schema:
+          type: integer
+      - name: size
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
       tags:
       - offres
       security:
@@ -659,6 +684,18 @@ paths:
         L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
       summary: Liste des offres d'une source
       parameters:
+      - name: page
+        required: false
+        in: query
+        description: Numéro de la page.
+        schema:
+          type: integer
+      - name: size
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
       - in: path
         name: source_id
         schema:

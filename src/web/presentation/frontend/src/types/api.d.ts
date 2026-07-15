@@ -953,7 +953,12 @@ export interface operations {
     };
     recruteur_organisme_recrutements_actifs_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Numéro de la page. */
+                page?: number;
+                /** @description Nombre d'éléments par page. */
+                size?: number;
+            };
             header?: never;
             path: {
                 organisme_uuid: string;
@@ -1006,7 +1011,12 @@ export interface operations {
     };
     recruteur_organisme_recrutements_archives_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Numéro de la page. */
+                page?: number;
+                /** @description Nombre d'éléments par page. */
+                size?: number;
+            };
             header?: never;
             path: {
                 organisme_uuid: string;
@@ -1105,7 +1115,12 @@ export interface operations {
     };
     recruteur_organisme_recrutements_liste_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Numéro de la page. */
+                page?: number;
+                /** @description Nombre d'éléments par page. */
+                size?: number;
+            };
             header?: never;
             path: {
                 organisme_uuid: string;

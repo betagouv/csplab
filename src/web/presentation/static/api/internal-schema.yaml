@@ -403,6 +403,18 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: page
+        required: false
+        in: query
+        description: Numéro de la page.
+        schema:
+          type: integer
+      - name: size
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
       tags:
       - recruteur
       security:
@@ -451,6 +463,18 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: page
+        required: false
+        in: query
+        description: Numéro de la page.
+        schema:
+          type: integer
+      - name: size
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
       tags:
       - recruteur
       security:
@@ -545,12 +569,24 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: page
+        required: false
+        in: query
+        description: Numéro de la page.
+        schema:
+          type: integer
       - in: path
         name: recrutement_uuid
         schema:
           type: string
           format: uuid
         required: true
+      - name: size
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
       tags:
       - recruteur
       security:
