@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Candidature } from '../types'
-import { ref } from 'vue'
+import { ref, watchEffect } from 'vue'
+import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
 import { formatElapsedDays } from '@/utils/date'
@@ -13,7 +14,12 @@ const props = defineProps<{
   cardIndex: number
 }>()
 
+const cardComponentRef = ref<InstanceType<typeof CspCard> | null>(null)
 const cardRef = ref<HTMLElement | null>(null)
+
+watchEffect(() => {
+  cardRef.value = (cardComponentRef.value?.$el as HTMLElement | undefined) ?? null
+})
 
 const { isDragging } = useDraggableKanbanCard({
   element: cardRef,
@@ -25,14 +31,14 @@ const { isDragging } = useDraggableKanbanCard({
 </script>
 
 <template>
-  <article
-    ref="cardRef"
+  <CspCard
+    ref="cardComponentRef"
+    as="article"
+    size="sm"
+    :title="formatCandidatNom(candidature.candidat)"
     class="candidature-kanban-card"
     :class="{ 'candidature-kanban-card--dragging': isDragging }"
   >
-    <h3 class="candidature-kanban-card__name">
-      {{ formatCandidatNom(candidature.candidat) }}
-    </h3>
     <p class="candidature-kanban-card__date">
       <CspIcon
         name="ri:calendar-line"
@@ -42,13 +48,11 @@ const { isDragging } = useDraggableKanbanCard({
       />
       {{ formatElapsedDays(candidature.date_soumission) }}
     </p>
-  </article>
+  </CspCard>
 </template>
 
 <style scoped lang="scss">
 .candidature-kanban-card {
-  padding: var(--csp-space-4);
-  background-color: var(--background-default-grey);
   box-shadow:
     0 1px 2px rgb(0 0 0 / 6%),
     inset 0 0 0 1px var(--border-default-grey);
@@ -61,15 +65,6 @@ const { isDragging } = useDraggableKanbanCard({
 
 .candidature-kanban-card--dragging {
   opacity: 0.5;
-}
-
-.candidature-kanban-card__name {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--text-title-grey);
-  word-break: break-word;
 }
 
 .candidature-kanban-card__date {
