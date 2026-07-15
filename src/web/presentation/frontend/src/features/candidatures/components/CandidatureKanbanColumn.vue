@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EtapeRecrutementDetailedCandidatures } from '../types'
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import { useDropTargetKanbanColumn } from '@/composables/dnd/useKanbanDnd'
@@ -16,11 +16,22 @@ const categorieConfig = computed(() => CATEGORIE_CONFIG[props.etape.categorie])
 const isSelected = ref(false)
 
 const columnRef = ref<HTMLElement | null>(null)
+const cardsRef = ref<HTMLElement | null>(null)
 
 const { isDraggedOver } = useDropTargetKanbanColumn({
   element: columnRef,
   boardId: props.boardId,
   columnId: props.etape.etape_uuid,
+})
+
+watch(isDraggedOver, async (isOver, wasOver) => {
+  if (wasOver && !isOver && cardsRef.value) {
+    await nextTick()
+    cardsRef.value.scrollTo({
+      top: cardsRef.value.scrollHeight,
+      behavior: 'smooth',
+    })
+  }
 })
 </script>
 
@@ -51,7 +62,10 @@ const { isDraggedOver } = useDropTargetKanbanColumn({
         />
       </h2>
     </header>
-    <ul class="candidature-kanban-column__cards">
+    <ul
+      ref="cardsRef"
+      class="candidature-kanban-column__cards"
+    >
       <li
         v-for="(candidature, index) in etape.candidatures"
         :key="candidature.uuid"
