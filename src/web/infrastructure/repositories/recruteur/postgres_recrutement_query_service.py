@@ -2,7 +2,8 @@ from datetime import datetime
 from typing import cast
 from uuid import UUID
 
-from django.db.models import Count, Max, Q
+from django.db.models import Count, F, Max, Prefetch, Q
+from django.db.models.functions import Coalesce
 
 from application.recruteur.dtos.recrutement_read_models import (
     CandidaturesCompteurDto,
@@ -16,7 +17,12 @@ from application.recruteur.services.recrutement_query_service_interface import (
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
-from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
+    RecrutementModel,
+)
 from infrastructure.mappers.queryset_page_mapper import QuerySetPageMapper
 
 
@@ -30,9 +36,19 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 offre__archived_at__isnull=True,
             )
             .select_related("offre")
-            .prefetch_related("responsables_liaisons__agent__utilisateur")
+            .prefetch_related(
+                Prefetch(
+                    "responsables_liaisons",
+                    queryset=RecrutementAgentModel.objects.select_related(
+                        "agent__utilisateur"
+                    ),
+                )
+            )
             .annotate(
-                derniere_activite=Max("etapes__candidatures__updated_at"),
+                derniere_activite=Coalesce(
+                    Max("etapes__candidatures__updated_at"),
+                    F("offre__publication_date"),
+                ),
                 candidatures_total=Count("etapes__candidatures"),
                 candidatures_a_traiter=Count(
                     "etapes__candidatures",
@@ -57,7 +73,6 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 )
                 for liaison in model.responsables_liaisons.all()  # type: ignore[attr-defined]
             ]
-            derniere_activite: datetime = cast(datetime, model.derniere_activite)  # type: ignore[attr-defined]
             return RecrutementActifsReadModel(
                 offer_id=model.offre_id,  # type: ignore[attr-defined]
                 intitule=model.offre.title,
@@ -65,7 +80,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 type_contrat=model.offre.contract_type or "",
                 date_publication=model.offre.publication_date,
                 responsables=responsables,
-                derniere_activite=derniere_activite or model.offre.publication_date,
+                derniere_activite=cast(datetime, model.derniere_activite),  # type: ignore[attr-defined]
                 candidatures=CandidaturesCompteurDto(
                     total=cast(int, model.candidatures_total) or 0,  # type: ignore[attr-defined]
                     a_traiter=cast(int, model.candidatures_a_traiter) or 0,  # type: ignore[attr-defined]
@@ -85,8 +100,26 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             )
             .select_related("offre")
             .prefetch_related(
-                "responsables_liaisons__agent__utilisateur",
-                "etapes__candidatures__candidat__utilisateur",
+                Prefetch(
+                    "responsables_liaisons",
+                    queryset=RecrutementAgentModel.objects.select_related(
+                        "agent__utilisateur"
+                    ),
+                ),
+                Prefetch(
+                    "etapes",
+                    queryset=EtapeModel.objects.filter(
+                        categorie=CategorieEtapeRecrutement.ACCEPTE.value
+                    ).prefetch_related(
+                        Prefetch(
+                            "candidatures",
+                            queryset=CandidatureModel.objects.select_related(
+                                "candidat__utilisateur"
+                            ),
+                        )
+                    ),
+                    to_attr="etapes_acceptees",
+                ),
             )
             .annotate(
                 nb_candidatures_acceptees=Count(
@@ -106,20 +139,17 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 )
                 for liaison in model.responsables_liaisons.all()  # type: ignore[attr-defined]
             ]
-            nb_acceptees = cast(int, model.nb_candidatures_acceptees)  # type: ignore[attr-defined]
-            finalise = nb_acceptees > 0
+            finalise = cast(int, model.nb_candidatures_acceptees) > 0  # type: ignore[attr-defined]
+            etapes_acceptees = model.etapes_acceptees  # type: ignore[attr-defined]
             recrute = None
-            if finalise:
-                etape_acceptee = model.etapes.filter(  # type: ignore[attr-defined]
-                    categorie=CategorieEtapeRecrutement.ACCEPTE.value
-                ).first()
-                if etape_acceptee:
-                    candidature = etape_acceptee.candidatures.first()
-                    if candidature:
-                        recrute = (
-                            f"{candidature.candidat.utilisateur.first_name} "
-                            f"{candidature.candidat.utilisateur.last_name}"
-                        ).strip()
+            if etapes_acceptees:
+                candidatures = etapes_acceptees[0].candidatures.all()
+                if candidatures:
+                    candidat = candidatures[0].candidat
+                    recrute = (
+                        f"{candidat.utilisateur.first_name} "
+                        f"{candidat.utilisateur.last_name}"
+                    ).strip()
 
             return RecrutementArchivesReadModel(
                 offer_id=model.offre_id,  # type: ignore[attr-defined]
