@@ -6,7 +6,7 @@ from uuid import UUID
 from pydantic import HttpUrl, ValidationError
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
@@ -56,6 +56,14 @@ class OffersCleaner:
         contract_type = self._map_contract_type(
             talentsoft_offer.contractType.clientCode
             if talentsoft_offer.contractType
+            else None
+        )
+
+        contract_kind = self._map_contract_kind(
+            talentsoft_offer.customFields.offer.customCodeTable2.clientCode
+            if talentsoft_offer.customFields
+            and talentsoft_offer.customFields.offer
+            and talentsoft_offer.customFields.offer.customCodeTable2
             else None
         )
 
@@ -130,6 +138,7 @@ class OffersCleaner:
             mission=talentsoft_offer.description1 or "",
             category=category,
             contract_type=contract_type,
+            contract_kind=contract_kind,
             organization=talentsoft_offer.organisationName,
             offer_url=offer_url,
             application_url=application_url,
@@ -172,6 +181,25 @@ class OffersCleaner:
             return ContractType.TERRITORIAL
 
         return None
+
+    _CONTRACT_KIND_MAPPING: dict[str, ContractKind] = {
+        "CDI": ContractKind.CDI,
+        "PERMANENT": ContractKind.PERMANENT,
+        "VACATION": ContractKind.VACATION,
+        "STAGE": ContractKind.STAGE,
+    }
+
+    def _map_contract_kind(
+        self, contract_kind_str: Optional[str]
+    ) -> Optional[ContractKind]:
+        if not contract_kind_str:
+            return None
+
+        contract_kind_upper = contract_kind_str.upper()
+        if contract_kind_upper.startswith("CDD"):
+            return ContractKind.CDD
+
+        return self._CONTRACT_KIND_MAPPING.get(contract_kind_upper)
 
     def _map_localisation_from_arrays(
         self, areas: List, countries: List, regions: List, departments: List

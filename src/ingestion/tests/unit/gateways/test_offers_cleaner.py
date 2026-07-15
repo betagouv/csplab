@@ -3,14 +3,17 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
-from infrastructure.external_gateways.dtos.talentsoft_dtos import TalentsoftLanguage
+from infrastructure.external_gateways.dtos.talentsoft_dtos import (
+    TalentsoftLanguage,
+    TalentsoftOfferCustomFields,
+)
 from infrastructure.gateways.offers_cleaner import OffersCleaner
 from tests.factories.talentsoft_factories import (
     TalentsoftCodedObjectFactory,
@@ -279,6 +282,40 @@ def test_clean_maps_contract_type(cleaner, contract_code, expected):
     offer = cleaner.clean(raw_offer)
 
     assert offer.contract_type == expected
+
+
+@pytest.mark.parametrize(
+    "contract_kind_code, expected",
+    [
+        ("CDD_1A", ContractKind.CDD),
+        ("CDD_2A", ContractKind.CDD),
+        ("CDD_3A", ContractKind.CDD),
+        ("CDD_6M", ContractKind.CDD),
+        ("CDI", ContractKind.CDI),
+        ("PERMANENT", ContractKind.PERMANENT),
+        ("VACATION", ContractKind.VACATION),
+        ("STAGE", ContractKind.STAGE),
+        ("UNKNOWN_KIND", None),
+        (None, None),
+    ],
+)
+def test_clean_maps_contract_kind(cleaner, contract_kind_code, expected):
+    offer_dto_kwargs = {
+        "customFields": TalentsoftCustomFieldsFactory.build(
+            offer=TalentsoftOfferCustomFields(
+                customCodeTable2=TalentsoftCustomCodeTableFactory.build(
+                    clientCode=contract_kind_code
+                )
+                if contract_kind_code
+                else None
+            )
+        )
+    }
+    raw_offer = _make_raw_offer(**offer_dto_kwargs)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.contract_kind == expected
 
 
 def test_clean_returns_none_url_on_invalid_offer_url(cleaner):

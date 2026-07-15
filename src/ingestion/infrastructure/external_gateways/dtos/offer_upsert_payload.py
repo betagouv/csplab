@@ -58,9 +58,11 @@ class LanguagePayload(BaseModel):
 class CriteresPayload(BaseModel):
     diplome_niveau: Optional[int] = None
     experience: Optional[str] = None
-    diploma: Optional[str] = None
     specialisations: list[str] = []
-    languages: list[LanguagePayload] = []
+    diplome: Optional[str] = None
+    documents_requis: list[str] = []
+    competences_requises: list[str] = []
+    langues: list[LanguagePayload] = []
 
     @model_serializer
     def serialize(self) -> dict:
@@ -128,6 +130,7 @@ class OfferUpsertPayload(BaseModel):
             ),
             categories=[offer.category.value] if offer.category else [],
             type_contrat=offer.contract_type.value if offer.contract_type else None,
+            forme_contrat=[offer.contract_kind.name] if offer.contract_kind else [],
             description=DescriptionPayload(
                 mission=offer.mission,
                 profil=offer.profile,
@@ -137,9 +140,9 @@ class OfferUpsertPayload(BaseModel):
             criteres=CriteresPayload(
                 diplome_niveau=offer.education_level,
                 experience=offer.experience.name if offer.experience else None,
-                diploma=offer.diploma,
                 specialisations=offer.specialisations,
-                languages=[
+                diplome=offer.diploma,
+                langues=[
                     LanguagePayload.from_language(lang) for lang in offer.languages
                 ],
             )
@@ -149,6 +152,8 @@ class OfferUpsertPayload(BaseModel):
             or offer.specialisations
             or offer.languages
             else None,
+            conditions=None,
+            contacts=None,
             publication=PublicationPayload(
                 debut_publication=offer.publication_date,
                 fin_publication=fin_publication,

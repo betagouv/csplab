@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from pydantic import HttpUrl
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.limit_date import LimitDate
@@ -31,6 +31,7 @@ class Offer:
     publication_date: datetime
     end_publication_date: Optional[datetime]
     beginning_date: Optional[LimitDate]
+    contract_kind: Optional[ContractKind] = None
     education_level: Optional[int] = None
     experience: Optional[ExperienceLevel] = None
     diploma: Optional[str] = None

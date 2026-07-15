@@ -8,7 +8,7 @@ from pydantic import HttpUrl
 from pytest_httpx import HTTPXMock
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
@@ -142,6 +142,17 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_publish_serializes_contract_kind(gateway, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(**{**MINIMAL_OFFER.__dict__, "contract_kind": ContractKind.CDD})
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["forme_contrat"] == ["CDD"]
+
+
+@pytest.mark.asyncio
 async def test_publish_uses_end_publication_date_as_fin_publication(
     gateway, httpx_mock: HTTPXMock
 ):
@@ -271,7 +282,7 @@ async def test_publish_serializes_criteres_with_diploma(gateway, httpx_mock: HTT
     await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
 
     body = json.loads(httpx_mock.get_requests()[0].content)
-    assert body["offres"][0]["criteres"] == {"diploma": "LICENCE"}
+    assert body["offres"][0]["criteres"] == {"diplome": "LICENCE"}
 
 
 @pytest.mark.asyncio
@@ -304,7 +315,7 @@ async def test_publish_serializes_criteres_with_languages(
 
     body = json.loads(httpx_mock.get_requests()[0].content)
     assert body["offres"][0]["criteres"] == {
-        "languages": [{"iso_code": "EN", "niveau": "B2"}]
+        "langues": [{"iso_code": "EN", "niveau": "B2"}]
     }
 
 
