@@ -111,7 +111,10 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
         cv_metadata_repo = self.container.postgres_cv_metadata_repository()
         try:
             cv_metadata = cv_metadata_repo.get_by_id(cv_uuid)
-        except Exception:
+        except Exception as e:
+            logger.exception(
+                "Opportunity matching failed for cv_uuid='%s': %s", cv_uuid, e
+            )
             self._status = CVStatus.FAILED
             return
 
@@ -133,7 +136,10 @@ class CVResultsView(BreadcrumbMixin, TemplateView):
                 filters=domain_filters,
                 limit=settings.CV_MAX_OPPORTUNITIES,
             )
-        except Exception:
+        except Exception as e:
+            logger.exception(
+                "Opportunity matching failed for cv_uuid='%s': %s", cv_uuid, e
+            )
             self._status = CVStatus.FAILED
 
     def _handle_pending(self, request, is_htmx: bool, **kwargs) -> HttpResponse:

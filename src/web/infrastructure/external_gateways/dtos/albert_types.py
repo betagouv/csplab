@@ -3,9 +3,9 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel
 
 
-class AlbertUsageCarbon(BaseModel):
-    kWh: Dict[str, float]
-    kgCO2eq: Dict[str, float]
+class AlbertUsageImpacts(BaseModel):
+    kWh: float
+    kgCO2eq: float
 
 
 class AlbertUsage(BaseModel):
@@ -13,8 +13,8 @@ class AlbertUsage(BaseModel):
     completion_tokens: int
     total_tokens: int
     cost: float
-    carbon: AlbertUsageCarbon
-    requests: int
+    impacts: Optional[AlbertUsageImpacts] = None
+    requests: Optional[int] = None
 
 
 class AlbertEmbeddingData(BaseModel):
