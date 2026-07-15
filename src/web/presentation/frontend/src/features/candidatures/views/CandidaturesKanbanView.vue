@@ -41,6 +41,13 @@ const countLabel = computed(() => {
 </template>
 
 <style scoped lang="scss">
+.candidatures-kanban-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .candidatures-kanban-content__count {
   margin: 0 0 var(--csp-space-4);
   font-size: 0.9375rem;

@@ -88,6 +88,7 @@ const { isDraggedOver } = useDropTargetKanbanColumn({
   min-width: 18.75rem;
   gap: var(--csp-space-3);
   min-height: 12rem;
+  max-height: 100%;
   padding: var(--csp-space-3);
   background-color: var(--background-alt-grey);
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
@@ -150,6 +151,8 @@ const { isDraggedOver } = useDropTargetKanbanColumn({
   margin: 0;
   padding: 0;
   list-style: none;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .candidature-kanban-column__card-item {

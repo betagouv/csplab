@@ -37,8 +37,10 @@ useKanbanBoardMonitor({
 <style scoped lang="scss">
 .candidatures-kanban-board {
   display: flex;
+  flex: 1;
   gap: var(--csp-space-3);
   overflow-x: auto;
   padding-bottom: var(--csp-space-2);
+  min-height: 0;
 }
 </style>

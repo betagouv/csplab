@@ -106,7 +106,12 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
 
 <style scoped lang="scss">
 .candidatures-view {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
   padding: 2rem;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .candidatures-view__header {
@@ -135,5 +140,24 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
 .candidatures-view__placeholder {
   padding: 2rem 0;
   color: var(--text-mention-grey);
+}
+
+.candidatures-view :deep(.csp-tabs) {
+  flex: 1;
+  min-height: 0;
+}
+
+.candidatures-view :deep(.csp-tabs__panels) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.candidatures-view :deep(.csp-tabs__content) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 </style>
