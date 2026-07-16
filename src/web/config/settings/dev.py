@@ -34,6 +34,7 @@ DEBUG_TOOLBAR_CONFIG = {
         "debug_toolbar.panels.profiling.ProfilingPanel",
     ],
     "SHOW_TEMPLATE_CONTEXT": True,
+    "SHOW_COLLAPSED": True,
 }
 
 # Use simple static files storage for development (no compression/manifest)
