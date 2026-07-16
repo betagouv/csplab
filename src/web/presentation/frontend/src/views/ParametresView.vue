@@ -1,7 +1,15 @@
 <script setup lang="ts">
+import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
+import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
+import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
+
+const BREADCRUMB: CspBreadcrumbItem[] = [
+  { label: 'Accueil', to: { name: 'home' } },
+  { label: 'Paramètres' },
+]
 
 const tabs = [
   { value: 'etapes', label: 'Gestion des étapes de recrutement' },
@@ -9,16 +17,19 @@ const tabs = [
 </script>
 
 <template>
-  <div class="parametres-view">
-    <header class="parametres-view__header">
-      <h1 class="parametres-view__title">
-        Paramètres de l'organisme
-      </h1>
-      <CspBadge
-        icon="ri:building-line"
-        label="Ministère de la Transition Écologique"
-      />
-    </header>
+  <CspPageContainer>
+    <CspPageHeader
+      title="Paramètres de l'organisme"
+      :breadcrumb="BREADCRUMB"
+      class="parametres-view__header"
+    >
+      <template #subtitle>
+        <CspBadge
+          icon="ri:building-line"
+          label="Ministère de la Transition Écologique"
+        />
+      </template>
+    </CspPageHeader>
 
     <CspTabs
       :tabs="tabs"
@@ -28,22 +39,11 @@ const tabs = [
         <EtapesRecrutementList />
       </template>
     </CspTabs>
-  </div>
+  </CspPageContainer>
 </template>
 
 <style scoped lang="scss">
-.parametres-view {
-  padding: var(--csp-space-8);
-}
-
 .parametres-view__header {
-  margin-bottom: var(--csp-space-6);
-}
-
-.parametres-view__title {
-  margin: 0 0 var(--csp-space-2);
-  font-size: var(--csp-font-size-2xl);
-  font-weight: var(--csp-font-weight-bold);
-  color: var(--text-title-grey);
+  margin-bottom: var(--csp-space-4);
 }
 </style>

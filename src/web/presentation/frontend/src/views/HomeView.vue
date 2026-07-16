@@ -1,20 +1,10 @@
+<script setup lang="ts">
+import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
+import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
+</script>
+
 <template>
-  <div class="home-view">
-    <h1 class="home-view__title">
-      Accueil
-    </h1>
-  </div>
+  <CspPageContainer>
+    <CspPageHeader title="Accueil" />
+  </CspPageContainer>
 </template>
-
-<style scoped lang="scss">
-.home-view {
-  padding: var(--csp-space-8);
-}
-
-.home-view__title {
-  margin: 0 0 var(--csp-space-2);
-  font-size: var(--csp-font-size-2xl);
-  font-weight: var(--csp-font-weight-bold);
-  color: var(--text-title-grey);
-}
-</style>
