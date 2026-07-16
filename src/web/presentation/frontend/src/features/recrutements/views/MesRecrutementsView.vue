@@ -205,6 +205,10 @@ const countLabel = computed(() => {
 </template>
 
 <style scoped lang="scss">
+.mes-recrutement-view__header {
+  margin-bottom: var(--csp-space-4);
+}
+
 .mes-recrutement-view__idle,
 .mes-recrutement-view__loading,
 .mes-recrutement-view__error {

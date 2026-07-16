@@ -90,13 +90,14 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
       :back-to="{ name: 'mes-recrutements' }"
       back-label="Retour à mes recrutements"
       class="candidatures-view__header"
-    />
-
-    <CspMetaList
-      v-if="recrutementDetail"
-      :items="metaItems"
-      class="candidatures-view__meta"
-    />
+    >
+      <template
+        v-if="recrutementDetail"
+        #subtitle
+      >
+        <CspMetaList :items="metaItems" />
+      </template>
+    </CspPageHeader>
 
     <div
       v-if="pending"
@@ -164,10 +165,6 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
 
 <style scoped lang="scss">
 .candidatures-view__header {
-  margin-bottom: var(--csp-space-4);
-}
-
-.candidatures-view__meta {
   margin-bottom: var(--csp-space-4);
 }
 
