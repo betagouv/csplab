@@ -7,7 +7,7 @@ from playwright.sync_api import Page, expect
 
 from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
-from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.mappers.offer_mapper import OfferMapper
 from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
 from tests.factories.referentiel.offer_factory import OfferFactory
 
@@ -58,7 +58,7 @@ class TestCandidateFlowAccessibility:
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_entity = OfferFactory.create_entity(title="Offre a11y")
-        OfferModel.from_entity(offer_entity).save()
+        OfferMapper().from_domain(offer_entity).save()
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"
         )
@@ -83,7 +83,7 @@ class TestCandidateFlowAccessibility:
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_entity = OfferFactory.create_entity(title="Offre drawer a11y")
-        OfferModel.from_entity(offer_entity).save()
+        OfferMapper().from_domain(offer_entity).save()
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"
         )

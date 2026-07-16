@@ -18,6 +18,7 @@ from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
 )
@@ -28,10 +29,12 @@ fake = Faker()
 NOW = datetime.now()
 DAY_AGO = NOW - relativedelta(days=1)
 
+_mapper = OfferMapper()
+
 
 @pytest.fixture(name="repository")
 def repository_fixture():
-    return PostgresOffersRepository(LoggerService())
+    return PostgresOffersRepository(LoggerService(), _mapper)
 
 
 class TestFindByIds:
@@ -55,11 +58,11 @@ class TestUpsertBatch:
         offer = OfferFactory.create_model()
         offer_to_update = OfferFactory.create_model()
         new_offer_entity = OfferFactory.create_entity(
-            source_id=OfferModel.to_entity(offer).source_id
+            source_id=_mapper.to_domain(offer).source_id
         )
 
         offers = [
-            OfferModel.to_entity(offer_to_update),
+            _mapper.to_domain(offer_to_update),
             new_offer_entity,
         ]
 
@@ -104,7 +107,7 @@ class TestUpsertBatch:
 
     def test_multiple_offers_success(self, db, repository):
         offers = OfferFactory.create_model_batch(2)
-        entities = [OfferModel.to_entity(offer) for offer in offers]
+        entities = [_mapper.to_domain(offer) for offer in offers]
         entities.append(OfferFactory.create_entity(source_id=entities[0].source_id))
 
         result = repository.upsert_batch(entities)
@@ -117,7 +120,7 @@ class TestUpsertBatch:
 
         for entity in entities:
             saved = saved_by_id[entity.external_id]
-            assert OfferModel.to_entity(saved) == entity
+            assert _mapper.to_domain(saved) == entity
 
     def test_updated_datas_are_stored(self, db, repository):
         offer = OfferFactory.create_model(
@@ -139,7 +142,7 @@ class TestUpsertBatch:
             beginning_date=LimitDate(datetime(2025, 6, 17)),
         )
         now = datetime.now(timezone.utc)
-        entity = OfferModel.to_entity(offer)
+        entity = _mapper.to_domain(offer)
         updated_fields = {
             "verse": Verse.FPE,
             "title": "title",
@@ -165,7 +168,7 @@ class TestUpsertBatch:
         assert result == {"created": 0, "updated": 1, "errors": []}
 
         saved_offer = OfferModel.objects.get()
-        assert OfferModel.to_entity(saved_offer) == entity
+        assert _mapper.to_domain(saved_offer) == entity
 
     def test_upsert_offer_with_datetime_in_conditions(self, db, repository):
         existing = OfferFactory.create_model()
@@ -191,7 +194,7 @@ class TestUpsertBatch:
         archived_offer = OfferFactory.create_model(archived_at=NOW)
         assert archived_offer.archived_at is not None
 
-        entity = OfferModel.to_entity(archived_offer)
+        entity = _mapper.to_domain(archived_offer)
         entity.archived_at = None
 
         result = repository.upsert_batch([entity])
@@ -253,10 +256,10 @@ class TestGetPendingProcessing:
 
 def test_mark_as_processed(db, repository):
     offers = [
-        OfferFactory.create_model(processing=True).to_entity(),
-        OfferFactory.create_model(processing=False).to_entity(),
+        _mapper.to_domain(OfferFactory.create_model(processing=True)),
+        _mapper.to_domain(OfferFactory.create_model(processing=False)),
     ]
-    undesired_offer = OfferFactory.create_model(processing=True).to_entity()
+    undesired_offer = _mapper.to_domain(OfferFactory.create_model(processing=True))
 
     count = repository.mark_as_processed(offers)
     assert count == len(offers)
@@ -276,10 +279,10 @@ def test_mark_as_processed(db, repository):
 
 def test_mark_as_pending(db, repository):
     offers = [
-        OfferFactory.create_model(processing=True).to_entity(),
-        OfferFactory.create_model(processing=False).to_entity(),
+        _mapper.to_domain(OfferFactory.create_model(processing=True)),
+        _mapper.to_domain(OfferFactory.create_model(processing=False)),
     ]
-    undesired_offer = OfferFactory.create_model(processing=True).to_entity()
+    undesired_offer = _mapper.to_domain(OfferFactory.create_model(processing=True))
 
     count = repository.mark_as_pending(offers)
     assert count == len(offers)
@@ -296,7 +299,7 @@ def test_mark_as_pending(db, repository):
 def test_multiple_offers_success(db, repository):
     source = SourceFactory.create_model()
     offers = OfferFactory.create_model_batch(2, source_id=source.id)
-    entities = [OfferModel.to_entity(offer) for offer in offers]
+    entities = [_mapper.to_domain(offer) for offer in offers]
     entities.append(OfferFactory.create_entity(source_id=source.id))
 
     repository.upsert_batch(entities)

@@ -15,7 +15,10 @@ from referentiel.value_objects.verse import Verse
 
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.mappers.offer_mapper import OfferMapper
 from tests.factories.referentiel.offer_factory import OfferFactory
+
+_mapper = OfferMapper()
 
 fake = Faker()
 
@@ -32,7 +35,7 @@ def test_upsert_offers_result(ingestion_container):
             department=Department(code="973"),
         ),
     )
-    existing_offer = OfferModel.to_entity(offer)
+    existing_offer = _mapper.to_domain(offer)
     updated_fields = {
         "verse": Verse.FPT,
         "title": fake.word(),
@@ -66,7 +69,7 @@ def test_upsert_offers_result(ingestion_container):
 
     for offer in [existing_offer, new_offer]:
         model = OfferModel.objects.get(external_id=offer.external_id)
-        assert OfferModel.to_entity(model) == offer
+        assert _mapper.to_domain(model) == offer
 
 
 def test_upsert_offers_unarchives_offer_and_makes_it_eligible_for_reindexing(

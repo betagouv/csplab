@@ -9,6 +9,7 @@ from referentiel.value_objects.category import Category
 
 from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
+from infrastructure.mappers.offer_mapper import OfferMapper
 from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
 from tests.factories.referentiel.concours_factory import ConcoursFactory
 from tests.factories.referentiel.offer_factory import OfferFactory
@@ -45,7 +46,9 @@ class TestResultsDrawer:
     def test_user_opens_offer_drawer_and_closes_it_with_close_button(
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
-        offer_entity = OfferFactory.create_model(title="Offre e2e drawer").to_entity()
+        offer_entity = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre e2e drawer")
+        )
 
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"
@@ -76,7 +79,9 @@ class TestResultsDrawer:
     def test_user_closes_drawer_with_browser_back_navigation(
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
-        offer_entity = OfferFactory.create_model(title="Offre e2e back-nav").to_entity()
+        offer_entity = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre e2e back-nav")
+        )
 
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"
@@ -144,7 +149,9 @@ class TestResultsPersistence:
     def test_user_refreshes_results_page_and_state_persists(
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
-        offer_entity = OfferFactory.create_model(title="Offre e2e refresh").to_entity()
+        offer_entity = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre e2e refresh")
+        )
 
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"
@@ -176,12 +183,12 @@ class TestResultsFilters:
     def test_user_narrows_results_by_selecting_category_filter(
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
-        offer_a = OfferFactory.create_model(
-            title="Offre alpha", category=Category.A
-        ).to_entity()
-        offer_b = OfferFactory.create_model(
-            title="Offre beta", category=Category.B
-        ).to_entity()
+        offer_a = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre alpha", category=Category.A)
+        )
+        offer_b = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre beta", category=Category.B)
+        )
 
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"
@@ -213,12 +220,12 @@ class TestResultsFilters:
     def test_user_lands_on_filtered_results_via_deep_link(
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
-        offer_a = OfferFactory.create_model(
-            title="Offre alpha deep", category=Category.A
-        ).to_entity()
-        offer_b = OfferFactory.create_model(
-            title="Offre beta deep", category=Category.B
-        ).to_entity()
+        offer_a = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre alpha deep", category=Category.A)
+        )
+        offer_b = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre beta deep", category=Category.B)
+        )
 
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"
@@ -247,15 +254,15 @@ class TestResultsFilters:
     def test_user_combines_category_and_versant_filters(
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
-        offer_a_fpe = OfferFactory.create_model(
-            title="Offre alpha FPE", category=Category.A
-        ).to_entity()
-        offer_a_fpt = OfferFactory.create_model(
-            title="Offre alpha FPT", category=Category.A
-        ).to_entity()
-        offer_b_fpe = OfferFactory.create_model(
-            title="Offre beta FPE", category=Category.B
-        ).to_entity()
+        offer_a_fpe = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre alpha FPE", category=Category.A)
+        )
+        offer_a_fpt = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre alpha FPT", category=Category.A)
+        )
+        offer_b_fpe = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre beta FPE", category=Category.B)
+        )
 
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"
@@ -300,7 +307,9 @@ class TestResultsPagination:
         settings.CV_RESULTS_PER_PAGE = 3
 
         offers = [
-            OfferFactory.create_model(title=f"Offre paginée {i}").to_entity()
+            OfferMapper().to_domain(
+                OfferFactory.create_model(title=f"Offre paginée {i}")
+            )
             for i in range(5)
         ]
 

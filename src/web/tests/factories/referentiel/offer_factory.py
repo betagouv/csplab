@@ -17,7 +17,10 @@ from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.mappers.offer_mapper import OfferMapper
 from tests.factories.ingestion.source_factory import SourceFactory
+
+_mapper = OfferMapper()
 
 
 class OfferFactory:
@@ -132,7 +135,7 @@ class OfferFactory:
             archived_at=archived_at,
         )
 
-        offer_model = OfferModel.from_entity(offer)
+        offer_model = _mapper.from_domain(offer)
         offer_model.processing = processing
         offer_model.processed_at = processed_at
         offer_model.save()

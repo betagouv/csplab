@@ -5,6 +5,7 @@ from infrastructure.external_gateways.albert_embedding_generator import (
 )
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
 from infrastructure.mappers.metier_mapper import MetierMapper
+from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.repositories.commons.postgres_offer_stats_query_service import (
     PostgresOfferStatsQueryService,
 )
@@ -50,8 +51,11 @@ class SharedContainer(containers.DeclarativeContainer):
         logger=logger_service,
     )
 
+    offers_mapper = OfferMapper()
+
     offers_repository = providers.Singleton(
         postgres_offers_repository.PostgresOffersRepository,
+        mapper=offers_mapper,
         logger=logger_service,
     )
 

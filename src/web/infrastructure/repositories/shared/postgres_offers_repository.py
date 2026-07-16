@@ -15,12 +15,14 @@ from domain.ingestion.repositories.ingestion_offers_repository_interface import 
     IIngestionOffersRepository,
 )
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
-from infrastructure.mappers.queryset_page import QuerySetPage
+from infrastructure.mappers.offer_mapper import OfferMapper
+from infrastructure.mappers.queryset_page_mapper import QuerySetPageMapper
 
 
 class PostgresOffersRepository(IIngestionOffersRepository):
-    def __init__(self, logger: ILogger):
+    def __init__(self, logger: ILogger, mapper: OfferMapper):
         self.logger = logger
+        self.mapper = mapper
 
     def upsert_batch(self, offers_list: List[Offer]) -> IUpsertResult:
         try:
@@ -49,7 +51,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                 if partitioned["new"]:
                     new_models = []
                     for offer in partitioned["new"]:
-                        model = OfferModel.from_entity(offer)
+                        model = self.mapper.from_domain(offer)
                         new_models.append(model)
 
                     created_models = OfferModel.objects.bulk_create(
@@ -62,7 +64,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                     for offer in partitioned["existing"]:
                         if offer.external_id in existing_models_map:
                             existing_model = existing_models_map[offer.external_id]
-                            updated_model = OfferModel.from_entity(offer)
+                            updated_model = self.mapper.from_domain(offer)
                             updated_model.id = existing_model.id
                             updated_model.updated_at = timezone.make_aware(
                                 datetime.now()
@@ -114,18 +116,18 @@ class PostgresOffersRepository(IIngestionOffersRepository):
     def get_by_id(self, offer_id: UUID) -> Offer:
         try:
             offer_model = OfferModel.objects.get(id=offer_id)
-            return offer_model.to_entity()
+            return self.mapper.to_domain(offer_model)
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(offer_id) from e
 
     def get_by_ids(self, offer_ids: List[UUID]) -> List[Offer]:
         offers = OfferModel.objects.filter(id__in=offer_ids)
-        return [offer.to_entity() for offer in offers]
+        return [self.mapper.to_domain(offer) for offer in offers]
 
     def get_by_external_id(self, external_id: str) -> Offer:
         try:
             offer_model = OfferModel.objects.get(external_id=external_id)
-            return offer_model.to_entity()
+            return self.mapper.to_domain(offer_model)
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(external_id) from e
 
@@ -134,17 +136,17 @@ class PostgresOffersRepository(IIngestionOffersRepository):
             offer_model = OfferModel.objects.get(
                 reference=reference, source_id=source_id
             )
-            return offer_model.to_entity()
+            return self.mapper.to_domain(offer_model)
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(reference) from e
 
     def get_by_external_ids(self, external_ids: List[str]) -> List[Offer]:
         offers = OfferModel.objects.filter(external_id__in=external_ids)
-        return [offer.to_entity() for offer in offers]
+        return [self.mapper.to_domain(offer) for offer in offers]
 
     def get_all(self) -> List[Offer]:
         offer_models = OfferModel.objects.all()
-        return [model.to_entity() for model in offer_models]
+        return [self.mapper.to_domain(model) for model in offer_models]
 
     def get_filtered(
         self, active: bool, external_id_contains: str | None
@@ -154,11 +156,11 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         if external_id_contains:
             qs = qs.filter(external_id__contains=external_id_contains)
 
-        return QuerySetPage(qs.order_by("-updated_at"))
+        return QuerySetPageMapper(qs.order_by("-updated_at"), self.mapper.to_domain)
 
     def get_by_source_id(self, source_id: UUID) -> IPage[Offer]:
         qs = OfferModel.objects.filter(source_id=source_id, archived_at__isnull=True)
-        return QuerySetPage(qs.order_by("-updated_at"))
+        return QuerySetPageMapper(qs.order_by("-updated_at"), self.mapper.to_domain)
 
     @transaction.atomic
     def get_pending_processing(self, limit: int = 1000) -> List[Offer]:
@@ -175,7 +177,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         except Exception as e:
             raise DatabaseError(f"Database error during update: {str(e)}") from e
 
-        return [model.to_entity() for model in qs]
+        return [self.mapper.to_domain(model) for model in qs]
 
     def mark_as_processed(self, offers_list: List[Offer]) -> int:
         try:
