@@ -59,4 +59,44 @@ describe('useDraft', () => {
     draft.kind = 'CDD'
     expect(canReset.value).toBe(true)
   })
+
+  describe('array values', () => {
+    interface ArrayFilters extends Record<string, unknown> {
+      etapes: string[]
+    }
+
+    function makeEmptyArrays(): ArrayFilters {
+      return { etapes: [] }
+    }
+
+    it('compares arrays by content', () => {
+      const { draft, hasDiverged, canReset, apply } = useDraft(makeEmptyArrays)
+      expect(hasDiverged.value).toBe(false)
+      expect(canReset.value).toBe(false)
+
+      draft.etapes = ['a']
+      expect(hasDiverged.value).toBe(true)
+
+      apply()
+      expect(hasDiverged.value).toBe(false)
+      expect(canReset.value).toBe(true)
+    })
+
+    it('stays clean after resetting array values', () => {
+      const { draft, apply, reset, canReset } = useDraft(makeEmptyArrays)
+      draft.etapes = ['a', 'b']
+      apply()
+      reset()
+      expect(canReset.value).toBe(false)
+    })
+
+    it('copies arrays so draft and applied stay independent', () => {
+      const { draft, applied, apply, hasDiverged } = useDraft(makeEmptyArrays)
+      draft.etapes = ['a']
+      apply()
+      draft.etapes.push('b')
+      expect(applied.etapes).toEqual(['a'])
+      expect(hasDiverged.value).toBe(true)
+    })
+  })
 })
