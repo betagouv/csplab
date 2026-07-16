@@ -6,10 +6,11 @@ import { useCandidatures } from '../composables/useCandidatures'
 
 const {
   recrutementUuid,
-  etapes,
-  totalCount,
   moveCandidature,
+  filters,
 } = useCandidatures()
+
+const { filteredEtapes } = filters
 
 const boardId = computed(() => `kanban-${recrutementUuid}`)
 
@@ -22,7 +23,7 @@ function handleMove(event: KanbanDropEvent) {
 }
 
 const countLabel = computed(() => {
-  const count = totalCount.value
+  const count = filteredEtapes.value.reduce((sum, etape) => sum + etape.candidatures.length, 0)
   return `${count} candidature${count > 1 ? 's' : ''}`
 })
 </script>
@@ -33,7 +34,7 @@ const countLabel = computed(() => {
       {{ countLabel }}
     </p>
     <CandidaturesKanbanBoard
-      :etapes="etapes"
+      :etapes="filteredEtapes"
       :board-id="boardId"
       @move="handleMove"
     />
