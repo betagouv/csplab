@@ -6,6 +6,7 @@ import { useRoute } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
+import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
@@ -57,7 +58,7 @@ const title = computed(() => recrutementDetail.value?.intitule ?? 'Candidatures'
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
   { label: 'Accueil', to: { name: 'home' } },
   { label: 'Mes recrutements', to: { name: 'mes-recrutements' } },
-  { label: title.value },
+  ...(recrutementDetail.value ? [{ label: recrutementDetail.value.intitule }] : []),
 ])
 
 const metaItems = computed(() =>
@@ -85,73 +86,89 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
     class="candidatures-view"
   >
     <CspPageHeader
-      :title="title"
       :breadcrumb="breadcrumb"
       :back-to="{ name: 'mes-recrutements' }"
       back-label="Retour à mes recrutements"
       class="candidatures-view__header"
     >
+      <template #title>
+        <CspSkeleton
+          v-if="pending"
+          width="20rem"
+          height="2rem"
+        />
+        <template v-else>
+          {{ title }}
+        </template>
+      </template>
       <template
-        v-if="recrutementDetail"
+        v-if="pending || recrutementDetail"
         #subtitle
       >
-        <CspMetaList :items="metaItems" />
+        <CspSkeleton
+          v-if="pending"
+          width="28rem"
+          height="1.375rem"
+        />
+        <CspMetaList
+          v-else
+          :items="metaItems"
+        />
       </template>
     </CspPageHeader>
 
-    <div
-      v-if="pending"
-      class="candidatures-view__status"
-    >
-      Chargement des candidatures...
-    </div>
-
-    <div
-      v-else-if="isNotFound"
-      class="candidatures-view__status candidatures-view__status--error"
-    >
-      Recrutement introuvable.
-    </div>
-
-    <CspTabs
-      v-else
-      v-model="activeTab"
-    >
+    <CspTabs v-model="activeTab">
       <CspTabsList :tabs="TABS" />
       <CspTabsPanels :tabs="TABS">
         <template #candidatures>
-          <div class="candidatures-view__toolbar">
-            <CandidaturesViewSwitch
-              :recrutement-uuid="recrutementUuid"
-              :current="currentView"
-            />
-            <div class="candidatures-view__actions">
-              <CspInput
-                v-model="search"
-                type="search"
-                aria-label="Rechercher un candidat"
-                placeholder="Rechercher un candidat…"
-                class="candidatures-view__search"
-                @keydown.enter="filters.flushSearch()"
-              />
-              <CspButton
-                :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
-                variant="tertiary"
-                icon="ri:filter-line"
-                is-icon-left
-                @click="openFilters"
-              />
-            </div>
+          <div
+            v-if="pending"
+            class="candidatures-view__status"
+          >
+            Chargement des candidatures...
           </div>
-          <router-view />
-          <CandidaturesFiltersDrawer
-            v-model:open="isFiltersDrawerOpen"
-            v-model:etapes="filtersDraft.etapes"
-            :etape-options="etapeOptions"
-            :can-reset="canResetFilters"
-            @apply="applyFilters"
-            @reset="filters.reset"
-          />
+
+          <div
+            v-else-if="isNotFound"
+            class="candidatures-view__status candidatures-view__status--error"
+          >
+            Recrutement introuvable.
+          </div>
+
+          <template v-else>
+            <div class="candidatures-view__toolbar">
+              <CandidaturesViewSwitch
+                :recrutement-uuid="recrutementUuid"
+                :current="currentView"
+              />
+              <div class="candidatures-view__actions">
+                <CspInput
+                  v-model="search"
+                  type="search"
+                  aria-label="Rechercher un candidat"
+                  placeholder="Rechercher un candidat…"
+                  class="candidatures-view__search"
+                  @keydown.enter="filters.flushSearch()"
+                />
+                <CspButton
+                  :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
+                  variant="tertiary"
+                  icon="ri:filter-line"
+                  is-icon-left
+                  @click="openFilters"
+                />
+              </div>
+            </div>
+            <router-view />
+            <CandidaturesFiltersDrawer
+              v-model:open="isFiltersDrawerOpen"
+              v-model:etapes="filtersDraft.etapes"
+              :etape-options="etapeOptions"
+              :can-reset="canResetFilters"
+              @apply="applyFilters"
+              @reset="filters.reset"
+            />
+          </template>
         </template>
         <template #activites-et-taches>
           <div class="candidatures-view__placeholder">
