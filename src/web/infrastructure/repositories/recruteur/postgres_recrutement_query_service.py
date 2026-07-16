@@ -6,10 +6,10 @@ from django.db.models import Count, F, Max, Prefetch, Q
 from django.db.models.functions import Coalesce
 
 from application.recruteur.dtos.recrutement_read_models import (
+    AgentDto,
     CandidaturesCompteurDto,
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
-    ResponsableDto,
 )
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
@@ -38,7 +38,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             .select_related("offre")
             .prefetch_related(
                 Prefetch(
-                    "responsables_liaisons",
+                    "agents_liaisons",
                     queryset=RecrutementAgentModel.objects.select_related(
                         "agent__utilisateur"
                     ),
@@ -64,14 +64,14 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
         )
 
         def _mapper(model: RecrutementModel) -> RecrutementActifsReadModel:
-            responsables = [
-                ResponsableDto(
+            agents = [
+                AgentDto(
                     nom=(
                         f"{liaison.agent.utilisateur.first_name} "
                         f"{liaison.agent.utilisateur.last_name}"
                     ).strip()
                 )
-                for liaison in model.responsables_liaisons.all()  # type: ignore[attr-defined]
+                for liaison in model.agents_liaisons.all()  # type: ignore[attr-defined]
             ]
             return RecrutementActifsReadModel(
                 offer_id=model.offre_id,  # type: ignore[attr-defined]
@@ -79,7 +79,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 reference_csp=model.offre.code_emploi_csp or "",
                 type_contrat=model.offre.contract_type or "",
                 date_publication=model.offre.publication_date,
-                responsables=responsables,
+                agents=agents,
                 derniere_activite=cast(datetime, model.derniere_activite),  # type: ignore[attr-defined]
                 candidatures=CandidaturesCompteurDto(
                     total=cast(int, model.candidatures_total) or 0,  # type: ignore[attr-defined]
@@ -101,7 +101,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             .select_related("offre")
             .prefetch_related(
                 Prefetch(
-                    "responsables_liaisons",
+                    "agents_liaisons",
                     queryset=RecrutementAgentModel.objects.select_related(
                         "agent__utilisateur"
                     ),
@@ -130,14 +130,14 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
         )
 
         def _mapper(model: RecrutementModel) -> RecrutementArchivesReadModel:
-            responsables = [
-                ResponsableDto(
+            agents = [
+                AgentDto(
                     nom=(
                         f"{liaison.agent.utilisateur.first_name} "
                         f"{liaison.agent.utilisateur.last_name}"
                     ).strip()
                 )
-                for liaison in model.responsables_liaisons.all()  # type: ignore[attr-defined]
+                for liaison in model.agents_liaisons.all()  # type: ignore[attr-defined]
             ]
             finalise = cast(int, model.nb_candidatures_acceptees) > 0  # type: ignore[attr-defined]
             etapes_acceptees = model.etapes_acceptees  # type: ignore[attr-defined]
@@ -157,7 +157,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 reference_csp=model.offre.code_emploi_csp or "",
                 type_contrat=model.offre.contract_type or "",
                 date_archivage=cast(datetime, model.offre.archived_at),
-                responsables=responsables,
+                agents=agents,
                 finalise=finalise,
                 recrute=recrute,
             )

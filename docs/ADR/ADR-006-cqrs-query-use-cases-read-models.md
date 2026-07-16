@@ -22,11 +22,11 @@ La vue liste des recrutements actifs attend les données suivantes (extrait des 
 ```python
 {
     "offer_id": UUID,
-    "intitule": str,                      # titre de l'offre (OfferModel.title)
-    "reference_csp": str,                 # code emploi CSP (OfferModel.code_emploi_csp)
-    "type_contrat": str,                  # type de contrat (OfferModel.contract_type)
+    "intitule": str,                       # titre de l'offre (OfferModel.title)
+    "reference_csp": str,                  # code emploi CSP (OfferModel.code_emploi_csp)
+    "type_contrat": str,                   # type de contrat (OfferModel.contract_type)
     "date_publication": datetime,          # date de publication (OfferModel.publication_date)
-    "responsables": [{"nom": "Dupont"}],  # noms des agents responsables (UserModel)
+    "agents": [{"nom": "Dupont"}],         # noms des agents  (UserModel)
     "derniere_activite": datetime,         # date max des candidatures
     "candidatures": {"total": 5, "a_traiter": 2, "en_cours": 1},  # agrégation SQL
 }
@@ -39,7 +39,7 @@ offre_id: UUID          # pas le titre, ni le type contrat
 organisme_id: UUID
 etapes: tuple[EtapeRecrutement, ...]
 candidatures: tuple[UUID, ...]   # juste des UUIDs, pas des compteurs
-responsables: tuple[UUID, ...]   # juste des UUIDs, pas des noms
+agents: tuple[UUID, ...]   # juste des UUIDs, pas des noms
 status: StatutRecrutement
 candidat_recrute_id: UUID | None
 derniere_activite_le: datetime | None

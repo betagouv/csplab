@@ -41,17 +41,17 @@ class TestListerMesRecrutements:
         offre_active = OfferFactory.create_model(archived_at=None)
         offre_archivee = OfferFactory.create_model(archived_at=datetime(2024, 1, 1))
         agent = AgentFactory.create_model()
-        responsable_id = UUID(agent.utilisateur_id)
+        agent_id = UUID(agent.utilisateur_id)
         recrutement_actif = RecrutementFactory.create_model(
             offre_id=offre_active.id,
             organisme_id=organisme.id,
-            responsables_agent_ids=(responsable_id,),
+            agent_ids=(agent_id,),
             etapes=EtapeRecrutementFactory.create_entities(),
         )
         RecrutementFactory.create_model(
             offre_id=offre_archivee.id,
             organisme_id=organisme.id,
-            responsables_agent_ids=(responsable_id,),
+            agent_ids=(agent_id,),
         )
         etape_entree = EtapeModel.objects.filter(
             recrutement_id=recrutement_actif.offre_id,
@@ -74,8 +74,8 @@ class TestListerMesRecrutements:
         items = list(result.slice(0, 10))
         assert len(items) == 1
         assert items[0].offer_id == offre_active.id
-        assert len(items[0].responsables) == 1
-        assert items[0].responsables[0].nom != ""
+        assert len(items[0].agents) == 1
+        assert items[0].agents[0].nom != ""
         assert items[0].candidatures.total == 2  # noqa
         assert items[0].candidatures.a_traiter == 1
         assert items[0].candidatures.en_cours == 1

@@ -60,7 +60,7 @@ class RecrutementsActifsMapper(IFromDomainMapper[RecrutementActifsReadModel, dic
             "reference_csp": domain_object.reference_csp,
             "type_contrat": domain_object.type_contrat,
             "date_publication": domain_object.date_publication,
-            "responsables": [{"nom": r.nom} for r in domain_object.responsables],
+            "agents": [{"nom": r.nom} for r in domain_object.agents],
             "derniere_activite": domain_object.derniere_activite,
             "candidatures": {
                 "total": domain_object.candidatures.total,
@@ -82,7 +82,7 @@ class RecrutementsArchivesMapper(IFromDomainMapper[RecrutementArchivesReadModel,
             "reference_csp": domain_object.reference_csp,
             "type_contrat": domain_object.type_contrat,
             "date_archivage": domain_object.date_archivage,
-            "responsables": [{"nom": r.nom} for r in domain_object.responsables],
+            "agents": [{"nom": r.nom} for r in domain_object.agents],
             "finalise": domain_object.finalise,
             "recrute": domain_object.recrute,
         }

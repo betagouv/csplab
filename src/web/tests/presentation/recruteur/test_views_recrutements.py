@@ -5,8 +5,8 @@ from faker import Faker
 from rest_framework import status
 
 from application.recruteur.dtos.recrutement_read_models import (
+    AgentDto,
     CandidaturesCompteurDto,
-    ResponsableDto,
 )
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from tests.factories.recruteur.recrutement_factory import RecrutementFactory
@@ -111,7 +111,7 @@ class TestRecrutementsActifsView:
                 intitule="Chargé de mission numérique",
                 reference_csp="REF-2025-001",
                 type_contrat="TITULAIRE_CONTRACTUEL",
-                responsables=[ResponsableDto(nom="Marie Dupont")],
+                agents=[AgentDto(nom="Marie Dupont")],
             )
         ]
         mock_recruteur_container.return_value = mock_container
@@ -199,7 +199,7 @@ class TestRecrutementsArchivesView:
                 intitule="Directeur des systèmes d'information",
                 reference_csp="REF-2024-A01",
                 type_contrat="TITULAIRE_CONTRACTUEL",
-                responsables=[ResponsableDto(nom="Marie Dupont")],
+                agents=[AgentDto(nom="Marie Dupont")],
                 finalise=True,
                 recrute="Sophie Leblanc",
             )

@@ -20,8 +20,6 @@ from presentation.commons.pagination import WebPagination
 from presentation.recruteur.mappers import (
     RecrutementKanbanMapper,
     RecrutementListeMapper,
-    RecrutementsActifsMapper,
-    RecrutementsArchivesMapper,
 )
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
@@ -81,9 +79,8 @@ class RecrutementsActifsView(APIView):
 
             paginator = WebPagination()
             items = paginator.paginate(result, request)
-            mapped = [RecrutementsActifsMapper().from_domain(item) for item in items]
             return paginator.get_paginated_response(
-                RecrutementsActifsSerializer(mapped, many=True).data
+                RecrutementsActifsSerializer(items, many=True).data
             )
         except OrganismeNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -129,9 +126,8 @@ class RecrutementsArchivesView(APIView):
 
             paginator = WebPagination()
             items = paginator.paginate(result, request)
-            mapped = [RecrutementsArchivesMapper().from_domain(item) for item in items]
             return paginator.get_paginated_response(
-                RecrutementsArchivesSerializer(mapped, many=True).data
+                RecrutementsArchivesSerializer(items, many=True).data
             )
 
         except OrganismeNexistePas:
