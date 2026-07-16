@@ -68,7 +68,29 @@ const MOCK_LISTE: PaginatedCandidatureListeList = {
   count: 3,
   next: null,
   previous: null,
-  results: [],
+  results: [
+    {
+      uuid: 'dddddddd-0001-0001-0001-000000000001',
+      date_soumission: '2025-06-10T09:15:00Z',
+      date_derniere_activite: '2025-06-11T10:00:00Z',
+      candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000001', nom: 'Dupont', prenom: 'Alice' },
+      etape: { etape_uuid: 'cccccccc-0001-0001-0001-000000000001', nom: 'Réception des candidatures', categorie: 'ENTREE' },
+    },
+    {
+      uuid: 'dddddddd-0001-0001-0001-000000000002',
+      date_soumission: '2025-06-11T14:30:00Z',
+      date_derniere_activite: '2025-06-12T09:15:00Z',
+      candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000002', nom: 'Martin', prenom: 'Bruno' },
+      etape: { etape_uuid: 'cccccccc-0001-0001-0001-000000000001', nom: 'Réception des candidatures', categorie: 'ENTREE' },
+    },
+    {
+      uuid: 'dddddddd-0001-0001-0001-000000000005',
+      date_soumission: '2025-06-08T10:00:00Z',
+      date_derniere_activite: '2025-06-11T10:00:00Z',
+      candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000005', nom: 'Bernard', prenom: 'Élise' },
+      etape: { etape_uuid: 'cccccccc-0001-0001-0001-000000000002', nom: 'Présélection', categorie: 'EN_COURS' },
+    },
+  ],
 }
 
 describe('useCandidatures', () => {
@@ -176,6 +198,78 @@ describe('useCandidatures', () => {
       })
 
       expect(context.etapes.value).toEqual(etapesBefore)
+    })
+  })
+
+  describe('filters', () => {
+    it('exposes unfiltered data when no filter is active', async () => {
+      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+
+      expect(context.filters.filteredEtapes.value).toHaveLength(2)
+      expect(context.filters.filteredCandidatures.value).toHaveLength(3)
+      expect(context.filters.activeFiltersCount.value).toBe(0)
+    })
+
+    it('filters kanban and liste by candidat name', async () => {
+      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+
+      context.filters.search.value = 'alice dup'
+      context.filters.flushSearch()
+
+      const [reception, preselection] = context.filters.filteredEtapes.value
+      expect(reception?.candidatures.map(c => c.candidat.nom)).toEqual(['Dupont'])
+      expect(preselection?.candidatures).toHaveLength(0)
+      expect(context.filters.filteredCandidatures.value.map(c => c.candidat.nom)).toEqual(['Dupont'])
+    })
+
+    it('filters kanban columns and liste rows by etape', async () => {
+      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+
+      context.filters.draft.etapes = ['cccccccc-0001-0001-0001-000000000002']
+      context.filters.apply()
+
+      expect(context.filters.filteredEtapes.value.map(e => e.nom)).toEqual(['Présélection'])
+      expect(context.filters.filteredCandidatures.value.map(c => c.candidat.nom)).toEqual(['Bernard'])
+      expect(context.filters.activeFiltersCount.value).toBe(1)
+    })
+
+    it('combines etape filter and search', async () => {
+      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+
+      context.filters.draft.etapes = ['cccccccc-0001-0001-0001-000000000001']
+      context.filters.apply()
+      context.filters.search.value = 'martin'
+      context.filters.flushSearch()
+
+      expect(context.filters.filteredEtapes.value).toHaveLength(1)
+      expect(context.filters.filteredEtapes.value[0]?.candidatures.map(c => c.candidat.nom)).toEqual(['Martin'])
+      expect(context.filters.filteredCandidatures.value.map(c => c.candidat.nom)).toEqual(['Martin'])
+    })
+
+    it('clears filters and search on reset', async () => {
+      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+
+      context.filters.draft.etapes = ['cccccccc-0001-0001-0001-000000000002']
+      context.filters.apply()
+      context.filters.search.value = 'alice'
+      context.filters.flushSearch()
+
+      context.filters.reset()
+
+      expect(context.filters.filteredEtapes.value).toHaveLength(2)
+      expect(context.filters.filteredCandidatures.value).toHaveLength(3)
+      expect(context.filters.search.value).toBe('')
+      expect(context.filters.canReset.value).toBe(false)
     })
   })
 
