@@ -138,7 +138,7 @@ function handleUpdate(val: unknown): void {
   flex: 0 0 auto;
   border-radius: 2px;
   border: 1px solid var(--border-default-grey);
-  background: transparent;
+  background: var(--background-default-grey);
   padding: 0;
   cursor: inherit;
 

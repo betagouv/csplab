@@ -6,9 +6,4 @@ export const recrutementsRoutes: RouteRecordRaw[] = [
     name: 'mes-recrutements',
     component: () => import('./views/MesRecrutementsView.vue'),
   },
-  {
-    path: '/mes-recrutements/:recrutementUuid',
-    name: 'recrutement-candidatures',
-    component: () => import('./views/RecrutementCandidaturesView.vue'),
-  },
 ]

@@ -13,11 +13,3 @@ export type RecrutementBase = RecrutementsActifs | RecrutementsArchives
 export type RecrutementKey = 'actifs' | 'archives'
 
 export type TypeContrat = components['schemas']['TypeContratEnum']
-
-export type PaginatedCandidatureListeResponse = components['schemas']['PaginatedCandidatureListeList']
-
-export type CandidatureListe = components['schemas']['CandidatureListe']
-
-export type EtapeRecrutement = components['schemas']['EtapeRecrutement']
-
-export type RecrutementDetail = components['schemas']['RecrutementDetailKanban']

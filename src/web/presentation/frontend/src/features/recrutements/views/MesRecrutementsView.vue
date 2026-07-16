@@ -49,8 +49,9 @@ onMounted(() => {
 })
 
 const router = useRouter()
+
 function openOffre(recrutementUuid: string) {
-  router.push({ name: 'recrutement-candidatures', params: { recrutementUuid } })
+  void router.push({ name: 'recrutement-candidatures-kanban', params: { recrutementUuid } })
 }
 
 const recrutementsActifsPage = ref(1)
