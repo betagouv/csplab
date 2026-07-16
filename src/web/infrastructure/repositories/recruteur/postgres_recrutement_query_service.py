@@ -45,7 +45,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 )
             )
             .annotate(
-                derniere_activite=Coalesce(
+                derniere_activite=Coalesce(  # todo extract business rules
                     Max("etapes__candidatures__updated_at"),
                     F("offre__publication_date"),
                 ),
