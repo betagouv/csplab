@@ -16,7 +16,7 @@ from domain.ingestion.repositories.document_repository_interface import (
 )
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.mappers.metier_mapper import MetierMapper
-from infrastructure.mappers.queryset_page_mapper import QuerySetPageMapper
+from infrastructure.mappers.queryset_page import QuerySetPage
 
 
 class PostgresMetierRepository(IMetierRepository):
@@ -107,9 +107,7 @@ class PostgresMetierRepository(IMetierRepository):
 
     def get_filtered_slice(self, predicate: Dict[str, str]) -> IPage[Metier]:
         qs = MetierModel.objects.filter(**predicate)
-        return QuerySetPageMapper(
-            qs.order_by("offer_family_code"), self.mapper.to_domain
-        )
+        return QuerySetPage(qs.order_by("offer_family_code"), self.mapper.to_domain)
 
     def get_filtered(
         self, predicate: Dict[str, str], limit: int = 1000
