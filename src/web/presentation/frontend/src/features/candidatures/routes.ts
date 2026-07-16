@@ -7,13 +7,13 @@ export const candidaturesRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: '',
-        name: 'recrutement-candidatures',
-        component: () => import('./views/CandidaturesListeView.vue'),
-      },
-      {
-        path: 'kanban',
         name: 'recrutement-candidatures-kanban',
         component: () => import('./views/CandidaturesKanbanView.vue'),
+      },
+      {
+        path: 'liste',
+        name: 'recrutement-candidatures',
+        component: () => import('./views/CandidaturesListeView.vue'),
       },
     ],
   },

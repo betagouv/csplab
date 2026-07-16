@@ -12,8 +12,8 @@ const props = defineProps<{
 const router = useRouter()
 
 const ROUTE_BY_VIEW: Record<CandidaturesViewName, string> = {
-  liste: 'recrutement-candidatures',
   kanban: 'recrutement-candidatures-kanban',
+  liste: 'recrutement-candidatures',
 }
 
 function switchTo(view: CandidaturesViewName) {
@@ -33,15 +33,6 @@ function switchTo(view: CandidaturesViewName) {
     aria-label="Affichage des candidatures"
   >
     <CspButton
-      icon="ri:list-unordered"
-      label="Liste"
-      is-icon-left
-      size="sm"
-      :variant="current === 'liste' ? 'secondary' : 'tertiary'"
-      :aria-pressed="current === 'liste'"
-      @click="switchTo('liste')"
-    />
-    <CspButton
       icon="ri:table-line"
       label="Kanban"
       is-icon-left
@@ -49,6 +40,15 @@ function switchTo(view: CandidaturesViewName) {
       :variant="current === 'kanban' ? 'secondary' : 'tertiary'"
       :aria-pressed="current === 'kanban'"
       @click="switchTo('kanban')"
+    />
+    <CspButton
+      icon="ri:list-unordered"
+      label="Liste"
+      is-icon-left
+      size="sm"
+      :variant="current === 'liste' ? 'secondary' : 'tertiary'"
+      :aria-pressed="current === 'liste'"
+      @click="switchTo('liste')"
     />
   </div>
 </template>
