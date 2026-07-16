@@ -4,7 +4,7 @@ from uuid import UUID
 
 
 @dataclass(frozen=True, kw_only=True)
-class ResponsableDto:
+class AgentDto:
     nom: str
 
 
@@ -22,7 +22,7 @@ class RecrutementActifsReadModel:
     reference_csp: str
     type_contrat: str
     date_publication: datetime
-    responsables: list[ResponsableDto]
+    agents: list[AgentDto]
     derniere_activite: datetime
     candidatures: CandidaturesCompteurDto
 
@@ -34,6 +34,6 @@ class RecrutementArchivesReadModel:
     reference_csp: str
     type_contrat: str
     date_archivage: datetime
-    responsables: list[ResponsableDto]
+    agents: list[AgentDto]
     finalise: bool
     recrute: str | None

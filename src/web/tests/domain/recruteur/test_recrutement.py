@@ -15,7 +15,7 @@ def test_recrutement() -> None:
     offre_id = uuid4()
     etapes = EtapeRecrutementFactory.create_entities()
     candidatures = (uuid4(), uuid4(), uuid4())
-    responsables = (uuid4(), uuid4())
+    agents = (uuid4(), uuid4())
 
     recrutement = RecrutementFactory.create_entity(
         derniere_activite_le=_FROZEN_TS,
@@ -23,7 +23,7 @@ def test_recrutement() -> None:
         organisme_id=uuid4(),
         etapes=etapes,
         candidatures=candidatures,
-        responsables=responsables,
+        agents=agents,
         status=StatutRecrutement.ACTIF,
         candidat_recrute_id=None,
     )
@@ -31,7 +31,7 @@ def test_recrutement() -> None:
     assert recrutement.etapes == etapes
     assert recrutement.candidatures == candidatures
     assert recrutement.status == StatutRecrutement.ACTIF
-    assert recrutement.responsables == responsables
+    assert recrutement.agents == agents
     assert recrutement.candidat_recrute_id is None
     assert recrutement.derniere_activite_le == _FROZEN_TS
 
@@ -41,7 +41,7 @@ def test_recrutement_termine() -> None:
     offre_id = uuid4()
     etapes = EtapeRecrutementFactory.create_entities()
     candidatures = (uuid4(), uuid4(), uuid4())
-    responsables = (uuid4(), uuid4())
+    agents = (uuid4(), uuid4())
     candidat_recrute_id = uuid4()
 
     recrutement = RecrutementFactory.create_entity(
@@ -50,7 +50,7 @@ def test_recrutement_termine() -> None:
         organisme_id=uuid4(),
         etapes=etapes,
         candidatures=candidatures,
-        responsables=responsables,
+        agents=agents,
         status=StatutRecrutement.ARCHIVE,
         candidat_recrute_id=candidat_recrute_id,
     )
@@ -58,6 +58,6 @@ def test_recrutement_termine() -> None:
     assert recrutement.etapes == etapes
     assert recrutement.candidatures == candidatures
     assert recrutement.status == StatutRecrutement.ARCHIVE
-    assert recrutement.responsables == responsables
+    assert recrutement.agents == agents
     assert recrutement.candidat_recrute_id == candidat_recrute_id
     assert recrutement.derniere_activite_le == _FROZEN_TS

@@ -21,16 +21,16 @@ class RecrutementMapper(IFromDomainMapper, IToDomainMapper):
             )
             for e in model.etapes.all()  # type: ignore[attr-defined]
         )
-        responsables = tuple(
+        agents = tuple(
             UUID(str(liaison.agent_id))
-            for liaison in model.responsables_liaisons.all()  # type: ignore[attr-defined]
+            for liaison in model.agents_liaisons.all()  # type: ignore[attr-defined]
         )
         return Recrutement.build(
             offre_id=model.offre_id,  # type: ignore[attr-defined]
             organisme_id=model.organisme_id,  # type: ignore[attr-defined]
             etapes=etapes,
             candidatures=(),
-            responsables=responsables,
+            agents=agents,
             status=StatutRecrutement.ACTIF,
             derniere_activite_le=model.updated_at,
         )
