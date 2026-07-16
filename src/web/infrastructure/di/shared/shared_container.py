@@ -4,6 +4,7 @@ from infrastructure.external_gateways.albert_embedding_generator import (
     AlbertEmbeddingGenerator,
 )
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
+from infrastructure.mappers.metier_mapper import MetierMapper
 from infrastructure.repositories.commons.postgres_offer_stats_query_service import (
     PostgresOfferStatsQueryService,
 )
@@ -54,8 +55,11 @@ class SharedContainer(containers.DeclarativeContainer):
         logger=logger_service,
     )
 
+    metiers_mapper = MetierMapper()
+
     metiers_repository = providers.Singleton(
         postgres_metier_repository.PostgresMetierRepository,
+        mapper=metiers_mapper,
         logger=logger_service,
     )
 

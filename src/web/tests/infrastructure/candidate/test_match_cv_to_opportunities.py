@@ -11,9 +11,9 @@ from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
-from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.mappers.metier_mapper import MetierMapper
 from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
 from tests.factories.ingestion.vectorized_document_factory import (
     VectorizedDocumentFactory,
@@ -116,7 +116,7 @@ def test_execute_with_valid_cv_returns_opportunities(
     offers_repo.upsert_batch([OfferModel.to_entity(offer) for offer in offers])
 
     metiers_repo = candidate_container.shared_container.metiers_repository()
-    metiers_repo.upsert_batch([MetierModel.to_entity(metier) for metier in metiers])
+    metiers_repo.upsert_batch([MetierMapper().to_domain(metier) for metier in metiers])
 
     # Generate vectorized documents using VectorizedDocumentFactory
     vectorized_concours = []

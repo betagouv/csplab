@@ -9,8 +9,11 @@ from referentiel.entities.metier import Metier
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
+from infrastructure.mappers.metier_mapper import MetierMapper
 
 fake = Faker()
+
+_mapper = MetierMapper()
 
 
 class MetierFactory(DataclassFactory[Metier]):
@@ -111,11 +114,12 @@ class MetierFactory(DataclassFactory[Metier]):
             offer_family_code,
         )
 
-        metier_model = MetierModel.from_entity(metier)
+        metier_model = _mapper.from_domain(metier)
         metier_model.processing = processing
         metier_model.processed_at = processed_at
         metier_model.archived_at = archived_at
-        metier_model.updated_at = updated_at
+        if updated_at is not None:
+            metier_model.updated_at = updated_at
 
         metier_model.save()
 
