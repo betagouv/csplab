@@ -5,9 +5,11 @@ import type {
   PaginatedCandidatureListeList,
   RecrutementDetailKanban,
 } from '../types'
+import type { CandidaturesFiltersContext } from './useCandidaturesFilters'
 import { computed, inject, provide, ref, shallowRef } from 'vue'
 import { useAsyncState } from '@/composables/async/useAsyncState'
 import { getCandidatureListe, getRecrutementKanban } from '../api'
+import { useCandidaturesFilters } from './useCandidaturesFilters'
 
 export interface MoveCandidatureParams {
   sourceColumnId: string
@@ -24,6 +26,7 @@ export interface CandidaturesContext {
   pending: Ref<boolean>
   error: Ref<unknown>
   moveCandidature: (params: MoveCandidatureParams) => void
+  filters: CandidaturesFiltersContext
 }
 
 const CANDIDATURES_KEY: InjectionKey<CandidaturesContext> = Symbol('candidatures')
@@ -91,6 +94,8 @@ export function provideCandidatures(
     etapes.value = newEtapes
   }
 
+  const filters = useCandidaturesFilters(etapes, candidatureListe)
+
   void load()
 
   const context: CandidaturesContext = {
@@ -102,6 +107,7 @@ export function provideCandidatures(
     pending,
     error,
     moveCandidature,
+    filters,
   }
 
   provide(CANDIDATURES_KEY, context)
