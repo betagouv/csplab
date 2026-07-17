@@ -1,5 +1,7 @@
 import type { PaginatedCandidatureListeList, RecrutementDetailKanban } from '../types'
+import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { getCandidatureListe, getRecrutementKanban } from '../api'
@@ -93,6 +95,23 @@ const MOCK_LISTE: PaginatedCandidatureListeList = {
   ],
 }
 
+function mountProvider() {
+  let context!: ReturnType<typeof provideCandidatures>
+
+  mount(defineComponent({
+    setup() {
+      context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      return () => h('div')
+    },
+  }), {
+    global: {
+      plugins: [createPinia(), PiniaColada],
+    },
+  })
+
+  return context
+}
+
 describe('useCandidatures', () => {
   beforeEach(() => {
     vi.mocked(getRecrutementKanban).mockReset()
@@ -103,7 +122,7 @@ describe('useCandidatures', () => {
 
   describe('provideCandidatures', () => {
     it('computes totalCount from etapes', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -113,7 +132,7 @@ describe('useCandidatures', () => {
     it('exposes error on api failure', async () => {
       vi.mocked(getRecrutementKanban).mockRejectedValue(new Error('API error'))
 
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -121,7 +140,7 @@ describe('useCandidatures', () => {
     })
 
     it('moves a candidature between etapes', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -139,7 +158,7 @@ describe('useCandidatures', () => {
     })
 
     it('ignores move when source and target are the same', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -153,7 +172,7 @@ describe('useCandidatures', () => {
     })
 
     it('ignores move when source column is unknown', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -169,7 +188,7 @@ describe('useCandidatures', () => {
     })
 
     it('ignores move when target column is unknown', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -185,7 +204,7 @@ describe('useCandidatures', () => {
     })
 
     it('ignores move when card is not in source column', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -203,7 +222,7 @@ describe('useCandidatures', () => {
 
   describe('filters', () => {
     it('exposes unfiltered data when no filter is active', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -213,7 +232,7 @@ describe('useCandidatures', () => {
     })
 
     it('filters kanban and liste by candidat name', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -227,7 +246,7 @@ describe('useCandidatures', () => {
     })
 
     it('filters kanban columns and liste rows by etape', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -240,7 +259,7 @@ describe('useCandidatures', () => {
     })
 
     it('combines etape filter and search', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -255,7 +274,7 @@ describe('useCandidatures', () => {
     })
 
     it('clears filters and search on reset', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const context = mountProvider()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -295,7 +314,11 @@ describe('useCandidatures', () => {
         },
       })
 
-      mount(Parent)
+      mount(Parent, {
+        global: {
+          plugins: [createPinia(), PiniaColada],
+        },
+      })
 
       await vi.waitFor(() => expect(injectedContext?.pending.value).toBe(false))
 

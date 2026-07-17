@@ -6,9 +6,9 @@ import type {
   RecrutementDetailKanban,
 } from '../types'
 import type { CandidaturesFiltersContext } from './useCandidaturesFilters'
-import { computed, inject, provide, ref, shallowRef } from 'vue'
-import { useAsyncState } from '@/composables/async/useAsyncState'
-import { getCandidatureListe, getRecrutementKanban } from '../api'
+import { useQuery } from '@pinia/colada'
+import { computed, inject, provide, shallowRef, watch } from 'vue'
+import { candidatureListeQuery, recrutementKanbanQuery } from '../queries'
 import { useCandidaturesFilters } from './useCandidaturesFilters'
 
 export interface MoveCandidatureParams {
@@ -35,27 +35,25 @@ export function provideCandidatures(
   organismeUuid: string,
   recrutementUuid: string,
 ): CandidaturesContext {
-  const { pending, error, run } = useAsyncState(true)
-  const recrutementDetail = ref<RecrutementDetailKanban | null>(null)
-  const candidatureListe = ref<PaginatedCandidatureListeList>()
+  const kanban = useQuery(recrutementKanbanQuery({ organismeUuid, recrutementUuid }))
+  const liste = useQuery(candidatureListeQuery({ organismeUuid, recrutementUuid }))
+
+  const recrutementDetail = computed<RecrutementDetailKanban | null>(
+    () => kanban.data.value ?? null,
+  )
+  const candidatureListe = liste.data as Ref<PaginatedCandidatureListeList | undefined>
   const etapes = shallowRef<EtapeRecrutementDetailedCandidatures[]>([])
+
+  watch(kanban.data, (data) => {
+    etapes.value = data ? structuredClone(data.etapes) : []
+  }, { immediate: true })
+
+  const pending = computed(() => kanban.isPending.value || liste.isPending.value)
+  const error = computed<unknown>(() => kanban.error.value ?? liste.error.value)
 
   const totalCount = computed(() =>
     etapes.value.reduce((sum, etape) => sum + etape.candidatures.length, 0),
   )
-
-  async function load(): Promise<void> {
-    await run(async () => {
-      const [kanban, liste] = await Promise.all([
-        getRecrutementKanban(organismeUuid, recrutementUuid),
-        getCandidatureListe(organismeUuid, recrutementUuid),
-      ])
-
-      recrutementDetail.value = kanban
-      etapes.value = structuredClone(kanban.etapes)
-      candidatureListe.value = liste
-    })
-  }
 
   function moveCandidature(params: MoveCandidatureParams): void {
     const { sourceColumnId, targetColumnId, cardId } = params
@@ -95,8 +93,6 @@ export function provideCandidatures(
   }
 
   const filters = useCandidaturesFilters(etapes, candidatureListe)
-
-  void load()
 
   const context: CandidaturesContext = {
     recrutementUuid,
