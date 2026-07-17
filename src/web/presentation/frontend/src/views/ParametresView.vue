@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
-import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
+import type { CspMetaItem } from '@/components/base/CspMeta/types'
+import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
@@ -14,6 +15,12 @@ const BREADCRUMB: CspBreadcrumbItem[] = [
 const tabs = [
   { value: 'etapes', label: 'Gestion des étapes de recrutement' },
 ]
+
+const metaItem: CspMetaItem = {
+  icon: 'ri:government-line',
+  label: 'Ministère de la Transition Écologique',
+  srLabel: 'Organisme',
+}
 </script>
 
 <template>
@@ -24,10 +31,7 @@ const tabs = [
       class="parametres-view__header"
     >
       <template #subtitle>
-        <CspBadge
-          icon="ri:building-line"
-          label="Ministère de la Transition Écologique"
-        />
+        <CspMetaList :items="[metaItem]" />
       </template>
     </CspPageHeader>
 
