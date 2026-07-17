@@ -124,4 +124,33 @@ describe('useEtapesRecrutement', () => {
     expect(error.value).toBeInstanceOf(Error)
     expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
+
+  it('locks etapes that are not EN_COURS', async () => {
+    const { isEtapeLocked } = await mountEtapes()
+
+    expect(isEtapeLocked(DEFAULT_ETAPES[1]!)).toBe(false)
+    expect(isEtapeLocked(DEFAULT_ETAPES[0]!)).toBe(true)
+    expect(isEtapeLocked(DEFAULT_ETAPES[3]!)).toBe(true)
+  })
+
+  it('reorders etapes by persisting the new order', async () => {
+    const { reorderEtapes } = await mountEtapes()
+    const reordered = [DEFAULT_ETAPES[2]!, DEFAULT_ETAPES[1]!, ...DEFAULT_ETAPES.slice(3)]
+    await reorderEtapes([DEFAULT_ETAPES[0]!, ...reordered])
+
+    const payload = mockUpdateEtapesRecrutement.mock.calls[0]![1] as UpdateEtapeRecrutement[]
+    expect(payload.map(p => p.etape_uuid)).toEqual(['aaaa', 'cccc', 'bbbb', 'dddd', 'eeee'])
+  })
+
+  it('appends a new etape at the end when there is no final etape', async () => {
+    const etapesSansFinales = DEFAULT_ETAPES.slice(0, 3)
+    mockGetEtapesRecrutement.mockResolvedValue(etapesSansFinales)
+
+    const { addEtape } = await mountEtapes()
+    await addEtape('Test technique')
+
+    const payload = mockUpdateEtapesRecrutement.mock.calls[0]![1] as UpdateEtapeRecrutement[]
+    expect(payload).toHaveLength(etapesSansFinales.length + 1)
+    expect(payload.at(-1)).toEqual({ nom: 'Test technique', categorie: 'EN_COURS' })
+  })
 })
