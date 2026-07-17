@@ -346,6 +346,7 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "USER_ID_FIELD": "username",
     "USER_ID_CLAIM": "username",
+    "UPDATE_LAST_LOGIN": True,
 }
 
 PUBLIC_API_PREFIX = "/api/"
