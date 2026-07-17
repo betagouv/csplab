@@ -1,4 +1,4 @@
-import { PiniaColada } from '@pinia/colada'
+import { PiniaColada, PiniaColadaQueryHooksPlugin } from '@pinia/colada'
 import * as Sentry from '@sentry/vue'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
@@ -20,6 +20,13 @@ app.use(PiniaColada, {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   },
+  plugins: [
+    PiniaColadaQueryHooksPlugin({
+      onError(error) {
+        Sentry.captureException(error)
+      },
+    }),
+  ],
 })
 app.use(router)
 
