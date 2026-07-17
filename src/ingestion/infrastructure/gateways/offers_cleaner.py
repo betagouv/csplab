@@ -67,11 +67,14 @@ class OffersCleaner:
             else None
         )
 
+        coordinates = self._extract_coordinates(talentsoft_offer)
+
         localisation = self._map_localisation_from_arrays(
             talentsoft_offer.geographicalLocation,
             talentsoft_offer.country,
             talentsoft_offer.region,
             talentsoft_offer.department,
+            coordinates,
         )
 
         offer_url = self._parse_url(talentsoft_offer.offerUrl)
@@ -201,9 +204,35 @@ class OffersCleaner:
 
         return self._CONTRACT_KIND_MAPPING.get(contract_kind_upper)
 
+    def _extract_coordinates(
+        self, talentsoft_offer: TalentsoftDetailOffer
+    ) -> tuple[Optional[float], Optional[float]]:
+        if talentsoft_offer.geolocation:
+            return (
+                talentsoft_offer.geolocation.latitude,
+                talentsoft_offer.geolocation.longitude,
+            )
+        if (
+            talentsoft_offer.latitude is not None
+            and talentsoft_offer.longitude is not None
+        ):
+            return talentsoft_offer.latitude, talentsoft_offer.longitude
+        if talentsoft_offer.organisation and talentsoft_offer.organisation.geolocation:
+            return (
+                talentsoft_offer.organisation.geolocation.latitude,
+                talentsoft_offer.organisation.geolocation.longitude,
+            )
+        return None, None
+
     def _map_localisation_from_arrays(
-        self, areas: List, countries: List, regions: List, departments: List
+        self,
+        areas: List,
+        countries: List,
+        regions: List,
+        departments: List,
+        coordinates: tuple[Optional[float], Optional[float]] = (None, None),
     ) -> Optional[Localisation]:
+        latitude, longitude = coordinates
         area_code = areas[0].clientCode if areas else None
         country_code = countries[0].clientCode if countries else None
         region_code = regions[0].clientCode if regions else None
@@ -234,6 +263,8 @@ class OffersCleaner:
                 country=Country(country_code),
                 region=Region(code=insee_region_code),
                 department=Department(code=insee_department_code),
+                latitude=latitude,
+                longitude=longitude,
             )
         except (ValueError, ValidationError) as e:
             logger.warning(

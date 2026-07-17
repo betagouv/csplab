@@ -21,6 +21,8 @@ from tests.factories.talentsoft_factories import (
     TalentsoftCustomFieldsFactory,
     TalentsoftDescriptionCustomFieldsFactory,
     TalentsoftDetailOfferFactory,
+    TalentsoftGeolocationFactory,
+    TalentsoftOrganisationFactory,
 )
 
 REFERENCE = "2024-OFFER-001"
@@ -514,6 +516,110 @@ def test_clean_maps_raw_region_code_without_prefix(cleaner):
 
     assert offer.localisation is not None
     assert offer.localisation.region.code == "11"
+
+
+def _valid_localisation_kwargs() -> dict:
+    return {
+        "geographicalLocation": [
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_GeographicalArea_Europe",
+                type="offerGeographicalLocation",
+            )
+        ],
+        "country": [
+            TalentsoftCodedObjectFactory.build(clientCode="FRA", type="offerCountry")
+        ],
+        "region": [
+            TalentsoftCodedObjectFactory.build(clientCode="R24", type="offerRegion")
+        ],
+        "department": [
+            TalentsoftCodedObjectFactory.build(clientCode="41", type="offerDepartment")
+        ],
+    }
+
+
+def test_clean_maps_coordinates_from_offer_geolocation(cleaner):
+    raw_offer = _make_raw_offer(
+        **_valid_localisation_kwargs(),
+        geolocation=TalentsoftGeolocationFactory.build(latitude=48.85, longitude=2.35),
+        latitude=None,
+        longitude=None,
+        organisation=None,
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.latitude == 48.85
+    assert offer.localisation.longitude == 2.35
+
+
+def test_clean_maps_coordinates_from_flat_fields_when_geolocation_absent(cleaner):
+    raw_offer = _make_raw_offer(
+        **_valid_localisation_kwargs(),
+        geolocation=None,
+        latitude=45.75,
+        longitude=4.85,
+        organisation=None,
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.latitude == 45.75
+    assert offer.localisation.longitude == 4.85
+
+
+def test_clean_prefers_offer_geolocation_over_flat_fields(cleaner):
+    raw_offer = _make_raw_offer(
+        **_valid_localisation_kwargs(),
+        geolocation=TalentsoftGeolocationFactory.build(latitude=48.85, longitude=2.35),
+        latitude=45.75,
+        longitude=4.85,
+        organisation=None,
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.latitude == 48.85
+    assert offer.localisation.longitude == 2.35
+
+
+def test_clean_maps_coordinates_from_organisation_geolocation_as_last_resort(cleaner):
+    raw_offer = _make_raw_offer(
+        **_valid_localisation_kwargs(),
+        geolocation=None,
+        latitude=None,
+        longitude=None,
+        organisation=TalentsoftOrganisationFactory.build(
+            geolocation=TalentsoftGeolocationFactory.build(
+                latitude=43.29, longitude=5.37
+            )
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.latitude == 43.29
+    assert offer.localisation.longitude == 5.37
+
+
+def test_clean_returns_none_coordinates_when_no_source_available(cleaner):
+    raw_offer = _make_raw_offer(
+        **_valid_localisation_kwargs(),
+        geolocation=None,
+        latitude=None,
+        longitude=None,
+        organisation=TalentsoftOrganisationFactory.build(geolocation=None),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.latitude is None
+    assert offer.localisation.longitude is None
 
 
 def test_clean_returns_none_localisation_on_invalid_region_code(cleaner):

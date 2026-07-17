@@ -106,6 +106,8 @@ class OfferUpsertPayload(BaseModel):
                     pays=str(offer.localisation.country),
                     region=offer.localisation.region.code,
                     departement=offer.localisation.department.code,
+                    latitude=offer.localisation.latitude,
+                    longitude=offer.localisation.longitude,
                 )
             ]
 
