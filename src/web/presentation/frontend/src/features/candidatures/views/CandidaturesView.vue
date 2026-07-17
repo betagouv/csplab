@@ -25,6 +25,7 @@ const recrutementUuid = route.params.recrutementUuid as string
 
 const {
   recrutementDetail,
+  intitule,
   pending,
   error,
   filters,
@@ -56,12 +57,12 @@ function applyFilters() {
   closeFiltersDrawer()
 }
 
-const title = computed(() => recrutementDetail.value?.intitule ?? 'Candidatures')
+const title = computed(() => intitule.value ?? 'Candidatures')
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
   { label: 'Accueil', to: { name: 'home' } },
   { label: 'Mes recrutements', to: { name: 'mes-recrutements' } },
-  ...(recrutementDetail.value ? [{ label: recrutementDetail.value.intitule }] : []),
+  ...(intitule.value ? [{ label: intitule.value }] : []),
 ])
 
 const metaItems = computed(() =>
@@ -96,7 +97,7 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
     >
       <template #title>
         <CspSkeleton
-          v-if="showSkeleton"
+          v-if="showSkeleton && !intitule"
           width="20rem"
           height="2rem"
         />

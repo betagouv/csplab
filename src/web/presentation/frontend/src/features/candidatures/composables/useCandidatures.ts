@@ -6,8 +6,9 @@ import type {
   RecrutementDetailKanban,
 } from '../types'
 import type { CandidaturesFiltersContext } from './useCandidaturesFilters'
-import { useQuery } from '@pinia/colada'
+import { useQuery, useQueryCache } from '@pinia/colada'
 import { computed, inject, provide, shallowRef, watch } from 'vue'
+import { peekRecrutementIntitule } from '@/features/recrutements/queries'
 import { candidatureListeQuery, recrutementKanbanQuery } from '../queries'
 import { useCandidaturesFilters } from './useCandidaturesFilters'
 
@@ -20,6 +21,7 @@ export interface MoveCandidatureParams {
 export interface CandidaturesContext {
   recrutementUuid: string
   recrutementDetail: Ref<RecrutementDetailKanban | null>
+  intitule: Ref<string | null>
   candidatureListe: Ref<PaginatedCandidatureListeList | undefined>
   etapes: ShallowRef<EtapeRecrutementDetailedCandidatures[]>
   totalCount: Ref<number>
@@ -47,6 +49,12 @@ export function provideCandidatures(
   watch(kanban.data, (data) => {
     etapes.value = data ? structuredClone(data.etapes) : []
   }, { immediate: true })
+
+  const queryCache = useQueryCache()
+  const intitule = computed<string | null>(() =>
+    recrutementDetail.value?.intitule
+    ?? peekRecrutementIntitule(queryCache, organismeUuid, recrutementUuid),
+  )
 
   const pending = computed(() => kanban.isPending.value || liste.isPending.value)
   const error = computed<unknown>(() => kanban.error.value ?? liste.error.value)
@@ -97,6 +105,7 @@ export function provideCandidatures(
   const context: CandidaturesContext = {
     recrutementUuid,
     recrutementDetail,
+    intitule,
     candidatureListe,
     etapes,
     totalCount,

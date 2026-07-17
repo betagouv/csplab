@@ -1,9 +1,10 @@
 import type { PaginatedCandidatureListeList, RecrutementDetailKanban } from '../types'
-import { PiniaColada } from '@pinia/colada'
+import { PiniaColada, useQueryCache } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
+import { RECRUTEMENTS_QUERY_KEYS } from '@/features/recrutements/queries'
 import { getCandidatureListe, getRecrutementKanban } from '../api'
 import { provideCandidatures, useCandidatures } from './useCandidatures'
 
@@ -95,11 +96,12 @@ const MOCK_LISTE: PaginatedCandidatureListeList = {
   ],
 }
 
-function mountProvider() {
+function mountProvider(onSetup?: () => void) {
   let context!: ReturnType<typeof provideCandidatures>
 
   mount(defineComponent({
     setup() {
+      onSetup?.()
       context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
       return () => h('div')
     },
@@ -217,6 +219,45 @@ describe('useCandidatures', () => {
       })
 
       expect(context.etapes.value).toEqual(etapesBefore)
+    })
+  })
+
+  describe('intitule', () => {
+    it('exposes the intitule from the loaded detail', async () => {
+      const context = mountProvider()
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+
+      expect(context.intitule.value).toBe('Chargé de mission numérique')
+    })
+
+    it('seeds the intitule from the recrutements list cache while pending', async () => {
+      vi.mocked(getRecrutementKanban).mockImplementation(() => new Promise(() => {}))
+      vi.mocked(getCandidatureListe).mockImplementation(() => new Promise(() => {}))
+
+      const context = mountProvider(() => {
+        const queryCache = useQueryCache()
+        queryCache.setQueryData(
+          RECRUTEMENTS_QUERY_KEYS.actifs(ORGANISME_UUID),
+          {
+            count: 1,
+            next: null,
+            previous: null,
+            results: [{ offer_id: RECRUTEMENT_UUID, intitule: 'Chargé de mission numérique' }],
+          },
+        )
+      })
+
+      expect(context.pending.value).toBe(true)
+      expect(context.intitule.value).toBe('Chargé de mission numérique')
+    })
+
+    it('has no intitule while pending without cached list', () => {
+      vi.mocked(getRecrutementKanban).mockImplementation(() => new Promise(() => {}))
+
+      const context = mountProvider()
+
+      expect(context.intitule.value).toBeNull()
     })
   })
 
