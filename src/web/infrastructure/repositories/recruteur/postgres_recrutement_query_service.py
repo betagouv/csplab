@@ -23,13 +23,13 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
 )
-from infrastructure.mappers.queryset_page_mapper import QuerySetPageMapper
+from infrastructure.mappers.queryset_page import QuerySetPage
 
 
 class PostgresRecrutementQueryService(IRecrutementQueryService):
     def get_actifs_by_organisme(
         self, organisme_id: UUID
-    ) -> QuerySetPageMapper[RecrutementActifsReadModel]:
+    ) -> QuerySetPage[RecrutementActifsReadModel]:
         qs = (
             RecrutementModel.objects.filter(
                 organisme_id=organisme_id,
@@ -88,11 +88,11 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 ),
             )
 
-        return QuerySetPageMapper(qs, mapper=_mapper)
+        return QuerySetPage(qs, mapper=_mapper)
 
     def get_archives_by_organisme(
         self, organisme_id: UUID
-    ) -> QuerySetPageMapper[RecrutementArchivesReadModel]:
+    ) -> QuerySetPage[RecrutementArchivesReadModel]:
         qs = (
             RecrutementModel.objects.filter(
                 organisme_id=organisme_id,
@@ -162,4 +162,4 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 recrute=recrute,
             )
 
-        return QuerySetPageMapper(qs, mapper=_mapper)
+        return QuerySetPage(qs, mapper=_mapper)
