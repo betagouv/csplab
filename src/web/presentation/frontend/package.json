@@ -32,6 +32,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^9.0.0",
     "@iconify-icons/ri": "^1.2.10",
+    "@pinia/colada-devtools": "^1.1.1",
     "@storybook/addon-docs": "^10.4.5",
     "@storybook/vue3": "^10.4.5",
     "@storybook/vue3-vite": "^10.4.5",

@@ -66,6 +66,9 @@ importers:
       '@iconify-icons/ri':
         specifier: ^1.2.10
         version: 1.2.10
+      '@pinia/colada-devtools':
+        specifier: ^1.1.1
+        version: 1.1.1
       '@storybook/addon-docs':
         specifier: ^10.4.5
         version: 10.4.5(@types/react@19.2.15)(esbuild@0.27.7)(storybook@10.4.5(@testing-library/dom@10.4.1)(@types/react@19.2.15)(prettier@3.8.4)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(vite@8.0.16(@types/node@25.9.3)(esbuild@0.27.7)(jiti@2.7.0)(sass@1.101.0)(yaml@2.9.0))
@@ -1234,6 +1237,9 @@ packages:
   '@parcel/watcher@2.5.6':
     resolution: {integrity: sha512-tmmZ3lQxAe/k/+rNnXQRawJ4NjxO2hqiOLTHvWchtGZULp4RyFeh6aU4XdOYBFe2KE1oShQTv4AblOs2iOrNnQ==}
     engines: {node: '>= 10.0.0'}
+
+  '@pinia/colada-devtools@1.1.1':
+    resolution: {integrity: sha512-AIioqVifCFTt5glq/F6PWNQn4JdiNZ2KAoPz2tgY1dhOVIRCr1+VieR6ui08xTB48IJtiJVw1UFy9FSTK0MYcQ==}
 
   '@pinia/colada@1.4.2':
     resolution: {integrity: sha512-HDCFSBd+Uxzuw/BEdl7Kwsm4uccWwkX5uSxpZhc4/MhfFASU+t+DmjByyzNoAG9EK3SGJ7uf6pNR7bJg+dX80w==}
@@ -5300,6 +5306,8 @@ snapshots:
       '@parcel/watcher-win32-ia32': 2.5.6
       '@parcel/watcher-win32-x64': 2.5.6
     optional: true
+
+  '@pinia/colada-devtools@1.1.1': {}
 
   '@pinia/colada@1.4.2(pinia@3.0.4(typescript@6.0.3)(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))':
     dependencies:
