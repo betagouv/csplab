@@ -1,3 +1,4 @@
+import { PiniaColada } from '@pinia/colada'
 import * as Sentry from '@sentry/vue'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
@@ -14,6 +15,12 @@ const router = createRouter({
 
 const app = createApp(App)
 app.use(createPinia())
+app.use(PiniaColada, {
+  queryOptions: {
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  },
+})
 app.use(router)
 
 if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
