@@ -14,7 +14,7 @@ from domain.recruteur.errors.erreur_recrutement import (
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
-from tests.factories.recruteur.organisme_factory import (
+from infrastructure.factories.recruteur.organisme_factory import (
     OrganismeRecruteurFactory,
 )
 

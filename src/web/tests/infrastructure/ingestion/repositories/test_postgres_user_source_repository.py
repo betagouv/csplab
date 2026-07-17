@@ -1,7 +1,7 @@
 import pytest
 
-from tests.factories.identite.utilisateur_factory import UtilisateurFactory
-from tests.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.ingestion.source_factory import SourceFactory
 
 
 @pytest.fixture(name="repository")

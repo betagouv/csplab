@@ -1,9 +1,9 @@
 from datetime import date, timedelta
 
 from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
+from infrastructure.factories.datetime_utils import date_to_aware_datetime
+from infrastructure.factories.ingestion.api_log_model_factory import ApiLogModelFactory
 from presentation.ingestion.tasks import purge_api_logs
-from tests.factories.datetime_utils import date_to_aware_datetime
-from tests.factories.ingestion.api_log_model_factory import ApiLogModelFactory
 
 DEFAULT_DELAY = 90
 OLD_DATE = date.today() - timedelta(days=DEFAULT_DELAY + 1)

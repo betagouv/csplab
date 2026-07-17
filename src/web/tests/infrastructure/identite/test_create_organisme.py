@@ -8,8 +8,8 @@ from config.app_config import AppConfig
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_container import IdentiteContainer
+from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.identite.organisme_factory import OrganismeFactory
 
 
 @pytest.fixture(name="identite_integration_container")

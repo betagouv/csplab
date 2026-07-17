@@ -9,7 +9,7 @@ from application.recruteur.usecases.lister_notes_candidature import (
     ListerNotesCandidatureUsecase,
 )
 from domain.recruteur.services.note_query_service_interface import INoteQueryService
-from tests.factories.recruteur.note_factory import NoteFactory
+from infrastructure.factories.recruteur.note_factory import NoteFactory
 from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 

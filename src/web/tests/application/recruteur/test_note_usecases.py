@@ -25,7 +25,7 @@ from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
 from domain.recruteur.repositories.note_repository_interface import INoteRepository
-from tests.factories.recruteur.note_factory import NoteFactory
+from infrastructure.factories.recruteur.note_factory import NoteFactory
 from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 fake = Faker("fr_FR")

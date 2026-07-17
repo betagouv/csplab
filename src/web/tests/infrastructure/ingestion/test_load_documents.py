@@ -15,11 +15,13 @@ from domain.ingestion.exceptions.document_error import InvalidDocumentTypeError
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
-from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.ingestion.ingres_corps_factories import (
+from infrastructure.factories.ingestion.ingres_corps_factories import (
     IngresCorpsApiResponseFactory,
 )
-from tests.factories.ingestion.talentsoft_factories import TalentsoftDetailOfferFactory
+from infrastructure.factories.ingestion.talentsoft_factories import (
+    TalentsoftDetailOfferFactory,
+)
+from infrastructure.gateways.shared.logger import LoggerService
 from tests.infrastructure.ingestion.external_gateways.utils import (
     cached_token,
     offers_response,

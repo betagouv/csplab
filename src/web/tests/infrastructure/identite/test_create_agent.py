@@ -5,9 +5,9 @@ from application.identite.usecases.create_agent import CreateAgentInput
 from config.app_config import AppConfig
 from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
 from infrastructure.di.identite.identite_container import IdentiteContainer
+from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.identite.agent_factory import AgentFactory
-from tests.factories.identite.utilisateur_factory import UtilisateurFactory
 
 fake = Faker()
 

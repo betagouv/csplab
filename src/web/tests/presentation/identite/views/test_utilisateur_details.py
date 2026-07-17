@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from domain.identite.errors.identite_errors import UtilisateurNexistePas
-from tests.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
 URL = reverse("identite:user-details")
 

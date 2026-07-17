@@ -13,7 +13,7 @@ from application.ingestion.interfaces.archive_offer_by_reference_input import (
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
-from tests.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.ingestion.source_factory import SourceFactory
 
 API_KEY = "test-ingestion-api-key"
 REFERENCE = "12345"

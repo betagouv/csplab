@@ -17,13 +17,13 @@ from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
 )
-from tests.factories.ingestion.source_factory import SourceFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
 
 fake = Faker()
 NOW = datetime.now()

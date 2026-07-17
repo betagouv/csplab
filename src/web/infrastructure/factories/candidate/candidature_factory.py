@@ -12,10 +12,10 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
+from infrastructure.factories.identite.candidat_factory import CandidatFactory
+from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.mappers.candidature_mapper import CandidatureMapper
-from tests.factories.identite.candidat_factory import CandidatFactory
-from tests.factories.recruteur.recrutement_factory import RecrutementFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
 
 fake = Faker("fr_FR")
 

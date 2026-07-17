@@ -4,10 +4,10 @@ import pytest
 
 from domain.ingestion.entities.document import Document, DocumentType
 from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
-from tests.factories.referentiel.concours_factory import ConcoursFactory
-from tests.factories.referentiel.corps_factory import CorpsFactory
-from tests.factories.referentiel.metier_factory import MetierFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.concours_factory import ConcoursFactory
+from infrastructure.factories.referentiel.corps_factory import CorpsFactory
+from infrastructure.factories.referentiel.metier_factory import MetierFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 
 @pytest.mark.parametrize(

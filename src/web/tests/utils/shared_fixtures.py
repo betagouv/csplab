@@ -86,10 +86,10 @@ from domain.recruteur.repositories.organisme_repository_interface import (
 )
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
-from tests.factories.identite.utilisateur_factory import UtilisateurFactory
 from tests.utils.async_in_memory_cv_metadata_repository import (
     AsyncInMemoryCVMetadataRepository,
 )

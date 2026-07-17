@@ -4,7 +4,7 @@ from faker import Faker
 
 from domain.identite.entities.agent import Agent
 from infrastructure.django_apps.users.models import ProfilAgentModel
-from tests.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
 fake = Faker()
 
@@ -32,6 +32,7 @@ class AgentFactory:
         prenom: str | None = None,
         nom: str | None = None,
         intitule_poste: str | None = None,
+        password: str | None = None,
     ) -> ProfilAgentModel:
         agent = AgentFactory.create_entity(
             email=email,
@@ -44,6 +45,7 @@ class AgentFactory:
             email=agent.email,
             prenom=agent.prenom,
             nom=agent.nom,
+            password=password,
         )
         profil = ProfilAgentModel.from_entity(user.to_entity(), agent)
         profil.save()

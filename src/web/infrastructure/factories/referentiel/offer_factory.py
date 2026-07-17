@@ -17,8 +17,8 @@ from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.factories.ingestion.source_factory import SourceFactory
 from infrastructure.mappers.offer_mapper import OfferMapper
-from tests.factories.ingestion.source_factory import SourceFactory
 
 _mapper = OfferMapper()
 

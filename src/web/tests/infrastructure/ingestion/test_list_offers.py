@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
-from tests.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 
 @pytest.fixture(name="offers")

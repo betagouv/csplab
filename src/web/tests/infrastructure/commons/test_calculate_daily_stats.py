@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from infrastructure.django_apps.commons.models import StatSnapshotModel
-from tests.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 TARGET_DATE = date(2026, 6, 30)
 

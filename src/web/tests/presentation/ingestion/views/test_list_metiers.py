@@ -7,7 +7,7 @@ from faker import Faker
 from rest_framework import status
 
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
-from tests.factories.referentiel.metier_factory import MetierFactory
+from infrastructure.factories.referentiel.metier_factory import MetierFactory
 
 fake = Faker()
 URL = reverse("ingestion:metiers_list")

@@ -1,3 +1,5 @@
+import os
+import secrets
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -16,14 +18,16 @@ from infrastructure.django_apps.users.models import (
     ProfilCandidatModel,
     UserModel,
 )
-from tests.factories.candidate.candidature_factory import CandidatureFactory
-from tests.factories.identite.agent_factory import AgentFactory
-from tests.factories.identite.candidat_factory import CandidatFactory
-from tests.factories.identite.organisme_factory import OrganismeFactory
-from tests.factories.recruteur.etapes_recrutement_factory import EtapeRecrutementFactory
-from tests.factories.recruteur.recrutement_factory import RecrutementFactory
-from tests.factories.referentiel.metier_factory import MetierFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
+from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.candidat_factory import CandidatFactory
+from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
+)
+from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.referentiel.metier_factory import MetierFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 # Sentinelle pour l'idempotence : si cet email existe, le seed a déjà tourné.
 _SEED_SENTINEL_EMAIL = "marie.dupont@transition-eco.gouv.fr"
@@ -147,7 +151,12 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # ------------------------------------------------------------------ #
     # 3. Agents / recruteurs                                               #
     # ------------------------------------------------------------------ #
-    agents = [AgentFactory.create_model(**spec) for spec in _AGENTS_SPECS]
+    # Mot de passe généré à chaque seed (visible dans les logs de déploiement)
+    seed_password = os.environ.get("SEED_USER_PASSWORD") or secrets.token_urlsafe(16)
+    agents = [
+        AgentFactory.create_model(password=seed_password, **spec)
+        for spec in _AGENTS_SPECS
+    ]
 
     # ------------------------------------------------------------------ #
     # 4. Offres actives (6)                                                #
@@ -237,10 +246,13 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # ------------------------------------------------------------------ #
     # 6. Candidats (8)                                                     #
     # ------------------------------------------------------------------ #
-    candidats = [CandidatFactory.create_model(**spec) for spec in _CANDIDATS_SPECS]
+    candidats = [
+        CandidatFactory.create_model(password=seed_password, **spec)
+        for spec in _CANDIDATS_SPECS
+    ]
 
     # ------------------------------------------------------------------ #
-    # 7. Recrutements (1 par offre active) : étapes + agents.            #
+    # 7. Recrutements (1 par offre active) : étapes + responsables         #
     # ------------------------------------------------------------------ #
     # Doit précéder les candidatures car CandidatureFactory.create_model()
     # crée désormais un recrutement lié.
@@ -284,4 +296,5 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         "nb_candidats": len(candidats),
         "nb_agents": len(agents),
         "nb_recrutements": len(recrutements),
+        "seed_password": seed_password,
     }

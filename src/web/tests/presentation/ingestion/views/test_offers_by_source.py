@@ -12,8 +12,8 @@ from application.ingestion.interfaces.get_offers_by_source_input import (
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
-from tests.factories.ingestion.source_factory import SourceFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 SOURCE_ID = UUID("12345678-1234-4234-b234-123456789abc")
 

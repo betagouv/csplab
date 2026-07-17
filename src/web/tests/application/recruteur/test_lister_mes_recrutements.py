@@ -14,7 +14,7 @@ from application.recruteur.usecases.lister_mes_recrutements import (
 )
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
-from tests.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 

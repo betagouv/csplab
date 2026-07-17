@@ -3,7 +3,7 @@ from referentiel.value_objects.verse import Verse
 from domain.identite.entities.organisme import Organisme
 from domain.identite.events.organisme_events import OrganismeCree
 from domain.identite.value_objects.siret import SIRET
-from tests.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 
 
 def test_organisme_creation():

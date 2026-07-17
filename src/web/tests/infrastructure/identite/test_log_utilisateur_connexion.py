@@ -5,8 +5,8 @@ from application.identite.usecases.log_utilisateur_connexion import (
 )
 from config.app_config import AppConfig
 from infrastructure.di.identite.identite_container import IdentiteContainer
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.identite.utilisateur_factory import UtilisateurFactory
 
 
 @pytest.fixture(name="identite_integration_container")

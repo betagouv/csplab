@@ -5,11 +5,11 @@ from dateutil.relativedelta import relativedelta
 from referentiel.entities.corps import Corps
 
 from infrastructure.django_apps.referentiel.models.corps import CorpsModel
+from infrastructure.factories.referentiel.corps_factory import CorpsFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_corps_repository import (
     PostgresCorpsRepository,
 )
-from tests.factories.referentiel.corps_factory import CorpsFactory
 
 NOW = datetime.now()
 DAY_AGO = NOW - relativedelta(days=1)

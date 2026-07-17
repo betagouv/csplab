@@ -8,8 +8,8 @@ from pytest_django.asserts import assertContains, assertTemplateUsed
 
 from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
-from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.candidate.cv_metadata_factory import CVMetadataFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 
 @pytest.fixture

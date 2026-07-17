@@ -1,9 +1,9 @@
 import pytest
 
 from domain.candidate.value_objects.opportunity_type import OpportunityType
-from tests.factories.referentiel.concours_factory import ConcoursFactory
-from tests.factories.referentiel.metier_factory import MetierFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.concours_factory import ConcoursFactory
+from infrastructure.factories.referentiel.metier_factory import MetierFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 
 @pytest.mark.parametrize(

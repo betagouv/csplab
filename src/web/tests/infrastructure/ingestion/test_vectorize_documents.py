@@ -17,11 +17,11 @@ from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.factories.referentiel.concours_factory import ConcoursFactory
+from infrastructure.factories.referentiel.corps_factory import CorpsFactory
+from infrastructure.factories.referentiel.metier_factory import MetierFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.referentiel.concours_factory import ConcoursFactory
-from tests.factories.referentiel.corps_factory import CorpsFactory
-from tests.factories.referentiel.metier_factory import MetierFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.shared_fixtures import create_shared_qdrant_repository
 

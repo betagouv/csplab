@@ -5,9 +5,9 @@ from application.identite.usecases.create_candidat import CreateCandidatInput
 from config.app_config import AppConfig
 from domain.identite.errors.candidat_errors import ProfilCandidatExisteDeja
 from infrastructure.di.identite.identite_container import IdentiteContainer
+from infrastructure.factories.identite.candidat_factory import CandidatFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.identite.candidat_factory import CandidatFactory
-from tests.factories.identite.utilisateur_factory import UtilisateurFactory
 
 fake = Faker()
 

@@ -15,9 +15,11 @@ from application.recruteur.usecases.update_organisme_steps import (
 from config.app_config import AppConfig
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
+from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.identite.organisme_factory import OrganismeFactory
-from tests.factories.recruteur.etapes_recrutement_factory import EtapeRecrutementFactory
 
 NB_ETAPES_PAR_DEFAUT = 6
 

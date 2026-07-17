@@ -27,8 +27,8 @@ from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from domain.recruteur.repositories.recrutement_repository_interface import (
     IRecrutementRepository,
 )
-from tests.factories.identite.candidat_factory import CandidatFactory
-from tests.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.identite.candidat_factory import CandidatFactory
+from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 
 _FROZEN_TS = datetime.now(tz=timezone.utc)
 
