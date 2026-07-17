@@ -8,6 +8,7 @@ from django.core.validators import validate_email
 from django.db import transaction
 from referentiel.value_objects.source_type import SourceType
 
+from config.logger_names import LoggerName
 from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.users.models import UserModel
 
@@ -17,7 +18,7 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.logger = logging.getLogger("identite")
+        self.logger = logging.getLogger(LoggerName.IDENTITE.value)
 
     def handle(self, *args, **options):
         first_name = self._prompt("Prénom")

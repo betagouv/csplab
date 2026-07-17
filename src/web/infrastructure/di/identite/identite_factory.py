@@ -1,6 +1,7 @@
 from typing import Optional
 
 from config.app_config import AppConfig
+from config.logger_names import LoggerName
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -10,7 +11,7 @@ def create_identite_container(
 ) -> IdentiteContainer:
     config = app_config or AppConfig.from_django_settings()
 
-    logger_service = LoggerService("identite")
+    logger_service = LoggerService(LoggerName.IDENTITE.value)
 
     # Create candidate container
     container = IdentiteContainer()

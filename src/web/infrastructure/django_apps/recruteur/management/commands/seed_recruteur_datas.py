@@ -2,6 +2,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 
+from config.logger_names import LoggerName
 from infrastructure.factories.seed_recruteur_datas import seed_recruteur_datas
 
 
@@ -10,7 +11,7 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.logger = logging.getLogger("recruteur")
+        self.logger = logging.getLogger(LoggerName.RECRUTEUR.value)
 
     def add_arguments(self, parser):
         parser.add_argument(

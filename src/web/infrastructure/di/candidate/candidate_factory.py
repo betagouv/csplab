@@ -1,6 +1,7 @@
 from typing import Optional
 
 from config.app_config import AppConfig
+from config.logger_names import LoggerName
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
@@ -15,7 +16,7 @@ def create_candidate_container(
     shared_container = SharedContainer()
     shared_container.app_config.override(config)
 
-    logger_service = LoggerService("candidate")
+    logger_service = LoggerService(LoggerName.CANDIDATE.value)
     shared_container.logger_service.override(logger_service)
 
     # Create candidate container
