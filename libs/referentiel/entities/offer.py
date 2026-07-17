@@ -7,8 +7,7 @@ from ddd.entity_interface import IEntity
 from pydantic import HttpUrl
 
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractKind
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.verse import Verse

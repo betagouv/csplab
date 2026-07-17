@@ -1,6 +1,12 @@
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
+from application.recruteur.dtos.recrutement_read_models import (
+    AgentDto,
+    CandidaturesCompteurDto,
+    RecrutementActifsReadModel,
+    RecrutementArchivesReadModel,
+)
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
@@ -18,24 +24,69 @@ from tests.factories.referentiel.offer_factory import OfferFactory
 class RecrutementFactory:
     @staticmethod
     def create_entity(
+        derniere_activite_le: datetime,
         offre_id: UUID | None = None,
         organisme_id: UUID | None = None,
         etapes: tuple[EtapeRecrutement, ...] | None = None,
         candidatures: tuple[UUID, ...] | None = None,
-        responsables: tuple[UUID, ...] | None = None,
+        agents: tuple[UUID, ...] | None = None,
         status: StatutRecrutement | None = None,
         candidat_recrute_id: UUID | None = None,
-        derniere_activite_le: datetime | None = None,
     ) -> Recrutement:
         return Recrutement.build(
             offre_id=offre_id or uuid4(),
             organisme_id=organisme_id or uuid4(),
             etapes=etapes or EtapeRecrutementFactory.create_entities(),
             candidatures=candidatures or (),
-            responsables=responsables or (),
+            agents=agents or (),
             status=status or StatutRecrutement.ACTIF,
             candidat_recrute_id=candidat_recrute_id,
             derniere_activite_le=derniere_activite_le or datetime.now(tz=timezone.utc),
+        )
+
+    @staticmethod
+    def create_actif_read_model(
+        derniere_activite: datetime,
+        offer_id: UUID | None = None,
+        intitule: str | None = None,
+        reference_csp: str | None = None,
+        type_contrat: str | None = None,
+        date_publication: datetime | None = None,
+        agents: list[AgentDto] | None = None,
+        candidatures: CandidaturesCompteurDto | None = None,
+    ) -> RecrutementActifsReadModel:
+        return RecrutementActifsReadModel(
+            offer_id=offer_id or uuid4(),
+            intitule=intitule or "",
+            reference_csp=reference_csp or "",
+            type_contrat=type_contrat or "TITULAIRE_CONTRACTUEL",
+            date_publication=date_publication or datetime.now(tz=timezone.utc),
+            agents=agents or [AgentDto(nom="Dupont")],
+            derniere_activite=derniere_activite or datetime.now(tz=timezone.utc),
+            candidatures=candidatures
+            or CandidaturesCompteurDto(total=0, a_traiter=0, en_cours=0),
+        )
+
+    @staticmethod
+    def create_archive_read_model(
+        offer_id: UUID | None = None,
+        intitule: str | None = None,
+        reference_csp: str | None = None,
+        type_contrat: str | None = None,
+        date_archivage: datetime | None = None,
+        agents: list[AgentDto] | None = None,
+        finalise: bool = False,
+        recrute: str | None = None,
+    ) -> RecrutementArchivesReadModel:
+        return RecrutementArchivesReadModel(
+            offer_id=offer_id or uuid4(),
+            intitule=intitule or "",
+            reference_csp=reference_csp or "",
+            type_contrat=type_contrat or "TITULAIRE_CONTRACTUEL",
+            date_archivage=date_archivage or datetime.now(tz=timezone.utc),
+            agents=agents or [AgentDto(nom="Dupont")],
+            finalise=finalise,
+            recrute=recrute,
         )
 
     @staticmethod
@@ -44,7 +95,7 @@ class RecrutementFactory:
         organisme_id: UUID | None = None,
         etapes: tuple[EtapeRecrutement, ...] | None = None,
         ordre_etapes: list[str] | None = None,
-        responsables_agent_ids: tuple[UUID, ...] | None = None,
+        agent_ids: tuple[UUID, ...] | None = None,
     ) -> RecrutementModel:
         if offre_id is None:
             offre_id = OfferFactory.create_model().id
@@ -70,10 +121,10 @@ class RecrutementFactory:
             )
             model.save()
 
-        if responsables_agent_ids is None:
-            responsables_agent_ids = (UUID(AgentFactory.create_model().utilisateur_id),)
+        if agent_ids is None:
+            agent_ids = (UUID(AgentFactory.create_model().utilisateur_id),)
 
-        for agent_id in responsables_agent_ids:
+        for agent_id in agent_ids:
             RecrutementAgentModel(
                 id=uuid4(),
                 recrutement=recrutement,

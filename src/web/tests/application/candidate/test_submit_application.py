@@ -53,7 +53,9 @@ def test_submit_application_success(submit_application_usecase):
     offre_id = uuid4()
     candidat = CandidatFactory.create_entity()
 
-    recrutement = RecrutementFactory.create_entity(offre_id=offre_id)
+    recrutement = RecrutementFactory.create_entity(
+        offre_id=offre_id, derniere_activite_le=_FROZEN_TS
+    )
 
     submit_application_usecase.candidat_repository.get_by_id.return_value = candidat
     submit_application_usecase.recrutement_repository.get_by_id.return_value = (

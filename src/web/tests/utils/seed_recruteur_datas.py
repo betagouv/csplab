@@ -248,7 +248,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         RecrutementFactory.create_model(
             offre_id=offre.id,
             organisme_id=_ORGANISME_UUID,
-            responsables_agent_ids=(UUID(agents[0].utilisateur_id),),
+            agent_ids=(UUID(agents[0].utilisateur_id),),
         )
         for offre in offres_actives
     ]

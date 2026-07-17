@@ -46,7 +46,7 @@ class RecrutementAgentModel(BaseDatedModel):
         RecrutementModel,
         on_delete=models.CASCADE,
         db_column="recrutement_id",
-        related_name="responsables_liaisons",
+        related_name="agents_liaisons",
     )
     agent = models.ForeignKey(
         ProfilAgentModel,

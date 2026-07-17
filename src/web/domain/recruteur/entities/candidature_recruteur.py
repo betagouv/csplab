@@ -1,12 +1,13 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
-from ddd.aggregate_root import AggregateRoot
+from ddd.aggregate_root import AggregateRoot, mutate
+
+from domain.recruteur.events.candidature_events import CandidatureRecue
 
 
 # todo when back for Kanban:
-# CandidatureRecue: added in first step
 # CandidatureTraitee: moved from step
 # CandidaturePositionEnforced: maybe, waiting for UX
 # CandidatureRefusee,
@@ -14,37 +15,45 @@ from ddd.aggregate_root import AggregateRoot
 # for now: simple class to read data
 @dataclass(kw_only=True)
 class CandidatureRecruteur(AggregateRoot):
-    _recrutement_id: UUID
     _candidat_id: UUID
-    _etapes_id: UUID
+    _recrutement_id: UUID
+    _etape_id: UUID
     _derniere_activite_le: datetime
 
     @classmethod
     def build(
         cls,
-        recrutement_id: UUID,
+        entity_id: UUID,
         candidat_id: UUID,
-        etapes_id: UUID,
+        recrutement_id: UUID,
+        etape_id: UUID,
         derniere_activite_le: datetime,
     ) -> "CandidatureRecruteur":
         return cls(
-            _recrutement_id=recrutement_id,
+            entity_id=entity_id,
             _candidat_id=candidat_id,
-            _etapes_id=etapes_id,
+            _recrutement_id=recrutement_id,
+            _etape_id=etape_id,
             _derniere_activite_le=derniere_activite_le,
         )
 
-    @property
-    def recrutement_id(self) -> UUID:
-        return self._recrutement_id
+    @mutate(CandidatureRecue)
+    def recevoir_candidature(self, etape_id: UUID, candidat_id: UUID) -> None:
+        self._etape_id = etape_id
+        self._candidat_id = candidat_id
+        self._derniere_activite_le = datetime.now(tz=timezone.utc)
 
     @property
     def candidat_id(self) -> UUID:
         return self._candidat_id
 
     @property
-    def etapes_id(self) -> UUID:
-        return self._etapes_id
+    def recrutement_id(self) -> UUID:
+        return self._recrutement_id
+
+    @property
+    def etape_id(self) -> UUID:
+        return self._etape_id
 
     @property
     def derniere_activite_le(self) -> datetime:
