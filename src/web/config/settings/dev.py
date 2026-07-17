@@ -15,28 +15,27 @@ INSTALLED_APPS.insert(  # noqa: F405
 )
 INSTALLED_APPS.extend(  # noqa: F405
     [
+        "debug_toolbar",
         "django_browser_reload",
         "django_extensions",
     ]
 )
 
-MIDDLEWARE += [  # noqa F405
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
-]
+if env.bool("DEBUG_TOOLBAR", default=True):  # noqa F405
+    MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]  # noqa F405
 
-if env.bool("DEBUG_TOOLBAR", default=True):  # noqa: F405
-    INSTALLED_APPS.append("debug_toolbar")  # noqa: F405
-    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+MIDDLEWARE += ["django_browser_reload.middleware.BrowserReloadMiddleware"]
 
-    DEBUG_TOOLBAR_CONFIG = {
-        # https://django-debug-toolbar.readthedocs.io/en/latest/panels.html#panels
-        "DISABLE_PANELS": [
-            "debug_toolbar.panels.redirects.RedirectsPanel",
-            # ProfilingPanel makes the django admin extremely slow...
-            "debug_toolbar.panels.profiling.ProfilingPanel",
-        ],
-        "SHOW_TEMPLATE_CONTEXT": True,
-    }
+DEBUG_TOOLBAR_CONFIG = {
+    # https://django-debug-toolbar.readthedocs.io/en/latest/panels.html#panels
+    "DISABLE_PANELS": [
+        "debug_toolbar.panels.redirects.RedirectsPanel",
+        # ProfilingPanel makes the django admin extremely slow...
+        "debug_toolbar.panels.profiling.ProfilingPanel",
+    ],
+    "SHOW_TEMPLATE_CONTEXT": True,
+    "SHOW_COLLAPSED": True,
+}
 
 # Use simple static files storage for development (no compression/manifest)
 STORAGES = {
