@@ -4,9 +4,11 @@ import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import { RECRUTEMENTS_QUERY_KEYS } from '@/features/recrutements/queries'
 import { getCandidatureListe, getRecrutementKanban } from '../api'
-import { provideCandidatures, useCandidatures } from './useCandidatures'
+import { CANDIDATURES_QUERY_KEYS } from '../queries'
+import { useCandidatures } from './useCandidatures'
 
 vi.mock('../api', () => ({
   getRecrutementKanban: vi.fn(),
@@ -96,22 +98,37 @@ const MOCK_LISTE: PaginatedCandidatureListeList = {
   ],
 }
 
-function mountProvider(onSetup?: () => void) {
-  let context!: ReturnType<typeof provideCandidatures>
+const StubView = defineComponent({ render: () => h('div') })
+
+function makeRouter() {
+  return createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', component: StubView },
+      { path: '/mes-recrutements/:recrutementUuid', component: StubView },
+    ],
+  })
+}
+
+async function mountCandidatures(onSetup?: () => void) {
+  const router = makeRouter()
+  await router.push(`/mes-recrutements/${RECRUTEMENT_UUID}`)
+
+  let context!: ReturnType<typeof useCandidatures>
 
   mount(defineComponent({
     setup() {
       onSetup?.()
-      context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      context = useCandidatures()
       return () => h('div')
     },
   }), {
     global: {
-      plugins: [createPinia(), PiniaColada],
+      plugins: [createPinia(), PiniaColada, router],
     },
   })
 
-  return context
+  return { context, router }
 }
 
 describe('useCandidatures', () => {
@@ -122,9 +139,9 @@ describe('useCandidatures', () => {
     vi.mocked(getCandidatureListe).mockResolvedValue(MOCK_LISTE)
   })
 
-  describe('provideCandidatures', () => {
+  describe('data', () => {
     it('computes totalCount from etapes', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -134,7 +151,7 @@ describe('useCandidatures', () => {
     it('exposes error on api failure', async () => {
       vi.mocked(getRecrutementKanban).mockRejectedValue(new Error('API error'))
 
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -142,7 +159,7 @@ describe('useCandidatures', () => {
     })
 
     it('moves a candidature between etapes', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -160,7 +177,7 @@ describe('useCandidatures', () => {
     })
 
     it('ignores move when source and target are the same', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -174,7 +191,7 @@ describe('useCandidatures', () => {
     })
 
     it('ignores move when source column is unknown', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -190,7 +207,7 @@ describe('useCandidatures', () => {
     })
 
     it('ignores move when target column is unknown', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -206,7 +223,7 @@ describe('useCandidatures', () => {
     })
 
     it('ignores move when card is not in source column', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -224,7 +241,7 @@ describe('useCandidatures', () => {
 
   describe('intitule', () => {
     it('exposes the intitule from the loaded detail', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -235,7 +252,7 @@ describe('useCandidatures', () => {
       vi.mocked(getRecrutementKanban).mockImplementation(() => new Promise(() => {}))
       vi.mocked(getCandidatureListe).mockImplementation(() => new Promise(() => {}))
 
-      const context = mountProvider(() => {
+      const { context } = await mountCandidatures(() => {
         const queryCache = useQueryCache()
         queryCache.setQueryData(
           RECRUTEMENTS_QUERY_KEYS.actifs(ORGANISME_UUID),
@@ -252,10 +269,10 @@ describe('useCandidatures', () => {
       expect(context.intitule.value).toBe('Chargé de mission numérique')
     })
 
-    it('has no intitule while pending without cached list', () => {
+    it('has no intitule while pending without cached list', async () => {
       vi.mocked(getRecrutementKanban).mockImplementation(() => new Promise(() => {}))
 
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       expect(context.intitule.value).toBeNull()
     })
@@ -263,7 +280,7 @@ describe('useCandidatures', () => {
 
   describe('filters', () => {
     it('exposes unfiltered data when no filter is active', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -273,7 +290,7 @@ describe('useCandidatures', () => {
     })
 
     it('filters kanban and liste by candidat name', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -287,7 +304,7 @@ describe('useCandidatures', () => {
     })
 
     it('filters kanban columns and liste rows by etape', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -300,7 +317,7 @@ describe('useCandidatures', () => {
     })
 
     it('combines etape filter and search', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -315,7 +332,7 @@ describe('useCandidatures', () => {
     })
 
     it('clears filters and search on reset', async () => {
-      const context = mountProvider()
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -333,38 +350,76 @@ describe('useCandidatures', () => {
     })
   })
 
-  describe('useCandidatures', () => {
-    it('throws if called outside provider', () => {
-      expect(() => useCandidatures()).toThrow('useCandidatures must be used within CandidaturesView')
-    })
+  describe('shared instance', () => {
+    it('shares the same state across components', async () => {
+      const router = makeRouter()
+      await router.push(`/mes-recrutements/${RECRUTEMENT_UUID}`)
 
-    it('returns context when used within provider', async () => {
-      let injectedContext: ReturnType<typeof useCandidatures> | undefined
+      const contexts: ReturnType<typeof useCandidatures>[] = []
 
       const Child = defineComponent({
         setup() {
-          injectedContext = useCandidatures()
+          contexts.push(useCandidatures())
           return () => h('div')
         },
       })
 
-      const Parent = defineComponent({
+      mount(defineComponent({
         setup() {
-          provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+          contexts.push(useCandidatures())
           return () => h(Child)
         },
-      })
-
-      mount(Parent, {
+      }), {
         global: {
-          plugins: [createPinia(), PiniaColada],
+          plugins: [createPinia(), PiniaColada, router],
         },
       })
 
-      await vi.waitFor(() => expect(injectedContext?.pending.value).toBe(false))
+      await vi.waitFor(() => expect(contexts[0]?.pending.value).toBe(false))
 
-      expect(injectedContext?.recrutementUuid).toBe(RECRUTEMENT_UUID)
-      expect(injectedContext?.totalCount.value).toBe(3)
+      expect(contexts[0]?.filters).toBe(contexts[1]?.filters)
+      expect(contexts[0]?.recrutementUuid.value).toBe(RECRUTEMENT_UUID)
+      expect(contexts[1]?.totalCount.value).toBe(3)
+    })
+  })
+
+  describe('route changes', () => {
+    it('resyncs etapes when the kanban data changes', async () => {
+      let queryCache!: ReturnType<typeof useQueryCache>
+      const { context } = await mountCandidatures(() => {
+        queryCache = useQueryCache()
+      })
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+      expect(context.totalCount.value).toBe(3)
+
+      queryCache.setQueryData(
+        CANDIDATURES_QUERY_KEYS.kanban(ORGANISME_UUID, RECRUTEMENT_UUID),
+        { ...MOCK_KANBAN, etapes: [MOCK_KANBAN.etapes[0]!] },
+      )
+
+      await vi.waitFor(() => expect(context.totalCount.value).toBe(2))
+      expect(context.etapes.value).toHaveLength(1)
+    })
+
+    it('resets filters when navigating to another recrutement', async () => {
+      const { context, router } = await mountCandidatures()
+
+      await vi.waitFor(() => expect(context.pending.value).toBe(false))
+
+      context.filters.search.value = 'alice'
+      context.filters.flushSearch()
+      context.filters.draft.etapes = ['cccccccc-0001-0001-0001-000000000001']
+      context.filters.apply()
+      expect(context.filters.activeFiltersCount.value).toBe(1)
+
+      await router.push('/mes-recrutements/aaaaaaaa-0001-0001-0001-000000000002')
+
+      await vi.waitFor(() => {
+        expect(context.filters.search.value).toBe('')
+        expect(context.filters.activeFiltersCount.value).toBe(0)
+      })
+      expect(context.recrutementUuid.value).toBe('aaaaaaaa-0001-0001-0001-000000000002')
     })
   })
 })

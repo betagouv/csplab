@@ -14,10 +14,9 @@ import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContai
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
-import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
 import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
-import { provideCandidatures } from '../composables/useCandidatures'
+import { useCandidatures } from '../composables/useCandidatures'
 import { formatRecrutementMeta } from '../format'
 
 const route = useRoute()
@@ -29,7 +28,7 @@ const {
   pending,
   error,
   filters,
-} = provideCandidatures(TEMP_ORGANISME_UUID, recrutementUuid)
+} = useCandidatures()
 
 const showSkeleton = useMinimumPending(pending)
 
