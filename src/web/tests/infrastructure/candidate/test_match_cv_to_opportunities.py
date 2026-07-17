@@ -11,9 +11,9 @@ from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
-from infrastructure.django_apps.referentiel.models.metier import MetierModel
-from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.mappers.metier_mapper import MetierMapper
+from infrastructure.mappers.offer_mapper import OfferMapper
 from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
 from tests.factories.ingestion.vectorized_document_factory import (
     VectorizedDocumentFactory,
@@ -113,10 +113,10 @@ def test_execute_with_valid_cv_returns_opportunities(
     concours_repo.upsert_batch([ConcoursModel.to_entity(c) for c in concours])
 
     offers_repo = candidate_container.shared_container.offers_repository()
-    offers_repo.upsert_batch([OfferModel.to_entity(offer) for offer in offers])
+    offers_repo.upsert_batch([OfferMapper().to_domain(offer) for offer in offers])
 
     metiers_repo = candidate_container.shared_container.metiers_repository()
-    metiers_repo.upsert_batch([MetierModel.to_entity(metier) for metier in metiers])
+    metiers_repo.upsert_batch([MetierMapper().to_domain(metier) for metier in metiers])
 
     # Generate vectorized documents using VectorizedDocumentFactory
     vectorized_concours = []
@@ -180,7 +180,7 @@ def test_vectorize_qdrant_search_empty_filters(
     cv_repo.save(cv_metadata)
 
     offers_repo = candidate_container.shared_container.offers_repository()
-    offers_repo.upsert_batch([OfferModel.to_entity(offer) for offer in offers])
+    offers_repo.upsert_batch([OfferMapper().to_domain(offer) for offer in offers])
 
     vectorized_offers = []
     for offer_entity in offers_repo.get_all():
@@ -231,7 +231,7 @@ def test_vectorize_qdrant_search_list_filters(
     cv_repo.save(cv_metadata)
 
     offers_repo = candidate_container.shared_container.offers_repository()
-    offers_repo.upsert_batch([OfferModel.to_entity(offer) for offer in offers])
+    offers_repo.upsert_batch([OfferMapper().to_domain(offer) for offer in offers])
 
     concours_repo = candidate_container.shared_container.concours_repository()
     concours_repo.upsert_batch([ConcoursModel.to_entity(c) for c in concours])

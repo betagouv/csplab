@@ -15,12 +15,14 @@ from domain.ingestion.repositories.document_repository_interface import (
     IUpsertResult,
 )
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
+from infrastructure.mappers.metier_mapper import MetierMapper
 from infrastructure.mappers.queryset_page import QuerySetPage
 
 
 class PostgresMetierRepository(IMetierRepository):
-    def __init__(self, logger: ILogger):
+    def __init__(self, logger: ILogger, mapper: MetierMapper):
         self.logger = logger
+        self.mapper = mapper
 
     def upsert_batch(self, metiers: List[Metier]) -> IUpsertResult:
         try:
@@ -49,7 +51,7 @@ class PostgresMetierRepository(IMetierRepository):
                 if partitioned["new"]:
                     new_models = []
                     for metier in partitioned["new"]:
-                        model = MetierModel.from_entity(metier)
+                        model = self.mapper.from_domain(metier)
                         new_models.append(model)
 
                     created_models = MetierModel.objects.bulk_create(
@@ -62,7 +64,7 @@ class PostgresMetierRepository(IMetierRepository):
                     for metier in partitioned["existing"]:
                         if metier.external_id in existing_models_map:
                             existing_model = existing_models_map[metier.external_id]
-                            updated_model = MetierModel.from_entity(metier)
+                            updated_model = self.mapper.from_domain(metier)
                             updated_model.id = existing_model.id
                             updated_model.updated_at = timezone.make_aware(
                                 datetime.now()
@@ -93,7 +95,7 @@ class PostgresMetierRepository(IMetierRepository):
     def get_by_external_id(self, external_id: str) -> Metier:
         try:
             metier_model = MetierModel.objects.get(external_id=external_id)
-            return metier_model.to_entity()
+            return self.mapper.to_domain(metier_model)
         except MetierModel.DoesNotExist as e:
             raise MetierDoesNotExist(
                 f"Metier with external_id {external_id} not found"
@@ -101,17 +103,17 @@ class PostgresMetierRepository(IMetierRepository):
 
     def get_all(self) -> List[Metier]:
         metier_models = MetierModel.objects.all()
-        return [model.to_entity() for model in metier_models]
+        return [self.mapper.to_domain(model) for model in metier_models]
 
     def get_filtered_slice(self, predicate: Dict[str, str]) -> IPage[Metier]:
         qs = MetierModel.objects.filter(**predicate)
-        return QuerySetPage(qs.order_by("offer_family_code"))
+        return QuerySetPage(qs.order_by("offer_family_code"), self.mapper.to_domain)
 
     def get_filtered(
         self, predicate: Dict[str, str], limit: int = 1000
     ) -> List[Metier]:
         metier_models = MetierModel.objects.filter(**predicate)[:limit]
-        return [model.to_entity() for model in metier_models]
+        return [self.mapper.to_domain(model) for model in metier_models]
 
     def get_for_offer(self, offer: Offer) -> List[Metier]:
         if offer.family_code is None:
@@ -137,7 +139,7 @@ class PostgresMetierRepository(IMetierRepository):
         except Exception as e:
             raise DatabaseError(f"Database error during update: {str(e)}") from e
 
-        return [model.to_entity() for model in qs]
+        return [self.mapper.to_domain(model) for model in qs]
 
     def mark_as_processed(self, metiers_list: List[Metier]) -> int:
         try:

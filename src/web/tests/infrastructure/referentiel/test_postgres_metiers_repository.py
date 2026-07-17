@@ -7,6 +7,7 @@ from referentiel.entities.metier import Metier
 
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.mappers.metier_mapper import MetierMapper
 from infrastructure.repositories.shared.postgres_metier_repository import (
     PostgresMetierRepository,
 )
@@ -16,10 +17,12 @@ fake = Faker()
 NOW = datetime.now()
 DAY_AGO = NOW - relativedelta(days=1)
 
+_mapper = MetierMapper()
+
 
 @pytest.fixture(name="repository")
 def repository_fixture():
-    return PostgresMetierRepository(LoggerService())
+    return PostgresMetierRepository(LoggerService(), _mapper)
 
 
 class TestGetPendingProcessing:
@@ -56,10 +59,10 @@ class TestGetPendingProcessing:
 
 def test_mark_as_processed(db, repository):
     concours_list = [
-        MetierFactory.create_model(processing=True).to_entity(),
-        MetierFactory.create_model(processing=False).to_entity(),
+        _mapper.to_domain(MetierFactory.create_model(processing=True)),
+        _mapper.to_domain(MetierFactory.create_model(processing=False)),
     ]
-    undesired_concours = MetierFactory.create_model(processing=True).to_entity()
+    undesired_concours = _mapper.to_domain(MetierFactory.create_model(processing=True))
 
     count = repository.mark_as_processed(concours_list)
     assert count == len(concours_list)
@@ -79,10 +82,10 @@ def test_mark_as_processed(db, repository):
 
 def test_mark_as_pending(db, repository):
     metiers_list = [
-        MetierFactory.create_model(processing=True).to_entity(),
-        MetierFactory.create_model(processing=False).to_entity(),
+        _mapper.to_domain(MetierFactory.create_model(processing=True)),
+        _mapper.to_domain(MetierFactory.create_model(processing=False)),
     ]
-    undesired_metiers = MetierFactory.create_model(processing=True).to_entity()
+    undesired_metiers = _mapper.to_domain(MetierFactory.create_model(processing=True))
 
     count = repository.mark_as_pending(metiers_list)
     assert count == len(metiers_list)

@@ -9,6 +9,7 @@ from referentiel.value_objects.category import Category
 
 from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
+from infrastructure.mappers.offer_mapper import OfferMapper
 from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
 from tests.factories.referentiel.offer_factory import OfferFactory
 
@@ -27,7 +28,9 @@ class TestCandidateFlowKeyboard:
         cv_pdf_path: Path,
         transactional_db,
     ) -> None:
-        offer_entity = OfferFactory.create_model(title="Offre keyboard").to_entity()
+        offer_entity = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre keyboard")
+        )
         mock_execute.return_value = [((offer_entity, []), 0.9)]
 
         # 1. Upload page: select file, submit via keyboard (Enter on submit button)
@@ -81,12 +84,12 @@ class TestCandidateFlowKeyboard:
         live_server,
         transactional_db,
     ) -> None:
-        offer_a = OfferFactory.create_model(
-            title="Offre alpha kbd", category=Category.A
-        ).to_entity()
-        offer_b = OfferFactory.create_model(
-            title="Offre beta kbd", category=Category.B
-        ).to_entity()
+        offer_a = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre alpha kbd", category=Category.A)
+        )
+        offer_b = OfferMapper().to_domain(
+            OfferFactory.create_model(title="Offre beta kbd", category=Category.B)
+        )
 
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"

@@ -12,10 +12,13 @@ from config.app_config import AppConfig
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
 )
 from tests.factories.referentiel.offer_factory import OfferFactory
+
+_mapper = OfferMapper()
 
 fake = Faker()
 
@@ -25,7 +28,7 @@ SOURCE_ID = UUID(fake.uuid4())
 
 @pytest.fixture
 def offers_repository():
-    return PostgresOffersRepository(LoggerService())
+    return PostgresOffersRepository(LoggerService(), _mapper)
 
 
 @pytest.fixture
@@ -62,9 +65,9 @@ class TestArchiveOfferByReferenceUseCase:
         assert offer.archived_at is not None
 
     def test_deletes_vectors_for_offer(self, db, use_case, vector_repository):
-        offer = OfferFactory.create_model(
-            reference=REFERENCE, source_id=SOURCE_ID
-        ).to_entity()
+        offer = _mapper.to_domain(
+            OfferFactory.create_model(reference=REFERENCE, source_id=SOURCE_ID)
+        )
         use_case.execute(
             ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
         )

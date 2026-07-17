@@ -1,6 +1,6 @@
 [project]
 name = "referentiel"
-version = "0.1.16"
+version = "0.1.17"
 description = "Cross-service objects for the CSPLab monorepo"
 readme = "README.md"
 requires-python = "~=3.12.0"
