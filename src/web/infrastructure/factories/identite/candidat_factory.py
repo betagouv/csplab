@@ -32,6 +32,7 @@ class CandidatFactory:
         prenom: str | None = None,
         nom: str | None = None,
         resume: str | None = None,
+        password: str | None = None,
     ) -> ProfilCandidatModel:
         candidat = CandidatFactory.create_entity(
             email=email,
@@ -44,6 +45,7 @@ class CandidatFactory:
             email=candidat.email,
             prenom=candidat.prenom,
             nom=candidat.nom,
+            password=password,
         )
         profil = ProfilCandidatModel.from_entity(user.to_entity(), candidat)
         profil.save()

@@ -33,7 +33,7 @@ class UtilisateurFactory:
         email: str | None = None,
         prenom: str | None = None,
         nom: str | None = None,
-        password: str = DEFAULT_PASSWORD,
+        password: str | None = None,
         is_superuser: bool = False,
     ) -> UserModel:
         utilisateur = UtilisateurFactory.create_entity(
@@ -44,6 +44,6 @@ class UtilisateurFactory:
             is_superuser=is_superuser,
         )
         user = UserModel.from_entity(utilisateur)
-        user.set_password(password)
+        user.set_password(password or DEFAULT_PASSWORD)
         user.save()
         return user
