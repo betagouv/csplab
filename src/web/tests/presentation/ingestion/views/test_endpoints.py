@@ -10,7 +10,9 @@ from tests.factories.identite.utilisateur_factory import DEFAULT_PASSWORD
 
 
 class TestJWTEndpoints:
-    def test_token_obtain_endpoint_exists(self, api_client, test_user):
+    def test_token_obtain_endpoint_updates_last_login(self, api_client, test_user):
+        assert test_user.last_login is None
+
         response = api_client.post(
             reverse("api:token_obtain_pair"),
             {
@@ -23,6 +25,9 @@ class TestJWTEndpoints:
         assert response.status_code == status.HTTP_200_OK
         assert "access" in response.data
         assert "refresh" in response.data
+
+        test_user.refresh_from_db()
+        assert test_user.last_login is not None
 
     def test_token_refresh_endpoint_exists(self, api_client, test_user):
         refresh = RefreshToken.for_user(test_user)
