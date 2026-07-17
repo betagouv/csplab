@@ -46,7 +46,7 @@ class RecrutementFactory:
 
     @staticmethod
     def create_actif_read_model(
-        derniere_activite: datetime,
+        derniere_activite: datetime | None = None,
         offer_id: UUID | None = None,
         intitule: str | None = None,
         reference_csp: str | None = None,
