@@ -44,6 +44,8 @@ class LocalisationItemPayload(BaseModel):
 class PublicationPayload(BaseModel):
     debut_publication: datetime
     fin_publication: datetime
+    fin_candidature: Optional[datetime] = None
+    debut_vacance_poste: Optional[datetime] = None
 
 
 class LanguagePayload(BaseModel):
