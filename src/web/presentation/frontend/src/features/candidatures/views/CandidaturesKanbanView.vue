@@ -3,6 +3,7 @@ import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
 import { computed } from 'vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
+import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
 import { useCandidatures } from '../composables/useCandidatures'
 
@@ -14,6 +15,8 @@ const {
 } = useCandidatures()
 
 const { filteredEtapes } = filters
+
+const showSkeleton = useMinimumPending(pending)
 
 const boardId = computed(() => `kanban-${recrutementUuid}`)
 
@@ -33,7 +36,7 @@ const countLabel = computed(() => {
 
 <template>
   <div
-    v-if="pending"
+    v-if="showSkeleton"
     class="candidatures-kanban-content"
     role="status"
     aria-label="Chargement des candidatures"

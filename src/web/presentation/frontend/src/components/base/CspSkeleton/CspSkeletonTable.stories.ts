@@ -9,7 +9,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['rows', 'columns', 'withHeader'],
+      include: ['rows', 'columns', 'withHeader', 'withFooter'],
     },
     docs: {
       description: {
@@ -65,6 +65,7 @@ export const Default: Story = {
   args: {
     rows: 6,
     columns: 4,
+    withFooter: true,
   },
 }
 

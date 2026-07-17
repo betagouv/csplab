@@ -5,12 +5,14 @@ export interface CspSkeletonTableProps {
   rows?: number
   columns?: number
   withHeader?: boolean
+  withFooter?: boolean
 }
 
 withDefaults(defineProps<CspSkeletonTableProps>(), {
   rows: 6,
   columns: 4,
   withHeader: true,
+  withFooter: false,
 })
 </script>
 
@@ -43,6 +45,19 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
         :width="column === 1 ? '75%' : '55%'"
       />
     </div>
+    <div
+      v-if="withFooter"
+      class="csp-skeleton-table__footer"
+    >
+      <CspSkeleton
+        width="10rem"
+        height="1rem"
+      />
+      <CspSkeleton
+        width="6rem"
+        height="2rem"
+      />
+    </div>
   </div>
 </template>
 
@@ -71,5 +86,13 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
   :deep(.csp-skeleton) {
     background: var(--background-contrast-grey);
   }
+}
+
+.csp-skeleton-table__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: var(--background-alt-grey);
 }
 </style>

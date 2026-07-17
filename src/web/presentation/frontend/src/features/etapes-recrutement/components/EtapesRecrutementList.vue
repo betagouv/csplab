@@ -9,6 +9,7 @@ import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.v
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
+import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { useEtapesRecrutement } from '../composables/useEtapesRecrutement'
@@ -28,6 +29,8 @@ const {
   removeEtape,
   resetEtapes,
 } = useEtapesRecrutement(TEMP_ORGANISME_UUID)
+
+const showSkeleton = useMinimumPending(loading)
 
 const { addToast } = useToast()
 
@@ -211,7 +214,7 @@ function getMenuSections(
       </header>
 
       <div
-        v-if="loading"
+        v-if="showSkeleton"
         class="etapes-list__loading"
         role="status"
         aria-label="Chargement des étapes"

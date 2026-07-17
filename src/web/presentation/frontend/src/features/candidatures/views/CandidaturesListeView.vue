@@ -3,11 +3,14 @@ import { computed, ref, watch } from 'vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
+import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { CANDIDATURE_LISTE_COLUMNS } from '../columns'
 import { useCandidatures } from '../composables/useCandidatures'
 
 const { pending, filters } = useCandidatures()
 const { filteredCandidatures } = filters
+
+const showSkeleton = useMinimumPending(pending)
 
 const PAGE_SIZE = 6
 const candidatureListePage = ref(1)
@@ -24,7 +27,7 @@ const countLabel = computed(() => {
 
 <template>
   <div
-    v-if="pending"
+    v-if="showSkeleton"
     class="candidatures-liste-content"
     role="status"
     aria-label="Chargement des candidatures"
@@ -37,6 +40,7 @@ const countLabel = computed(() => {
     <CspSkeletonTable
       :rows="PAGE_SIZE"
       :columns="CANDIDATURE_LISTE_COLUMNS.length"
+      with-footer
     />
   </div>
 

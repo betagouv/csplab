@@ -4,7 +4,7 @@ import { onScopeDispose, readonly, ref, watch } from 'vue'
 const DEFAULT_MIN_DURATION_MS = 400
 
 export function useMinimumPending(
-  pending: Ref<boolean>,
+  pending: Readonly<Ref<boolean>>,
   minDurationMs = DEFAULT_MIN_DURATION_MS,
 ): Readonly<Ref<boolean>> {
   const display = ref(pending.value)
