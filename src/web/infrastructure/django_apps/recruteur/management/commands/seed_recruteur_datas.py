@@ -2,7 +2,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 
-from tests.utils.seed_recruteur_datas import seed_recruteur_datas
+from infrastructure.factories.seed_recruteur_datas import seed_recruteur_datas
 
 
 class Command(BaseCommand):
@@ -30,9 +30,10 @@ class Command(BaseCommand):
         else:
             self.logger.info(
                 "✅ Seed terminé : %s offres actives, %s archivées, "
-                "%s candidats, %s agents.",
+                "%s candidats, %s agents. Mot de passe des comptes seed : %s",
                 context["nb_offres_actives"],
                 context["nb_offres_archivees"],
                 context["nb_candidats"],
                 context["nb_agents"],
+                context["seed_password"],
             )
