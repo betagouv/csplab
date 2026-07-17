@@ -3,6 +3,7 @@
 from typing import Optional
 
 from config.app_config import AppConfig
+from config.logger_names import LoggerName
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.gateways.shared.logger import LoggerService
@@ -14,7 +15,7 @@ def create_ingestion_container(
     """Create an isolated container for each request to avoid concurrency issues."""
     config = app_config or AppConfig.from_django_settings()
 
-    logger_service = LoggerService("ingestion")
+    logger_service = LoggerService(LoggerName.INGESTION.value)
 
     # Create shared container
     shared_container = SharedContainer()

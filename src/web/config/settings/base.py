@@ -5,6 +5,8 @@ import environ
 from django.utils.csp import CSP
 from django.utils.translation import gettext_lazy as _
 
+from config.logger_names import LoggerName
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 env = environ.Env(
@@ -240,33 +242,33 @@ LOGGING = {
         },
     },
     "loggers": {
-        "django": {
+        LoggerName.DJANGO.value: {
             "handlers": ["console"],
             "level": "WARNING",
         },
         # setup for loggers using logger.get_logger( "INGESTION::APPLICATION::XXX")
-        "web": {
+        LoggerName.WEB.value: {
             "handlers": ["console"],
             "level": LOG_LEVEL,
             "propagate": False,
         },
         # setup for loggers using self.container.logger_service()
-        "candidate": {
+        LoggerName.CANDIDATE.value: {
             "handlers": ["console"],
             "level": LOG_LEVEL,
             "propagate": False,
         },
-        "ingestion": {
+        LoggerName.INGESTION.value: {
             "handlers": ["console"],
             "level": LOG_LEVEL,
             "propagate": False,
         },
-        "identite": {
+        LoggerName.IDENTITE.value: {
             "handlers": ["console"],
             "level": LOG_LEVEL,
             "propagate": False,
         },
-        "recruteur": {
+        LoggerName.RECRUTEUR.value: {
             "handlers": ["console"],
             "level": LOG_LEVEL,
             "propagate": False,

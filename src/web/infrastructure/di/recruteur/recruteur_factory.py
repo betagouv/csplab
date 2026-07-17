@@ -1,6 +1,7 @@
 from typing import Optional
 
 from config.app_config import AppConfig
+from config.logger_names import LoggerName
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -10,7 +11,7 @@ def recruteur_container(
 ) -> RecruteurContainer:
     config = app_config or AppConfig.from_django_settings()
 
-    logger_service = LoggerService("recruteur")
+    logger_service = LoggerService(LoggerName.RECRUTEUR.value)
 
     container = RecruteurContainer()
     container.app_config.override(config)

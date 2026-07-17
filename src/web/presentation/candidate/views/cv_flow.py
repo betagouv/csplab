@@ -14,6 +14,7 @@ from referentiel.entities.offer import Offer
 from referentiel.exceptions.concours_errors import ConcoursDoesNotExist
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 
+from config.logger_names import LoggerName
 from domain.candidate.value_objects.cv_processing_status import CVStatus
 from domain.candidate.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_factory import create_candidate_container
@@ -30,7 +31,7 @@ from presentation.candidate.mixins import (
 from presentation.candidate.presenters import OpportunityListPresenter
 from presentation.candidate.tasks import process_cv_task
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(LoggerName.CANDIDATE.value)
 
 
 class CVUploadView(BreadcrumbMixin, FormView):

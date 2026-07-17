@@ -8,6 +8,7 @@ from huey.contrib.djhuey import db_periodic_task, db_task, lock_task
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
+from config.logger_names import LoggerName
 from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from infrastructure.di.shared.shared_container import SharedContainer
@@ -177,7 +178,7 @@ def aggregate_api_logs_periodic():
 
 @db_task()
 def aggregate_api_logs(target_date: date):
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(LoggerName.INGESTION.value)
     logger.info("Aggregating API logs for %s…", target_date)
 
     container = SharedContainer()
@@ -202,7 +203,7 @@ def purge_api_logs_periodic():
 
 @db_task()
 def purge_api_logs(retention_days: int = API_LOG_MIN_RETENTION_DAYS):
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(LoggerName.INGESTION.value)
 
     container = SharedContainer()
     api_log_repository = container.api_log_repository()

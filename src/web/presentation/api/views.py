@@ -7,7 +7,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-logger = logging.getLogger(__name__)
+from config.logger_names import LoggerName
+
+logger = logging.getLogger(LoggerName.WEB.value)
 
 
 class RedocView(TemplateView):
