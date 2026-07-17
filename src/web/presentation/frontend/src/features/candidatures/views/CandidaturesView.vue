@@ -9,6 +9,7 @@ import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
+import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
@@ -79,20 +80,24 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
 </script>
 
 <template>
-  <div class="candidatures-view">
+  <CspPageContainer
+    fill
+    class="candidatures-view"
+  >
     <CspPageHeader
       :title="title"
       :breadcrumb="breadcrumb"
       :back-to="{ name: 'mes-recrutements' }"
       back-label="Retour à mes recrutements"
       class="candidatures-view__header"
-    />
-
-    <CspMetaList
-      v-if="recrutementDetail"
-      :items="metaItems"
-      class="candidatures-view__meta"
-    />
+    >
+      <template
+        v-if="recrutementDetail"
+        #subtitle
+      >
+        <CspMetaList :items="metaItems" />
+      </template>
+    </CspPageHeader>
 
     <div
       v-if="pending"
@@ -155,24 +160,11 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
         </template>
       </CspTabsPanels>
     </CspTabs>
-  </div>
+  </CspPageContainer>
 </template>
 
 <style scoped lang="scss">
-.candidatures-view {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 2rem;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
 .candidatures-view__header {
-  margin-bottom: var(--csp-space-4);
-}
-
-.candidatures-view__meta {
   margin-bottom: var(--csp-space-4);
 }
 

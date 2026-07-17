@@ -12,6 +12,7 @@ import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
+import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
@@ -106,7 +107,7 @@ const countLabel = computed(() => {
 </script>
 
 <template>
-  <div class="mes-recrutement-view">
+  <CspPageContainer class="mes-recrutement-view">
     <CspPageHeader
       title="Mes recrutements"
       :breadcrumb="BREADCRUMB"
@@ -200,12 +201,12 @@ const countLabel = computed(() => {
         />
       </div>
     </CspTabs>
-  </div>
+  </CspPageContainer>
 </template>
 
 <style scoped lang="scss">
-.mes-recrutement-view {
-  padding: 2rem;
+.mes-recrutement-view__header {
+  margin-bottom: var(--csp-space-4);
 }
 
 .mes-recrutement-view__idle,
