@@ -58,6 +58,7 @@ class CandidatureFactory:
         offre_id: UUID | None = None,
         statut: StatutCandidature | None = None,
         documents: tuple[UUID, ...] | None = None,
+        etape: EtapeModel | None = None,
     ) -> CandidatureModel:
         if candidat_id is None:
             candidat_id = UUID(CandidatFactory.create_model().utilisateur_id)
@@ -78,14 +79,17 @@ class CandidatureFactory:
         if recrutement is None:
             recrutement = RecrutementFactory.create_model(offre_id=offre_id)
 
-        first_etape = EtapeModel.objects.filter(  # type: ignore[attr-defined]
-            recrutement_id=offre_id,
-            categorie=CategorieEtapeRecrutement.ENTREE.value,
-        ).first()
-        first_etape_id = (
-            first_etape.id if first_etape else UUID(recrutement.ordre_etapes[0])
-        )  # type: ignore[attr-defined]
+        if etape is not None:
+            etape_id = etape.id  # type: ignore[attr-defined]
+        else:
+            first_etape = EtapeModel.objects.filter(  # type: ignore[attr-defined]
+                recrutement_id=offre_id,
+                categorie=CategorieEtapeRecrutement.ENTREE.value,
+            ).first()
+            etape_id = (
+                first_etape.id if first_etape else UUID(recrutement.ordre_etapes[0])
+            )  # type: ignore[attr-defined]
 
-        model = CandidatureMapper().from_domain(candidature, etape_id=first_etape_id)
+        model = CandidatureMapper().from_domain(candidature, etape_id=etape_id)
         model.save()
         return model

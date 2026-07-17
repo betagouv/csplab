@@ -240,7 +240,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     candidats = [CandidatFactory.create_model(**spec) for spec in _CANDIDATS_SPECS]
 
     # ------------------------------------------------------------------ #
-    # 7. Recrutements (1 par offre active) : étapes + responsables         #
+    # 7. Recrutements (1 par offre active) : étapes + agents.            #
     # ------------------------------------------------------------------ #
     # Doit précéder les candidatures car CandidatureFactory.create_model()
     # crée désormais un recrutement lié.

@@ -4,7 +4,12 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
+from application.recruteur.dtos.recrutement_read_models import (
+    AgentDto,
+    CandidaturesCompteurDto,
+)
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from tests.factories.recruteur.recrutement_factory import RecrutementFactory
 
 fake = Faker()
 
@@ -19,7 +24,6 @@ RECRUTEMENTS_ARCHIVES_URL = reverse(
     "recruteur:organisme-recrutements-archives",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
-
 
 # UUID du recrutement statique défini dans views.py
 RECRUTEMENT_UUID = "aaaaaaaa-0001-0001-0001-000000000001"
@@ -59,8 +63,12 @@ class TestRecrutementsActifsView:
         self, mock_recruteur_container, authenticated_client
     ):
         mock_container = MagicMock()
-        mock_usecase = mock_container.get_organisme_recruteur_usecase.return_value
+        mock_usecase = mock_container.lister_mes_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
+        mock_usecase.execute.return_value.count.return_value = 6
+        mock_usecase.execute.return_value.slice.return_value = [
+            RecrutementFactory.create_actif_read_model() for _ in range(2)
+        ]
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL + "?size=2&page=2")
@@ -75,8 +83,14 @@ class TestRecrutementsActifsView:
         self, mock_recruteur_container, authenticated_client
     ):
         mock_container = MagicMock()
-        mock_usecase = mock_container.get_organisme_recruteur_usecase.return_value
+        mock_usecase = mock_container.lister_mes_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
+        mock_usecase.execute.return_value.count.return_value = 1
+        mock_usecase.execute.return_value.slice.return_value = [
+            RecrutementFactory.create_actif_read_model(
+                candidatures=CandidaturesCompteurDto(total=5, a_traiter=2, en_cours=1),
+            )
+        ]
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
@@ -89,14 +103,23 @@ class TestRecrutementsActifsView:
     @patch("presentation.recruteur.views.recrutements.recruteur_container")
     def test_returns_actifs(self, mock_recruteur_container, authenticated_client):
         mock_container = MagicMock()
-        mock_usecase = mock_container.get_organisme_recruteur_usecase.return_value
+        mock_usecase = mock_container.lister_mes_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
+        mock_usecase.execute.return_value.count.return_value = 1
+        mock_usecase.execute.return_value.slice.return_value = [
+            RecrutementFactory.create_actif_read_model(
+                intitule="Chargé de mission numérique",
+                reference_csp="REF-2025-001",
+                type_contrat="TITULAIRE_CONTRACTUEL",
+                agents=[AgentDto(nom="Marie Dupont")],
+            )
+        ]
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["count"] == 6  # noqa
+        assert data["count"] == 1
         first = data["results"][0]
         assert "offer_id" in first
         assert "intitule" in first
@@ -115,7 +138,7 @@ class TestRecrutementsActifsView:
         mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
 
         mock_container = MagicMock()
-        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
@@ -130,7 +153,7 @@ class TestRecrutementsActifsView:
         mock_usecase.execute.side_effect = Exception("unexpected")
 
         mock_container = MagicMock()
-        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
@@ -148,8 +171,12 @@ class TestRecrutementsArchivesView:
         self, mock_recruteur_container, authenticated_client
     ):
         mock_container = MagicMock()
-        mock_usecase = mock_container.get_organisme_recruteur_usecase.return_value
+        mock_usecase = mock_container.lister_mes_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
+        mock_usecase.execute.return_value.count.return_value = 3
+        mock_usecase.execute.return_value.slice.return_value = [
+            RecrutementFactory.create_archive_read_model() for _ in range(2)
+        ]
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(
@@ -164,14 +191,25 @@ class TestRecrutementsArchivesView:
     @patch("presentation.recruteur.views.recrutements.recruteur_container")
     def test_returns_archives(self, mock_recruteur_container, authenticated_client):
         mock_container = MagicMock()
-        mock_usecase = mock_container.get_organisme_recruteur_usecase.return_value
+        mock_usecase = mock_container.lister_mes_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
+        mock_usecase.execute.return_value.count.return_value = 1
+        mock_usecase.execute.return_value.slice.return_value = [
+            RecrutementFactory.create_archive_read_model(
+                intitule="Directeur des systèmes d'information",
+                reference_csp="REF-2024-A01",
+                type_contrat="TITULAIRE_CONTRACTUEL",
+                agents=[AgentDto(nom="Marie Dupont")],
+                finalise=True,
+                recrute="Sophie Leblanc",
+            )
+        ]
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["count"] == 3  # noqa
+        assert data["count"] == 1
         first = data["results"][0]
         assert "offer_id" in first
         assert "intitule" in first
@@ -190,7 +228,7 @@ class TestRecrutementsArchivesView:
         mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
 
         mock_container = MagicMock()
-        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
@@ -205,7 +243,7 @@ class TestRecrutementsArchivesView:
         mock_usecase.execute.side_effect = Exception("unexpected")
 
         mock_container = MagicMock()
-        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
@@ -309,7 +347,6 @@ class TestRecrutementListeView:
         assert isinstance(data["results"], list)
 
     def test_total_count(self, authenticated_client):
-        # 4 + 3 + 2 + 2 + 0 = 11 candidatures au total
         data = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()
         assert data["count"] == 11  # noqa
 

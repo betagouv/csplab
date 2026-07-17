@@ -25,8 +25,6 @@ class RecrutementKanbanMapper(IFromDomainMapper[dict, dict]):
     def from_domain(self, domain_object: Optional[dict]) -> Optional[dict]:
         if domain_object is None:
             return None
-        # Phase actuelle : données statiques déjà au bon format.
-        # Quand le use case sera branché, on mappera ici l'entité → dict.
         return domain_object
 
 
