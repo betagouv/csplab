@@ -7,6 +7,7 @@ import CspCallout from '@/components/base/CspCallout/CspCallout.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
@@ -212,8 +213,13 @@ function getMenuSections(
       <div
         v-if="loading"
         class="etapes-list__loading"
+        role="status"
+        aria-label="Chargement des étapes"
       >
-        Chargement...
+        <CspSkeletonTable
+          :rows="6"
+          :columns="4"
+        />
       </div>
 
       <div

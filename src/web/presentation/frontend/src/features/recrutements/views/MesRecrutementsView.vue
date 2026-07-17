@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
@@ -120,8 +121,13 @@ const countLabel = computed(() => {
       <div
         v-if="recrutementsPending"
         class="mes-recrutement-view__loading"
+        role="status"
+        aria-label="Chargement des recrutements"
       >
-        Chargement des recrutements...
+        <CspSkeletonTable
+          :rows="PAGE_SIZE"
+          :columns="6"
+        />
       </div>
       <div
         v-else-if="recrutementsError"

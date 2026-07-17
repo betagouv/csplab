@@ -67,5 +67,9 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
 
 .csp-skeleton-table__row--header {
   background: var(--background-alt-grey);
+
+  :deep(.csp-skeleton) {
+    background: var(--background-contrast-grey);
+  }
 }
 </style>

@@ -122,14 +122,7 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
       <CspTabsPanels :tabs="TABS">
         <template #candidatures>
           <div
-            v-if="pending"
-            class="candidatures-view__status"
-          >
-            Chargement des candidatures...
-          </div>
-
-          <div
-            v-else-if="isNotFound"
+            v-if="isNotFound"
             class="candidatures-view__status candidatures-view__status--error"
           >
             Recrutement introuvable.
