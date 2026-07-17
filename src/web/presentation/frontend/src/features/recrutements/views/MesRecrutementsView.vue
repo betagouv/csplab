@@ -4,7 +4,7 @@ import type {
 } from '../types'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -40,17 +40,7 @@ const {
   pending: recrutementsPending,
   error: recrutementsError,
   data: recrutementsData,
-  load: loadRecrutements,
-  has: hasRecrutements,
-} = useRecrutements(TEMP_ORGANISME_UUID)
-
-onMounted(() => {
-  watch(activeTab, (newTab) => {
-    if (!hasRecrutements(newTab)) {
-      void loadRecrutements(newTab)
-    }
-  }, { immediate: true })
-})
+} = useRecrutements(TEMP_ORGANISME_UUID, activeTab)
 
 const showSkeleton = useMinimumPending(recrutementsPending)
 

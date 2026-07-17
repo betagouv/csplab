@@ -1,42 +1,36 @@
-import type {
-  RecrutementKey,
-  RecrutementsActifs,
-  RecrutementsArchives,
-} from '../types'
-import { reactive } from 'vue'
-import { useAsyncState } from '@/composables/async/useAsyncState'
-import { getRecrutementsActifs, getRecrutementsArchives } from '../api'
+import type { MaybeRefOrGetter } from 'vue'
+import type { RecrutementKey } from '../types'
+import { useQuery } from '@pinia/colada'
+import { computed, reactive, toValue } from 'vue'
+import { recrutementsActifsQuery, recrutementsArchivesQuery } from '../queries'
 
-export function useRecrutements(organismeUuid: string) {
-  const { pending, error, run } = useAsyncState(true)
+export function useRecrutements(
+  organismeUuid: string,
+  activeKey: MaybeRefOrGetter<RecrutementKey>,
+) {
+  const actifs = useQuery(() => ({
+    ...recrutementsActifsQuery({ organismeUuid }),
+    enabled: toValue(activeKey) === 'actifs',
+  }))
+
+  const archives = useQuery(() => ({
+    ...recrutementsArchivesQuery({ organismeUuid }),
+    enabled: toValue(activeKey) === 'archives',
+  }))
+
+  const active = computed(() => (toValue(activeKey) === 'actifs' ? actifs : archives))
 
   const data = reactive({
-    actifs: [] as RecrutementsActifs[],
-    archives: [] as RecrutementsArchives[],
+    actifs: computed(() => actifs.data.value?.results ?? []),
+    archives: computed(() => archives.data.value?.results ?? []),
   })
 
-  function has(key: RecrutementKey): boolean {
-    return data[key].length > 0
-  }
-
-  async function load(key: RecrutementKey = 'actifs'): Promise<void> {
-    await run(async () => {
-      if (key === 'actifs') {
-        const actifs = await getRecrutementsActifs(organismeUuid)
-        data.actifs = actifs.results as RecrutementsActifs[]
-      }
-      else {
-        const archives = await getRecrutementsArchives(organismeUuid)
-        data.archives = archives.results as RecrutementsArchives[]
-      }
-    })
-  }
+  const pending = computed(() => active.value.isPending.value)
+  const error = computed(() => active.value.error.value)
 
   return {
     pending,
     error,
     data,
-    load,
-    has,
   }
 }
