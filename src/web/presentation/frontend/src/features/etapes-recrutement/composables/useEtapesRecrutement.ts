@@ -1,7 +1,8 @@
 import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../types'
-import { readonly, ref } from 'vue'
-import { runAsyncAction } from '@/composables/async/useAsyncState'
-import { getEtapesRecrutement, initEtapesRecrutement, updateEtapesRecrutement } from '../api'
+import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
+import { computed } from 'vue'
+import { initEtapesRecrutement, updateEtapesRecrutement } from '../api'
+import { etapesRecrutementQuery } from '../queries'
 
 function toUpdatePayload(items: EtapeRecrutement[]): UpdateEtapeRecrutement[] {
   return items.map((etape) => {
@@ -36,28 +37,39 @@ function insertEtape(
 }
 
 export function useEtapesRecrutement(organismeUuid: string) {
-  const etapes = ref<EtapeRecrutement[]>([])
-  const loading = ref(true)
-  const saving = ref(false)
-  const error = ref<Error | null>(null)
+  const queryCache = useQueryCache()
+  const queryOptions = etapesRecrutementQuery({ organismeUuid })
+  const query = useQuery(queryOptions)
+
+  const etapes = computed(() => query.data.value ?? [])
+
+  function applyFreshEtapes(fresh: EtapeRecrutement[]): void {
+    queryCache.setQueryData(queryOptions.key, fresh)
+  }
+
+  const update = useMutation({
+    mutation: (payload: UpdateEtapeRecrutement[]) =>
+      updateEtapesRecrutement(organismeUuid, payload),
+    onSuccess: applyFreshEtapes,
+  })
+
+  const init = useMutation({
+    mutation: () => initEtapesRecrutement(organismeUuid),
+    onSuccess: applyFreshEtapes,
+  })
+
+  const loading = query.isPending
+  const saving = computed(() => update.isLoading.value || init.isLoading.value)
+  const error = computed(
+    () => query.error.value ?? update.error.value ?? init.error.value,
+  )
 
   function isEtapeLocked(etape: EtapeRecrutement): boolean {
     return etape.categorie !== 'EN_COURS'
   }
 
-  async function fetchEtapes(): Promise<void> {
-    await runAsyncAction(loading, error, async () => {
-      etapes.value = await getEtapesRecrutement(organismeUuid)
-    })
-  }
-
   async function saveEtapes(nouvellesEtapes: EtapeRecrutement[]): Promise<void> {
-    await runAsyncAction(saving, error, async () => {
-      etapes.value = await updateEtapesRecrutement(
-        organismeUuid,
-        toUpdatePayload(nouvellesEtapes),
-      )
-    })
+    await update.mutateAsync(toUpdatePayload(nouvellesEtapes)).catch(() => undefined)
   }
 
   async function reorderEtapes(nouvellesEtapes: EtapeRecrutement[]): Promise<void> {
@@ -90,18 +102,15 @@ export function useEtapesRecrutement(organismeUuid: string) {
   }
 
   async function resetEtapes(): Promise<void> {
-    await runAsyncAction(saving, error, async () => {
-      etapes.value = await initEtapesRecrutement(organismeUuid)
-    })
+    await init.mutateAsync().catch(() => undefined)
   }
 
   return {
     etapes,
-    loading: readonly(loading),
-    saving: readonly(saving),
-    error: readonly(error),
+    loading,
+    saving,
+    error,
     isEtapeLocked,
-    fetchEtapes,
     reorderEtapes,
     addEtape,
     addEtapeAt,
