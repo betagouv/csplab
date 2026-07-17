@@ -7,7 +7,7 @@ import CspCallout from '@/components/base/CspCallout/CspCallout.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
-import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
+import CspSkeletonSortableList from '@/components/base/CspSkeleton/CspSkeletonSortableList.vue'
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
@@ -219,10 +219,7 @@ function getMenuSections(
         role="status"
         aria-label="Chargement des étapes"
       >
-        <CspSkeletonTable
-          :rows="6"
-          :columns="4"
-        />
+        <CspSkeletonSortableList :rows="6" />
       </div>
 
       <div
