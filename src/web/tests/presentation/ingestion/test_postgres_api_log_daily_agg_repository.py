@@ -4,7 +4,7 @@ import pytest
 
 from domain.ingestion.entities.api_log_daily_aggregation import ApiLogDailyAggregation
 from infrastructure.di.shared.shared_container import SharedContainer
-from tests.factories.ingestion.api_log_daily_agg_model_factory import (
+from infrastructure.factories.ingestion.api_log_daily_agg_model_factory import (
     ApiLogDailyAggregationModelFactory,
 )
 

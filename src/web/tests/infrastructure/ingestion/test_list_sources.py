@@ -1,6 +1,6 @@
 from referentiel.value_objects.source_type import SourceType
 
-from tests.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.ingestion.source_factory import SourceFactory
 
 
 def test_returns_empty_list_when_no_sources(ingestion_container):

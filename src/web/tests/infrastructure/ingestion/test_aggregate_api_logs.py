@@ -6,9 +6,9 @@ import pytest
 from infrastructure.django_apps.ingestion.models.api_log_daily_aggregation import (
     ApiLogDailyAggregationModel,
 )
+from infrastructure.factories.datetime_utils import date_to_aware_datetime
+from infrastructure.factories.ingestion.api_log_model_factory import ApiLogModelFactory
 from presentation.ingestion.tasks import aggregate_api_logs
-from tests.factories.datetime_utils import date_to_aware_datetime
-from tests.factories.ingestion.api_log_model_factory import ApiLogModelFactory
 
 TODAY = date(2026, 6, 10)
 YESTERDAY = date(2026, 6, 9)

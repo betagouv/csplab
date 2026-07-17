@@ -15,10 +15,12 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
 )
-from tests.factories.identite.agent_factory import AgentFactory
-from tests.factories.identite.organisme_factory import OrganismeFactory
-from tests.factories.recruteur.etapes_recrutement_factory import EtapeRecrutementFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
+)
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 
 class RecrutementFactory:

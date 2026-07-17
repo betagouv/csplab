@@ -10,7 +10,7 @@ from application.recruteur.usecases.editer_note import EditerNoteCommand
 from application.recruteur.usecases.supprimer_note import SupprimerNoteCommand
 from domain.candidate.exceptions.candidature_errors import CandidatureIntrouvable
 from domain.recruteur.errors.note_errors import NoteIntrouvable
-from tests.factories.recruteur.note_factory import NoteFactory
+from infrastructure.factories.recruteur.note_factory import NoteFactory
 
 fake = Faker()
 

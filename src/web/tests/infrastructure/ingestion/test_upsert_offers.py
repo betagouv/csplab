@@ -15,8 +15,8 @@ from referentiel.value_objects.verse import Verse
 
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.mappers.offer_mapper import OfferMapper
-from tests.factories.referentiel.offer_factory import OfferFactory
 
 _mapper = OfferMapper()
 

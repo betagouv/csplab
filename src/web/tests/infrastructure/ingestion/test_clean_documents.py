@@ -12,18 +12,18 @@ from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
-from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.ingestion.document_factory import DocumentFactory
-from tests.factories.ingestion.source_factory import SourceFactory
-from tests.factories.ingestion.talentsoft_factories import (
+from infrastructure.factories.ingestion.document_factory import DocumentFactory
+from infrastructure.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.ingestion.talentsoft_factories import (
     TalentsoftCodedObjectFactory,
     TalentsoftCustomCodeTableFactory,
     TalentsoftCustomFieldsFactory,
     TalentsoftDescriptionCustomFieldsFactory,
     TalentsoftOfferFactory,
 )
-from tests.factories.referentiel.concours_factory import ConcoursFactory
-from tests.factories.referentiel.corps_factory import CorpsFactory
+from infrastructure.factories.referentiel.concours_factory import ConcoursFactory
+from infrastructure.factories.referentiel.corps_factory import CorpsFactory
+from infrastructure.gateways.shared.logger import LoggerService
 
 # Test constants
 DOCUMENTS_COUNT = 2

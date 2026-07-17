@@ -2,28 +2,28 @@ from uuid import UUID, uuid4
 
 from faker import Faker
 
-from domain.identite.entities.candidat import Candidat
-from infrastructure.django_apps.users.models import ProfilCandidatModel
-from tests.factories.identite.utilisateur_factory import UtilisateurFactory
+from domain.identite.entities.agent import Agent
+from infrastructure.django_apps.users.models import ProfilAgentModel
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
 fake = Faker()
 
 
-class CandidatFactory:
+class AgentFactory:
     @staticmethod
     def create_entity(
         entity_id: UUID | None = None,
         email: str | None = None,
         prenom: str | None = None,
         nom: str | None = None,
-        resume: str | None = None,
-    ) -> Candidat:
-        return Candidat.build(
+        intitule_poste: str | None = None,
+    ) -> Agent:
+        return Agent.build(
             entity_id=entity_id or uuid4(),
             email=email or fake.email(),
             prenom=prenom or fake.first_name(),
             nom=nom or fake.last_name(),
-            resume=resume or fake.text(max_nb_chars=200),
+            intitule_poste=intitule_poste or fake.job(),
         )
 
     @staticmethod
@@ -31,20 +31,20 @@ class CandidatFactory:
         email: str | None = None,
         prenom: str | None = None,
         nom: str | None = None,
-        resume: str | None = None,
-    ) -> ProfilCandidatModel:
-        candidat = CandidatFactory.create_entity(
+        intitule_poste: str | None = None,
+    ) -> ProfilAgentModel:
+        agent = AgentFactory.create_entity(
             email=email,
             prenom=prenom,
             nom=nom,
-            resume=resume,
+            intitule_poste=intitule_poste,
         )
         user = UtilisateurFactory.create_model(
-            entity_id=candidat.entity_id,
-            email=candidat.email,
-            prenom=candidat.prenom,
-            nom=candidat.nom,
+            entity_id=agent.entity_id,
+            email=agent.email,
+            prenom=agent.prenom,
+            nom=agent.nom,
         )
-        profil = ProfilCandidatModel.from_entity(user.to_entity(), candidat)
+        profil = ProfilAgentModel.from_entity(user.to_entity(), agent)
         profil.save()
         return profil

@@ -5,9 +5,9 @@ import pytest
 from domain.ingestion.entities.api_log_daily_aggregation import ApiLogDailyAggregation
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
-from tests.factories.api_log_factory import ApiLogFactory
-from tests.factories.datetime_utils import date_to_aware_datetime
-from tests.factories.ingestion.api_log_model_factory import ApiLogModelFactory
+from infrastructure.factories.api_log_factory import ApiLogFactory
+from infrastructure.factories.datetime_utils import date_to_aware_datetime
+from infrastructure.factories.ingestion.api_log_model_factory import ApiLogModelFactory
 
 TODAY = date(2026, 6, 10)
 YESTERDAY = date(2026, 6, 9)

@@ -1,5 +1,5 @@
+from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
 from presentation.ingestion.serializers import OffersInputSerializer
-from tests.factories.ingestion.offer_payload_factory import PayloadOfferFactory
 
 
 def test_offers_input_serializer_never_exposes_archived_at():

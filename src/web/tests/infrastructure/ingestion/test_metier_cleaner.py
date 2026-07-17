@@ -6,12 +6,12 @@ from infrastructure.external_gateways.dtos.ingres_metiers_dtos import (
     ConditionsParticulieresDExerciceDAcces,
     DefinitionSynthetiqueDeLEr,
 )
-from infrastructure.gateways.ingestion.metier_cleaner import MetierCleaner
-from tests.factories.ingestion.ingres_metiers_factories import (
+from infrastructure.factories.ingestion.ingres_metiers_factories import (
     CompetencesFactory,
     DefinitionsFactory,
     IngresMetiersDocumentFactory,
 )
+from infrastructure.gateways.ingestion.metier_cleaner import MetierCleaner
 
 DATE_EFFET = "2023-01-01T00:00:00Z"
 

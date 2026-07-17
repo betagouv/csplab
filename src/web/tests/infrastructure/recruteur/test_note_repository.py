@@ -10,14 +10,14 @@ from config.app_config import AppConfig
 from domain.recruteur.errors.note_errors import NoteIntrouvable
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.note import NoteModel
+from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
+from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.recruteur.note_factory import NoteFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.note_mapper import NoteMapper
 from infrastructure.repositories.recruteur.postgres_note_repository import (
     PostgresNoteRepository,
 )
-from tests.factories.candidate.candidature_factory import CandidatureFactory
-from tests.factories.identite.agent_factory import AgentFactory
-from tests.factories.recruteur.note_factory import NoteFactory
 
 fake = Faker("fr_FR")
 

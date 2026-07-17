@@ -16,10 +16,10 @@ from domain.identite.exceptions.candidat_errors import CandidatInexistant
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
+from infrastructure.factories.identite.candidat_factory import CandidatFactory
+from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.identite.candidat_factory import CandidatFactory
-from tests.factories.recruteur.recrutement_factory import RecrutementFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
 from tests.utils.shared_fixtures import (
     create_shared_qdrant_repository,
 )

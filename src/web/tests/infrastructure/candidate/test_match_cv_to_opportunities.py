@@ -11,16 +11,16 @@ from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
+from infrastructure.factories.candidate.cv_metadata_factory import CVMetadataFactory
+from infrastructure.factories.ingestion.vectorized_document_factory import (
+    VectorizedDocumentFactory,
+)
+from infrastructure.factories.referentiel.concours_factory import ConcoursFactory
+from infrastructure.factories.referentiel.metier_factory import MetierFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.metier_mapper import MetierMapper
 from infrastructure.mappers.offer_mapper import OfferMapper
-from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
-from tests.factories.ingestion.vectorized_document_factory import (
-    VectorizedDocumentFactory,
-)
-from tests.factories.referentiel.concours_factory import ConcoursFactory
-from tests.factories.referentiel.metier_factory import MetierFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.shared_fixtures import (
     create_shared_qdrant_repository,

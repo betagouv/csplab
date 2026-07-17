@@ -14,7 +14,7 @@ from domain.candidate.exceptions.candidature_errors import (
     DossierCandidatureInvalide,
 )
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
-from tests.factories.candidate.candidature_factory import (
+from infrastructure.factories.candidate.candidature_factory import (
     CandidatureFactory,
     make_documents,
 )

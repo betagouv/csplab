@@ -6,10 +6,10 @@ from faker import Faker
 
 from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
+from infrastructure.factories.ingestion.document_factory import DocumentFactory
 from infrastructure.repositories.ingestion.postgres_document_repository import (
     PostgresDocumentRepository,
 )
-from tests.factories.ingestion.document_factory import DocumentFactory
 
 fake = Faker()
 

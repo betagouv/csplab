@@ -4,8 +4,10 @@ from uuid import uuid4
 import time_machine
 
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
-from tests.factories.recruteur.etapes_recrutement_factory import EtapeRecrutementFactory
-from tests.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
+)
+from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 
 _FROZEN_TS = datetime.now(tz=timezone.utc)
 

@@ -6,12 +6,12 @@ from faker import Faker
 from referentiel.entities.metier import Metier
 
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
+from infrastructure.factories.referentiel.metier_factory import MetierFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.metier_mapper import MetierMapper
 from infrastructure.repositories.shared.postgres_metier_repository import (
     PostgresMetierRepository,
 )
-from tests.factories.referentiel.metier_factory import MetierFactory
 
 fake = Faker()
 NOW = datetime.now()

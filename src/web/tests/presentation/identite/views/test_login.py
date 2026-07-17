@@ -2,7 +2,7 @@ from django.urls import reverse
 from pytest_django.asserts import assertContains, assertTemplateUsed
 from rest_framework import status
 
-from tests.factories.identite.utilisateur_factory import DEFAULT_PASSWORD
+from infrastructure.factories.identite.utilisateur_factory import DEFAULT_PASSWORD
 
 
 class TestLoginView:

@@ -15,15 +15,15 @@ from domain.recruteur.value_objects.statut_recrutement import (
 )
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
-from infrastructure.gateways.shared.logger import LoggerService
-from tests.factories.candidate.candidature_factory import CandidatureFactory
-from tests.factories.identite.agent_factory import AgentFactory
-from tests.factories.identite.organisme_factory import OrganismeFactory
-from tests.factories.recruteur.etapes_recrutement_factory import (
+from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
+from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
-from tests.factories.recruteur.recrutement_factory import RecrutementFactory
-from tests.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.gateways.shared.logger import LoggerService
 
 
 @pytest.fixture(name="recruteur_integration_container")

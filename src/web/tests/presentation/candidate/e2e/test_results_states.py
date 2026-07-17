@@ -6,7 +6,7 @@ from playwright.sync_api import Page, expect
 
 from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
-from tests.factories.candidate.cv_metadata_factory import CVMetadataFactory
+from infrastructure.factories.candidate.cv_metadata_factory import CVMetadataFactory
 
 
 @pytest.mark.e2e

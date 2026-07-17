@@ -11,12 +11,12 @@ from application.ingestion.interfaces.archive_offer_by_reference_input import (
 from config.app_config import AppConfig
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.repositories.shared.postgres_offers_repository import (
     PostgresOffersRepository,
 )
-from tests.factories.referentiel.offer_factory import OfferFactory
 
 _mapper = OfferMapper()
 

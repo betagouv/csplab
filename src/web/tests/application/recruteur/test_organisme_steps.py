@@ -6,8 +6,12 @@ from application.recruteur.usecases.initialize_organisme_steps import (
 from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsCommand,
 )
-from tests.factories.recruteur.etapes_recrutement_factory import EtapeRecrutementFactory
-from tests.factories.recruteur.organisme_factory import OrganismeRecruteurFactory
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
+)
+from infrastructure.factories.recruteur.organisme_factory import (
+    OrganismeRecruteurFactory,
+)
 
 
 def test_get_organisme_steps(get_organisme_recruteur_usecase):

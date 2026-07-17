@@ -21,11 +21,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
-from tests.factories.ingestion.offer_payload_factory import (
+from infrastructure.factories.ingestion.offer_payload_factory import (
     PayloadOfferFactory,
     fake_datetime,
 )
-from tests.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.ingestion.source_factory import SourceFactory
 
 fake = Faker("fr_FR")
 

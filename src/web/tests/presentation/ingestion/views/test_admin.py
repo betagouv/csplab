@@ -9,7 +9,7 @@ from django_otp.oath import totp
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 import config.urls  # noqa: F401  # imported for its side effect: runs the OTPAdminSite swap
-from tests.factories.identite.utilisateur_factory import (
+from infrastructure.factories.identite.utilisateur_factory import (
     DEFAULT_PASSWORD,
     UtilisateurFactory,
 )

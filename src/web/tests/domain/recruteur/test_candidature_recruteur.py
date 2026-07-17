@@ -4,7 +4,7 @@ from uuid import uuid4
 import time_machine
 
 from domain.recruteur.events.candidature_events import CandidatureRecue
-from tests.factories.recruteur.candidature_recruteur_factory import (
+from infrastructure.factories.recruteur.candidature_recruteur_factory import (
     CandidatureRecruteurFactory,
 )
 

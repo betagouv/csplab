@@ -7,7 +7,7 @@ from faker import Faker
 from httpx import Response
 
 from infrastructure.external_gateways.dtos.talentsoft_dtos import CachedToken
-from tests.factories.ingestion.talentsoft_factories import (
+from infrastructure.factories.ingestion.talentsoft_factories import (
     TalentsoftDetailOfferFactory,
     TalentsoftOfferFactory,
 )

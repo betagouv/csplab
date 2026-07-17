@@ -9,7 +9,7 @@ from application.recruteur.dtos.recrutement_read_models import (
     CandidaturesCompteurDto,
 )
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
-from tests.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 
 fake = Faker()
 

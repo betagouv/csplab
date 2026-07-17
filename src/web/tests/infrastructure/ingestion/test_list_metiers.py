@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
-from tests.factories.referentiel.metier_factory import MetierFactory
+from infrastructure.factories.referentiel.metier_factory import MetierFactory
 
 
 @pytest.fixture(name="metiers")
