@@ -10,7 +10,7 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger("recruteur")
 
     def add_arguments(self, parser):
         parser.add_argument(
