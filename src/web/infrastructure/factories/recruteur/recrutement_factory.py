@@ -9,6 +9,7 @@ from application.recruteur.dtos.recrutement_read_models import (
 )
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.recrutement import Recrutement
+from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
@@ -98,6 +99,7 @@ class RecrutementFactory:
         etapes: tuple[EtapeRecrutement, ...] | None = None,
         ordre_etapes: list[str] | None = None,
         agent_ids: tuple[UUID, ...] | None = None,
+        agent_roles: dict[UUID, AgentRecrutementRole] | None = None,
     ) -> RecrutementModel:
         if offre_id is None:
             offre_id = OfferFactory.create_model().id
@@ -127,10 +129,12 @@ class RecrutementFactory:
             agent_ids = (UUID(AgentFactory.create_model().utilisateur_id),)
 
         for agent_id in agent_ids:
+            role = (agent_roles or {}).get(agent_id, AgentRecrutementRole.CONTRIBUTEUR)
             RecrutementAgentModel(
                 id=uuid4(),
                 recrutement=recrutement,
                 agent_id=str(agent_id),
+                role=role.value,
             ).save()
 
         return recrutement
