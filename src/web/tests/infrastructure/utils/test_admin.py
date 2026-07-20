@@ -13,6 +13,8 @@ from infrastructure.django_apps.recruteur.admin import (
     OrganismeAgentInline,
     RecrutementAgentInline,
 )
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
@@ -32,7 +34,9 @@ READONLY_MODELS = [
     ApiLogModel,
     ApiLogDailyAggregationModel,
     RawDocument,
+    NoteModel,
     RecrutementModel,
+    EtapeModel,
     ProfilAgentModel,
     ProfilCandidatModel,
 ]
