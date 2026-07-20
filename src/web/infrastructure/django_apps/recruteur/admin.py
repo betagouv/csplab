@@ -13,12 +13,18 @@ from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.recruteur.models.organisme import (
+    OrganismeAgentModel,
+    OrganismeModel,
+)
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
 )
-from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
+from infrastructure.django_apps.utils.admin import (
+    ReadOnlyAdminMixin,
+    ReadOnlyInlineMixin,
+)
 from infrastructure.mappers.organisme_identite_mapper import OrganismeIdentiteMapper
 
 
@@ -64,6 +70,13 @@ class CreateOrganismeAdminForm(forms.ModelForm):
         return siret
 
 
+class OrganismeAgentInline(ReadOnlyInlineMixin, admin.TabularInline):
+    model = OrganismeAgentModel
+    fk_name = "organisme"
+    fields = ("agent", "role", "created_at")
+    extra = 0
+
+
 @admin.register(OrganismeModel)
 class OrganismeAdmin(admin.ModelAdmin):
     form = CreateOrganismeAdminForm
@@ -71,6 +84,7 @@ class OrganismeAdmin(admin.ModelAdmin):
     search_fields = ("nom", "siret")
     list_filter = ("versant",)
     readonly_fields = ("id",)
+    inlines = (OrganismeAgentInline,)
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -111,10 +125,18 @@ class NoteAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     date_hierarchy = "created_at"
 
 
+class RecrutementAgentInline(ReadOnlyInlineMixin, admin.TabularInline):
+    model = RecrutementAgentModel
+    fk_name = "recrutement"
+    fields = ("agent", "role", "created_at")
+    extra = 0
+
+
 @admin.register(RecrutementModel)
 class RecrutementAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ("offre", "organisme", "created_at", "updated_at")
     date_hierarchy = "created_at"
+    inlines = (RecrutementAgentInline,)
 
 
 @admin.register(EtapeModel)
@@ -123,13 +145,3 @@ class EtapeAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_filter = ("categorie",)
     search_fields = ("nom",)
     date_hierarchy = "created_at"
-
-
-@admin.register(RecrutementAgentModel)
-class RecrutementAgentModelAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
-    list_display = ("recrutement", "agent", "created_at")
-    search_fields = (
-        "recrutement__offre__reference",
-        "agent__utilisateur__first_name",
-        "agent__utilisateur__last_name",
-    )
