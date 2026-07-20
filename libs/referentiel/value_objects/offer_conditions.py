@@ -29,7 +29,7 @@ class OpenToMilitary(Enum):
 class WorkingTime(Enum):
     NON_DEFINI = "Non défini"
     TEMPS_PLEIN = "Temps plein"
-    TEMPS_PARTIEL = "Temps partiel"
+    TEMPS_PARTIEL = "Temps incomplet"
 
     def __str__(self):
         return self.value
