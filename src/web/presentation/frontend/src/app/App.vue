@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PiniaColadaDevtools } from '@pinia/colada-devtools'
 import { RouterView } from 'vue-router'
 import { APP_NAVIGATION } from '@/app/navigation'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
@@ -16,4 +17,6 @@ import AppShell from '@/components/layout/AppShell.vue'
       </AppShell>
     </CspToaster>
   </div>
+
+  <PiniaColadaDevtools />
 </template>
