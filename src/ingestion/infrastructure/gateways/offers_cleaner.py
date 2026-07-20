@@ -189,7 +189,6 @@ class OffersCleaner:
         "CDI": ContractKind.CDI,
         "PERMANENT": ContractKind.PERMANENT,
         "VACATION": ContractKind.VACATION,
-        "STAGE": ContractKind.STAGE,
     }
 
     def _map_contract_kind(

@@ -296,7 +296,7 @@ def test_clean_maps_contract_type(cleaner, contract_code, expected):
         ("CDI", ContractKind.CDI),
         ("PERMANENT", ContractKind.PERMANENT),
         ("VACATION", ContractKind.VACATION),
-        ("STAGE", ContractKind.STAGE),
+        ("STAGE", None),
         ("UNKNOWN_KIND", None),
         (None, None),
     ],

@@ -15,7 +15,6 @@ class ContractKind(Enum):
     CDI = "CDI"
     PERMANENT = "Permanent"
     VACATION = "Vacation"
-    STAGE = "Stage"
 
     def __str__(self):
         return self.value
