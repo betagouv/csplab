@@ -9,11 +9,14 @@ import { useRouter } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
+import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
+import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
@@ -48,6 +51,8 @@ onMounted(() => {
     }
   }, { immediate: true })
 })
+
+const showSkeleton = useMinimumPending(recrutementsPending)
 
 const router = useRouter()
 
@@ -118,20 +123,23 @@ const countLabel = computed(() => {
     >
       <CspTabsList :tabs="TABS" />
       <div
-        v-if="recrutementsPending"
-        class="mes-recrutement-view__loading"
-      >
-        Chargement des recrutements...
-      </div>
-      <div
-        v-else-if="recrutementsError"
+        v-if="recrutementsError"
         class="mes-recrutement-view__error"
       >
         Une erreur est survenue lors du chargement des recrutements.
       </div>
       <div v-else>
         <div class="mes-recrutement-view__toolbar">
-          <p class="mes-recrutement-view__count">
+          <CspSkeleton
+            v-if="showSkeleton"
+            class="mes-recrutement-view__count-skeleton"
+            width="12rem"
+            height="0.9375rem"
+          />
+          <p
+            v-else
+            class="mes-recrutement-view__count"
+          >
             {{ countLabel }}
           </p>
           <div class="mes-recrutement-view__actions">
@@ -151,7 +159,22 @@ const countLabel = computed(() => {
             />
           </div>
         </div>
-        <CspTabsPanels :tabs="TABS">
+        <div
+          v-if="showSkeleton"
+          class="mes-recrutement-view__loading"
+          role="status"
+          aria-label="Chargement des recrutements"
+        >
+          <CspSkeletonTable
+            :rows="PAGE_SIZE"
+            :columns="6"
+            with-footer
+          />
+        </div>
+        <CspTabsPanels
+          v-else
+          :tabs="TABS"
+        >
           <template #actifs>
             <CspDataTable
               v-model:page="recrutementsActifsPage"
@@ -233,6 +256,10 @@ const countLabel = computed(() => {
   margin: 0;
   font-size: 0.9375rem;
   color: var(--text-mention-grey);
+}
+
+.mes-recrutement-view__count-skeleton {
+  margin: 0.15rem 0;
 }
 
 .mes-recrutement-view__actions {

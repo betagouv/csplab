@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
+import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
+import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { CANDIDATURE_LISTE_COLUMNS } from '../columns'
 import { useCandidatures } from '../composables/useCandidatures'
 
-const { filters } = useCandidatures()
+const { pending, filters } = useCandidatures()
 const { filteredCandidatures } = filters
+
+const showSkeleton = useMinimumPending(pending)
 
 const PAGE_SIZE = 6
 const candidatureListePage = ref(1)
@@ -21,7 +26,28 @@ const countLabel = computed(() => {
 </script>
 
 <template>
-  <div class="candidatures-liste-content">
+  <div
+    v-if="showSkeleton"
+    class="candidatures-liste-content"
+    role="status"
+    aria-label="Chargement des candidatures"
+  >
+    <CspSkeleton
+      class="candidatures-liste-content__count-skeleton"
+      width="8rem"
+      height="0.9375rem"
+    />
+    <CspSkeletonTable
+      :rows="PAGE_SIZE"
+      :columns="CANDIDATURE_LISTE_COLUMNS.length"
+      with-footer
+    />
+  </div>
+
+  <div
+    v-else
+    class="candidatures-liste-content"
+  >
     <p class="candidatures-liste-content__count">
       {{ countLabel }}
     </p>
@@ -43,5 +69,9 @@ const countLabel = computed(() => {
   margin: 0 0 var(--csp-space-4);
   font-size: 0.9375rem;
   color: var(--text-mention-grey);
+}
+
+.candidatures-liste-content__count-skeleton {
+  margin: var(--csp-space-1) 0 calc(var(--csp-space-4) + 0.15rem);
 }
 </style>

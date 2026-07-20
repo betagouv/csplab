@@ -12,6 +12,7 @@ import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
+import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
@@ -28,6 +29,8 @@ const {
   error,
   filters,
 } = provideCandidatures(TEMP_ORGANISME_UUID, recrutementUuid)
+
+const showSkeleton = useMinimumPending(pending)
 
 const {
   draft: filtersDraft,
@@ -93,7 +96,7 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
     >
       <template #title>
         <CspSkeleton
-          v-if="pending"
+          v-if="showSkeleton"
           width="20rem"
           height="2rem"
         />
@@ -102,11 +105,11 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
         </template>
       </template>
       <template
-        v-if="pending || recrutementDetail"
+        v-if="showSkeleton || recrutementDetail"
         #subtitle
       >
         <CspSkeleton
-          v-if="pending"
+          v-if="showSkeleton"
           width="28rem"
           height="1.375rem"
         />
@@ -122,14 +125,7 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
       <CspTabsPanels :tabs="TABS">
         <template #candidatures>
           <div
-            v-if="pending"
-            class="candidatures-view__status"
-          >
-            Chargement des candidatures...
-          </div>
-
-          <div
-            v-else-if="isNotFound"
+            v-if="isNotFound"
             class="candidatures-view__status candidatures-view__status--error"
           >
             Recrutement introuvable.
