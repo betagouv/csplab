@@ -21,10 +21,10 @@ INSTALLED_APPS.extend(  # noqa: F405
     ]
 )
 
-MIDDLEWARE += [  # noqa F405
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
-]
+if env.bool("DEBUG_TOOLBAR", default=True):  # noqa F405
+    MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]  # noqa F405
+
+MIDDLEWARE += ["django_browser_reload.middleware.BrowserReloadMiddleware"]
 
 DEBUG_TOOLBAR_CONFIG = {
     # https://django-debug-toolbar.readthedocs.io/en/latest/panels.html#panels
