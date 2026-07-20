@@ -1,15 +1,22 @@
 import os
 import secrets
 from datetime import UTC, datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.verse import Verse
 
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from domain.identite.value_objects.siret import SIRET
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.recruteur.models.organisme import (
+    OrganismeAgentModel,
+    OrganismeModel,
+)
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
@@ -46,6 +53,11 @@ _AGENTS_SPECS = [
         "prenom": "Claire",
         "nom": "Moreau",
         "email": "claire.moreau@transition-eco.gouv.fr",
+    },
+    {
+        "prenom": "David",
+        "nom": "Roux",
+        "email": "david.roux@transition-eco.gouv.fr",
     },
 ]
 
@@ -95,6 +107,7 @@ def _delete_seed_data() -> None:
             "username", flat=True
         )
     )
+    OrganismeAgentModel.objects.filter(organisme_id=_ORGANISME_UUID).delete()
     ProfilAgentModel.objects.filter(utilisateur_id__in=seed_usernames).delete()
     ProfilCandidatModel.objects.filter(utilisateur_id__in=seed_usernames).delete()
     UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).delete()
@@ -157,6 +170,22 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         AgentFactory.create_model(password=seed_password, **spec)
         for spec in _AGENTS_SPECS
     ]
+
+    # Marie (agents[0]) est responsable de l'organisme, Paul et Claire en sont
+    # membres ; David (agents[3]) reste hors de l'organisme pour tester le refus.
+    OrganismeAgentModel(
+        id=uuid4(),
+        organisme_id=_ORGANISME_UUID,
+        agent_id=agents[0].utilisateur_id,
+        role=AgentOrganismeRole.RESPONSABLE.value,
+    ).save()
+    for agent in agents[1:3]:
+        OrganismeAgentModel(
+            id=uuid4(),
+            organisme_id=_ORGANISME_UUID,
+            agent_id=agent.utilisateur_id,
+            role=AgentOrganismeRole.MEMBRE.value,
+        ).save()
 
     # ------------------------------------------------------------------ #
     # 4. Offres actives (6)                                                #
@@ -256,14 +285,37 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # ------------------------------------------------------------------ #
     # Doit précéder les candidatures car CandidatureFactory.create_model()
     # crée désormais un recrutement lié.
-    recrutements = [
-        RecrutementFactory.create_model(
-            offre_id=offre.id,
-            organisme_id=_ORGANISME_UUID,
-            agent_ids=(UUID(agents[0].utilisateur_id),),
+    # Marie est responsable de la première moitié des recrutements, Claire de
+    # l'autre (Claire n'est que membre de l'organisme : ça exerce l'accès par
+    # role recrutement seul, sans passer par le role organisme). Paul est
+    # recruteur sur la moitié de Marie, en plus d'elle. David (hors organisme)
+    # est contributeur sur le premier recrutement de Claire, et sur lui seul.
+    marie_id = UUID(agents[0].utilisateur_id)
+    paul_id = UUID(agents[1].utilisateur_id)
+    claire_id = UUID(agents[2].utilisateur_id)
+    david_id = UUID(agents[3].utilisateur_id)
+    moitie = len(offres_actives) // 2
+    responsables = [marie_id] * moitie + [claire_id] * (len(offres_actives) - moitie)
+    recrutements = []
+    for i, (offre, responsable_id) in enumerate(
+        zip(offres_actives, responsables, strict=True)
+    ):
+        agent_roles = {responsable_id: AgentRecrutementRole.RESPONSABLE}
+        agent_ids: tuple[UUID, ...] = (responsable_id,)
+        if i < moitie:
+            agent_roles[paul_id] = AgentRecrutementRole.RECRUTEUR
+            agent_ids = (responsable_id, paul_id)
+        elif i == moitie:
+            agent_roles[david_id] = AgentRecrutementRole.CONTRIBUTEUR
+            agent_ids = (responsable_id, david_id)
+        recrutements.append(
+            RecrutementFactory.create_model(
+                offre_id=offre.id,
+                organisme_id=_ORGANISME_UUID,
+                agent_ids=agent_ids,
+                agent_roles=agent_roles,
+            )
         )
-        for offre in offres_actives
-    ]
 
     # ------------------------------------------------------------------ #
     # 8. Candidatures                                                      #
