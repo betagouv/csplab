@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import { pluralize } from '@/utils/format'
 
-defineProps<{
+const props = defineProps<{
   selectedCount: number
 }>()
 
@@ -9,6 +11,10 @@ const emit = defineEmits<{
   changerEtape: []
   refuser: []
 }>()
+
+const label = computed(() =>
+  `${props.selectedCount} ${pluralize(props.selectedCount, 'candidat')} ${pluralize(props.selectedCount, 'sélectionné')}`,
+)
 
 function handleChangerEtape(): void {
   emit('changerEtape')
@@ -22,7 +28,7 @@ function handleRefuser(): void {
 <template>
   <div class="selection-action-bar">
     <p class="selection-action-bar__count">
-      {{ selectedCount }} candidat{{ selectedCount > 1 ? 's' : '' }} sélectionné{{ selectedCount > 1 ? 's' : '' }}
+      {{ label }}
     </p>
 
     <div class="selection-action-bar__actions">

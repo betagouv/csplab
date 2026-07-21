@@ -20,7 +20,6 @@ describe('pluralize', () => {
   })
 })
 
-
 describe('getInitials', () => {
   it('returns null for empty or whitespace input', () => {
     expect(getInitials(null)).toBeNull()

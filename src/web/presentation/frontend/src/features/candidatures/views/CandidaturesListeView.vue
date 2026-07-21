@@ -4,6 +4,7 @@ import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { pluralize } from '@/utils/format'
 import { CANDIDATURE_LISTE_COLUMNS } from '../columns'
 import { useCandidatures } from '../composables/useCandidatures'
 
@@ -21,7 +22,7 @@ watch(filteredCandidatures, () => {
 
 const countLabel = computed(() => {
   const count = filteredCandidatures.value.length
-  return `${count} candidature${count > 1 ? 's' : ''}`
+  return `${count} ${pluralize(count, 'candidature')}`
 })
 </script>
 
