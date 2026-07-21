@@ -7,6 +7,7 @@ import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { pluralize } from '@/utils/format'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
 import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
 import SelectionActionBar from '../components/SelectionActionBar.vue'
@@ -119,7 +120,16 @@ function handleToggleCandidature(candidatureUuid: string, etapeUuid: string): vo
 
 const countLabel = computed(() => {
   const count = filteredEtapes.value.reduce((sum, etape) => sum + etape.candidatures.length, 0)
-  return `${count} candidature${count > 1 ? 's' : ''}`
+  return `${count} ${pluralize(count, 'candidature')}`
+})
+
+const refusDescription = computed(() => {
+  const n = selectedCount.value
+  return `Vous êtes sur le point de refuser ${n} ${pluralize(n, 'candidature')}. `
+    + `Cette action n'est pas définitive, néanmoins ${pluralize(n, 'le', 'les')} `
+    + `${pluralize(n, 'candidat', 'candidats')} ${pluralize(n, 'sera', 'seront')} `
+    + `${pluralize(n, 'informé', 'informés')} du changement de statut de `
+    + `${pluralize(n, 'sa', 'leur')} candidature.`
 })
 </script>
 
@@ -176,7 +186,7 @@ const countLabel = computed(() => {
       :open="isRefusDialogOpen"
       size="sm"
       title="Refus de candidature"
-      :description="`Vous êtes sur le point de refuser ${selectedCount} candidature${selectedCount > 1 ? 's' : ''}. Cette action n'est pas définitive, néanmoins le${selectedCount > 1 ? 's' : ''} candidat${selectedCount > 1 ? 's' : ''} ser${selectedCount > 1 ? 'ont' : 'a'} informé${selectedCount > 1 ? 's' : ''} du changement de statut de ${selectedCount > 1 ? 'leur' : 'sa'} candidature.`"
+      :description="refusDescription"
       @update:open="isRefusDialogOpen = $event"
     >
       <template #footer>

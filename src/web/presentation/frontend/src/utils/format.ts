@@ -1,3 +1,7 @@
+export function pluralize(count: number, singular: string, plural?: string): string {
+  return count > 1 ? (plural ?? `${singular}s`) : singular
+}
+
 export function getInitials(name?: string | null): string | null {
   name = (name ?? '').trim()
 
