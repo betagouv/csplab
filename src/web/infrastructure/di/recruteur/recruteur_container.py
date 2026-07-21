@@ -19,6 +19,9 @@ from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsUsecase,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.recruteur.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from infrastructure.mappers.candidature_mapper import CandidatureMapper
 from infrastructure.repositories.candidate.postgres_candidature_repository import (
     PostgresCandidatureRepository,
@@ -37,6 +40,9 @@ from infrastructure.repositories.recruteur.postgres_note_query_service import (
 )
 from infrastructure.repositories.recruteur.postgres_note_repository import (
     PostgresNoteRepository,
+)
+from infrastructure.repositories.recruteur.postgres_organisme_agent_repository import (
+    PostgresOrganismeAgentRepository,
 )
 from infrastructure.repositories.recruteur.postgres_organisme_repository import (
     PostgresOrganismeRecruteurRepository,
@@ -59,6 +65,13 @@ class RecruteurContainer(containers.DeclarativeContainer):
     postgres_organisme_repository = providers.Singleton(PostgresOrganismeRepository)
     postgres_organisme_recruteur_repository = providers.Singleton(
         PostgresOrganismeRecruteurRepository
+    )
+    postgres_organisme_agent_repository = providers.Singleton(
+        PostgresOrganismeAgentRepository
+    )
+    organisme_permission_service = providers.Factory(
+        OrganismePermissionService,
+        organisme_agent_repository=postgres_organisme_agent_repository,
     )
     candidature_mapper = providers.Factory(CandidatureMapper)
     postgres_recrutement_query_service = providers.Singleton(
@@ -100,11 +113,13 @@ class RecruteurContainer(containers.DeclarativeContainer):
     get_organisme_recruteur_usecase = providers.Factory(
         GetOrganismeRecruteurUsecase,
         organisme_repository=postgres_organisme_recruteur_repository,
+        organisme_permission_service=organisme_permission_service,
     )
 
     initialize_organisme_steps_usecase = providers.Factory(
         InitializeOrganismeStepsUsecase,
         organisme_repository=postgres_organisme_recruteur_repository,
+        organisme_permission_service=organisme_permission_service,
     )
 
     update_organisme_steps_usecase = providers.Factory(
@@ -112,6 +127,7 @@ class RecruteurContainer(containers.DeclarativeContainer):
         organisme_repository=postgres_organisme_repository,
         organisme_recruteur_repository=postgres_organisme_recruteur_repository,
         audit_log_writer=audit_log_writer,
+        organisme_permission_service=organisme_permission_service,
     )
 
     lister_mes_recrutements_usecase = providers.Factory(
