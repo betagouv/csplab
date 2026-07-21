@@ -1,0 +1,77 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
+import { pluralize } from '@/utils/format'
+
+const props = defineProps<{
+  selectedCount: number
+}>()
+
+const emit = defineEmits<{
+  changerEtape: []
+  refuser: []
+}>()
+
+const label = computed(() =>
+  `${props.selectedCount} ${pluralize(props.selectedCount, 'candidat')} ${pluralize(props.selectedCount, 'sélectionné')}`,
+)
+
+function handleChangerEtape(): void {
+  emit('changerEtape')
+}
+
+function handleRefuser(): void {
+  emit('refuser')
+}
+</script>
+
+<template>
+  <div class="selection-action-bar">
+    <p class="selection-action-bar__count">
+      {{ label }}
+    </p>
+
+    <div class="selection-action-bar__actions">
+      <CspButton
+        label="Changer d'étape"
+        icon="ri:arrow-left-right-line"
+        variant="secondary"
+        size="sm"
+        @click="handleChangerEtape"
+      />
+      <CspButton
+        label="Refuser"
+        icon="ri:close-line"
+        variant="secondary"
+        size="sm"
+        @click="handleRefuser"
+      />
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.selection-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--csp-space-4);
+  padding: var(--csp-space-3) var(--csp-space-4);
+  margin-bottom: var(--csp-space-4);
+  background-color: var(--background-default-grey);
+  border: 1px solid var(--border-default-grey);
+}
+
+.selection-action-bar__count {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-default-grey);
+}
+
+.selection-action-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-2);
+}
+</style>

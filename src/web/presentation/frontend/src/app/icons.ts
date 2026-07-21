@@ -6,6 +6,7 @@ import riArrowDownLine from '@iconify-icons/ri/arrow-down-line'
 import riArrowDownSLine from '@iconify-icons/ri/arrow-down-s-line'
 import riArrowLeftDoubleLine from '@iconify-icons/ri/arrow-left-double-line'
 import riArrowLeftLine from '@iconify-icons/ri/arrow-left-line'
+import riArrowLeftRightLine from '@iconify-icons/ri/arrow-left-right-line'
 import riArrowLeftSLine from '@iconify-icons/ri/arrow-left-s-line'
 import riArrowRightDoubleLine from '@iconify-icons/ri/arrow-right-double-line'
 import riArrowRightLine from '@iconify-icons/ri/arrow-right-line'
@@ -66,6 +67,7 @@ addIcon('ri:arrow-left-double-line', riArrowLeftDoubleLine)
 addIcon('ri:arrow-down-s-line', riArrowDownSLine)
 addIcon('ri:arrow-up-s-line', riArrowUpSLine)
 addIcon('ri:arrow-left-line', riArrowLeftLine)
+addIcon('ri:arrow-left-right-line', riArrowLeftRightLine)
 addIcon('ri:arrow-left-s-line', riArrowLeftSLine)
 addIcon('ri:arrow-right-double-line', riArrowRightDoubleLine)
 addIcon('ri:arrow-right-line', riArrowRightLine)
