@@ -16,7 +16,6 @@ import AppShell from '@/components/layout/AppShell.vue'
         </ErrorBoundary>
       </AppShell>
     </CspToaster>
+    <PiniaColadaDevtools />
   </div>
-
-  <PiniaColadaDevtools />
 </template>
