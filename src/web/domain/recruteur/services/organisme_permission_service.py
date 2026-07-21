@@ -27,6 +27,8 @@ class OrganismePermissionService:
         agent_id: UUID,
         est_staff: bool,
     ) -> None:
+        if est_staff:
+            return
         role_requis = _ROLES_REQUIS[action]
         if est_staff:
             return
