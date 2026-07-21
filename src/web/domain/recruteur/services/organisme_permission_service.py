@@ -11,6 +11,7 @@ _ROLES_REQUIS: dict[OrganismeAction, AgentOrganismeRole] = {
     OrganismeAction.GET_ORGANISME: AgentOrganismeRole.RESPONSABLE,
     OrganismeAction.INITIALIZE_ORGANISME_STEPS: AgentOrganismeRole.RESPONSABLE,
     OrganismeAction.UPDATE_ORGANISME_STEPS: AgentOrganismeRole.RESPONSABLE,
+    OrganismeAction.LISTER_MES_RECRUTEMENTS: AgentOrganismeRole.RESPONSABLE,
 }
 
 
