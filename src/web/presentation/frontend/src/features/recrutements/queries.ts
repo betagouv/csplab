@@ -1,3 +1,8 @@
+import type { useQueryCache } from '@pinia/colada'
+import type {
+  PaginatedRecrutementsActifsResponse,
+  PaginatedRecrutementsArchivesResponse,
+} from './types'
 import { defineQueryOptions } from '@pinia/colada'
 import { getRecrutementsActifs, getRecrutementsArchives } from './api'
 
@@ -22,3 +27,26 @@ export const recrutementsArchivesQuery = defineQueryOptions(
     query: () => getRecrutementsArchives(organismeUuid),
   }),
 )
+
+export function peekRecrutementIntitule(
+  queryCache: ReturnType<typeof useQueryCache>,
+  organismeUuid: string,
+  offerId: string,
+): string | null {
+  const lists = [
+    queryCache.getQueryData<PaginatedRecrutementsActifsResponse>(
+      RECRUTEMENTS_QUERY_KEYS.actifs(organismeUuid),
+    ),
+    queryCache.getQueryData<PaginatedRecrutementsArchivesResponse>(
+      RECRUTEMENTS_QUERY_KEYS.archives(organismeUuid),
+    ),
+  ]
+
+  for (const list of lists) {
+    const row = list?.results?.find(r => r.offer_id === offerId)
+    if (row) {
+      return row.intitule
+    }
+  }
+  return null
+}

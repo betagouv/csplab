@@ -1,4 +1,4 @@
-import type { Ref, ShallowRef } from 'vue'
+import type { Ref } from 'vue'
 import type {
   EtapeRecrutementDetailedCandidatures,
   PaginatedCandidatureListeList,
@@ -19,7 +19,7 @@ const SEARCH_DEBOUNCE_MS = 500
 export type CandidaturesFiltersContext = ReturnType<typeof useCandidaturesFilters>
 
 export function useCandidaturesFilters(
-  etapes: ShallowRef<EtapeRecrutementDetailedCandidatures[]>,
+  etapes: Readonly<Ref<EtapeRecrutementDetailedCandidatures[]>>,
   candidatureListe: Ref<PaginatedCandidatureListeList | undefined>,
 ) {
   const {

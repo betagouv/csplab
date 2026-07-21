@@ -1,14 +1,13 @@
-import type { InjectionKey, Ref, ShallowRef } from 'vue'
 import type {
   Candidature,
-  EtapeRecrutementDetailedCandidatures,
-  PaginatedCandidatureListeList,
   RecrutementDetailKanban,
 } from '../types'
-import type { CandidaturesFiltersContext } from './useCandidaturesFilters'
-import { computed, inject, provide, ref, shallowRef } from 'vue'
-import { useAsyncState } from '@/composables/async/useAsyncState'
-import { getCandidatureListe, getRecrutementKanban } from '../api'
+import { defineQuery, useQuery, useQueryCache } from '@pinia/colada'
+import { computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
+import { peekRecrutementIntitule } from '@/features/recrutements/queries'
+import { candidatureListeQuery, recrutementKanbanQuery } from '../queries'
 import { useCandidaturesFilters } from './useCandidaturesFilters'
 
 export interface MoveCandidatureParams {
@@ -17,45 +16,51 @@ export interface MoveCandidatureParams {
   cardId: string
 }
 
-export interface CandidaturesContext {
-  recrutementUuid: string
-  recrutementDetail: Ref<RecrutementDetailKanban | null>
-  candidatureListe: Ref<PaginatedCandidatureListeList | undefined>
-  etapes: ShallowRef<EtapeRecrutementDetailedCandidatures[]>
-  totalCount: Ref<number>
-  pending: Ref<boolean>
-  error: Ref<unknown>
-  moveCandidature: (params: MoveCandidatureParams) => void
-  filters: CandidaturesFiltersContext
-}
+export const useCandidatures = defineQuery(() => {
+  const route = useRoute()
+  const recrutementUuid = computed<string | null>(() => {
+    const param = route.params.recrutementUuid
+    return typeof param === 'string' && param !== '' ? param : null
+  })
 
-const CANDIDATURES_KEY: InjectionKey<CandidaturesContext> = Symbol('candidatures')
+  const queryCache = useQueryCache()
 
-export function provideCandidatures(
-  organismeUuid: string,
-  recrutementUuid: string,
-): CandidaturesContext {
-  const { pending, error, run } = useAsyncState(true)
-  const recrutementDetail = ref<RecrutementDetailKanban | null>(null)
-  const candidatureListe = ref<PaginatedCandidatureListeList>()
-  const etapes = shallowRef<EtapeRecrutementDetailedCandidatures[]>([])
+  const kanban = useQuery(() => ({
+    ...recrutementKanbanQuery({
+      organismeUuid: TEMP_ORGANISME_UUID,
+      recrutementUuid: recrutementUuid.value ?? '',
+    }),
+    enabled: recrutementUuid.value !== null,
+  }))
+
+  const liste = useQuery(() => ({
+    ...candidatureListeQuery({
+      organismeUuid: TEMP_ORGANISME_UUID,
+      recrutementUuid: recrutementUuid.value ?? '',
+    }),
+    enabled: recrutementUuid.value !== null,
+  }))
+
+  const recrutementDetail = computed<RecrutementDetailKanban | null>(
+    () => kanban.data.value ?? null,
+  )
+  const candidatureListe = liste.data
+
+  const intitule = computed<string | null>(() =>
+    recrutementDetail.value?.intitule
+    ?? (recrutementUuid.value
+      ? peekRecrutementIntitule(queryCache, TEMP_ORGANISME_UUID, recrutementUuid.value)
+      : null),
+  )
+
+  const etapes = computed(() => kanban.data.value?.etapes ?? [])
+
+  const pending = computed(() => kanban.isPending.value || liste.isPending.value)
+  const error = computed<unknown>(() => kanban.error.value ?? liste.error.value)
 
   const totalCount = computed(() =>
     etapes.value.reduce((sum, etape) => sum + etape.candidatures.length, 0),
   )
-
-  async function load(): Promise<void> {
-    await run(async () => {
-      const [kanban, liste] = await Promise.all([
-        getRecrutementKanban(organismeUuid, recrutementUuid),
-        getCandidatureListe(organismeUuid, recrutementUuid),
-      ])
-
-      recrutementDetail.value = kanban
-      etapes.value = structuredClone(kanban.etapes)
-      candidatureListe.value = liste
-    })
-  }
 
   function moveCandidature(params: MoveCandidatureParams): void {
     const { sourceColumnId, targetColumnId, cardId } = params
@@ -63,8 +68,12 @@ export function provideCandidatures(
     if (sourceColumnId === targetColumnId)
       return
 
-    const sourceEtape = etapes.value.find(e => e.etape_uuid === sourceColumnId)
-    const targetEtape = etapes.value.find(e => e.etape_uuid === targetColumnId)
+    const detail = kanban.data.value
+    if (!detail)
+      return
+
+    const sourceEtape = detail.etapes.find(e => e.etape_uuid === sourceColumnId)
+    const targetEtape = detail.etapes.find(e => e.etape_uuid === targetColumnId)
 
     if (!sourceEtape || !targetEtape)
       return
@@ -75,7 +84,7 @@ export function provideCandidatures(
 
     const candidature = sourceEtape.candidatures[candidatureIndex] as Candidature
 
-    const newEtapes = etapes.value.map((etape) => {
+    const newEtapes = detail.etapes.map((etape) => {
       if (etape.etape_uuid === sourceColumnId) {
         return {
           ...etape,
@@ -91,16 +100,23 @@ export function provideCandidatures(
       return etape
     })
 
-    etapes.value = newEtapes
+    const { key } = recrutementKanbanQuery({
+      organismeUuid: TEMP_ORGANISME_UUID,
+      recrutementUuid: recrutementUuid.value!,
+    })
+    queryCache.setQueryData(key, { ...detail, etapes: newEtapes })
   }
 
   const filters = useCandidaturesFilters(etapes, candidatureListe)
 
-  void load()
+  watch(recrutementUuid, () => {
+    filters.reset()
+  })
 
-  const context: CandidaturesContext = {
+  return {
     recrutementUuid,
     recrutementDetail,
+    intitule,
     candidatureListe,
     etapes,
     totalCount,
@@ -109,16 +125,4 @@ export function provideCandidatures(
     moveCandidature,
     filters,
   }
-
-  provide(CANDIDATURES_KEY, context)
-
-  return context
-}
-
-export function useCandidatures(): CandidaturesContext {
-  const context = inject(CANDIDATURES_KEY)
-  if (!context) {
-    throw new Error('useCandidatures must be used within CandidaturesView')
-  }
-  return context
-}
+})

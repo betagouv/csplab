@@ -18,7 +18,7 @@ const { filteredEtapes } = filters
 
 const showSkeleton = useMinimumPending(pending)
 
-const boardId = computed(() => `kanban-${recrutementUuid}`)
+const boardId = computed(() => `kanban-${recrutementUuid.value}`)
 
 function handleMove(event: KanbanDropEvent) {
   moveCandidature({
