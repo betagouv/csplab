@@ -25,6 +25,7 @@ def test_est_autorise_passes_when_agent_is_responsable() -> None:
         action=OrganismeAction.GET_ORGANISME,
         organisme_id=organisme_id,
         agent_id=agent_id,
+        est_staff=False,
     )
 
     repository.get_role.assert_called_once_with(
@@ -42,6 +43,7 @@ def test_est_autorise_raises_when_agent_is_membre() -> None:
             action=OrganismeAction.GET_ORGANISME,
             organisme_id=uuid4(),
             agent_id=uuid4(),
+            est_staff=False,
         )
 
 
@@ -55,7 +57,22 @@ def test_est_autorise_raises_when_agent_has_no_role() -> None:
             action=OrganismeAction.GET_ORGANISME,
             organisme_id=uuid4(),
             agent_id=uuid4(),
+            est_staff=False,
         )
+
+
+def test_verifier_responsable_passes_when_staff_even_if_not_responsable() -> None:
+    repository = Mock(spec=IOrganismeAgentRepository)
+    service = OrganismePermissionService(organisme_agent_repository=repository)
+
+    service.est_autorise(
+        action=OrganismeAction.GET_ORGANISME,
+        organisme_id=uuid4(),
+        agent_id=uuid4(),
+        est_staff=True,
+    )
+
+    repository.get_role.assert_not_called()
 
 
 @pytest.mark.parametrize("action", list(OrganismeAction))
@@ -71,4 +88,5 @@ def test_every_organisme_action_currently_requires_responsable(
             action=action,
             organisme_id=uuid4(),
             agent_id=uuid4(),
+            est_staff=False,
         )

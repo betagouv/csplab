@@ -26,6 +26,8 @@ class OrganismePermissionService:
         agent_id: UUID,
         est_staff: bool,
     ) -> None:
+        if est_staff:
+            return
         role_requis = _ROLES_REQUIS[action]
         role = self._organisme_agent_repository.get_role(
             organisme_id=organisme_id, agent_id=agent_id

@@ -63,7 +63,9 @@ class OrganismeView(APIView):
             usecase = self.container.get_organisme_recruteur_usecase()
             organisme = usecase.execute(
                 GetOrganismeRecruteurQuery(
-                    organisme_id=organisme_uuid, utilisateur_id=utilisateur_id
+                    organisme_id=organisme_uuid,
+                    utilisateur_id=utilisateur_id,
+                    est_staff=request.user.is_staff,
                 )
             )
             serializer = OrganismeSerializer(organisme)
@@ -118,7 +120,9 @@ class EtapesRecrutementOrganismeView(APIView):
             usecase = self.container.get_organisme_recruteur_usecase()
             organisme = usecase.execute(
                 GetOrganismeRecruteurQuery(
-                    organisme_id=organisme_uuid, utilisateur_id=utilisateur_id
+                    organisme_id=organisme_uuid,
+                    utilisateur_id=utilisateur_id,
+                    est_staff=request.user.is_staff,
                 )
             )
             data = EtapesMapper().from_domain(organisme)
@@ -154,7 +158,12 @@ class EtapesRecrutementOrganismeView(APIView):
             utilisateur_id = UUID(request.user.username)
             usecase = self.container.update_organisme_steps_usecase()
             organisme = usecase.execute(
-                UpdateOrganismeStepsCommand(organisme_uuid, utilisateur_id, etapes)
+                UpdateOrganismeStepsCommand(
+                    organisme_id=organisme_uuid,
+                    utilisateur_id=utilisateur_id,
+                    etapes=etapes,
+                    est_staff=request.user.is_staff,
+                )
             )
             data = EtapesMapper().from_domain(organisme)
             out_serializer = EtapeRecrutementSerializer(data, many=True)
@@ -199,7 +208,9 @@ class InitEtapesRecrutementOrganismeView(APIView):
             usecase = self.container.initialize_organisme_steps_usecase()
             organisme = usecase.execute(
                 InitializeOrganismeStepsCommand(
-                    organisme_id=organisme_uuid, utilisateur_id=utilisateur_id
+                    organisme_id=organisme_uuid,
+                    utilisateur_id=utilisateur_id,
+                    est_staff=request.user.is_staff,
                 )
             )
             data = EtapesMapper().from_domain(organisme)

@@ -33,6 +33,7 @@ class UpdateOrganismeStepsCommand:
     organisme_id: UUID
     utilisateur_id: UUID
     etapes: list[EtapeData]
+    est_staff: bool = False
 
 
 class UpdateOrganismeStepsUsecase(
@@ -55,6 +56,7 @@ class UpdateOrganismeStepsUsecase(
             action=OrganismeAction.UPDATE_ORGANISME_STEPS,
             organisme_id=command.organisme_id,
             agent_id=command.utilisateur_id,
+            est_staff=command.est_staff,
         )
         # guard, raise OrganismeInexistant if not found
         self.organisme_repository.get_by_id(command.organisme_id)
