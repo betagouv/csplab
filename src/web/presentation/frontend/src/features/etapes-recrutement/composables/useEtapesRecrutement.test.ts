@@ -1,5 +1,9 @@
 import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../types'
+import { PiniaColada } from '@pinia/colada'
+import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, h } from 'vue'
 import { useEtapesRecrutement } from './useEtapesRecrutement'
 
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000001'
@@ -22,33 +26,48 @@ const DEFAULT_ETAPES: EtapeRecrutement[] = [
   { etape_uuid: 'eeee', nom: 'Recrutement', categorie: 'ACCEPTE' },
 ]
 
+async function mountEtapes() {
+  let result!: ReturnType<typeof useEtapesRecrutement>
+
+  mount(defineComponent({
+    setup() {
+      result = useEtapesRecrutement(ORGANISME_UUID)
+      return () => h('div')
+    },
+  }), {
+    global: {
+      plugins: [createPinia(), PiniaColada],
+    },
+  })
+
+  await vi.waitFor(() => expect(result.loading.value).toBe(false))
+
+  return result
+}
+
+function lastUpdatePayload(): UpdateEtapeRecrutement[] {
+  return mockUpdateEtapesRecrutement.mock.calls[0]![1] as UpdateEtapeRecrutement[]
+}
+
 describe('useEtapesRecrutement', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGetEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
+    mockUpdateEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
   })
 
-  it('fetches etapes and toggles loading', async () => {
-    mockGetEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
+  it('loads etapes on mount', async () => {
+    const { etapes } = await mountEtapes()
 
-    const { etapes, loading, fetchEtapes } = useEtapesRecrutement(ORGANISME_UUID)
-    const promise = fetchEtapes()
-    expect(loading.value).toBe(true)
-    await promise
-
-    expect(loading.value).toBe(false)
-    expect(etapes.value).toEqual(DEFAULT_ETAPES)
     expect(mockGetEtapesRecrutement).toHaveBeenCalledWith(ORGANISME_UUID)
+    expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
 
   it('inserts new etape after the last EN_COURS without etape_uuid', async () => {
-    mockGetEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
-    mockUpdateEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
-
-    const { fetchEtapes, addEtape } = useEtapesRecrutement(ORGANISME_UUID)
-    await fetchEtapes()
+    const { addEtape } = await mountEtapes()
     await addEtape('Test technique')
 
-    const payload = mockUpdateEtapesRecrutement.mock.calls[0][1] as UpdateEtapeRecrutement[]
+    const payload = lastUpdatePayload()
     const refusIndex = payload.findIndex(p => p.categorie === 'REFUS')
 
     expect(payload).toHaveLength(DEFAULT_ETAPES.length + 1)
@@ -58,43 +77,32 @@ describe('useEtapesRecrutement', () => {
     })
   })
 
-  it('removes etape by uuid', async () => {
-    mockGetEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
-    mockUpdateEtapesRecrutement.mockResolvedValue(
-      DEFAULT_ETAPES.filter(e => e.etape_uuid !== 'bbbb'),
-    )
+  it('removes etape by uuid and applies the server response', async () => {
+    const freshEtapes = DEFAULT_ETAPES.filter(e => e.etape_uuid !== 'bbbb')
+    mockUpdateEtapesRecrutement.mockResolvedValue(freshEtapes)
 
-    const { etapes, fetchEtapes, removeEtape } = useEtapesRecrutement(ORGANISME_UUID)
-    await fetchEtapes()
+    const { etapes, removeEtape } = await mountEtapes()
     await removeEtape('bbbb')
 
-    expect(etapes.value.find(e => e.etape_uuid === 'bbbb')).toBeUndefined()
-    const payload = mockUpdateEtapesRecrutement.mock.calls[0][1] as UpdateEtapeRecrutement[]
+    expect(etapes.value).toEqual(freshEtapes)
+    const payload = lastUpdatePayload()
     expect(payload.find(p => p.etape_uuid === 'bbbb')).toBeUndefined()
   })
 
   it('inserts etape at specific index', async () => {
-    mockGetEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
-    mockUpdateEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
-
-    const { fetchEtapes, addEtapeAt } = useEtapesRecrutement(ORGANISME_UUID)
-    await fetchEtapes()
+    const { addEtapeAt } = await mountEtapes()
     await addEtapeAt('Nouvelle', 2)
 
-    const payload = mockUpdateEtapesRecrutement.mock.calls[0][1] as UpdateEtapeRecrutement[]
+    const payload = lastUpdatePayload()
     expect(payload).toHaveLength(DEFAULT_ETAPES.length + 1)
     expect(payload[2]).toEqual({ nom: 'Nouvelle', categorie: 'EN_COURS' })
   })
 
   it('renames etape by uuid', async () => {
-    mockGetEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
-    mockUpdateEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
-
-    const { fetchEtapes, renameEtape } = useEtapesRecrutement(ORGANISME_UUID)
-    await fetchEtapes()
+    const { renameEtape } = await mountEtapes()
     await renameEtape('bbbb', 'Présélection RH')
 
-    const payload = mockUpdateEtapesRecrutement.mock.calls[0][1] as UpdateEtapeRecrutement[]
+    const payload = lastUpdatePayload()
     const renamed = payload.find(p => p.etape_uuid === 'bbbb')
     expect(renamed?.nom).toBe('Présélection RH')
   })
@@ -104,11 +112,49 @@ describe('useEtapesRecrutement', () => {
     mockGetEtapesRecrutement.mockResolvedValue(customEtapes)
     mockInitEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
 
-    const { etapes, fetchEtapes, resetEtapes } = useEtapesRecrutement(ORGANISME_UUID)
-    await fetchEtapes()
+    const { etapes, resetEtapes } = await mountEtapes()
     await resetEtapes()
 
     expect(mockInitEtapesRecrutement).toHaveBeenCalledWith(ORGANISME_UUID)
     expect(etapes.value).toEqual(DEFAULT_ETAPES)
+  })
+
+  it('exposes the mutation error without rejecting', async () => {
+    mockUpdateEtapesRecrutement.mockRejectedValue(new Error('emulated API error'))
+
+    const { error, etapes, renameEtape } = await mountEtapes()
+    await renameEtape('bbbb', 'Présélection RH')
+
+    expect(error.value).toBeInstanceOf(Error)
+    expect(etapes.value).toEqual(DEFAULT_ETAPES)
+  })
+
+  it('locks etapes that are not EN_COURS', async () => {
+    const { isEtapeLocked } = await mountEtapes()
+
+    expect(isEtapeLocked(DEFAULT_ETAPES[1]!)).toBe(false)
+    expect(isEtapeLocked(DEFAULT_ETAPES[0]!)).toBe(true)
+    expect(isEtapeLocked(DEFAULT_ETAPES[3]!)).toBe(true)
+  })
+
+  it('reorders etapes by persisting the new order', async () => {
+    const { reorderEtapes } = await mountEtapes()
+    const reordered = [DEFAULT_ETAPES[2]!, DEFAULT_ETAPES[1]!, ...DEFAULT_ETAPES.slice(3)]
+    await reorderEtapes([DEFAULT_ETAPES[0]!, ...reordered])
+
+    const payload = lastUpdatePayload()
+    expect(payload.map(p => p.etape_uuid)).toEqual(['aaaa', 'cccc', 'bbbb', 'dddd', 'eeee'])
+  })
+
+  it('appends a new etape at the end when there is no final etape', async () => {
+    const etapesSansFinales = DEFAULT_ETAPES.slice(0, 3)
+    mockGetEtapesRecrutement.mockResolvedValue(etapesSansFinales)
+
+    const { addEtape } = await mountEtapes()
+    await addEtape('Test technique')
+
+    const payload = lastUpdatePayload()
+    expect(payload).toHaveLength(etapesSansFinales.length + 1)
+    expect(payload.at(-1)).toEqual({ nom: 'Test technique', categorie: 'EN_COURS' })
   })
 })
