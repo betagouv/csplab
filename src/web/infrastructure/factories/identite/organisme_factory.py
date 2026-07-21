@@ -11,6 +11,8 @@ from referentiel.value_objects.verse import Verse
 from domain.identite.entities.organisme import Organisme
 from domain.identite.value_objects.siret import SIRET
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.mappers.organisme_identite_mapper import (
     OrganismeIdentiteMapper,
 )
@@ -60,6 +62,8 @@ class OrganismeFactory:
         localisation: Localisation | None = None,
         siret: SIRET | None = None,
         etapes: tuple[EtapeRecrutement, ...] | None = None,
+        agent_id: UUID | None = None,
+        role: AgentOrganismeRole | None = None,
     ):
         organisme = OrganismeFactory.create_entity(
             entity_id=entity_id,
@@ -73,4 +77,11 @@ class OrganismeFactory:
         if etapes is not None:
             model.etapes = OrganismeRecruteurMapper().from_domain(etapes)
         model.save()
+        if agent_id is not None:
+            OrganismeAgentModel(
+                id=uuid4(),
+                organisme_id=model.id,
+                agent_id=agent_id,
+                role=(role or AgentOrganismeRole.MEMBRE).value,
+            ).save()
         return model
