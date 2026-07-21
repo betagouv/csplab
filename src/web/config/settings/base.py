@@ -197,8 +197,7 @@ STATIC_ROOT = BASE_DIR / "static_collected"
 
 STORAGES = {
     "staticfiles": {
-        # TODO - reactivate Manifest
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "config.storages.ViteCompressedManifestStaticFilesStorage",
     },
 }
 
