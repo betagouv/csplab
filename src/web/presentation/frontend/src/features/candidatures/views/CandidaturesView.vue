@@ -14,10 +14,9 @@ import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContai
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
-import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
 import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
-import { provideCandidatures } from '../composables/useCandidatures'
+import { useCandidatures } from '../composables/useCandidatures'
 import { formatRecrutementMeta } from '../format'
 
 const route = useRoute()
@@ -25,10 +24,11 @@ const recrutementUuid = route.params.recrutementUuid as string
 
 const {
   recrutementDetail,
+  intitule,
   pending,
   error,
   filters,
-} = provideCandidatures(TEMP_ORGANISME_UUID, recrutementUuid)
+} = useCandidatures()
 
 const showSkeleton = useMinimumPending(pending)
 
@@ -56,12 +56,12 @@ function applyFilters() {
   closeFiltersDrawer()
 }
 
-const title = computed(() => recrutementDetail.value?.intitule ?? 'Candidatures')
+const title = computed(() => intitule.value ?? 'Candidatures')
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
   { label: 'Accueil', to: { name: 'home' } },
   { label: 'Mes recrutements', to: { name: 'mes-recrutements' } },
-  ...(recrutementDetail.value ? [{ label: recrutementDetail.value.intitule }] : []),
+  ...(intitule.value ? [{ label: intitule.value }] : []),
 ])
 
 const metaItems = computed(() =>
@@ -96,7 +96,7 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
     >
       <template #title>
         <CspSkeleton
-          v-if="showSkeleton"
+          v-if="showSkeleton && !intitule"
           width="20rem"
           height="2rem"
         />
