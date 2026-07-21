@@ -1,5 +1,6 @@
 from django.db import models
 
+from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.users.models import (
@@ -54,6 +55,11 @@ class RecrutementAgentModel(BaseDatedModel):
         on_delete=models.PROTECT,
         db_column="agent_id",
         related_name="recrutements_agents",
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=[(r.value, r.value) for r in AgentRecrutementRole],
+        default=AgentRecrutementRole.CONTRIBUTEUR.value,
     )
 
     class Meta:

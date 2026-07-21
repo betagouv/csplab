@@ -41,6 +41,7 @@ class ListerMesRecrutementsUsecase(
     def execute(
         self, query: ListerMesRecrutementsQuery
     ) -> IPage[RecrutementActifsReadModel] | IPage[RecrutementArchivesReadModel]:
+        # TODO : handle list of recruitments which agent has a role on
         self.logger.info(
             f"List mes recrutements pour l'organisme_id={query.organisme_id}",
         )
