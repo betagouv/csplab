@@ -78,10 +78,15 @@ def test_every_organisme_action_currently_requires_responsable(
         )
 
 
-def test_verifier_responsable_passes_when_staff_even_if_not_responsable() -> None:
+def test_est_autorise_passes_when_staff_even_if_not_responsable() -> None:
     repository = Mock(spec=IOrganismeAgentRepository)
     service = OrganismePermissionService(organisme_agent_repository=repository)
 
-    service.verifier_responsable(organisme_id=uuid4(), agent_id=uuid4(), est_staff=True)
+    service.est_autorise(
+        action=OrganismeAction.GET_ORGANISME,
+        organisme_id=uuid4(),
+        agent_id=uuid4(),
+        est_staff=True,
+    )
 
     repository.get_role.assert_not_called()
