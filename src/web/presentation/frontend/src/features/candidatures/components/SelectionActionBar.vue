@@ -7,10 +7,15 @@ defineProps<{
 
 const emit = defineEmits<{
   changerEtape: []
+  refuser: []
 }>()
 
 function handleChangerEtape(): void {
   emit('changerEtape')
+}
+
+function handleRefuser(): void {
+  emit('refuser')
 }
 </script>
 
@@ -27,6 +32,13 @@ function handleChangerEtape(): void {
         variant="secondary"
         size="sm"
         @click="handleChangerEtape"
+      />
+      <CspButton
+        label="Refuser"
+        icon="ri:close-line"
+        variant="secondary"
+        size="sm"
+        @click="handleRefuser"
       />
     </div>
   </div>

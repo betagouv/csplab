@@ -66,6 +66,25 @@ function handleOpenChangerEtape(): void {
   isDrawerOpen.value = true
 }
 
+function handleRefuser(): void {
+  const refusEtape = etapes.value.find(e => e.categorie === 'REFUS')
+  if (!refusEtape)
+    return
+
+  const candidaturesByEtape = new Map<string, string[]>()
+
+  for (const [etapeUuid, uuids] of selectedByEtape.value) {
+    candidaturesByEtape.set(etapeUuid, [...uuids])
+  }
+
+  moveCandidaturesBatch({
+    candidaturesByEtape,
+    targetColumnId: refusEtape.etape_uuid,
+  })
+
+  clearSelection()
+}
+
 function handleConfirmBatchMove(targetEtapeUuid: string): void {
   const candidaturesByEtape = new Map<string, string[]>()
 
@@ -125,6 +144,7 @@ const countLabel = computed(() => {
       v-else
       :selected-count="selectedCount"
       @changer-etape="handleOpenChangerEtape"
+      @refuser="handleRefuser"
     />
     <CandidaturesKanbanBoard
       :etapes="filteredEtapes"
