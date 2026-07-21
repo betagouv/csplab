@@ -247,14 +247,16 @@ describe('useCandidatures', () => {
 
       expect(context.intitule.value).toBeNull()
     })
+  })
 
+  describe('moveCandidaturesBatch', () => {
     it('moves multiple candidatures between etapes in batch', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
-      const sourceColumnId = 'cccccccc-0001-0001-0001-000000000001'
-      const targetColumnId = 'cccccccc-0001-0001-0001-000000000002'
+      const sourceColumnId = ETAPE_RECEPTION
+      const targetColumnId = ETAPE_PRESELECTION
 
       const candidaturesByEtape = new Map([
         [sourceColumnId, ['dddddddd-0001-0001-0001-000000000001', 'dddddddd-0001-0001-0001-000000000002']],
@@ -262,22 +264,22 @@ describe('useCandidatures', () => {
 
       context.moveCandidaturesBatch({ candidaturesByEtape, targetColumnId })
 
-      const sourceEtape = context.etapes.value.find(e => e.etape_uuid === sourceColumnId)
-      const targetEtape = context.etapes.value.find(e => e.etape_uuid === targetColumnId)
+      const sourceEtape = context.etapes.value.find(etape => etape.etape_uuid === sourceColumnId)
+      const targetEtape = context.etapes.value.find(etape => etape.etape_uuid === targetColumnId)
 
       expect(sourceEtape?.candidatures).toHaveLength(0)
       expect(targetEtape?.candidatures).toHaveLength(3)
     })
 
     it('ignores batch move when target column is unknown', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
       const etapesBefore = structuredClone(context.etapes.value)
 
       const candidaturesByEtape = new Map([
-        ['cccccccc-0001-0001-0001-000000000001', ['dddddddd-0001-0001-0001-000000000001']],
+        [ETAPE_RECEPTION, ['dddddddd-0001-0001-0001-000000000001']],
       ])
 
       context.moveCandidaturesBatch({ candidaturesByEtape, targetColumnId: 'unknown-target' })
@@ -286,7 +288,7 @@ describe('useCandidatures', () => {
     })
 
     it('ignores batch move when source column is unknown', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
@@ -298,18 +300,18 @@ describe('useCandidatures', () => {
 
       context.moveCandidaturesBatch({
         candidaturesByEtape,
-        targetColumnId: 'cccccccc-0001-0001-0001-000000000002',
+        targetColumnId: ETAPE_PRESELECTION,
       })
 
       expect(context.etapes.value).toEqual(etapesBefore)
     })
 
     it('ignores candidatures from same column as target in batch move', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
-      const targetColumnId = 'cccccccc-0001-0001-0001-000000000002'
+      const targetColumnId = ETAPE_PRESELECTION
 
       const candidaturesByEtape = new Map([
         [targetColumnId, ['dddddddd-0001-0001-0001-000000000005']],
@@ -323,12 +325,12 @@ describe('useCandidatures', () => {
     })
 
     it('ignores unknown candidatures in batch move', async () => {
-      const context = provideCandidatures(ORGANISME_UUID, RECRUTEMENT_UUID)
+      const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pending.value).toBe(false))
 
-      const sourceColumnId = 'cccccccc-0001-0001-0001-000000000001'
-      const targetColumnId = 'cccccccc-0001-0001-0001-000000000002'
+      const sourceColumnId = ETAPE_RECEPTION
+      const targetColumnId = ETAPE_PRESELECTION
 
       const candidaturesByEtape = new Map([
         [sourceColumnId, ['unknown-card-1', 'unknown-card-2']],
