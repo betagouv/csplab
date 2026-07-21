@@ -27,6 +27,8 @@ class OrganismePermissionService:
         est_staff: bool,
     ) -> None:
         role_requis = _ROLES_REQUIS[action]
+        if est_staff:
+            return
         role = self._organisme_agent_repository.get_role(
             organisme_id=organisme_id, agent_id=agent_id
         )

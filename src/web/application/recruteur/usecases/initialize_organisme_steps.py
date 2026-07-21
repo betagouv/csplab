@@ -17,6 +17,7 @@ from domain.recruteur.value_objects.organisme_action import OrganismeAction
 class InitializeOrganismeStepsCommand:
     organisme_id: UUID
     utilisateur_id: UUID
+    est_staff: bool = False
 
 
 class InitializeOrganismeStepsUsecase(
@@ -35,6 +36,7 @@ class InitializeOrganismeStepsUsecase(
             action=OrganismeAction.INITIALIZE_ORGANISME_STEPS,
             organisme_id=command.organisme_id,
             agent_id=command.utilisateur_id,
+            est_staff=command.est_staff,
         )
         organisme = self.organisme_repository.get_by_id(command.organisme_id)
         organisme.initialiser_etapes()

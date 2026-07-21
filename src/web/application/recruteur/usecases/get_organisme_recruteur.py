@@ -17,6 +17,7 @@ from domain.recruteur.value_objects.organisme_action import OrganismeAction
 class GetOrganismeRecruteurQuery:
     organisme_id: UUID
     utilisateur_id: UUID
+    est_staff: bool = False
 
 
 class GetOrganismeRecruteurUsecase(
@@ -35,5 +36,6 @@ class GetOrganismeRecruteurUsecase(
             action=OrganismeAction.GET_ORGANISME,
             organisme_id=command.organisme_id,
             agent_id=command.utilisateur_id,
+            est_staff=command.est_staff,
         )
         return self.organisme_repository.get_by_id(command.organisme_id)
