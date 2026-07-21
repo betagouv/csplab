@@ -49,7 +49,7 @@ class TalentsoftOffer(BaseModel):
     organisationName: str
     organisationDescription: str
     organisationLogoUrl: str
-    modificationDate: Optional[str] = None
+    modificationDate: str
     startPublicationDate: str
     offerUrl: str
 
