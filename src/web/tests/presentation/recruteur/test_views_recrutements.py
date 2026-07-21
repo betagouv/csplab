@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
+import pytest
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
@@ -55,23 +56,26 @@ UNKNOWN_RECRUTEMENT_LISTE_URL = reverse(
 )
 
 
+@pytest.fixture
+def container():
+    with patch("presentation.recruteur.views.recrutements.recruteur_container") as mock:
+        instance = MagicMock()
+        mock.return_value = instance
+        yield instance
+
+
 class TestRecrutementsActifsView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(RECRUTEMENTS_ACTIFS_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @patch("presentation.recruteur.views.recrutements.recruteur_container")
-    def test_pagination_second_page(
-        self, mock_recruteur_container, authenticated_client
-    ):
-        mock_container = MagicMock()
-        mock_usecase = mock_container.lister_mes_recrutements_usecase.return_value
+    def test_pagination_second_page(self, container, authenticated_client):
+        mock_usecase = container.lister_mes_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
         mock_usecase.execute.return_value.count.return_value = 6
         mock_usecase.execute.return_value.slice.return_value = [
             RecrutementFactory.create_actif_read_model() for _ in range(2)
         ]
-        mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL + "?size=2&page=2")
         assert response.status_code == status.HTTP_200_OK
@@ -80,12 +84,8 @@ class TestRecrutementsActifsView:
         assert data["next"] is not None
         assert data["previous"] is not None
 
-    @patch("presentation.recruteur.views.recrutements.recruteur_container")
-    def test_candidatures_structure(
-        self, mock_recruteur_container, authenticated_client
-    ):
-        mock_container = MagicMock()
-        mock_usecase = mock_container.lister_mes_recrutements_usecase.return_value
+    def test_candidatures_structure(self, container, authenticated_client):
+        mock_usecase = container.lister_mes_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
         mock_usecase.execute.return_value.count.return_value = 1
         mock_usecase.execute.return_value.slice.return_value = [
@@ -93,7 +93,6 @@ class TestRecrutementsActifsView:
                 candidatures=CandidaturesCompteurDto(total=5, a_traiter=2, en_cours=1),
             )
         ]
-        mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
         data = response.json()
@@ -102,10 +101,8 @@ class TestRecrutementsActifsView:
         assert "a_traiter" in candidatures
         assert "en_cours" in candidatures
 
-    @patch("presentation.recruteur.views.recrutements.recruteur_container")
-    def test_returns_actifs(self, mock_recruteur_container, authenticated_client):
-        mock_container = MagicMock()
-        mock_usecase = mock_container.lister_mes_recrutements_usecase.return_value
+    def test_returns_actifs(self, container, authenticated_client):
+        mock_usecase = container.lister_mes_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
         mock_usecase.execute.return_value.count.return_value = 1
         mock_usecase.execute.return_value.slice.return_value = [
@@ -116,7 +113,6 @@ class TestRecrutementsActifsView:
                 agents=[AgentDto(nom="Marie Dupont")],
             )
         ]
-        mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
         assert response.status_code == status.HTTP_200_OK
@@ -132,16 +128,10 @@ class TestRecrutementsActifsView:
         assert "derniere_activite" in first
         assert "candidatures" in first
 
-    @patch("presentation.recruteur.views.recrutements.recruteur_container")
-    def test_returns_404_for_unknown_organisme(
-        self, mock_recruteur_container, authenticated_client
-    ):
+    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
-
-        mock_container = MagicMock()
-        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
+        container.lister_mes_recrutements_usecase.return_value = mock_usecase
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -183,18 +173,13 @@ class TestRecrutementsArchivesView:
         response = api_client.get(RECRUTEMENTS_ARCHIVES_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @patch("presentation.recruteur.views.recrutements.recruteur_container")
-    def test_pagination_second_page(
-        self, mock_recruteur_container, authenticated_client
-    ):
-        mock_container = MagicMock()
-        mock_usecase = mock_container.lister_mes_recrutements_usecase.return_value
+    def test_pagination_second_page(self, container, authenticated_client):
+        mock_usecase = container.lister_mes_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
         mock_usecase.execute.return_value.count.return_value = 3
         mock_usecase.execute.return_value.slice.return_value = [
             RecrutementFactory.create_archive_read_model() for _ in range(2)
         ]
-        mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(
             RECRUTEMENTS_ARCHIVES_URL + "?size=2&page=1"
@@ -205,10 +190,8 @@ class TestRecrutementsArchivesView:
         assert data["next"] is not None
         assert data["previous"] is None
 
-    @patch("presentation.recruteur.views.recrutements.recruteur_container")
-    def test_returns_archives(self, mock_recruteur_container, authenticated_client):
-        mock_container = MagicMock()
-        mock_usecase = mock_container.lister_mes_recrutements_usecase.return_value
+    def test_returns_archives(self, container, authenticated_client):
+        mock_usecase = container.lister_mes_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
         mock_usecase.execute.return_value.count.return_value = 1
         mock_usecase.execute.return_value.slice.return_value = [
@@ -221,7 +204,6 @@ class TestRecrutementsArchivesView:
                 recrute="Sophie Leblanc",
             )
         ]
-        mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
         assert response.status_code == status.HTTP_200_OK
@@ -237,16 +219,10 @@ class TestRecrutementsArchivesView:
         assert "finalise" in first
         assert "recrute" in first
 
-    @patch("presentation.recruteur.views.recrutements.recruteur_container")
-    def test_returns_404_for_unknown_organisme(
-        self, mock_recruteur_container, authenticated_client
-    ):
+    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
-
-        mock_container = MagicMock()
-        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
+        container.lister_mes_recrutements_usecase.return_value = mock_usecase
 
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
