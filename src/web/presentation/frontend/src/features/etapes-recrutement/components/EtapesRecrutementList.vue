@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EtapeRecrutement } from '../types'
-import { onMounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCallout from '@/components/base/CspCallout/CspCallout.vue'
@@ -21,7 +21,6 @@ const {
   saving,
   error,
   isEtapeLocked,
-  fetchEtapes,
   reorderEtapes,
   addEtape,
   addEtapeAt,
@@ -44,8 +43,6 @@ watch(error, (err) => {
     description: 'Une erreur est survenue. Veuillez réessayer.',
   })
 })
-
-onMounted(fetchEtapes)
 
 type ModalMode = 'add' | 'add-at' | 'rename'
 
