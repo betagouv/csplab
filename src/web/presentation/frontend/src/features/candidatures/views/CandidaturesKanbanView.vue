@@ -2,6 +2,8 @@
 import type { EtapeRecrutementDetailedCandidatures } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
 import { computed, ref, toRef } from 'vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
@@ -37,6 +39,7 @@ const {
 
 const boardId = computed(() => `kanban-${recrutementUuid.value}`)
 const isDrawerOpen = ref(false)
+const isRefusDialogOpen = ref(false)
 
 const sourceEtape = computed(() => {
   if (!currentEtapeUuid.value)
@@ -67,6 +70,10 @@ function handleOpenChangerEtape(): void {
 }
 
 function handleRefuser(): void {
+  isRefusDialogOpen.value = true
+}
+
+function handleConfirmRefus(): void {
   const refusEtape = etapes.value.find(e => e.categorie === 'REFUS')
   if (!refusEtape)
     return
@@ -83,6 +90,7 @@ function handleRefuser(): void {
   })
 
   clearSelection()
+  isRefusDialogOpen.value = false
 }
 
 function handleConfirmBatchMove(targetEtapeUuid: string): void {
@@ -163,6 +171,29 @@ const countLabel = computed(() => {
       @confirm="handleConfirmBatchMove"
       @toggle-candidature="handleToggleCandidature"
     />
+
+    <CspDialog
+      :open="isRefusDialogOpen"
+      size="sm"
+      title="Refus de candidature"
+      :description="`Vous êtes sur le point de refuser ${selectedCount} candidature${selectedCount > 1 ? 's' : ''}. Cette action n'est pas définitive, néanmoins le${selectedCount > 1 ? 's' : ''} candidat${selectedCount > 1 ? 's' : ''} ser${selectedCount > 1 ? 'ont' : 'a'} informé${selectedCount > 1 ? 's' : ''} du changement de statut de ${selectedCount > 1 ? 'leur' : 'sa'} candidature.`"
+      @update:open="isRefusDialogOpen = $event"
+    >
+      <template #footer>
+        <div class="refus-dialog__footer">
+          <CspButton
+            label="Annuler"
+            variant="secondary"
+            @click="isRefusDialogOpen = false"
+          />
+          <CspButton
+            label="Valider"
+            variant="primary"
+            @click="handleConfirmRefus"
+          />
+        </div>
+      </template>
+    </CspDialog>
   </div>
 </template>
 
@@ -182,5 +213,10 @@ const countLabel = computed(() => {
 
 .candidatures-kanban-content__count-skeleton {
   margin: var(--csp-space-1) 0 calc(var(--csp-space-4) + 0.15rem);
+}
+
+.refus-dialog__footer {
+  display: flex;
+  gap: var(--csp-space-3);
 }
 </style>
