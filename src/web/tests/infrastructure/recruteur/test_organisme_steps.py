@@ -14,6 +14,9 @@ from application.recruteur.usecases.update_organisme_steps import (
 )
 from config.app_config import AppConfig
 from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.recruteur.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
@@ -32,6 +35,9 @@ def recruteur_integration_container_fixture(db):
     container.app_config.override(app_config)
     container.logger_service.override(logger_service)
     container.audit_log_writer.override(MagicMock(spec=AuditLogWriter))
+    container.organisme_permission_service.override(
+        MagicMock(spec=OrganismePermissionService)
+    )
     return container
 
 
@@ -40,7 +46,11 @@ def test_get_organisme_steps(recruteur_integration_container):
     organisme_model.save()
     usecase = recruteur_integration_container.get_organisme_recruteur_usecase()
 
-    organisme = usecase.execute(command=GetOrganismeRecruteurQuery(organisme_model.id))
+    organisme = usecase.execute(
+        command=GetOrganismeRecruteurQuery(
+            organisme_id=organisme_model.id, utilisateur_id=uuid4()
+        )
+    )
     events = organisme.collect_events()
     assert len(events) == 0
     assert organisme.entity_id == organisme_model.id
@@ -51,7 +61,9 @@ def test_initialize_organisme_steps(recruteur_integration_container):
     usecase = recruteur_integration_container.initialize_organisme_steps_usecase()
 
     organisme = usecase.execute(
-        command=InitializeOrganismeStepsCommand(organisme_id=organisme_model.id)
+        command=InitializeOrganismeStepsCommand(
+            organisme_id=organisme_model.id, utilisateur_id=uuid4()
+        )
     )
 
     events = organisme.collect_events()

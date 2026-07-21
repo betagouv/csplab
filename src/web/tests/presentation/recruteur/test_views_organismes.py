@@ -11,6 +11,7 @@ from domain.recruteur.errors.erreur_recrutement import (
     ConfigurationEtapesInvalide,
     ErreurRecruteur,
 )
+from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -78,6 +79,22 @@ class TestOrganismeView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": "Not found."}
 
+    @patch("presentation.recruteur.views.organismes.recruteur_container")
+    def test_returns_403_when_not_responsable(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
+
+        mock_container = MagicMock()
+        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"detail": "Forbidden."}
+
 
 class TestEtapesRecrutementOrganismeView:
     def test_anonymous_access_is_unauthorized(self, api_client):
@@ -99,6 +116,22 @@ class TestEtapesRecrutementOrganismeView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"organisme_uuid": "Not found."}
+
+    @patch("presentation.recruteur.views.organismes.recruteur_container")
+    def test_returns_403_when_not_responsable(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
+
+        mock_container = MagicMock()
+        mock_container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(ETAPES_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"detail": "Forbidden."}
 
     @patch("presentation.recruteur.views.organismes.recruteur_container")
     def test_authenticated_access_is_ok(
@@ -166,6 +199,22 @@ class TestInitEtapesRecrutementOrganismeView:
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
+
+    @patch("presentation.recruteur.views.organismes.recruteur_container")
+    def test_returns_403_when_not_responsable(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
+
+        mock_container = MagicMock()
+        mock_container.initialize_organisme_steps_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"detail": "Forbidden."}
 
     @patch("presentation.recruteur.views.organismes.recruteur_container")
     def test_authenticated_post_initialize_steps(
@@ -320,6 +369,29 @@ class TestPutEtapesRecrutementOrganismeView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"organisme_uuid": "Not found."}
+
+    @patch("presentation.recruteur.views.organismes.recruteur_container")
+    def test_put_returns_403_when_not_responsable(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
+
+        mock_container = MagicMock()
+        mock_container.update_organisme_steps_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        payload = [
+            {"nom": "Réception", "categorie": "ENTREE"},
+            {"nom": "Entretien", "categorie": "EN_COURS"},
+            {"nom": "Refus", "categorie": "REFUS"},
+            {"nom": "Recrutement", "categorie": "ACCEPTE"},
+        ]
+
+        response = authenticated_client.put(ETAPES_URL, payload, format="json")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"detail": "Forbidden."}
 
     @patch("presentation.recruteur.views.organismes.recruteur_container")
     def test_put_returns_500_on_unexpected_error(
