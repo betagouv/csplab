@@ -7,6 +7,7 @@ import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.v
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
 import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
+import SelectionActionBar from '../components/SelectionActionBar.vue'
 import { useCandidatures } from '../composables/useCandidatures'
 import { useKanbanSelection } from '../composables/useKanbanSelection'
 
@@ -59,12 +60,10 @@ function handleMove(event: KanbanDropEvent) {
 
 function handleToggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
   toggleColumnSelection(etape)
-  if (hasSelection.value) {
-    isDrawerOpen.value = true
-  }
-  else {
-    isDrawerOpen.value = false
-  }
+}
+
+function handleOpenChangerEtape(): void {
+  isDrawerOpen.value = true
 }
 
 function handleConfirmBatchMove(targetEtapeUuid: string): void {
@@ -85,26 +84,15 @@ function handleConfirmBatchMove(targetEtapeUuid: string): void {
 
 function handleDrawerClose(open: boolean): void {
   isDrawerOpen.value = open
-  if (!open) {
-    clearSelection()
-  }
 }
 
 function handleToggleCandidature(candidatureUuid: string, etapeUuid: string): void {
   toggleCandidatureSelection(candidatureUuid, etapeUuid)
-  if (!hasSelection.value) {
-    isDrawerOpen.value = false
-  }
 }
 
 const countLabel = computed(() => {
   const count = filteredEtapes.value.reduce((sum, etape) => sum + etape.candidatures.length, 0)
   return `${count} candidature${count > 1 ? 's' : ''}`
-})
-
-const selectedCountLabel = computed(() => {
-  const count = selectedCount.value
-  return `${count} candidat${count > 1 ? 's' : ''} sélectionné${count > 1 ? 's' : ''}`
 })
 </script>
 
@@ -133,12 +121,11 @@ const selectedCountLabel = computed(() => {
     >
       {{ countLabel }}
     </p>
-    <p
+    <SelectionActionBar
       v-else
-      class="candidatures-kanban-content__selection"
-    >
-      {{ selectedCountLabel }}
-    </p>
+      :selected-count="selectedCount"
+      @changer-etape="handleOpenChangerEtape"
+    />
     <CandidaturesKanbanBoard
       :etapes="filteredEtapes"
       :board-id="boardId"
@@ -175,15 +162,5 @@ const selectedCountLabel = computed(() => {
 
 .candidatures-kanban-content__count-skeleton {
   margin: var(--csp-space-1) 0 calc(var(--csp-space-4) + 0.15rem);
-}
-
-.candidatures-kanban-content__selection {
-  margin: 0 0 var(--csp-space-4);
-  padding: var(--csp-space-3) var(--csp-space-4);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--text-default-grey);
-  background-color: var(--background-alt-grey);
-  border-radius: 0.25rem;
 }
 </style>
