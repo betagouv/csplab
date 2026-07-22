@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from time import time
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class TalentsoftTokenResponse(BaseModel):
@@ -86,6 +87,13 @@ class TalentsoftOffer(BaseModel):
     urlRedirectionApplicant: Optional[str] = None
 
     customFields: Optional[TalentsoftCustomFields] = None
+
+    @field_validator("modificationDate", mode="before")
+    @classmethod
+    def default_modification_date_to_now(cls, value: Optional[str]) -> str:
+        if value is None:
+            return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        return value
 
 
 class TalentsoftPagination(BaseModel):
