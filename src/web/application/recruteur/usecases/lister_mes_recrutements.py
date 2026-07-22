@@ -13,6 +13,10 @@ from application.recruteur.services.recrutement_query_service_interface import (
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
+from domain.recruteur.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
+from domain.recruteur.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 
 
@@ -20,6 +24,8 @@ from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 class ListerMesRecrutementsQuery:
     organisme_id: UUID
     statut: StatutRecrutement
+    utilisateur_id: UUID
+    est_staff: bool = False
 
 
 class ListerMesRecrutementsUsecase(
@@ -32,11 +38,13 @@ class ListerMesRecrutementsUsecase(
         self,
         recrutement_query_service: IRecrutementQueryService,
         organisme_repository: IOrganismeRepository,
+        organisme_permission_service: OrganismePermissionService,
         logger: ILogger,
     ):
         self.logger = logger
         self.recrutement_query_service = recrutement_query_service
         self.organisme_repository = organisme_repository
+        self.organisme_permission_service = organisme_permission_service
 
     def execute(
         self, query: ListerMesRecrutementsQuery
@@ -46,7 +54,12 @@ class ListerMesRecrutementsUsecase(
             f"List mes recrutements pour l'organisme_id={query.organisme_id}",
         )
 
-        # todo replace with rbac
+        self.organisme_permission_service.est_autorise(
+            action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
+            organisme_id=query.organisme_id,
+            agent_id=query.utilisateur_id,
+            est_staff=query.est_staff,
+        )
         self.organisme_repository.get_by_id(query.organisme_id)
 
         if query.statut == StatutRecrutement.ACTIF:

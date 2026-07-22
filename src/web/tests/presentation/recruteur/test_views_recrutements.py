@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+from uuid import UUID
 
 from django.urls import reverse
 from faker import Faker
@@ -9,6 +10,7 @@ from application.recruteur.dtos.recrutement_read_models import (
     CandidaturesCompteurDto,
 )
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 
 fake = Faker()
@@ -146,6 +148,21 @@ class TestRecrutementsActifsView:
         assert response.json() == {"detail": "Not found."}
 
     @patch("presentation.recruteur.views.recrutements.recruteur_container")
+    def test_returns_403_when_not_responsable(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
+
+        mock_container = MagicMock()
+        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"detail": "Forbidden."}
+
+    @patch("presentation.recruteur.views.recrutements.recruteur_container")
     def test_returns_500_on_unexpected_error(
         self, mock_recruteur_container, authenticated_client
     ):
@@ -234,6 +251,21 @@ class TestRecrutementsArchivesView:
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": "Not found."}
+
+    @patch("presentation.recruteur.views.recrutements.recruteur_container")
+    def test_returns_403_when_not_responsable(
+        self, mock_recruteur_container, authenticated_client
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
+
+        mock_container = MagicMock()
+        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
+        mock_recruteur_container.return_value = mock_container
+
+        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"detail": "Forbidden."}
 
     @patch("presentation.recruteur.views.recrutements.recruteur_container")
     def test_returns_500_on_unexpected_error(

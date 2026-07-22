@@ -13,6 +13,7 @@ from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsQuery,
 )
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
@@ -55,6 +56,7 @@ class ListPage(IPage[T], Generic[T]):
             200: RecrutementsActifsSerializer(many=True),
             400: GenericErrorSerializer,
             401: TokenErrorSerializer,
+            403: GenericErrorSerializer,
             404: GenericErrorSerializer,
             500: GenericErrorSerializer,
         },
@@ -73,7 +75,10 @@ class RecrutementsActifsView(APIView):
             list_usecase = self.container.lister_mes_recrutements_usecase()
             result = list_usecase.execute(
                 ListerMesRecrutementsQuery(
-                    organisme_id=organisme_uuid, statut=StatutRecrutement.ACTIF
+                    organisme_id=organisme_uuid,
+                    statut=StatutRecrutement.ACTIF,
+                    utilisateur_id=UUID(request.user.username),
+                    est_staff=request.user.is_staff,
                 )
             )
 
@@ -82,6 +87,8 @@ class RecrutementsActifsView(APIView):
             return paginator.get_paginated_response(
                 RecrutementsActifsSerializer(items, many=True).data
             )
+        except AccesOrganismeRefuse:
+            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
         except OrganismeNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception:
@@ -102,6 +109,7 @@ class RecrutementsActifsView(APIView):
             200: RecrutementsArchivesSerializer(many=True),
             400: GenericErrorSerializer,
             401: TokenErrorSerializer,
+            403: GenericErrorSerializer,
             404: GenericErrorSerializer,
             500: GenericErrorSerializer,
         },
@@ -120,7 +128,10 @@ class RecrutementsArchivesView(APIView):
             list_usecase = self.container.lister_mes_recrutements_usecase()
             result = list_usecase.execute(
                 ListerMesRecrutementsQuery(
-                    organisme_id=organisme_uuid, statut=StatutRecrutement.ARCHIVE
+                    organisme_id=organisme_uuid,
+                    statut=StatutRecrutement.ARCHIVE,
+                    utilisateur_id=UUID(request.user.username),
+                    est_staff=request.user.is_staff,
                 )
             )
 
@@ -130,6 +141,8 @@ class RecrutementsArchivesView(APIView):
                 RecrutementsArchivesSerializer(items, many=True).data
             )
 
+        except AccesOrganismeRefuse:
+            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
         except OrganismeNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception:

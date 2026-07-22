@@ -1,5 +1,6 @@
 from datetime import datetime
-from uuid import UUID
+from unittest.mock import MagicMock
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -7,6 +8,9 @@ from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsQuery,
 )
 from config.app_config import AppConfig
+from domain.recruteur.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -31,6 +35,9 @@ def recruteur_integration_container_fixture(db) -> RecruteurContainer:
     container = RecruteurContainer()
     container.app_config.override(AppConfig.from_django_settings())
     container.logger_service.override(LoggerService())
+    container.organisme_permission_service.override(
+        MagicMock(spec=OrganismePermissionService)
+    )
     return container
 
 
@@ -67,7 +74,9 @@ class TestListerMesRecrutements:
 
         result = usecase.execute(
             ListerMesRecrutementsQuery(
-                organisme_id=organisme.id, statut=StatutRecrutement.ACTIF
+                organisme_id=organisme.id,
+                statut=StatutRecrutement.ACTIF,
+                utilisateur_id=uuid4(),
             )
         )
 
@@ -102,7 +111,9 @@ class TestListerMesRecrutements:
 
         result = usecase.execute(
             ListerMesRecrutementsQuery(
-                organisme_id=organisme.id, statut=StatutRecrutement.ARCHIVE
+                organisme_id=organisme.id,
+                statut=StatutRecrutement.ARCHIVE,
+                utilisateur_id=uuid4(),
             )
         )
 

@@ -134,5 +134,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
         ListerMesRecrutementsUsecase,
         recrutement_query_service=postgres_recrutement_query_service,
         organisme_repository=postgres_organisme_repository,
+        organisme_permission_service=organisme_permission_service,
         logger=logger_service,
     )
