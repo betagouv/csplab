@@ -35,7 +35,7 @@ class CreateOrganismeUsecase(IUseCase[CreateOrganismeCommand, Organisme]):
         self.permission_service = permission_service
 
     def execute(self, input_data: CreateOrganismeCommand) -> Organisme:
-        self.permission_service.est_autorise(est_staff=input_data.est_staff)
+        self.permission_service.verifier_autorisation(est_staff=input_data.est_staff)
         organisme = Organisme.create(
             nom=input_data.nom,
             versant=input_data.versant,
