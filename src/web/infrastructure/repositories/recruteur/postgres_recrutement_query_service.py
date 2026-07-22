@@ -28,13 +28,17 @@ from infrastructure.mappers.queryset_page import QuerySetPage
 
 class PostgresRecrutementQueryService(IRecrutementQueryService):
     def get_actifs_by_organisme(
-        self, organisme_id: UUID
+        self, organisme_id: UUID, agent_id: UUID | None = None
     ) -> QuerySetPage[RecrutementActifsReadModel]:
+        filters: dict = {
+            "organisme_id": organisme_id,
+            "offre__archived_at__isnull": True,
+        }
+        if agent_id is not None:
+            filters["agents_liaisons__agent_id"] = str(agent_id)
+
         qs = (
-            RecrutementModel.objects.filter(
-                organisme_id=organisme_id,
-                offre__archived_at__isnull=True,
-            )
+            RecrutementModel.objects.filter(**filters)
             .select_related("offre")
             .prefetch_related(
                 Prefetch(
@@ -91,13 +95,17 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
         return QuerySetPage(qs, mapper=_mapper)
 
     def get_archives_by_organisme(
-        self, organisme_id: UUID
+        self, organisme_id: UUID, agent_id: UUID | None = None
     ) -> QuerySetPage[RecrutementArchivesReadModel]:
+        filters: dict = {
+            "organisme_id": organisme_id,
+            "offre__archived_at__isnull": False,
+        }
+        if agent_id is not None:
+            filters["agents_liaisons__agent_id"] = str(agent_id)
+
         qs = (
-            RecrutementModel.objects.filter(
-                organisme_id=organisme_id,
-                offre__archived_at__isnull=False,
-            )
+            RecrutementModel.objects.filter(**filters)
             .select_related("offre")
             .prefetch_related(
                 Prefetch(

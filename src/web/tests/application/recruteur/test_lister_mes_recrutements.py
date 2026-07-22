@@ -72,7 +72,7 @@ class TestListerMesRecrutements:
         )
 
         assert result == recrutements_actifs
-        service.get_actifs_by_organisme.assert_called_once_with(organisme_id)
+        service.get_actifs_by_organisme.assert_called_once_with(organisme_id, None)
         organisme_repository.get_by_id.assert_called_once_with(organisme_id)
 
     def test_lister_mes_recrutements_archives(
@@ -93,7 +93,7 @@ class TestListerMesRecrutements:
         )
 
         assert result == recrutements_archives
-        service.get_archives_by_organisme.assert_called_once_with(organisme_id)
+        service.get_archives_by_organisme.assert_called_once_with(organisme_id, None)
         organisme_repository.get_by_id.assert_called_once_with(organisme_id)
 
     def test_raise_organisme_not_found(self, service, organisme_repository, usecase):

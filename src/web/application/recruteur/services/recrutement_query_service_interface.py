@@ -11,8 +11,8 @@ from application.recruteur.dtos.recrutement_read_models import (
 
 class IRecrutementQueryService(Protocol):
     def get_actifs_by_organisme(
-        self, organisme_id: UUID
+        self, organisme_id: UUID, agent_id: UUID | None = None
     ) -> IPage[RecrutementActifsReadModel]: ...
     def get_archives_by_organisme(
-        self, organisme_id: UUID
+        self, organisme_id: UUID, agent_id: UUID | None = None
     ) -> IPage[RecrutementArchivesReadModel]: ...
