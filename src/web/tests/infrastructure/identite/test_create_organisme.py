@@ -29,6 +29,7 @@ def test_create_organisme(identite_integration_container):
         localisation=None,
         siret=SIRET("19754687200015"),
         parent_id=None,
+        est_staff=True,
     )
 
     organisme = identite_integration_container.create_organisme_usecase().execute(
@@ -49,6 +50,7 @@ def test_create_organisme_avec_siret(identite_integration_container):
         localisation=None,
         siret=SIRET("19754687200015"),
         parent_id=None,
+        est_staff=True,
     )
 
     organisme = identite_integration_container.create_organisme_usecase().execute(

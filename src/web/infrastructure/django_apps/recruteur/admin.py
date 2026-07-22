@@ -101,6 +101,7 @@ class OrganismeAdmin(admin.ModelAdmin):
                 localisation=localisation,
                 siret=SIRET(siret_raw),
                 parent_id=form.cleaned_data.get("parent_id"),
+                est_staff=request.user.is_staff,
             )
             container = create_identite_container()
             organisme = container.create_organisme_usecase().execute(command)

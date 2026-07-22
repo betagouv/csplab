@@ -10,6 +10,9 @@ from application.identite.usecases.log_utilisateur_connexion import (
     LogUtilisateurConnexionUsecase,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.identite.services.identite_permission_service import (
+    OrganismeCreationPermissionService,
+)
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -63,7 +66,12 @@ class IdentiteContainer(containers.DeclarativeContainer):
         LogUtilisateurConnexionUsecase, audit_log_writer=audit_log_writer
     )
 
+    organisme_creation_permission_service = providers.Factory(
+        OrganismeCreationPermissionService
+    )
+
     create_organisme_usecase = providers.Factory(
         CreateOrganismeUsecase,
         organisme_repository=postgres_organisme_repository,
+        permission_service=organisme_creation_permission_service,
     )
