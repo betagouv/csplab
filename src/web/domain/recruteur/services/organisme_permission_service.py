@@ -16,7 +16,19 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.LISTER_MES_RECRUTEMENTS: frozenset(
         {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
     ),
+    OrganismeAction.VOIR_DETAIL_RECRUTEMENT: frozenset(
+        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+    ),
 }
+
+# Actions pour lesquelles le statut staff dispense d'un rôle réel sur l'organisme
+_AUTORISE_POUR_STAFF: frozenset[OrganismeAction] = frozenset(
+    {
+        OrganismeAction.GET_ORGANISME,
+        OrganismeAction.INITIALIZE_ORGANISME_STEPS,
+        OrganismeAction.UPDATE_ORGANISME_STEPS,
+    }
+)
 
 
 class OrganismePermissionService:
@@ -31,7 +43,7 @@ class OrganismePermissionService:
         agent_id: UUID,
         est_staff: bool,
     ) -> AgentOrganismeRole | None:
-        if est_staff:
+        if est_staff and action in _AUTORISE_POUR_STAFF:
             return None
         roles_requis = _ROLES_REQUIS[action]
         role = self._organisme_agent_repository.get_role(

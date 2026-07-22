@@ -13,128 +13,110 @@ from domain.recruteur.services.organisme_permission_service import (
 from domain.recruteur.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 
+RESPONSABLE_ACTIONS = [
+    OrganismeAction.GET_ORGANISME,
+    OrganismeAction.INITIALIZE_ORGANISME_STEPS,
+    OrganismeAction.UPDATE_ORGANISME_STEPS,
+]
+RESPONSABLE_AND_MEMBRE_ACTIONS = [
+    OrganismeAction.LISTER_MES_RECRUTEMENTS,
+    OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+]
+STAFF_BYPASS_ACTIONS = [
+    OrganismeAction.GET_ORGANISME,
+    OrganismeAction.INITIALIZE_ORGANISME_STEPS,
+    OrganismeAction.UPDATE_ORGANISME_STEPS,
+]
 
-def test_est_autorise_passes_when_agent_is_responsable() -> None:
-    organisme_id = uuid4()
-    agent_id = uuid4()
+
+def _service(
+    role: AgentOrganismeRole | None,
+) -> tuple[OrganismePermissionService, Mock]:
     repository = Mock(spec=IOrganismeAgentRepository)
-    repository.get_role.return_value = AgentOrganismeRole.RESPONSABLE
-    service = OrganismePermissionService(organisme_agent_repository=repository)
-
-    result = service.est_autorise(
-        action=OrganismeAction.GET_ORGANISME,
-        organisme_id=organisme_id,
-        agent_id=agent_id,
-        est_staff=False,
-    )
-
-    assert result == AgentOrganismeRole.RESPONSABLE
-    repository.get_role.assert_called_once_with(
-        organisme_id=organisme_id, agent_id=agent_id
-    )
+    repository.get_role.return_value = role
+    return OrganismePermissionService(organisme_agent_repository=repository), repository
 
 
-def test_est_autorise_raises_when_agent_is_membre() -> None:
-    repository = Mock(spec=IOrganismeAgentRepository)
-    repository.get_role.return_value = AgentOrganismeRole.MEMBRE
-    service = OrganismePermissionService(organisme_agent_repository=repository)
+class TestEstAutorise:
+    @pytest.mark.parametrize("action", RESPONSABLE_ACTIONS)
+    def test_responsable_only_actions_allow_responsable(
+        self, action: OrganismeAction
+    ) -> None:
+        service, repository = _service(AgentOrganismeRole.RESPONSABLE)
+        organisme_id, agent_id = uuid4(), uuid4()
 
-    with pytest.raises(AccesOrganismeRefuse):
-        service.est_autorise(
-            action=OrganismeAction.GET_ORGANISME,
-            organisme_id=uuid4(),
-            agent_id=uuid4(),
-            est_staff=False,
-        )
-
-
-def test_est_autorise_raises_when_agent_has_no_role() -> None:
-    repository = Mock(spec=IOrganismeAgentRepository)
-    repository.get_role.return_value = None
-    service = OrganismePermissionService(organisme_agent_repository=repository)
-
-    with pytest.raises(AccesOrganismeRefuse):
-        service.est_autorise(
-            action=OrganismeAction.GET_ORGANISME,
-            organisme_id=uuid4(),
-            agent_id=uuid4(),
-            est_staff=False,
-        )
-
-
-def test_verifier_responsable_passes_when_staff_even_if_not_responsable() -> None:
-    repository = Mock(spec=IOrganismeAgentRepository)
-    service = OrganismePermissionService(organisme_agent_repository=repository)
-
-    service.est_autorise(
-        action=OrganismeAction.GET_ORGANISME,
-        organisme_id=uuid4(),
-        agent_id=uuid4(),
-        est_staff=True,
-    )
-
-    repository.get_role.assert_not_called()
-
-
-@pytest.mark.parametrize(
-    "action",
-    [a for a in OrganismeAction if a != OrganismeAction.LISTER_MES_RECRUTEMENTS],
-)
-def test_every_organisme_action_currently_requires_responsable(
-    action: OrganismeAction,
-) -> None:
-    repository = Mock(spec=IOrganismeAgentRepository)
-    repository.get_role.return_value = AgentOrganismeRole.MEMBRE
-    service = OrganismePermissionService(organisme_agent_repository=repository)
-
-    with pytest.raises(AccesOrganismeRefuse):
-        service.est_autorise(
+        result = service.est_autorise(
             action=action,
-            organisme_id=uuid4(),
-            agent_id=uuid4(),
+            organisme_id=organisme_id,
+            agent_id=agent_id,
             est_staff=False,
         )
 
-
-def test_lister_mes_recrutements_allows_responsable() -> None:
-    repository = Mock(spec=IOrganismeAgentRepository)
-    repository.get_role.return_value = AgentOrganismeRole.RESPONSABLE
-    service = OrganismePermissionService(organisme_agent_repository=repository)
-
-    result = service.est_autorise(
-        action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
-        organisme_id=uuid4(),
-        agent_id=uuid4(),
-        est_staff=False,
-    )
-
-    assert result == AgentOrganismeRole.RESPONSABLE
-
-
-def test_lister_mes_recrutements_allows_membre() -> None:
-    repository = Mock(spec=IOrganismeAgentRepository)
-    repository.get_role.return_value = AgentOrganismeRole.MEMBRE
-    service = OrganismePermissionService(organisme_agent_repository=repository)
-
-    result = service.est_autorise(
-        action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
-        organisme_id=uuid4(),
-        agent_id=uuid4(),
-        est_staff=False,
-    )
-
-    assert result == AgentOrganismeRole.MEMBRE
-
-
-def test_lister_mes_recrutements_raises_when_no_role() -> None:
-    repository = Mock(spec=IOrganismeAgentRepository)
-    repository.get_role.return_value = None
-    service = OrganismePermissionService(organisme_agent_repository=repository)
-
-    with pytest.raises(AccesOrganismeRefuse):
-        service.est_autorise(
-            action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
-            organisme_id=uuid4(),
-            agent_id=uuid4(),
-            est_staff=False,
+        assert result == AgentOrganismeRole.RESPONSABLE
+        repository.get_role.assert_called_once_with(
+            organisme_id=organisme_id, agent_id=agent_id
         )
+
+    @pytest.mark.parametrize("action", RESPONSABLE_ACTIONS)
+    @pytest.mark.parametrize("role", [AgentOrganismeRole.MEMBRE, None])
+    def test_responsable_only_actions_reject_non_responsable(
+        self, action: OrganismeAction, role: AgentOrganismeRole | None
+    ) -> None:
+        service, _ = _service(role)
+
+        with pytest.raises(AccesOrganismeRefuse):
+            service.est_autorise(
+                action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=False
+            )
+
+    @pytest.mark.parametrize("action", RESPONSABLE_AND_MEMBRE_ACTIONS)
+    @pytest.mark.parametrize(
+        "role", [AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE]
+    )
+    def test_shared_actions_allow_responsable_and_membre(
+        self, action: OrganismeAction, role: AgentOrganismeRole
+    ) -> None:
+        service, _ = _service(role)
+
+        result = service.est_autorise(
+            action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=False
+        )
+
+        assert result == role
+
+    @pytest.mark.parametrize("action", RESPONSABLE_AND_MEMBRE_ACTIONS)
+    def test_shared_actions_reject_no_role(self, action: OrganismeAction) -> None:
+        service, _ = _service(None)
+
+        with pytest.raises(AccesOrganismeRefuse):
+            service.est_autorise(
+                action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=False
+            )
+
+
+class TestStaffBypass:
+    @pytest.mark.parametrize("action", STAFF_BYPASS_ACTIONS)
+    def test_staff_bypasses_role_check(self, action: OrganismeAction) -> None:
+        service, repository = _service(None)
+
+        result = service.est_autorise(
+            action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=True
+        )
+
+        assert result is None
+        repository.get_role.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "action", [a for a in OrganismeAction if a not in STAFF_BYPASS_ACTIONS]
+    )
+    def test_staff_does_not_bypass_for_other_actions(
+        self, action: OrganismeAction
+    ) -> None:
+        service, repository = _service(None)
+
+        with pytest.raises(AccesOrganismeRefuse):
+            service.est_autorise(
+                action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=True
+            )
+
+        repository.get_role.assert_called_once()
