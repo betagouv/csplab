@@ -369,6 +369,12 @@ class TestRecrutementKanbanView:
 
 
 class TestRecrutementListeView:
+    @pytest.fixture(autouse=True)
+    def _default_usecase(self, container):
+        container.get_recrutement_liste_usecase.return_value.execute.return_value = (
+            STATIC_RECRUTEMENT_DETAIL
+        )
+
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(RECRUTEMENT_LISTE_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -426,6 +432,31 @@ class TestRecrutementListeView:
         data = authenticated_client.get(RECRUTEMENT_LISTE_URL + "?size=20").json()
         assert data["next"] is None
         assert data["previous"] is None
+
+    def test_returns_404_for_unknown_recrutement(self, container, authenticated_client):
+        container.get_recrutement_liste_usecase.return_value.execute.return_value = None
+
+        response = authenticated_client.get(UNKNOWN_RECRUTEMENT_LISTE_URL)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": "Not found."}
+
+    def test_returns_403_when_not_authorized(self, container, authenticated_client):
+        container.get_recrutement_liste_usecase.return_value.execute.side_effect = (
+            AccesOrganismeRefuse(UUID(fake.uuid4()))
+        )
+
+        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"detail": "Forbidden."}
+
+    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
+        container.get_recrutement_liste_usecase.return_value.execute.side_effect = (
+            OrganismeNexistePas("not found")
+        )
+
+        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": "Not found."}
 
     @patch("presentation.recruteur.views.recrutements.RecrutementListeMapper")
     def test_returns_500_on_unexpected_error(self, mock_mapper, authenticated_client):
