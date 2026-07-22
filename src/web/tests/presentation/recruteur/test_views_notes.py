@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
+import pytest
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
@@ -28,37 +29,37 @@ NOTE_DETAIL_URL = reverse(
 )
 
 
+@pytest.fixture
+def container():
+    with patch("presentation.recruteur.views.notes.recruteur_container") as mock:
+        instance = MagicMock()
+        mock.return_value = instance
+        yield instance
+
+
 class TestCandidatureNotesView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         assert api_client.get(NOTES_URL).status_code == status.HTTP_401_UNAUTHORIZED
 
-    @patch("presentation.recruteur.views.notes.recruteur_container")
-    def test_list_notes(self, mock_recruteur_container, authenticated_client):
+    def test_list_notes(self, container, authenticated_client):
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = [
             NoteFactory.create_read_model(message="a"),
             NoteFactory.create_read_model(message="b"),
         ]
-        mock_container = MagicMock()
-        mock_container.lister_notes_candidature_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
+        container.lister_notes_candidature_usecase.return_value = mock_usecase
 
         response = authenticated_client.get(NOTES_URL)
 
         assert response.status_code == status.HTTP_200_OK
         assert [n["message"] for n in response.json()] == ["a", "b"]
 
-    @patch("presentation.recruteur.views.notes.recruteur_container")
-    def test_create_note(
-        self, mock_recruteur_container, authenticated_client, test_user
-    ):
+    def test_create_note(self, container, authenticated_client, test_user):
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = NoteFactory.create_entity(
             message="nouvelle note"
         )
-        mock_container = MagicMock()
-        mock_container.creer_note_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
+        container.creer_note_usecase.return_value = mock_usecase
 
         response = authenticated_client.post(
             NOTES_URL, data={"message": "nouvelle note"}, format="json"
@@ -74,27 +75,17 @@ class TestCandidatureNotesView:
             )
         )
 
-    @patch("presentation.recruteur.views.notes.recruteur_container")
-    def test_create_note_requires_message(
-        self, mock_recruteur_container, authenticated_client
-    ):
-        mock_container = MagicMock()
-        mock_container.creer_note_usecase.return_value = MagicMock()
-        mock_recruteur_container.return_value = mock_container
+    def test_create_note_requires_message(self, container, authenticated_client):
+        container.creer_note_usecase.return_value = MagicMock()
 
         response = authenticated_client.post(NOTES_URL, data={}, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    @patch("presentation.recruteur.views.notes.recruteur_container")
-    def test_create_note_unknown_candidature(
-        self, mock_recruteur_container, authenticated_client
-    ):
+    def test_create_note_unknown_candidature(self, container, authenticated_client):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = CandidatureIntrouvable(uuid4())
-        mock_container = MagicMock()
-        mock_container.creer_note_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
+        container.creer_note_usecase.return_value = mock_usecase
 
         response = authenticated_client.post(
             NOTES_URL, data={"message": "x"}, format="json"
@@ -110,15 +101,12 @@ class TestNoteDetailView:
             == status.HTTP_401_UNAUTHORIZED
         )
 
-    @patch("presentation.recruteur.views.notes.recruteur_container")
-    def test_edit_note(self, mock_recruteur_container, authenticated_client, test_user):
+    def test_edit_note(self, container, authenticated_client, test_user):
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = NoteFactory.create_entity(
             message="modifiée"
         )
-        mock_container = MagicMock()
-        mock_container.editer_note_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
+        container.editer_note_usecase.return_value = mock_usecase
 
         response = authenticated_client.patch(
             NOTE_DETAIL_URL, data={"message": "modifiée"}, format="json"
@@ -133,13 +121,10 @@ class TestNoteDetailView:
             )
         )
 
-    @patch("presentation.recruteur.views.notes.recruteur_container")
-    def test_edit_note_not_found(self, mock_recruteur_container, authenticated_client):
+    def test_edit_note_not_found(self, container, authenticated_client):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = NoteIntrouvable(uuid4())
-        mock_container = MagicMock()
-        mock_container.editer_note_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
+        container.editer_note_usecase.return_value = mock_usecase
 
         response = authenticated_client.patch(
             NOTE_DETAIL_URL, data={"message": "x"}, format="json"
@@ -147,15 +132,10 @@ class TestNoteDetailView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    @patch("presentation.recruteur.views.notes.recruteur_container")
-    def test_delete_note(
-        self, mock_recruteur_container, authenticated_client, test_user
-    ):
+    def test_delete_note(self, container, authenticated_client, test_user):
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = None
-        mock_container = MagicMock()
-        mock_container.supprimer_note_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
+        container.supprimer_note_usecase.return_value = mock_usecase
 
         response = authenticated_client.delete(NOTE_DETAIL_URL)
 
@@ -167,15 +147,10 @@ class TestNoteDetailView:
             )
         )
 
-    @patch("presentation.recruteur.views.notes.recruteur_container")
-    def test_delete_note_not_found(
-        self, mock_recruteur_container, authenticated_client
-    ):
+    def test_delete_note_not_found(self, container, authenticated_client):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = NoteIntrouvable(uuid4())
-        mock_container = MagicMock()
-        mock_container.supprimer_note_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
+        container.supprimer_note_usecase.return_value = mock_usecase
 
         response = authenticated_client.delete(NOTE_DETAIL_URL)
 
