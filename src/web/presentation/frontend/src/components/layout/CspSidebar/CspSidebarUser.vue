@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { logout } from '@/api/utilisateur'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useColorMode } from '@/composables/ui/useColorMode'
 import { useSidebar } from '@/composables/ui/useSidebar'
-import { logout } from '@/api/utilisateur'
 
 interface CspSidebarUserProps {
   name: string
