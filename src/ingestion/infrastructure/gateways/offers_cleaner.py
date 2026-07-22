@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime
 from typing import List, Optional, cast
 from uuid import UUID
@@ -9,6 +10,7 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
+from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
@@ -310,18 +312,29 @@ class OffersCleaner:
         }
         return mapping[client_code]
 
+    _EDUCATION_LEVEL_MAPPING: dict[str, int] = {
+        "A": 1,
+        "B": 2,
+        "C": 3,
+        "D": 4,
+        "E": 5,
+        "F": 6,
+        "G": 7,
+        "H": 8,
+    }
+    _NIV_DIPL_PATTERN = re.compile(r"NIV_DIPL(\d)")
+
     def _map_education_level(self, client_code: str) -> Optional[int]:
-        mapping = {
-            "A": 1,
-            "B": 2,
-            "C": 3,
-            "D": 4,
-            "E": 5,
-            "F": 6,
-            "G": 7,
-            "H": 8,
-        }
-        return mapping[client_code]
+        if client_code in self._EDUCATION_LEVEL_MAPPING:
+            return self._EDUCATION_LEVEL_MAPPING[client_code]
+
+        match = self._NIV_DIPL_PATTERN.fullmatch(client_code)
+        if match:
+            level = int(match.group(1))
+            if Diploma.MIN_DIPLOMA_LEVEL <= level <= Diploma.MAX_DIPLOMA_LEVEL:
+                return level
+
+        return None
 
     def _parse_category(self, category_code: Optional[str]) -> Optional[Category]:
         if category_code in ["CAT-AEF", "CAT-ESD", "CAT-ES"]:
