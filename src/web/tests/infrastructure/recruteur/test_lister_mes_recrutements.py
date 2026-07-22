@@ -4,11 +4,13 @@ from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsQuery,
 )
 from config.app_config import AppConfig
+from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
+    AgentRecrutementRole,
 )
 from domain.recruteur.value_objects.statut_recrutement import (
     StatutRecrutement,
@@ -122,3 +124,94 @@ class TestListerMesRecrutements:
         assert items[0].finalise is True
         assert items[0].recrute is not None
         assert items[0].recrute != ""
+
+
+@pytest.mark.parametrize("statut", [StatutRecrutement.ACTIF, StatutRecrutement.ARCHIVE])
+class TestListerMesRecrutementsRbac:
+    def _create_recrutements(self, agent, organisme, statut):
+        offre_archivee = statut == StatutRecrutement.ARCHIVE
+
+        recrutement_in_org = RecrutementFactory.create_model(
+            offre_archivee=offre_archivee, organisme_id=organisme.id
+        )
+        recrutement_in_org_with_role = RecrutementFactory.create_model(
+            offre_archivee=offre_archivee,
+            organisme_id=organisme.id,
+            agent_ids=(agent.utilisateur_id,),
+            agent_roles={agent.utilisateur_id: AgentRecrutementRole.CONTRIBUTEUR},
+        )
+        recrutement_in_other_org = RecrutementFactory.create_model(
+            offre_archivee=offre_archivee
+        )
+        recrutement_in_other_org_with_role = RecrutementFactory.create_model(
+            offre_archivee=offre_archivee,
+            agent_ids=(agent.utilisateur_id,),
+            agent_roles={agent.utilisateur_id: AgentRecrutementRole.CONTRIBUTEUR},
+        )
+        return (
+            recrutement_in_org,
+            recrutement_in_org_with_role,
+            recrutement_in_other_org,
+            recrutement_in_other_org_with_role,
+        )
+
+    def _lister_recrutements(self, usecase, organisme, agent, statut):
+        return usecase.execute(
+            ListerMesRecrutementsQuery(
+                organisme_id=organisme.id,
+                statut=statut,
+                utilisateur_id=agent.utilisateur_id,
+            )
+        )
+
+    def test_responsable_organisme(self, usecase, statut):
+        agent = AgentFactory.create_model()
+        organisme = OrganismeFactory.create_model(
+            agent_id=agent.utilisateur_id, role=AgentOrganismeRole.RESPONSABLE
+        )
+        (
+            recrutement_in_org,
+            recrutement_in_org_with_role,
+            recrutement_in_other_org,
+            recrutement_in_other_org_with_role,
+        ) = self._create_recrutements(agent, organisme, statut)
+
+        results = self._lister_recrutements(usecase, organisme, agent, statut)
+
+        for recrutement in [recrutement_in_org, recrutement_in_org_with_role]:
+            assert recrutement in results._qs
+        for recrutement in [
+            recrutement_in_other_org,
+            recrutement_in_other_org_with_role,
+        ]:
+            assert recrutement not in results._qs
+
+    def test_membre_organisme(self, usecase, statut):
+        agent = AgentFactory.create_model()
+        organisme = OrganismeFactory.create_model(
+            agent_id=agent.utilisateur_id, role=AgentOrganismeRole.MEMBRE
+        )
+        (
+            recrutement_in_org,
+            recrutement_in_org_with_role,
+            recrutement_in_other_org,
+            recrutement_in_other_org_with_role,
+        ) = self._create_recrutements(agent, organisme, statut)
+
+        results = self._lister_recrutements(usecase, organisme, agent, statut)
+
+        assert recrutement_in_org_with_role in results._qs
+        for recrutement in [
+            recrutement_in_org,
+            recrutement_in_other_org,
+            recrutement_in_other_org_with_role,
+        ]:
+            assert recrutement not in results._qs
+
+    def test_non_membre_organisme(self, usecase, statut):
+        agent = AgentFactory.create_model()
+        organisme = OrganismeFactory.create_model()
+        self._create_recrutements(agent, organisme, statut)
+
+        with pytest.raises(AccesOrganismeRefuse):
+            self._lister_recrutements(usecase, organisme, agent, statut)
