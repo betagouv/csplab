@@ -8,6 +8,7 @@ COMPOSE_UP              = $(COMPOSE) up -d --remove-orphans
 WEB_PNPM = cd src/web && pnpm
 WEB_UV = cd src/web && direnv exec .
 WEB_INTERNAL_API_UV = cd src/web && DJANGO_SETTINGS_MODULE=config.settings.schema_internal direnv exec .
+WEB_PROD_UV = cd src/web && DJANGO_SETTINGS_MODULE=config.settings.base direnv exec .
 OCR_UV = cd src/ocr && direnv exec .
 INGESTION_UV = cd src/ingestion && direnv exec .
 NOTEBOOK_UV = cd src/notebook && direnv exec .
@@ -282,6 +283,14 @@ dev: ## run web with sass watch and browser auto-reload
 	bin/sass watch & \
 	bin/manage runserver
 .PHONY: dev
+
+emulate-prod: ## build front + collectstatic + run web with prod settings on :8001 (reproduce production-only bugs)
+	@echo "🏗️  Émulation prod : build front + collectstatic + runserver :8001 (settings.base, DEBUG=False)…"
+	@echo "   Ctrl+C pour arrêter"
+	$(WEB_PNPM) --filter $(FRONTEND_FILTER) exec vite build --mode production
+	$(WEB_PROD_UV) python manage.py collectstatic --noinput --clear
+	$(WEB_PROD_UV) env WEB_ALLOWED_HOSTS=localhost,127.0.0.1 python manage.py runserver 8001 --noreload
+.PHONY: emulate-prod
 
 run-mvp: ## run web + ocr + ingestion + huey with unified logs
 	@echo "🚀 Démarrage des services frontend web + ocr + ingestion…"
