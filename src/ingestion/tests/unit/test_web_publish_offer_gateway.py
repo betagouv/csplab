@@ -21,6 +21,7 @@ from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_input import PublishOfferInput
+from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.web_publish_offer_gateway import (
     WebPublishOfferGateway,
 )
@@ -339,3 +340,45 @@ async def test_publish_raises_on_http_error(gateway, httpx_mock: HTTPXMock):
         await gateway.publish(
             PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER)
         )
+
+
+@pytest.mark.asyncio
+async def test_publish_raises_and_logs_error_when_response_contains_errors(
+    gateway, httpx_mock: HTTPXMock, caplog
+):
+    httpx_mock.add_response(
+        method="POST",
+        url=PUBLISH_URL,
+        status_code=201,
+        json={
+            "created": 0,
+            "updated": 0,
+            "errors": [{"offer": {"reference": "2024-OFFER-001"}, "error": "invalid"}],
+        },
+    )
+
+    with caplog.at_level("ERROR"), pytest.raises(ExternalApiError):
+        await gateway.publish(
+            PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER)
+        )
+
+    assert any("2024-OFFER-001" in record.getMessage() for record in caplog.records)
+
+
+@pytest.mark.asyncio
+async def test_publish_does_not_log_when_response_has_no_errors(
+    gateway, httpx_mock: HTTPXMock, caplog
+):
+    httpx_mock.add_response(
+        method="POST",
+        url=PUBLISH_URL,
+        status_code=201,
+        json={"created": 1, "updated": 0, "errors": []},
+    )
+
+    with caplog.at_level("ERROR"):
+        await gateway.publish(
+            PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER)
+        )
+
+    assert caplog.records == []
