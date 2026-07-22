@@ -218,13 +218,35 @@ async def test_execute_skips_publish_when_clean_fails(
 @pytest.mark.asyncio
 @patch("application.pipelines.ingest_offer_pipeline.logger")
 async def test_execute_does_not_raise_when_publish_fails(
-    mock_logger, pipeline_with_post, mock_publish_offer_use_case
+    mock_logger,
+    pipeline_with_post,
+    mock_publish_offer_use_case,
+    mock_raw_offer_repository,
 ):
     mock_publish_offer_use_case.execute.side_effect = RuntimeError("Web API down")
 
     await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
     mock_logger.exception.assert_called_once()
+    mock_raw_offer_repository.mark_as_upserted.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("application.pipelines.ingest_offer_pipeline.logger")
+async def test_execute_does_not_mark_as_upserted_when_publish_raises_external_api_error(
+    mock_logger,
+    pipeline_with_post,
+    mock_publish_offer_use_case,
+    mock_raw_offer_repository,
+):
+    mock_publish_offer_use_case.execute.side_effect = ExternalApiError(
+        "Failed to publish offer", api_name="web"
+    )
+
+    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
+
+    mock_logger.exception.assert_called_once()
+    mock_raw_offer_repository.mark_as_upserted.assert_not_called()
 
 
 @pytest.mark.asyncio
