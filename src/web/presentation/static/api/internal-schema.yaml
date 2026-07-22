@@ -582,6 +582,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenError'
           description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
         '404':
           content:
             application/json:
@@ -647,7 +653,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenError'
           description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
         '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
           content:
             application/json:
               schema:
