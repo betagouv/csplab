@@ -4,6 +4,7 @@ import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.v
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useColorMode } from '@/composables/ui/useColorMode'
 import { useSidebar } from '@/composables/ui/useSidebar'
+import { logout } from '@/api/utilisateur'
 
 interface CspSidebarUserProps {
   name: string
@@ -48,6 +49,7 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
             label: 'Se déconnecter',
             icon: 'ri:logout-box-r-line',
             destructive: true,
+            onSelect: logout,
           },
         ],
       },
