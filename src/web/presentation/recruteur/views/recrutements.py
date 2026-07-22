@@ -9,6 +9,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.usecases.get_recrutement_kanban import (
+    GetRecrutementKanbanQuery,
+)
 from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsQuery,
 )
@@ -334,6 +337,7 @@ _STATIC_RECRUTEMENTS_DETAIL_BY_ID: dict = {
     responses={
         200: RecrutementDetailKanbanSerializer,
         401: TokenErrorSerializer,
+        403: GenericErrorSerializer,
         404: GenericErrorSerializer,
         500: GenericErrorSerializer,
     },
@@ -341,12 +345,23 @@ _STATIC_RECRUTEMENTS_DETAIL_BY_ID: dict = {
 class RecrutementKanbanView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = recruteur_container()
+
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
         try:
-            # TODO: remplacer par get_recrutement_detail_usecase
-            raw = _STATIC_RECRUTEMENTS_DETAIL_BY_ID.get(str(recrutement_uuid))
+            usecase = self.container.get_recrutement_kanban_usecase()
+            raw = usecase.execute(
+                GetRecrutementKanbanQuery(
+                    organisme_id=organisme_uuid,
+                    recrutement_id=recrutement_uuid,
+                    utilisateur_id=UUID(request.user.username),
+                    est_staff=request.user.is_staff,
+                )
+            )
             if raw is None:
                 return Response(
                     {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
@@ -354,6 +369,10 @@ class RecrutementKanbanView(APIView):
             detail = RecrutementKanbanMapper().from_domain(raw)
             serializer = RecrutementDetailKanbanSerializer(detail)
             return Response(serializer.data)
+        except AccesOrganismeRefuse:
+            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+        except OrganismeNexistePas:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(

@@ -10,6 +10,9 @@ from application.recruteur.dtos.recrutement_read_models import (
     AgentDto,
     CandidaturesCompteurDto,
 )
+from application.recruteur.usecases.recrutement_detail_static_data import (
+    STATIC_RECRUTEMENT_DETAIL,
+)
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
@@ -260,6 +263,12 @@ class TestRecrutementsArchivesView:
 
 
 class TestRecrutementKanbanView:
+    @pytest.fixture(autouse=True)
+    def _default_usecase(self, container):
+        container.get_recrutement_kanban_usecase.return_value.execute.return_value = (
+            STATIC_RECRUTEMENT_DETAIL
+        )
+
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(RECRUTEMENT_KANBAN_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -323,8 +332,30 @@ class TestRecrutementKanbanView:
         assert etape_accepte["categorie"] == "ACCEPTE"
         assert etape_accepte["candidatures"] == []
 
-    def test_returns_404_for_unknown_recrutement(self, authenticated_client):
+    def test_returns_404_for_unknown_recrutement(self, container, authenticated_client):
+        container.get_recrutement_kanban_usecase.return_value.execute.return_value = (
+            None
+        )
+
         response = authenticated_client.get(UNKNOWN_RECRUTEMENT_KANBAN_URL)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": "Not found."}
+
+    def test_returns_403_when_not_authorized(self, container, authenticated_client):
+        container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
+            AccesOrganismeRefuse(UUID(fake.uuid4()))
+        )
+
+        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"detail": "Forbidden."}
+
+    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
+        container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
+            OrganismeNexistePas("not found")
+        )
+
+        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": "Not found."}
 
