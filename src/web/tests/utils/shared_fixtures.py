@@ -84,6 +84,9 @@ from domain.ingestion.repositories.vector_repository_interface import IVectorRep
 from domain.recruteur.repositories.organisme_repository_interface import (
     IOrganismeRecruteurRepository,
 )
+from domain.recruteur.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
@@ -515,7 +518,10 @@ def get_organisme_recruteur_usecase():
     organisme_repository = cast(
         IOrganismeRecruteurRepository, create_interface_aware_mock(IOrganismeRepository)
     )
-    return GetOrganismeRecruteurUsecase(organisme_repository=organisme_repository)
+    return GetOrganismeRecruteurUsecase(
+        organisme_repository=organisme_repository,
+        organisme_permission_service=MagicMock(spec=OrganismePermissionService),
+    )
 
 
 @pytest.fixture
@@ -524,7 +530,10 @@ def initialize_organisme_steps_usecase():
         IOrganismeRecruteurRepository,
         create_interface_aware_mock(IOrganismeRecruteurRepository),
     )
-    return InitializeOrganismeStepsUsecase(organisme_repository=repository)
+    return InitializeOrganismeStepsUsecase(
+        organisme_repository=repository,
+        organisme_permission_service=MagicMock(spec=OrganismePermissionService),
+    )
 
 
 @pytest.fixture
@@ -557,4 +566,5 @@ def update_organisme_steps_usecase():
         organisme_repository=organisme_repo,
         organisme_recruteur_repository=organisme_recruteur_repo,
         audit_log_writer=MagicMock(spec=AuditLogWriter),
+        organisme_permission_service=MagicMock(spec=OrganismePermissionService),
     )
