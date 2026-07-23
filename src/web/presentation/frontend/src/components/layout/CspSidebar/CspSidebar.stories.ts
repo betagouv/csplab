@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { useRoute } from 'vue-router'
-import CspAppLayout from '../CspAppLayout/CspAppLayout.vue'
 import CspSidebar from './CspSidebar.vue'
 import CspSidebarGroup from './CspSidebarGroup.vue'
 import CspSidebarItem from './CspSidebarItem.vue'
@@ -29,17 +28,9 @@ Sidebar de navigation adaptée au DSFR.
 ## Usage
 
 \`\`\`vue
-<CspSidebarProvider default-expanded>
-  <CspAppLayout>
-    <template #sidebar>
-      <CspSidebar>...</CspSidebar>
-    </template>
-    <template #header>
-      <CspSidebarTrigger />
-    </template>
-    <!-- contenu -->
-  </CspAppLayout>
-</CspSidebarProvider>
+<CspAppShell :navigation="navigation">
+  <!-- contenu de page -->
+</CspAppShell>
 \`\`\`
         `,
       },
@@ -63,8 +54,8 @@ type Story = StoryObj<typeof CspSidebarProvider>
 
 const sidebarTemplate = `
   <CspSidebarProvider :default-expanded="defaultExpanded" :persist-state="persistState">
-    <CspAppLayout>
-      <template #sidebar>
+    <div style="display: flex; min-height: 100vh;">
+      <aside style="flex-shrink: 0; border-right: 1px solid var(--border-default-grey);">
         <CspSidebar>
           <template #logo>
             <CspSidebarLogo />
@@ -88,29 +79,30 @@ const sidebarTemplate = `
             <CspSidebarUser name="Prénom Nom" role="Rôle" />
           </template>
         </CspSidebar>
-      </template>
+      </aside>
 
-      <template #header>
-        <CspSidebarTrigger />
-      </template>
+      <div style="flex: 1; min-width: 0;">
+        <header style="display: flex; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-default-grey);">
+          <CspSidebarTrigger />
+        </header>
 
-      <div style="padding: 2rem; max-width: 800px;">
-        <h1 style="margin: 0 0 0.5rem; font-size: 1.5rem; font-weight: 600; color: var(--text-title-grey);">
-          Contenu
-        </h1>
-        <p style="color: var(--text-mention-grey); margin: 0 0 1rem;">
-          Utilisez <kbd style="padding: 0.125rem 0.375rem; border-radius: 0.25rem; background: var(--background-contrast-grey); font-family: monospace; font-size: 0.75rem;">Ctrl+B</kbd> pour toggle la sidebar.
-        </p>
-        <p style="color: var(--text-mention-grey); margin: 0;">
-          En mode collapsed, survolez les icônes pour voir les tooltips.
-        </p>
+        <div style="padding: 2rem; max-width: 800px;">
+          <h1 style="margin: 0 0 0.5rem; font-size: 1.5rem; font-weight: 600; color: var(--text-title-grey);">
+            Contenu
+          </h1>
+          <p style="color: var(--text-mention-grey); margin: 0 0 1rem;">
+            Utilisez <kbd style="padding: 0.125rem 0.375rem; border-radius: 0.25rem; background: var(--background-contrast-grey); font-family: monospace; font-size: 0.75rem;">Ctrl+B</kbd> pour toggle la sidebar.
+          </p>
+          <p style="color: var(--text-mention-grey); margin: 0;">
+            En mode collapsed, survolez les icônes pour voir les tooltips.
+          </p>
+        </div>
       </div>
-    </CspAppLayout>
+    </div>
   </CspSidebarProvider>
 `
 
 const components = {
-  CspAppLayout,
   CspSidebar,
   CspSidebarGroup,
   CspSidebarItem,
@@ -193,8 +185,8 @@ export const WithRouterLinks: Story = {
     },
     template: `
       <CspSidebarProvider :default-expanded="defaultExpanded" :persist-state="persistState">
-        <CspAppLayout>
-          <template #sidebar>
+        <div style="display: flex; min-height: 100vh;">
+          <aside style="flex-shrink: 0; border-right: 1px solid var(--border-default-grey);">
             <CspSidebar>
               <template #logo>
                 <CspSidebarLogo />
@@ -211,19 +203,21 @@ export const WithRouterLinks: Story = {
                 />
               </CspSidebarGroup>
             </CspSidebar>
-          </template>
+          </aside>
 
-          <template #header>
-            <CspSidebarTrigger />
-          </template>
+          <div style="flex: 1; min-width: 0;">
+            <header style="display: flex; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-default-grey);">
+              <CspSidebarTrigger />
+            </header>
 
-          <div style="padding: 2rem;">
-            <p style="color: var(--text-mention-grey); margin: 0;">
-              Cliquez une entrée pour naviguer. Route active :
-              <code style="padding: 0.125rem 0.375rem; border-radius: 0.25rem; background: var(--background-contrast-grey); font-family: monospace;">{{ route.path }}</code>
-            </p>
+            <div style="padding: 2rem;">
+              <p style="color: var(--text-mention-grey); margin: 0;">
+                Cliquez une entrée pour naviguer. Route active :
+                <code style="padding: 0.125rem 0.375rem; border-radius: 0.25rem; background: var(--background-contrast-grey); font-family: monospace;">{{ route.path }}</code>
+              </p>
+            </div>
           </div>
-        </CspAppLayout>
+        </div>
       </CspSidebarProvider>
     `,
   }),

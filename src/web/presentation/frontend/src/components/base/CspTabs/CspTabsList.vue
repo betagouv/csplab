@@ -30,7 +30,6 @@ defineProps<{
 <style scoped lang="scss">
 .csp-tabs__list {
   display: flex;
-  border-bottom: 1px solid var(--border-default-grey);
   gap: var(--csp-space-1, 0.25rem);
 
   &[data-orientation='vertical'] {
@@ -54,10 +53,6 @@ defineProps<{
   border: none;
   border-bottom: 2px solid transparent;
   cursor: pointer;
-  transition:
-    color 0.2s ease,
-    border-color 0.2s ease,
-    background-color 0.2s ease;
 
   &:hover:not([data-disabled]) {
     background-color: var(--background-default-grey-hover);

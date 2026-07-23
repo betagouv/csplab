@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { CspMetaItem } from '@/components/base/CspMeta/types'
+import { ref } from 'vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
-import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
@@ -16,6 +16,8 @@ const tabs = [
   { value: 'etapes', label: 'Gestion des étapes de recrutement' },
 ]
 
+const activeTab = ref('etapes')
+
 const metaItem: CspMetaItem = {
   icon: 'ri:government-line',
   label: 'Ministère de la Transition Écologique',
@@ -24,30 +26,20 @@ const metaItem: CspMetaItem = {
 </script>
 
 <template>
-  <CspPageContainer>
-    <CspPageHeader
-      title="Paramètres de l'organisme"
-      :breadcrumb="BREADCRUMB"
-      class="parametres-view__header"
-    >
-      <template #subtitle>
-        <CspMetaList :items="[metaItem]" />
-      </template>
-    </CspPageHeader>
-
-    <CspTabs
-      :tabs="tabs"
-      default-value="etapes"
-    >
-      <template #etapes>
-        <EtapesRecrutementList />
-      </template>
-    </CspTabs>
+  <CspPageHeader
+    title="Paramètres de l'organisme"
+    :breadcrumb="BREADCRUMB"
+  >
+    <template #subtitle>
+      <CspMetaList :items="[metaItem]" />
+    </template>
+  </CspPageHeader>
+  <CspPageContainer
+    v-model:active-tab="activeTab"
+    :tabs="tabs"
+  >
+    <template #tab-etapes>
+      <EtapesRecrutementList />
+    </template>
   </CspPageContainer>
 </template>
-
-<style scoped lang="scss">
-.parametres-view__header {
-  margin-bottom: var(--csp-space-4);
-}
-</style>

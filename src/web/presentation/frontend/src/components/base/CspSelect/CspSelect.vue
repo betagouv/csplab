@@ -189,7 +189,6 @@ const model = defineModel<string>()
   width: 1.125em;
   height: 1.125em;
   color: var(--text-mention-grey);
-  transition: transform 200ms ease;
 
   [data-state='open'] & {
     transform: rotate(180deg);

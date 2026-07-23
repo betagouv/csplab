@@ -1,9 +1,6 @@
 import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3-vite'
-import { ref } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
-import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 
 type CspPageHeaderProps = ComponentPropsAndSlots<typeof CspPageHeader>
@@ -18,20 +15,25 @@ const meta = {
     },
     docs: {
       description: {
-        component: 'En-tête de page : fil d’Ariane + titre, avec des slots optionnels `#actions`, `#subtitle` et `#tabs`. Le titre passe par la prop `title` ; le slot `#title` permet un titre enrichi (badge, statut…).',
+        component: 'En-tête de page : fil d’Ariane + titre (prop `title`), avec un lien de retour optionnel (`backLink`), les slots `#actions` et `#subtitle`, et des skeletons de chargement (`showTitleSkeleton`, `showSubtitleSkeleton`).',
       },
     },
   },
   argTypes: {
     title: {
       control: { type: 'text' },
-      description: 'Titre de la page (rendu dans le `<h1>`). Ignoré si le slot `#title` est fourni.',
+      description: 'Titre de la page (rendu dans le `<h1>`).',
       table: { type: { summary: 'string' } },
     },
     breadcrumb: {
       control: { type: 'object' },
       description: 'Maillons du fil d’Ariane, délégués à CspBreadcrumb.',
       table: { type: { summary: '{ label: string; to?: RouteLocationRaw }[]' } },
+    },
+    backLink: {
+      control: { type: 'object' },
+      description: 'Lien de retour optionnel affiché avant le titre.',
+      table: { type: { summary: '{ to: RouteLocationRaw; label: string }' } },
     },
     class: { control: false, table: { disable: true } },
     style: { control: false, table: { disable: true } },
@@ -78,8 +80,8 @@ export const WithActions: Story = {
   }),
 }
 
-export const WithRichTitle: Story = {
-  name: 'Titre enrichi',
+export const WithSubtitle: Story = {
+  name: 'Avec sous-titre',
   render: (args: CspPageHeaderProps) => ({
     components: { CspPageHeader, CspBadge },
     setup() {
@@ -87,9 +89,6 @@ export const WithRichTitle: Story = {
     },
     template: `
       <CspPageHeader v-bind="args">
-        <template #title>
-          Titre de la page
-        </template>
         <template #subtitle>
           <span>Métadonnée</span>
           <CspBadge type="success" label="Statut" />
@@ -99,33 +98,17 @@ export const WithRichTitle: Story = {
   }),
 }
 
-export const WithTabs: Story = {
-  name: 'Avec onglets',
-  parameters: {
-    docs: {
-      description: {
-        story: 'En-tête de page avec une barre d’onglets dans le slot `#tabs` (la barre seule ; les panneaux vivent dans le contenu de la page).',
-      },
-    },
+export const WithBackLink: Story = {
+  name: 'Avec lien de retour',
+  args: {
+    backLink: { to: '/', label: 'Retour' },
   },
-  render: (args: CspPageHeaderProps) => ({
-    components: { CspPageHeader, CspTabs, CspTabsList },
-    setup() {
-      const tabs = [
-        { value: 'tab-1', label: 'Onglet 1' },
-        { value: 'tab-2', label: 'Onglet 2' },
-      ]
-      const selected = ref('tab-1')
-      return { args, tabs, selected }
-    },
-    template: `
-      <CspTabs v-model="selected">
-        <CspPageHeader v-bind="args">
-          <template #tabs>
-            <CspTabsList :tabs="tabs" />
-          </template>
-        </CspPageHeader>
-      </CspTabs>
-    `,
-  }),
+}
+
+export const Loading: Story = {
+  name: 'Chargement',
+  args: {
+    showTitleSkeleton: true,
+    showSubtitleSkeleton: true,
+  },
 }

@@ -129,9 +129,6 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   padding: 0.75rem var(--sidebar-padding-x);
   background: var(--background-alt-grey);
   overflow: hidden;
-  transition:
-    width 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    padding 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &--expanded {
     width: var(--sidebar-width);
@@ -181,9 +178,6 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   background: transparent;
   color: var(--text-mention-grey);
   cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
 
   .csp-sidebar:not(.csp-sidebar--expanded) & {
     margin-inline: auto;

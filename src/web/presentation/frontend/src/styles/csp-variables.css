@@ -50,6 +50,9 @@
   --csp-z-dropdown: 1120;
   --csp-z-tooltip: 1150;
   --csp-z-toast: 1200;
+
+  --csp-page-container-padding-inline: 3rem;
+  --csp-page-content-padding-block: 1.5rem;
 }
 
 :root[data-fr-theme='dark'] {
