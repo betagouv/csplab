@@ -181,7 +181,6 @@ const resolvedIcon = computed(() => iconByVariant[props.variant])
 
 .csp-toast[data-swipe='cancel'] {
   transform: translate(0, 0);
-  transition: transform 120ms ease-out;
 }
 
 .csp-toast[data-swipe='end'] {
