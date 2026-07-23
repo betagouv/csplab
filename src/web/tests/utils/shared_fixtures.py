@@ -68,6 +68,9 @@ from domain.identite.repositories.organisme_repository_interface import (
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
+from domain.identite.services.identite_permission_service import (
+    OrganismeCreationPermissionService,
+)
 from domain.ingestion.entities.document import DocumentType
 from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
 from domain.ingestion.repositories.document_repository_interface import (
@@ -510,7 +513,10 @@ def create_organisme_usecase():
     organisme_repository = cast(
         IOrganismeRepository, create_interface_aware_mock(IOrganismeRepository)
     )
-    return CreateOrganismeUsecase(organisme_repository=organisme_repository)
+    return CreateOrganismeUsecase(
+        organisme_repository=organisme_repository,
+        permission_service=OrganismeCreationPermissionService(),
+    )
 
 
 @pytest.fixture
