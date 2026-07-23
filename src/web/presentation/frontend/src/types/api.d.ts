@@ -132,6 +132,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/etape": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Changer l'étape d'une ou plusieurs candidatures (batch, statique) */
+        patch: operations["recruteur_organisme_recrutements_candidatures_etape_partial_update"];
+        trace?: never;
+    };
     "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban": {
         parameters: {
             query?: never;
@@ -204,6 +221,17 @@ export interface components {
             date_derniere_activite: string;
             candidat: components["schemas"]["Candidat"];
         };
+        CandidatureAChanger: {
+            /** Format: uuid */
+            candidature_uuid: string;
+            /** Format: uuid */
+            etape_actuelle_uuid: string;
+        };
+        CandidatureEchec: {
+            /** Format: uuid */
+            candidature_uuid: string;
+            raison: string;
+        };
         CandidatureListe: {
             /** Format: uuid */
             uuid: string;
@@ -236,6 +264,10 @@ export interface components {
          * @enum {string}
          */
         CategorieOffreEnum: "APLUS" | "A" | "B" | "C" | "HORS_CATEGORIE";
+        ChangerEtapeResultat: {
+            reussites: string[];
+            echecs: components["schemas"]["CandidatureEchec"][];
+        };
         CreerNote: {
             message: string;
         };
@@ -449,6 +481,11 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["RecrutementsArchives"][];
+        };
+        PatchedChangerEtapeCandidatures: {
+            /** Format: uuid */
+            etape_cible_uuid?: string;
+            candidatures?: components["schemas"]["CandidatureAChanger"][];
         };
         PatchedEditerNote: {
             message?: string;
@@ -1095,6 +1132,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_recrutements_candidatures_etape_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedChangerEtapeCandidatures"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedChangerEtapeCandidatures"];
+                "multipart/form-data": components["schemas"]["PatchedChangerEtapeCandidatures"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangerEtapeResultat"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
                 };
             };
             404: {
