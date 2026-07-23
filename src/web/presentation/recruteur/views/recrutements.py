@@ -24,7 +24,6 @@ from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
-from presentation.recruteur.mappers import RecrutementKanbanMapper
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     RecrutementDetailKanbanSerializer,
@@ -178,7 +177,7 @@ class RecrutementKanbanView(APIView):
     ) -> Response:
         try:
             usecase = self.container.get_recrutement_kanban_usecase()
-            raw = usecase.execute(
+            kanban = usecase.execute(
                 GetRecrutementKanbanQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
@@ -186,12 +185,11 @@ class RecrutementKanbanView(APIView):
                     est_staff=request.user.is_staff,
                 )
             )
-            if raw is None:
+            if kanban is None:
                 return Response(
                     {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
                 )
-            detail = RecrutementKanbanMapper().from_domain(raw)
-            serializer = RecrutementDetailKanbanSerializer(detail)
+            serializer = RecrutementDetailKanbanSerializer(kanban)
             return Response(serializer.data)
         except AccesOrganismeRefuse:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)

@@ -10,12 +10,14 @@ from rest_framework import status
 from application.recruteur.dtos.recrutement_read_models import (
     AgentDto,
     CandidatDto,
+    CandidatureKanbanDto,
     CandidatureListeReadModel,
     CandidaturesCompteurDto,
     EtapeDto,
-)
-from application.recruteur.usecases.recrutement_detail_static_data import (
-    STATIC_RECRUTEMENT_DETAIL,
+    EtapeKanbanReadModel,
+    LocalisationDto,
+    OrganismeRecruteurDto,
+    RecrutementKanbanReadModel,
 )
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
@@ -37,6 +39,50 @@ def _candidature_liste_read_models(
         )
         for _ in range(count)
     ]
+
+
+def _recrutement_kanban_read_model() -> RecrutementKanbanReadModel:
+    return RecrutementKanbanReadModel(
+        offer_id=UUID(RECRUTEMENT_UUID),
+        intitule="Chargé de mission numérique",
+        date_publication=datetime.now(tz=timezone.utc),
+        localisation=LocalisationDto(
+            zone_geographique="EU",
+            pays="FRA",
+            region="11",
+            departement="75",
+            localisation_label="Paris 8e arrondissement",
+            latitude=48.8748,
+            longitude=2.3070,
+        ),
+        organisme_recruteur=OrganismeRecruteurDto(
+            nom="Mairie de Paris", siret="21750001600019"
+        ),
+        categorie_offre="A",
+        etapes=[
+            EtapeKanbanReadModel(
+                etape_uuid=uuid4(),
+                nom="Réception des candidatures",
+                categorie="ENTREE",
+                candidatures=[
+                    CandidatureKanbanDto(
+                        uuid=uuid4(),
+                        date_soumission=datetime.now(tz=timezone.utc),
+                        date_derniere_activite=datetime.now(tz=timezone.utc),
+                        candidat=CandidatDto(
+                            uuid=uuid4(), nom="Dupont", prenom="Alice"
+                        ),
+                    )
+                ],
+            ),
+            EtapeKanbanReadModel(
+                etape_uuid=uuid4(),
+                nom="Candidature acceptée",
+                categorie="ACCEPTE",
+                candidatures=[],
+            ),
+        ],
+    )
 
 
 ORGANISME_UUID = fake.uuid4()
@@ -286,7 +332,7 @@ class TestRecrutementKanbanView:
     @pytest.fixture(autouse=True)
     def _default_usecase(self, container):
         container.get_recrutement_kanban_usecase.return_value.execute.return_value = (
-            STATIC_RECRUTEMENT_DETAIL
+            _recrutement_kanban_read_model()
         )
 
     def test_anonymous_access_is_unauthorized(self, api_client):
@@ -379,9 +425,10 @@ class TestRecrutementKanbanView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": "Not found."}
 
-    @patch("presentation.recruteur.views.recrutements.RecrutementKanbanMapper")
-    def test_returns_500_on_unexpected_error(self, mock_mapper, authenticated_client):
-        mock_mapper.return_value.from_domain.side_effect = Exception("unexpected")
+    def test_returns_500_on_unexpected_error(self, container, authenticated_client):
+        container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
+            Exception("unexpected")
+        )
 
         response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
