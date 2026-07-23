@@ -148,6 +148,7 @@ class RecruteurContainer(containers.DeclarativeContainer):
         GetRecrutementKanbanUsecase,
         organisme_repository=postgres_organisme_repository,
         organisme_permission_service=organisme_permission_service,
+        recrutement_query_service=postgres_recrutement_query_service,
     )
 
     get_recrutement_liste_usecase = providers.Factory(
