@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { EtapeRecrutement } from '../types'
 import { ref, watch } from 'vue'
+import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCallout from '@/components/base/CspCallout/CspCallout.vue'
@@ -210,63 +211,56 @@ function getMenuSections(
         </div>
       </header>
 
-      <div
-        v-if="showSkeleton"
-        class="etapes-list__loading"
-        role="status"
-        aria-label="Chargement des étapes"
+      <CspAsyncSection
+        :pending="showSkeleton"
+        :error="error"
+        loading-label="Chargement des étapes"
+        error-title="Une erreur est survenue lors du chargement des étapes."
       >
-        <CspSkeletonSortableList :rows="6" />
-      </div>
-
-      <div
-        v-else-if="error"
-        class="etapes-list__error"
-      >
-        Une erreur est survenue lors du chargement des étapes.
-      </div>
-
-      <CspSortableList
-        v-else
-        :items="[...etapes]"
-        :get-item-key="(etape) => etape.etape_uuid"
-        :get-item-label="(etape) => etape.nom"
-        :is-item-draggable="(etape) => !isEtapeLocked(etape)"
-        :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"
-        show-position
-        @reorder="reorderEtapes"
-      >
-        <template #header>
-          <span class="etapes-list__header-ordre">Ordre</span>
-          <span class="etapes-list__header-nom">Nom de l'étape</span>
-          <span class="etapes-list__header-statut">Statut visible par le candidat</span>
-          <span class="etapes-list__header-actions" />
+        <template #skeleton>
+          <CspSkeletonSortableList :rows="6" />
         </template>
-        <template #item="{ item, index, canMoveUp, canMoveDown, moveUp, moveDown }">
-          <span class="etapes-list__item-nom">{{ item.nom }}</span>
-          <CspBadge
-            class="etapes-list__item-badge"
-            size="md"
-            :icon="CATEGORIE_CONFIG[item.categorie].icon"
-            :type="CATEGORIE_CONFIG[item.categorie].type"
-            :label="CATEGORIE_CONFIG[item.categorie].label"
-          />
-          <CspDropdownMenu
-            :sections="getMenuSections(item, index, canMoveUp, canMoveDown, moveUp, moveDown)"
-            side="bottom"
-            align="end"
-          >
-            <template #trigger>
-              <CspButton
-                icon="ri:more-2-fill"
-                variant="tertiary-no-outline"
-                size="sm"
-                :aria-label="`Actions pour ${item.nom}`"
-              />
-            </template>
-          </CspDropdownMenu>
-        </template>
-      </CspSortableList>
+        <CspSortableList
+          :items="[...etapes]"
+          :get-item-key="(etape) => etape.etape_uuid"
+          :get-item-label="(etape) => etape.nom"
+          :is-item-draggable="(etape) => !isEtapeLocked(etape)"
+          :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"
+          show-position
+          @reorder="reorderEtapes"
+        >
+          <template #header>
+            <span class="etapes-list__header-ordre">Ordre</span>
+            <span class="etapes-list__header-nom">Nom de l'étape</span>
+            <span class="etapes-list__header-statut">Statut visible par le candidat</span>
+            <span class="etapes-list__header-actions" />
+          </template>
+          <template #item="{ item, index, canMoveUp, canMoveDown, moveUp, moveDown }">
+            <span class="etapes-list__item-nom">{{ item.nom }}</span>
+            <CspBadge
+              class="etapes-list__item-badge"
+              size="md"
+              :icon="CATEGORIE_CONFIG[item.categorie].icon"
+              :type="CATEGORIE_CONFIG[item.categorie].type"
+              :label="CATEGORIE_CONFIG[item.categorie].label"
+            />
+            <CspDropdownMenu
+              :sections="getMenuSections(item, index, canMoveUp, canMoveDown, moveUp, moveDown)"
+              side="bottom"
+              align="end"
+            >
+              <template #trigger>
+                <CspButton
+                  icon="ri:more-2-fill"
+                  variant="tertiary-no-outline"
+                  size="sm"
+                  :aria-label="`Actions pour ${item.nom}`"
+                />
+              </template>
+            </CspDropdownMenu>
+          </template>
+        </CspSortableList>
+      </CspAsyncSection>
     </div>
 
     <aside class="etapes-list__aside">
@@ -386,16 +380,6 @@ function getMenuSections(
 .etapes-list__actions {
   display: flex;
   gap: var(--csp-space-3);
-}
-
-.etapes-list__loading,
-.etapes-list__error {
-  padding: var(--csp-space-4);
-  color: var(--text-mention-grey);
-}
-
-.etapes-list__error {
-  color: var(--text-default-error);
 }
 
 .etapes-list__item-nom {
