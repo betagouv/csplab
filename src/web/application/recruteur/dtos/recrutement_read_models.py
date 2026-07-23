@@ -37,3 +37,26 @@ class RecrutementArchivesReadModel:
     agents: list[AgentDto]
     finalise: bool
     recrute: str | None
+
+
+@dataclass(frozen=True, kw_only=True)
+class CandidatDto:
+    uuid: UUID
+    nom: str
+    prenom: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class EtapeDto:
+    etape_uuid: UUID
+    nom: str
+    categorie: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class CandidatureListeReadModel:
+    uuid: UUID
+    date_soumission: datetime
+    date_derniere_activite: datetime
+    candidat: CandidatDto
+    etape: EtapeDto

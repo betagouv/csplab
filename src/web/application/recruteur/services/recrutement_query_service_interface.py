@@ -4,6 +4,7 @@ from uuid import UUID
 from ddd.page_interface import IPage
 
 from application.recruteur.dtos.recrutement_read_models import (
+    CandidatureListeReadModel,
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
 )
@@ -16,3 +17,6 @@ class IRecrutementQueryService(Protocol):
     def get_archives_by_organisme(
         self, organisme_id: UUID, agent_id: UUID | None = None
     ) -> IPage[RecrutementArchivesReadModel]: ...
+    def get_candidatures_by_recrutement(
+        self, organisme_id: UUID, recrutement_id: UUID
+    ) -> list[CandidatureListeReadModel] | None: ...
