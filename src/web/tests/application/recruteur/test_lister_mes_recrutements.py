@@ -17,6 +17,7 @@ from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRe
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from tests.utils.interface_aware_mock import create_interface_aware_mock
@@ -38,7 +39,9 @@ def organisme_repository_fixture():
 
 @pytest.fixture(name="organisme_permission_service")
 def organisme_permission_service_fixture():
-    return MagicMock(spec=OrganismePermissionService)
+    service = MagicMock(spec=OrganismePermissionService)
+    service.est_autorise.return_value = AgentOrganismeRole.RESPONSABLE
+    return service
 
 
 @pytest.fixture(name="usecase")
@@ -72,7 +75,7 @@ class TestListerMesRecrutements:
         )
 
         assert result == recrutements_actifs
-        service.get_actifs_by_organisme.assert_called_once_with(organisme_id)
+        service.get_actifs_by_organisme.assert_called_once_with(organisme_id, None)
         organisme_repository.get_by_id.assert_called_once_with(organisme_id)
 
     def test_lister_mes_recrutements_archives(
@@ -93,8 +96,58 @@ class TestListerMesRecrutements:
         )
 
         assert result == recrutements_archives
-        service.get_archives_by_organisme.assert_called_once_with(organisme_id)
+        service.get_archives_by_organisme.assert_called_once_with(organisme_id, None)
         organisme_repository.get_by_id.assert_called_once_with(organisme_id)
+
+    def test_lister_mes_recrutements_actifs_filtre_par_agent_quand_membre(
+        self, service, organisme_repository, organisme_permission_service, usecase
+    ):
+        organisme_id = uuid4()
+        utilisateur_id = uuid4()
+        organisme_permission_service.est_autorise.return_value = (
+            AgentOrganismeRole.MEMBRE
+        )
+        recrutements_actifs = [RecrutementFactory.create_actif_read_model()]
+        service.get_actifs_by_organisme = MagicMock(return_value=recrutements_actifs)
+
+        result = usecase.execute(
+            ListerMesRecrutementsQuery(
+                organisme_id=organisme_id,
+                statut=StatutRecrutement.ACTIF,
+                utilisateur_id=utilisateur_id,
+            )
+        )
+
+        assert result == recrutements_actifs
+        service.get_actifs_by_organisme.assert_called_once_with(
+            organisme_id, utilisateur_id
+        )
+
+    def test_lister_mes_recrutements_archives_filtre_par_agent_quand_membre(
+        self, service, organisme_repository, organisme_permission_service, usecase
+    ):
+        organisme_id = uuid4()
+        utilisateur_id = uuid4()
+        organisme_permission_service.est_autorise.return_value = (
+            AgentOrganismeRole.MEMBRE
+        )
+        recrutements_archives = [RecrutementFactory.create_archive_read_model()]
+        service.get_archives_by_organisme = MagicMock(
+            return_value=recrutements_archives
+        )
+
+        result = usecase.execute(
+            ListerMesRecrutementsQuery(
+                organisme_id=organisme_id,
+                statut=StatutRecrutement.ARCHIVE,
+                utilisateur_id=utilisateur_id,
+            )
+        )
+
+        assert result == recrutements_archives
+        service.get_archives_by_organisme.assert_called_once_with(
+            organisme_id, utilisateur_id
+        )
 
     def test_raise_organisme_not_found(self, service, organisme_repository, usecase):
         organisme_id = uuid4()

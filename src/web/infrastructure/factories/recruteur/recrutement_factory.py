@@ -95,6 +95,7 @@ class RecrutementFactory:
     @staticmethod
     def create_model(
         offre_id: UUID | None = None,
+        offre_archivee: bool = False,
         organisme_id: UUID | None = None,
         etapes: tuple[EtapeRecrutement, ...] | None = None,
         ordre_etapes: list[str] | None = None,
@@ -102,7 +103,8 @@ class RecrutementFactory:
         agent_roles: dict[UUID, AgentRecrutementRole] | None = None,
     ) -> RecrutementModel:
         if offre_id is None:
-            offre_id = OfferFactory.create_model().id
+            archived_at = datetime(2024, 1, 1) if offre_archivee else None
+            offre_id = OfferFactory.create_model(archived_at=archived_at).id
         if organisme_id is None:
             organisme_id = OrganismeFactory.create_model().id
         if etapes is None:
