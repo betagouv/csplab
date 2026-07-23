@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { logout } from '@/api/utilisateur'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
@@ -48,6 +49,7 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
             label: 'Se déconnecter',
             icon: 'ri:logout-box-r-line',
             destructive: true,
+            onSelect: logout,
           },
         ],
       },

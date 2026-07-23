@@ -3,7 +3,7 @@ import type { paths } from '@/types/api'
 import createClient from 'openapi-fetch'
 import { HttpError, NetworkError, parseFieldErrors, ValidationError } from './errors'
 
-function readCsrfCookie(): string {
+export function readCsrfCookie(): string {
   const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/)
   return match ? decodeURIComponent(match[1]) : ''
 }

@@ -1,65 +1,58 @@
-import { createPinia, setActivePinia } from 'pinia'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useCurrentUserStore } from './currentUser'
-
-const mockGetMe = vi.fn()
+import { PiniaColada } from '@pinia/colada'
+import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, h } from 'vue'
+import { getMe } from '@/api/utilisateur'
+import { useCurrentUser } from './currentUser'
 
 vi.mock('@/api/utilisateur', () => ({
-  getMe: () => mockGetMe(),
+  getMe: vi.fn(),
 }))
 
-describe('useCurrentUserStore', () => {
-  beforeEach(() => {
-    setActivePinia(createPinia())
-    vi.clearAllMocks()
+function mountUseCurrentUser() {
+  let result!: ReturnType<typeof useCurrentUser>
+
+  mount(defineComponent({
+    setup() {
+      result = useCurrentUser()
+      return () => h('div')
+    },
+  }), {
+    global: {
+      plugins: [createPinia(), PiniaColada],
+    },
   })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
+  return result
+}
+
+describe('useCurrentUser', () => {
+  beforeEach(() => {
+    vi.mocked(getMe).mockReset()
   })
 
   it('fetches user and exposes reactive state', async () => {
     const userData = { email: 'test@example.com', prenom: 'Jean', nom: 'Dupont' }
-    mockGetMe.mockResolvedValue(userData)
+    vi.mocked(getMe).mockResolvedValue(userData)
 
-    const store = useCurrentUserStore()
+    const { user, displayName, isPending } = mountUseCurrentUser()
 
-    expect(store.user).toBeNull()
-    expect(store.loading).toBe(false)
+    await vi.waitFor(() => expect(isPending.value).toBe(false))
 
-    const promise = store.fetch()
-    expect(store.loading).toBe(true)
-
-    await promise
-
-    expect(store.loading).toBe(false)
-    expect(store.user).toEqual(userData)
-    expect(store.displayName).toBe('Jean Dupont')
+    expect(user.value).toEqual(userData)
+    expect(displayName.value).toBe('Jean Dupont')
   })
 
   it('handles fetch error gracefully', async () => {
     const networkError = new Error('Network error')
-    mockGetMe.mockRejectedValue(networkError)
+    vi.mocked(getMe).mockRejectedValue(networkError)
 
-    const store = useCurrentUserStore()
+    const { user, error, isPending } = mountUseCurrentUser()
 
-    await store.fetch()
+    await vi.waitFor(() => expect(isPending.value).toBe(false))
 
-    expect(store.user).toBeNull()
-    expect(store.error).toBe(networkError)
-  })
-
-  it('deduplicates concurrent fetch calls', async () => {
-    const userData = { email: 'test@example.com', prenom: 'Jean', nom: 'Dupont' }
-    mockGetMe.mockResolvedValue(userData)
-
-    const store = useCurrentUserStore()
-
-    const promise1 = store.fetch()
-    const promise2 = store.fetch()
-
-    await Promise.all([promise1, promise2])
-
-    expect(mockGetMe).toHaveBeenCalledTimes(1)
+    expect(user.value).toBeNull()
+    expect(error.value).toBe(networkError)
   })
 })

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { NavGroup } from './AppShell.types'
-import { storeToRefs } from 'pinia'
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspAppLayout from '@/components/layout/CspAppLayout/CspAppLayout.vue'
 import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
@@ -11,7 +10,7 @@ import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarProvider from '@/components/layout/CspSidebar/CspSidebarProvider.vue'
 import CspSidebarTrigger from '@/components/layout/CspSidebar/CspSidebarTrigger.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
-import { useCurrentUserStore } from '@/stores/currentUser'
+import { useCurrentUser } from '@/stores/currentUser'
 
 const props = defineProps<{
   navigation: NavGroup[]
@@ -19,8 +18,7 @@ const props = defineProps<{
 
 const route = useRoute()
 const router = useRouter()
-const currentUserStore = useCurrentUserStore()
-const { user, displayName } = storeToRefs(currentUserStore)
+const { user, displayName } = useCurrentUser()
 
 const navGroups = computed(() => {
   return props.navigation
@@ -30,14 +28,13 @@ const navGroups = computed(() => {
     }))
     .filter(group => group.items.length > 0)
 })
-
-onMounted(() => {
-  currentUserStore.fetch()
-})
 </script>
 
 <template>
-  <CspSidebarProvider default-expanded>
+  <CspSidebarProvider
+    v-if="user"
+    default-expanded
+  >
     <CspAppLayout>
       <template #sidebar>
         <CspSidebar>
@@ -61,10 +58,7 @@ onMounted(() => {
           </CspSidebarGroup>
 
           <template #footer>
-            <CspSidebarUser
-              v-if="user"
-              :name="displayName"
-            />
+            <CspSidebarUser :name="displayName" />
           </template>
         </CspSidebar>
       </template>
