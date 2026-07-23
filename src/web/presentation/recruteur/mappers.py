@@ -26,19 +26,3 @@ class RecrutementKanbanMapper(IFromDomainMapper[dict, dict]):
         if domain_object is None:
             return None
         return domain_object
-
-
-class RecrutementListeMapper(IFromDomainMapper[dict, list[dict]]):
-    def from_domain(self, domain_object: Optional[dict]) -> Optional[list[dict]]:
-        if domain_object is None:
-            return None
-        result = []
-        for etape in domain_object["etapes"]:
-            etape_dto = {
-                "etape_uuid": etape["etape_uuid"],
-                "nom": etape["nom"],
-                "categorie": etape["categorie"],
-            }
-            for candidature in etape["candidatures"]:
-                result.append({**candidature, "etape": etape_dto})
-        return result

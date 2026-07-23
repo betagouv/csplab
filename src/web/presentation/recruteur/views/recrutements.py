@@ -24,10 +24,7 @@ from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
-from presentation.recruteur.mappers import (
-    RecrutementKanbanMapper,
-    RecrutementListeMapper,
-)
+from presentation.recruteur.mappers import RecrutementKanbanMapper
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     RecrutementDetailKanbanSerializer,
@@ -232,7 +229,7 @@ class RecrutementListeView(APIView):
     ) -> Response:
         try:
             usecase = self.container.get_recrutement_liste_usecase()
-            detail = usecase.execute(
+            candidatures = usecase.execute(
                 GetRecrutementListeQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
@@ -240,13 +237,12 @@ class RecrutementListeView(APIView):
                     est_staff=request.user.is_staff,
                 )
             )
-            if detail is None:
+            if candidatures is None:
                 return Response(
                     {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
                 )
 
-            all_candidatures = RecrutementListeMapper().from_domain(detail) or []
-            result = ListPage(all_candidatures)
+            result = ListPage(candidatures)
 
             paginator = WebPagination()
             items = paginator.paginate(result, request)

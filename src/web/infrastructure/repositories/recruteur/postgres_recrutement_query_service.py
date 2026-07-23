@@ -7,7 +7,10 @@ from django.db.models.functions import Coalesce
 
 from application.recruteur.dtos.recrutement_read_models import (
     AgentDto,
+    CandidatDto,
+    CandidatureListeReadModel,
     CandidaturesCompteurDto,
+    EtapeDto,
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
 )
@@ -171,3 +174,44 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             )
 
         return QuerySetPage(qs, mapper=_mapper)
+
+    def get_candidatures_by_recrutement(
+        self, organisme_id: UUID, recrutement_id: UUID
+    ) -> list[CandidatureListeReadModel] | None:
+        if not RecrutementModel.objects.filter(
+            pk=recrutement_id, organisme_id=organisme_id
+        ).exists():
+            return None
+
+        etapes = (
+            EtapeModel.objects.filter(recrutement_id=recrutement_id)
+            .prefetch_related(
+                Prefetch(
+                    "candidatures",
+                    queryset=CandidatureModel.objects.select_related(
+                        "candidat__utilisateur"
+                    ).order_by("created_at"),
+                )
+            )
+            .order_by("updated_at")
+        )
+
+        return [
+            CandidatureListeReadModel(
+                uuid=candidature.id,
+                date_soumission=candidature.created_at,
+                date_derniere_activite=candidature.updated_at,
+                candidat=CandidatDto(
+                    uuid=UUID(candidature.candidat_id),
+                    nom=candidature.candidat.utilisateur.last_name,
+                    prenom=candidature.candidat.utilisateur.first_name,
+                ),
+                etape=EtapeDto(
+                    etape_uuid=etape.id,
+                    nom=etape.nom,
+                    categorie=CategorieEtapeRecrutement(etape.categorie).name,
+                ),
+            )
+            for etape in etapes
+            for candidature in etape.candidatures.all()
+        ]

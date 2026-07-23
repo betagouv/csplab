@@ -13,6 +13,7 @@ class RecrutementModel(models.Model):
     offre = models.OneToOneField(
         OfferModel,
         on_delete=models.PROTECT,
+        # to be noticed : offre is the PK
         primary_key=True,
         db_column="id",
         related_name="recrutement",
