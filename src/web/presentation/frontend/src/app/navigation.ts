@@ -1,4 +1,4 @@
-import type { NavGroup } from '@/components/layout/AppShell.types'
+import type { NavGroup } from '@/components/layout/CspAppShell/CspAppShell.types'
 
 export const APP_NAVIGATION: NavGroup[] = [
   {

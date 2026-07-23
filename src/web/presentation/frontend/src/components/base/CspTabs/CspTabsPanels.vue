@@ -4,11 +4,15 @@ import { TabsContent } from 'reka-ui'
 
 defineProps<{
   tabs: CspTabItem[]
+  fill?: boolean
 }>()
 </script>
 
 <template>
-  <div class="csp-tabs__panels">
+  <div
+    class="csp-tabs__panels"
+    :class="{ 'csp-tabs__panels--fill': fill }"
+  >
     <TabsContent
       v-for="tab in tabs"
       :key="tab.value"
@@ -21,9 +25,21 @@ defineProps<{
 </template>
 
 <style scoped lang="scss">
-.csp-tabs__content {
-  padding-top: 1rem;
+.csp-tabs__panels--fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
 
+.csp-tabs__panels--fill .csp-tabs__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.csp-tabs__content {
   &[data-orientation='vertical'] {
     padding-top: 0;
     padding-left: 1rem;

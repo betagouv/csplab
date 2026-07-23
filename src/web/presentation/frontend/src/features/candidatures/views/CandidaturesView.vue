@@ -6,10 +6,6 @@ import { useRoute } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
-import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
-import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
-import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
-import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
@@ -30,7 +26,12 @@ const {
   filters,
 } = useCandidatures()
 
-const showSkeleton = useMinimumPending(pending)
+const showTitleSkeleton = useMinimumPending(
+  computed(() => pending.value && !intitule.value),
+)
+const showSubtitleSkeleton = useMinimumPending(
+  computed(() => pending.value && !recrutementDetail.value),
+)
 
 const {
   draft: filtersDraft,
@@ -84,105 +85,76 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
 </script>
 
 <template>
+  <CspPageHeader
+    :breadcrumb="breadcrumb"
+    :title="title"
+    :back-link="{ to: { name: 'mes-recrutements' }, label: 'Retour à mes recrutements' }"
+    :show-title-skeleton="showTitleSkeleton"
+    :show-subtitle-skeleton="showSubtitleSkeleton"
+  >
+    <template #subtitle>
+      <CspMetaList :items="metaItems" />
+    </template>
+  </CspPageHeader>
   <CspPageContainer
+    v-model:active-tab="activeTab"
     fill
     class="candidatures-view"
+    :tabs="TABS"
   >
-    <CspPageHeader
-      :breadcrumb="breadcrumb"
-      :back-to="{ name: 'mes-recrutements' }"
-      back-label="Retour à mes recrutements"
-      class="candidatures-view__header"
-    >
-      <template #title>
-        <CspSkeleton
-          v-if="showSkeleton && !intitule"
-          width="20rem"
-          height="2rem"
-        />
-        <template v-else>
-          {{ title }}
-        </template>
-      </template>
-      <template
-        v-if="showSkeleton || recrutementDetail"
-        #subtitle
+    <template #tab-candidatures>
+      <div
+        v-if="isNotFound"
+        class="candidatures-view__status candidatures-view__status--error"
       >
-        <CspSkeleton
-          v-if="showSkeleton"
-          width="28rem"
-          height="1.375rem"
-        />
-        <CspMetaList
-          v-else
-          :items="metaItems"
+        Recrutement introuvable.
+      </div>
+
+      <template v-else>
+        <div class="candidatures-view__toolbar">
+          <CandidaturesViewSwitch
+            :recrutement-uuid="recrutementUuid"
+            :current="currentView"
+          />
+          <div class="candidatures-view__actions">
+            <CspInput
+              v-model="search"
+              type="search"
+              aria-label="Rechercher un candidat"
+              placeholder="Rechercher un candidat…"
+              class="candidatures-view__search"
+              @keydown.enter="filters.flushSearch()"
+            />
+            <CspButton
+              :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
+              variant="tertiary"
+              icon="ri:filter-line"
+              is-icon-left
+              @click="openFilters"
+            />
+          </div>
+        </div>
+        <router-view />
+        <CandidaturesFiltersDrawer
+          v-model:open="isFiltersDrawerOpen"
+          v-model:etapes="filtersDraft.etapes"
+          :etape-options="etapeOptions"
+          :can-reset="canResetFilters"
+          @apply="applyFilters"
+          @reset="filters.reset"
         />
       </template>
-    </CspPageHeader>
-
-    <CspTabs v-model="activeTab">
-      <CspTabsList :tabs="TABS" />
-      <CspTabsPanels :tabs="TABS">
-        <template #candidatures>
-          <div
-            v-if="isNotFound"
-            class="candidatures-view__status candidatures-view__status--error"
-          >
-            Recrutement introuvable.
-          </div>
-
-          <template v-else>
-            <div class="candidatures-view__toolbar">
-              <CandidaturesViewSwitch
-                :recrutement-uuid="recrutementUuid"
-                :current="currentView"
-              />
-              <div class="candidatures-view__actions">
-                <CspInput
-                  v-model="search"
-                  type="search"
-                  aria-label="Rechercher un candidat"
-                  placeholder="Rechercher un candidat…"
-                  class="candidatures-view__search"
-                  @keydown.enter="filters.flushSearch()"
-                />
-                <CspButton
-                  :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
-                  variant="tertiary"
-                  icon="ri:filter-line"
-                  is-icon-left
-                  @click="openFilters"
-                />
-              </div>
-            </div>
-            <router-view />
-            <CandidaturesFiltersDrawer
-              v-model:open="isFiltersDrawerOpen"
-              v-model:etapes="filtersDraft.etapes"
-              :etape-options="etapeOptions"
-              :can-reset="canResetFilters"
-              @apply="applyFilters"
-              @reset="filters.reset"
-            />
-          </template>
-        </template>
-        <template #activites-et-taches>
-          <div class="candidatures-view__placeholder">
-            Activités et tâches (à venir)
-          </div>
-        </template>
-      </CspTabsPanels>
-    </CspTabs>
+    </template>
+    <template #tab-activites-et-taches>
+      <div class="candidatures-view__placeholder">
+        Activités et tâches (à venir)
+      </div>
+    </template>
   </CspPageContainer>
 </template>
 
 <style scoped lang="scss">
-.candidatures-view__header {
-  margin-bottom: var(--csp-space-4);
-}
-
 .candidatures-view__status {
-  padding: 1rem 0;
   color: var(--text-mention-grey);
 }
 
@@ -211,26 +183,6 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
 }
 
 .candidatures-view__placeholder {
-  padding: 2rem 0;
   color: var(--text-mention-grey);
-}
-
-.candidatures-view :deep(.csp-tabs) {
-  flex: 1;
-  min-height: 0;
-}
-
-.candidatures-view :deep(.csp-tabs__panels) {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-.candidatures-view :deep(.csp-tabs__content) {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
 }
 </style>

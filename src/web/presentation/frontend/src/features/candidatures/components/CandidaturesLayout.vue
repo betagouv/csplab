@@ -88,7 +88,6 @@ const isNotFound = computed(() =>
 }
 
 .candidatures-layout__status {
-  padding: 1rem 0;
   color: var(--text-mention-grey);
 }
 

@@ -26,7 +26,7 @@ src/
 │
 ├── components/             # Reusable UI components
 │   ├── base/               # UI primitives (CspButton, CspInput…)
-│   ├── layout/             # Layout blocks + concrete app shell (CspAppLayout, CspSidebar, AppShell…)
+│   ├── layout/             # Layout blocks + concrete app shell (CspAppShell, CspSidebar, CspPageContainer…)
 │   └── ErrorBoundary.vue   # Generic technical components (non-Csp) live at the root
 │
 ├── composables/            # Global TECHNICAL composables

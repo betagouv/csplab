@@ -4,7 +4,8 @@ import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 </script>
 
 <template>
+  <CspPageHeader title="Accueil" />
   <CspPageContainer>
-    <CspPageHeader title="Accueil" />
+    Bienvenue sur l'application de gestion des candidatures CSPLab.
   </CspPageContainer>
 </template>

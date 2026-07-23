@@ -28,8 +28,17 @@ export function useRecrutements(
   const pending = computed(() => active.value.isPending.value)
   const error = computed(() => active.value.error.value)
 
+  const pendingActifs = computed(
+    () => toValue(activeKey) === 'actifs' && actifs.isPending.value,
+  )
+  const pendingArchives = computed(
+    () => toValue(activeKey) === 'archives' && archives.isPending.value,
+  )
+
   return {
     pending,
+    pendingActifs,
+    pendingArchives,
     error,
     data,
   }

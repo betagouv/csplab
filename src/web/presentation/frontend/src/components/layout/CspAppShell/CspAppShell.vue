@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import type { NavGroup } from './AppShell.types'
+import type { NavGroup } from './CspAppShell.types'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import CspAppLayout from '@/components/layout/CspAppLayout/CspAppLayout.vue'
 import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
 import CspSidebarGroup from '@/components/layout/CspSidebar/CspSidebarGroup.vue'
 import CspSidebarItem from '@/components/layout/CspSidebar/CspSidebarItem.vue'
@@ -31,12 +30,12 @@ const navGroups = computed(() => {
 </script>
 
 <template>
-  <CspSidebarProvider
-    v-if="user"
-    default-expanded
-  >
-    <CspAppLayout>
-      <template #sidebar>
+  <div class="csp-app-shell">
+    <CspSidebarProvider
+      v-if="user"
+      default-expanded
+    >
+      <aside class="csp-app-shell__sidebar">
         <CspSidebar>
           <template #logo>
             <CspSidebarLogo />
@@ -61,13 +60,63 @@ const navGroups = computed(() => {
             <CspSidebarUser :name="displayName" />
           </template>
         </CspSidebar>
-      </template>
-
-      <template #header>
-        <CspSidebarTrigger />
-      </template>
-
-      <slot />
-    </CspAppLayout>
-  </CspSidebarProvider>
+      </aside>
+      <div class="csp-app-shell__content">
+        <header class="csp-app-shell__header">
+          <CspSidebarTrigger />
+        </header>
+        <div class="csp-app-shell__main">
+          <slot />
+        </div>
+      </div>
+    </CspSidebarProvider>
+  </div>
 </template>
+
+<style scoped lang="scss">
+.csp-app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.csp-app-shell__sidebar {
+  flex-shrink: 0;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--background-alt-grey);
+  border-right: 1px solid var(--border-default-grey);
+
+  @media (width <= 768px) {
+    display: none;
+  }
+}
+
+.csp-app-shell__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.csp-app-shell__header {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding: 0.75rem 1rem;
+  background: var(--background-default-grey);
+  border-bottom: 1px solid var(--border-default-grey);
+
+  @media (width <= 768px) {
+    display: flex;
+  }
+}
+
+.csp-app-shell__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+}
+</style>

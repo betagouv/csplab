@@ -1,60 +1,82 @@
 <script setup lang="ts">
 import type { RouteLocationRaw } from 'vue-router'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
-import { computed, useSlots } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed } from 'vue'
 import CspBreadcrumb from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
-import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 
 const props = defineProps<{
   title?: string
   breadcrumb?: CspBreadcrumbItem[]
-  backTo?: RouteLocationRaw
-  backLabel?: string
+  backLink?: { to: RouteLocationRaw, label: string }
+  showTitleSkeleton?: boolean
+  showSubtitleSkeleton?: boolean
 }>()
 
-const slots = useSlots()
-
-const hasBreadcrumb = computed(() => (props.breadcrumb?.length ?? 0) > 0)
-const hasTabs = computed(() => Boolean(slots.tabs))
+const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 </script>
 
 <template>
-  <header class="csp-page-header">
-    <div class="csp-page-header__top">
-      <div class="csp-page-header__main">
+  <header
+    class="csp-page-header"
+    :class="{ 'csp-page-header--has-back-link': Boolean(backLink) }"
+  >
+    <div class="csp-page-header__top-row">
+      <div
+        class="csp-page-header__breadcrumb-wrapper"
+      >
         <CspBreadcrumb
           v-if="hasBreadcrumb"
           :items="breadcrumb!"
         />
-
-        <div class="csp-page-header__title-row">
+      </div>
+    </div>
+    <div class="csp-page-header__main-row">
+      <div class="csp-page-header__hgroup-wrapper">
+        <div
+          v-if="backLink"
+          class="csp-page-header__back-link"
+        >
           <RouterLink
-            v-if="backTo"
-            :to="backTo"
-            :aria-label="backLabel ?? 'Retour'"
-            class="csp-page-header__back"
+            as-child
+            :to="backLink.to"
+            :aria-label="backLink.label"
           >
-            <CspIcon
-              name="ri:arrow-left-line"
-              :size="20"
+            <CspButton
+              variant="tertiary-no-outline"
+              is-icon-left
+              icon="ri:arrow-left-line"
+              size="sm"
             />
           </RouterLink>
-          <h1 class="csp-page-header__title">
-            <slot name="title">
-              {{ title }}
-            </slot>
-          </h1>
         </div>
-
         <div
-          v-if="$slots.subtitle"
-          class="csp-page-header__subtitle"
+          class="csp-page-header__hgroup"
         >
-          <slot name="subtitle" />
+          <div class="csp-page-header__title">
+            <CspSkeleton
+              v-if="showTitleSkeleton"
+              class="csp-page-header__title-skeleton"
+              width="25rem"
+            />
+            <h1 v-else>
+              {{ title }}
+            </h1>
+          </div>
+          <div class="csp-page-header__subtitle">
+            <CspSkeleton
+              v-if="showSubtitleSkeleton"
+              width="28rem"
+              height="1.375rem"
+            />
+            <slot
+              v-else
+              name="subtitle"
+            />
+          </div>
         </div>
       </div>
-
       <div
         v-if="$slots.actions"
         class="csp-page-header__actions"
@@ -62,85 +84,71 @@ const hasTabs = computed(() => Boolean(slots.tabs))
         <slot name="actions" />
       </div>
     </div>
-
-    <div
-      v-if="hasTabs"
-      class="csp-page-header__tabs"
-    >
-      <slot name="tabs" />
-    </div>
   </header>
 </template>
 
 <style scoped lang="scss">
 .csp-page-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
   background: var(--background-default-grey);
+
+  --csp-page-header-back-link-size: 0;
+  --csp-page-header-back-link-gap: 0;
+
+  &.csp-page-header--has-back-link {
+    --csp-page-header-back-link-size: 2rem;
+    --csp-page-header-back-link-gap: 0.5rem;
+  }
 }
 
-.csp-page-header__top {
+.csp-page-header__top-row {
+  padding-top: 0.75rem;
+  padding-bottom: 1.25rem;
+  padding-inline: var(--csp-page-container-padding-inline);
+}
+
+.csp-page-header__breadcrumb-wrapper {
+  min-height: 1.5rem;
+}
+
+.csp-page-header__main-row {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-default-grey);
+  padding-inline: var(--csp-page-container-padding-inline);
 }
 
-.csp-page-header__main {
-  min-width: 0;
+.csp-page-header__hgroup-wrapper {
+  display: flex;
+  gap: var(--csp-page-header-back-link-gap);
+  margin-left: calc(calc(var(--csp-page-header-back-link-size) + var(--csp-page-header-back-link-gap)) * -1);
+}
+
+.csp-page-header__hgroup {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
-.csp-page-header__title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.csp-page-header__back {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
-  color: var(--text-action-high-blue-france);
-  background-color: transparent;
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
-  text-decoration: none;
-
-  &:hover {
-    background-color: var(--background-default-grey-hover);
-  }
-
-  &:active {
-    background-color: var(--background-default-grey-active);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
-  }
+.csp-page-header__back-link {
+  margin-top: 0.25rem;
+  width: var(--csp-page-header-back-link-size);
 }
 
 .csp-page-header__title {
-  margin: 0;
-  font-size: 1.5rem;
   font-weight: 600;
-  line-height: 1.3;
-  color: var(--text-title-grey);
+  font-size: 1.5rem;
+  min-height: 2.5rem;
+}
+
+.csp-page-header__title-skeleton {
+  height: 4rem;
 }
 
 .csp-page-header__subtitle {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--text-mention-grey);
+  min-height: 1.5rem;
 }
 
 .csp-page-header__actions {
@@ -148,9 +156,5 @@ const hasTabs = computed(() => Boolean(slots.tabs))
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
-}
-
-.csp-page-header__tabs {
-  display: flex;
 }
 </style>

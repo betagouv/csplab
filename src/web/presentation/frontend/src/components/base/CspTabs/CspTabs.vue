@@ -16,6 +16,7 @@ export interface CspTabsProps {
   defaultValue?: string
   orientation?: 'horizontal' | 'vertical'
   activationMode?: 'automatic' | 'manual'
+  fill?: boolean
 }
 
 withDefaults(defineProps<CspTabsProps>(), {
@@ -23,6 +24,7 @@ withDefaults(defineProps<CspTabsProps>(), {
   defaultValue: undefined,
   orientation: 'horizontal',
   activationMode: 'automatic',
+  fill: false,
 })
 
 const model = defineModel<string>()
@@ -32,7 +34,7 @@ const model = defineModel<string>()
   <TabsRoot
     v-model="model"
     class="csp-tabs"
-    :class="`csp-tabs--${orientation}`"
+    :class="[`csp-tabs--${orientation}`, { 'csp-tabs--fill': fill }]"
     :default-value="defaultValue"
     :orientation="orientation"
     :activation-mode="activationMode"
@@ -57,6 +59,11 @@ const model = defineModel<string>()
 .csp-tabs {
   display: flex;
   flex-direction: column;
+}
+
+.csp-tabs--fill {
+  flex: 1;
+  min-height: 0;
 }
 
 .csp-tabs--vertical {

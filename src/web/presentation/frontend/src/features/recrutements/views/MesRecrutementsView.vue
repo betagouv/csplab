@@ -11,9 +11,6 @@ import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
-import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
-import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
-import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
@@ -37,12 +34,14 @@ const TABS: CspTabItem[] = [
   { value: 'archives', label: 'Offres archivées' },
 ]
 const {
-  pending: recrutementsPending,
+  pendingActifs,
+  pendingArchives,
   error: recrutementsError,
   data: recrutementsData,
 } = useRecrutements(TEMP_ORGANISME_UUID, activeTab)
 
-const showSkeleton = useMinimumPending(recrutementsPending)
+const showActifsSkeleton = useMinimumPending(pendingActifs, 300)
+const showArchivesSkeleton = useMinimumPending(pendingArchives, 300)
 
 const router = useRouter()
 
@@ -102,26 +101,34 @@ const countLabel = computed(() => {
 </script>
 
 <template>
-  <CspPageContainer class="mes-recrutement-view">
-    <CspPageHeader
-      title="Mes recrutements"
-      :breadcrumb="BREADCRUMB"
-      class="mes-recrutement-view__header"
-    />
-    <CspTabs
-      v-model="activeTab"
-    >
-      <CspTabsList :tabs="TABS" />
+  <CspPageHeader
+    title="Mes recrutements"
+    :breadcrumb="BREADCRUMB"
+  >
+    <template #subtitle>
+      <p class="mes-recrutement-view__subtitle">
+        Retrouvez ici l’ensemble de vos recrutements en cours et archivés.
+      </p>
+    </template>
+  </CspPageHeader>
+  <CspPageContainer
+    v-model:active-tab="activeTab"
+    class="mes-recrutement-view"
+    :tabs="TABS"
+  >
+    <template #shared>
       <div
         v-if="recrutementsError"
         class="mes-recrutement-view__error"
       >
         Une erreur est survenue lors du chargement des recrutements.
       </div>
-      <div v-else>
-        <div class="mes-recrutement-view__toolbar">
+      <template v-else>
+        <div
+          class="mes-recrutement-view__toolbar"
+        >
           <CspSkeleton
-            v-if="showSkeleton"
+            v-if="showActifsSkeleton || showArchivesSkeleton"
             class="mes-recrutement-view__count-skeleton"
             width="12rem"
             height="0.9375rem"
@@ -149,59 +156,6 @@ const countLabel = computed(() => {
             />
           </div>
         </div>
-        <div
-          v-if="showSkeleton"
-          class="mes-recrutement-view__loading"
-          role="status"
-          aria-label="Chargement des recrutements"
-        >
-          <CspSkeletonTable
-            :rows="PAGE_SIZE"
-            :columns="6"
-            with-footer
-          />
-        </div>
-        <CspTabsPanels
-          v-else
-          :tabs="TABS"
-        >
-          <template #actifs>
-            <CspDataTable
-              v-model:page="recrutementsActifsPage"
-              :rows="filteredActifs"
-              :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
-              :row-key="row => row.offer_id"
-              activation-mode="cell"
-              caption="Recrutements en cours"
-              empty-label="Aucun recrutement en cours"
-              :page-size="PAGE_SIZE"
-              @activate="openOffre"
-            >
-              <template #header-candidatures="{ label }">
-                <div class="mes-recrutement-view__candidatures-head">
-                  <span>{{ label }}</span>
-                  <span class="mes-recrutement-view__candidatures-legend">
-                    # • À traiter • En cours
-                  </span>
-                </div>
-              </template>
-            </CspDataTable>
-          </template>
-
-          <template #archives>
-            <CspDataTable
-              v-model:page="recrutementsArchivesPage"
-              :rows="filteredArchives"
-              :columns="RECRUTEMENTS_ARCHIVES_COLUMNS"
-              :row-key="row => row.offer_id"
-              activation-mode="cell"
-              caption="Offres archivées"
-              empty-label="Aucune offre archivée"
-              :page-size="PAGE_SIZE"
-              @activate="openOffre"
-            />
-          </template>
-        </CspTabsPanels>
         <RecrutementsFiltersDrawer
           v-model:open="isFiltersDrawerOpen"
           v-model:responsable="filtersDraft.responsable"
@@ -212,25 +166,84 @@ const countLabel = computed(() => {
           @apply="applyFilters"
           @reset="resetFilters"
         />
+      </template>
+    </template>
+    <template
+      v-if="!recrutementsError"
+      #tab-actifs
+    >
+      <div
+        v-if="showActifsSkeleton"
+        role="status"
+        aria-label="Chargement des recrutements en cours"
+      >
+        <CspSkeletonTable
+          :rows="PAGE_SIZE"
+          :columns="6"
+          with-footer
+        />
       </div>
-    </CspTabs>
+      <CspDataTable
+        v-else
+        v-model:page="recrutementsActifsPage"
+        :rows="filteredActifs"
+        :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
+        :row-key="row => row.offer_id"
+        activation-mode="cell"
+        caption="Recrutements en cours"
+        empty-label="Aucun recrutement en cours"
+        :page-size="PAGE_SIZE"
+        @activate="openOffre"
+      >
+        <template #header-candidatures="{ label }">
+          <div class="mes-recrutement-view__candidatures-head">
+            <span>{{ label }}</span>
+            <span class="mes-recrutement-view__candidatures-legend">
+              # · À traiter · En cours
+            </span>
+          </div>
+        </template>
+      </CspDataTable>
+    </template>
+    <template
+      v-if="!recrutementsError"
+      #tab-archives
+    >
+      <div
+        v-if="showArchivesSkeleton"
+        role="status"
+        aria-label="Chargement des offres archivées"
+      >
+        <CspSkeletonTable
+          :rows="PAGE_SIZE"
+          :columns="6"
+          with-footer
+        />
+      </div>
+      <CspDataTable
+        v-else
+        v-model:page="recrutementsArchivesPage"
+        :rows="filteredArchives"
+        :columns="RECRUTEMENTS_ARCHIVES_COLUMNS"
+        :row-key="row => row.offer_id"
+        activation-mode="cell"
+        caption="Offres archivées"
+        empty-label="Aucune offre archivée"
+        :page-size="PAGE_SIZE"
+        @activate="openOffre"
+      />
+    </template>
   </CspPageContainer>
 </template>
 
 <style scoped lang="scss">
-.mes-recrutement-view__header {
-  margin-bottom: var(--csp-space-4);
-}
-
-.mes-recrutement-view__idle,
-.mes-recrutement-view__loading,
-.mes-recrutement-view__error {
-  padding: 1rem 0;
-  color: var(--text-mention-grey);
-}
-
 .mes-recrutement-view__error {
   color: var(--text-default-error);
+}
+
+.mes-recrutement-view__subtitle {
+  margin: 0;
+  color: var(--text-mention-grey);
 }
 
 .mes-recrutement-view__toolbar {
@@ -239,7 +252,6 @@ const countLabel = computed(() => {
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  margin-top: 1rem;
 }
 
 .mes-recrutement-view__count {
@@ -266,7 +278,10 @@ const countLabel = computed(() => {
 .mes-recrutement-view__candidatures-head {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  max-height: 1rem;
+  & > span:first-child {
+    margin-top: -0.75rem;
+  }
 }
 
 .mes-recrutement-view__candidatures-legend {
