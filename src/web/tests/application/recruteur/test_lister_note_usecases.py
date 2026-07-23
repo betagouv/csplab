@@ -4,11 +4,13 @@ from uuid import uuid4
 
 import pytest
 
+from application.recruteur.services.note_query_service_interface import (
+    INoteQueryService,
+)
 from application.recruteur.usecases.lister_notes_candidature import (
     ListerNotesCandidatureQuery,
     ListerNotesCandidatureUsecase,
 )
-from domain.recruteur.services.note_query_service_interface import INoteQueryService
 from infrastructure.factories.recruteur.note_factory import NoteFactory
 from tests.utils.interface_aware_mock import create_interface_aware_mock
 

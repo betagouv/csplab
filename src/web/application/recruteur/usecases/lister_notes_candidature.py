@@ -3,9 +3,9 @@ from uuid import UUID
 
 from ddd.usecase_interface import IUseCase
 
-from domain.recruteur.services.note_query_service_interface import (
+from application.recruteur.dtos.note_read_models import NoteReadModel
+from application.recruteur.services.note_query_service_interface import (
     INoteQueryService,
-    NoteReadModel,
 )
 
 
