@@ -1,5 +1,6 @@
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 from django.urls import reverse
@@ -8,7 +9,10 @@ from rest_framework import status
 
 from application.recruteur.dtos.recrutement_read_models import (
     AgentDto,
+    CandidatDto,
+    CandidatureListeReadModel,
     CandidaturesCompteurDto,
+    EtapeDto,
 )
 from application.recruteur.usecases.recrutement_detail_static_data import (
     STATIC_RECRUTEMENT_DETAIL,
@@ -18,6 +22,22 @@ from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRe
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 
 fake = Faker()
+
+
+def _candidature_liste_read_models(
+    count: int = 11,
+) -> list[CandidatureListeReadModel]:
+    return [
+        CandidatureListeReadModel(
+            uuid=uuid4(),
+            date_soumission=datetime.now(tz=timezone.utc),
+            date_derniere_activite=datetime.now(tz=timezone.utc),
+            candidat=CandidatDto(uuid=uuid4(), nom="Dupont", prenom="Alice"),
+            etape=EtapeDto(etape_uuid=uuid4(), nom="Réception", categorie="ENTREE"),
+        )
+        for _ in range(count)
+    ]
+
 
 ORGANISME_UUID = fake.uuid4()
 UNKNOWN_ORGANISME_UUID = fake.uuid4()
@@ -372,7 +392,7 @@ class TestRecrutementListeView:
     @pytest.fixture(autouse=True)
     def _default_usecase(self, container):
         container.get_recrutement_liste_usecase.return_value.execute.return_value = (
-            STATIC_RECRUTEMENT_DETAIL
+            _candidature_liste_read_models()
         )
 
     def test_anonymous_access_is_unauthorized(self, api_client):
@@ -458,9 +478,10 @@ class TestRecrutementListeView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": "Not found."}
 
-    @patch("presentation.recruteur.views.recrutements.RecrutementListeMapper")
-    def test_returns_500_on_unexpected_error(self, mock_mapper, authenticated_client):
-        mock_mapper.return_value.from_domain.side_effect = Exception("unexpected")
+    def test_returns_500_on_unexpected_error(self, container, authenticated_client):
+        container.get_recrutement_liste_usecase.return_value.execute.side_effect = (
+            Exception("unexpected")
+        )
 
         response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
