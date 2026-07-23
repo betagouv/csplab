@@ -1143,6 +1143,14 @@ export interface operations {
                     "application/json": components["schemas"]["TokenError"];
                 };
             };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -1202,7 +1210,23 @@ export interface operations {
                     "application/json": components["schemas"]["TokenError"];
                 };
             };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -6,3 +6,4 @@ class OrganismeAction(Enum):
     INITIALIZE_ORGANISME_STEPS = "initialize_organisme_steps"
     UPDATE_ORGANISME_STEPS = "update_organisme_steps"
     LISTER_MES_RECRUTEMENTS = "lister_mes_recrutements"
+    VOIR_DETAIL_RECRUTEMENT = "voir_detail_recrutement"
