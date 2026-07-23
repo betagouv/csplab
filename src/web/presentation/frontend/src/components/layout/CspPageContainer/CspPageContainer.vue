@@ -6,9 +6,11 @@ import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 
 withDefaults(defineProps<{
   fill?: boolean
+  width?: 'reading' | 'wide' | 'full'
   tabs?: CspTabItem[]
 }>(), {
   fill: false,
+  width: 'wide',
 })
 
 const activeTab = defineModel<string>('activeTab')
@@ -17,7 +19,11 @@ const activeTab = defineModel<string>('activeTab')
 <template>
   <main
     class="csp-page-container"
-    :class="{ 'csp-page-container--fill': fill }"
+    :class="{
+      'csp-page-container--fill': fill,
+      'csp-page-container--reading': width === 'reading',
+      'csp-page-container--wide': width === 'wide',
+    }"
   >
     <CspTabs
       v-if="tabs && tabs.length > 0"
@@ -64,6 +70,7 @@ const activeTab = defineModel<string>('activeTab')
 <style scoped lang="scss">
 .csp-page-container {
   box-sizing: border-box;
+  container: page / inline-size;
 }
 
 .csp-page-container--fill {
@@ -87,6 +94,16 @@ const activeTab = defineModel<string>('activeTab')
 .csp-page-container__shared {
   padding-top: var(--csp-page-content-padding-block);
   padding-inline: var(--csp-page-container-padding-inline);
+}
+
+.csp-page-container--reading .csp-page-container__content,
+.csp-page-container--reading .csp-page-container__shared {
+  max-width: var(--csp-page-container-reading-width);
+}
+
+.csp-page-container--wide .csp-page-container__content,
+.csp-page-container--wide .csp-page-container__shared {
+  max-width: var(--csp-page-container-wide-width);
 }
 
 .csp-page-container--fill .csp-page-container__content--with-tabs {

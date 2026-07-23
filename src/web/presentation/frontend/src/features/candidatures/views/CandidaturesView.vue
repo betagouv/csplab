@@ -103,6 +103,7 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
   <CspPageContainer
     v-model:active-tab="activeTab"
     fill
+    width="full"
     class="candidatures-view"
     :tabs="TABS"
   >

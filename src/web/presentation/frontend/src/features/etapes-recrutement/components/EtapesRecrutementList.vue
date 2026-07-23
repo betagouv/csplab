@@ -363,10 +363,22 @@ function getMenuSections(
   width: 20rem;
 }
 
+@container page (max-width: 64rem) {
+  .etapes-list {
+    flex-direction: column;
+  }
+
+  .etapes-list__aside {
+    width: auto;
+  }
+}
+
 .etapes-list__header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: var(--csp-space-3);
   margin-bottom: var(--csp-space-6);
 }
 

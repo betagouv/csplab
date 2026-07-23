@@ -51,7 +51,9 @@
   --csp-z-tooltip: 1150;
   --csp-z-toast: 1200;
 
-  --csp-page-container-padding-inline: 3rem;
+  --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+  --csp-page-container-reading-width: 68rem;
+  --csp-page-container-wide-width: 90rem;
   --csp-page-content-padding-block: 1.5rem;
 }
 
