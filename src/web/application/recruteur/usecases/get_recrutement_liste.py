@@ -36,6 +36,7 @@ class GetRecrutementListeUsecase(
         self.organisme_permission_service = organisme_permission_service
 
     def execute(self, query: GetRecrutementListeQuery) -> dict[str, Any] | None:
+        # TODO RBAC : handle MEMBRE role on recrutement
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=query.organisme_id,
