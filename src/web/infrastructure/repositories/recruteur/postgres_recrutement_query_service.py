@@ -2,8 +2,7 @@ from datetime import datetime
 from typing import cast
 from uuid import UUID
 
-from django.db.models import Count, F, Max, Prefetch, Q
-from django.db.models.functions import Coalesce
+from django.db.models import Count, Max, Prefetch, Q
 
 from application.recruteur.dtos.recrutement_read_models import (
     AgentDto,
@@ -57,9 +56,8 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 )
             )
             .annotate(
-                derniere_activite=Coalesce(  # todo extract business rules
-                    Max("etapes__candidatures__updated_at"),
-                    F("offre__publication_date"),
+                derniere_activite=Max(  # todo extract business rules
+                    "etapes__candidatures__updated_at"
                 ),
                 candidatures_total=Count("etapes__candidatures"),
                 candidatures_a_traiter=Count(
@@ -92,7 +90,8 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 type_contrat=model.offre.contract_type or "",
                 date_publication=model.offre.publication_date,
                 agents=agents,
-                derniere_activite=cast(datetime, model.derniere_activite),  # type: ignore[attr-defined]
+                derniere_activite=model.derniere_activite  # type: ignore[attr-defined]
+                or model.offre.publication_date,
                 candidatures=CandidaturesCompteurDto(
                     total=cast(int, model.candidatures_total) or 0,  # type: ignore[attr-defined]
                     a_traiter=cast(int, model.candidatures_a_traiter) or 0,  # type: ignore[attr-defined]
