@@ -1,5 +1,8 @@
 from dependency_injector import containers, providers
 
+from application.recruteur.usecases.changer_etape_candidatures import (
+    ChangerEtapeCandidaturesUsecase,
+)
 from application.recruteur.usecases.creer_note import CreerNoteUsecase
 from application.recruteur.usecases.editer_note import EditerNoteUsecase
 from application.recruteur.usecases.get_organisme_recruteur import (
@@ -155,4 +158,9 @@ class RecruteurContainer(containers.DeclarativeContainer):
         organisme_repository=postgres_organisme_repository,
         organisme_permission_service=organisme_permission_service,
         recrutement_query_service=postgres_recrutement_query_service,
+    )
+
+    changer_etape_candidatures_usecase = providers.Factory(
+        ChangerEtapeCandidaturesUsecase,
+        organisme_repository=postgres_organisme_repository,
     )

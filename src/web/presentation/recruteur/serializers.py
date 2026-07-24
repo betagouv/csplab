@@ -123,3 +123,28 @@ class CreerNoteSerializer(serializers.Serializer):
 
 class EditerNoteSerializer(serializers.Serializer):
     message = serializers.CharField()
+
+
+# ---------------------------------------------------------------------------
+# Serializers pour le changement d'étape (batch) de candidatures
+# ---------------------------------------------------------------------------
+
+
+class CandidatureAChangerSerializer(serializers.Serializer):
+    candidature_uuid = serializers.UUIDField()
+    etape_actuelle_uuid = serializers.UUIDField()
+
+
+class ChangerEtapeCandidaturesSerializer(serializers.Serializer):
+    etape_cible_uuid = serializers.UUIDField()
+    candidatures = CandidatureAChangerSerializer(many=True)
+
+
+class CandidatureEchecSerializer(serializers.Serializer):
+    candidature_uuid = serializers.UUIDField()
+    raison = serializers.CharField()
+
+
+class ChangerEtapeResultatSerializer(serializers.Serializer):
+    reussites = serializers.ListField(child=serializers.UUIDField())
+    echecs = CandidatureEchecSerializer(many=True)
