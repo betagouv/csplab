@@ -6,8 +6,10 @@ import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBread
 import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
@@ -117,12 +119,10 @@ const countLabel = computed(() => {
     :tabs="TABS"
   >
     <template #shared>
-      <div
+      <CspErrorState
         v-if="recrutementsError"
-        class="mes-recrutement-view__error"
-      >
-        Une erreur est survenue lors du chargement des recrutements.
-      </div>
+        title="Une erreur est survenue lors du chargement des recrutements."
+      />
       <template v-else>
         <div
           class="mes-recrutement-view__toolbar"
@@ -172,75 +172,71 @@ const countLabel = computed(() => {
       v-if="!recrutementsError"
       #tab-actifs
     >
-      <div
-        v-if="showActifsSkeleton"
-        role="status"
-        aria-label="Chargement des recrutements en cours"
+      <CspAsyncSection
+        :pending="showActifsSkeleton"
+        loading-label="Chargement des recrutements en cours"
       >
-        <CspSkeletonTable
-          :rows="PAGE_SIZE"
-          :columns="6"
-          with-footer
-        />
-      </div>
-      <CspDataTable
-        v-else
-        v-model:page="recrutementsActifsPage"
-        :rows="filteredActifs"
-        :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
-        :row-key="row => row.offer_id"
-        activation-mode="cell"
-        caption="Recrutements en cours"
-        empty-label="Aucun recrutement en cours"
-        :page-size="PAGE_SIZE"
-        @activate="openOffre"
-      >
-        <template #header-candidatures="{ label }">
-          <div class="mes-recrutement-view__candidatures-head">
-            <span>{{ label }}</span>
-            <span class="mes-recrutement-view__candidatures-legend">
-              # · À traiter · En cours
-            </span>
-          </div>
+        <template #skeleton>
+          <CspSkeletonTable
+            :rows="PAGE_SIZE"
+            :columns="6"
+            with-footer
+          />
         </template>
-      </CspDataTable>
+        <CspDataTable
+          v-model:page="recrutementsActifsPage"
+          :rows="filteredActifs"
+          :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
+          :row-key="row => row.offer_id"
+          activation-mode="cell"
+          caption="Recrutements en cours"
+          empty-label="Aucun recrutement en cours"
+          :page-size="PAGE_SIZE"
+          @activate="openOffre"
+        >
+          <template #header-candidatures="{ label }">
+            <div class="mes-recrutement-view__candidatures-head">
+              <span>{{ label }}</span>
+              <span class="mes-recrutement-view__candidatures-legend">
+                # · À traiter · En cours
+              </span>
+            </div>
+          </template>
+        </CspDataTable>
+      </CspAsyncSection>
     </template>
     <template
       v-if="!recrutementsError"
       #tab-archives
     >
-      <div
-        v-if="showArchivesSkeleton"
-        role="status"
-        aria-label="Chargement des offres archivées"
+      <CspAsyncSection
+        :pending="showArchivesSkeleton"
+        loading-label="Chargement des offres archivées"
       >
-        <CspSkeletonTable
-          :rows="PAGE_SIZE"
-          :columns="6"
-          with-footer
+        <template #skeleton>
+          <CspSkeletonTable
+            :rows="PAGE_SIZE"
+            :columns="6"
+            with-footer
+          />
+        </template>
+        <CspDataTable
+          v-model:page="recrutementsArchivesPage"
+          :rows="filteredArchives"
+          :columns="RECRUTEMENTS_ARCHIVES_COLUMNS"
+          :row-key="row => row.offer_id"
+          activation-mode="cell"
+          caption="Offres archivées"
+          empty-label="Aucune offre archivée"
+          :page-size="PAGE_SIZE"
+          @activate="openOffre"
         />
-      </div>
-      <CspDataTable
-        v-else
-        v-model:page="recrutementsArchivesPage"
-        :rows="filteredArchives"
-        :columns="RECRUTEMENTS_ARCHIVES_COLUMNS"
-        :row-key="row => row.offer_id"
-        activation-mode="cell"
-        caption="Offres archivées"
-        empty-label="Aucune offre archivée"
-        :page-size="PAGE_SIZE"
-        @activate="openOffre"
-      />
+      </CspAsyncSection>
     </template>
   </CspPageContainer>
 </template>
 
 <style scoped lang="scss">
-.mes-recrutement-view__error {
-  color: var(--text-default-error);
-}
-
 .mes-recrutement-view__subtitle {
   margin: 0;
   color: var(--text-mention-grey);

@@ -4,6 +4,8 @@ import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
+import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
@@ -69,8 +71,10 @@ const metaItems = computed(() =>
   recrutementDetail.value ? formatRecrutementMeta(recrutementDetail.value) : [],
 )
 
+const loadFailed = computed(() => !pending.value && Boolean(error.value))
+
 const isNotFound = computed(() =>
-  !pending.value && (Boolean(error.value) || !recrutementDetail.value),
+  !pending.value && !error.value && !recrutementDetail.value,
 )
 
 const currentView = computed(() => {
@@ -99,16 +103,22 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
   <CspPageContainer
     v-model:active-tab="activeTab"
     fill
+    width="full"
     class="candidatures-view"
     :tabs="TABS"
   >
     <template #tab-candidatures>
-      <div
-        v-if="isNotFound"
-        class="candidatures-view__status candidatures-view__status--error"
-      >
-        Recrutement introuvable.
-      </div>
+      <CspErrorState
+        v-if="loadFailed"
+        title="Une erreur est survenue lors du chargement du recrutement."
+      />
+
+      <CspEmptyState
+        v-else-if="isNotFound"
+        icon="ri:search-line"
+        title="Recrutement introuvable"
+        description="Ce recrutement n'existe pas ou n'est plus accessible."
+      />
 
       <template v-else>
         <div class="candidatures-view__toolbar">
@@ -154,14 +164,6 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
 </template>
 
 <style scoped lang="scss">
-.candidatures-view__status {
-  color: var(--text-mention-grey);
-}
-
-.candidatures-view__status--error {
-  color: var(--text-default-error);
-}
-
 .candidatures-view__toolbar {
   display: flex;
   flex-wrap: wrap;
