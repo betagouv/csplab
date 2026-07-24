@@ -4,7 +4,63 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.13] - 2026-07-15
+## [0.1.14] - 2026-07-24
+
+### <!-- 0 --> Breaking Changes
+
+- ✨(recruteur) infra et presentation mes recrutements ([#963](https://github.com/betagouv/csplab/pull/963))
+- 🔥(ingestion) supprimer la forme de contrat STAGE ([#998](https://github.com/betagouv/csplab/pull/998))
+
+### <!-- 1 --> Added
+
+- ✨(frontend) integration du kanban et ajout du switch liste ([#947](https://github.com/betagouv/csplab/pull/947))
+- ✨(ats-presentation) add search and filters to candidatures views ([#977](https://github.com/betagouv/csplab/pull/977))
+- ♻️(recruteur-usecase) mes recrutements ([#945](https://github.com/betagouv/csplab/pull/945))
+- ⚡️(ingestion-presentation) update last_login when user request his.her jwt token ([#982](https://github.com/betagouv/csplab/pull/982))
+- ✨(ingestion) add fin_candidature, debut_vacance_poste to offert upsert payload ([#970](https://github.com/betagouv/csplab/pull/970))
+- ✨(ingestion) transmettre les coordonnées GPS des offres vers l'API web ([#969](https://github.com/betagouv/csplab/pull/969))
+- ✨(ats-presentation) keep candidatures page stable while loading ([#980](https://github.com/betagouv/csplab/pull/980))
+- 🔧(ats-presentation) setup pinia colada (plugin, devtools, sentry) ([#979](https://github.com/betagouv/csplab/pull/979))
+- ✨(ats-presentation) add dedicated component skeletons ([#981](https://github.com/betagouv/csplab/pull/981))
+- ✨(recruteur-domain) mise en place des modèles de rôles agents ([#1000](https://github.com/betagouv/csplab/pull/1000))
+- ✨(frontend) Traitement par lot candidatures changement étape ([#948](https://github.com/betagouv/csplab/pull/948))
+- 🐛(ingestion) accepter modificationDate null avec fallback sur le timestamp courant ([#1019](https://github.com/betagouv/csplab/pull/1019))
+- ✨(recruteur-rbac) Mise en place du RBAC sur les organismes recruteurs ([#1002](https://github.com/betagouv/csplab/pull/1002))
+- ✨(recruteur-rbac) setup organisme authorization on lister_mes_recrutements ([#1020](https://github.com/betagouv/csplab/pull/1020))
+- 🐛(ingestion) gérer les codes NIV_DIPL dans le mapping du niveau d'études ([#1028](https://github.com/betagouv/csplab/pull/1028))
+- ✨(identite-domain) Mise en place du RBAC sur la creation d'un organisme ([#1025](https://github.com/betagouv/csplab/pull/1025))
+- ✨(recrutement-application) Mise en place RBAC agent pour la liste des recrutements ([#1026](https://github.com/betagouv/csplab/pull/1026))
+- ✨(recrutement-application) Mise en place RBAC agent pour les vues de detail d'un recrutement ([#1030](https://github.com/betagouv/csplab/pull/1030))
+- ♻️(recruteur-presentation) add logout and refactor user store to pinia colada ([#1022](https://github.com/betagouv/csplab/pull/1022))
+- ♻️(ats-presentation) add page container width rules and async components ([#1036](https://github.com/betagouv/csplab/pull/1036))
+
+### <!-- 2 --> Modified
+
+- ♻️(ats-presentation) harmonise shared pages shell ([#978](https://github.com/betagouv/csplab/pull/978))
+- 🔥(infrastructure) refactoriser quertsetpage with mappers ([#976](https://github.com/betagouv/csplab/pull/976))
+- 🎨(web-presentation) get better loggers name ([#986](https://github.com/betagouv/csplab/pull/986))
+- 🐛(referentiel) remplacer temps partiel par Temps incomplet ([#999](https://github.com/betagouv/csplab/pull/999))
+- ♻️(ats-presentation) migrate recrutements lists to pinia colada queries ([#1003](https://github.com/betagouv/csplab/pull/1003))
+- ⚡️(ingestion-presentation) remove browsable api rendered option in DRF ([#1004](https://github.com/betagouv/csplab/pull/1004))
+- ♻️(ats-presentation) migrate candidatures data to shared colada query ([#983](https://github.com/betagouv/csplab/pull/983))
+- ♻️(ats-presentation) migrate etapes recrutement to colada mutations ([#1011](https://github.com/betagouv/csplab/pull/1011))
+- ♻️(recruteur-presentation) refactor tests ([#1017](https://github.com/betagouv/csplab/pull/1017))
+- 🔒️(recrutement-test) renforcement des tests RBAC pour la gestion des organismes ([#1027](https://github.com/betagouv/csplab/pull/1027))
+- ✨(recrutement-infrastructure) get_recrutement_liste exrait les données de la DB ([#1032](https://github.com/betagouv/csplab/pull/1032))
+- ♻️(ats-presentation) unify page scaffolding across views ([#1033](https://github.com/betagouv/csplab/pull/1033))
+- ✨(recrutement-infrastructure) get_recrutement_kanban exrait les données de la DB ([#1034](https://github.com/betagouv/csplab/pull/1034))
+- ♻️(ats-presentation) update sidebar styles ([#1038](https://github.com/betagouv/csplab/pull/1038))
+- ♻️(recrutement-infrastructure) use IPage interface instead of ListPage in RecrutementListView ([#1040](https://github.com/betagouv/csplab/pull/1040))
+
+### <!-- 4 --> Fixed
+
+- 🐛(recruteur-usecase) wire lister_notes_usecase in its container ([#967](https://github.com/betagouv/csplab/pull/967))
+- 🔧(frontend) pin pnpm version from root packageManager ([#949](https://github.com/betagouv/csplab/pull/949))
+- 🐛(ats-presentation) fix app mount crash on production build ([#1001](https://github.com/betagouv/csplab/pull/1001))
+- 🐛(tooling) skip whitenoise processing for already vite processed assets ([#1021](https://github.com/betagouv/csplab/pull/1021))
+- 🐛(ingestion) empêcher le mark_as_upserted quand la publication échoue ([#1029](https://github.com/betagouv/csplab/pull/1029))
+
+## [0.1.13] - 2026-07-16
 
 ### <!-- 0 --> Breaking Changes
 
