@@ -177,7 +177,7 @@ class RecrutementKanbanView(APIView):
     ) -> Response:
         try:
             usecase = self.container.get_recrutement_kanban_usecase()
-            kanban = usecase.execute(
+            result = usecase.execute(
                 GetRecrutementKanbanQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
@@ -185,11 +185,12 @@ class RecrutementKanbanView(APIView):
                     est_staff=request.user.is_staff,
                 )
             )
-            if kanban is None:
+            if result is None:
                 return Response(
                     {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
                 )
-            serializer = RecrutementDetailKanbanSerializer(kanban)
+
+            serializer = RecrutementDetailKanbanSerializer(result)
             return Response(serializer.data)
         except AccesOrganismeRefuse:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
