@@ -60,3 +60,47 @@ class CandidatureListeReadModel:
     date_derniere_activite: datetime
     candidat: CandidatDto
     etape: EtapeDto
+
+
+@dataclass(frozen=True, kw_only=True)
+class LocalisationDto:
+    zone_geographique: str
+    pays: str
+    region: str
+    departement: str
+    localisation_label: str
+    latitude: float | None
+    longitude: float | None
+
+
+@dataclass(frozen=True, kw_only=True)
+class OrganismeRecruteurDto:
+    nom: str
+    siret: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class CandidatureKanbanDto:
+    uuid: UUID
+    date_soumission: datetime
+    date_derniere_activite: datetime
+    candidat: CandidatDto
+
+
+@dataclass(frozen=True, kw_only=True)
+class EtapeKanbanReadModel:
+    etape_uuid: UUID
+    nom: str
+    categorie: str
+    candidatures: list[CandidatureKanbanDto]
+
+
+@dataclass(frozen=True, kw_only=True)
+class RecrutementKanbanReadModel:
+    offer_id: UUID
+    intitule: str
+    date_publication: datetime
+    localisation: LocalisationDto
+    organisme_recruteur: OrganismeRecruteurDto
+    categorie_offre: str
+    etapes: list[EtapeKanbanReadModel]

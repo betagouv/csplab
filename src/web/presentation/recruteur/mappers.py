@@ -19,10 +19,3 @@ class EtapesMapper(IFromDomainMapper[OrganismeRecruteur, list[dict]]):
             }
             for e in (domain_object.etapes or ())
         ]
-
-
-class RecrutementKanbanMapper(IFromDomainMapper[dict, dict]):
-    def from_domain(self, domain_object: Optional[dict]) -> Optional[dict]:
-        if domain_object is None:
-            return None
-        return domain_object

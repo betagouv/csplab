@@ -8,11 +8,16 @@ from django.db.models.functions import Coalesce
 from application.recruteur.dtos.recrutement_read_models import (
     AgentDto,
     CandidatDto,
+    CandidatureKanbanDto,
     CandidatureListeReadModel,
     CandidaturesCompteurDto,
     EtapeDto,
+    EtapeKanbanReadModel,
+    LocalisationDto,
+    OrganismeRecruteurDto,
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
+    RecrutementKanbanReadModel,
 )
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
@@ -215,3 +220,80 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             for etape in etapes
             for candidature in etape.candidatures.all()
         ]
+
+    def get_kanban_by_recrutement(
+        self, organisme_id: UUID, recrutement_id: UUID
+    ) -> RecrutementKanbanReadModel | None:
+        recrutement = (
+            RecrutementModel.objects.filter(
+                pk=recrutement_id, organisme_id=organisme_id
+            )
+            .select_related("offre", "organisme")
+            .prefetch_related(
+                Prefetch(
+                    "etapes",
+                    queryset=EtapeModel.objects.prefetch_related(
+                        Prefetch(
+                            "candidatures",
+                            queryset=CandidatureModel.objects.select_related(
+                                "candidat__utilisateur"
+                            ).order_by("created_at"),
+                        )
+                    ),
+                )
+            )
+            .first()
+        )
+        if recrutement is None:
+            return None
+
+        etapes_by_id = {str(etape.id): etape for etape in recrutement.etapes.all()}
+        etapes_ordonnees = [
+            etapes_by_id[etape_id]
+            for etape_id in recrutement.ordre_etapes
+            if etape_id in etapes_by_id
+        ]
+
+        offre = recrutement.offre
+        organisme = recrutement.organisme
+
+        return RecrutementKanbanReadModel(
+            offer_id=recrutement.offre_id,
+            intitule=offre.title,
+            date_publication=offre.publication_date,
+            localisation=LocalisationDto(
+                zone_geographique=offre.area or "",
+                pays=offre.country or "",
+                region=offre.region or "",
+                departement=offre.department or "",
+                localisation_label=offre.location_label or "",
+                latitude=offre.latitude,
+                longitude=offre.longitude,
+            ),
+            organisme_recruteur=OrganismeRecruteurDto(
+                nom=organisme.nom,
+                siret=organisme.siret,
+            ),
+            categorie_offre=offre.category or "",
+            etapes=[
+                EtapeKanbanReadModel(
+                    etape_uuid=etape.id,
+                    nom=etape.nom,
+                    categorie=CategorieEtapeRecrutement(etape.categorie).name,
+                    candidatures=[
+                        CandidatureKanbanDto(
+                            uuid=candidature.id,
+                            date_soumission=candidature.created_at,
+                            date_derniere_activite=candidature.updated_at,
+                            candidat=CandidatDto(
+                                uuid=UUID(candidature.candidat_id),
+                                nom=candidature.candidat.utilisateur.last_name,
+                                prenom=candidature.candidat.utilisateur.first_name,
+                            ),
+                        )
+                        for candidature in etape.candidatures.all()
+                    ],
+                )
+                for etape in etapes_ordonnees
+            ],
+        )
