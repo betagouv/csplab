@@ -59,6 +59,7 @@ const { isExpanded, isMobile } = useSidebar()
 
 <style scoped lang="scss">
 .csp-sidebar-item {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -110,7 +111,22 @@ const { isExpanded, isMobile } = useSidebar()
 .csp-sidebar-item--active:hover,
 .csp-sidebar-item--active:active {
   cursor: default;
-  background: var(--background-action-low-blue-france);
-  color: var(--text-action-high-blue-france);
+  background: transparent;
+  color: var(--text-active-blue-france);
+}
+
+.csp-sidebar-item--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: var(--csp-space-2);
+  bottom: var(--csp-space-2);
+  width: 2px;
+  border-radius: 1px;
+  background: var(--border-active-blue-france);
+}
+
+.csp-sidebar-item--active .csp-sidebar-item__label {
+  font-weight: var(--csp-font-weight-medium);
 }
 </style>
