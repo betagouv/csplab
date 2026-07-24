@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 import pytest
 
 from application.recruteur.usecases.lister_mes_recrutements import (
@@ -24,6 +26,7 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
 
@@ -124,6 +127,48 @@ class TestListerMesRecrutements:
         assert items[0].finalise is True
         assert items[0].recrute is not None
         assert items[0].recrute != ""
+
+    def test_lister_actifs_sans_candidature_derniere_activite_repli_sur_publication(
+        self, usecase
+    ):
+        agent_id, organisme = self._create_agent_responsable()
+        offre = OfferFactory.create_model(
+            publication_date=datetime(2024, 3, 1, tzinfo=UTC)
+        )
+        recrutement_actif = RecrutementFactory.create_model(
+            offre_id=offre.id,
+            organisme_id=organisme.id,
+            agent_ids=(agent_id,),
+            etapes=EtapeRecrutementFactory.create_entities(),
+        )
+
+        result = self._lister_recrutements(
+            usecase, organisme, agent_id, StatutRecrutement.ACTIF
+        )
+
+        items = list(result.slice(0, 10))
+        assert len(items) == 1
+        assert items[0].offer_id == recrutement_actif.offre_id
+        assert items[0].candidatures.total == 0
+        assert items[0].derniere_activite == offre.publication_date
+
+    def test_lister_archives_sans_candidature_acceptee(self, usecase):
+        agent_id, organisme = self._create_agent_responsable()
+        recrutement_archive = RecrutementFactory.create_model(
+            offre_archivee=True,
+            organisme_id=organisme.id,
+            agent_ids=(agent_id,),
+        )
+
+        result = self._lister_recrutements(
+            usecase, organisme, agent_id, StatutRecrutement.ARCHIVE
+        )
+
+        items = list(result.slice(0, 10))
+        assert len(items) == 1
+        assert items[0].offer_id == recrutement_archive.offre_id
+        assert items[0].finalise is False
+        assert items[0].recrute is None
 
 
 @pytest.mark.parametrize("statut", [StatutRecrutement.ACTIF, StatutRecrutement.ARCHIVE])
