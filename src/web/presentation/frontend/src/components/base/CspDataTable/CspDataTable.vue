@@ -418,6 +418,7 @@ function onActivate(id: string): void {
 .csp-table-wrapper {
   width: 100%;
   border: 1px solid var(--border-default-grey);
+  background: var(--background-default-grey);
   overflow: hidden;
 
   &.csp-table-wrapper--sm {

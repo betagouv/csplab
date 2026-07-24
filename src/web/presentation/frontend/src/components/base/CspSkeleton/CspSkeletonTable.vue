@@ -66,6 +66,7 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border-default-grey);
+  background: var(--background-default-grey);
 }
 
 .csp-skeleton-table__row {
