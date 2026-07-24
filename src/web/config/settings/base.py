@@ -195,6 +195,8 @@ DSFR_USE_INTEGRITY_CHECKSUMS = False
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static_collected"
 
+VITE_DEV_ORIGIN = env.str("VITE_DEV_ORIGIN", default="http://localhost:5173")
+
 STORAGES = {
     "staticfiles": {
         "BACKEND": "config.storages.ViteCompressedManifestStaticFilesStorage",
