@@ -1,0 +1,74 @@
+# Tâches mise : surcouche d'ergonomie optionnelle pour le dev front par-dessus le Makefile
+
+[tools]
+node = "24"        # engines.node (src/web/package.json)
+pnpm = "11.1.3"    # packageManager (src/web/package.json)
+
+# ── Frontend (node seul, aucun service back requis) ──────────────────────────
+[tasks.sb]
+description = "Storybook front"
+run = "make storybook"
+
+[tasks."front:dev"]
+description = "Vite HMR front"
+run = "make frontend-dev"
+
+[tasks.check]
+description = "Front : lint + typecheck + tests"
+run = "make frontend-check"
+
+# ── Install & migrations ─────────────────────────────────────────────────────
+[tasks."install:py"]
+description = "Dépendances Python du back (uv : web + ddd + referentiel)"
+run = "make build-web"
+
+[tasks."install:js"]
+description = "Dépendances frontend (pnpm)"
+run = "make frontend-install"
+
+[tasks.install]
+description = "Installe les dépendances ATS (Python + frontend)"
+depends = ["install:py", "install:js"]
+
+# ── Services & app (Docker + Django) ─────────────────────────────────────────
+[tasks."docker:up"]
+description = "Vérifie que Docker est joignable (démarrez votre moteur au besoin)"
+run = "docker info >/dev/null 2>&1 || { echo 'Docker injoignable, démarrez votre moteur (Colima, Docker Desktop, OrbStack…)'; exit 1; }"
+
+[tasks."services:ats"]
+description = "Démarre postgres (suffit pour le dev ATS)"
+depends = ["docker:up"]
+run = "make run-postgres"
+
+[tasks."services:cv"]
+description = "Postgres + Redis + Qdrant (recherche vectorielle, analyse de CV, ingestion)"
+depends = ["docker:up"]
+run = ["make run-postgres", "make run-redis", "make run-qdrant"]
+
+[tasks."back:ats"]
+description = "Back Django"
+depends = ["services:ats"]
+run = "make run-web"
+
+[tasks."back:cv"]
+description = "Back Django + sass watch (dev candidat/CV : styles SCSS DSFR)"
+depends = ["services:cv"]
+run = "make dev"
+
+[tasks.migrate]
+description = "Applique les migrations Django"
+depends = ["services:ats"]
+run = "make migrate"
+
+[tasks."open:ats"]
+description = "Ouvre http://localhost:8000/ats/ quand le back répond"
+# depends parallèles : on sonde le back avant d'ouvrir. Opener portable, non-fatal.
+run = "URL=http://localhost:8000/ats/; for _ in $(seq 1 120); do curl -s -o /dev/null \"$URL\" && break; sleep 0.5; done; (open \"$URL\" || xdg-open \"$URL\") >/dev/null 2>&1 || true"
+
+[tasks.dev]
+description = "Stack complète pour dev le front de l'ATS"
+depends = ["back:ats", "front:dev", "open:ats"]
+
+[tasks.emulate-prod]
+description = "Émule la prod : build front + collectstatic + runserver :8001"
+run = "cd src/web && (cd presentation/frontend && corepack pnpm exec vite build --mode production) && DJANGO_SETTINGS_MODULE=config.settings.base direnv exec . python manage.py collectstatic --noinput --clear && DJANGO_SETTINGS_MODULE=config.settings.base direnv exec . env WEB_ALLOWED_HOSTS=localhost,127.0.0.1 python manage.py runserver 8001 --noreload"
