@@ -62,7 +62,21 @@ Open http://localhost:8000/ats/
 
 ### Hot Module Replacement (HMR)
 
-In dev mode, the Django template loads assets from the Vite server (`localhost:5173`). Changes in `src/` are reflected instantly without a full page refresh.
+In dev mode, the Django template loads assets from the Vite server. Changes in `src/` are reflected instantly without a full page refresh.
+
+### Changing the dev server origin
+
+The Vite dev origin is a single environment variable, `WEB_VITE_DEV_ORIGIN`
+(default `http://localhost:5173`), read by both Vite (port, HMR) and Django
+(template, CSP). Set it in `env.d/web` to use another port:
+
+```
+WEB_VITE_DEV_ORIGIN=http://localhost:5200
+```
+
+An `https://` origin switches Vite to reverse-proxy mode (HMR over `wss`), for
+setups that serve the dev server behind a named host. The origin's host and
+port then drive the HMR client; Django's CSP follows the same variable.
 
 ## Production Build
 
@@ -120,8 +134,8 @@ The `ats/base.html` template uses custom Django tags to load Vite assets:
 {% load vite_tags %}
 
 {% if debug %}
-  <!-- Dev: load from Vite HMR -->
-  <script type="module" src="http://localhost:5173/src/app/main.ts"></script>
+  <!-- Dev: load from the Vite dev server (WEB_VITE_DEV_ORIGIN) -->
+  <script type="module" src="{% vite_dev_asset 'src/app/main.ts' %}"></script>
 {% else %}
   <!-- Prod: load from static with hash -->
   {% vite_css 'src/app/main.ts' %}
@@ -133,7 +147,7 @@ The `{% vite_asset %}` and `{% vite_css %}` tags read Vite's `manifest.json` to 
 
 ## CSP (Content Security Policy)
 
-In dev mode, CSP allows `localhost:5173` for HMR. Configured in `config/settings/dev.py`.
+In dev mode, CSP allows the Vite dev origin (`WEB_VITE_DEV_ORIGIN`, including its `ws`/`wss` variant for HMR). Derived in `config/settings/dev.py`.
 
 ## Feature Structure
 

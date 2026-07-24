@@ -27,6 +27,11 @@ def _load_manifest() -> dict:
 
 
 @register.simple_tag
+def vite_dev_asset(path: str) -> str:
+    return f"{settings.VITE_DEV_ORIGIN.rstrip('/')}/{path}"
+
+
+@register.simple_tag
 def vite_asset(entry: str) -> str:
     manifest = _load_manifest()
 

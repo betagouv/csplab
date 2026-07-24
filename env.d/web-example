@@ -9,6 +9,10 @@ WEB_ROBOTS_INDEXING=1
 
 WEB_DEBUG_TOOLBAR=1
 
+# Vite dev server origin (port, HMR, CSP). Default http://localhost:5173.
+# Use an https:// origin to serve Vite behind a named host (HMR over wss).
+WEB_VITE_DEV_ORIGIN=http://localhost:5173
+
 # database
 WEB_DATABASE_URL=psql://web:pass@localhost:5432/web
 
