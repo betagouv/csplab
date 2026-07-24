@@ -55,16 +55,18 @@ AUTH_PASSWORD_VALIDATORS = []
 REST_FRAMEWORK["DEFAULT_PERMISSION_CLASSES"] = []  # noqa: F405
 
 # CSP overrides for Vite dev server
-SECURE_CSP["script-src"] = [*SECURE_CSP["script-src"], "http://localhost:5173"]  # noqa: F405
+_vite_origin = VITE_DEV_ORIGIN  # noqa: F405
+_vite_ws_origin = _vite_origin.replace("https://", "wss://").replace("http://", "ws://")
+SECURE_CSP["script-src"] = [*SECURE_CSP["script-src"], _vite_origin]  # noqa: F405
 SECURE_CSP["script-src-elem"] = [  # noqa: F405
     *SECURE_CSP["script-src-elem"],  # noqa: F405
-    "http://localhost:5173",
+    _vite_origin,
 ]
 SECURE_CSP["connect-src"] = [  # noqa: F405
     *SECURE_CSP["connect-src"],  # noqa: F405
-    "http://localhost:5173",
-    "ws://localhost:5173",
+    _vite_origin,
+    _vite_ws_origin,
 ]
 SECURE_CSP["style-src"] = ["'self'", "'unsafe-inline'"]  # noqa: F405
 SECURE_CSP["style-src-elem"] = ["'self'", "'unsafe-inline'"]  # noqa: F405
-SECURE_CSP["font-src"] = [*SECURE_CSP["font-src"], "http://localhost:5173"]  # noqa: F405
+SECURE_CSP["font-src"] = [*SECURE_CSP["font-src"], _vite_origin]  # noqa: F405
