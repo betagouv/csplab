@@ -27,6 +27,14 @@ const navGroups = computed(() => {
     }))
     .filter(group => group.items.length > 0)
 })
+
+function isItemActive(routeName: string): boolean {
+  const { path } = router.resolve({ name: routeName })
+  if (path === '/') {
+    return route.path === '/'
+  }
+  return route.path === path || route.path.startsWith(`${path}/`)
+}
 </script>
 
 <template>
@@ -52,7 +60,7 @@ const navGroups = computed(() => {
               :icon="item.icon"
               :label="item.label"
               :to="{ name: item.to }"
-              :is-active="route.name === item.to"
+              :is-active="isItemActive(item.to)"
             />
           </CspSidebarGroup>
 
