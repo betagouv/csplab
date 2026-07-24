@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
+from ddd.page_interface import IPage
 from ddd.usecase_interface import IUseCase
 
 from application.recruteur.dtos.recrutement_read_models import (
@@ -27,7 +28,7 @@ class GetRecrutementListeQuery:
 
 
 class GetRecrutementListeUsecase(
-    IUseCase[GetRecrutementListeQuery, list[CandidatureListeReadModel] | None]
+    IUseCase[GetRecrutementListeQuery, IPage[CandidatureListeReadModel] | None]
 ):
     def __init__(
         self,
@@ -41,7 +42,7 @@ class GetRecrutementListeUsecase(
 
     def execute(
         self, query: GetRecrutementListeQuery
-    ) -> list[CandidatureListeReadModel] | None:
+    ) -> IPage[CandidatureListeReadModel] | None:
         # TODO RBAC : handle MEMBRE role on recrutement
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
