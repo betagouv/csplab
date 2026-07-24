@@ -3,6 +3,7 @@ import { setup } from '@storybook/vue3'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import '../src/app/icons'
 import '../src/styles/index.css'
+import './storybook.css'
 
 const storybookRouter = createRouter({
   history: createMemoryHistory(),

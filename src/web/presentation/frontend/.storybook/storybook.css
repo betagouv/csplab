@@ -1,0 +1,7 @@
+/* Storybook Docs renders story previews on a hardcoded white surface (an emotion
+   class on the same element). Carry the DSFR default surface token instead so
+   previews react to the DSFR theme; two classes outrank the emotion single-class
+   rule without needing !important. */
+.sbdocs.sbdocs-preview {
+  background-color: var(--background-default-grey);
+}
