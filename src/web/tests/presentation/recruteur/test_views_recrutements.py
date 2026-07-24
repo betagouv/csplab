@@ -438,7 +438,10 @@ class TestRecrutementKanbanView:
 class TestRecrutementListeView:
     @pytest.fixture(autouse=True)
     def _default_usecase(self, container):
-        container.get_recrutement_liste_usecase.return_value.execute.return_value = (
+        mock_usecase = container.get_recrutement_liste_usecase.return_value
+        mock_usecase.execute.return_value = MagicMock()
+        mock_usecase.execute.return_value.count.return_value = 11
+        mock_usecase.execute.return_value.slice.return_value = (
             _candidature_liste_read_models()
         )
 
@@ -487,7 +490,12 @@ class TestRecrutementListeView:
         assert "nom" in candidat
         assert "prenom" in candidat
 
-    def test_pagination_second_page(self, authenticated_client):
+    def test_pagination_second_page(self, container, authenticated_client):
+        mock_usecase = container.get_recrutement_liste_usecase.return_value
+        mock_usecase.execute.return_value.slice.return_value = (
+            _candidature_liste_read_models(5)
+        )
+
         response = authenticated_client.get(RECRUTEMENT_LISTE_URL + "?page=2&size=5")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()

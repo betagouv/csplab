@@ -1,7 +1,5 @@
-from typing import Generic, TypeVar
 from uuid import UUID
 
-from ddd.page_interface import IPage
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -30,23 +28,6 @@ from presentation.recruteur.serializers import (
     RecrutementsActifsSerializer,
     RecrutementsArchivesSerializer,
 )
-
-# ---------------------------------------------------------------------------
-# Données statiques — TODO: remplacer par list_recrutements_usecase
-# ---------------------------------------------------------------------------
-
-T = TypeVar("T")
-
-
-class ListPage(IPage[T], Generic[T]):
-    def __init__(self, items: list[T]):
-        self._items = items
-
-    def count(self) -> int:
-        return len(self._items)
-
-    def slice(self, offset: int, limit: int):
-        return iter(self._items[offset : offset + limit])
 
 
 @extend_schema_view(
@@ -228,7 +209,7 @@ class RecrutementListeView(APIView):
     ) -> Response:
         try:
             usecase = self.container.get_recrutement_liste_usecase()
-            candidatures = usecase.execute(
+            result = usecase.execute(
                 GetRecrutementListeQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
@@ -236,12 +217,10 @@ class RecrutementListeView(APIView):
                     est_staff=request.user.is_staff,
                 )
             )
-            if candidatures is None:
+            if result is None:
                 return Response(
                     {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
                 )
-
-            result = ListPage(candidatures)
 
             paginator = WebPagination()
             items = paginator.paginate(result, request)

@@ -182,27 +182,20 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
 
     def get_candidatures_by_recrutement(
         self, organisme_id: UUID, recrutement_id: UUID
-    ) -> list[CandidatureListeReadModel] | None:
+    ) -> QuerySetPage[CandidatureListeReadModel] | None:
         if not RecrutementModel.objects.filter(
             pk=recrutement_id, organisme_id=organisme_id
         ).exists():
             return None
 
-        etapes = (
-            EtapeModel.objects.filter(recrutement_id=recrutement_id)
-            .prefetch_related(
-                Prefetch(
-                    "candidatures",
-                    queryset=CandidatureModel.objects.select_related(
-                        "candidat__utilisateur"
-                    ).order_by("created_at"),
-                )
-            )
-            .order_by("updated_at")
+        qs = (
+            CandidatureModel.objects.filter(etape__recrutement_id=recrutement_id)
+            .select_related("candidat__utilisateur", "etape")
+            .order_by("etape__updated_at", "created_at")
         )
 
-        return [
-            CandidatureListeReadModel(
+        def _mapper(candidature: CandidatureModel) -> CandidatureListeReadModel:
+            return CandidatureListeReadModel(
                 uuid=candidature.id,
                 date_soumission=candidature.created_at,
                 date_derniere_activite=candidature.updated_at,
@@ -212,14 +205,15 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                     prenom=candidature.candidat.utilisateur.first_name,
                 ),
                 etape=EtapeDto(
-                    etape_uuid=etape.id,
-                    nom=etape.nom,
-                    categorie=CategorieEtapeRecrutement(etape.categorie).name,
+                    etape_uuid=candidature.etape.id,
+                    nom=candidature.etape.nom,
+                    categorie=CategorieEtapeRecrutement(
+                        candidature.etape.categorie
+                    ).name,
                 ),
             )
-            for etape in etapes
-            for candidature in etape.candidatures.all()
-        ]
+
+        return QuerySetPage(qs, mapper=_mapper)
 
     def get_kanban_by_recrutement(
         self, organisme_id: UUID, recrutement_id: UUID
