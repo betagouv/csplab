@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from uuid import UUID
 
 from ddd.usecase_interface import IUseCase
 
 from application.recruteur.dtos.recrutement_read_models import (
     RecrutementKanbanReadModel,
 )
+from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
 )
@@ -18,12 +18,9 @@ from domain.recruteur.services.organisme_permission_service import (
 from domain.recruteur.value_objects.organisme_action import OrganismeAction
 
 
-@dataclass
-class GetRecrutementKanbanQuery:
-    organisme_id: UUID
-    recrutement_id: UUID
-    utilisateur_id: UUID
-    est_staff: bool = False
+@dataclass(kw_only=True)
+class GetRecrutementKanbanQuery(RecrutementRequest):
+    pass
 
 
 class GetRecrutementKanbanUsecase(
