@@ -354,6 +354,10 @@ class OffersCleaner:
         "G": 7,
         "H": 8,
     }
+
+    # ARS has a different pattern for education levels.
+    # NIV_DIPL(\d) can be mapped to just the digit, except for a few
+    # special cases for which we configure overrides.
     _NIV_DIPL_PATTERN = re.compile(r"NIV_DIPL(\d)")
     _NIV_DIPL_LEVEL_OVERRIDES: dict[int, int] = {
         6: 6,
