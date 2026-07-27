@@ -3,24 +3,30 @@ from uuid import uuid4
 
 import pytest
 
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.recruteur.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    AccesRecrutementInconnu,
+    AccesRecrutementRefuse,
+)
 from domain.recruteur.repositories.organisme_agent_repository_interface import (
     IOrganismeAgentRepository,
+)
+from domain.recruteur.repositories.recrutement_agent_repository_interface import (
+    IRecrutementAgentRepository,
 )
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from domain.recruteur.value_objects.organisme_action import OrganismeAction
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 
 RESPONSABLE_ACTIONS = [
     OrganismeAction.GET_ORGANISME,
     OrganismeAction.INITIALIZE_ORGANISME_STEPS,
     OrganismeAction.UPDATE_ORGANISME_STEPS,
-]
-RESPONSABLE_AND_MEMBRE_ACTIONS = [
-    OrganismeAction.LISTER_MES_RECRUTEMENTS,
-    OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
 ]
 STAFF_BYPASS_ACTIONS = [
     OrganismeAction.GET_ORGANISME,
@@ -31,18 +37,25 @@ STAFF_BYPASS_ACTIONS = [
 
 def _service(
     role: AgentOrganismeRole | None,
-) -> tuple[OrganismePermissionService, Mock]:
+    recrutement_role: AgentRecrutementRole | None = None,
+) -> tuple[OrganismePermissionService, Mock, Mock]:
     repository = Mock(spec=IOrganismeAgentRepository)
     repository.get_role.return_value = role
-    return OrganismePermissionService(organisme_agent_repository=repository), repository
+    recrutement_repository = Mock(spec=IRecrutementAgentRepository)
+    recrutement_repository.get_role.return_value = recrutement_role
+    service = OrganismePermissionService(
+        organisme_agent_repository=repository,
+        recrutement_agent_repository=recrutement_repository,
+    )
+    return service, repository, recrutement_repository
 
 
-class TestEstAutorise:
-    @pytest.mark.parametrize("action", RESPONSABLE_ACTIONS)
-    def test_responsable_only_actions_allow_responsable(
+@pytest.mark.parametrize("action", RESPONSABLE_ACTIONS)
+class TestResponsableActions:
+    def test_responsable_actions_allow_responsable(
         self, action: OrganismeAction
     ) -> None:
-        service, repository = _service(AgentOrganismeRole.RESPONSABLE)
+        service, repository, _ = _service(AgentOrganismeRole.RESPONSABLE)
         organisme_id, agent_id = uuid4(), uuid4()
 
         result = service.est_autorise(
@@ -57,47 +70,8 @@ class TestEstAutorise:
             organisme_id=organisme_id, agent_id=agent_id
         )
 
-    @pytest.mark.parametrize("action", RESPONSABLE_ACTIONS)
-    @pytest.mark.parametrize("role", [AgentOrganismeRole.MEMBRE, None])
-    def test_responsable_only_actions_reject_non_responsable(
-        self, action: OrganismeAction, role: AgentOrganismeRole | None
-    ) -> None:
-        service, _ = _service(role)
-
-        with pytest.raises(AccesOrganismeRefuse):
-            service.est_autorise(
-                action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=False
-            )
-
-    @pytest.mark.parametrize("action", RESPONSABLE_AND_MEMBRE_ACTIONS)
-    @pytest.mark.parametrize(
-        "role", [AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE]
-    )
-    def test_shared_actions_allow_responsable_and_membre(
-        self, action: OrganismeAction, role: AgentOrganismeRole
-    ) -> None:
-        service, _ = _service(role)
-
-        result = service.est_autorise(
-            action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=False
-        )
-
-        assert result == role
-
-    @pytest.mark.parametrize("action", RESPONSABLE_AND_MEMBRE_ACTIONS)
-    def test_shared_actions_reject_no_role(self, action: OrganismeAction) -> None:
-        service, _ = _service(None)
-
-        with pytest.raises(AccesOrganismeRefuse):
-            service.est_autorise(
-                action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=False
-            )
-
-
-class TestStaffBypass:
-    @pytest.mark.parametrize("action", STAFF_BYPASS_ACTIONS)
     def test_staff_bypasses_role_check(self, action: OrganismeAction) -> None:
-        service, repository = _service(None)
+        service, repository, _ = _service(None)
 
         result = service.est_autorise(
             action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=True
@@ -106,17 +80,117 @@ class TestStaffBypass:
         assert result is None
         repository.get_role.assert_not_called()
 
-    @pytest.mark.parametrize(
-        "action", [a for a in OrganismeAction if a not in STAFF_BYPASS_ACTIONS]
-    )
-    def test_staff_does_not_bypass_for_other_actions(
-        self, action: OrganismeAction
+    @pytest.mark.parametrize("role", [AgentOrganismeRole.MEMBRE, None])
+    def test_responsable_actions_reject_non_responsable(
+        self, action: OrganismeAction, role: AgentOrganismeRole | None
     ) -> None:
-        service, repository = _service(None)
+        service, _, _ = _service(role)
 
         with pytest.raises(AccesOrganismeRefuse):
             service.est_autorise(
-                action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=True
+                action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=False
             )
 
-        repository.get_role.assert_called_once()
+
+class TestListerMesRecrutementRbac:
+    @pytest.mark.parametrize(
+        "role", [AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE]
+    )
+    def test_allow_responsable_and_membre(self, role: AgentOrganismeRole) -> None:
+        service, _, _ = _service(role)
+
+        result = service.est_autorise(
+            action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
+            organisme_id=uuid4(),
+            agent_id=uuid4(),
+            est_staff=False,
+        )
+
+        assert result == role
+
+    @pytest.mark.parametrize("est_staff", [False, True])
+    def test_reject_no_role_nor_staff(self, est_staff: bool) -> None:
+        service, _, _ = _service(None)
+
+        with pytest.raises(AccesOrganismeRefuse):
+            service.est_autorise(
+                action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
+                organisme_id=uuid4(),
+                agent_id=uuid4(),
+                est_staff=est_staff,
+            )
+
+
+class TestVoirDetailRecrutementRbac:
+    @pytest.mark.parametrize("recrutement_role", list(AgentRecrutementRole))
+    def test_membre_with_recrutement_role_is_allowed(
+        self, recrutement_role: AgentRecrutementRole
+    ) -> None:
+        service, _, recrutement_repository = _service(
+            AgentOrganismeRole.MEMBRE, recrutement_role
+        )
+        organisme_id, agent_id, recrutement_id = uuid4(), uuid4(), uuid4()
+
+        result = service.est_autorise(
+            action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+            organisme_id=organisme_id,
+            agent_id=agent_id,
+            est_staff=False,
+            recrutement_id=recrutement_id,
+        )
+
+        assert result == AgentOrganismeRole.MEMBRE
+        recrutement_repository.get_role.assert_called_once_with(
+            recrutement_id=recrutement_id, agent_id=agent_id
+        )
+
+    def test_responsable_bypasses_recrutement_check(self) -> None:
+        service, _, recrutement_repository = _service(
+            AgentOrganismeRole.RESPONSABLE, None
+        )
+
+        result = service.est_autorise(
+            action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+            organisme_id=uuid4(),
+            agent_id=uuid4(),
+            est_staff=False,
+            recrutement_id=uuid4(),
+        )
+
+        assert result == AgentOrganismeRole.RESPONSABLE
+        recrutement_repository.get_role.assert_not_called()
+
+    def test_membre_without_recrutement_role_is_denied(self) -> None:
+        service, _, _ = _service(AgentOrganismeRole.MEMBRE, None)
+
+        with pytest.raises(AccesRecrutementRefuse):
+            service.est_autorise(
+                action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+                organisme_id=uuid4(),
+                agent_id=uuid4(),
+                est_staff=False,
+                recrutement_id=uuid4(),
+            )
+
+    def test_unprovided_recrutement_id_is_denied(self) -> None:
+        service, _, recrutement_repository = _service(AgentOrganismeRole.MEMBRE, None)
+
+        with pytest.raises(AccesRecrutementInconnu):
+            service.est_autorise(
+                action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+                organisme_id=uuid4(),
+                agent_id=uuid4(),
+                est_staff=False,
+            )
+
+    def test_staff_without_role_is_denied(self) -> None:
+        service, _, _ = _service(AgentOrganismeRole.MEMBRE, None)
+
+        with pytest.raises(AccesRecrutementRefuse):
+            service.est_autorise(
+                action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+                organisme_id=uuid4(),
+                agent_id=uuid4(),
+                est_staff=True,
+                recrutement_id=uuid4(),
+            )
