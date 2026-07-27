@@ -647,6 +647,10 @@ class TestRecrutementEtapeView:
         response = api_client.get(RECRUTEMENT_ETAPES_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+    def test_anonymous_access_is_unauthorized_on_patch(self, api_client):
+        response = api_client.patch(RECRUTEMENT_ETAPES_URL, data=[], format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
     def test_get_returns_default_pipeline(self, container, authenticated_client):
         etapes = _etapes_stub()
         container.get_recrutement_etapes_usecase.return_value.execute.return_value = (
@@ -679,6 +683,46 @@ class TestRecrutementEtapeView:
         )
 
         response = authenticated_client.get(RECRUTEMENT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
+
+    def test_patch_requires_valid_body(self, authenticated_client):
+        response = authenticated_client.patch(
+            RECRUTEMENT_ETAPES_URL,
+            data=[{"nom": "Réception"}],
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_patch_returns_404_for_unknown_organisme(
+        self, container, authenticated_client
+    ):
+        container.update_recrutement_etapes_usecase.return_value.execute.side_effect = (
+            OrganismeNexistePas("not found")
+        )
+
+        response = authenticated_client.patch(
+            RECRUTEMENT_ETAPES_URL,
+            data=[{"nom": "Réception", "categorie": "ENTREE"}],
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": "Not found."}
+
+    def test_patch_returns_500_on_unexpected_error(
+        self, container, authenticated_client
+    ):
+        container.update_recrutement_etapes_usecase.return_value.execute.side_effect = (
+            Exception("unexpected")
+        )
+
+        response = authenticated_client.patch(
+            RECRUTEMENT_ETAPES_URL,
+            data=[{"nom": "Réception", "categorie": "ENTREE"}],
+            format="json",
+        )
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}

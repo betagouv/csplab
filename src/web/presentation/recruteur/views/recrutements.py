@@ -7,6 +7,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.dtos.etape_data import EtapeData
 from application.recruteur.usecases.changer_etape_candidatures import (
     CandidatureAChanger,
     ChangerEtapeCandidaturesCommand,
@@ -23,10 +24,16 @@ from application.recruteur.usecases.get_recrutement_liste import (
 from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsQuery,
 )
+from application.recruteur.usecases.update_recrutement_etapes import (
+    UpdateRecrutementEtapesCommand,
+)
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OrganismePermissionError,
+)
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
 )
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
@@ -40,6 +47,7 @@ from presentation.recruteur.serializers import (
     RecrutementDetailKanbanSerializer,
     RecrutementsActifsSerializer,
     RecrutementsArchivesSerializer,
+    UpdateEtapeRecrutementSerializer,
 )
 
 
@@ -333,6 +341,18 @@ def _etapes_to_serializer_data(etapes: list) -> list[dict]:
             500: GenericErrorSerializer,
         },
     ),
+    patch=extend_schema(
+        summary="Modifier les étapes d'un recrutement",
+        tags=["recruteur"],
+        request=UpdateEtapeRecrutementSerializer(many=True),
+        responses={
+            200: EtapeRecrutementSerializer(many=True),
+            400: GenericErrorSerializer,
+            401: TokenErrorSerializer,
+            404: GenericErrorSerializer,
+            500: GenericErrorSerializer,
+        },
+    ),
 )
 class RecrutementEtapeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -358,6 +378,45 @@ class RecrutementEtapeView(APIView):
                 _etapes_to_serializer_data(resultat), many=True
             )
             return Response(serializer.data)
+        except OrganismeNexistePas:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            error_serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                error_serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def patch(
+        self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
+    ) -> Response:
+        serializer = UpdateEtapeRecrutementSerializer(data=request.data, many=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_etapes: list = serializer.validated_data  # type: ignore[assignment]
+        etapes = [
+            EtapeData(
+                etape_uuid=etape.get("etape_uuid"),
+                nom=etape["nom"],
+                categorie=CategorieEtapeRecrutement[etape["categorie"]],
+            )
+            for etape in validated_etapes
+        ]
+        try:
+            usecase = self.container.update_recrutement_etapes_usecase()
+            resultat = usecase.execute(
+                UpdateRecrutementEtapesCommand(
+                    organisme_id=organisme_uuid,
+                    recrutement_id=recrutement_uuid,
+                    utilisateur_id=UUID(request.user.username),
+                    est_staff=request.user.is_staff,
+                    etapes=etapes,
+                )
+            )
+            out_serializer = EtapeRecrutementSerializer(
+                _etapes_to_serializer_data(resultat), many=True
+            )
+            return Response(out_serializer.data)
         except OrganismeNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception:

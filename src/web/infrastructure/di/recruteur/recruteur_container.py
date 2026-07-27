@@ -30,6 +30,9 @@ from application.recruteur.usecases.supprimer_note import SupprimerNoteUsecase
 from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsUsecase,
 )
+from application.recruteur.usecases.update_recrutement_etapes import (
+    UpdateRecrutementEtapesUsecase,
+)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
@@ -178,5 +181,10 @@ class RecruteurContainer(containers.DeclarativeContainer):
 
     get_recrutement_etapes_usecase = providers.Factory(
         GetRecrutementEtapesUsecase,
+        organisme_repository=postgres_organisme_repository,
+    )
+
+    update_recrutement_etapes_usecase = providers.Factory(
+        UpdateRecrutementEtapesUsecase,
         organisme_repository=postgres_organisme_repository,
     )
