@@ -24,6 +24,7 @@ from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRe
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from domain.recruteur.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 
 
@@ -115,15 +116,23 @@ class TestGetRecrutementKanban:
         read_model = _recrutement_kanban_read_model()
         recrutement_query_service.get_kanban_by_recrutement.return_value = read_model
 
+        utilisateur_id = uuid4()
         result = usecase.execute(
             GetRecrutementKanbanQuery(
                 organisme_id=organisme_id,
                 recrutement_id=recrutement_id,
-                utilisateur_id=uuid4(),
+                utilisateur_id=utilisateur_id,
             )
         )
 
         assert result == read_model
+        organisme_permission_service.est_autorise.assert_called_once_with(
+            action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+            organisme_id=organisme_id,
+            agent_id=utilisateur_id,
+            est_staff=False,
+            recrutement_id=recrutement_id,
+        )
         organisme_repository.get_by_id.assert_called_once_with(organisme_id)
         recrutement_query_service.get_kanban_by_recrutement.assert_called_once_with(
             organisme_id=organisme_id, recrutement_id=recrutement_id
