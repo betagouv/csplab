@@ -171,6 +171,32 @@ class OffersCleaner:
             return Verse.FPE
         return None
 
+    _ARS_CONTRACT_TYPE_MAPPING: dict[str, ContractType] = {
+        "ACCOMP": ContractType.CONTRACTUELS,
+        "ACCOMPCDI": ContractType.TITULAIRE_CONTRACTUEL,
+        "APP7": ContractType.CONTRACTUELS,
+        "APPCDD": ContractType.CONTRACTUELS,
+        "APPREN": ContractType.CONTRACTUELS,
+        "AUTCDD": ContractType.CONTRACTUELS,
+        "CCNCDINE": ContractType.TITULAIRE_CONTRACTUEL,
+        "CDI": ContractType.TITULAIRE_CONTRACTUEL,
+        "CES": ContractType.CONTRACTUELS,
+        "CONTRCDD": ContractType.CONTRACTUELS,
+        "CUICDD": ContractType.CONTRACTUELS,
+        "GRH": ContractType.CONTRACTUELS,
+        "PROCDD": ContractType.CONTRACTUELS,
+        "REMPLA": ContractType.CONTRACTUELS,
+        "RENOIRH": ContractType.CONTRACTUELS,
+        "STA": ContractType.CONTRACTUELS,
+        "STAGE": ContractType.CONTRACTUELS,
+        "SURCHA": ContractType.CONTRACTUELS,
+        "TC01": ContractType.CONTRACTUELS,
+        "TC02": ContractType.TITULAIRE_CONTRACTUEL,
+        "TITULAIRE FONCTION PUBLIQUE": ContractType.TITULAIRE_CONTRACTUEL,
+        "TITULAIRE FONCTION PUBLIQUE / UCANSS": ContractType.TITULAIRE_CONTRACTUEL,
+        "TITULAIRE UCANSS": ContractType.CONTRACTUELS,
+    }
+
     def _map_contract_type(
         self, contract_type_str: Optional[str]
     ) -> Optional[ContractType]:
@@ -178,6 +204,10 @@ class OffersCleaner:
             return None
 
         contract_upper = contract_type_str.upper()
+
+        if contract_upper in self._ARS_CONTRACT_TYPE_MAPPING:
+            return self._ARS_CONTRACT_TYPE_MAPPING[contract_upper]
+
         if "TITULAIRE" in contract_upper:
             return ContractType.TITULAIRE_CONTRACTUEL
         elif "CONTRACTUEL" in contract_upper:
