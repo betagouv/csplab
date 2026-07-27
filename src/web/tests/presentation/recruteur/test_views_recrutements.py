@@ -135,6 +135,10 @@ RECRUTEMENT_ETAPES_URL = reverse(
     "recruteur:organisme-recrutement-etapes",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
+RECRUTEMENT_ETAPES_INIT_URL = reverse(
+    "recruteur:organisme-recrutement-etapes-init",
+    kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
+)
 
 
 @pytest.fixture
@@ -723,6 +727,46 @@ class TestRecrutementEtapeView:
             data=[{"nom": "Réception", "categorie": "ENTREE"}],
             format="json",
         )
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
+
+
+class TestInitRecrutementEtapeView:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = api_client.post(RECRUTEMENT_ETAPES_INIT_URL)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_returns_201_with_default_pipeline(self, container, authenticated_client):
+        etapes = _etapes_stub()
+        container.init_recrutement_etapes_usecase.return_value.execute.return_value = (
+            etapes
+        )
+
+        response = authenticated_client.post(RECRUTEMENT_ETAPES_INIT_URL)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        assert len(data) == NB_ETAPES_STUB
+        assert data[1]["nom"] == "Recrutement"
+        assert data[1]["categorie"] == "ACCEPTE"
+
+    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
+        container.init_recrutement_etapes_usecase.return_value.execute.side_effect = (
+            OrganismeNexistePas("not found")
+        )
+
+        response = authenticated_client.post(RECRUTEMENT_ETAPES_INIT_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": "Not found."}
+
+    def test_returns_500_on_unexpected_error(self, container, authenticated_client):
+        container.init_recrutement_etapes_usecase.return_value.execute.side_effect = (
+            Exception("unexpected")
+        )
+
+        response = authenticated_client.post(RECRUTEMENT_ETAPES_INIT_URL)
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}

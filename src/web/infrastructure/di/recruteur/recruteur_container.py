@@ -17,6 +17,9 @@ from application.recruteur.usecases.get_recrutement_kanban import (
 from application.recruteur.usecases.get_recrutement_liste import (
     GetRecrutementListeUsecase,
 )
+from application.recruteur.usecases.init_recrutement_etapes import (
+    InitRecrutementEtapesUsecase,
+)
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsUsecase,
 )
@@ -186,5 +189,10 @@ class RecruteurContainer(containers.DeclarativeContainer):
 
     update_recrutement_etapes_usecase = providers.Factory(
         UpdateRecrutementEtapesUsecase,
+        organisme_repository=postgres_organisme_repository,
+    )
+
+    init_recrutement_etapes_usecase = providers.Factory(
+        InitRecrutementEtapesUsecase,
         organisme_repository=postgres_organisme_repository,
     )
