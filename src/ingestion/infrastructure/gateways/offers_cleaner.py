@@ -306,6 +306,8 @@ class OffersCleaner:
     def _map_experience(self, client_code: str) -> Optional[ExperienceLevel]:
         mapping: dict[str, Optional[ExperienceLevel]] = {
             "_TS_CO_ExperienceLevel_Nonrenseign": None,
+            "_TS_CO_ExperienceLevel_3ansouplus": ExperienceLevel.CONFIRME,
+            "_TS_CO_ExperienceLevel_6ansouplus": ExperienceLevel.EXPERT,
             "debutant": ExperienceLevel.DEBUTANT,
             "confirme": ExperienceLevel.CONFIRME,
             "expert": ExperienceLevel.EXPERT,
