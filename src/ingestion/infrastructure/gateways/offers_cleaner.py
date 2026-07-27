@@ -354,7 +354,17 @@ class OffersCleaner:
         "G": 7,
         "H": 8,
     }
+
+    # ARS has a different pattern for education levels.
+    # NIV_DIPL(\d) can be mapped to just the digit, except for a few
+    # special cases for which we configure overrides.
     _NIV_DIPL_PATTERN = re.compile(r"NIV_DIPL(\d)")
+    _NIV_DIPL_LEVEL_OVERRIDES: dict[int, int] = {
+        6: 6,
+        7: 6,
+        8: 7,
+        9: 8,
+    }
 
     def _map_education_level(self, client_code: str) -> Optional[int]:
         if client_code in self._EDUCATION_LEVEL_MAPPING:
@@ -363,6 +373,7 @@ class OffersCleaner:
         match = self._NIV_DIPL_PATTERN.fullmatch(client_code)
         if match:
             level = int(match.group(1))
+            level = self._NIV_DIPL_LEVEL_OVERRIDES.get(level, level)
             if Diploma.MIN_DIPLOMA_LEVEL <= level <= Diploma.MAX_DIPLOMA_LEVEL:
                 return level
 

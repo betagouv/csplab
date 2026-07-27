@@ -414,8 +414,10 @@ def test_clean_returns_none_end_publication_date_when_absent(cleaner):
         ("G", 7),
         ("H", 8),
         ("NIV_DIPL1", 1),
-        ("NIV_DIPL7", 7),
-        ("NIV_DIPL8", 8),
+        ("NIV_DIPL6", 6),
+        ("NIV_DIPL7", 6),
+        ("NIV_DIPL8", 7),
+        ("NIV_DIPL9", 8),
     ],
 )
 def test_clean_maps_education_level(cleaner, client_code, expected):
@@ -427,7 +429,7 @@ def test_clean_maps_education_level(cleaner, client_code, expected):
     assert offer.education_level == expected
 
 
-@pytest.mark.parametrize("client_code", ["UNKNOWN_CODE", "NIV_DIPL9", "NIV_DIPL0"])
+@pytest.mark.parametrize("client_code", ["UNKNOWN_CODE", "NIV_DIPL0"])
 def test_clean_maps_unknown_education_level_to_none(cleaner, client_code):
     education = TalentsoftCodedObjectFactory.build(clientCode=client_code)
     raw_offer = _make_raw_offer(educationLevel=education)
