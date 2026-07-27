@@ -547,6 +547,70 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/etape:
+    patch:
+      operationId: recruteur_organisme_recrutements_candidatures_etape_partial_update
+      summary: Changer l'étape d'une ou plusieurs candidatures (batch, statique)
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: recrutement_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedChangerEtapeCandidatures'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedChangerEtapeCandidatures'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedChangerEtapeCandidatures'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangerEtapeResultat'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban:
     get:
       operationId: recruteur_organisme_recrutements_kanban_retrieve
@@ -743,6 +807,29 @@ components:
       - date_derniere_activite
       - date_soumission
       - uuid
+    CandidatureAChanger:
+      type: object
+      properties:
+        candidature_uuid:
+          type: string
+          format: uuid
+        etape_actuelle_uuid:
+          type: string
+          format: uuid
+      required:
+      - candidature_uuid
+      - etape_actuelle_uuid
+    CandidatureEchec:
+      type: object
+      properties:
+        candidature_uuid:
+          type: string
+          format: uuid
+        raison:
+          type: string
+      required:
+      - candidature_uuid
+      - raison
     CandidatureListe:
       type: object
       properties:
@@ -807,6 +894,21 @@ components:
         * `B` - B
         * `C` - C
         * `HORS_CATEGORIE` - HORS_CATEGORIE
+    ChangerEtapeResultat:
+      type: object
+      properties:
+        reussites:
+          type: array
+          items:
+            type: string
+            format: uuid
+        echecs:
+          type: array
+          items:
+            $ref: '#/components/schemas/CandidatureEchec'
+      required:
+      - echecs
+      - reussites
     CreerNote:
       type: object
       properties:
@@ -1239,6 +1341,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RecrutementsArchives'
+    PatchedChangerEtapeCandidatures:
+      type: object
+      properties:
+        etape_cible_uuid:
+          type: string
+          format: uuid
+        candidatures:
+          type: array
+          items:
+            $ref: '#/components/schemas/CandidatureAChanger'
     PatchedEditerNote:
       type: object
       properties:
