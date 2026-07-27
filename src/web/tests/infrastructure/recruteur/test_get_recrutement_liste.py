@@ -6,7 +6,10 @@ from application.recruteur.usecases.get_recrutement_liste import (
     GetRecrutementListeQuery,
 )
 from config.app_config import AppConfig
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.recruteur.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    AccesRecrutementRefuse,
+)
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -35,14 +38,23 @@ def usecase_fixture(recruteur_integration_container):
 
 class TestGetRecrutementListeRbac:
     @pytest.mark.parametrize(
-        "role", [AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE]
+        ("role", "assign_agent_to_recrutement"),
+        [
+            pytest.param(AgentOrganismeRole.RESPONSABLE, False, id="responsable"),
+            pytest.param(AgentOrganismeRole.MEMBRE, True, id="membre_assigned"),
+        ],
     )
-    def test_authorized_when_agent_has_organisme_role(self, usecase, role):
+    def test_authorized(self, usecase, role, assign_agent_to_recrutement):
         agent = AgentFactory.create_model()
         organisme = OrganismeFactory.create_model(
             agent_id=agent.utilisateur_id, role=role
         )
-        recrutement = RecrutementFactory.create_model(organisme_id=organisme.id)
+        agent_ids = (
+            (UUID(agent.utilisateur_id),) if assign_agent_to_recrutement else None
+        )
+        recrutement = RecrutementFactory.create_model(
+            organisme_id=organisme.id, agent_ids=agent_ids
+        )
         etape_entree = EtapeModel.objects.get(
             recrutement_id=recrutement.offre_id,
             categorie=CategorieEtapeRecrutement.ENTREE.value,
@@ -67,6 +79,22 @@ class TestGetRecrutementListeRbac:
         assert item.candidat.uuid == UUID(candidature.candidat_id)
         assert item.etape.etape_uuid == etape_entree.id
         assert item.etape.categorie == "ENTREE"
+
+    def test_forbidden_when_membre_not_assigned_to_recrutement(self, usecase):
+        agent = AgentFactory.create_model()
+        organisme = OrganismeFactory.create_model(
+            agent_id=agent.utilisateur_id, role=AgentOrganismeRole.MEMBRE
+        )
+        recrutement = RecrutementFactory.create_model(organisme_id=organisme.id)
+
+        with pytest.raises(AccesRecrutementRefuse):
+            usecase.execute(
+                GetRecrutementListeQuery(
+                    organisme_id=organisme.id,
+                    recrutement_id=recrutement.offre_id,
+                    utilisateur_id=agent.utilisateur_id,
+                )
+            )
 
     @pytest.mark.parametrize("est_staff", [False, True])
     def test_forbidden_when_agent_has_no_organisme_role(self, usecase, est_staff):
