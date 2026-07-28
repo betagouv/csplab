@@ -67,6 +67,7 @@ from presentation.ingestion.serializers import (
     },
 )
 class OffersListView(APIView):
+    authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
     serializer_class = ListOffersResponseSerializer
     pagination_class = WebPagination
     usecase = None

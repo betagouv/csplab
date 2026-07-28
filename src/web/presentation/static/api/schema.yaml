@@ -411,7 +411,7 @@ paths:
       - offres
       security:
       - jwtAuth: []
-      - cookieAuth: []
+      - ApiKeyAuth: []
       responses:
         '200':
           content:
