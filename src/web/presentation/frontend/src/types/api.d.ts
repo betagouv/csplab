@@ -149,6 +149,24 @@ export interface paths {
         patch: operations["recruteur_organisme_recrutements_candidatures_etape_partial_update"];
         trace?: never;
     };
+    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Étapes d'un recrutement */
+        get: operations["recruteur_organisme_recrutements_etapes_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Modifier les étapes d'un recrutement */
+        patch: operations["recruteur_organisme_recrutements_etapes_partial_update"];
+        trace?: never;
+    };
     "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban": {
         parameters: {
             query?: never;
@@ -1176,6 +1194,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChangerEtapeResultat"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_recrutements_etapes_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EtapeRecrutement"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_recrutements_etapes_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEtapeRecrutement"][];
+                "application/x-www-form-urlencoded": components["schemas"]["UpdateEtapeRecrutement"][];
+                "multipart/form-data": components["schemas"]["UpdateEtapeRecrutement"][];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EtapeRecrutement"][];
                 };
             };
             400: {

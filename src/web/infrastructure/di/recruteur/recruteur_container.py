@@ -8,6 +8,9 @@ from application.recruteur.usecases.editer_note import EditerNoteUsecase
 from application.recruteur.usecases.get_organisme_recruteur import (
     GetOrganismeRecruteurUsecase,
 )
+from application.recruteur.usecases.get_recrutement_etapes import (
+    GetRecrutementEtapesUsecase,
+)
 from application.recruteur.usecases.get_recrutement_kanban import (
     GetRecrutementKanbanUsecase,
 )
@@ -26,6 +29,9 @@ from application.recruteur.usecases.lister_notes_candidature import (
 from application.recruteur.usecases.supprimer_note import SupprimerNoteUsecase
 from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsUsecase,
+)
+from application.recruteur.usecases.update_recrutement_etapes import (
+    UpdateRecrutementEtapesUsecase,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.services.organisme_permission_service import (
@@ -170,5 +176,15 @@ class RecruteurContainer(containers.DeclarativeContainer):
 
     changer_etape_candidatures_usecase = providers.Factory(
         ChangerEtapeCandidaturesUsecase,
+        organisme_repository=postgres_organisme_repository,
+    )
+
+    get_recrutement_etapes_usecase = providers.Factory(
+        GetRecrutementEtapesUsecase,
+        organisme_repository=postgres_organisme_repository,
+    )
+
+    update_recrutement_etapes_usecase = providers.Factory(
+        UpdateRecrutementEtapesUsecase,
         organisme_repository=postgres_organisme_repository,
     )
