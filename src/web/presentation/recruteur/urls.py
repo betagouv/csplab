@@ -17,10 +17,12 @@ from presentation.recruteur.views.recrutement_listes import (
     RecrutementsActifsView,
     RecrutementsArchivesView,
 )
-from presentation.recruteur.views.recrutements import (
+from presentation.recruteur.views.recrutement_params import (
     InitRecrutementEtapeView,
-    RecrutementCandidaturesEtapeView,
     RecrutementEtapeView,
+)
+from presentation.recruteur.views.recrutements import (
+    RecrutementCandidaturesEtapeView,
 )
 
 app_name = "recruteur"
