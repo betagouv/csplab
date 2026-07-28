@@ -43,11 +43,11 @@ class GetRecrutementListeUsecase(
     def execute(
         self, query: GetRecrutementListeQuery
     ) -> IPage[CandidatureListeReadModel] | None:
-        # TODO RBAC : handle MEMBRE role on recrutement
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=query.organisme_id,
             agent_id=query.utilisateur_id,
+            recrutement_id=query.recrutement_id,
             est_staff=query.est_staff,
         )
         self.organisme_repository.get_by_id(query.organisme_id)

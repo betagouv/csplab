@@ -56,6 +56,9 @@ from infrastructure.repositories.recruteur.postgres_organisme_agent_repository i
 from infrastructure.repositories.recruteur.postgres_organisme_repository import (
     PostgresOrganismeRecruteurRepository,
 )
+from infrastructure.repositories.recruteur.postgres_recrutement_agent_repository import (  # noqa: E501
+    PostgresRecrutementAgentRepository,
+)
 from infrastructure.repositories.recruteur.postgres_recrutement_query_service import (
     PostgresRecrutementQueryService,
 )
@@ -78,9 +81,13 @@ class RecruteurContainer(containers.DeclarativeContainer):
     postgres_organisme_agent_repository = providers.Singleton(
         PostgresOrganismeAgentRepository
     )
+    postgres_recrutement_agent_repository = providers.Singleton(
+        PostgresRecrutementAgentRepository
+    )
     organisme_permission_service = providers.Factory(
         OrganismePermissionService,
         organisme_agent_repository=postgres_organisme_agent_repository,
+        recrutement_agent_repository=postgres_recrutement_agent_repository,
     )
     candidature_mapper = providers.Factory(CandidatureMapper)
     postgres_recrutement_query_service = providers.Singleton(

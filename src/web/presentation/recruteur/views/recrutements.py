@@ -21,7 +21,10 @@ from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsQuery,
 )
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.recruteur.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    OrganismePermissionError,
+)
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
@@ -179,7 +182,7 @@ class RecrutementKanbanView(APIView):
 
             serializer = RecrutementDetailKanbanSerializer(result)
             return Response(serializer.data)
-        except AccesOrganismeRefuse:
+        except OrganismePermissionError:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
         except OrganismeNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -297,7 +300,7 @@ class RecrutementListeView(APIView):
             return paginator.get_paginated_response(
                 CandidatureListeSerializer(items, many=True).data
             )
-        except AccesOrganismeRefuse:
+        except OrganismePermissionError:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
         except OrganismeNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
