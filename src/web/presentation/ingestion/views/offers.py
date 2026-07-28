@@ -27,7 +27,6 @@ from domain.ingestion.exceptions.source_authorization_error import (
 )
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
-    UserRateThrottleExceptApiKey,
 )
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from infrastructure.django_apps.users.models import UserModel
@@ -198,7 +197,6 @@ class OffersBySourceView(APIView):
 )
 class ArchiveOffersView(APIView):
     authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
-    throttle_classes = [UserRateThrottleExceptApiKey]
 
     serializer_class = ArchiveOfferSuccessSerializer
 

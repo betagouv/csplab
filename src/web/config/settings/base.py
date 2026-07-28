@@ -339,11 +339,13 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
         "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottle",
+        "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottleDaily",
     ],
     "DEFAULT_THROTTLE_RATES": {
         "anon": "5/minute",
         "user": "120/minute",
-        "api_key": "2000/hour",
+        "api_key": "70000/hour",
+        "api_key_daily": "100000/day",
     },
 }
 
