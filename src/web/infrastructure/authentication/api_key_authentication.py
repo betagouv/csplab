@@ -4,7 +4,7 @@ from django.conf import settings
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.throttling import SimpleRateThrottle, UserRateThrottle
+from rest_framework.throttling import SimpleRateThrottle
 
 
 class _IngestionApiKeyUser:
@@ -77,8 +77,5 @@ class ApiKeyRateThrottle(SimpleRateThrottle):
         return None
 
 
-class UserRateThrottleExceptApiKey(UserRateThrottle):
-    def allow_request(self, request, view):
-        if isinstance(request.user, _IngestionApiKeyUser):
-            return True
-        return super().allow_request(request, view)
+class ApiKeyRateThrottleDaily(ApiKeyRateThrottle):
+    scope = "api_key_daily"

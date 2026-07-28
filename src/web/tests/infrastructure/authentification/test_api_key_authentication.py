@@ -8,6 +8,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
     ApiKeyRateThrottle,
+    ApiKeyRateThrottleDaily,
     _IngestionApiKeyUser,
     _ip_is_allowed,
 )
@@ -165,3 +166,76 @@ class TestApiKeyRateThrottle:
         request.user = object()
         for _ in range(10):
             assert ApiKeyRateThrottle().allow_request(request, view=None) is True
+
+
+class TestApiKeyRateThrottleDaily:
+    def test_scope_is_api_key_daily(self):
+        assert ApiKeyRateThrottleDaily.scope == "api_key_daily"
+
+    def test_returns_cache_key_for_api_key_user(self, rf):
+        request = rf.get("/")
+        request.user = API_KEY_USER
+        throttle = ApiKeyRateThrottleDaily()
+        cache_key = throttle.get_cache_key(request, view=None)
+        assert cache_key is not None
+        assert "ingestion-api-key" in cache_key
+
+    @patch.object(ApiKeyRateThrottleDaily, "THROTTLE_RATES", {"api_key_daily": "3/day"})
+    def test_rate_limit_allows_requests_within_limit(self, rf):
+        cache.clear()
+        request = rf.get("/")
+        request.user = API_KEY_USER
+        for _ in range(3):
+            assert ApiKeyRateThrottleDaily().allow_request(request, view=None) is True
+
+    @patch.object(ApiKeyRateThrottleDaily, "THROTTLE_RATES", {"api_key_daily": "3/day"})
+    def test_rate_limit_blocks_requests_over_limit(self, rf):
+        cache.clear()
+        request = rf.get("/")
+        request.user = API_KEY_USER
+        for _ in range(3):
+            ApiKeyRateThrottleDaily().allow_request(request, view=None)
+        assert ApiKeyRateThrottleDaily().allow_request(request, view=None) is False
+
+
+class TestApiKeyRateThrottleAndDailyBothTrack:
+    @patch.object(ApiKeyRateThrottle, "THROTTLE_RATES", {"api_key": "1000/hour"})
+    @patch.object(
+        ApiKeyRateThrottleDaily, "THROTTLE_RATES", {"api_key_daily": "1000/day"}
+    )
+    def test_a_single_request_increments_both_hourly_and_daily_counters(self, rf):
+        cache.clear()
+        request = rf.get("/")
+        request.user = API_KEY_USER
+
+        hourly = ApiKeyRateThrottle()
+        daily = ApiKeyRateThrottleDaily()
+
+        assert hourly.get_cache_key(request, view=None) != daily.get_cache_key(
+            request, view=None
+        )
+
+        assert hourly.allow_request(request, view=None) is True
+        assert daily.allow_request(request, view=None) is True
+
+        assert len(cache.get(hourly.get_cache_key(request, view=None))) == 1
+        assert len(cache.get(daily.get_cache_key(request, view=None))) == 1
+
+    @patch.object(ApiKeyRateThrottle, "THROTTLE_RATES", {"api_key": "2/hour"})
+    @patch.object(
+        ApiKeyRateThrottleDaily, "THROTTLE_RATES", {"api_key_daily": "1000/day"}
+    )
+    def test_hourly_limit_can_block_while_daily_limit_still_allows(self, rf):
+        cache.clear()
+        request = rf.get("/")
+        request.user = API_KEY_USER
+
+        hourly = ApiKeyRateThrottle()
+        daily = ApiKeyRateThrottleDaily()
+
+        for _ in range(2):
+            assert hourly.allow_request(request, view=None) is True
+            assert daily.allow_request(request, view=None) is True
+
+        assert hourly.allow_request(request, view=None) is False
+        assert daily.allow_request(request, view=None) is True
