@@ -7,6 +7,7 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
+from application.recruteur.dtos.etape_data import EtapeData
 from application.recruteur.dtos.recrutement_read_models import (
     AgentDto,
     CandidatDto,
@@ -21,6 +22,9 @@ from application.recruteur.dtos.recrutement_read_models import (
 )
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 
 fake = Faker()
@@ -125,6 +129,10 @@ UNKNOWN_RECRUTEMENT_LISTE_URL = reverse(
 )
 RECRUTEMENT_CANDIDATURES_ETAPE_URL = reverse(
     "recruteur:organisme-recrutement-candidatures-etape",
+    kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
+)
+RECRUTEMENT_ETAPES_URL = reverse(
+    "recruteur:organisme-recrutement-etapes",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
 
@@ -612,6 +620,65 @@ class TestRecrutementCandidaturesEtapeView:
             data={"etape_cible_uuid": fake.uuid4(), "candidatures": []},
             format="json",
         )
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
+
+
+NB_ETAPES_STUB = 2
+
+
+def _etapes_stub() -> list[EtapeData]:
+    return [
+        EtapeData(
+            etape_uuid=uuid4(),
+            nom="Réception des candidatures",
+            categorie=CategorieEtapeRecrutement.ENTREE,
+        ),
+        EtapeData(
+            etape_uuid=uuid4(),
+            nom="Recrutement",
+            categorie=CategorieEtapeRecrutement.ACCEPTE,
+        ),
+    ]
+
+
+class TestRecrutementEtapeView:
+    def test_anonymous_access_is_unauthorized_on_get(self, api_client):
+        response = api_client.get(RECRUTEMENT_ETAPES_URL)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_get_returns_default_pipeline(self, container, authenticated_client):
+        etapes = _etapes_stub()
+        container.get_recrutement_etapes_usecase.return_value.execute.return_value = (
+            etapes
+        )
+
+        response = authenticated_client.get(RECRUTEMENT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert len(data) == NB_ETAPES_STUB
+        assert data[0]["nom"] == "Réception des candidatures"
+        assert data[0]["categorie"] == "ENTREE"
+
+    def test_get_returns_404_for_unknown_organisme(
+        self, container, authenticated_client
+    ):
+        container.get_recrutement_etapes_usecase.return_value.execute.side_effect = (
+            OrganismeNexistePas("not found")
+        )
+
+        response = authenticated_client.get(RECRUTEMENT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": "Not found."}
+
+    def test_get_returns_500_on_unexpected_error(self, container, authenticated_client):
+        container.get_recrutement_etapes_usecase.return_value.execute.side_effect = (
+            Exception("unexpected")
+        )
+
+        response = authenticated_client.get(RECRUTEMENT_ETAPES_URL)
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}

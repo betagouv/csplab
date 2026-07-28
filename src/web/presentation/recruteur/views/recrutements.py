@@ -11,6 +11,9 @@ from application.recruteur.usecases.changer_etape_candidatures import (
     CandidatureAChanger,
     ChangerEtapeCandidaturesCommand,
 )
+from application.recruteur.usecases.get_recrutement_etapes import (
+    GetRecrutementEtapesQuery,
+)
 from application.recruteur.usecases.get_recrutement_kanban import (
     GetRecrutementKanbanQuery,
 )
@@ -33,6 +36,7 @@ from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     ChangerEtapeCandidaturesSerializer,
     ChangerEtapeResultatSerializer,
+    EtapeRecrutementSerializer,
     RecrutementDetailKanbanSerializer,
     RecrutementsActifsSerializer,
     RecrutementsArchivesSerializer,
@@ -308,4 +312,56 @@ class RecrutementListeView(APIView):
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+def _etapes_to_serializer_data(etapes: list) -> list[dict]:
+    return [
+        {"etape_uuid": e.etape_uuid, "nom": e.nom, "categorie": e.categorie.name}
+        for e in etapes
+    ]
+
+
+@extend_schema_view(
+    get=extend_schema(
+        summary="Étapes d'un recrutement",
+        tags=["recruteur"],
+        responses={
+            200: EtapeRecrutementSerializer(many=True),
+            401: TokenErrorSerializer,
+            404: GenericErrorSerializer,
+            500: GenericErrorSerializer,
+        },
+    ),
+)
+class RecrutementEtapeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = recruteur_container()
+
+    def get(
+        self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
+    ) -> Response:
+        try:
+            usecase = self.container.get_recrutement_etapes_usecase()
+            resultat = usecase.execute(
+                GetRecrutementEtapesQuery(
+                    organisme_id=organisme_uuid,
+                    recrutement_id=recrutement_uuid,
+                    utilisateur_id=UUID(request.user.username),
+                    est_staff=request.user.is_staff,
+                )
+            )
+            serializer = EtapeRecrutementSerializer(
+                _etapes_to_serializer_data(resultat), many=True
+            )
+            return Response(serializer.data)
+        except OrganismeNexistePas:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            error_serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                error_serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

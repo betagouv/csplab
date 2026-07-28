@@ -8,6 +8,9 @@ from application.recruteur.usecases.editer_note import EditerNoteUsecase
 from application.recruteur.usecases.get_organisme_recruteur import (
     GetOrganismeRecruteurUsecase,
 )
+from application.recruteur.usecases.get_recrutement_etapes import (
+    GetRecrutementEtapesUsecase,
+)
 from application.recruteur.usecases.get_recrutement_kanban import (
     GetRecrutementKanbanUsecase,
 )
@@ -170,5 +173,10 @@ class RecruteurContainer(containers.DeclarativeContainer):
 
     changer_etape_candidatures_usecase = providers.Factory(
         ChangerEtapeCandidaturesUsecase,
+        organisme_repository=postgres_organisme_repository,
+    )
+
+    get_recrutement_etapes_usecase = providers.Factory(
+        GetRecrutementEtapesUsecase,
         organisme_repository=postgres_organisme_repository,
     )
