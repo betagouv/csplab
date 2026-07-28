@@ -25,9 +25,21 @@ def test_authenticated_access(authenticated_client):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_logged_user_access(api_client, test_user):
+def test_logged_user_access_without_token_is_rejected(api_client, test_user):
     api_client.force_login(test_user)
     response = api_client.get(URL)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_invalid_api_key_returns_401(api_client):
+    api_client.credentials(HTTP_AUTHORIZATION="Api-Key wrong-key")
+    response = api_client.get(URL)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_api_key_authentication_access(mock_offers_container, api_key_client):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    response = api_key_client.get(URL)
     assert response.status_code == status.HTTP_200_OK
 
 
