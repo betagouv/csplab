@@ -17,6 +17,7 @@ from infrastructure.authentication.api_key_authentication import (
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
 )
+from infrastructure.authentication.jwt_token import get_validated_jwt
 
 _API_KEY_THROTTLES = [ApiKeyRateThrottle(), ApiKeyRateThrottleDaily()]
 _USER_THROTTLE = UserRateThrottle()
@@ -32,17 +33,10 @@ def _is_authenticated_api_key_request(request: HttpRequest) -> bool:
 
 
 def _authenticate_jwt_user(request: HttpRequest) -> Optional[AbstractBaseUser]:
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
+    validated_token = get_validated_jwt(request, _jwt_auth)
+    if validated_token is None:
         return None
     try:
-        header = _jwt_auth.get_header(request)
-        if header is None:
-            return None
-        raw_token = _jwt_auth.get_raw_token(header)
-        if raw_token is None:
-            return None
-        validated_token = _jwt_auth.get_validated_token(raw_token)
         return _jwt_auth.get_user(validated_token)
     except (AuthenticationFailed, TokenError):
         return None
