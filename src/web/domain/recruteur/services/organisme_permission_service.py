@@ -47,6 +47,9 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.UPDATE_RECRUTEMENT_ETAPES: frozenset(
         {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
     ),
+    OrganismeAction.INIT_RECRUTEMENT_ETAPES: frozenset(
+        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+    ),
 }
 
 # -------------------------------------
@@ -70,6 +73,9 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
         {AgentRecrutementRole.RESPONSABLE}
     ),
     OrganismeAction.UPDATE_RECRUTEMENT_ETAPES: frozenset(
+        {AgentRecrutementRole.RESPONSABLE}
+    ),
+    OrganismeAction.INIT_RECRUTEMENT_ETAPES: frozenset(
         {AgentRecrutementRole.RESPONSABLE}
     ),
 }

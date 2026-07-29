@@ -148,6 +148,7 @@ class RecrutementEtapeView(APIView):
     responses={
         201: EtapeRecrutementSerializer(many=True),
         401: TokenErrorSerializer,
+        403: GenericErrorSerializer,
         404: GenericErrorSerializer,
         500: GenericErrorSerializer,
     },
@@ -176,6 +177,8 @@ class InitRecrutementEtapeView(APIView):
                 _etapes_to_serializer_data(resultat), many=True
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except OrganismePermissionError:
+            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
         except OrganismeNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception:
