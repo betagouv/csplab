@@ -15,6 +15,9 @@ from domain.recruteur.repositories.recrutement_agent_repository_interface import
     IRecrutementAgentRepository,
 )
 from domain.recruteur.services.organisme_permission_service import (
+    _ROLES_RECRUTEMENT_REQUIS,
+    _ROLES_REQUIS,
+    _SANS_ROLE_RECRUTEMENT_REQUIS,
     OrganismePermissionService,
 )
 from domain.recruteur.value_objects.organisme_action import OrganismeAction
@@ -194,3 +197,15 @@ class TestVoirDetailRecrutementRbac:
                 est_staff=True,
                 recrutement_id=uuid4(),
             )
+
+
+def test_toute_action_membre_est_classee() -> None:
+    actions_membre = frozenset(
+        action
+        for action, roles in _ROLES_REQUIS.items()
+        if AgentOrganismeRole.MEMBRE in roles
+    )
+
+    assert actions_membre <= (
+        _ROLES_RECRUTEMENT_REQUIS.keys() | _SANS_ROLE_RECRUTEMENT_REQUIS
+    )
