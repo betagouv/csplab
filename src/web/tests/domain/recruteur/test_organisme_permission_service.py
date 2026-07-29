@@ -201,6 +201,7 @@ class TestVoirDetailRecrutementRbac:
 
 RECRUTEMENT_ETAPES_ACTIONS = [
     OrganismeAction.GET_RECRUTEMENT_ETAPES,
+    OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
 ]
 
 

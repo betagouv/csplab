@@ -8,3 +8,4 @@ class OrganismeAction(Enum):
     LISTER_MES_RECRUTEMENTS = "lister_mes_recrutements"
     VOIR_DETAIL_RECRUTEMENT = "voir_detail_recrutement"
     GET_RECRUTEMENT_ETAPES = "get_recrutement_etapes"
+    UPDATE_RECRUTEMENT_ETAPES = "update_recrutement_etapes"

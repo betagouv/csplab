@@ -9,9 +9,14 @@ from application.recruteur.usecases.update_recrutement_etapes import (
     UpdateRecrutementEtapesUsecase,
 )
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.recruteur.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from domain.recruteur.value_objects.organisme_action import OrganismeAction
 
 
 @pytest.fixture(name="organisme_repository")
@@ -21,14 +26,26 @@ def organisme_repository_fixture():
     return repo
 
 
+@pytest.fixture(name="organisme_permission_service")
+def organisme_permission_service_fixture():
+    return MagicMock(spec=OrganismePermissionService)
+
+
 @pytest.fixture(name="usecase")
-def usecase_fixture(organisme_repository):
-    return UpdateRecrutementEtapesUsecase(organisme_repository=organisme_repository)
+def usecase_fixture(organisme_repository, organisme_permission_service):
+    return UpdateRecrutementEtapesUsecase(
+        organisme_repository=organisme_repository,
+        organisme_permission_service=organisme_permission_service,
+    )
 
 
 class TestUpdateRecrutementEtapesUsecase:
-    def test_echoes_etapes_back_unchanged(self, organisme_repository, usecase):
+    def test_echoes_etapes_back_unchanged(
+        self, organisme_repository, organisme_permission_service, usecase
+    ):
         organisme_id = uuid4()
+        recrutement_id = uuid4()
+        utilisateur_id = uuid4()
         etapes = [
             EtapeData(
                 etape_uuid=uuid4(),
@@ -45,13 +62,20 @@ class TestUpdateRecrutementEtapesUsecase:
         resultat = usecase.execute(
             UpdateRecrutementEtapesCommand(
                 organisme_id=organisme_id,
-                recrutement_id=uuid4(),
-                utilisateur_id=uuid4(),
+                recrutement_id=recrutement_id,
+                utilisateur_id=utilisateur_id,
                 etapes=etapes,
             )
         )
 
         assert resultat == etapes
+        organisme_permission_service.est_autorise.assert_called_once_with(
+            action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
+            organisme_id=organisme_id,
+            agent_id=utilisateur_id,
+            recrutement_id=recrutement_id,
+            est_staff=False,
+        )
         organisme_repository.get_by_id.assert_called_once_with(organisme_id)
 
     def test_empty_etapes_returns_empty_result(self, usecase):
@@ -73,6 +97,24 @@ class TestUpdateRecrutementEtapesUsecase:
         )
 
         with pytest.raises(OrganismeNexistePas):
+            usecase.execute(
+                UpdateRecrutementEtapesCommand(
+                    organisme_id=organisme_id,
+                    recrutement_id=uuid4(),
+                    utilisateur_id=uuid4(),
+                    etapes=[],
+                )
+            )
+
+    def test_raises_when_not_authorized(
+        self, organisme_repository, organisme_permission_service, usecase
+    ):
+        organisme_id = uuid4()
+        organisme_permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
+            organisme_id
+        )
+
+        with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(
                 UpdateRecrutementEtapesCommand(
                     organisme_id=organisme_id,

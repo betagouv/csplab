@@ -59,6 +59,7 @@ def _etapes_to_serializer_data(etapes: list) -> list[dict]:
             200: EtapeRecrutementSerializer(many=True),
             400: GenericErrorSerializer,
             401: TokenErrorSerializer,
+            403: GenericErrorSerializer,
             404: GenericErrorSerializer,
             500: GenericErrorSerializer,
         },
@@ -129,6 +130,8 @@ class RecrutementEtapeView(APIView):
                 _etapes_to_serializer_data(resultat), many=True
             )
             return Response(out_serializer.data)
+        except OrganismePermissionError:
+            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
         except OrganismeNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception:
