@@ -9,6 +9,7 @@ from presentation.ats import urls as ats_urls
 from presentation.candidate import urls as candidate_urls
 from presentation.identite import urls as identite_urls
 from presentation.ingestion import urls as ingestion_urls
+from presentation.ingestion import urls_v2 as ingestion_v2_urls
 from presentation.pages import urls as pages_urls
 from presentation.pages.views import security_txt
 from presentation.recruteur import urls as recruteur_urls
@@ -28,6 +29,7 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path("admin/", admin.site.urls),
     path("candidate/", include(candidate_urls)),
     path("api/v1/", include(ingestion_urls)),
+    path("api/v2/", include(ingestion_v2_urls)),
     path("ats/", include(ats_urls)),
     path("utilisateur/", include(identite_urls)),
     path("recruteur/", include(recruteur_urls)),

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
@@ -77,3 +78,97 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             conditions=conditions,
             contacts=list(data["contacts"]) if data.get("contacts") else None,
         )
+
+
+class OfferSummaryOutputMapper:
+    def to_dict(self, offer: Offer) -> dict:
+        return {
+            "reference": offer.reference,
+            "isTopOffer": False,
+            "title": offer.title,
+            "location": offer.localisation.label if offer.localisation else None,
+            "modificationDate": self._isoformat(
+                offer.processed_at or offer.publication_date
+            ),
+            "contractType": self._coded_object(
+                offer.contract_type.name, offer.contract_type.value, "contractType"
+            )
+            if offer.contract_type
+            else None,
+            "offerFamilyCategory": self._coded_object(
+                offer.category.name, offer.category.value, "offerFamilyCategory"
+            )
+            if offer.category
+            else None,
+            "organisationName": offer.organization,
+            "organisationDescription": offer.employer,
+            "organisationLogoUrl": None,
+            "contractDuration": None,
+            "contractTypeCountry": None,
+            "description1": offer.mission,
+            "description2": offer.profile,
+            "description1Formatted": None,
+            "description2Formatted": None,
+            "salaryRange": None,
+            "geographicalLocation": [],
+            "country": [
+                self._coded_object(
+                    str(offer.localisation.country),
+                    offer.localisation.country.short_name,
+                    "country",
+                )
+            ]
+            if offer.localisation
+            else [],
+            "region": [
+                self._coded_object(
+                    offer.localisation.region.code,
+                    offer.localisation.region.name,
+                    "region",
+                )
+            ]
+            if offer.localisation
+            else [],
+            "department": [
+                self._coded_object(
+                    offer.localisation.department.code,
+                    offer.localisation.department.name,
+                    "department",
+                )
+            ]
+            if offer.localisation
+            else [],
+            "latitude": offer.localisation.latitude if offer.localisation else None,
+            "longitude": offer.localisation.longitude if offer.localisation else None,
+            "professionalCategory": None,
+            "_links": [],
+            "offerUrl": str(offer.offer_url) if offer.offer_url else None,
+            "_format": None,
+            "_metadata": None,
+            "urlRedirectionEmployee": None,
+            "urlRedirectionApplicant": str(offer.application_url)
+            if offer.application_url
+            else None,
+            "startPublicationDate": self._isoformat(offer.publication_date),
+            "beginningDate": self._isoformat(offer.beginning_date.value)
+            if offer.beginning_date
+            else None,
+            "locations": [],
+        }
+
+    @staticmethod
+    def _isoformat(value: Optional[datetime]) -> Optional[str]:
+        return value.isoformat() if value else None
+
+    @staticmethod
+    def _coded_object(client_code: str, label: str, type_name: str) -> dict:
+        return {
+            "code": None,
+            "clientCode": client_code,
+            "label": label,
+            "active": True,
+            "parentCode": None,
+            "type": type_name,
+            "parentType": "",
+            "hasChildren": False,
+        }
