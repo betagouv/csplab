@@ -125,6 +125,7 @@ MIDDLEWARE = [
     "django_htmx.middleware.HtmxMiddleware",
     "django.contrib.redirects.middleware.RedirectFallbackMiddleware",
     "presentation.middleware.api_request_logger.ApiRequestLoggerMiddleware",
+    "presentation.middleware.rate_limit_headers.RateLimitHeadersMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

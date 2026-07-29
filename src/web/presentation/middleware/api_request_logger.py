@@ -10,6 +10,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 from domain.ingestion.entities.api_log import ApiLog
 from domain.ingestion.repositories.api_log_repository_interface import IApiLogRepository
+from infrastructure.authentication.jwt_token import get_validated_jwt
 from infrastructure.di.shared.shared_container import SharedContainer
 
 
@@ -24,18 +25,14 @@ _jwt_auth = JWTStatelessUserAuthentication()
 
 
 def _decode_jwt_user_id(request: HttpRequest) -> Optional[str]:
+    validated_token = get_validated_jwt(request, _jwt_auth)
+    if validated_token is None:
+        return None
     try:
-        header = _jwt_auth.get_header(request)
-        if header is None:
-            return None
-        raw_token = _jwt_auth.get_raw_token(header)
-        if raw_token is None:
-            return None
-        validated_token = _jwt_auth.get_validated_token(raw_token)
         user = _jwt_auth.get_user(validated_token)
-        return str(user.pk)
     except (InvalidToken, TokenError):
         return None
+    return str(user.pk)
 
 
 def _extract_token_info(
