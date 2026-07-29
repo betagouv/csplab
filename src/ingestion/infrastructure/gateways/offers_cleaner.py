@@ -167,7 +167,7 @@ class OffersCleaner:
             return Verse.FPT
         elif "FPH" in verse_upper or "APHP" in reference.upper():
             return Verse.FPH
-        elif "FPE" in verse_upper:
+        elif "FPE" in verse_upper or "MENJ" in reference.upper():
             return Verse.FPE
         return None
 

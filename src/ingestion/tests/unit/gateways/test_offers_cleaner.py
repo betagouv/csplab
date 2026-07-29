@@ -99,6 +99,14 @@ def test_clean_maps_verse_fph_from_aphp_reference(cleaner):
     assert offer.verse == Verse.FPH
 
 
+def test_clean_maps_verse_fpe_from_menj_reference(cleaner):
+    raw_offer = _make_raw_offer(reference="MENJ-2024-001")
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.verse == Verse.FPE
+
+
 @pytest.mark.parametrize(
     "category_code, expected_category",
     [
