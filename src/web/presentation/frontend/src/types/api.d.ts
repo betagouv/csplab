@@ -167,6 +167,23 @@ export interface paths {
         patch: operations["recruteur_organisme_recrutements_etapes_partial_update"];
         trace?: never;
     };
+    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes/init": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Réinitialiser les étapes par défaut d'un recrutement */
+        post: operations["recruteur_organisme_recrutements_etapes_init_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban": {
         parameters: {
             query?: never;
@@ -1308,6 +1325,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_recrutements_etapes_init_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EtapeRecrutement"][];
                 };
             };
             401: {

@@ -21,6 +21,9 @@ from application.recruteur.usecases.get_recrutement_kanban import (
 from application.recruteur.usecases.get_recrutement_liste import (
     GetRecrutementListeQuery,
 )
+from application.recruteur.usecases.init_recrutement_etapes import (
+    InitRecrutementEtapesCommand,
+)
 from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsQuery,
 )
@@ -417,6 +420,50 @@ class RecrutementEtapeView(APIView):
                 _etapes_to_serializer_data(resultat), many=True
             )
             return Response(out_serializer.data)
+        except OrganismeNexistePas:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            error_serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                error_serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+@extend_schema(
+    summary="Réinitialiser les étapes par défaut d'un recrutement",
+    tags=["recruteur"],
+    request=None,
+    responses={
+        201: EtapeRecrutementSerializer(many=True),
+        401: TokenErrorSerializer,
+        404: GenericErrorSerializer,
+        500: GenericErrorSerializer,
+    },
+)
+class InitRecrutementEtapeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = recruteur_container()
+
+    def post(
+        self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
+    ) -> Response:
+        try:
+            usecase = self.container.init_recrutement_etapes_usecase()
+            resultat = usecase.execute(
+                InitRecrutementEtapesCommand(
+                    organisme_id=organisme_uuid,
+                    recrutement_id=recrutement_uuid,
+                    utilisateur_id=UUID(request.user.username),
+                    est_staff=request.user.is_staff,
+                )
+            )
+            serializer = EtapeRecrutementSerializer(
+                _etapes_to_serializer_data(resultat), many=True
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         except OrganismeNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception:
