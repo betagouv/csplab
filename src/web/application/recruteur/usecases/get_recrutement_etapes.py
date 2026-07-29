@@ -7,6 +7,10 @@ from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
+from domain.recruteur.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
+from domain.recruteur.value_objects.organisme_action import OrganismeAction
 
 
 @dataclass(kw_only=True)
@@ -15,13 +19,24 @@ class GetRecrutementEtapesQuery(RecrutementRequest):
 
 
 # TODO: ajouter
-# - RBAC organisme, RBAC recrutement
 # - recuperer le Recrutement via IRecrutementRepository et mapper ses etapes reelles
 #   (EtapeRecrutement) vers EtapeData, au lieu du pipeline statique ci-dessous
 class GetRecrutementEtapesUsecase(IUseCase[GetRecrutementEtapesQuery, list[EtapeData]]):
-    def __init__(self, organisme_repository: IOrganismeRepository):
+    def __init__(
+        self,
+        organisme_repository: IOrganismeRepository,
+        organisme_permission_service: OrganismePermissionService,
+    ):
         self.organisme_repository = organisme_repository
+        self.organisme_permission_service = organisme_permission_service
 
     def execute(self, query: GetRecrutementEtapesQuery) -> list[EtapeData]:
         self.organisme_repository.get_by_id(query.organisme_id)
+        self.organisme_permission_service.est_autorise(
+            action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
+            organisme_id=query.organisme_id,
+            agent_id=query.utilisateur_id,
+            recrutement_id=query.recrutement_id,
+            est_staff=query.est_staff,
+        )
         return etapes_par_defaut()
