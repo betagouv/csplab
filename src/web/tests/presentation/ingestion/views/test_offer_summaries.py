@@ -10,7 +10,7 @@ from rest_framework import status
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
-URL = reverse("ingestion_v2:offer_summaries")
+URL = reverse("ingestion_fake_ts:offer_summaries")
 
 
 def _make_paginated_mock(mock_container, total, offers_slice):
@@ -170,4 +170,4 @@ def test_returns_error_500(mock_offer_summaries_container, authenticated_client)
 def test_is_excluded_from_openapi_schema():
     generator = SchemaGenerator()
     schema = generator.get_schema(request=None, public=True)
-    assert "/api/v2/offersummaries" not in schema["paths"]
+    assert "/api/fake-ts/offersummaries" not in schema["paths"]
