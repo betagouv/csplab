@@ -31,6 +31,9 @@ env = environ.Env(
     WEB_OPIK_API_KEY=(str, "opik-api-key"),
     WEB_INGESTION_API_KEY=(str, secrets.token_urlsafe(32)),
     WEB_INGESTION_API_KEY_ALLOWED_IP_RANGES=(list, []),
+    WEB_PROCONNECT_CLIENT_ID=(str, "fake-client-id"),
+    WEB_PROCONNECT_CLIENT_SECRET=(str, "fake-client-secret"),
+    WEB_PROCONNECT_BASE_URL=(str, "https://fake-proconnect.example.com"),
     WEB_TALLY_FORM_ID_RESULTS=(str, ""),
     WEB_TALLY_FORM_ID_NO_RESULTS=(str, ""),
     WEB_MATOMO_BASE_URL=(str, ""),
@@ -173,6 +176,11 @@ AUTH_USER_MODEL = "users.UserModel"
 LOGIN_URL = "identite:login"
 LOGIN_REDIRECT_URL = "identite:profile"
 LOGOUT_REDIRECT_URL = "pages:home"
+
+AUTHENTICATION_BACKENDS = [
+    "infrastructure.authentication.proconnect_backend.ProconnectBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
 
 # Internationalization
 LANGUAGE_CODE = "fr"
@@ -433,6 +441,11 @@ OCR_API_KEY = env.str("OCR_API_KEY")
 OCR_BASE_URL = env.str("OCR_BASE_URL")
 
 OPIK_API_KEY = env.str("OPIK_API_KEY")
+
+# ProConnect (OIDC login for public-sector agents)
+PROCONNECT_CLIENT_ID = env.str("PROCONNECT_CLIENT_ID")
+PROCONNECT_CLIENT_SECRET = env.str("PROCONNECT_CLIENT_SECRET")
+PROCONNECT_BASE_URL = env.str("PROCONNECT_BASE_URL")
 
 TALLY_FORM_ID_RESULTS = env.str("TALLY_FORM_ID_RESULTS")
 TALLY_FORM_ID_NO_RESULTS = env.str("TALLY_FORM_ID_NO_RESULTS")
