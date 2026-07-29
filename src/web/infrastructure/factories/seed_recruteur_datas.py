@@ -247,33 +247,35 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # ------------------------------------------------------------------ #
     # 5. Offres archivées (3)                                              #
     # ------------------------------------------------------------------ #
-    OfferFactory.create_model(
-        title="Directeur des systèmes d'information",
-        reference="REF-2024-A01",
-        external_id="SEED-ARCHIVE-001",
-        verse=Verse.FPE,
-        category=Category.A,
-        publication_date=datetime(2024, 12, 1, tzinfo=UTC),
-        archived_at=datetime(2025, 3, 1),
-    )
-    OfferFactory.create_model(
-        title="Chef de projet transformation numérique",
-        reference="REF-2024-A02",
-        external_id="SEED-ARCHIVE-002",
-        verse=Verse.FPE,
-        category=Category.A,
-        publication_date=datetime(2024, 11, 15, tzinfo=UTC),
-        archived_at=datetime(2025, 2, 15),
-    )
-    OfferFactory.create_model(
-        title="Conseiller en mobilité professionnelle",
-        reference="REF-2024-A03",
-        external_id="SEED-ARCHIVE-003",
-        verse=Verse.FPT,
-        category=Category.B,
-        publication_date=datetime(2024, 10, 1, tzinfo=UTC),
-        archived_at=datetime(2025, 1, 15),
-    )
+    offres_archivees = [
+        OfferFactory.create_model(
+            title="Directeur des systèmes d'information",
+            reference="REF-2024-A01",
+            external_id="SEED-ARCHIVE-001",
+            verse=Verse.FPE,
+            category=Category.A,
+            publication_date=datetime(2024, 12, 1, tzinfo=UTC),
+            archived_at=datetime(2025, 3, 1),
+        ),
+        OfferFactory.create_model(
+            title="Chef de projet transformation numérique",
+            reference="REF-2024-A02",
+            external_id="SEED-ARCHIVE-002",
+            verse=Verse.FPE,
+            category=Category.A,
+            publication_date=datetime(2024, 11, 15, tzinfo=UTC),
+            archived_at=datetime(2025, 2, 15),
+        ),
+        OfferFactory.create_model(
+            title="Conseiller en mobilité professionnelle",
+            reference="REF-2024-A03",
+            external_id="SEED-ARCHIVE-003",
+            verse=Verse.FPT,
+            category=Category.B,
+            publication_date=datetime(2024, 10, 1, tzinfo=UTC),
+            archived_at=datetime(2025, 1, 15),
+        ),
+    ]
 
     # ------------------------------------------------------------------ #
     # 6. Candidats (8)                                                     #
@@ -284,7 +286,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     ]
 
     # ------------------------------------------------------------------ #
-    # 7. Recrutements (1 par offre active) : étapes + responsables         #
+    # 7. Recrutements (1 par offre active et archivée) : étapes + responsables #
     # ------------------------------------------------------------------ #
     marie_id = UUID(agents[0].utilisateur_id)
     paul_id = UUID(agents[1].utilisateur_id)
@@ -300,6 +302,9 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         (offres_actives[3], claire_id, (david_id, AgentRecrutementRole.CONTRIBUTEUR)),
         (offres_actives[4], claire_id, None),
         (offres_actives[5], claire_id, None),
+        (offres_archivees[0], claire_id, None),
+        (offres_archivees[1], claire_id, None),
+        (offres_archivees[2], claire_id, None),
     ]
 
     recrutements = []
