@@ -12,9 +12,23 @@ from domain.recruteur.repositories.recrutement_agent_repository_interface import
     IRecrutementAgentRepository,
 )
 from domain.recruteur.value_objects.organisme_action import OrganismeAction
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 
-# Actions pour lesquelles un AGENT doit avoir un rôle sur l'organisme
+# Actions pour lesquelles le statut staff dispense d'un rôle réel sur l'organisme
+_AUTORISE_POUR_STAFF: frozenset[OrganismeAction] = frozenset(
+    {
+        OrganismeAction.GET_ORGANISME,
+        OrganismeAction.INITIALIZE_ORGANISME_STEPS,
+        OrganismeAction.UPDATE_ORGANISME_STEPS,
+    }
+)
+
+# -------------------------------------
+# Authorisations niveau Organisme
+# -------------------------------------
 _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.GET_ORGANISME: frozenset({AgentOrganismeRole.RESPONSABLE}),
     OrganismeAction.INITIALIZE_ORGANISME_STEPS: frozenset(
@@ -27,21 +41,44 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.VOIR_DETAIL_RECRUTEMENT: frozenset(
         {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
     ),
+    OrganismeAction.GET_RECRUTEMENT_ETAPES: frozenset(
+        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+    ),
+    OrganismeAction.UPDATE_RECRUTEMENT_ETAPES: frozenset(
+        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+    ),
+    OrganismeAction.INIT_RECRUTEMENT_ETAPES: frozenset(
+        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+    ),
 }
 
-# Actions pour lesquelles le statut staff dispense d'un rôle réel sur l'organisme
-_AUTORISE_POUR_STAFF: frozenset[OrganismeAction] = frozenset(
-    {
-        OrganismeAction.GET_ORGANISME,
-        OrganismeAction.INITIALIZE_ORGANISME_STEPS,
-        OrganismeAction.UPDATE_ORGANISME_STEPS,
-    }
+# -------------------------------------
+# Authorisations niveau Recrutement
+# -------------------------------------
+# Actions pour lesquelles un MEMBRE n'a besoin d'aucun rôle sur le recrutement
+_SANS_ROLE_RECRUTEMENT_REQUIS: frozenset[OrganismeAction] = frozenset(
+    {OrganismeAction.LISTER_MES_RECRUTEMENTS}
 )
 
-# Actions pour lesquelles un MEMBRE doit en plus être affecté au recrutement visé
-_REQUIERT_ROLE_RECRUTEMENT: frozenset[OrganismeAction] = frozenset(
-    {OrganismeAction.VOIR_DETAIL_RECRUTEMENT}
-)
+# Actions pour lesquelles un MEMBRE doit avoir un rôle sur le recrutement
+_ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]] = {
+    OrganismeAction.VOIR_DETAIL_RECRUTEMENT: frozenset(
+        {
+            AgentRecrutementRole.RESPONSABLE,
+            AgentRecrutementRole.RECRUTEUR,
+            AgentRecrutementRole.CONTRIBUTEUR,
+        }
+    ),
+    OrganismeAction.GET_RECRUTEMENT_ETAPES: frozenset(
+        {AgentRecrutementRole.RESPONSABLE}
+    ),
+    OrganismeAction.UPDATE_RECRUTEMENT_ETAPES: frozenset(
+        {AgentRecrutementRole.RESPONSABLE}
+    ),
+    OrganismeAction.INIT_RECRUTEMENT_ETAPES: frozenset(
+        {AgentRecrutementRole.RESPONSABLE}
+    ),
+}
 
 
 class OrganismePermissionService:
@@ -72,14 +109,17 @@ class OrganismePermissionService:
         if role not in roles_requis:
             raise AccesOrganismeRefuse(organisme_id)
 
-        if role == AgentOrganismeRole.MEMBRE and action in _REQUIERT_ROLE_RECRUTEMENT:
+        if (
+            role == AgentOrganismeRole.MEMBRE
+            and action not in _SANS_ROLE_RECRUTEMENT_REQUIS
+        ):
             if recrutement_id is None:
                 raise AccesRecrutementInconnu()
 
             recrutement_role = self._recrutement_agent_repository.get_role(
                 recrutement_id=recrutement_id, agent_id=agent_id
             )
-            if recrutement_role is None:
+            if recrutement_role not in _ROLES_RECRUTEMENT_REQUIS[action]:
                 raise AccesRecrutementRefuse(recrutement_id)
 
         return role

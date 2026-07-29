@@ -185,14 +185,17 @@ class RecruteurContainer(containers.DeclarativeContainer):
     get_recrutement_etapes_usecase = providers.Factory(
         GetRecrutementEtapesUsecase,
         organisme_repository=postgres_organisme_repository,
+        organisme_permission_service=organisme_permission_service,
     )
 
     update_recrutement_etapes_usecase = providers.Factory(
         UpdateRecrutementEtapesUsecase,
         organisme_repository=postgres_organisme_repository,
+        organisme_permission_service=organisme_permission_service,
     )
 
     init_recrutement_etapes_usecase = providers.Factory(
         InitRecrutementEtapesUsecase,
         organisme_repository=postgres_organisme_repository,
+        organisme_permission_service=organisme_permission_service,
     )

@@ -7,3 +7,6 @@ class OrganismeAction(Enum):
     UPDATE_ORGANISME_STEPS = "update_organisme_steps"
     LISTER_MES_RECRUTEMENTS = "lister_mes_recrutements"
     VOIR_DETAIL_RECRUTEMENT = "voir_detail_recrutement"
+    GET_RECRUTEMENT_ETAPES = "get_recrutement_etapes"
+    UPDATE_RECRUTEMENT_ETAPES = "update_recrutement_etapes"
+    INIT_RECRUTEMENT_ETAPES = "init_recrutement_etapes"

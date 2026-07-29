@@ -8,6 +8,7 @@ from rest_framework import status
 
 from application.recruteur.dtos.etape_data import EtapeData
 from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -92,6 +93,16 @@ class TestRecrutementEtapeView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": "Not found."}
 
+    def test_get_returns_403_when_forbidden(self, container, authenticated_client):
+        container.get_recrutement_etapes_usecase.return_value.execute.side_effect = (
+            AccesOrganismeRefuse(uuid4())
+        )
+
+        response = authenticated_client.get(RECRUTEMENT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"detail": "Forbidden."}
+
     def test_get_returns_500_on_unexpected_error(self, container, authenticated_client):
         container.get_recrutement_etapes_usecase.return_value.execute.side_effect = (
             Exception("unexpected")
@@ -125,6 +136,20 @@ class TestRecrutementEtapeView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": "Not found."}
+
+    def test_patch_returns_403_when_forbidden(self, container, authenticated_client):
+        container.update_recrutement_etapes_usecase.return_value.execute.side_effect = (
+            AccesOrganismeRefuse(uuid4())
+        )
+
+        response = authenticated_client.patch(
+            RECRUTEMENT_ETAPES_URL,
+            data=[{"nom": "Réception", "categorie": "ENTREE"}],
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"detail": "Forbidden."}
 
     def test_patch_returns_500_on_unexpected_error(
         self, container, authenticated_client
@@ -171,6 +196,16 @@ class TestInitRecrutementEtapeView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": "Not found."}
+
+    def test_returns_403_when_forbidden(self, container, authenticated_client):
+        container.init_recrutement_etapes_usecase.return_value.execute.side_effect = (
+            AccesOrganismeRefuse(uuid4())
+        )
+
+        response = authenticated_client.post(RECRUTEMENT_ETAPES_INIT_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"detail": "Forbidden."}
 
     def test_returns_500_on_unexpected_error(self, container, authenticated_client):
         container.init_recrutement_etapes_usecase.return_value.execute.side_effect = (
