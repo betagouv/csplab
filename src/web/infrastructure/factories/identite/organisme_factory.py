@@ -12,7 +12,12 @@ from domain.identite.entities.organisme import Organisme
 from domain.identite.value_objects.siret import SIRET
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
+from infrastructure.django_apps.recruteur.models.organisme import (
+    OrganismeAgentModel,
+    OrganismeModel,
+)
+from infrastructure.django_apps.users.models import ProfilAgentModel
+from infrastructure.factories.identite.agent_factory import AgentFactory
 from infrastructure.mappers.organisme_identite_mapper import (
     OrganismeIdentiteMapper,
 )
@@ -85,3 +90,17 @@ class OrganismeFactory:
                 role=(role or AgentOrganismeRole.MEMBRE).value,
             ).save()
         return model
+
+    @staticmethod
+    def create_model_with_agent(
+        role: AgentOrganismeRole | None = None,
+        **organisme_kwargs,
+    ) -> tuple[ProfilAgentModel, OrganismeModel]:
+        agent = AgentFactory.create_model()
+        if role is not None:
+            organisme = OrganismeFactory.create_model(
+                agent_id=UUID(agent.utilisateur_id), role=role, **organisme_kwargs
+            )
+        else:
+            organisme = OrganismeFactory.create_model(**organisme_kwargs)
+        return agent, organisme

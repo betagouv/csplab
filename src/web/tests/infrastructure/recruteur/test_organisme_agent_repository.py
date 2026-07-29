@@ -14,9 +14,8 @@ def repository_fixture():
 
 
 def test_get_role_returns_responsable(db, repository):
-    agent = AgentFactory.create_model()
-    organisme_model = OrganismeFactory.create_model(
-        agent_id=agent.utilisateur_id, role=AgentOrganismeRole.RESPONSABLE
+    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.RESPONSABLE
     )
 
     role = repository.get_role(
@@ -27,8 +26,9 @@ def test_get_role_returns_responsable(db, repository):
 
 
 def test_get_role_returns_membre(db, repository):
-    agent = AgentFactory.create_model()
-    organisme_model = OrganismeFactory.create_model(agent_id=agent.utilisateur_id)
+    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.MEMBRE
+    )
 
     role = repository.get_role(
         organisme_id=organisme_model.id, agent_id=agent.utilisateur_id

@@ -9,7 +9,10 @@ from application.recruteur.dtos.recrutement_read_models import (
 )
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.recrutement import Recrutement
-from domain.recruteur.value_objects.roles import AgentRecrutementRole
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
@@ -97,16 +100,21 @@ class RecrutementFactory:
         offre_id: UUID | None = None,
         offre_archivee: bool = False,
         organisme_id: UUID | None = None,
+        organisme_role: AgentOrganismeRole | None = None,
         etapes: tuple[EtapeRecrutement, ...] | None = None,
         ordre_etapes: list[str] | None = None,
-        agent_ids: tuple[UUID, ...] | None = None,
-        agent_roles: dict[UUID, AgentRecrutementRole] | None = None,
+        agent_id: UUID | None = None,
+        agent_role: AgentRecrutementRole | None = None,
     ) -> RecrutementModel:
         if offre_id is None:
             archived_at = datetime(2024, 1, 1) if offre_archivee else None
             offre_id = OfferFactory.create_model(archived_at=archived_at).id
+        if agent_id is None:
+            agent_id = UUID(AgentFactory.create_model().utilisateur_id)
         if organisme_id is None:
-            organisme_id = OrganismeFactory.create_model().id
+            organisme_id = OrganismeFactory.create_model(
+                agent_id=agent_id, role=organisme_role
+            ).id
         if etapes is None:
             etapes = EtapeRecrutementFactory.create_entities()
 
@@ -127,16 +135,11 @@ class RecrutementFactory:
             )
             model.save()
 
-        if agent_ids is None:
-            agent_ids = (UUID(AgentFactory.create_model().utilisateur_id),)
-
-        for agent_id in agent_ids:
-            role = (agent_roles or {}).get(agent_id, AgentRecrutementRole.CONTRIBUTEUR)
-            RecrutementAgentModel(
-                id=uuid4(),
-                recrutement=recrutement,
-                agent_id=str(agent_id),
-                role=role.value,
-            ).save()
+        RecrutementAgentModel(
+            id=uuid4(),
+            recrutement=recrutement,
+            agent_id=str(agent_id),
+            role=(agent_role or AgentRecrutementRole.CONTRIBUTEUR).value,
+        ).save()
 
         return recrutement

@@ -17,7 +17,10 @@ from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeAgentModel,
     OrganismeModel,
 )
-from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
+from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
+    RecrutementModel,
+)
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.users.models import (
@@ -244,33 +247,35 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # ------------------------------------------------------------------ #
     # 5. Offres archivées (3)                                              #
     # ------------------------------------------------------------------ #
-    OfferFactory.create_model(
-        title="Directeur des systèmes d'information",
-        reference="REF-2024-A01",
-        external_id="SEED-ARCHIVE-001",
-        verse=Verse.FPE,
-        category=Category.A,
-        publication_date=datetime(2024, 12, 1, tzinfo=UTC),
-        archived_at=datetime(2025, 3, 1),
-    )
-    OfferFactory.create_model(
-        title="Chef de projet transformation numérique",
-        reference="REF-2024-A02",
-        external_id="SEED-ARCHIVE-002",
-        verse=Verse.FPE,
-        category=Category.A,
-        publication_date=datetime(2024, 11, 15, tzinfo=UTC),
-        archived_at=datetime(2025, 2, 15),
-    )
-    OfferFactory.create_model(
-        title="Conseiller en mobilité professionnelle",
-        reference="REF-2024-A03",
-        external_id="SEED-ARCHIVE-003",
-        verse=Verse.FPT,
-        category=Category.B,
-        publication_date=datetime(2024, 10, 1, tzinfo=UTC),
-        archived_at=datetime(2025, 1, 15),
-    )
+    offres_archivees = [
+        OfferFactory.create_model(
+            title="Directeur des systèmes d'information",
+            reference="REF-2024-A01",
+            external_id="SEED-ARCHIVE-001",
+            verse=Verse.FPE,
+            category=Category.A,
+            publication_date=datetime(2024, 12, 1, tzinfo=UTC),
+            archived_at=datetime(2025, 3, 1),
+        ),
+        OfferFactory.create_model(
+            title="Chef de projet transformation numérique",
+            reference="REF-2024-A02",
+            external_id="SEED-ARCHIVE-002",
+            verse=Verse.FPE,
+            category=Category.A,
+            publication_date=datetime(2024, 11, 15, tzinfo=UTC),
+            archived_at=datetime(2025, 2, 15),
+        ),
+        OfferFactory.create_model(
+            title="Conseiller en mobilité professionnelle",
+            reference="REF-2024-A03",
+            external_id="SEED-ARCHIVE-003",
+            verse=Verse.FPT,
+            category=Category.B,
+            publication_date=datetime(2024, 10, 1, tzinfo=UTC),
+            archived_at=datetime(2025, 1, 15),
+        ),
+    ]
 
     # ------------------------------------------------------------------ #
     # 6. Candidats (8)                                                     #
@@ -281,41 +286,44 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     ]
 
     # ------------------------------------------------------------------ #
-    # 7. Recrutements (1 par offre active) : étapes + responsables         #
+    # 7. Recrutements (1 par offre active et archivée) : étapes + responsables #
     # ------------------------------------------------------------------ #
-    # Doit précéder les candidatures car CandidatureFactory.create_model()
-    # crée désormais un recrutement lié.
-    # Marie est responsable de la première moitié des recrutements, Claire de
-    # l'autre (Claire n'est que membre de l'organisme : ça exerce l'accès par
-    # role recrutement seul, sans passer par le role organisme). Paul est
-    # recruteur sur la moitié de Marie, en plus d'elle. David (hors organisme)
-    # est contributeur sur le premier recrutement de Claire, et sur lui seul.
     marie_id = UUID(agents[0].utilisateur_id)
     paul_id = UUID(agents[1].utilisateur_id)
     claire_id = UUID(agents[2].utilisateur_id)
     david_id = UUID(agents[3].utilisateur_id)
-    moitie = len(offres_actives) // 2
-    responsables = [marie_id] * moitie + [claire_id] * (len(offres_actives) - moitie)
+
+    recrutements_specs: list[
+        tuple[OfferModel, UUID, tuple[UUID, AgentRecrutementRole] | None]
+    ] = [
+        (offres_actives[0], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
+        (offres_actives[1], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
+        (offres_actives[2], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
+        (offres_actives[3], claire_id, (david_id, AgentRecrutementRole.CONTRIBUTEUR)),
+        (offres_actives[4], claire_id, None),
+        (offres_actives[5], claire_id, None),
+        (offres_archivees[0], claire_id, None),
+        (offres_archivees[1], claire_id, None),
+        (offres_archivees[2], claire_id, None),
+    ]
+
     recrutements = []
-    for i, (offre, responsable_id) in enumerate(
-        zip(offres_actives, responsables, strict=True)
-    ):
-        agent_roles = {responsable_id: AgentRecrutementRole.RESPONSABLE}
-        agent_ids: tuple[UUID, ...] = (responsable_id,)
-        if i < moitie:
-            agent_roles[paul_id] = AgentRecrutementRole.RECRUTEUR
-            agent_ids = (responsable_id, paul_id)
-        elif i == moitie:
-            agent_roles[david_id] = AgentRecrutementRole.CONTRIBUTEUR
-            agent_ids = (responsable_id, david_id)
-        recrutements.append(
-            RecrutementFactory.create_model(
-                offre_id=offre.id,
-                organisme_id=_ORGANISME_UUID,
-                agent_ids=agent_ids,
-                agent_roles=agent_roles,
-            )
+    for offre, responsable_id, extra_agent in recrutements_specs:
+        recrutement = RecrutementFactory.create_model(
+            offre_id=offre.id,
+            organisme_id=_ORGANISME_UUID,
+            agent_id=responsable_id,
+            agent_role=AgentRecrutementRole.RESPONSABLE,
         )
+        if extra_agent is not None:
+            extra_agent_id, extra_agent_role = extra_agent
+            RecrutementAgentModel(
+                id=uuid4(),
+                recrutement=recrutement,
+                agent_id=str(extra_agent_id),
+                role=extra_agent_role.value,
+            ).save()
+        recrutements.append(recrutement)
 
     # ------------------------------------------------------------------ #
     # 8. Candidatures                                                      #
