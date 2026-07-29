@@ -48,6 +48,12 @@ class TestLoginView:
         assert "_auth_user_id" in client.session
         assert response.wsgi_request.user.is_authenticated is True
 
+    def test_get_login_page_renders_proconnect_button(self, db, client):
+        response = client.get(reverse("identite:login"))
+
+        assertContains(response, "ProConnect")
+        assertContains(response, reverse("identite:proconnect_login"))
+
     def test_post_with_correct_credentials_redirects_to_next_url(
         self, db, client, test_user
     ):

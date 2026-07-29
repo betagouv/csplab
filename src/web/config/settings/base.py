@@ -37,6 +37,9 @@ env = environ.Env(
     WEB_TALENTSOFT_CLIENT_ID=(str, "fake-client-id"),
     WEB_TALENTSOFT_CLIENT_SECRET=(str, "fake-client-secret"),
     WEB_TALENTSOFT_BASE_URL=(str, "https://fake-talentsoft.example.com"),
+    WEB_PROCONNECT_CLIENT_ID=(str, "fake-client-id"),
+    WEB_PROCONNECT_CLIENT_SECRET=(str, "fake-client-secret"),
+    WEB_PROCONNECT_BASE_URL=(str, "https://fake-proconnect.example.com"),
     WEB_TALLY_FORM_ID_RESULTS=(str, ""),
     WEB_TALLY_FORM_ID_NO_RESULTS=(str, ""),
     WEB_MATOMO_BASE_URL=(str, ""),
@@ -179,6 +182,11 @@ AUTH_USER_MODEL = "users.UserModel"
 LOGIN_URL = "identite:login"
 LOGIN_REDIRECT_URL = "identite:profile"
 LOGOUT_REDIRECT_URL = "pages:home"
+
+AUTHENTICATION_BACKENDS = [
+    "infrastructure.authentication.proconnect_backend.ProconnectBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
 
 # Internationalization
 LANGUAGE_CODE = "fr"
@@ -447,6 +455,11 @@ TALENTSOFT_CLIENT_SECRET = env.str("TALENTSOFT_CLIENT_SECRET")
 TALENTSOFT_BACK_BASE_URL = env.str("TALENTSOFT_BACK_BASE_URL")
 TALENTSOFT_BACK_CLIENT_ID = env.str("TALENTSOFT_BACK_CLIENT_ID")
 TALENTSOFT_BACK_CLIENT_SECRET = env.str("TALENTSOFT_BACK_CLIENT_SECRET")
+
+# ProConnect (OIDC login for public-sector agents)
+PROCONNECT_CLIENT_ID = env.str("PROCONNECT_CLIENT_ID")
+PROCONNECT_CLIENT_SECRET = env.str("PROCONNECT_CLIENT_SECRET")
+PROCONNECT_BASE_URL = env.str("PROCONNECT_BASE_URL")
 
 TALLY_FORM_ID_RESULTS = env.str("TALLY_FORM_ID_RESULTS")
 TALLY_FORM_ID_NO_RESULTS = env.str("TALLY_FORM_ID_NO_RESULTS")
