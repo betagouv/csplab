@@ -60,3 +60,8 @@ WEB_PROCONNECT_CLIENT_SECRET=
 WEB_PROCONNECT_BASE_URL=
 
 SEED_USER_PASSWORD=test-password-123
+
+# ProConnect (OIDC login for public-sector agents) - see https://partenaires.proconnect.gouv.fr/
+WEB_PROCONNECT_CLIENT_ID=
+WEB_PROCONNECT_CLIENT_SECRET=
+WEB_PROCONNECT_BASE_URL=
