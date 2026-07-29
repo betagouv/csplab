@@ -45,10 +45,7 @@ class TestGetRecrutementKanbanRbac:
         ],
     )
     def test_authorized(self, usecase, role, assign_agent_to_recrutement):
-        agent = AgentFactory.create_model()
-        organisme = OrganismeFactory.create_model(
-            agent_id=agent.utilisateur_id, role=role
-        )
+        agent, organisme = OrganismeFactory.create_model_with_agent(role=role)
         agent_ids = (
             (UUID(agent.utilisateur_id),) if assign_agent_to_recrutement else None
         )
@@ -81,9 +78,8 @@ class TestGetRecrutementKanbanRbac:
         assert result.organisme_recruteur.siret == organisme.siret
 
     def test_forbidden_when_membre_not_assigned_to_recrutement(self, usecase):
-        agent = AgentFactory.create_model()
-        organisme = OrganismeFactory.create_model(
-            agent_id=agent.utilisateur_id, role=AgentOrganismeRole.MEMBRE
+        agent, organisme = OrganismeFactory.create_model_with_agent(
+            role=AgentOrganismeRole.MEMBRE
         )
         recrutement = RecrutementFactory.create_model(organisme_id=organisme.id)
 
@@ -112,9 +108,8 @@ class TestGetRecrutementKanbanRbac:
             )
 
     def test_returns_none_for_unknown_recrutement(self, usecase):
-        agent = AgentFactory.create_model()
-        organisme = OrganismeFactory.create_model(
-            agent_id=agent.utilisateur_id, role=AgentOrganismeRole.RESPONSABLE
+        agent, organisme = OrganismeFactory.create_model_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE
         )
 
         result = usecase.execute(
@@ -128,9 +123,8 @@ class TestGetRecrutementKanbanRbac:
         assert result is None
 
     def test_returns_none_when_recrutement_belongs_to_another_organisme(self, usecase):
-        agent = AgentFactory.create_model()
-        organisme = OrganismeFactory.create_model(
-            agent_id=agent.utilisateur_id, role=AgentOrganismeRole.RESPONSABLE
+        agent, organisme = OrganismeFactory.create_model_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE
         )
         autre_organisme = OrganismeFactory.create_model()
         recrutement = RecrutementFactory.create_model(organisme_id=autre_organisme.id)
