@@ -286,29 +286,24 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # ------------------------------------------------------------------ #
     # 7. Recrutements (1 par offre active) : étapes + responsables         #
     # ------------------------------------------------------------------ #
-    # Doit précéder les candidatures car CandidatureFactory.create_model()
-    # crée désormais un recrutement lié.
-    # Marie est responsable de la première moitié des recrutements, Claire de
-    # l'autre (Claire n'est que membre de l'organisme : ça exerce l'accès par
-    # role recrutement seul, sans passer par le role organisme). Paul est
-    # recruteur sur la moitié de Marie, en plus d'elle. David (hors organisme)
-    # est contributeur sur le premier recrutement de Claire, et sur lui seul.
     marie_id = UUID(agents[0].utilisateur_id)
     paul_id = UUID(agents[1].utilisateur_id)
     claire_id = UUID(agents[2].utilisateur_id)
     david_id = UUID(agents[3].utilisateur_id)
-    moitie = len(offres_actives) // 2
-    responsables = [marie_id] * moitie + [claire_id] * (len(offres_actives) - moitie)
-    recrutements = []
-    for i, (offre, responsable_id) in enumerate(
-        zip(offres_actives, responsables, strict=True)
-    ):
-        extra_agent: tuple[UUID, AgentRecrutementRole] | None = None
-        if i < moitie:
-            extra_agent = (paul_id, AgentRecrutementRole.RECRUTEUR)
-        elif i == moitie:
-            extra_agent = (david_id, AgentRecrutementRole.CONTRIBUTEUR)
 
+    recrutements_specs: list[
+        tuple[OfferModel, UUID, tuple[UUID, AgentRecrutementRole] | None]
+    ] = [
+        (offres_actives[0], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
+        (offres_actives[1], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
+        (offres_actives[2], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
+        (offres_actives[3], claire_id, (david_id, AgentRecrutementRole.CONTRIBUTEUR)),
+        (offres_actives[4], claire_id, None),
+        (offres_actives[5], claire_id, None),
+    ]
+
+    recrutements = []
+    for offre, responsable_id, extra_agent in recrutements_specs:
         recrutement = RecrutementFactory.create_model(
             offre_id=offre.id,
             organisme_id=_ORGANISME_UUID,
