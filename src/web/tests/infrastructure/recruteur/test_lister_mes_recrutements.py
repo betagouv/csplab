@@ -63,13 +63,13 @@ class TestListerMesRecrutements:
         agent_id, organisme = self._create_agent_responsable()
         recrutement_actif = RecrutementFactory.create_model(
             organisme_id=organisme.id,
-            agent_ids=(agent_id,),
+            agent_id=agent_id,
             etapes=EtapeRecrutementFactory.create_entities(),
         )
         RecrutementFactory.create_model(
             offre_archivee=True,
             organisme_id=organisme.id,
-            agent_ids=(agent_id,),
+            agent_id=agent_id,
         )
         etape_entree = EtapeModel.objects.filter(
             recrutement_id=recrutement_actif.offre_id,
@@ -137,7 +137,7 @@ class TestListerMesRecrutements:
         recrutement_actif = RecrutementFactory.create_model(
             offre_id=offre.id,
             organisme_id=organisme.id,
-            agent_ids=(agent_id,),
+            agent_id=agent_id,
             etapes=EtapeRecrutementFactory.create_entities(),
         )
 
@@ -156,7 +156,7 @@ class TestListerMesRecrutements:
         recrutement_archive = RecrutementFactory.create_model(
             offre_archivee=True,
             organisme_id=organisme.id,
-            agent_ids=(agent_id,),
+            agent_id=agent_id,
         )
 
         result = self._lister_recrutements(
@@ -181,16 +181,16 @@ class TestListerMesRecrutementsRbac:
         recrutement_in_org_with_role = RecrutementFactory.create_model(
             offre_archivee=offre_archivee,
             organisme_id=organisme.id,
-            agent_ids=(agent.utilisateur_id,),
-            agent_roles={agent.utilisateur_id: AgentRecrutementRole.CONTRIBUTEUR},
+            agent_id=agent.utilisateur_id,
+            agent_role=AgentRecrutementRole.CONTRIBUTEUR,
         )
         recrutement_in_other_org = RecrutementFactory.create_model(
             offre_archivee=offre_archivee
         )
         recrutement_in_other_org_with_role = RecrutementFactory.create_model(
             offre_archivee=offre_archivee,
-            agent_ids=(agent.utilisateur_id,),
-            agent_roles={agent.utilisateur_id: AgentRecrutementRole.CONTRIBUTEUR},
+            agent_id=agent.utilisateur_id,
+            agent_role=AgentRecrutementRole.CONTRIBUTEUR,
         )
         return (
             recrutement_in_org,

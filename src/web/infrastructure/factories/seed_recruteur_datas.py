@@ -17,7 +17,10 @@ from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeAgentModel,
     OrganismeModel,
 )
-from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
+from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
+    RecrutementModel,
+)
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.users.models import (
@@ -300,22 +303,27 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     for i, (offre, responsable_id) in enumerate(
         zip(offres_actives, responsables, strict=True)
     ):
-        agent_roles = {responsable_id: AgentRecrutementRole.RESPONSABLE}
-        agent_ids: tuple[UUID, ...] = (responsable_id,)
+        extra_agent: tuple[UUID, AgentRecrutementRole] | None = None
         if i < moitie:
-            agent_roles[paul_id] = AgentRecrutementRole.RECRUTEUR
-            agent_ids = (responsable_id, paul_id)
+            extra_agent = (paul_id, AgentRecrutementRole.RECRUTEUR)
         elif i == moitie:
-            agent_roles[david_id] = AgentRecrutementRole.CONTRIBUTEUR
-            agent_ids = (responsable_id, david_id)
-        recrutements.append(
-            RecrutementFactory.create_model(
-                offre_id=offre.id,
-                organisme_id=_ORGANISME_UUID,
-                agent_ids=agent_ids,
-                agent_roles=agent_roles,
-            )
+            extra_agent = (david_id, AgentRecrutementRole.CONTRIBUTEUR)
+
+        recrutement = RecrutementFactory.create_model(
+            offre_id=offre.id,
+            organisme_id=_ORGANISME_UUID,
+            agent_id=responsable_id,
+            agent_role=AgentRecrutementRole.RESPONSABLE,
         )
+        if extra_agent is not None:
+            extra_agent_id, extra_agent_role = extra_agent
+            RecrutementAgentModel(
+                id=uuid4(),
+                recrutement=recrutement,
+                agent_id=str(extra_agent_id),
+                role=extra_agent_role.value,
+            ).save()
+        recrutements.append(recrutement)
 
     # ------------------------------------------------------------------ #
     # 8. Candidatures                                                      #

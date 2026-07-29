@@ -19,8 +19,8 @@ def test_get_role_returns_assigned_role(db, repository):
     agent = AgentFactory.create_model()
     agent_id = UUID(agent.utilisateur_id)
     recrutement = RecrutementFactory.create_model(
-        agent_ids=(agent_id,),
-        agent_roles={agent_id: AgentRecrutementRole.RECRUTEUR},
+        agent_id=agent_id,
+        agent_role=AgentRecrutementRole.RECRUTEUR,
     )
 
     role = repository.get_role(recrutement_id=recrutement.offre_id, agent_id=agent_id)

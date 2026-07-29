@@ -99,8 +99,8 @@ class RecrutementFactory:
         organisme_id: UUID | None = None,
         etapes: tuple[EtapeRecrutement, ...] | None = None,
         ordre_etapes: list[str] | None = None,
-        agent_ids: tuple[UUID, ...] | None = None,
-        agent_roles: dict[UUID, AgentRecrutementRole] | None = None,
+        agent_id: UUID | None = None,
+        agent_role: AgentRecrutementRole | None = None,
     ) -> RecrutementModel:
         if offre_id is None:
             archived_at = datetime(2024, 1, 1) if offre_archivee else None
@@ -127,16 +127,14 @@ class RecrutementFactory:
             )
             model.save()
 
-        if agent_ids is None:
-            agent_ids = (UUID(AgentFactory.create_model().utilisateur_id),)
+        if agent_id is None:
+            agent_id = UUID(AgentFactory.create_model().utilisateur_id)
 
-        for agent_id in agent_ids:
-            role = (agent_roles or {}).get(agent_id, AgentRecrutementRole.CONTRIBUTEUR)
-            RecrutementAgentModel(
-                id=uuid4(),
-                recrutement=recrutement,
-                agent_id=str(agent_id),
-                role=role.value,
-            ).save()
+        RecrutementAgentModel(
+            id=uuid4(),
+            recrutement=recrutement,
+            agent_id=str(agent_id),
+            role=(agent_role or AgentRecrutementRole.CONTRIBUTEUR).value,
+        ).save()
 
         return recrutement
