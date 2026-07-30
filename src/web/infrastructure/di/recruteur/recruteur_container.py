@@ -175,7 +175,7 @@ class RecruteurContainer(containers.DeclarativeContainer):
 
     changer_etape_candidatures_usecase = providers.Factory(
         ChangerEtapeCandidaturesUsecase,
-        organisme_repository=postgres_organisme_repository,
+        organisme_recruteur_repository=postgres_organisme_recruteur_repository,
     )
 
     get_recrutement_etapes_usecase = providers.Factory(
