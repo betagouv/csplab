@@ -1061,7 +1061,7 @@ export interface operations {
                 /** @description Numéro de la page. */
                 page?: number;
                 /** @description Nombre d'éléments par page. */
-                size?: number;
+                taille?: number;
             };
             header?: never;
             path: {
@@ -1127,7 +1127,7 @@ export interface operations {
                 /** @description Numéro de la page. */
                 page?: number;
                 /** @description Nombre d'éléments par page. */
-                size?: number;
+                taille?: number;
             };
             header?: never;
             path: {
@@ -1483,7 +1483,7 @@ export interface operations {
                 /** @description Numéro de la page. */
                 page?: number;
                 /** @description Nombre d'éléments par page. */
-                size?: number;
+                taille?: number;
             };
             header?: never;
             path: {

@@ -9,6 +9,7 @@ from drf_spectacular.utils import (
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from rest_framework import serializers, status
 from rest_framework import serializers as drf_serializers
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -58,6 +59,7 @@ from presentation.ingestion.serializers import (
     description=LIST_OFFERS_DESCRIPTION,
     examples=LIST_OFFERS_EXAMPLES,
     tags=["offres"],
+    parameters=[ListOffersFiltersSerializer],
     responses={
         200: ListOffersResponseSerializer(many=True),
         400: GenericErrorSerializer,
@@ -82,7 +84,9 @@ class OffersListView(APIView):
         try:
             filters = ListOffersFiltersSerializer(data=self.request.query_params)
             filters.is_valid(raise_exception=True)
-            input_data = GetFilteredOffersInput(**filters.validated_data)
+            input_data = GetFilteredOffersInput(
+                external_id_contains=None, **filters.validated_data
+            )
 
             result = self.usecase.execute(input_data)
 
@@ -90,6 +94,12 @@ class OffersListView(APIView):
             items = paginator.paginate(result, request)
             return paginator.get_paginated_response(
                 ListOffersResponseSerializer(items, many=True).data
+            )
+        except DRFValidationError as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(
+                serializer.data,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
             self.logger.error("Unexpected error in OffersListView: %s", str(e))

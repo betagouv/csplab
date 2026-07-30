@@ -51,7 +51,9 @@ class TestRecrutementsActifsView:
             RecrutementFactory.create_actif_read_model() for _ in range(2)
         ]
 
-        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL + "?size=2&page=2")
+        response = authenticated_client.get(
+            RECRUTEMENTS_ACTIFS_URL + "?taille=2&page=2"
+        )
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data["results"]) == 2  # noqa
@@ -156,7 +158,7 @@ class TestRecrutementsArchivesView:
         ]
 
         response = authenticated_client.get(
-            RECRUTEMENTS_ARCHIVES_URL + "?size=2&page=1"
+            RECRUTEMENTS_ARCHIVES_URL + "?taille=2&page=1"
         )
         assert response.status_code == status.HTTP_200_OK
         data = response.json()

@@ -119,7 +119,7 @@ def test_pagination_page_arg(mock_metiers_container, authenticated_client):
     assert parse_qs(parsed_previous.query) == {
         "page": ["1"],
         "dummy": ["arg"],
-        "size": ["2"],
+        "taille": ["2"],
     }
 
     parsed_next = urlparse(data["next"])
@@ -127,7 +127,7 @@ def test_pagination_page_arg(mock_metiers_container, authenticated_client):
     assert parse_qs(parsed_next.query) == {
         "page": ["3"],
         "dummy": ["arg"],
-        "size": ["2"],
+        "taille": ["2"],
     }
 
 
@@ -151,7 +151,7 @@ def test_pagination_out_of_bond(mock_metiers_container, authenticated_client):
     assert parsed.path == URL
     assert parse_qs(parsed.query) == {
         "page": ["2"],
-        "size": ["2"],
+        "taille": ["2"],
     }
 
     assert data["next"] is None

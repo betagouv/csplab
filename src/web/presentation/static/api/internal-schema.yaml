@@ -433,12 +433,16 @@ paths:
         description: Numéro de la page.
         schema:
           type: integer
-      - name: size
+          default: 1
+          minimum: 1
+      - name: taille
         required: false
         in: query
         description: Nombre d'éléments par page.
         schema:
           type: integer
+          default: 100
+          minimum: 1
       tags:
       - recruteur
       security:
@@ -499,12 +503,16 @@ paths:
         description: Numéro de la page.
         schema:
           type: integer
-      - name: size
+          default: 1
+          minimum: 1
+      - name: taille
         required: false
         in: query
         description: Nombre d'éléments par page.
         schema:
           type: integer
+          default: 100
+          minimum: 1
       tags:
       - recruteur
       security:
@@ -869,18 +877,22 @@ paths:
         description: Numéro de la page.
         schema:
           type: integer
+          default: 1
+          minimum: 1
       - in: path
         name: recrutement_uuid
         schema:
           type: string
           format: uuid
         required: true
-      - name: size
+      - name: taille
         required: false
         in: query
         description: Nombre d'éléments par page.
         schema:
           type: integer
+          default: 100
+          minimum: 1
       tags:
       - recruteur
       security:

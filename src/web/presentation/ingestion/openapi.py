@@ -264,11 +264,17 @@ LIST_OFFERS_DESCRIPTION = (
     """
 # API de consultation des offres d'emploi de la Fonction Publique
 
-Cette API retourne la liste des offres correspondant à une recherche selon les 2
+Cette API retourne la liste des offres correspondant à une recherche selon les
 critères suivants :
 
-- Candidature active / archivée
-- Référence externe de la candidature contient une chaîne de caractère spécifique
+- `actif` — candidature active / archivée
+- `categorie` — une ou plusieurs catégories (ex. `A,B`)
+- `versant` — un ou plusieurs versants (ex. `FPE,FPT`)
+- `type_contrat` — un ou plusieurs types de contrat (ex. `TITULAIRE_CONTRACTUEL`)
+- `niveau_experience` — un ou plusieurs niveaux d'expérience (ex. `DEBUTANT,EXPERT`)
+
+Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
+virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.
 
 """
     + _API_COMMON_FOOTER

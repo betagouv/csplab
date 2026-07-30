@@ -294,7 +294,7 @@ class TestRecrutementListeView:
             _candidature_liste_read_models(5)
         )
 
-        response = authenticated_client.get(RECRUTEMENT_LISTE_URL + "?page=2&size=5")
+        response = authenticated_client.get(RECRUTEMENT_LISTE_URL + "?page=2&taille=5")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data["results"]) == 5  # noqa
@@ -302,7 +302,7 @@ class TestRecrutementListeView:
         assert data["previous"] is not None
 
     def test_no_next_on_last_page(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_LISTE_URL + "?size=20").json()
+        data = authenticated_client.get(RECRUTEMENT_LISTE_URL + "?taille=20").json()
         assert data["next"] is None
         assert data["previous"] is None
 

@@ -5,7 +5,10 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from django.urls import reverse
 from faker import Faker
+from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
@@ -117,21 +120,135 @@ def test_call_without_arg(mock_offers_container, authenticated_client):
             assert result["archived_at"] is None
 
 
-@pytest.mark.parametrize("active,external_id_contains", [(True, None), (False, "123")])
-def test_call_with_args(
-    mock_offers_container, authenticated_client, active, external_id_contains
+@pytest.mark.parametrize("active", [True, False])
+def test_call_with_args(mock_offers_container, authenticated_client, active):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"actif": active})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(active=active, external_id_contains=None)
+    )
+
+
+def test_external_id_contains_is_not_accepted(
+    mock_offers_container, authenticated_client
 ):
     _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
 
-    params = {"active": active}
-    if external_id_contains is not None:
-        params["external_id_contains"] = external_id_contains
-
-    authenticated_client.get(URL, params)
+    authenticated_client.get(URL, {"external_id_contains": "123"})
 
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
-        GetFilteredOffersInput(active=active, external_id_contains=external_id_contains)
+        GetFilteredOffersInput(active=True, external_id_contains=None)
     )
+
+
+def test_category_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"categorie": "A,B"})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            category=[Category.A, Category.B],
+        )
+    )
+
+
+def test_invalid_category_returns_400(mock_offers_container, authenticated_client):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"categorie": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+    assert "A, APLUS, B, C" in response.json()["error"]
+
+
+def test_verse_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"versant": "FPE,FPT"})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            verse=[Verse.FPE, Verse.FPT],
+        )
+    )
+
+
+def test_invalid_verse_returns_400(mock_offers_container, authenticated_client):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"versant": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+    assert "FPE, FPH, FPT" in response.json()["error"]
+
+
+def test_contract_type_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"type_contrat": "CONTRACTUELS,TERRITORIAL"})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            contract_type=[ContractType.CONTRACTUELS, ContractType.TERRITORIAL],
+        )
+    )
+
+
+def test_invalid_contract_type_returns_400(mock_offers_container, authenticated_client):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"type_contrat": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+    assert (
+        "CONTRACTUELS, TERRITORIAL, TITULAIRE_CONTRACTUEL" in response.json()["error"]
+    )
+
+
+def test_experience_level_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"niveau_experience": "DEBUTANT,EXPERT"})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            experience_level=[ExperienceLevel.DEBUTANT, ExperienceLevel.EXPERT],
+        )
+    )
+
+
+def test_invalid_experience_level_returns_400(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"niveau_experience": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+    assert "CONFIRME, DEBUTANT, EXPERT" in response.json()["error"]
 
 
 def test_returns_error_500(mock_offers_container, authenticated_client):
@@ -152,7 +269,7 @@ def test_pagination_page_arg(mock_offers_container, authenticated_client):
         mock_offers_container, num_offers=len(offers), offers_slice=offers[2:4]
     )
 
-    response = authenticated_client.get(URL, {"page": 2, "dummy": "arg", "active": 1})
+    response = authenticated_client.get(URL, {"page": 2, "dummy": "arg", "actif": 1})
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -165,8 +282,8 @@ def test_pagination_page_arg(mock_offers_container, authenticated_client):
     assert parse_qs(parsed_previous.query) == {
         "page": ["1"],
         "dummy": ["arg"],
-        "active": ["1"],
-        "size": ["2"],
+        "actif": ["1"],
+        "taille": ["2"],
     }
 
     parsed_next = urlparse(data["next"])
@@ -174,8 +291,8 @@ def test_pagination_page_arg(mock_offers_container, authenticated_client):
     assert parse_qs(parsed_next.query) == {
         "page": ["3"],
         "dummy": ["arg"],
-        "active": ["1"],
-        "size": ["2"],
+        "actif": ["1"],
+        "taille": ["2"],
     }
 
 
@@ -197,7 +314,7 @@ def test_pagination_out_of_bond(mock_offers_container, authenticated_client):
     assert parsed.path == URL
     assert parse_qs(parsed.query) == {
         "page": ["2"],
-        "size": ["2"],
+        "taille": ["2"],
     }
 
     assert data["next"] is None

@@ -35,6 +35,21 @@ def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset()):
     return [enum_cls[part] for part in requested]
 
 
+class _CommaSeparatedEnumField(serializers.MultipleChoiceField):
+    def __init__(self, enum_cls, error_label, excluded=frozenset(), **kwargs):
+        self.enum_cls = enum_cls
+        self.error_label = error_label
+        self.excluded = excluded
+        choices = [(e.name, e.value) for e in enum_cls if e not in excluded]
+        kwargs.setdefault("default", None)
+        super().__init__(choices=choices, **kwargs)
+
+    def to_internal_value(self, data):
+        if isinstance(data, (list, tuple)):
+            data = ",".join(data)
+        return _parse_enum_list(data, self.enum_cls, self.error_label, self.excluded)
+
+
 class ValidationErrorSerializer(GenericErrorSerializer):
     row = serializers.IntegerField()
 
@@ -68,8 +83,32 @@ class ListOffersResponseSerializer(serializers.Serializer):
 
 
 class ListOffersFiltersSerializer(serializers.Serializer):
-    active = serializers.BooleanField(default=True)
-    external_id_contains = serializers.CharField(default=None)
+    actif = serializers.BooleanField(default=True, source="active")
+    categorie = _CommaSeparatedEnumField(
+        Category,
+        "catégorie",
+        excluded={Category.HORS_CATEGORIE},
+        help_text="Valeurs séparées par une virgule (ex. `A,B`).",
+        source="category",
+    )
+    versant = _CommaSeparatedEnumField(
+        Verse,
+        "versant",
+        help_text="Valeurs séparées par une virgule (ex. `FPE,FPT`).",
+        source="verse",
+    )
+    type_contrat = _CommaSeparatedEnumField(
+        ContractType,
+        "type de contrat",
+        help_text="Valeurs séparées par une virgule (ex. `TITULAIRE_CONTRACTUEL`).",
+        source="contract_type",
+    )
+    niveau_experience = _CommaSeparatedEnumField(
+        ExperienceLevel,
+        "niveau d'expérience",
+        help_text="Valeurs séparées par une virgule (ex. `DEBUTANT,EXPERT`).",
+        source="experience_level",
+    )
 
 
 class OfferSummariesQuerySerializer(serializers.Serializer):
@@ -77,28 +116,16 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
     count = serializers.IntegerField(
         required=False, min_value=1, max_value=1_000, default=100
     )
-    category = serializers.CharField(required=False, allow_blank=True, default=None)
-    verse = serializers.CharField(required=False, allow_blank=True, default=None)
-    contractType = serializers.CharField(
-        required=False, allow_blank=True, default=None, source="contract_type"
+    category = _CommaSeparatedEnumField(
+        Category, "catégorie", excluded={Category.HORS_CATEGORIE}
     )
-    experienceLevel = serializers.CharField(
-        required=False, allow_blank=True, default=None, source="experience_level"
+    verse = _CommaSeparatedEnumField(Verse, "versant")
+    contractType = _CommaSeparatedEnumField(
+        ContractType, "type de contrat", source="contract_type"
     )
-
-    def validate_category(self, value):
-        return _parse_enum_list(
-            value, Category, "catégorie", excluded={Category.HORS_CATEGORIE}
-        )
-
-    def validate_verse(self, value):
-        return _parse_enum_list(value, Verse, "versant")
-
-    def validate_contractType(self, value):
-        return _parse_enum_list(value, ContractType, "type de contrat")
-
-    def validate_experienceLevel(self, value):
-        return _parse_enum_list(value, ExperienceLevel, "niveau d'expérience")
+    experienceLevel = _CommaSeparatedEnumField(
+        ExperienceLevel, "niveau d'expérience", source="experience_level"
+    )
 
 
 class LocalisationInputSerializer(LocalisationSerializer):
