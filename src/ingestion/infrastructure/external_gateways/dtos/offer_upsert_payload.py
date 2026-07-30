@@ -5,6 +5,7 @@ from typing import Optional
 
 from pydantic import BaseModel, HttpUrl, model_serializer
 from referentiel.value_objects.language import Language
+from referentiel.value_objects.offer_conditions import WorkingTime
 
 from domain.entities.offer import Offer
 
@@ -71,6 +72,16 @@ class CriteresPayload(BaseModel):
         return {k: v for k, v in self.__dict__.items() if v is not None and v != []}
 
 
+class ConditionsPayload(BaseModel):
+    temps_travail: str
+    lieu_de_travail: str
+    management: Optional[str] = None
+
+    @model_serializer
+    def serialize(self) -> dict:
+        return {k: v for k, v in self.__dict__.items() if v is not None}
+
+
 class OfferUpsertPayload(BaseModel):
     identification: IdentificationPayload
     titre: str
@@ -86,7 +97,7 @@ class OfferUpsertPayload(BaseModel):
     description: DescriptionPayload
     localisation: Optional[list[LocalisationItemPayload]] = None
     criteres: Optional[CriteresPayload] = None
-    conditions: None = None
+    conditions: Optional[ConditionsPayload] = None
     contacts: None = None
     publication: PublicationPayload
 
@@ -156,7 +167,11 @@ class OfferUpsertPayload(BaseModel):
             or offer.specialisations
             or offer.languages
             else None,
-            conditions=None,
+            conditions=ConditionsPayload(
+                temps_travail=WorkingTime.NON_DEFINI.name,
+                lieu_de_travail=offer.working_place.name,
+                management=offer.management.name if offer.management else None,
+            ),
             contacts=None,
             publication=PublicationPayload(
                 debut_publication=offer.publication_date,
