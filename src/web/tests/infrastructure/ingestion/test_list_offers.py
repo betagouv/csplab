@@ -250,6 +250,66 @@ def test_list_offers_filtered_by_experience_level(
     }
 
 
+@pytest.fixture(name="offers_by_multiple_criteria")
+def offers_by_multiple_criteria_fixture(db):
+    return {
+        "match": OfferFactory.create_model(
+            external_id="test-match",
+            category=Category.A,
+            verse=Verse.FPE,
+            contract_type=ContractType.CONTRACTUELS,
+            criteria={"experience": ExperienceLevel.DEBUTANT.name},
+        ),
+        "match_other_values": OfferFactory.create_model(
+            external_id="test-match-other-values",
+            category=Category.B,
+            verse=Verse.FPT,
+            contract_type=ContractType.CONTRACTUELS,
+            criteria={"experience": ExperienceLevel.EXPERT.name},
+        ),
+        "wrong_category": OfferFactory.create_model(
+            external_id="test-wrong-category",
+            category=Category.C,
+            verse=Verse.FPE,
+            contract_type=ContractType.CONTRACTUELS,
+            criteria={"experience": ExperienceLevel.DEBUTANT.name},
+        ),
+        "wrong_contract_type": OfferFactory.create_model(
+            external_id="test-wrong-contract-type",
+            category=Category.A,
+            verse=Verse.FPE,
+            contract_type=ContractType.TERRITORIAL,
+            criteria={"experience": ExperienceLevel.DEBUTANT.name},
+        ),
+        "wrong_experience_level": OfferFactory.create_model(
+            external_id="test-wrong-experience-level",
+            category=Category.A,
+            verse=Verse.FPE,
+            contract_type=ContractType.CONTRACTUELS,
+            criteria={"experience": ExperienceLevel.CONFIRME.name},
+        ),
+    }
+
+
+def test_list_offers_filtered_by_multiple_criteria(
+    ingestion_container, offers_by_multiple_criteria
+):
+    input_data = GetFilteredOffersInput(
+        active=True,
+        external_id_contains=None,
+        category=[Category.A, Category.B],
+        verse=[Verse.FPE, Verse.FPT],
+        contract_type=[ContractType.CONTRACTUELS],
+        experience_level=[ExperienceLevel.DEBUTANT, ExperienceLevel.EXPERT],
+    )
+    result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
+
+    assert {offer.external_id for offer in result._qs} == {
+        offers_by_multiple_criteria[key].external_id
+        for key in ["match", "match_other_values"]
+    }
+
+
 def test_get_filtered_raises_error(db, ingestion_container):
     shared_container = ingestion_container.shared_container()
     offers_repo = shared_container.offers_repository()
