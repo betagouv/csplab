@@ -1,5 +1,6 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -30,7 +31,14 @@ class OfferSummariesView(APIView):
             query.is_valid(raise_exception=True)
 
             page = self.usecase.execute(
-                GetFilteredOffersInput(active=True, external_id_contains=None)
+                GetFilteredOffersInput(
+                    active=True,
+                    external_id_contains=None,
+                    category=query.validated_data.get("category"),
+                    verse=query.validated_data.get("verse"),
+                    contract_type=query.validated_data.get("contract_type"),
+                    experience_level=query.validated_data.get("experience_level"),
+                )
             )
 
             paginator = TalentsoftPagination()
@@ -38,6 +46,12 @@ class OfferSummariesView(APIView):
 
             return paginator.get_paginated_response(
                 [self.mapper.to_dict(offer) for offer in offers]
+            )
+        except DRFValidationError as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(
+                serializer.data,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
             self.logger.error("Unexpected error in OfferSummariesView: %s", str(e))

@@ -18,6 +18,23 @@ from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
 
 
+def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset()):
+    if not value:
+        return None
+
+    allowed = {e.name for e in enum_cls if e not in excluded}
+    requested = [part.strip() for part in value.split(",") if part.strip()]
+    invalid = [part for part in requested if part not in allowed]
+    if invalid:
+        raise serializers.ValidationError(
+            "Valeurs de {} invalides : {}. Valeurs autorisées : {}.".format(
+                error_label, ", ".join(invalid), ", ".join(sorted(allowed))
+            )
+        )
+
+    return [enum_cls[part] for part in requested]
+
+
 class ValidationErrorSerializer(GenericErrorSerializer):
     row = serializers.IntegerField()
 
@@ -60,6 +77,28 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
     count = serializers.IntegerField(
         required=False, min_value=1, max_value=1_000, default=100
     )
+    category = serializers.CharField(required=False, allow_blank=True, default=None)
+    verse = serializers.CharField(required=False, allow_blank=True, default=None)
+    contractType = serializers.CharField(
+        required=False, allow_blank=True, default=None, source="contract_type"
+    )
+    experienceLevel = serializers.CharField(
+        required=False, allow_blank=True, default=None, source="experience_level"
+    )
+
+    def validate_category(self, value):
+        return _parse_enum_list(
+            value, Category, "catégorie", excluded={Category.HORS_CATEGORIE}
+        )
+
+    def validate_verse(self, value):
+        return _parse_enum_list(value, Verse, "versant")
+
+    def validate_contractType(self, value):
+        return _parse_enum_list(value, ContractType, "type de contrat")
+
+    def validate_experienceLevel(self, value):
+        return _parse_enum_list(value, ExperienceLevel, "niveau d'expérience")
 
 
 class LocalisationInputSerializer(LocalisationSerializer):

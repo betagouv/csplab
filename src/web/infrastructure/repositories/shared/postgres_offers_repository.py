@@ -10,6 +10,10 @@ from django.utils import timezone
 from referentiel.entities.offer import Offer
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from referentiel.types import IUpsertResult
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.verse import Verse
 
 from domain.ingestion.repositories.ingestion_offers_repository_interface import (
     IIngestionOffersRepository,
@@ -149,12 +153,30 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         return [self.mapper.to_domain(model) for model in offer_models]
 
     def get_filtered(
-        self, active: bool, external_id_contains: str | None
+        self,
+        active: bool,
+        external_id_contains: str | None,
+        category: List[Category] | None = None,
+        verse: List[Verse] | None = None,
+        contract_type: List[ContractType] | None = None,
+        experience_level: List[ExperienceLevel] | None = None,
     ) -> IPage[Offer]:
         qs = OfferModel.objects.filter(archived_at__isnull=active)
 
         if external_id_contains:
             qs = qs.filter(external_id__contains=external_id_contains)
+
+        if category:
+            qs = qs.filter(category__in=[c.value for c in category])
+
+        if verse:
+            qs = qs.filter(verse__in=[v.value for v in verse])
+
+        if contract_type:
+            qs = qs.filter(contract_type__in=[c.value for c in contract_type])
+
+        if experience_level:
+            qs = qs.filter(criteria__experience__in=[e.name for e in experience_level])
 
         return QuerySetPage(qs.order_by("-updated_at"), self.mapper.to_domain)
 
