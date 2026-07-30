@@ -525,7 +525,7 @@ def get_organisme_recruteur_usecase():
         IOrganismeRecruteurRepository, create_interface_aware_mock(IOrganismeRepository)
     )
     return GetOrganismeRecruteurUsecase(
-        organisme_repository=organisme_repository,
+        organisme_recruteur_repository=organisme_recruteur_repository,
         organisme_permission_service=MagicMock(spec=OrganismePermissionService),
     )
 
@@ -537,7 +537,7 @@ def initialize_organisme_steps_usecase():
         create_interface_aware_mock(IOrganismeRecruteurRepository),
     )
     return InitializeOrganismeStepsUsecase(
-        organisme_repository=repository,
+        organisme_recruteur_repository=repository,
         organisme_permission_service=MagicMock(spec=OrganismePermissionService),
     )
 

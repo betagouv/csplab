@@ -25,10 +25,10 @@ class GetOrganismeRecruteurUsecase(
 ):
     def __init__(
         self,
-        organisme_repository: IOrganismeRecruteurRepository,
+        organisme_recruteur_repository: IOrganismeRecruteurRepository,
         organisme_permission_service: OrganismePermissionService,
     ):
-        self.organisme_repository = organisme_repository
+        self.organisme_recruteur_repository = organisme_recruteur_repository
         self.organisme_permission_service = organisme_permission_service
 
     def execute(self, command: GetOrganismeRecruteurQuery) -> OrganismeRecruteur:
@@ -38,4 +38,4 @@ class GetOrganismeRecruteurUsecase(
             agent_id=command.utilisateur_id,
             est_staff=command.est_staff,
         )
-        return self.organisme_repository.get_by_id(command.organisme_id)
+        return self.organisme_recruteur_repository.get_by_id(command.organisme_id)

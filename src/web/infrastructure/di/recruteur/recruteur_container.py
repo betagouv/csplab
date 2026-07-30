@@ -137,13 +137,13 @@ class RecruteurContainer(containers.DeclarativeContainer):
 
     get_organisme_recruteur_usecase = providers.Factory(
         GetOrganismeRecruteurUsecase,
-        organisme_repository=postgres_organisme_recruteur_repository,
+        organisme_recruteur_repository=postgres_organisme_recruteur_repository,
         organisme_permission_service=organisme_permission_service,
     )
 
     initialize_organisme_steps_usecase = providers.Factory(
         InitializeOrganismeStepsUsecase,
-        organisme_repository=postgres_organisme_recruteur_repository,
+        organisme_recruteur_repository=postgres_organisme_recruteur_repository,
         organisme_permission_service=organisme_permission_service,
     )
 
