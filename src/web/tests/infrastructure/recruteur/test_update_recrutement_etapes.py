@@ -8,8 +8,8 @@ from application.recruteur.usecases.update_recrutement_etapes import (
     UpdateRecrutementEtapesCommand,
 )
 from config.app_config import AppConfig
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementRefuse,

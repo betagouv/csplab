@@ -6,7 +6,7 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.erreur_recrutement import (
     ConfigurationEtapesInvalide,

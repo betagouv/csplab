@@ -521,11 +521,12 @@ def create_organisme_usecase():
 
 @pytest.fixture
 def get_organisme_recruteur_usecase():
-    organisme_repository = cast(
-        IOrganismeRecruteurRepository, create_interface_aware_mock(IOrganismeRepository)
+    organisme_recruteur_repository = cast(
+        IOrganismeRecruteurRepository,
+        create_interface_aware_mock(IOrganismeRecruteurRepository),
     )
     return GetOrganismeRecruteurUsecase(
-        organisme_repository=organisme_repository,
+        organisme_recruteur_repository=organisme_recruteur_repository,
         organisme_permission_service=MagicMock(spec=OrganismePermissionService),
     )
 
@@ -537,7 +538,7 @@ def initialize_organisme_steps_usecase():
         create_interface_aware_mock(IOrganismeRecruteurRepository),
     )
     return InitializeOrganismeStepsUsecase(
-        organisme_repository=repository,
+        organisme_recruteur_repository=repository,
         organisme_permission_service=MagicMock(spec=OrganismePermissionService),
     )
 
@@ -560,16 +561,11 @@ def calculate_daily_stats_usecase():
 
 @pytest.fixture
 def update_organisme_steps_usecase():
-    organisme_repo = cast(
-        IOrganismeRepository,
-        create_interface_aware_mock(IOrganismeRepository),
-    )
     organisme_recruteur_repo = cast(
         IOrganismeRecruteurRepository,
         create_interface_aware_mock(IOrganismeRecruteurRepository),
     )
     return UpdateOrganismeStepsUsecase(
-        organisme_repository=organisme_repo,
         organisme_recruteur_repository=organisme_recruteur_repo,
         audit_log_writer=MagicMock(spec=AuditLogWriter),
         organisme_permission_service=MagicMock(spec=OrganismePermissionService),

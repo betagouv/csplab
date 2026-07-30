@@ -17,7 +17,7 @@ from application.recruteur.usecases.update_organisme_steps import (
     EtapeData,
     UpdateOrganismeStepsCommand,
 )
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.erreur_recrutement import (
     ConfigurationEtapesInvalide,
     ErreurRecruteur,

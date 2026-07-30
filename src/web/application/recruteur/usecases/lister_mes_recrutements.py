@@ -10,9 +10,6 @@ from application.recruteur.services.recrutement_query_service_interface import (
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
 )
-from domain.identite.repositories.organisme_repository_interface import (
-    IOrganismeRepository,
-)
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
 )
@@ -38,13 +35,11 @@ class ListerMesRecrutementsUsecase(
     def __init__(
         self,
         recrutement_query_service: IRecrutementQueryService,
-        organisme_repository: IOrganismeRepository,
         organisme_permission_service: OrganismePermissionService,
         logger: ILogger,
     ):
         self.logger = logger
         self.recrutement_query_service = recrutement_query_service
-        self.organisme_repository = organisme_repository
         self.organisme_permission_service = organisme_permission_service
 
     def execute(
@@ -60,7 +55,6 @@ class ListerMesRecrutementsUsecase(
             agent_id=query.utilisateur_id,
             est_staff=query.est_staff,
         )
-        self.organisme_repository.get_by_id(query.organisme_id)
 
         agent_id_filtre = (
             None if role == AgentOrganismeRole.RESPONSABLE else query.utilisateur_id

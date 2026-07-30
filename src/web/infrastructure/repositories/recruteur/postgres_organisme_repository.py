@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.entities.organisme_recruteur import OrganismeRecruteur
 from domain.recruteur.repositories.organisme_repository_interface import (
     IOrganismeRecruteurRepository,

@@ -5,7 +5,7 @@ from referentiel.value_objects.verse import Verse
 
 from application.identite.usecases.create_organisme import CreateOrganismeCommand
 from config.app_config import AppConfig
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory

@@ -3,6 +3,7 @@ from uuid import uuid4
 
 import pytest
 
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementInconnu,
@@ -10,6 +11,9 @@ from domain.recruteur.errors.organisme_permission_errors import (
 )
 from domain.recruteur.repositories.organisme_agent_repository_interface import (
     IOrganismeAgentRepository,
+)
+from domain.recruteur.repositories.organisme_repository_interface import (
+    IOrganismeRecruteurRepository,
 )
 from domain.recruteur.repositories.recrutement_agent_repository_interface import (
     IRecrutementAgentRepository,
@@ -41,12 +45,16 @@ STAFF_BYPASS_ACTIONS = [
 def _service(
     role: AgentOrganismeRole | None,
     recrutement_role: AgentRecrutementRole | None = None,
+    organisme_recruteur_repository: Mock | None = None,
 ) -> tuple[OrganismePermissionService, Mock, Mock]:
+    if organisme_recruteur_repository is None:
+        organisme_recruteur_repository = Mock(spec=IOrganismeRecruteurRepository)
     repository = Mock(spec=IOrganismeAgentRepository)
     repository.get_role.return_value = role
     recrutement_repository = Mock(spec=IRecrutementAgentRepository)
     recrutement_repository.get_role.return_value = recrutement_role
     service = OrganismePermissionService(
+        organisme_recruteur_repository=organisme_recruteur_repository,
         organisme_agent_repository=repository,
         recrutement_agent_repository=recrutement_repository,
     )
@@ -290,6 +298,46 @@ class TestRecrutementEtapesRbac:
                 est_staff=True,
                 recrutement_id=uuid4(),
             )
+
+
+def test_raises_when_organisme_not_found() -> None:
+    organisme_id = uuid4()
+    organisme_recruteur_repository = Mock(spec=IOrganismeRecruteurRepository)
+    organisme_recruteur_repository.get_by_id.side_effect = OrganismeNexistePas(
+        str(organisme_id)
+    )
+    service, _, _ = _service(
+        AgentOrganismeRole.RESPONSABLE,
+        organisme_recruteur_repository=organisme_recruteur_repository,
+    )
+
+    with pytest.raises(OrganismeNexistePas):
+        service.est_autorise(
+            action=OrganismeAction.GET_ORGANISME,
+            organisme_id=organisme_id,
+            agent_id=uuid4(),
+            est_staff=False,
+        )
+
+
+def test_organisme_guard_runs_before_staff_bypass_and_role_check() -> None:
+    organisme_id = uuid4()
+    organisme_recruteur_repository = Mock(spec=IOrganismeRecruteurRepository)
+    organisme_recruteur_repository.get_by_id.side_effect = OrganismeNexistePas(
+        str(organisme_id)
+    )
+    service, repository, _ = _service(
+        None, organisme_recruteur_repository=organisme_recruteur_repository
+    )
+
+    with pytest.raises(OrganismeNexistePas):
+        service.est_autorise(
+            action=OrganismeAction.GET_ORGANISME,
+            organisme_id=organisme_id,
+            agent_id=uuid4(),
+            est_staff=True,
+        )
+    repository.get_role.assert_not_called()
 
 
 def test_toute_action_membre_est_classee() -> None:
