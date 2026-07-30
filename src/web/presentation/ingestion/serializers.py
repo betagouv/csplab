@@ -55,6 +55,13 @@ class ListOffersFiltersSerializer(serializers.Serializer):
     external_id_contains = serializers.CharField(default=None)
 
 
+class OfferSummariesQuerySerializer(serializers.Serializer):
+    start = serializers.IntegerField(required=False, min_value=0, default=0)
+    count = serializers.IntegerField(
+        required=False, min_value=1, max_value=1_000, default=100
+    )
+
+
 class LocalisationInputSerializer(LocalisationSerializer):
     def validate(self, data):
         if data.get("pays") == "FRA" and not (

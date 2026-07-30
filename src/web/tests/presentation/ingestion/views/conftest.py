@@ -30,3 +30,9 @@ def mock_sources_container():
 def mock_metiers_container():
     with patch_ingestion_container("metiers") as container:
         yield container
+
+
+@pytest.fixture
+def mock_offer_summaries_container():
+    with patch_ingestion_container("offer_summaries") as container:
+        yield container
