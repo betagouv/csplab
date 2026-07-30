@@ -16,6 +16,7 @@ from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -131,6 +132,22 @@ class OffersCleaner:
             talentsoft_offer.diploma.clientCode if talentsoft_offer.diploma else None
         )
 
+        working_place = self._map_working_place(
+            talentsoft_offer.customFields.offerCustomBlock1.customCodeTable2.clientCode
+            if talentsoft_offer.customFields
+            and talentsoft_offer.customFields.offerCustomBlock1
+            and talentsoft_offer.customFields.offerCustomBlock1.customCodeTable2
+            else None
+        )
+
+        management = self._map_management(
+            talentsoft_offer.customFields.offerCustomBlock1.customCodeTable1.clientCode
+            if talentsoft_offer.customFields
+            and talentsoft_offer.customFields.offerCustomBlock1
+            and talentsoft_offer.customFields.offerCustomBlock1.customCodeTable1
+            else None
+        )
+
         return Offer(
             reference=raw_offer.reference,
             source_id=UUID(cast(str, raw_offer.source_id)),
@@ -157,6 +174,8 @@ class OffersCleaner:
             languages=languages,
             specialisations=specialisations,
             family_code=family_code_value,
+            working_place=working_place,
+            management=management,
         )
 
     def _map_verse(self, verse_str: Optional[str], reference: str) -> Optional[Verse]:
@@ -234,6 +253,30 @@ class OffersCleaner:
             return ContractKind.CDD
 
         return self._CONTRACT_KIND_MAPPING.get(contract_kind_upper)
+
+    _WORKING_PLACE_MAPPING: dict[str, WorkingPlace] = {
+        "reponse_oui": WorkingPlace.TELETRAVAIL,
+        "reponse_non": WorkingPlace.SUR_SITE,
+    }
+
+    def _map_working_place(self, client_code: Optional[str]) -> WorkingPlace:
+        if not client_code:
+            return WorkingPlace.NON_DEFINI
+
+        return self._WORKING_PLACE_MAPPING.get(
+            client_code.lower(), WorkingPlace.NON_DEFINI
+        )
+
+    _MANAGEMENT_MAPPING: dict[str, Management] = {
+        "reponse_non": Management.SANS,
+        "reponse_oui": Management.AVEC,
+    }
+
+    def _map_management(self, client_code: Optional[str]) -> Optional[Management]:
+        if not client_code:
+            return None
+
+        return self._MANAGEMENT_MAPPING.get(client_code.lower())
 
     def _extract_coordinates(
         self, talentsoft_offer: TalentsoftDetailOffer

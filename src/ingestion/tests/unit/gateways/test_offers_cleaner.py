@@ -7,11 +7,13 @@ from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
+from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftLanguage,
+    TalentsoftOfferCustomBlock,
     TalentsoftOfferCustomFields,
 )
 from infrastructure.gateways.offers_cleaner import OffersCleaner
@@ -352,6 +354,62 @@ def test_clean_maps_contract_kind(cleaner, contract_kind_code, expected):
     offer = cleaner.clean(raw_offer)
 
     assert offer.contract_kind == expected
+
+
+@pytest.mark.parametrize(
+    "working_place_code, expected",
+    [
+        ("reponse_oui", WorkingPlace.TELETRAVAIL),
+        ("reponse_non", WorkingPlace.SUR_SITE),
+        ("UNKNOWN_CODE", WorkingPlace.NON_DEFINI),
+        (None, WorkingPlace.NON_DEFINI),
+    ],
+)
+def test_clean_maps_working_place(cleaner, working_place_code, expected):
+    offer_dto_kwargs = {
+        "customFields": TalentsoftCustomFieldsFactory.build(
+            offerCustomBlock1=TalentsoftOfferCustomBlock(
+                customCodeTable2=TalentsoftCustomCodeTableFactory.build(
+                    clientCode=working_place_code
+                )
+                if working_place_code
+                else None
+            )
+        )
+    }
+    raw_offer = _make_raw_offer(**offer_dto_kwargs)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.working_place == expected
+
+
+@pytest.mark.parametrize(
+    "management_code, expected",
+    [
+        ("reponse_oui", Management.AVEC),
+        ("reponse_non", Management.SANS),
+        ("UNKNOWN_CODE", None),
+        (None, None),
+    ],
+)
+def test_clean_maps_management(cleaner, management_code, expected):
+    offer_dto_kwargs = {
+        "customFields": TalentsoftCustomFieldsFactory.build(
+            offerCustomBlock1=TalentsoftOfferCustomBlock(
+                customCodeTable1=TalentsoftCustomCodeTableFactory.build(
+                    clientCode=management_code
+                )
+                if management_code
+                else None
+            )
+        )
+    }
+    raw_offer = _make_raw_offer(**offer_dto_kwargs)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.management == expected
 
 
 def test_clean_returns_none_url_on_invalid_offer_url(cleaner):
