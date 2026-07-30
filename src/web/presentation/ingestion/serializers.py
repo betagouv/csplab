@@ -173,7 +173,7 @@ class ProfessionInputSerializer(serializers.Serializer):
 
 
 class DescriptionInputSerializer(serializers.Serializer):
-    mission = serializers.CharField(max_length=10000)
+    mission = serializers.CharField(max_length=10000, allow_blank=True)
     profil = serializers.CharField(max_length=10000, allow_blank=True)
     employeur = serializers.CharField(max_length=3000)
     complements = serializers.CharField(max_length=5000, allow_blank=True)
