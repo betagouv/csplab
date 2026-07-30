@@ -50,9 +50,6 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 from infrastructure.repositories.identite.postgres_agent_repository import (
     PostgresAgentRepository,
 )
-from infrastructure.repositories.identite.postgres_organisme_repository import (
-    PostgresOrganismeRepository,
-)
 from infrastructure.repositories.recruteur.postgres_note_query_service import (
     PostgresNoteQueryService,
 )
