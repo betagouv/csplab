@@ -58,7 +58,7 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
     categories=["A", "B"],
     forme_contrat=["CDD"],
     vacance_poste="OUI",
-    description={"profil": ""},
+    description={"profil": "", "mission": ""},
     localisation=[
         {
             "zone_geographique": "EU",
