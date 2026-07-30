@@ -8,7 +8,7 @@ from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesCommand,
     ChangerEtapeCandidaturesUsecase,
 )
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 
 
 @pytest.fixture(name="organisme_repository")

@@ -17,7 +17,7 @@ from application.recruteur.usecases.get_recrutement_kanban import (
 from application.recruteur.usecases.get_recrutement_liste import (
     GetRecrutementListeQuery,
 )
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import (
     OrganismePermissionError,
 )

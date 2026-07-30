@@ -1,7 +1,7 @@
 from uuid import UUID
 
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.entities.organisme import Organisme
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository as IOrganismeIdentiteRepository,
 )

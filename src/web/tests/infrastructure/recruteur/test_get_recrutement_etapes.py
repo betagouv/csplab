@@ -7,8 +7,8 @@ from application.recruteur.usecases.get_recrutement_etapes import (
     GetRecrutementEtapesQuery,
 )
 from config.app_config import AppConfig
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementRefuse,

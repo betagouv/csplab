@@ -9,8 +9,8 @@ from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesCommand,
 )
 from config.app_config import AppConfig
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory

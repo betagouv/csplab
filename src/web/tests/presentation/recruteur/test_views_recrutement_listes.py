@@ -10,7 +10,7 @@ from application.recruteur.dtos.recrutement_read_models import (
     AgentDto,
     CandidaturesCompteurDto,
 )
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 
