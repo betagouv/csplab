@@ -1,16 +1,29 @@
 import pytest
 
+from config.app_config import AppConfig
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.factories.identite.agent_factory import AgentFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.recruteur.postgres_organisme_agent_repository import (
     PostgresOrganismeAgentRepository,
 )
 
 
+@pytest.fixture(name="recruteur_integration_container")
+def recruteur_integration_container_fixture(db) -> RecruteurContainer:
+    container = RecruteurContainer()
+    container.app_config.override(AppConfig.from_django_settings())
+    container.logger_service.override(LoggerService())
+    return container
+
+
 @pytest.fixture(name="repository")
-def repository_fixture():
-    return PostgresOrganismeAgentRepository()
+def repository_fixture(
+    recruteur_integration_container,
+) -> PostgresOrganismeAgentRepository:
+    return recruteur_integration_container.postgres_organisme_agent_repository()
 
 
 def test_get_role_returns_responsable(db, repository):
