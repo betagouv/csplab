@@ -90,3 +90,67 @@ class WebPagination(BasePagination):
         params["size"] = [self.page_size]
         new_query = urlencode({k: v[0] for k, v in params.items()})
         return urlunparse(parsed._replace(query=new_query))
+
+
+class TalentsoftPagination(BasePagination):
+    start_default = 0
+    count_default = 100
+
+    def paginate(self, page: IPage, request) -> list[Any]:
+        self.start = int(request.query_params.get("start", self.start_default))
+        self.count = int(request.query_params.get("count", self.count_default))
+        self.total = page.count()
+        self.results = list(page.slice(self.start, self.count))
+
+        return self.results
+
+    def get_paginated_response(self, data: list[Any]) -> Response:
+        return Response(
+            {
+                "data": data,
+                "_pagination": {
+                    "start": self.start,
+                    "count": len(self.results),
+                    "total": self.total,
+                    "resultsPerPage": self.count,
+                    "hasMore": self.start + len(self.results) < self.total,
+                },
+            }
+        )
+
+    def get_schema_operation_parameters(self, view) -> list[dict]:
+        return [
+            {
+                "name": "start",
+                "required": False,
+                "in": "query",
+                "description": "Index de début de la pagination.",
+                "schema": {"type": "integer"},
+            },
+            {
+                "name": "count",
+                "required": False,
+                "in": "query",
+                "description": "Nombre d'éléments par page.",
+                "schema": {"type": "integer"},
+            },
+        ]
+
+    def get_paginated_response_schema(self, schema: dict) -> dict:
+        return {
+            "type": "object",
+            "required": ["data", "_pagination"],
+            "properties": {
+                "data": schema,
+                "_pagination": {
+                    "type": "object",
+                    "properties": {
+                        "start": {"type": "integer", "example": 0},
+                        "count": {"type": "integer", "example": 1},
+                        "total": {"type": "integer", "example": 1},
+                        "resultsPerPage": {"type": "integer", "example": 100},
+                        "hasMore": {"type": "boolean", "example": False},
+                    },
+                },
+            },
+        }

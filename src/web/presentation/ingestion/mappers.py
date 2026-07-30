@@ -158,7 +158,16 @@ class OfferSummaryOutputMapper:
 
     @staticmethod
     def _isoformat(value: Optional[datetime]) -> Optional[str]:
-        return value.isoformat() if value else None
+        if not value:
+            return None
+
+        naive_value = value.replace(tzinfo=None)
+        if not naive_value.microsecond:
+            return naive_value.isoformat()
+
+        date_part, _, frac = naive_value.isoformat().partition(".")
+        centiseconds = round(int(frac) / 10_000)
+        return f"{date_part}.{centiseconds:02d}"
 
     @staticmethod
     def _coded_object(client_code: str, label: str, type_name: str) -> dict:

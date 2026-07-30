@@ -30,16 +30,9 @@ def test_unauthenticated_access(api_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_invalid_api_key_returns_401(api_client):
-    api_client.credentials(HTTP_AUTHORIZATION="Api-Key wrong-key")
-    response = api_client.get(URL)
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-
-def test_api_key_authentication_access(mock_offer_summaries_container, api_key_client):
-    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+def test_valid_api_key_no_longer_grants_access(api_key_client):
     response = api_key_client.get(URL)
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_post_not_allowed(authenticated_client):
@@ -107,7 +100,7 @@ def test_call_without_arg(mock_offer_summaries_container, authenticated_client):
     assert result["contractType"]["label"] == offer.contract_type.value
     assert result["offerFamilyCategory"]["clientCode"] == offer.category.name
     assert result["offerFamilyCategory"]["label"] == offer.category.value
-    assert result["startPublicationDate"] == "2024-01-15T00:00:00+00:00"
+    assert result["startPublicationDate"] == "2024-01-15T00:00:00"
     assert result["country"] == [
         {
             "code": None,
