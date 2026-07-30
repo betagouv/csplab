@@ -22,7 +22,9 @@ from infrastructure.factories.recruteur.organisme_factory import (
 
 def test_get_organisme_steps(get_organisme_recruteur_usecase):
     organisme_before = OrganismeRecruteurFactory.create_entity()
-    get_organisme_recruteur_usecase.organisme_recruteur_repository.save(organisme_before)
+    get_organisme_recruteur_usecase.organisme_recruteur_repository.save(
+        organisme_before
+    )
 
     organisme = get_organisme_recruteur_usecase.execute(
         command=InitializeOrganismeStepsCommand(
@@ -82,7 +84,9 @@ def test_get_organisme_steps_raises_when_not_responsable(
     get_organisme_recruteur_usecase,
 ):
     organisme_before = OrganismeRecruteurFactory.create_entity()
-    get_organisme_recruteur_usecase.organisme_recruteur_repository.save(organisme_before)
+    get_organisme_recruteur_usecase.organisme_recruteur_repository.save(
+        organisme_before
+    )
     permission_service = get_organisme_recruteur_usecase.organisme_permission_service
     permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
         organisme_before.entity_id
