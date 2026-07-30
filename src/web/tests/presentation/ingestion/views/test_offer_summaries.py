@@ -5,6 +5,8 @@ from django.urls import reverse
 from drf_spectacular.generators import SchemaGenerator
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
@@ -149,6 +151,120 @@ def test_has_more_true_when_more_results_exist(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["_pagination"]["hasMore"] is True
+
+
+def test_category_filter_is_forwarded_to_usecase(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"category": "A,B"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            category=[Category.A, Category.B],
+        )
+    )
+
+
+def test_invalid_category_returns_400(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"category": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+    assert "A, APLUS, B, C" in response.json()["error"]
+
+
+def test_verse_filter_is_forwarded_to_usecase(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"verse": "FPE,FPT"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            verse=[Verse.FPE, Verse.FPT],
+        )
+    )
+
+
+def test_invalid_verse_returns_400(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"verse": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+    assert "FPE, FPH, FPT" in response.json()["error"]
+
+
+def test_contract_type_filter_is_forwarded_to_usecase(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"contractType": "CONTRACTUELS,TERRITORIAL"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            contract_type=[ContractType.CONTRACTUELS, ContractType.TERRITORIAL],
+        )
+    )
+
+
+def test_invalid_contract_type_returns_400(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"contractType": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+    assert (
+        "CONTRACTUELS, TERRITORIAL, TITULAIRE_CONTRACTUEL" in response.json()["error"]
+    )
+
+
+def test_experience_level_filter_is_forwarded_to_usecase(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"experienceLevel": "DEBUTANT,EXPERT"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            experience_level=[ExperienceLevel.DEBUTANT, ExperienceLevel.EXPERT],
+        )
+    )
+
+
+def test_invalid_experience_level_returns_400(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"experienceLevel": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+    assert "CONFIRME, DEBUTANT, EXPERT" in response.json()["error"]
 
 
 def test_returns_error_500(mock_offer_summaries_container, authenticated_client):
