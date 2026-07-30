@@ -9,9 +9,6 @@ from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
 )
-from domain.identite.repositories.organisme_repository_interface import (
-    IOrganismeRepository,
-)
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
 )
@@ -28,11 +25,9 @@ class GetRecrutementKanbanUsecase(
 ):
     def __init__(
         self,
-        organisme_repository: IOrganismeRepository,
         organisme_permission_service: OrganismePermissionService,
         recrutement_query_service: IRecrutementQueryService,
     ):
-        self.organisme_repository = organisme_repository
         self.organisme_permission_service = organisme_permission_service
         self.recrutement_query_service = recrutement_query_service
 
@@ -46,7 +41,6 @@ class GetRecrutementKanbanUsecase(
             recrutement_id=query.recrutement_id,
             est_staff=query.est_staff,
         )
-        self.organisme_repository.get_by_id(query.organisme_id)
 
         return self.recrutement_query_service.get_kanban_by_recrutement(
             organisme_id=query.organisme_id, recrutement_id=query.recrutement_id

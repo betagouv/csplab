@@ -8,6 +8,9 @@ from domain.recruteur.errors.organisme_permission_errors import (
 from domain.recruteur.repositories.organisme_agent_repository_interface import (
     IOrganismeAgentRepository,
 )
+from domain.recruteur.repositories.organisme_repository_interface import (
+    IOrganismeRecruteurRepository,
+)
 from domain.recruteur.repositories.recrutement_agent_repository_interface import (
     IRecrutementAgentRepository,
 )
@@ -84,9 +87,11 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
 class OrganismePermissionService:
     def __init__(
         self,
+        organisme_recruteur_repository: IOrganismeRecruteurRepository,
         organisme_agent_repository: IOrganismeAgentRepository,
         recrutement_agent_repository: IRecrutementAgentRepository,
     ) -> None:
+        self._organisme_recruteur_repository = organisme_recruteur_repository
         self._organisme_agent_repository = organisme_agent_repository
         self._recrutement_agent_repository = recrutement_agent_repository
 
@@ -99,6 +104,8 @@ class OrganismePermissionService:
         est_staff: bool,
         recrutement_id: UUID | None = None,
     ) -> AgentOrganismeRole | None:
+        self._organisme_recruteur_repository.get_by_id(organisme_id)
+
         if est_staff and action in _AUTORISE_POUR_STAFF:
             return None
 

@@ -4,9 +4,6 @@ from ddd.usecase_interface import IUseCase
 
 from application.recruteur.dtos.etape_data import EtapeData, etapes_par_defaut
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
-from domain.identite.repositories.organisme_repository_interface import (
-    IOrganismeRepository,
-)
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
 )
@@ -24,14 +21,11 @@ class GetRecrutementEtapesQuery(RecrutementRequest):
 class GetRecrutementEtapesUsecase(IUseCase[GetRecrutementEtapesQuery, list[EtapeData]]):
     def __init__(
         self,
-        organisme_repository: IOrganismeRepository,
         organisme_permission_service: OrganismePermissionService,
     ):
-        self.organisme_repository = organisme_repository
         self.organisme_permission_service = organisme_permission_service
 
     def execute(self, query: GetRecrutementEtapesQuery) -> list[EtapeData]:
-        self.organisme_repository.get_by_id(query.organisme_id)
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
             organisme_id=query.organisme_id,

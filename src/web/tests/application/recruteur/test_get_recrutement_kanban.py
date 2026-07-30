@@ -19,7 +19,6 @@ from application.recruteur.usecases.get_recrutement_kanban import (
     GetRecrutementKanbanQuery,
     GetRecrutementKanbanUsecase,
 )
-from domain.identite.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
@@ -66,13 +65,6 @@ def _recrutement_kanban_read_model() -> RecrutementKanbanReadModel:
     )
 
 
-@pytest.fixture(name="organisme_repository")
-def organisme_repository_fixture():
-    repo = MagicMock()
-    repo.get_by_id.return_value = MagicMock()
-    return repo
-
-
 @pytest.fixture(name="organisme_permission_service")
 def organisme_permission_service_fixture():
     return MagicMock(spec=OrganismePermissionService)
@@ -84,11 +76,8 @@ def recrutement_query_service_fixture():
 
 
 @pytest.fixture(name="usecase")
-def usecase_fixture(
-    organisme_repository, organisme_permission_service, recrutement_query_service
-):
+def usecase_fixture(organisme_permission_service, recrutement_query_service):
     return GetRecrutementKanbanUsecase(
-        organisme_repository=organisme_repository,
         organisme_permission_service=organisme_permission_service,
         recrutement_query_service=recrutement_query_service,
     )
@@ -104,7 +93,6 @@ class TestGetRecrutementKanban:
     )
     def test_returns_detail_when_authorized(
         self,
-        organisme_repository,
         organisme_permission_service,
         recrutement_query_service,
         usecase,
@@ -133,14 +121,12 @@ class TestGetRecrutementKanban:
             est_staff=False,
             recrutement_id=recrutement_id,
         )
-        organisme_repository.get_by_id.assert_called_once_with(organisme_id)
         recrutement_query_service.get_kanban_by_recrutement.assert_called_once_with(
             organisme_id=organisme_id, recrutement_id=recrutement_id
         )
 
     def test_returns_none_for_unknown_recrutement(
         self,
-        organisme_repository,
         organisme_permission_service,
         recrutement_query_service,
         usecase,
@@ -160,7 +146,6 @@ class TestGetRecrutementKanban:
         )
 
         assert result is None
-        organisme_repository.get_by_id.assert_called_once_with(organisme_id)
 
     def test_raises_when_not_authorized(self, organisme_permission_service, usecase):
         organisme_id = uuid4()
@@ -169,26 +154,6 @@ class TestGetRecrutementKanban:
         )
 
         with pytest.raises(AccesOrganismeRefuse):
-            usecase.execute(
-                GetRecrutementKanbanQuery(
-                    organisme_id=organisme_id,
-                    recrutement_id=uuid4(),
-                    utilisateur_id=uuid4(),
-                )
-            )
-
-    def test_raises_when_organisme_not_found(
-        self, organisme_repository, organisme_permission_service, usecase
-    ):
-        organisme_permission_service.est_autorise.return_value = (
-            AgentOrganismeRole.RESPONSABLE
-        )
-        organisme_id = uuid4()
-        organisme_repository.get_by_id.side_effect = OrganismeNexistePas(
-            str(organisme_id)
-        )
-
-        with pytest.raises(OrganismeNexistePas):
             usecase.execute(
                 GetRecrutementKanbanQuery(
                     organisme_id=organisme_id,
