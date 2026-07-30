@@ -521,8 +521,9 @@ def create_organisme_usecase():
 
 @pytest.fixture
 def get_organisme_recruteur_usecase():
-    organisme_repository = cast(
-        IOrganismeRecruteurRepository, create_interface_aware_mock(IOrganismeRepository)
+    organisme_recruteur_repository = cast(
+        IOrganismeRecruteurRepository,
+        create_interface_aware_mock(IOrganismeRecruteurRepository),
     )
     return GetOrganismeRecruteurUsecase(
         organisme_recruteur_repository=organisme_recruteur_repository,
