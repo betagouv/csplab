@@ -1,5 +1,8 @@
 from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
-from presentation.ingestion.serializers import OffersInputSerializer
+from presentation.ingestion.serializers import (
+    DescriptionInputSerializer,
+    OffersInputSerializer,
+)
 
 
 def test_offers_input_serializer_never_exposes_archived_at():
@@ -12,3 +15,20 @@ def test_offers_input_serializer_never_exposes_archived_at():
     serializer = OffersInputSerializer(data=payload)
     assert serializer.is_valid(), serializer.errors
     assert "archived_at" not in serializer.validated_data
+
+
+def test_description_input_serializer_allows_blanks():
+    payload = {
+        "mission": "",
+        "profil": "",
+        "employeur": "Employeur",
+        "complements": "",
+    }
+
+    serializer = DescriptionInputSerializer(data=payload)
+
+    assert serializer.is_valid(), serializer.errors
+
+    assert serializer.validated_data["mission"] == ""
+    assert serializer.validated_data["profil"] == ""
+    assert serializer.validated_data["complements"] == ""
