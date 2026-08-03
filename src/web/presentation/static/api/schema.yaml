@@ -1787,6 +1787,10 @@ components:
     ProfessionInput:
       type: object
       properties:
+        referentiel:
+          allOf:
+          - $ref: '#/components/schemas/ReferentielEnum'
+          default: RMFPv2
         domaine:
           type: string
           maxLength: 3
@@ -1816,6 +1820,11 @@ components:
       required:
       - debut_publication
       - fin_publication
+    ReferentielEnum:
+      enum:
+      - RMFPv2
+      type: string
+      description: '* `RMFPv2` - RMFPv2'
     RegionEnum:
       enum:
       - '01'

@@ -66,6 +66,7 @@ class OfferMapper(
             processed_at=model.processed_at,
             archived_at=model.archived_at,
             family_code=model.code_emploi_csp,
+            job_family_referential=model.job_family_referential,
             source_id=model.source_id,
             long_title=model.long_title,
             application_url=HttpUrl(model.application_url)
@@ -126,6 +127,7 @@ class OfferMapper(
             latitude=latitude,
             longitude=longitude,
             code_emploi_csp=entity.family_code,
+            job_family_referential=entity.job_family_referential,
             source_id=entity.source_id,
             publication_date=entity.publication_date,
             beginning_date=beginning_date,

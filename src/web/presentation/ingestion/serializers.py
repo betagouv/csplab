@@ -3,6 +3,7 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.job_family_referential import JobFamilyReferential
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.offer_conditions import (
     JobVacancy,
@@ -256,6 +257,10 @@ class OrganismeInputSerializer(OrganismeSerializer):
 
 
 class ProfessionInputSerializer(serializers.Serializer):
+    referentiel = serializers.ChoiceField(
+        choices=[e.value for e in JobFamilyReferential],
+        default=JobFamilyReferential.RMFPV2.value,
+    )
     domaine = serializers.CharField(max_length=3)  # code domaine fonctionnel
     metier = serializers.CharField(max_length=8)
 

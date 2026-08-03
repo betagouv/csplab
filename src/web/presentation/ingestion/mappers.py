@@ -65,6 +65,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             localisation=self._localisation_mapper.to_domain(raw_localisation),
             beginning_date=LimitDate(debut_contrat) if debut_contrat else None,
             family_code=data["profession"]["metier"],
+            job_family_referential=data["profession"].get("referentiel"),
             source_id=source_id,
             long_title=data.get("titre_long") or None,
             application_url=data.get("url_candidature"),

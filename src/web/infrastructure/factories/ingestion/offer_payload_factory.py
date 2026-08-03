@@ -35,7 +35,11 @@ class PayloadOfferFactory:
             "organisation": {"nom": fake.company(), "siret": ""},
             "url_offre": None,
             "url_candidature": None,
-            "profession": {"domaine": "INF", "metier": "INF001"},
+            "profession": {
+                "domaine": "INF",
+                "metier": "INF001",
+                "referentiel": "RMFPv2",
+            },
             "categories": [],
             "type_contrat": "TITULAIRE_CONTRACTUEL",
             "forme_contrat": [],
