@@ -5,6 +5,7 @@ import pytest
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.verse import Verse
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
@@ -247,6 +248,84 @@ def test_list_offers_filtered_by_experience_level(
 
     assert {offer.external_id for offer in result._qs} == {
         offers_by_experience_level[key].external_id for key in expected_keys
+    }
+
+
+@pytest.fixture(name="offers_by_management")
+def offers_by_management_fixture(db):
+    return {
+        "sans": OfferFactory.create_model(
+            external_id="test-sans",
+            conditions={"management": Management.SANS.name},
+        ),
+        "avec": OfferFactory.create_model(
+            external_id="test-avec",
+            conditions={"management": Management.AVEC.name},
+        ),
+    }
+
+
+@pytest.mark.parametrize(
+    "management, expected_keys",
+    [
+        pytest.param(None, ["sans", "avec"], id="no_filter"),
+        pytest.param([Management.SANS], ["sans"], id="single_management"),
+        pytest.param(
+            [Management.SANS, Management.AVEC],
+            ["sans", "avec"],
+            id="multiple_managements",
+        ),
+    ],
+)
+def test_list_offers_filtered_by_management(
+    ingestion_container, offers_by_management, management, expected_keys
+):
+    input_data = GetFilteredOffersInput(
+        active=True, external_id_contains=None, management=management
+    )
+    result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
+
+    assert {offer.external_id for offer in result._qs} == {
+        offers_by_management[key].external_id for key in expected_keys
+    }
+
+
+@pytest.fixture(name="offers_by_working_place")
+def offers_by_working_place_fixture(db):
+    return {
+        "sur_site": OfferFactory.create_model(
+            external_id="test-sur-site",
+            conditions={"lieu_de_travail": WorkingPlace.SUR_SITE.name},
+        ),
+        "teletravail": OfferFactory.create_model(
+            external_id="test-teletravail",
+            conditions={"lieu_de_travail": WorkingPlace.TELETRAVAIL.name},
+        ),
+    }
+
+
+@pytest.mark.parametrize(
+    "working_place, expected_keys",
+    [
+        pytest.param(None, ["sur_site", "teletravail"], id="no_filter"),
+        pytest.param([WorkingPlace.SUR_SITE], ["sur_site"], id="single_working_place"),
+        pytest.param(
+            [WorkingPlace.SUR_SITE, WorkingPlace.TELETRAVAIL],
+            ["sur_site", "teletravail"],
+            id="multiple_working_places",
+        ),
+    ],
+)
+def test_list_offers_filtered_by_working_place(
+    ingestion_container, offers_by_working_place, working_place, expected_keys
+):
+    input_data = GetFilteredOffersInput(
+        active=True, external_id_contains=None, working_place=working_place
+    )
+    result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
+
+    assert {offer.external_id for offer in result._qs} == {
+        offers_by_working_place[key].external_id for key in expected_keys
     }
 
 

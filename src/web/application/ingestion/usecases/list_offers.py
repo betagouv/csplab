@@ -24,4 +24,6 @@ class ListOffersUseCase(IUseCase[GetFilteredOffersInput, IPage[Offer]]):
             verse=input_data.verse,
             contract_type=input_data.contract_type,
             experience_level=input_data.experience_level,
+            management=input_data.management,
+            working_place=input_data.working_place,
         )

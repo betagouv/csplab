@@ -126,6 +126,10 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
     experienceLevel = _CommaSeparatedEnumField(
         ExperienceLevel, "niveau d'expérience", source="experience_level"
     )
+    management = _CommaSeparatedEnumField(Management, "management")
+    workingPlace = _CommaSeparatedEnumField(
+        WorkingPlace, "lieu de travail", source="working_place"
+    )
 
 
 class LocalisationInputSerializer(LocalisationSerializer):

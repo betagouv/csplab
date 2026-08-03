@@ -6,6 +6,7 @@ from drf_spectacular.generators import SchemaGenerator
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
@@ -265,6 +266,62 @@ def test_invalid_experience_level_returns_400(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
     assert "CONFIRME, DEBUTANT, EXPERT" in response.json()["error"]
+
+
+def test_management_filter_is_forwarded_to_usecase(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"management": "SANS,AVEC"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            management=[Management.SANS, Management.AVEC],
+        )
+    )
+
+
+def test_invalid_management_returns_400(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"management": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+    assert "AVEC, SANS" in response.json()["error"]
+
+
+def test_working_place_filter_is_forwarded_to_usecase(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"workingPlace": "SUR_SITE,TELETRAVAIL"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            working_place=[WorkingPlace.SUR_SITE, WorkingPlace.TELETRAVAIL],
+        )
+    )
+
+
+def test_invalid_working_place_returns_400(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"workingPlace": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+    assert "NON_DEFINI, SUR_SITE, TELETRAVAIL" in response.json()["error"]
 
 
 def test_returns_error_500(mock_offer_summaries_container, authenticated_client):
