@@ -25,7 +25,7 @@ describe('matchesFilters', () => {
     expect(matchesFilters(makeRow(), emptyRecrutementsFilters())).toBe(true)
   })
 
-  it('filters by responsable, type and kind of contrat', () => {
+  it('filters by responsable and type of contrat', () => {
     const responsableFilters = { ...emptyRecrutementsFilters(), responsable: 'Camille Durand' }
     expect(matchesFilters(makeRow(), responsableFilters)).toBe(true)
     expect(matchesFilters(makeRow({ responsables: [{ nom: 'John Doe' }] }), responsableFilters)).toBe(false)
@@ -39,7 +39,6 @@ describe('matchesFilters', () => {
     const filters = {
       responsable: 'Camille Durand',
       typeContrat: 'CONTRACTUELS' as const,
-      kindContrat: null,
     }
     expect(matchesFilters(makeRow(), filters)).toBe(false)
     expect(matchesFilters(makeRow({ type_contrat: 'CONTRACTUELS' }), filters)).toBe(true)

@@ -9,7 +9,7 @@ export interface RecrutementsFilters extends Record<string, unknown> {
 }
 
 export function emptyRecrutementsFilters(): RecrutementsFilters {
-  return { responsable: null, typeContrat: null, kindContrat: null }
+  return { responsable: null, typeContrat: null }
 }
 
 export function matchesFilters(row: RecrutementBase, filters: RecrutementsFilters): boolean {
