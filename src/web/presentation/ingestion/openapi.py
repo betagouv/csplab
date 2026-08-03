@@ -336,7 +336,7 @@ LIST_METIERS_DESCRIPTION = (
 # API de consultation des métiers de la Fonction Publique
 
 Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
-selon leur code de domaine fonctionnel (`domain`).
+selon leur code de domaine fonctionnel (`domaine`).
 
 """
     + _API_COMMON_FOOTER

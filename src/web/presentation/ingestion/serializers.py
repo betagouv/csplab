@@ -243,7 +243,7 @@ class ListMetiersResponseSerializer(serializers.Serializer):
 
 
 class ListMetiersFiltersSerializer(serializers.Serializer):
-    domain = serializers.CharField(default=None, max_length=3)
+    domaine = serializers.CharField(default=None, max_length=3, source="domain")
 
 
 class IdentityInputSerializer(serializers.Serializer):
