@@ -10,14 +10,18 @@ def test_get_schema_operation_parameters_exposes_page_and_size():
             "required": False,
             "in": "query",
             "description": "Numéro de la page.",
-            "schema": {"type": "integer"},
+            "schema": {"type": "integer", "default": 1, "minimum": 1},
         },
         {
-            "name": "size",
+            "name": "taille",
             "required": False,
             "in": "query",
             "description": "Nombre d'éléments par page.",
-            "schema": {"type": "integer"},
+            "schema": {
+                "type": "integer",
+                "default": WebPagination.page_size,
+                "minimum": WebPagination.min_page_size,
+            },
         },
     ]
 

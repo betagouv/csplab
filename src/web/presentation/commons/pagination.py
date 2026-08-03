@@ -9,11 +9,12 @@ from rest_framework.settings import api_settings
 
 class WebPagination(BasePagination):
     page_size = api_settings.PAGE_SIZE
+    min_page_size = 1
 
     def paginate(self, page: IPage, request) -> list[Any]:
         self.request = request
         self.count = page.count()
-        self.page_size = int(self.request.query_params.get("size", self.page_size))
+        self.page_size = int(self.request.query_params.get("taille", self.page_size))
         self.page_num = int(self.request.query_params.get("page", 1))
 
         offset = (self.page_num - 1) * self.page_size
@@ -38,14 +39,18 @@ class WebPagination(BasePagination):
                 "required": False,
                 "in": "query",
                 "description": "Numéro de la page.",
-                "schema": {"type": "integer"},
+                "schema": {"type": "integer", "default": 1, "minimum": 1},
             },
             {
-                "name": "size",
+                "name": "taille",
                 "required": False,
                 "in": "query",
                 "description": "Nombre d'éléments par page.",
-                "schema": {"type": "integer"},
+                "schema": {
+                    "type": "integer",
+                    "default": self.page_size,
+                    "minimum": self.min_page_size,
+                },
             },
         ]
 
@@ -87,7 +92,7 @@ class WebPagination(BasePagination):
         parsed = urlparse(url)
         params = parse_qs(parsed.query, keep_blank_values=True)
         params["page"] = [page_num]
-        params["size"] = [self.page_size]
+        params["taille"] = [self.page_size]
         new_query = urlencode({k: v[0] for k, v in params.items()})
         return urlunparse(parsed._replace(query=new_query))
 
