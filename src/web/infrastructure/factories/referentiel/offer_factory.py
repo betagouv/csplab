@@ -47,6 +47,7 @@ class OfferFactory:
         beginning_date: LimitDate | None = None,
         archived_at: datetime | None = None,
         criteria: dict | None = None,
+        conditions: dict | None = None,
     ) -> Offer:
         if archived_at:
             archived_at = timezone.make_aware(archived_at)
@@ -86,6 +87,7 @@ class OfferFactory:
             family_code=family_code,
             source_id=source_id or uuid4(),
             criteria=criteria,
+            conditions=conditions,
         )
 
     @staticmethod
@@ -110,6 +112,7 @@ class OfferFactory:
         processed_at: Optional[datetime] = None,
         archived_at: Optional[datetime] = None,
         criteria: Optional[dict] = None,
+        conditions: Optional[dict] = None,
     ) -> OfferModel:
         if processed_at:
             processed_at = timezone.make_aware(processed_at)
@@ -137,6 +140,7 @@ class OfferFactory:
             beginning_date=beginning_date,
             archived_at=archived_at,
             criteria=criteria,
+            conditions=conditions,
         )
 
         offer_model = _mapper.from_domain(offer)

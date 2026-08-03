@@ -13,6 +13,7 @@ from referentiel.types import IUpsertResult
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.verse import Verse
 
 from domain.ingestion.repositories.ingestion_offers_repository_interface import (
@@ -160,6 +161,8 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         verse: List[Verse] | None = None,
         contract_type: List[ContractType] | None = None,
         experience_level: List[ExperienceLevel] | None = None,
+        management: List[Management] | None = None,
+        working_place: List[WorkingPlace] | None = None,
     ) -> IPage[Offer]:
         qs = OfferModel.objects.filter(archived_at__isnull=active)
 
@@ -177,6 +180,14 @@ class PostgresOffersRepository(IIngestionOffersRepository):
 
         if experience_level:
             qs = qs.filter(criteria__experience__in=[e.name for e in experience_level])
+
+        if management:
+            qs = qs.filter(conditions__management__in=[m.name for m in management])
+
+        if working_place:
+            qs = qs.filter(
+                conditions__lieu_de_travail__in=[w.name for w in working_place]
+            )
 
         return QuerySetPage(qs.order_by("-updated_at"), self.mapper.to_domain)
 
