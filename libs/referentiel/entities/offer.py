@@ -30,6 +30,7 @@ class Offer(IEntity):
     reference: str
     family_code: Optional[str] = None
     job_family_referential: Optional[str] = None
+    local_job_code: Optional[str] = None
     long_title: Optional[str] = None
     application_url: Optional[HttpUrl] = None
     contract_kind: Optional[list[ContractKind]] = None

@@ -1797,6 +1797,10 @@ components:
         metier:
           type: string
           maxLength: 8
+        code_emploi_local:
+          type: string
+          nullable: true
+          maxLength: 50
       required:
       - domaine
       - metier

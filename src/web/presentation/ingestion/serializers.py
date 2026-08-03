@@ -263,6 +263,9 @@ class ProfessionInputSerializer(serializers.Serializer):
     )
     domaine = serializers.CharField(max_length=3)  # code domaine fonctionnel
     metier = serializers.CharField(max_length=8)
+    code_emploi_local = serializers.CharField(
+        max_length=50, required=False, allow_null=True
+    )
 
 
 class DescriptionInputSerializer(serializers.Serializer):
