@@ -232,7 +232,7 @@ paths:
         # API de consultation des métiers de la Fonction Publique
 
         Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
-        selon leur code de domaine fonctionnel (`domain`).
+        selon leur code de domaine fonctionnel (`domaine`).
 
 
         Cette API est à l'usage exclusif des personnes autorisées.
@@ -248,7 +248,7 @@ paths:
       summary: Liste des métiers
       parameters:
       - in: query
-        name: domain
+        name: domaine
         schema:
           type: string
           maxLength: 3
