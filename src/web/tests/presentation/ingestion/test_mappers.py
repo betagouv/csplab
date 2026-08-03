@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
+from uuid import uuid4
 
 import pytest
 
-from presentation.ingestion.mappers import OfferSummaryOutputMapper
+from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
+from presentation.ingestion.mappers import OfferInputMapper, OfferSummaryOutputMapper
 
 
 @pytest.mark.parametrize(
@@ -23,3 +25,14 @@ from presentation.ingestion.mappers import OfferSummaryOutputMapper
 )
 def test_isoformat(value, expected):
     assert OfferSummaryOutputMapper._isoformat(value) == expected
+
+
+def test_offer_input_mapper_maps_profession_referentiel_to_job_family_referential():
+    payload = PayloadOfferFactory.create(
+        identification={"reference": "REF-001", "versant": "FPT"},
+        profession={"domaine": "INF", "metier": "INF001", "referentiel": "RMFPv2"},
+    )
+
+    offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
+
+    assert offer.job_family_referential == "RMFPv2"

@@ -2,6 +2,7 @@ from infrastructure.factories.ingestion.offer_payload_factory import PayloadOffe
 from presentation.ingestion.serializers import (
     DescriptionInputSerializer,
     OffersInputSerializer,
+    ProfessionInputSerializer,
 )
 
 
@@ -32,3 +33,30 @@ def test_description_input_serializer_allows_blanks():
     assert serializer.validated_data["mission"] == ""
     assert serializer.validated_data["profil"] == ""
     assert serializer.validated_data["complements"] == ""
+
+
+def test_profession_input_serializer_defaults_referentiel_to_rmfpv2():
+    payload = {"domaine": "D01", "metier": "M0001"}
+
+    serializer = ProfessionInputSerializer(data=payload)
+
+    assert serializer.is_valid(), serializer.errors
+    assert serializer.validated_data["referentiel"] == "RMFPv2"
+
+
+def test_profession_input_serializer_rejects_null_referentiel():
+    payload = {"domaine": "D01", "metier": "M0001", "referentiel": None}
+
+    serializer = ProfessionInputSerializer(data=payload)
+
+    assert not serializer.is_valid()
+    assert "referentiel" in serializer.errors
+
+
+def test_profession_input_serializer_rejects_invalid_referentiel():
+    payload = {"domaine": "D01", "metier": "M0001", "referentiel": "AUTRE"}
+
+    serializer = ProfessionInputSerializer(data=payload)
+
+    assert not serializer.is_valid()
+    assert "referentiel" in serializer.errors

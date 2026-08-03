@@ -29,6 +29,7 @@ class Offer(IEntity):
     beginning_date: Optional[LimitDate]
     reference: str
     family_code: Optional[str] = None
+    job_family_referential: Optional[str] = None
     long_title: Optional[str] = None
     application_url: Optional[HttpUrl] = None
     contract_kind: Optional[list[ContractKind]] = None
