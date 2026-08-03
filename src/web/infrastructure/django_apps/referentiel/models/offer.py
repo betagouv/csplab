@@ -37,6 +37,7 @@ class OfferModel(BaseDatedModel):
     code_emploi_csp = models.CharField(max_length=50, null=True, blank=True)
     job_family_referential = models.CharField(max_length=50, null=True, blank=True)
     local_job_code = models.CharField(max_length=50, null=True, blank=True)
+    functional_area_code = models.CharField(max_length=3, null=True, blank=True)
     source = models.ForeignKey(
         SourceModel,
         to_field="source_id",

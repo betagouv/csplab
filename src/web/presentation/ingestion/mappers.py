@@ -67,6 +67,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             family_code=data["profession"]["metier"],
             job_family_referential=data["profession"].get("referentiel"),
             local_job_code=data["profession"].get("code_emploi_local"),
+            functional_area_code=data["profession"].get("domaine"),
             source_id=source_id,
             long_title=data.get("titre_long") or None,
             application_url=data.get("url_candidature"),
