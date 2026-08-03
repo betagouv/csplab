@@ -1,8 +1,8 @@
 from uuid import UUID
 
-from domain.recruteur.services.note_query_service_interface import (
+from application.recruteur.dtos.note_read_models import NoteReadModel
+from application.recruteur.services.note_query_service_interface import (
     INoteQueryService,
-    NoteReadModel,
 )
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 
