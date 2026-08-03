@@ -28,8 +28,9 @@ class Offer(IEntity):
     publication_date: datetime
     beginning_date: Optional[LimitDate]
     reference: str
-    family_code: Optional[str] = None
     job_family_referential: Optional[str] = None
+    functional_area_code: Optional[str] = None
+    family_code: Optional[str] = None
     local_job_code: Optional[str] = None
     long_title: Optional[str] = None
     application_url: Optional[HttpUrl] = None

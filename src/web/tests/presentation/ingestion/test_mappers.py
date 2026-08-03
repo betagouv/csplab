@@ -36,3 +36,14 @@ def test_offer_input_mapper_maps_profession_referentiel_to_job_family_referentia
     offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
 
     assert offer.job_family_referential == "RMFPv2"
+
+
+def test_offer_input_mapper_maps_profession_domaine_to_functional_area_code():
+    payload = PayloadOfferFactory.create(
+        identification={"reference": "REF-001", "versant": "FPT"},
+        profession={"domaine": "INF", "metier": "INF001", "referentiel": "RMFPv2"},
+    )
+
+    offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
+
+    assert offer.functional_area_code == "INF"

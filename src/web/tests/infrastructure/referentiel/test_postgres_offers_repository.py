@@ -132,6 +132,9 @@ class TestUpsertBatch:
             contract_type=ContractType.CONTRACTUELS,
             organization="old organization",
             offer_url="https://fake.url/old",
+            family_code="OLD001",
+            job_family_referential="RMFPv1",
+            functional_area_code="OLD",
             localisation=Localisation(
                 area=GeographicalArea("EU"),
                 country=Country("FRA"),
@@ -152,6 +155,9 @@ class TestUpsertBatch:
             "contract_type": ContractType.TITULAIRE_CONTRACTUEL,
             "organization": "organization",
             "offer_url": HttpUrl("https://fake.url/offer"),
+            "family_code": "NEW001",
+            "job_family_referential": "RMFPv2",
+            "functional_area_code": "NEW",
             "localisation": Localisation(
                 area=GeographicalArea("AM"),
                 country=Country("GUF"),
