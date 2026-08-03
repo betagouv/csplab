@@ -109,6 +109,17 @@ class ListOffersFiltersSerializer(serializers.Serializer):
         help_text="Valeurs séparées par une virgule (ex. `DEBUTANT,EXPERT`).",
         source="experience_level",
     )
+    management = _CommaSeparatedEnumField(
+        Management,
+        "management",
+        help_text="Valeurs séparées par une virgule (ex. `SANS,AVEC`).",
+    )
+    lieu_de_travail = _CommaSeparatedEnumField(
+        WorkingPlace,
+        "lieu de travail",
+        help_text="Valeurs séparées par une virgule (ex. `SUR_SITE,TELETRAVAIL`).",
+        source="working_place",
+    )
 
 
 class OfferSummariesQuerySerializer(serializers.Serializer):
