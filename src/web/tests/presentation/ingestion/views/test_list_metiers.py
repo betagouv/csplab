@@ -80,7 +80,7 @@ def test_call_without_arg(mock_metiers_container, authenticated_client):
 def test_call_with_args(mock_metiers_container, authenticated_client, domain):
     _make_paginated_mock(mock_metiers_container, num_metiers=0, metiers_slice=[])
 
-    params = {"domain": domain} if domain else {}
+    params = {"domaine": domain} if domain else {}
     authenticated_client.get(URL, params)
 
     mock_metiers_container.list_metiers_usecase.return_value.execute.assert_called_once_with(
@@ -160,7 +160,7 @@ def test_pagination_out_of_bond(mock_metiers_container, authenticated_client):
 def test_invalid_payload(mock_metiers_container, authenticated_client):
     _make_paginated_mock(mock_metiers_container, num_metiers=0, metiers_slice=[])
 
-    response = authenticated_client.get(URL, {"domain": "ABCD"})
+    response = authenticated_client.get(URL, {"domaine": "ABCD"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "error" in response.json().keys()
