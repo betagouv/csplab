@@ -428,6 +428,34 @@ paths:
               * `C` - C
         description: Valeurs séparées par une virgule (ex. `A,B`).
       - in: query
+        name: lieu_de_travail
+        schema:
+          type: array
+          items:
+            enum:
+            - NON_DEFINI
+            - SUR_SITE
+            - TELETRAVAIL
+            type: string
+            description: |-
+              * `NON_DEFINI` - Non défini
+              * `SUR_SITE` - Sur site
+              * `TELETRAVAIL` - Télétravail
+        description: Valeurs séparées par une virgule (ex. `SUR_SITE,TELETRAVAIL`).
+      - in: query
+        name: management
+        schema:
+          type: array
+          items:
+            enum:
+            - SANS
+            - AVEC
+            type: string
+            description: |-
+              * `SANS` - Sans management
+              * `AVEC` - Avec management
+        description: Valeurs séparées par une virgule (ex. `SANS,AVEC`).
+      - in: query
         name: niveau_experience
         schema:
           type: array
