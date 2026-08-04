@@ -5,7 +5,7 @@ import type {
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -23,13 +23,28 @@ import RecrutementsFiltersDrawer from '../components/RecrutementsFiltersDrawer.v
 import { useRecrutements } from '../composables/useRecrutements'
 
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
+import {
+  DEFAULT_RECRUTEMENT_TAB,
+  isRecrutementKey,
+  RECRUTEMENTS_TAB_ROUTE_NAMES,
+} from '../routes'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },
   { label: 'Mes recrutements' },
 ]
 
-const activeTab = ref<RecrutementKey>('actifs')
+const route = useRoute()
+const router = useRouter()
+
+const activeTab = computed<RecrutementKey, string>({
+  get: () => route.meta.recrutementTab ?? DEFAULT_RECRUTEMENT_TAB,
+  set: (tab) => {
+    if (isRecrutementKey(tab)) {
+      void router.push({ name: RECRUTEMENTS_TAB_ROUTE_NAMES[tab] })
+    }
+  },
+})
 
 const TABS: CspTabItem[] = [
   { value: 'actifs', label: 'Recrutements en cours' },
@@ -44,8 +59,6 @@ const {
 
 const showActifsSkeleton = useMinimumPending(pendingActifs, 300)
 const showArchivesSkeleton = useMinimumPending(pendingArchives, 300)
-
-const router = useRouter()
 
 function openOffre(recrutementUuid: string) {
   void router.push({ name: 'recrutement-candidatures-kanban', params: { recrutementUuid } })
