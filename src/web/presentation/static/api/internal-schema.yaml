@@ -1397,10 +1397,14 @@ components:
         latitude:
           type: number
           format: double
+          maximum: 90
+          minimum: -90
           nullable: true
         longitude:
           type: number
           format: double
+          maximum: 180
+          minimum: -180
           nullable: true
       required:
       - departement
