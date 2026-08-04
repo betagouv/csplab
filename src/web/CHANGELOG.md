@@ -4,7 +4,98 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.13] - 2026-07-15
+## [0.1.14] - 2026-08-04
+
+### <!-- 0 --> Breaking Changes
+
+- ✨(recruteur) infra et presentation mes recrutements ([#963](https://github.com/betagouv/csplab/pull/963))
+- 🔥(ingestion) supprimer la forme de contrat STAGE ([#998](https://github.com/betagouv/csplab/pull/998))
+
+### <!-- 1 --> Added
+
+- ✨(frontend) integration du kanban et ajout du switch liste ([#947](https://github.com/betagouv/csplab/pull/947))
+- ✨(ats-presentation) add search and filters to candidatures views ([#977](https://github.com/betagouv/csplab/pull/977))
+- ♻️(recruteur-usecase) mes recrutements ([#945](https://github.com/betagouv/csplab/pull/945))
+- ⚡️(ingestion-presentation) update last_login when user request his.her jwt token ([#982](https://github.com/betagouv/csplab/pull/982))
+- ✨(ingestion) add fin_candidature, debut_vacance_poste to offert upsert payload ([#970](https://github.com/betagouv/csplab/pull/970))
+- ✨(ingestion) transmettre les coordonnées GPS des offres vers l'API web ([#969](https://github.com/betagouv/csplab/pull/969))
+- ✨(ats-presentation) keep candidatures page stable while loading ([#980](https://github.com/betagouv/csplab/pull/980))
+- 🔧(ats-presentation) setup pinia colada (plugin, devtools, sentry) ([#979](https://github.com/betagouv/csplab/pull/979))
+- ✨(ats-presentation) add dedicated component skeletons ([#981](https://github.com/betagouv/csplab/pull/981))
+- ✨(recruteur-domain) mise en place des modèles de rôles agents ([#1000](https://github.com/betagouv/csplab/pull/1000))
+- ✨(frontend) Traitement par lot candidatures changement étape ([#948](https://github.com/betagouv/csplab/pull/948))
+- 🐛(ingestion) accepter modificationDate null avec fallback sur le timestamp courant ([#1019](https://github.com/betagouv/csplab/pull/1019))
+- ✨(recruteur-rbac) Mise en place du RBAC sur les organismes recruteurs ([#1002](https://github.com/betagouv/csplab/pull/1002))
+- ✨(recruteur-rbac) setup organisme authorization on lister_mes_recrutements ([#1020](https://github.com/betagouv/csplab/pull/1020))
+- 🐛(ingestion) gérer les codes NIV_DIPL dans le mapping du niveau d'études ([#1028](https://github.com/betagouv/csplab/pull/1028))
+- ✨(identite-domain) Mise en place du RBAC sur la creation d'un organisme ([#1025](https://github.com/betagouv/csplab/pull/1025))
+- ✨(recrutement-application) Mise en place RBAC agent pour la liste des recrutements ([#1026](https://github.com/betagouv/csplab/pull/1026))
+- ✨(recrutement-application) Mise en place RBAC agent pour les vues de detail d'un recrutement ([#1030](https://github.com/betagouv/csplab/pull/1030))
+- ♻️(recruteur-presentation) add logout and refactor user store to pinia colada ([#1022](https://github.com/betagouv/csplab/pull/1022))
+- ♻️(ats-presentation) add page container width rules and async components ([#1036](https://github.com/betagouv/csplab/pull/1036))
+- 🔧(tooling) add mise tasks as an ergonomic layer over make ([#1043](https://github.com/betagouv/csplab/pull/1043))
+- 🐛(ingestion) gérer les codes expérience 3ansouplus et 6ansouplus ([#1046](https://github.com/betagouv/csplab/pull/1046))
+- ✨(ingestion) add ARS-specific contract type mapping ([#1047](https://github.com/betagouv/csplab/pull/1047))
+- 🚧(recrutement-presentation) changer etape recrutement endpoint - INTERFACE ([#1035](https://github.com/betagouv/csplab/pull/1035))
+- ✨(recruteur-usecase) Mise en place RBAC pour les agents selon leurs rôles sur un recrutement ([#1054](https://github.com/betagouv/csplab/pull/1054))
+- 🔥(ci) supprimer le script de rebase automatique après approbation de PR ([#1059](https://github.com/betagouv/csplab/pull/1059))
+- ✨(api) ajouter une limite quotidienne au débit de l'API key ([#1061](https://github.com/betagouv/csplab/pull/1061))
+- ✨(recruteur-usecase) Pipeline Offre - consultation et mise à jour - INTERFACE ([#1048](https://github.com/betagouv/csplab/pull/1048))
+- ✨(recruteur-usecase) Pipeline Offre - reinitialisation des étapes - INTERFACE ([#1050](https://github.com/betagouv/csplab/pull/1050))
+- ✨(ingestion) mapper MENJ vers le versant FPE ([#1065](https://github.com/betagouv/csplab/pull/1065))
+- ✨(api) ajouter les en-têtes X-RateLimit-Limit/Remaining/Reset aux réponses ([#1068](https://github.com/betagouv/csplab/pull/1068))
+- ♻️(recrutement-presentation) mise en place RBAC pour la mise à jour du pipeline d'une offre ([#1069](https://github.com/betagouv/csplab/pull/1069))
+- ✨(api) ajouter l'endpoint /api/fake-ts/offersummaries au format Talentsoft ([#1071](https://github.com/betagouv/csplab/pull/1071))
+- ✨(ingestion) ajouter working_place et management sur les offres Talentsoft ([#1076](https://github.com/betagouv/csplab/pull/1076))
+- ✨(api) ajouter des filtres category/verse/contractType/experienceLevel à /api/fake-ts/offersummaries ([#1075](https://github.com/betagouv/csplab/pull/1075))
+- ✨(api) ajouter des filtres category/verse/contractType/experienceLevel à /api/v1/offres ([#1077](https://github.com/betagouv/csplab/pull/1077))
+- ✨(api) ajouter des filtres management/workingPlace à OfferSummariesQuerySerializer ([#1078](https://github.com/betagouv/csplab/pull/1078))
+- ✨(api) ajouter des filtres management/lieu_de_travail à OffersListView ([#1079](https://github.com/betagouv/csplab/pull/1079))
+- ♻️(api) renommer le paramètre domain en domaine sur ListMetiersFiltersSerializer ([#1080](https://github.com/betagouv/csplab/pull/1080))
+- ✨(api) ajouter le référentiel métier RMFPv2 sur les offres ([#1081](https://github.com/betagouv/csplab/pull/1081))
+- ✨(api) ajouter le champ code_emploi_local sur les offres ([#1082](https://github.com/betagouv/csplab/pull/1082))
+- ✨(api) ajouter le champ functional_area_code sur les offres ([#1083](https://github.com/betagouv/csplab/pull/1083))
+
+### <!-- 2 --> Modified
+
+- ♻️(ats-presentation) harmonise shared pages shell ([#978](https://github.com/betagouv/csplab/pull/978))
+- 🔥(infrastructure) refactoriser quertsetpage with mappers ([#976](https://github.com/betagouv/csplab/pull/976))
+- 🎨(web-presentation) get better loggers name ([#986](https://github.com/betagouv/csplab/pull/986))
+- 🐛(referentiel) remplacer temps partiel par Temps incomplet ([#999](https://github.com/betagouv/csplab/pull/999))
+- ♻️(ats-presentation) migrate recrutements lists to pinia colada queries ([#1003](https://github.com/betagouv/csplab/pull/1003))
+- ⚡️(ingestion-presentation) remove browsable api rendered option in DRF ([#1004](https://github.com/betagouv/csplab/pull/1004))
+- ♻️(ats-presentation) migrate candidatures data to shared colada query ([#983](https://github.com/betagouv/csplab/pull/983))
+- ♻️(ats-presentation) migrate etapes recrutement to colada mutations ([#1011](https://github.com/betagouv/csplab/pull/1011))
+- ♻️(recruteur-presentation) refactor tests ([#1017](https://github.com/betagouv/csplab/pull/1017))
+- 🔒️(recrutement-test) renforcement des tests RBAC pour la gestion des organismes ([#1027](https://github.com/betagouv/csplab/pull/1027))
+- ✨(recrutement-infrastructure) get_recrutement_liste exrait les données de la DB ([#1032](https://github.com/betagouv/csplab/pull/1032))
+- ♻️(ats-presentation) unify page scaffolding across views ([#1033](https://github.com/betagouv/csplab/pull/1033))
+- ✨(recrutement-infrastructure) get_recrutement_kanban exrait les données de la DB ([#1034](https://github.com/betagouv/csplab/pull/1034))
+- ♻️(ats-presentation) update sidebar styles ([#1038](https://github.com/betagouv/csplab/pull/1038))
+- ♻️(recrutement-infrastructure) use IPage interface instead of ListPage in RecrutementListView ([#1040](https://github.com/betagouv/csplab/pull/1040))
+- ✨(ats-presentation) make the vite dev server origin configurable ([#1042](https://github.com/betagouv/csplab/pull/1042))
+- ♻️(recrutement-presentation) réorganise les vues recrutements par usage ([#1064](https://github.com/betagouv/csplab/pull/1064))
+- ♻️(recrutement-tooling) amélioration de OrganismeFactory, RecruteurFactory et du seed ([#1070](https://github.com/betagouv/csplab/pull/1070))
+- ♻️(recrutement-domain) Refacto des Repositories Organisme ([#1073](https://github.com/betagouv/csplab/pull/1073))
+
+### <!-- 4 --> Fixed
+
+- 🐛(recruteur-usecase) wire lister_notes_usecase in its container ([#967](https://github.com/betagouv/csplab/pull/967))
+- 🔧(frontend) pin pnpm version from root packageManager ([#949](https://github.com/betagouv/csplab/pull/949))
+- 🐛(ats-presentation) fix app mount crash on production build ([#1001](https://github.com/betagouv/csplab/pull/1001))
+- 🐛(tooling) skip whitenoise processing for already vite processed assets ([#1021](https://github.com/betagouv/csplab/pull/1021))
+- 🐛(ingestion) empêcher le mark_as_upserted quand la publication échoue ([#1029](https://github.com/betagouv/csplab/pull/1029))
+- 🐛(ats-presentation) replace deprecated :deep selector usage ([#1044](https://github.com/betagouv/csplab/pull/1044))
+- 🐛(recrutement-infrastructure) fix annotations in PostgresRecrutementQueryService ([#1041](https://github.com/betagouv/csplab/pull/1041))
+- 🐛(ats-presentation) fix storybook theme management ([#1045](https://github.com/betagouv/csplab/pull/1045))
+- 🐛(ingestion) fix education level mapping for NIV_DIPL 6-9 ([#1049](https://github.com/betagouv/csplab/pull/1049))
+- 🐛(ingestion) ajouter l'authentification API key sur OffersListView ([#1058](https://github.com/betagouv/csplab/pull/1058))
+- 🐛(web) générer une valeur par défaut aléatoire pour WEB_INGESTION_API_KEY ([#1060](https://github.com/betagouv/csplab/pull/1060))
+- 🐛(api) autoriser un profil vide dans DescriptionInputSerializer ([#1067](https://github.com/betagouv/csplab/pull/1067))
+- 🐛(ingestion) autoriser un champ mission vide dans DescriptionInputSerializer ([#1074](https://github.com/betagouv/csplab/pull/1074))
+- 🐛(api) exclure les requêtes API key du throttle UserRateThrottle ([#1085](https://github.com/betagouv/csplab/pull/1085))
+
+## [0.1.13] - 2026-07-16
 
 ### <!-- 0 --> Breaking Changes
 
