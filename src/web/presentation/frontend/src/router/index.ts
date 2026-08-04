@@ -16,9 +16,16 @@ const appRoutes: RouteRecordRaw[] = [
   },
 ]
 
+const notFoundRoute: RouteRecordRaw = {
+  path: '/:pathMatch(.*)*',
+  name: 'not-found',
+  component: () => import('@/views/NotFoundView.vue'),
+}
+
 export const routes: RouteRecordRaw[] = [
   ...appRoutes,
   ...recrutementsRoutes,
   ...candidaturesRoutes,
   ...etapesRecrutementRoutes,
+  notFoundRoute,
 ]
