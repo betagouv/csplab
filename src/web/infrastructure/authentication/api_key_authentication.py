@@ -4,7 +4,7 @@ from django.conf import settings
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.throttling import SimpleRateThrottle
+from rest_framework.throttling import SimpleRateThrottle, UserRateThrottle
 
 
 class _IngestionApiKeyUser:
@@ -79,3 +79,15 @@ class ApiKeyRateThrottle(SimpleRateThrottle):
 
 class ApiKeyRateThrottleDaily(ApiKeyRateThrottle):
     scope = "api_key_daily"
+
+
+class NonApiKeyUserRateThrottle(UserRateThrottle):
+    """
+    UserRateThrottle that skips ingestion API key requests, which are rate-limited
+    by ApiKeyRateThrottle / ApiKeyRateThrottleDaily instead.
+    """
+
+    def get_cache_key(self, request, view):
+        if isinstance(request.user, _IngestionApiKeyUser):
+            return None
+        return super().get_cache_key(request, view)

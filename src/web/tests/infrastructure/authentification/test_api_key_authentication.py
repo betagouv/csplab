@@ -9,6 +9,7 @@ from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
+    NonApiKeyUserRateThrottle,
     _IngestionApiKeyUser,
     _ip_is_allowed,
 )
@@ -239,3 +240,28 @@ class TestApiKeyRateThrottleAndDailyBothTrack:
 
         assert hourly.allow_request(request, view=None) is False
         assert daily.allow_request(request, view=None) is True
+
+
+class TestNonApiKeyUserRateThrottle:
+    def test_returns_none_for_api_key_user(self, rf):
+        request = rf.get("/")
+        request.user = API_KEY_USER
+        throttle = NonApiKeyUserRateThrottle()
+        assert throttle.get_cache_key(request, view=None) is None
+
+    @patch.object(NonApiKeyUserRateThrottle, "THROTTLE_RATES", {"user": "2/minute"})
+    def test_does_not_throttle_api_key_user(self, rf):
+        cache.clear()
+        request = rf.get("/")
+        request.user = API_KEY_USER
+        for _ in range(10):
+            assert NonApiKeyUserRateThrottle().allow_request(request, view=None) is True
+
+    @patch.object(NonApiKeyUserRateThrottle, "THROTTLE_RATES", {"user": "2/minute"})
+    def test_still_throttles_regular_authenticated_user(self, rf):
+        cache.clear()
+        request = rf.get("/")
+        request.user = type("User", (), {"is_authenticated": True, "pk": 1})()
+        for _ in range(2):
+            assert NonApiKeyUserRateThrottle().allow_request(request, view=None) is True
+        assert NonApiKeyUserRateThrottle().allow_request(request, view=None) is False

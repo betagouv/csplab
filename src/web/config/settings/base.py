@@ -338,7 +338,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
+        "infrastructure.authentication.api_key_authentication.NonApiKeyUserRateThrottle",
         "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottle",
         "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottleDaily",
     ],
