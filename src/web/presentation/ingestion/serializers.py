@@ -1,3 +1,5 @@
+import gettext
+
 import pycountry
 from drf_spectacular.utils import extend_schema_field
 from referentiel.value_objects.category import Category
@@ -56,7 +58,15 @@ class _CommaSeparatedEnumField(serializers.MultipleChoiceField):
         return _parse_enum_list(data, self.enum_cls, self.error_label, self.excluded)
 
 
-COUNTRY_CODES = frozenset(c.alpha_3 for c in pycountry.countries)
+_fr_country_names = gettext.translation(
+    "iso3166-1", pycountry.LOCALES_DIR, languages=["fr"]
+).gettext
+COUNTRY_NAMES = {c.alpha_3: _fr_country_names(c.name) for c in pycountry.countries}
+COUNTRY_CODES = frozenset(COUNTRY_NAMES)
+REGION_NAMES = {code: Region.NAMES.get(code, code) for code in Region.VALID_CODES}
+DEPARTMENT_NAMES = {
+    code: Department.NAMES.get(code, code) for code in Department.VALID_CODES
+}
 
 
 def _parse_code_list(value, valid_codes, error_label):
@@ -74,12 +84,13 @@ def _parse_code_list(value, valid_codes, error_label):
 
 
 class _CommaSeparatedCodeField(serializers.MultipleChoiceField):
-    def __init__(self, valid_codes, error_label, to_value_object, **kwargs):
-        self.valid_codes = valid_codes
+    def __init__(self, code_labels, error_label, to_value_object, **kwargs):
+        self.valid_codes = frozenset(code_labels)
         self.error_label = error_label
         self.to_value_object = to_value_object
         kwargs.setdefault("default", None)
-        super().__init__(choices=sorted(valid_codes), **kwargs)
+        choices = sorted(code_labels.items(), key=lambda item: item[0])
+        super().__init__(choices=choices, **kwargs)
 
     def to_internal_value(self, data):
         if isinstance(data, (list, tuple)):
@@ -158,6 +169,26 @@ class ListOffersFiltersSerializer(serializers.Serializer):
         help_text="Valeurs séparées par une virgule (ex. `SUR_SITE,TELETRAVAIL`).",
         source="working_place",
     )
+    region = _CommaSeparatedCodeField(
+        REGION_NAMES,
+        "région",
+        lambda code: Region(code=code),
+        help_text="Valeurs séparées par une virgule (ex. `11,84`).",
+    )
+    departement = _CommaSeparatedCodeField(
+        DEPARTMENT_NAMES,
+        "département",
+        lambda code: Department(code=code),
+        help_text="Valeurs séparées par une virgule (ex. `75,69`).",
+        source="department",
+    )
+    pays = _CommaSeparatedCodeField(
+        COUNTRY_NAMES,
+        "pays",
+        Country,
+        help_text="Valeurs séparées par une virgule (ex. `FRA,BEL`).",
+        source="country",
+    )
 
 
 class OfferSummariesQuerySerializer(serializers.Serializer):
@@ -180,12 +211,12 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
         WorkingPlace, "lieu de travail", source="working_place"
     )
     region = _CommaSeparatedCodeField(
-        Region.VALID_CODES, "région", lambda code: Region(code=code)
+        REGION_NAMES, "région", lambda code: Region(code=code)
     )
     department = _CommaSeparatedCodeField(
-        Department.VALID_CODES, "département", lambda code: Department(code=code)
+        DEPARTMENT_NAMES, "département", lambda code: Department(code=code)
     )
-    country = _CommaSeparatedCodeField(COUNTRY_CODES, "pays", Country)
+    country = _CommaSeparatedCodeField(COUNTRY_NAMES, "pays", Country)
 
 
 class LocalisationInputSerializer(LocalisationSerializer):

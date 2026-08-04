@@ -7,8 +7,11 @@ from django.urls import reverse
 from faker import Faker
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
@@ -302,6 +305,81 @@ def test_invalid_working_place_returns_400(mock_offers_container, authenticated_
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
     assert "NON_DEFINI, SUR_SITE, TELETRAVAIL" in response.json()["error"]
+
+
+def test_region_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"region": "11,84"})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            region=[Region(code="11"), Region(code="84")],
+        )
+    )
+
+
+def test_invalid_region_returns_400(mock_offers_container, authenticated_client):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"region": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+
+
+def test_departement_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"departement": "75,69"})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            department=[Department(code="75"), Department(code="69")],
+        )
+    )
+
+
+def test_invalid_departement_returns_400(mock_offers_container, authenticated_client):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"departement": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+
+
+def test_pays_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"pays": "fra,bel"})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            country=[Country("FRA"), Country("BEL")],
+        )
+    )
+
+
+def test_invalid_pays_returns_400(mock_offers_container, authenticated_client):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"pays": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
 
 
 def test_returns_error_500(mock_offers_container, authenticated_client):
