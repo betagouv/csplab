@@ -186,9 +186,10 @@ const refusDescription = computed(() => {
       :open="isRefusDialogOpen"
       size="sm"
       title="Refus de candidature"
-      :description="refusDescription"
       @update:open="isRefusDialogOpen = $event"
     >
+      {{ refusDescription }}
+
       <template #footer>
         <div class="refus-dialog__footer">
           <CspButton
