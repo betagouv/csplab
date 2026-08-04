@@ -8,6 +8,8 @@ import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { recrutementKanbanQuery } from '@/features/candidatures/queries'
 import { peekRecrutementIntitule } from '@/features/recrutements/queries'
+import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
+import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
 
 const route = useRoute()
 const recrutementUuid = route.params.recrutementUuid as string
@@ -40,11 +42,13 @@ const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
 <template>
   <CspPageHeader
     :breadcrumb="breadcrumb"
-    title="Personnaliser les étapes de recrutement"
+    title="Personnaliser les étapes de recrutement de l'offre"
     :back-link="{ to: candidaturesRoute, label: 'Retour à l’offre' }"
   />
-  <CspPageContainer
-    fill
-    width="full"
-  />
+  <CspPageContainer width="reading">
+    <EtapesRecrutementList
+      :params="{ type: 'offre', organismeUuid: TEMP_ORGANISME_UUID, recrutementUuid }"
+      :texts="ETAPES_TEXTS_OFFRE"
+    />
+  </CspPageContainer>
 </template>

@@ -5,7 +5,9 @@ import { ref } from 'vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
+import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
+import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },
@@ -40,7 +42,10 @@ const metaItem: CspMetaItem = {
     :tabs="tabs"
   >
     <template #tab-etapes>
-      <EtapesRecrutementList />
+      <EtapesRecrutementList
+        :params="{ type: 'organisme', organismeUuid: TEMP_ORGANISME_UUID }"
+        :texts="ETAPES_TEXTS_ORGANISME"
+      />
     </template>
   </CspPageContainer>
 </template>
