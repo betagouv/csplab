@@ -2,6 +2,7 @@ from drf_spectacular.utils import extend_schema_field
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.diploma import Diploma
+from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.job_family_referential import JobFamilyReferential
 from referentiel.value_objects.language_level import LanguageLevel
@@ -261,11 +262,38 @@ class ProfessionInputSerializer(serializers.Serializer):
         choices=[e.value for e in JobFamilyReferential],
         default=JobFamilyReferential.RMFPV2.value,
     )
-    domaine = serializers.CharField(max_length=3)  # code domaine fonctionnel
+    domaine = serializers.CharField(
+        max_length=3,
+        help_text="Code domaine fonctionnel RMFP, vérifié uniquement si "
+        f"referentiel={JobFamilyReferential.RMFPV2.value}. Valeurs possibles : "
+        + ", ".join(f"{e.value} ({e.label})" for e in DomaineFonctionnel)
+        + ".",
+    )
     metier = serializers.CharField(max_length=8)
     code_emploi_local = serializers.CharField(
         max_length=50, required=False, allow_null=True
     )
+
+    def validate(self, data):
+        if data.get("referentiel") != JobFamilyReferential.RMFPV2.value:
+            return data
+
+        domaine = data.get("domaine")
+        if domaine not in {e.value for e in DomaineFonctionnel}:
+            raise serializers.ValidationError(
+                {"domaine": f"«\xa0{domaine}\xa0» n'est pas un choix valide."}
+            )
+
+        metier = data.get("metier")
+        metiers_repository = self.context.get("metiers_repository")
+        if metiers_repository is not None and not metiers_repository.get_filtered(
+            {"offer_family_code": metier}
+        ):
+            raise serializers.ValidationError(
+                {"metier": f"Code métier inconnu : {metier}."}
+            )
+
+        return data
 
 
 class DescriptionInputSerializer(serializers.Serializer):

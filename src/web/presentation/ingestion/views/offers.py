@@ -313,7 +313,10 @@ class OffersUpsertView(APIView):
         offer_mapper = OfferInputMapper()
 
         for _, offer_data in enumerate(request.data["offres"]):
-            serializer = OffersInputSerializer(data=offer_data)
+            serializer = OffersInputSerializer(
+                data=offer_data,
+                context={"metiers_repository": container.metiers_repository()},
+            )
             if not serializer.is_valid():
                 errors.append(
                     {

@@ -36,8 +36,8 @@ class PayloadOfferFactory:
             "url_offre": None,
             "url_candidature": None,
             "profession": {
-                "domaine": "INF",
-                "metier": "INF001",
+                "domaine": "NUM",
+                "metier": "ERNUM001",
                 "referentiel": "RMFPv2",
             },
             "categories": [],
