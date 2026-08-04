@@ -66,8 +66,8 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
             "region": "03",
             "departement": "14",
             "localisation_label": fake.text(max_nb_chars=500),
-            "latitude": fake.pyfloat(),
-            "longitude": fake.pyfloat(),
+            "latitude": fake.pyfloat(min_value=-90, max_value=90),
+            "longitude": fake.pyfloat(min_value=-180, max_value=180),
         },
         {
             "zone_geographique": "AM",
