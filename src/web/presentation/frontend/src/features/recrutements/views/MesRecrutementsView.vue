@@ -160,7 +160,6 @@ const countLabel = computed(() => {
           v-model:open="isFiltersDrawerOpen"
           v-model:responsable="filtersDraft.responsable"
           v-model:type-contrat="filtersDraft.typeContrat"
-          v-model:kind-contrat="filtersDraft.kindContrat"
           :responsable-options="responsableOptions"
           :can-reset="canResetFilters"
           @apply="applyFilters"
