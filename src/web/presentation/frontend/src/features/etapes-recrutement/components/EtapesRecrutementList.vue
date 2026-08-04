@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { EtapesRecrutementType } from '../composables/useEtapesRecrutement'
+import type { EtapesListeTexts } from '../constants/etape-recrutement'
 import type { EtapeRecrutement } from '../types'
 import { ref, watch } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
@@ -12,9 +14,13 @@ import CspSkeletonSortableList from '@/components/base/CspSkeleton/CspSkeletonSo
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
-import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { useEtapesRecrutement } from '../composables/useEtapesRecrutement'
 import { CATEGORIE_CONFIG } from '../constants/etape-recrutement'
+
+const props = defineProps<{
+  params: EtapesRecrutementType
+  texts: EtapesListeTexts
+}>()
 
 const {
   etapes,
@@ -28,7 +34,7 @@ const {
   renameEtape,
   removeEtape,
   resetEtapes,
-} = useEtapesRecrutement(TEMP_ORGANISME_UUID)
+} = useEtapesRecrutement(props.params)
 
 const showSkeleton = useMinimumPending(loading)
 
@@ -189,7 +195,7 @@ function getMenuSections(
     <div class="etapes-list__main">
       <header class="etapes-list__header">
         <h2 class="etapes-list__title">
-          Étapes de recrutement
+          {{ texts.title }}
         </h2>
         <div class="etapes-list__actions">
           <CspButton
@@ -266,8 +272,8 @@ function getMenuSections(
     <aside class="etapes-list__aside">
       <CspCallout
         variant="info"
-        title="Modification des étapes de recrutement"
-        description="Ce modèle d'étapes sera appliqué par défaut à tous les nouveaux recrutements. Les modifications apportées à ce modèle ne s'appliqueront qu'aux nouvelles offres."
+        :title="texts.calloutTitle"
+        :description="texts.calloutDescription"
       />
     </aside>
 
@@ -325,7 +331,7 @@ function getMenuSections(
     <CspDialog
       v-model:open="resetModalOpen"
       title="Réinitialiser les étapes"
-      description="Voulez-vous vraiment réinitialiser les étapes de recrutement ? Toutes vos personnalisations seront perdues et remplacées par la configuration par défaut."
+      :description="texts.resetDescription"
       size="sm"
     >
       <template #footer>

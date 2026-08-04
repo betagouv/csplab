@@ -1,8 +1,17 @@
 import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
-import { initEtapesRecrutement, updateEtapesRecrutement } from '../api'
-import { etapesRecrutementQuery } from '../queries'
+import {
+  initEtapesOffre,
+  initEtapesRecrutement,
+  updateEtapesOffre,
+  updateEtapesRecrutement,
+} from '../api'
+import { etapesOffreQuery, etapesRecrutementQuery } from '../queries'
+
+export type EtapesRecrutementType
+  = | { type: 'organisme', organismeUuid: string }
+    | { type: 'offre', organismeUuid: string, recrutementUuid: string }
 
 function toUpdatePayload(items: EtapeRecrutement[]): UpdateEtapeRecrutement[] {
   return items.map((etape) => {
@@ -36,9 +45,30 @@ function insertEtape(
   return [...etapes.slice(0, insertAt), nouvelle, ...etapes.slice(insertAt)]
 }
 
-export function useEtapesRecrutement(organismeUuid: string) {
+function resolveEtapesApi(params: EtapesRecrutementType) {
+  if (params.type === 'offre') {
+    const { organismeUuid, recrutementUuid } = params
+    return {
+      queryOptions: etapesOffreQuery({ organismeUuid, recrutementUuid }),
+      update: (payload: UpdateEtapeRecrutement[]) =>
+        updateEtapesOffre(organismeUuid, recrutementUuid, payload),
+      init: () => initEtapesOffre(organismeUuid, recrutementUuid),
+    }
+  }
+
+  const { organismeUuid } = params
+  return {
+    queryOptions: etapesRecrutementQuery({ organismeUuid }),
+    update: (payload: UpdateEtapeRecrutement[]) =>
+      updateEtapesRecrutement(organismeUuid, payload),
+    init: () => initEtapesRecrutement(organismeUuid),
+  }
+}
+
+export function useEtapesRecrutement(params: EtapesRecrutementType) {
   const queryCache = useQueryCache()
-  const queryOptions = etapesRecrutementQuery({ organismeUuid })
+  const etapesApi = resolveEtapesApi(params)
+  const queryOptions = etapesApi.queryOptions
   const query = useQuery(queryOptions)
 
   const etapes = computed(() => query.data.value ?? [])
@@ -48,13 +78,12 @@ export function useEtapesRecrutement(organismeUuid: string) {
   }
 
   const update = useMutation({
-    mutation: (payload: UpdateEtapeRecrutement[]) =>
-      updateEtapesRecrutement(organismeUuid, payload),
+    mutation: (payload: UpdateEtapeRecrutement[]) => etapesApi.update(payload),
     onSuccess: applyFreshEtapes,
   })
 
   const init = useMutation({
-    mutation: () => initEtapesRecrutement(organismeUuid),
+    mutation: () => etapesApi.init(),
     onSuccess: applyFreshEtapes,
   })
 

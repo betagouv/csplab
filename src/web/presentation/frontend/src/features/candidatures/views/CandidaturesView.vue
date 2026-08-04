@@ -2,8 +2,9 @@
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
 import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
@@ -18,6 +19,7 @@ import { useCandidatures } from '../composables/useCandidatures'
 import { formatRecrutementMeta } from '../format'
 
 const route = useRoute()
+const router = useRouter()
 const recrutementUuid = route.params.recrutementUuid as string
 
 const {
@@ -81,6 +83,17 @@ const currentView = computed(() => {
   return route.name === 'recrutement-candidatures-kanban' ? 'kanban' : 'liste'
 })
 
+const headerMenuSections = [{
+  items: [{
+    label: 'Personnaliser les étapes de recrutement',
+    icon: 'ri:table-line',
+    onSelect: () => router.push({
+      name: 'recrutement-etapes-recrutement',
+      params: { recrutementUuid },
+    }),
+  }],
+}]
+
 const TABS: CspTabItem[] = [
   { value: 'candidatures', label: 'Candidatures' },
   { value: 'activites-et-taches', label: 'Activités et tâches' },
@@ -96,6 +109,22 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
     :show-title-skeleton="showTitleSkeleton"
     :show-subtitle-skeleton="showSubtitleSkeleton"
   >
+    <template #actions>
+      <CspDropdownMenu
+        :sections="headerMenuSections"
+        side="bottom"
+        align="end"
+      >
+        <template #trigger>
+          <CspButton
+            icon="ri:more-fill"
+            variant="tertiary"
+            size="sm"
+            aria-label="Actions sur l’offre"
+          />
+        </template>
+      </CspDropdownMenu>
+    </template>
     <template #subtitle>
       <CspMetaList :items="metaItems" />
     </template>
