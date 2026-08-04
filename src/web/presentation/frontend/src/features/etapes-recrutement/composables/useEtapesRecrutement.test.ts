@@ -1,4 +1,5 @@
 import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../types'
+import type { EtapesRecrutementType } from './useEtapesRecrutement'
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
@@ -7,15 +8,22 @@ import { defineComponent, h } from 'vue'
 import { useEtapesRecrutement } from './useEtapesRecrutement'
 
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000001'
+const RECRUTEMENT_UUID = '00000000-0000-0000-0000-000000000002'
 
 const mockGetEtapesRecrutement = vi.fn()
 const mockUpdateEtapesRecrutement = vi.fn()
 const mockInitEtapesRecrutement = vi.fn()
+const mockGetEtapesOffre = vi.fn()
+const mockUpdateEtapesOffre = vi.fn()
+const mockInitEtapesOffre = vi.fn()
 
 vi.mock('../api', () => ({
   getEtapesRecrutement: (...args: unknown[]) => mockGetEtapesRecrutement(...args),
   updateEtapesRecrutement: (...args: unknown[]) => mockUpdateEtapesRecrutement(...args),
   initEtapesRecrutement: (...args: unknown[]) => mockInitEtapesRecrutement(...args),
+  getEtapesOffre: (...args: unknown[]) => mockGetEtapesOffre(...args),
+  updateEtapesOffre: (...args: unknown[]) => mockUpdateEtapesOffre(...args),
+  initEtapesOffre: (...args: unknown[]) => mockInitEtapesOffre(...args),
 }))
 
 const DEFAULT_ETAPES: EtapeRecrutement[] = [
@@ -26,12 +34,14 @@ const DEFAULT_ETAPES: EtapeRecrutement[] = [
   { etape_uuid: 'eeee', nom: 'Recrutement', categorie: 'ACCEPTE' },
 ]
 
-async function mountEtapes() {
+async function mountEtapes(
+  params: EtapesRecrutementType = { type: 'organisme', organismeUuid: ORGANISME_UUID },
+) {
   let result!: ReturnType<typeof useEtapesRecrutement>
 
   mount(defineComponent({
     setup() {
-      result = useEtapesRecrutement(ORGANISME_UUID)
+      result = useEtapesRecrutement(params)
       return () => h('div')
     },
   }), {
@@ -156,5 +166,49 @@ describe('useEtapesRecrutement', () => {
     const payload = lastUpdatePayload()
     expect(payload).toHaveLength(etapesSansFinales.length + 1)
     expect(payload.at(-1)).toEqual({ nom: 'Test technique', categorie: 'EN_COURS' })
+  })
+})
+
+describe('useEtapesRecrutement — type offre', () => {
+  const PARAMS_OFFRE: EtapesRecrutementType = {
+    type: 'offre',
+    organismeUuid: ORGANISME_UUID,
+    recrutementUuid: RECRUTEMENT_UUID,
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockGetEtapesOffre.mockResolvedValue(DEFAULT_ETAPES)
+    mockUpdateEtapesOffre.mockResolvedValue(DEFAULT_ETAPES)
+  })
+
+  it('loads etapes from the offre endpoint', async () => {
+    const { etapes } = await mountEtapes(PARAMS_OFFRE)
+
+    expect(mockGetEtapesOffre).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID)
+    expect(mockGetEtapesRecrutement).not.toHaveBeenCalled()
+    expect(etapes.value).toEqual(DEFAULT_ETAPES)
+  })
+
+  it('persists changes on the offre endpoint', async () => {
+    const { renameEtape } = await mountEtapes(PARAMS_OFFRE)
+    await renameEtape('bbbb', 'Présélection RH')
+
+    const [organismeUuid, recrutementUuid, payload] = mockUpdateEtapesOffre.mock.calls[0]!
+    expect(organismeUuid).toBe(ORGANISME_UUID)
+    expect(recrutementUuid).toBe(RECRUTEMENT_UUID)
+    expect((payload as UpdateEtapeRecrutement[]).find(p => p.etape_uuid === 'bbbb')?.nom)
+      .toBe('Présélection RH')
+    expect(mockUpdateEtapesRecrutement).not.toHaveBeenCalled()
+  })
+
+  it('resets etapes on the offre endpoint', async () => {
+    mockInitEtapesOffre.mockResolvedValue(DEFAULT_ETAPES)
+
+    const { etapes, resetEtapes } = await mountEtapes(PARAMS_OFFRE)
+    await resetEtapes()
+
+    expect(mockInitEtapesOffre).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID)
+    expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
 })

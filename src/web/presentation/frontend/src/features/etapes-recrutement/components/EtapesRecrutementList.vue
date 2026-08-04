@@ -28,7 +28,7 @@ const {
   renameEtape,
   removeEtape,
   resetEtapes,
-} = useEtapesRecrutement(TEMP_ORGANISME_UUID)
+} = useEtapesRecrutement({ type: 'organisme', organismeUuid: TEMP_ORGANISME_UUID })
 
 const showSkeleton = useMinimumPending(loading)
 
