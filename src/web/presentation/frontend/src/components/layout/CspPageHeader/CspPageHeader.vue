@@ -154,6 +154,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 .csp-page-header__actions {
   display: flex;
   align-items: center;
+  align-self: flex-start;
   gap: 0.5rem;
   flex-shrink: 0;
 }

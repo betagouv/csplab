@@ -46,6 +46,7 @@ import riMapPin2Line from '@iconify-icons/ri/map-pin-2-line'
 import riMenuLine from '@iconify-icons/ri/menu-line'
 import riMoonLine from '@iconify-icons/ri/moon-line'
 import riMore2Fill from '@iconify-icons/ri/more-2-fill'
+import riMoreFill from '@iconify-icons/ri/more-fill'
 import riNotification3Line from '@iconify-icons/ri/notification-3-line'
 import riPriceTag3Line from '@iconify-icons/ri/price-tag-3-line'
 import riPushpin2Line from '@iconify-icons/ri/pushpin-2-line'
@@ -119,6 +120,7 @@ addIcon('ri:sidebar-unfold-line', {
   body: '<path fill="currentColor" d="M5 5h8v14H5zm14 14h-4V5h4zM4 3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zm7 9L7 8.5v7z"/>',
 })
 addIcon('ri:more-2-fill', riMore2Fill)
+addIcon('ri:more-fill', riMoreFill)
 addIcon('ri:notification-3-line', riNotification3Line)
 addIcon('ri:price-tag-3-line', riPriceTag3Line)
 addIcon('ri:progress-4-line', {

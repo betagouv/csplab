@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { candidaturesRoutes } from '@/features/candidatures/routes'
+import { etapesRecrutementRoutes } from '@/features/etapes-recrutement/routes'
 import { recrutementsRoutes } from '@/features/recrutements/routes'
 
 const appRoutes: RouteRecordRaw[] = [
@@ -15,4 +16,9 @@ const appRoutes: RouteRecordRaw[] = [
   },
 ]
 
-export const routes: RouteRecordRaw[] = [...appRoutes, ...recrutementsRoutes, ...candidaturesRoutes]
+export const routes: RouteRecordRaw[] = [
+  ...appRoutes,
+  ...recrutementsRoutes,
+  ...candidaturesRoutes,
+  ...etapesRecrutementRoutes,
+]
