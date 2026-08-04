@@ -1793,6 +1793,19 @@ components:
           default: RMFPv2
         domaine:
           type: string
+          description: 'Code domaine fonctionnel RMFP, vérifié uniquement si referentiel=RMFPv2.
+            Valeurs possibles : ACH (Achat), AGR (Agriculture), AMT (Aménagement et
+            développement durable du territoire), ASP (Animation, jeunesse et sports),
+            BAT (Bâtiment), COM (Communication), CTL (Organisation, contrôle et évaluation),
+            CUL (Culture et Patrimoine), DEF (Défense), DIR (Direction et pilotage
+            des politiques publiques), DOC (Lecture publique et Documentation), ENS
+            (Enseignement et Formation), ENV (Environnement), FIP (Finances publiques),
+            GBF (Gestion budgétaire et financière), GRH (Ressources humaines), INT
+            (International), JUR (Affaires juridiques), JUS (Justice), LOG (Interventions
+            techniques et logistiques), MED (Médical et paramédical), NUM (Numérique),
+            RCH (Recherche), REN (Renseignement), SAN (Prévention, conseil et pilotage
+            en santé), SEC (Sécurité), SOC (Social, enfance et famille), TRA (Transports),
+            USA (Relation à l''usager).'
           maxLength: 3
         metier:
           type: string

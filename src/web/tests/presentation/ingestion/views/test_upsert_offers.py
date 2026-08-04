@@ -330,6 +330,32 @@ def test_mixed_valid_invalid_offers_in_payload(
     ]
 
 
+def test_unknown_metier_returns_error_in_payload(
+    authenticated_client_with_source, use_case, mock_offers_container
+):
+    mock_offers_container.metiers_repository.return_value.get_filtered.return_value = []
+
+    use_case.execute.return_value = {"created": 0, "updated": 0, "errors": []}
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    errors = response.json()["errors"]
+    assert errors == [
+        {
+            "offer": {"reference": "REF-001", "versant": "FPT"},
+            "error": {
+                "profession": {
+                    "metier": ["Code métier inconnu : ERNUM001."],
+                }
+            },
+        }
+    ]
+
+
 def test_returns_error_500(authenticated_client_with_source, use_case):
     use_case.execute.side_effect = Exception("db error")
 
