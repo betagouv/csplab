@@ -13,6 +13,7 @@ import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContai
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
+import { recrutementsListLocation } from '@/features/recrutements/routes'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
 import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
 import { useCandidatures } from '../composables/useCandidatures'
@@ -61,11 +62,13 @@ function applyFilters() {
   closeFiltersDrawer()
 }
 
+const recrutementsListLink = recrutementsListLocation(router.options.history.state)
+
 const title = computed(() => intitule.value ?? 'Candidatures')
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
   { label: 'Accueil', to: { name: 'home' } },
-  { label: 'Mes recrutements', to: { name: 'mes-recrutements' } },
+  { label: 'Mes recrutements', to: recrutementsListLink },
   ...(intitule.value ? [{ label: intitule.value }] : []),
 ])
 
@@ -105,7 +108,7 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
   <CspPageHeader
     :breadcrumb="breadcrumb"
     :title="title"
-    :back-link="{ to: { name: 'mes-recrutements' }, label: 'Retour à mes recrutements' }"
+    :back-link="{ to: recrutementsListLink, label: 'Retour à mes recrutements' }"
     :show-title-skeleton="showTitleSkeleton"
     :show-subtitle-skeleton="showSubtitleSkeleton"
   >

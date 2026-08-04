@@ -12,13 +12,13 @@ describe('recrutements tab routes', () => {
   it('maps /mes-recrutements to the actifs tab', () => {
     const route = resolve('/mes-recrutements')
     expect(route.name).toBe('mes-recrutements')
-    expect(route.meta.recrutementTab).toBe('actifs')
+    expect(route.meta.tab).toBe('actifs')
   })
 
   it('maps /mes-recrutements/archives to the archives tab', () => {
     const route = resolve('/mes-recrutements/archives')
     expect(route.name).toBe('mes-recrutements-archives')
-    expect(route.meta.recrutementTab).toBe('archives')
+    expect(route.meta.tab).toBe('archives')
   })
 
   it('prefers the archives tab over the recrutement detail route', () => {
