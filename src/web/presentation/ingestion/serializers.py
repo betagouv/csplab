@@ -158,6 +158,26 @@ class ListOffersFiltersSerializer(serializers.Serializer):
         help_text="Valeurs séparées par une virgule (ex. `SUR_SITE,TELETRAVAIL`).",
         source="working_place",
     )
+    region = _CommaSeparatedCodeField(
+        Region.VALID_CODES,
+        "région",
+        lambda code: Region(code=code),
+        help_text="Valeurs séparées par une virgule (ex. `11,84`).",
+    )
+    departement = _CommaSeparatedCodeField(
+        Department.VALID_CODES,
+        "département",
+        lambda code: Department(code=code),
+        help_text="Valeurs séparées par une virgule (ex. `75,69`).",
+        source="department",
+    )
+    pays = _CommaSeparatedCodeField(
+        COUNTRY_CODES,
+        "pays",
+        Country,
+        help_text="Valeurs séparées par une virgule (ex. `FRA,BEL`).",
+        source="country",
+    )
 
 
 class OfferSummariesQuerySerializer(serializers.Serializer):

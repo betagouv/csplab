@@ -388,6 +388,9 @@ paths:
         - `versant` — un ou plusieurs versants (ex. `FPE,FPT`)
         - `type_contrat` — un ou plusieurs types de contrat (ex. `TITULAIRE_CONTRACTUEL`)
         - `niveau_experience` — un ou plusieurs niveaux d'expérience (ex. `DEBUTANT,EXPERT`)
+        - `region` — un ou plusieurs codes région (ex. `11,84`)
+        - `departement` — un ou plusieurs codes département (ex. `75,69`)
+        - `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
 
         Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
         virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.
@@ -427,6 +430,229 @@ paths:
               * `B` - B
               * `C` - C
         description: Valeurs séparées par une virgule (ex. `A,B`).
+      - in: query
+        name: departement
+        schema:
+          type: array
+          items:
+            enum:
+            - '01'
+            - '02'
+            - '03'
+            - '04'
+            - '05'
+            - '06'
+            - '07'
+            - 08
+            - 09
+            - '10'
+            - '11'
+            - '12'
+            - '13'
+            - '14'
+            - '15'
+            - '16'
+            - '17'
+            - '18'
+            - '19'
+            - '21'
+            - '22'
+            - '23'
+            - '24'
+            - '25'
+            - '26'
+            - '27'
+            - '28'
+            - '29'
+            - 2A
+            - 2B
+            - '30'
+            - '31'
+            - '32'
+            - '33'
+            - '34'
+            - '35'
+            - '36'
+            - '37'
+            - '38'
+            - '39'
+            - '40'
+            - '41'
+            - '42'
+            - '43'
+            - '44'
+            - '45'
+            - '46'
+            - '47'
+            - '48'
+            - '49'
+            - '50'
+            - '51'
+            - '52'
+            - '53'
+            - '54'
+            - '55'
+            - '56'
+            - '57'
+            - '58'
+            - '59'
+            - '60'
+            - '61'
+            - '62'
+            - '63'
+            - '64'
+            - '65'
+            - '66'
+            - '67'
+            - '68'
+            - '69'
+            - '70'
+            - '71'
+            - '72'
+            - '73'
+            - '74'
+            - '75'
+            - '76'
+            - '77'
+            - '78'
+            - '79'
+            - '80'
+            - '81'
+            - '82'
+            - '83'
+            - '84'
+            - '85'
+            - '86'
+            - '87'
+            - '88'
+            - '89'
+            - '90'
+            - '91'
+            - '92'
+            - '93'
+            - '94'
+            - '95'
+            - '971'
+            - '972'
+            - '973'
+            - '974'
+            - '975'
+            - '976'
+            - '986'
+            - '987'
+            - '988'
+            - SPM
+            - WLF
+            type: string
+            description: |-
+              * `01` - 01
+              * `02` - 02
+              * `03` - 03
+              * `04` - 04
+              * `05` - 05
+              * `06` - 06
+              * `07` - 07
+              * `08` - 08
+              * `09` - 09
+              * `10` - 10
+              * `11` - 11
+              * `12` - 12
+              * `13` - 13
+              * `14` - 14
+              * `15` - 15
+              * `16` - 16
+              * `17` - 17
+              * `18` - 18
+              * `19` - 19
+              * `21` - 21
+              * `22` - 22
+              * `23` - 23
+              * `24` - 24
+              * `25` - 25
+              * `26` - 26
+              * `27` - 27
+              * `28` - 28
+              * `29` - 29
+              * `2A` - 2A
+              * `2B` - 2B
+              * `30` - 30
+              * `31` - 31
+              * `32` - 32
+              * `33` - 33
+              * `34` - 34
+              * `35` - 35
+              * `36` - 36
+              * `37` - 37
+              * `38` - 38
+              * `39` - 39
+              * `40` - 40
+              * `41` - 41
+              * `42` - 42
+              * `43` - 43
+              * `44` - 44
+              * `45` - 45
+              * `46` - 46
+              * `47` - 47
+              * `48` - 48
+              * `49` - 49
+              * `50` - 50
+              * `51` - 51
+              * `52` - 52
+              * `53` - 53
+              * `54` - 54
+              * `55` - 55
+              * `56` - 56
+              * `57` - 57
+              * `58` - 58
+              * `59` - 59
+              * `60` - 60
+              * `61` - 61
+              * `62` - 62
+              * `63` - 63
+              * `64` - 64
+              * `65` - 65
+              * `66` - 66
+              * `67` - 67
+              * `68` - 68
+              * `69` - 69
+              * `70` - 70
+              * `71` - 71
+              * `72` - 72
+              * `73` - 73
+              * `74` - 74
+              * `75` - 75
+              * `76` - 76
+              * `77` - 77
+              * `78` - 78
+              * `79` - 79
+              * `80` - 80
+              * `81` - 81
+              * `82` - 82
+              * `83` - 83
+              * `84` - 84
+              * `85` - 85
+              * `86` - 86
+              * `87` - 87
+              * `88` - 88
+              * `89` - 89
+              * `90` - 90
+              * `91` - 91
+              * `92` - 92
+              * `93` - 93
+              * `94` - 94
+              * `95` - 95
+              * `971` - 971
+              * `972` - 972
+              * `973` - 973
+              * `974` - 974
+              * `975` - 975
+              * `976` - 976
+              * `986` - 986
+              * `987` - 987
+              * `988` - 988
+              * `SPM` - SPM
+              * `WLF` - WLF
+        description: Valeurs séparées par une virgule (ex. `75,69`).
       - in: query
         name: lieu_de_travail
         schema:
@@ -478,6 +704,562 @@ paths:
           type: integer
           default: 1
           minimum: 1
+      - in: query
+        name: pays
+        schema:
+          type: array
+          items:
+            enum:
+            - ABW
+            - AFG
+            - AGO
+            - AIA
+            - ALA
+            - ALB
+            - AND
+            - ARE
+            - ARG
+            - ARM
+            - ASM
+            - ATA
+            - ATF
+            - ATG
+            - AUS
+            - AUT
+            - AZE
+            - BDI
+            - BEL
+            - BEN
+            - BES
+            - BFA
+            - BGD
+            - BGR
+            - BHR
+            - BHS
+            - BIH
+            - BLM
+            - BLR
+            - BLZ
+            - BMU
+            - BOL
+            - BRA
+            - BRB
+            - BRN
+            - BTN
+            - BVT
+            - BWA
+            - CAF
+            - CAN
+            - CCK
+            - CHE
+            - CHL
+            - CHN
+            - CIV
+            - CMR
+            - COD
+            - COG
+            - COK
+            - COL
+            - COM
+            - CPV
+            - CRI
+            - CUB
+            - CUW
+            - CXR
+            - CYM
+            - CYP
+            - CZE
+            - DEU
+            - DJI
+            - DMA
+            - DNK
+            - DOM
+            - DZA
+            - ECU
+            - EGY
+            - ERI
+            - ESH
+            - ESP
+            - EST
+            - ETH
+            - FIN
+            - FJI
+            - FLK
+            - FRA
+            - FRO
+            - FSM
+            - GAB
+            - GBR
+            - GEO
+            - GGY
+            - GHA
+            - GIB
+            - GIN
+            - GLP
+            - GMB
+            - GNB
+            - GNQ
+            - GRC
+            - GRD
+            - GRL
+            - GTM
+            - GUF
+            - GUM
+            - GUY
+            - HKG
+            - HMD
+            - HND
+            - HRV
+            - HTI
+            - HUN
+            - IDN
+            - IMN
+            - IND
+            - IOT
+            - IRL
+            - IRN
+            - IRQ
+            - ISL
+            - ISR
+            - ITA
+            - JAM
+            - JEY
+            - JOR
+            - JPN
+            - KAZ
+            - KEN
+            - KGZ
+            - KHM
+            - KIR
+            - KNA
+            - KOR
+            - KWT
+            - LAO
+            - LBN
+            - LBR
+            - LBY
+            - LCA
+            - LIE
+            - LKA
+            - LSO
+            - LTU
+            - LUX
+            - LVA
+            - MAC
+            - MAF
+            - MAR
+            - MCO
+            - MDA
+            - MDG
+            - MDV
+            - MEX
+            - MHL
+            - MKD
+            - MLI
+            - MLT
+            - MMR
+            - MNE
+            - MNG
+            - MNP
+            - MOZ
+            - MRT
+            - MSR
+            - MTQ
+            - MUS
+            - MWI
+            - MYS
+            - MYT
+            - NAM
+            - NCL
+            - NER
+            - NFK
+            - NGA
+            - NIC
+            - NIU
+            - NLD
+            - NOR
+            - NPL
+            - NRU
+            - NZL
+            - OMN
+            - PAK
+            - PAN
+            - PCN
+            - PER
+            - PHL
+            - PLW
+            - PNG
+            - POL
+            - PRI
+            - PRK
+            - PRT
+            - PRY
+            - PSE
+            - PYF
+            - QAT
+            - REU
+            - ROU
+            - RUS
+            - RWA
+            - SAU
+            - SDN
+            - SEN
+            - SGP
+            - SGS
+            - SHN
+            - SJM
+            - SLB
+            - SLE
+            - SLV
+            - SMR
+            - SOM
+            - SPM
+            - SRB
+            - SSD
+            - STP
+            - SUR
+            - SVK
+            - SVN
+            - SWE
+            - SWZ
+            - SXM
+            - SYC
+            - SYR
+            - TCA
+            - TCD
+            - TGO
+            - THA
+            - TJK
+            - TKL
+            - TKM
+            - TLS
+            - TON
+            - TTO
+            - TUN
+            - TUR
+            - TUV
+            - TWN
+            - TZA
+            - UGA
+            - UKR
+            - UMI
+            - URY
+            - USA
+            - UZB
+            - VAT
+            - VCT
+            - VEN
+            - VGB
+            - VIR
+            - VNM
+            - VUT
+            - WLF
+            - WSM
+            - YEM
+            - ZAF
+            - ZMB
+            - ZWE
+            type: string
+            description: |-
+              * `ABW` - ABW
+              * `AFG` - AFG
+              * `AGO` - AGO
+              * `AIA` - AIA
+              * `ALA` - ALA
+              * `ALB` - ALB
+              * `AND` - AND
+              * `ARE` - ARE
+              * `ARG` - ARG
+              * `ARM` - ARM
+              * `ASM` - ASM
+              * `ATA` - ATA
+              * `ATF` - ATF
+              * `ATG` - ATG
+              * `AUS` - AUS
+              * `AUT` - AUT
+              * `AZE` - AZE
+              * `BDI` - BDI
+              * `BEL` - BEL
+              * `BEN` - BEN
+              * `BES` - BES
+              * `BFA` - BFA
+              * `BGD` - BGD
+              * `BGR` - BGR
+              * `BHR` - BHR
+              * `BHS` - BHS
+              * `BIH` - BIH
+              * `BLM` - BLM
+              * `BLR` - BLR
+              * `BLZ` - BLZ
+              * `BMU` - BMU
+              * `BOL` - BOL
+              * `BRA` - BRA
+              * `BRB` - BRB
+              * `BRN` - BRN
+              * `BTN` - BTN
+              * `BVT` - BVT
+              * `BWA` - BWA
+              * `CAF` - CAF
+              * `CAN` - CAN
+              * `CCK` - CCK
+              * `CHE` - CHE
+              * `CHL` - CHL
+              * `CHN` - CHN
+              * `CIV` - CIV
+              * `CMR` - CMR
+              * `COD` - COD
+              * `COG` - COG
+              * `COK` - COK
+              * `COL` - COL
+              * `COM` - COM
+              * `CPV` - CPV
+              * `CRI` - CRI
+              * `CUB` - CUB
+              * `CUW` - CUW
+              * `CXR` - CXR
+              * `CYM` - CYM
+              * `CYP` - CYP
+              * `CZE` - CZE
+              * `DEU` - DEU
+              * `DJI` - DJI
+              * `DMA` - DMA
+              * `DNK` - DNK
+              * `DOM` - DOM
+              * `DZA` - DZA
+              * `ECU` - ECU
+              * `EGY` - EGY
+              * `ERI` - ERI
+              * `ESH` - ESH
+              * `ESP` - ESP
+              * `EST` - EST
+              * `ETH` - ETH
+              * `FIN` - FIN
+              * `FJI` - FJI
+              * `FLK` - FLK
+              * `FRA` - FRA
+              * `FRO` - FRO
+              * `FSM` - FSM
+              * `GAB` - GAB
+              * `GBR` - GBR
+              * `GEO` - GEO
+              * `GGY` - GGY
+              * `GHA` - GHA
+              * `GIB` - GIB
+              * `GIN` - GIN
+              * `GLP` - GLP
+              * `GMB` - GMB
+              * `GNB` - GNB
+              * `GNQ` - GNQ
+              * `GRC` - GRC
+              * `GRD` - GRD
+              * `GRL` - GRL
+              * `GTM` - GTM
+              * `GUF` - GUF
+              * `GUM` - GUM
+              * `GUY` - GUY
+              * `HKG` - HKG
+              * `HMD` - HMD
+              * `HND` - HND
+              * `HRV` - HRV
+              * `HTI` - HTI
+              * `HUN` - HUN
+              * `IDN` - IDN
+              * `IMN` - IMN
+              * `IND` - IND
+              * `IOT` - IOT
+              * `IRL` - IRL
+              * `IRN` - IRN
+              * `IRQ` - IRQ
+              * `ISL` - ISL
+              * `ISR` - ISR
+              * `ITA` - ITA
+              * `JAM` - JAM
+              * `JEY` - JEY
+              * `JOR` - JOR
+              * `JPN` - JPN
+              * `KAZ` - KAZ
+              * `KEN` - KEN
+              * `KGZ` - KGZ
+              * `KHM` - KHM
+              * `KIR` - KIR
+              * `KNA` - KNA
+              * `KOR` - KOR
+              * `KWT` - KWT
+              * `LAO` - LAO
+              * `LBN` - LBN
+              * `LBR` - LBR
+              * `LBY` - LBY
+              * `LCA` - LCA
+              * `LIE` - LIE
+              * `LKA` - LKA
+              * `LSO` - LSO
+              * `LTU` - LTU
+              * `LUX` - LUX
+              * `LVA` - LVA
+              * `MAC` - MAC
+              * `MAF` - MAF
+              * `MAR` - MAR
+              * `MCO` - MCO
+              * `MDA` - MDA
+              * `MDG` - MDG
+              * `MDV` - MDV
+              * `MEX` - MEX
+              * `MHL` - MHL
+              * `MKD` - MKD
+              * `MLI` - MLI
+              * `MLT` - MLT
+              * `MMR` - MMR
+              * `MNE` - MNE
+              * `MNG` - MNG
+              * `MNP` - MNP
+              * `MOZ` - MOZ
+              * `MRT` - MRT
+              * `MSR` - MSR
+              * `MTQ` - MTQ
+              * `MUS` - MUS
+              * `MWI` - MWI
+              * `MYS` - MYS
+              * `MYT` - MYT
+              * `NAM` - NAM
+              * `NCL` - NCL
+              * `NER` - NER
+              * `NFK` - NFK
+              * `NGA` - NGA
+              * `NIC` - NIC
+              * `NIU` - NIU
+              * `NLD` - NLD
+              * `NOR` - NOR
+              * `NPL` - NPL
+              * `NRU` - NRU
+              * `NZL` - NZL
+              * `OMN` - OMN
+              * `PAK` - PAK
+              * `PAN` - PAN
+              * `PCN` - PCN
+              * `PER` - PER
+              * `PHL` - PHL
+              * `PLW` - PLW
+              * `PNG` - PNG
+              * `POL` - POL
+              * `PRI` - PRI
+              * `PRK` - PRK
+              * `PRT` - PRT
+              * `PRY` - PRY
+              * `PSE` - PSE
+              * `PYF` - PYF
+              * `QAT` - QAT
+              * `REU` - REU
+              * `ROU` - ROU
+              * `RUS` - RUS
+              * `RWA` - RWA
+              * `SAU` - SAU
+              * `SDN` - SDN
+              * `SEN` - SEN
+              * `SGP` - SGP
+              * `SGS` - SGS
+              * `SHN` - SHN
+              * `SJM` - SJM
+              * `SLB` - SLB
+              * `SLE` - SLE
+              * `SLV` - SLV
+              * `SMR` - SMR
+              * `SOM` - SOM
+              * `SPM` - SPM
+              * `SRB` - SRB
+              * `SSD` - SSD
+              * `STP` - STP
+              * `SUR` - SUR
+              * `SVK` - SVK
+              * `SVN` - SVN
+              * `SWE` - SWE
+              * `SWZ` - SWZ
+              * `SXM` - SXM
+              * `SYC` - SYC
+              * `SYR` - SYR
+              * `TCA` - TCA
+              * `TCD` - TCD
+              * `TGO` - TGO
+              * `THA` - THA
+              * `TJK` - TJK
+              * `TKL` - TKL
+              * `TKM` - TKM
+              * `TLS` - TLS
+              * `TON` - TON
+              * `TTO` - TTO
+              * `TUN` - TUN
+              * `TUR` - TUR
+              * `TUV` - TUV
+              * `TWN` - TWN
+              * `TZA` - TZA
+              * `UGA` - UGA
+              * `UKR` - UKR
+              * `UMI` - UMI
+              * `URY` - URY
+              * `USA` - USA
+              * `UZB` - UZB
+              * `VAT` - VAT
+              * `VCT` - VCT
+              * `VEN` - VEN
+              * `VGB` - VGB
+              * `VIR` - VIR
+              * `VNM` - VNM
+              * `VUT` - VUT
+              * `WLF` - WLF
+              * `WSM` - WSM
+              * `YEM` - YEM
+              * `ZAF` - ZAF
+              * `ZMB` - ZMB
+              * `ZWE` - ZWE
+        description: Valeurs séparées par une virgule (ex. `FRA,BEL`).
+      - in: query
+        name: region
+        schema:
+          type: array
+          items:
+            enum:
+            - '01'
+            - '02'
+            - '03'
+            - '04'
+            - '06'
+            - '11'
+            - '24'
+            - '27'
+            - '28'
+            - '32'
+            - '44'
+            - '52'
+            - '53'
+            - '75'
+            - '76'
+            - '84'
+            - '93'
+            - '94'
+            - DOM
+            - TOM
+            type: string
+            description: |-
+              * `01` - 01
+              * `02` - 02
+              * `03` - 03
+              * `04` - 04
+              * `06` - 06
+              * `11` - 11
+              * `24` - 24
+              * `27` - 27
+              * `28` - 28
+              * `32` - 32
+              * `44` - 44
+              * `52` - 52
+              * `53` - 53
+              * `75` - 75
+              * `76` - 76
+              * `84` - 84
+              * `93` - 93
+              * `94` - 94
+              * `DOM` - DOM
+              * `TOM` - TOM
+        description: Valeurs séparées par une virgule (ex. `11,84`).
       - name: taille
         required: false
         in: query

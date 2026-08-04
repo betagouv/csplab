@@ -272,6 +272,9 @@ critères suivants :
 - `versant` — un ou plusieurs versants (ex. `FPE,FPT`)
 - `type_contrat` — un ou plusieurs types de contrat (ex. `TITULAIRE_CONTRACTUEL`)
 - `niveau_experience` — un ou plusieurs niveaux d'expérience (ex. `DEBUTANT,EXPERT`)
+- `region` — un ou plusieurs codes région (ex. `11,84`)
+- `departement` — un ou plusieurs codes département (ex. `75,69`)
+- `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
 
 Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
 virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.
