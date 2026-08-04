@@ -23,11 +23,7 @@ import RecrutementsFiltersDrawer from '../components/RecrutementsFiltersDrawer.v
 import { useRecrutements } from '../composables/useRecrutements'
 
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
-import {
-  DEFAULT_RECRUTEMENT_TAB,
-  isRecrutementKey,
-  RECRUTEMENTS_TAB_ROUTE_NAMES,
-} from '../routes'
+import { DEFAULT_RECRUTEMENT_TAB, RECRUTEMENTS_TAB_ROUTE_NAMES } from '../routes'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },
@@ -37,16 +33,14 @@ const BREADCRUMB: CspBreadcrumbItem[] = [
 const route = useRoute()
 const router = useRouter()
 
-const activeTab = computed<RecrutementKey, string>({
+const activeTab = computed<RecrutementKey>({
   get: () => route.meta.recrutementTab ?? DEFAULT_RECRUTEMENT_TAB,
   set: (tab) => {
-    if (isRecrutementKey(tab)) {
-      void router.push({ name: RECRUTEMENTS_TAB_ROUTE_NAMES[tab] })
-    }
+    void router.push({ name: RECRUTEMENTS_TAB_ROUTE_NAMES[tab] })
   },
 })
 
-const TABS: CspTabItem[] = [
+const TABS: CspTabItem<RecrutementKey>[] = [
   { value: 'actifs', label: 'Recrutements en cours' },
   { value: 'archives', label: 'Offres archivées' },
 ]

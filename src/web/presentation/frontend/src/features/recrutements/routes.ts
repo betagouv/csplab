@@ -14,10 +14,6 @@ export const RECRUTEMENTS_TAB_ROUTE_NAMES = {
 
 export const DEFAULT_RECRUTEMENT_TAB: RecrutementKey = 'actifs'
 
-export function isRecrutementKey(value: string): value is RecrutementKey {
-  return Object.hasOwn(RECRUTEMENTS_TAB_ROUTE_NAMES, value)
-}
-
 export const recrutementsRoutes: RouteRecordRaw[] = [
   {
     path: '/mes-recrutements',

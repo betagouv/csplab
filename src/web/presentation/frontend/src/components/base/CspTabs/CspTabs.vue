@@ -1,25 +1,25 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends string = string">
 import { TabsRoot } from 'reka-ui'
 import CspTabsList from './CspTabsList.vue'
 import CspTabsPanels from './CspTabsPanels.vue'
 
-export interface CspTabItem {
-  value: string
+export interface CspTabItem<V extends string = string> {
+  value: V
   label: string
   icon?: string
   disabled?: boolean
 }
 
-export interface CspTabsProps {
+export interface CspTabsProps<V extends string = string> {
   /** When omitted, compose CspTabsList and CspTabsPanels in the default slot. */
-  tabs?: CspTabItem[]
-  defaultValue?: string
+  tabs?: CspTabItem<V>[]
+  defaultValue?: V
   orientation?: 'horizontal' | 'vertical'
   activationMode?: 'automatic' | 'manual'
   fill?: boolean
 }
 
-withDefaults(defineProps<CspTabsProps>(), {
+withDefaults(defineProps<CspTabsProps<T>>(), {
   tabs: undefined,
   defaultValue: undefined,
   orientation: 'horizontal',
@@ -27,7 +27,7 @@ withDefaults(defineProps<CspTabsProps>(), {
   fill: false,
 })
 
-const model = defineModel<string>()
+const model = defineModel<T>()
 </script>
 
 <template>
