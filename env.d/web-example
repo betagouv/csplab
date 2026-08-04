@@ -18,6 +18,9 @@ WEB_DATABASE_URL=psql://web:pass@localhost:5432/web
 
 #redis
 WEB_REDIS_URL=redis://localhost:6379/0
+# DB used for Django's cache (API throttling), distinct from the Huey queue DB above (0)
+# and from the ingestion service's Celery broker DB (1) on the same shared Redis instance
+WEB_REDIS_CACHE_DB=2
 
 # Third-party integrations
 

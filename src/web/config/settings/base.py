@@ -45,6 +45,7 @@ env = environ.Env(
     WEB_QDRANT_API_KEY=(str, ""),
     WEB_REDIS_URL=(str, "redis://localhost:6379"),
     WEB_REDIS_DB=(str, "0"),
+    WEB_REDIS_CACHE_DB=(str, "2"),
     WEB_ROBOTS_INDEXING=(bool, True),
 )
 env.prefix = "WEB_"
@@ -393,6 +394,15 @@ if _sentry_dsn:
         traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE"),
         profiles_sample_rate=env.float("SENTRY_PROFILES_SAMPLE_RATE"),
     )
+
+# Cache config (used for API throttling, see DEFAULT_THROTTLE_CLASSES above)
+REDIS_CACHE_DB = env.str("REDIS_CACHE_DB")
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": f"{env.str('REDIS_URL')}/?db={REDIS_CACHE_DB}",
+    },
+}
 
 # Huey config
 REDIS_URL = env.str("REDIS_URL")
