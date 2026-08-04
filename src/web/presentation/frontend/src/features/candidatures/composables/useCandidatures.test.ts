@@ -24,6 +24,7 @@ const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'
 const MOCK_KANBAN: RecrutementDetailKanban = {
   offer_id: RECRUTEMENT_UUID,
   intitule: 'Chargé de mission numérique',
+  archive: false,
   date_publication: '2025-06-22T10:00:00Z',
   localisation: {
     zone_geographique: 'EU',

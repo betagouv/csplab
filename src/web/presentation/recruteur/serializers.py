@@ -78,6 +78,7 @@ class EtapeRecrutementDetailedCandidaturesSerializer(EtapeRecrutementSerializer)
 class RecrutementDetailKanbanSerializer(serializers.Serializer):
     offer_id = serializers.UUIDField()
     intitule = serializers.CharField()
+    archive = serializers.BooleanField()
     date_publication = serializers.DateTimeField()
     localisation = LocalisationSerializer()
     organisme_recruteur = OrganismeSerializer()

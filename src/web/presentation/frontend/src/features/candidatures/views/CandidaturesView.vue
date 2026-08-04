@@ -62,13 +62,13 @@ function applyFilters() {
   closeFiltersDrawer()
 }
 
-const recrutementsListLink = recrutementsListLocation(router.options.history.state)
+const recrutementsListLink = computed(() => recrutementsListLocation(recrutementDetail.value?.archive))
 
 const title = computed(() => intitule.value ?? 'Candidatures')
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
   { label: 'Accueil', to: { name: 'home' } },
-  { label: 'Mes recrutements', to: recrutementsListLink },
+  { label: 'Mes recrutements', to: recrutementsListLink.value },
   ...(intitule.value ? [{ label: intitule.value }] : []),
 ])
 

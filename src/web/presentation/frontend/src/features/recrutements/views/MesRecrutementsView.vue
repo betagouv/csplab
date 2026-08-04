@@ -24,7 +24,7 @@ import RecrutementsFiltersDrawer from '../components/RecrutementsFiltersDrawer.v
 
 import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
-import { DEFAULT_RECRUTEMENT_TAB, RECRUTEMENTS_TAB_ROUTE_NAMES, recrutementsOriginState } from '../routes'
+import { DEFAULT_RECRUTEMENT_TAB, RECRUTEMENTS_TAB_ROUTE_NAMES } from '../routes'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },
@@ -50,11 +50,7 @@ const showActifsSkeleton = useMinimumPending(pendingActifs, 300)
 const showArchivesSkeleton = useMinimumPending(pendingArchives, 300)
 
 function openOffre(recrutementUuid: string) {
-  void router.push({
-    name: 'recrutement-candidatures-kanban',
-    params: { recrutementUuid },
-    state: recrutementsOriginState(activeTab.value),
-  })
+  void router.push({ name: 'recrutement-candidatures-kanban', params: { recrutementUuid } })
 }
 
 const recrutementsActifsPage = ref(1)

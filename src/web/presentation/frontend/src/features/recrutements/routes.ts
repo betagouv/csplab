@@ -8,19 +8,8 @@ export const RECRUTEMENTS_TAB_ROUTE_NAMES = {
 
 export const DEFAULT_RECRUTEMENT_TAB: RecrutementKey = 'actifs'
 
-const ORIGIN_TAB_STATE = 'recrutementsTab'
-
-function isRecrutementKey(value: unknown): value is RecrutementKey {
-  return typeof value === 'string' && Object.hasOwn(RECRUTEMENTS_TAB_ROUTE_NAMES, value)
-}
-
-export function recrutementsOriginState(tab: RecrutementKey) {
-  return { [ORIGIN_TAB_STATE]: tab }
-}
-
-export function recrutementsListLocation(historyState: unknown): RouteLocationRaw {
-  const tab = (historyState as Record<string, unknown> | null | undefined)?.[ORIGIN_TAB_STATE]
-  return { name: RECRUTEMENTS_TAB_ROUTE_NAMES[isRecrutementKey(tab) ? tab : DEFAULT_RECRUTEMENT_TAB] }
+export function recrutementsListLocation(archive: boolean | undefined): RouteLocationRaw {
+  return { name: RECRUTEMENTS_TAB_ROUTE_NAMES[archive ? 'archives' : DEFAULT_RECRUTEMENT_TAB] }
 }
 
 export const recrutementsRoutes: RouteRecordRaw[] = [

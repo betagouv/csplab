@@ -253,6 +253,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
         return RecrutementKanbanReadModel(
             offer_id=recrutement.offre_id,
             intitule=offre.title,
+            archive=offre.archived_at is not None,
             date_publication=offre.publication_date,
             localisation=LocalisationDto(
                 zone_geographique=offre.area or "",
