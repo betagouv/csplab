@@ -12,8 +12,11 @@ from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from referentiel.types import IUpsertResult
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from domain.ingestion.repositories.ingestion_offers_repository_interface import (
@@ -167,6 +170,9 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         experience_level: List[ExperienceLevel] | None = None,
         management: List[Management] | None = None,
         working_place: List[WorkingPlace] | None = None,
+        region: List[Region] | None = None,
+        department: List[Department] | None = None,
+        country: List[Country] | None = None,
     ) -> IPage[Offer]:
         qs = OfferModel.objects.filter(archived_at__isnull=active)
 
@@ -192,6 +198,15 @@ class PostgresOffersRepository(IIngestionOffersRepository):
             qs = qs.filter(
                 conditions__lieu_de_travail__in=[w.name for w in working_place]
             )
+
+        if region:
+            qs = qs.filter(region__in=[r.code for r in region])
+
+        if department:
+            qs = qs.filter(department__in=[d.code for d in department])
+
+        if country:
+            qs = qs.filter(country__in=[str(c) for c in country])
 
         return QuerySetPage(qs.order_by("-updated_at"), self.mapper.to_domain)
 

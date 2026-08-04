@@ -2,10 +2,15 @@ from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
+from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
@@ -326,6 +331,153 @@ def test_list_offers_filtered_by_working_place(
 
     assert {offer.external_id for offer in result._qs} == {
         offers_by_working_place[key].external_id for key in expected_keys
+    }
+
+
+@pytest.fixture(name="offers_by_region")
+def offers_by_region_fixture(db):
+    return {
+        "idf": OfferFactory.create_model(
+            external_id="test-idf",
+            localisation=Localisation(
+                area=GeographicalArea.EUROPE,
+                country=Country("FRA"),
+                region=Region(code="11"),
+                department=Department(code="75"),
+            ),
+        ),
+        "ara": OfferFactory.create_model(
+            external_id="test-ara",
+            localisation=Localisation(
+                area=GeographicalArea.EUROPE,
+                country=Country("FRA"),
+                region=Region(code="84"),
+                department=Department(code="69"),
+            ),
+        ),
+    }
+
+
+@pytest.mark.parametrize(
+    "region, expected_keys",
+    [
+        pytest.param(None, ["idf", "ara"], id="no_filter"),
+        pytest.param([Region(code="11")], ["idf"], id="single_region"),
+        pytest.param(
+            [Region(code="11"), Region(code="84")],
+            ["idf", "ara"],
+            id="multiple_regions",
+        ),
+    ],
+)
+def test_list_offers_filtered_by_region(
+    ingestion_container, offers_by_region, region, expected_keys
+):
+    input_data = GetFilteredOffersInput(
+        active=True, external_id_contains=None, region=region
+    )
+    result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
+
+    assert {offer.external_id for offer in result._qs} == {
+        offers_by_region[key].external_id for key in expected_keys
+    }
+
+
+@pytest.fixture(name="offers_by_department")
+def offers_by_department_fixture(db):
+    return {
+        "paris": OfferFactory.create_model(
+            external_id="test-paris",
+            localisation=Localisation(
+                area=GeographicalArea.EUROPE,
+                country=Country("FRA"),
+                region=Region(code="11"),
+                department=Department(code="75"),
+            ),
+        ),
+        "rhone": OfferFactory.create_model(
+            external_id="test-rhone",
+            localisation=Localisation(
+                area=GeographicalArea.EUROPE,
+                country=Country("FRA"),
+                region=Region(code="84"),
+                department=Department(code="69"),
+            ),
+        ),
+    }
+
+
+@pytest.mark.parametrize(
+    "department, expected_keys",
+    [
+        pytest.param(None, ["paris", "rhone"], id="no_filter"),
+        pytest.param([Department(code="75")], ["paris"], id="single_department"),
+        pytest.param(
+            [Department(code="75"), Department(code="69")],
+            ["paris", "rhone"],
+            id="multiple_departments",
+        ),
+    ],
+)
+def test_list_offers_filtered_by_department(
+    ingestion_container, offers_by_department, department, expected_keys
+):
+    input_data = GetFilteredOffersInput(
+        active=True, external_id_contains=None, department=department
+    )
+    result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
+
+    assert {offer.external_id for offer in result._qs} == {
+        offers_by_department[key].external_id for key in expected_keys
+    }
+
+
+@pytest.fixture(name="offers_by_country")
+def offers_by_country_fixture(db):
+    return {
+        "france": OfferFactory.create_model(
+            external_id="test-france",
+            localisation=Localisation(
+                area=GeographicalArea.EUROPE,
+                country=Country("FRA"),
+                region=Region(code="11"),
+                department=Department(code="75"),
+            ),
+        ),
+        "belgium": OfferFactory.create_model(
+            external_id="test-belgium",
+            localisation=Localisation(
+                area=GeographicalArea.EUROPE,
+                country=Country("BEL"),
+                region=Region(code="11"),
+                department=Department(code="75"),
+            ),
+        ),
+    }
+
+
+@pytest.mark.parametrize(
+    "country, expected_keys",
+    [
+        pytest.param(None, ["france", "belgium"], id="no_filter"),
+        pytest.param([Country("FRA")], ["france"], id="single_country"),
+        pytest.param(
+            [Country("FRA"), Country("BEL")],
+            ["france", "belgium"],
+            id="multiple_countries",
+        ),
+    ],
+)
+def test_list_offers_filtered_by_country(
+    ingestion_container, offers_by_country, country, expected_keys
+):
+    input_data = GetFilteredOffersInput(
+        active=True, external_id_contains=None, country=country
+    )
+    result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
+
+    assert {offer.external_id for offer in result._qs} == {
+        offers_by_country[key].external_id for key in expected_keys
     }
 
 

@@ -26,4 +26,7 @@ class ListOffersUseCase(IUseCase[GetFilteredOffersInput, IPage[Offer]]):
             experience_level=input_data.experience_level,
             management=input_data.management,
             working_place=input_data.working_place,
+            region=input_data.region,
+            department=input_data.department,
+            country=input_data.country,
         )
