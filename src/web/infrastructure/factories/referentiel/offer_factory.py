@@ -27,10 +27,6 @@ class OfferFactory:
     @staticmethod
     def create_entity(
         title: str | None = None,
-        department: str = "75",
-        region: str | None = None,
-        country: str | None = None,
-        area: str | None = None,
         category: Category | None = None,
         contract_type: ContractType | None = None,
         verse: Verse | None = None,
@@ -54,19 +50,12 @@ class OfferFactory:
         if archived_at:
             archived_at = timezone.make_aware(archived_at)
 
-        if localisation is None and country and region and department:
-            localisation = Localisation(
-                area=GeographicalArea(area) if area else GeographicalArea.EUROPE,
-                country=Country(country),
-                region=Region(code=region),
-                department=Department(code=department),
-            )
-        else:
+        if localisation is None:
             localisation = Localisation(
                 area=GeographicalArea.EUROPE,
                 country=Country("FRA"),
                 region=Region(code="11"),
-                department=Department(code=department),
+                department=Department(code="75"),
             )
         _external_id = external_id or f"OFFER_{uuid4().hex[:8]}"
         return Offer(

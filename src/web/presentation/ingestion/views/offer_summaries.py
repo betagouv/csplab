@@ -40,6 +40,9 @@ class OfferSummariesView(APIView):
                     experience_level=query.validated_data.get("experience_level"),
                     management=query.validated_data.get("management"),
                     working_place=query.validated_data.get("working_place"),
+                    region=query.validated_data.get("region"),
+                    department=query.validated_data.get("department"),
+                    country=query.validated_data.get("country"),
                 )
             )
 

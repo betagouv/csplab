@@ -1,6 +1,9 @@
+import pycountry
 from drf_spectacular.utils import extend_schema_field
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
 from referentiel.value_objects.experience_level import ExperienceLevel
@@ -13,6 +16,7 @@ from referentiel.value_objects.offer_conditions import (
     WorkingPlace,
     WorkingTime,
 )
+from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
@@ -50,6 +54,38 @@ class _CommaSeparatedEnumField(serializers.MultipleChoiceField):
         if isinstance(data, (list, tuple)):
             data = ",".join(data)
         return _parse_enum_list(data, self.enum_cls, self.error_label, self.excluded)
+
+
+COUNTRY_CODES = frozenset(c.alpha_3 for c in pycountry.countries)
+
+
+def _parse_code_list(value, valid_codes, error_label):
+    if not value:
+        return None
+
+    requested = [part.strip().upper() for part in value.split(",") if part.strip()]
+    invalid = [part for part in requested if part not in valid_codes]
+    if invalid:
+        raise serializers.ValidationError(
+            "Valeurs de {} invalides : {}.".format(error_label, ", ".join(invalid))
+        )
+
+    return requested
+
+
+class _CommaSeparatedCodeField(serializers.MultipleChoiceField):
+    def __init__(self, valid_codes, error_label, to_value_object, **kwargs):
+        self.valid_codes = valid_codes
+        self.error_label = error_label
+        self.to_value_object = to_value_object
+        kwargs.setdefault("default", None)
+        super().__init__(choices=sorted(valid_codes), **kwargs)
+
+    def to_internal_value(self, data):
+        if isinstance(data, (list, tuple)):
+            data = ",".join(data)
+        codes = _parse_code_list(data, self.valid_codes, self.error_label)
+        return [self.to_value_object(code) for code in codes] if codes else None
 
 
 class ValidationErrorSerializer(GenericErrorSerializer):
@@ -143,6 +179,13 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
     workingPlace = _CommaSeparatedEnumField(
         WorkingPlace, "lieu de travail", source="working_place"
     )
+    region = _CommaSeparatedCodeField(
+        Region.VALID_CODES, "région", lambda code: Region(code=code)
+    )
+    department = _CommaSeparatedCodeField(
+        Department.VALID_CODES, "département", lambda code: Department(code=code)
+    )
+    country = _CommaSeparatedCodeField(COUNTRY_CODES, "pays", Country)
 
 
 class LocalisationInputSerializer(LocalisationSerializer):
