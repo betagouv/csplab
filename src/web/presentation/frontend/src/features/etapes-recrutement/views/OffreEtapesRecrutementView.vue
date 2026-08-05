@@ -6,8 +6,7 @@ import { useRoute } from 'vue-router'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
-import { recrutementKanbanQuery } from '@/features/candidatures/queries'
-import { peekRecrutementIntitule } from '@/features/recrutements/queries'
+import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
 import { recrutementsListLocation } from '@/features/recrutements/routes'
 import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
@@ -17,7 +16,7 @@ const recrutementUuid = route.params.recrutementUuid as string
 
 const queryCache = useQueryCache()
 
-const { data: recrutementDetail } = useQuery(() => recrutementKanbanQuery({
+const { data: recrutementDetail } = useQuery(() => recrutementDetailQuery({
   organismeUuid: TEMP_ORGANISME_UUID,
   recrutementUuid,
 }))

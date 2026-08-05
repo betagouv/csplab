@@ -1,10 +1,12 @@
 import type { PaginatedCandidatureListeList, RecrutementDetailKanban } from '../types'
+import type { RecrutementDetail } from '@/features/recrutements/types'
 import { PiniaColada, useQueryCache } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { getRecrutementDetail } from '@/features/recrutements/api'
 import { RECRUTEMENTS_QUERY_KEYS } from '@/features/recrutements/queries'
 import { getCandidatureListe, getRecrutementKanban } from '../api'
 import { CANDIDATURES_QUERY_KEYS } from '../queries'
@@ -15,11 +17,33 @@ vi.mock('../api', () => ({
   getCandidatureListe: vi.fn(),
 }))
 
+vi.mock('@/features/recrutements/api', () => ({
+  getRecrutementDetail: vi.fn(),
+}))
+
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
 const ETAPE_RECEPTION = 'cccccccc-0001-0001-0001-000000000001'
 const ETAPE_PRESELECTION = 'cccccccc-0001-0001-0001-000000000002'
 const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'
+
+const MOCK_DETAIL: RecrutementDetail = {
+  offer_id: RECRUTEMENT_UUID,
+  intitule: 'Chargé de mission numérique',
+  archive: false,
+  date_publication: '2025-06-22T10:00:00Z',
+  localisation: {
+    zone_geographique: 'EU',
+    pays: 'FRA',
+    region: '11',
+    departement: '75',
+    localisation_label: 'Paris 8e arrondissement',
+    latitude: 48.8748,
+    longitude: 2.3070,
+  },
+  organisme_recruteur: { nom: 'Mairie de Paris', siret: '21750001600019' },
+  categorie_offre: 'A',
+}
 
 const MOCK_KANBAN: RecrutementDetailKanban = {
   offer_id: RECRUTEMENT_UUID,
@@ -137,8 +161,10 @@ async function mountCandidatures(onSetup?: () => void) {
 
 describe('useCandidatures', () => {
   beforeEach(() => {
+    vi.mocked(getRecrutementDetail).mockReset()
     vi.mocked(getRecrutementKanban).mockReset()
     vi.mocked(getCandidatureListe).mockReset()
+    vi.mocked(getRecrutementDetail).mockResolvedValue(MOCK_DETAIL)
     vi.mocked(getRecrutementKanban).mockResolvedValue(MOCK_KANBAN)
     vi.mocked(getCandidatureListe).mockResolvedValue(MOCK_LISTE)
   })
