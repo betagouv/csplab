@@ -85,6 +85,7 @@ class RecrutementDetailSerializer(serializers.Serializer):
     categorie_offre = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in Category]
     )
+    etapes = EtapeRecrutementSerializer(many=True)
 
 
 class RecrutementDetailKanbanSerializer(serializers.Serializer):

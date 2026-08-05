@@ -1,4 +1,5 @@
 import type {
+  EtapeRecrutement,
   EtapeRecrutementDetailedCandidatures,
   PaginatedCandidatureListeList,
 } from '../types'
@@ -8,6 +9,15 @@ import { useCandidaturesFilters } from './useCandidaturesFilters'
 
 const ETAPE_RECEPTION = 'cccccccc-0001-0001-0001-000000000001'
 const ETAPE_PRESELECTION = 'cccccccc-0001-0001-0001-000000000002'
+const ETAPE_ENTRETIEN = 'cccccccc-0001-0001-0001-000000000003'
+
+function makeRecrutementEtapes(): EtapeRecrutement[] {
+  return [
+    { etape_uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
+    { etape_uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
+    { etape_uuid: ETAPE_ENTRETIEN, nom: 'Entretien', categorie: 'EN_COURS' },
+  ]
+}
 
 function makeEtapes(): EtapeRecrutementDetailedCandidatures[] {
   return [
@@ -78,9 +88,18 @@ function makeListe(): PaginatedCandidatureListeList {
 }
 
 function setup() {
+  const recrutementEtapes = shallowRef(makeRecrutementEtapes())
   const etapes = shallowRef(makeEtapes())
   const liste = ref<PaginatedCandidatureListeList | undefined>(makeListe())
-  return { etapes, liste, filters: useCandidaturesFilters(etapes, liste) }
+  return {
+    etapes,
+    liste,
+    filters: useCandidaturesFilters({
+      recrutementEtapes,
+      candidatureKanban: etapes,
+      candidatureListe: liste,
+    }),
+  }
 }
 
 describe('useCandidaturesFilters', () => {
@@ -91,11 +110,12 @@ describe('useCandidaturesFilters', () => {
     expect(filters.activeFiltersCount.value).toBe(0)
   })
 
-  it('builds etape options from the etapes list', () => {
+  it('builds etape options from the pipeline, including etapes without candidatures', () => {
     const { filters } = setup()
     expect(filters.etapeOptions.value).toEqual([
       { value: ETAPE_RECEPTION, label: 'Réception des candidatures' },
       { value: ETAPE_PRESELECTION, label: 'Présélection' },
+      { value: ETAPE_ENTRETIEN, label: 'Entretien' },
     ])
   })
 
@@ -119,9 +139,11 @@ describe('useCandidaturesFilters', () => {
   })
 
   it('falls back to an empty list when candidatureListe is undefined', () => {
-    const etapes = shallowRef(makeEtapes())
-    const liste = ref<PaginatedCandidatureListeList | undefined>(undefined)
-    const filters = useCandidaturesFilters(etapes, liste)
+    const filters = useCandidaturesFilters({
+      recrutementEtapes: shallowRef(makeRecrutementEtapes()),
+      candidatureKanban: shallowRef(makeEtapes()),
+      candidatureListe: ref<PaginatedCandidatureListeList | undefined>(undefined),
+    })
 
     expect(filters.filteredCandidatures.value).toEqual([])
   })

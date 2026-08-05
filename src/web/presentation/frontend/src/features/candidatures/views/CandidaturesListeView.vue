@@ -8,10 +8,10 @@ import { pluralize } from '@/utils/format'
 import { CANDIDATURE_LISTE_COLUMNS } from '../columns'
 import { useCandidatures } from '../composables/useCandidatures'
 
-const { pending, filters } = useCandidatures()
+const { pendingListe, filters } = useCandidatures()
 const { filteredCandidatures } = filters
 
-const showSkeleton = useMinimumPending(pending)
+const showSkeleton = useMinimumPending(pendingListe)
 
 const PAGE_SIZE = 6
 const candidatureListePage = ref(1)

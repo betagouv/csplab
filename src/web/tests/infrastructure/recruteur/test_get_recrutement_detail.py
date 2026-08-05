@@ -64,6 +64,9 @@ class TestGetRecrutementDetail:
         assert result.offer_id == recrutement.offre_id
         assert result.organisme_recruteur.siret == organisme.siret
         assert result.archive is offre_archivee
+        assert len(result.etapes) == 6  # noqa
+        assert result.etapes[0].categorie == "ENTREE"
+        assert result.etapes[-1].categorie == "ACCEPTE"
 
     def test_forbidden_when_membre_not_assigned_to_recrutement(self, usecase):
         agent, organisme = OrganismeFactory.create_model_with_agent(

@@ -26,6 +26,9 @@ export const useCandidatures = defineQuery(() => {
     return typeof param === 'string' && param !== '' ? param : null
   })
 
+  const isKanbanRoute = computed(() => route.name === 'recrutement-candidatures-kanban')
+  const isListeRoute = computed(() => route.name === 'recrutement-candidatures')
+
   const queryCache = useQueryCache()
 
   const detail = useQuery(() => ({
@@ -41,7 +44,7 @@ export const useCandidatures = defineQuery(() => {
       organismeUuid: TEMP_ORGANISME_UUID,
       recrutementUuid: recrutementUuid.value ?? '',
     }),
-    enabled: recrutementUuid.value !== null,
+    enabled: recrutementUuid.value !== null && isKanbanRoute.value,
   }))
 
   const liste = useQuery(() => ({
@@ -49,7 +52,7 @@ export const useCandidatures = defineQuery(() => {
       organismeUuid: TEMP_ORGANISME_UUID,
       recrutementUuid: recrutementUuid.value ?? '',
     }),
-    enabled: recrutementUuid.value !== null,
+    enabled: recrutementUuid.value !== null && isListeRoute.value,
   }))
 
   const recrutementDetail = computed<RecrutementDetail | null>(
@@ -64,17 +67,19 @@ export const useCandidatures = defineQuery(() => {
       : null),
   )
 
-  const etapes = computed(() => kanban.data.value?.etapes ?? [])
+  const recrutementEtapes = computed(() => detail.data.value?.etapes ?? [])
+  const candidatureKanban = computed(() => kanban.data.value?.etapes ?? [])
 
-  const pending = computed(() =>
-    detail.isPending.value || kanban.isPending.value || liste.isPending.value,
-  )
+  const pendingDetail = computed(() => detail.isPending.value)
+  const pendingKanban = computed(() => kanban.isPending.value)
+  const pendingListe = computed(() => liste.isPending.value)
+
   const error = computed<unknown>(() =>
     detail.error.value ?? kanban.error.value ?? liste.error.value,
   )
 
   const totalCount = computed(() =>
-    etapes.value.reduce((sum, etape) => sum + etape.candidatures.length, 0),
+    candidatureKanban.value.reduce((sum, etape) => sum + etape.candidatures.length, 0),
   )
 
   function moveCandidature(params: MoveCandidatureParams): void {
@@ -181,7 +186,11 @@ export const useCandidatures = defineQuery(() => {
     queryCache.setQueryData(key, { ...kanbanData, etapes: newEtapes })
   }
 
-  const filters = useCandidaturesFilters(etapes, candidatureListe)
+  const filters = useCandidaturesFilters({
+    recrutementEtapes,
+    candidatureKanban,
+    candidatureListe,
+  })
 
   watch(recrutementUuid, () => {
     filters.reset()
@@ -192,9 +201,12 @@ export const useCandidatures = defineQuery(() => {
     recrutementDetail,
     intitule,
     candidatureListe,
-    etapes,
+    candidatureKanban,
+    recrutementEtapes,
     totalCount,
-    pending,
+    pendingDetail,
+    pendingKanban,
+    pendingListe,
     error,
     moveCandidature,
     moveCandidaturesBatch,

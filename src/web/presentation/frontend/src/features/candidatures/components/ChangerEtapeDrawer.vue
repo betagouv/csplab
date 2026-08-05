@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Candidature, EtapeRecrutementDetailedCandidatures } from '../types'
+import type { Candidature, EtapeRecrutement, EtapeRecrutementDetailedCandidatures } from '../types'
 import { RadioGroupIndicator, RadioGroupItem, RadioGroupRoot } from 'reka-ui'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -12,7 +12,7 @@ const props = defineProps<{
   open: boolean
   sourceEtape: EtapeRecrutementDetailedCandidatures | null
   selectedCandidatureUuids: Set<string>
-  etapes: EtapeRecrutementDetailedCandidatures[]
+  etapes: EtapeRecrutement[]
 }>()
 
 const emit = defineEmits<{

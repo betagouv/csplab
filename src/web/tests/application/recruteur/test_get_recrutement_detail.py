@@ -5,6 +5,7 @@ from uuid import uuid4
 import pytest
 
 from application.recruteur.dtos.recrutement_read_models import (
+    EtapeDto,
     LocalisationDto,
     OrganismeRecruteurDto,
     RecrutementDetailReadModel,
@@ -43,6 +44,7 @@ def _recrutement_detail_read_model() -> RecrutementDetailReadModel:
             nom="Mairie de Paris", siret="21750001600019"
         ),
         categorie_offre="A",
+        etapes=[EtapeDto(etape_uuid=uuid4(), nom="Réception", categorie="ENTREE")],
     )
 
 

@@ -223,10 +223,18 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 pk=recrutement_id, organisme_id=organisme_id
             )
             .select_related("offre", "organisme")
+            .prefetch_related("etapes")
             .first()
         )
         if recrutement is None:
             return None
+
+        etapes_by_id = {str(etape.id): etape for etape in recrutement.etapes.all()}
+        etapes_ordonnees = [
+            etapes_by_id[etape_id]
+            for etape_id in recrutement.ordre_etapes
+            if etape_id in etapes_by_id
+        ]
 
         offre = recrutement.offre
         organisme = recrutement.organisme
@@ -250,6 +258,14 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 siret=organisme.siret,
             ),
             categorie_offre=offre.category or "",
+            etapes=[
+                EtapeDto(
+                    etape_uuid=etape.id,
+                    nom=etape.nom,
+                    categorie=CategorieEtapeRecrutement(etape.categorie).name,
+                )
+                for etape in etapes_ordonnees
+            ],
         )
 
     def get_kanban_by_recrutement(

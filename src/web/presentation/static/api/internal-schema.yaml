@@ -1632,10 +1632,15 @@ components:
           $ref: '#/components/schemas/Organisme'
         categorie_offre:
           $ref: '#/components/schemas/CategorieOffreEnum'
+        etapes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EtapeRecrutement'
       required:
       - archive
       - categorie_offre
       - date_publication
+      - etapes
       - intitule
       - localisation
       - offer_id

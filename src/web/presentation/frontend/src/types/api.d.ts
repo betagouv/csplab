@@ -552,6 +552,7 @@ export interface components {
             localisation: components["schemas"]["Localisation"];
             organisme_recruteur: components["schemas"]["Organisme"];
             categorie_offre: components["schemas"]["CategorieOffreEnum"];
+            etapes: components["schemas"]["EtapeRecrutement"][];
         };
         RecrutementDetailKanban: {
             /** Format: uuid */

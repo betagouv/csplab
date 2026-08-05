@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
 import type {
+  EtapeRecrutement,
   EtapeRecrutementDetailedCandidatures,
   PaginatedCandidatureListeList,
 } from '../types'
@@ -18,10 +19,17 @@ const SEARCH_DEBOUNCE_MS = 500
 
 export type CandidaturesFiltersContext = ReturnType<typeof useCandidaturesFilters>
 
-export function useCandidaturesFilters(
-  etapes: Readonly<Ref<EtapeRecrutementDetailedCandidatures[]>>,
-  candidatureListe: Ref<PaginatedCandidatureListeList | undefined>,
-) {
+export interface CandidaturesFiltersSources {
+  recrutementEtapes: Readonly<Ref<EtapeRecrutement[]>>
+  candidatureKanban: Readonly<Ref<EtapeRecrutementDetailedCandidatures[]>>
+  candidatureListe: Ref<PaginatedCandidatureListeList | undefined>
+}
+
+export function useCandidaturesFilters({
+  recrutementEtapes,
+  candidatureKanban,
+  candidatureListe,
+}: CandidaturesFiltersSources) {
   const {
     draft,
     applied,
@@ -44,7 +52,7 @@ export function useCandidaturesFilters(
   }
 
   const filteredEtapes = computed(() =>
-    etapes.value
+    candidatureKanban.value
       .filter(etape => matchesEtape(etape.etape_uuid, applied))
       .map(etape => ({
         ...etape,
@@ -62,7 +70,7 @@ export function useCandidaturesFilters(
   )
 
   const etapeOptions = computed<CspCheckboxGroupOption[]>(() =>
-    etapes.value.map(etape => ({ value: etape.etape_uuid, label: etape.nom })),
+    recrutementEtapes.value.map(etape => ({ value: etape.etape_uuid, label: etape.nom })),
   )
 
   const activeFiltersCount = computed(() => countActiveFilters(applied))

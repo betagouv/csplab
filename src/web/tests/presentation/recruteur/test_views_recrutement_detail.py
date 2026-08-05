@@ -58,6 +58,10 @@ def _recrutement_detail_read_model() -> RecrutementDetailReadModel:
             nom="Mairie de Paris", siret="21750001600019"
         ),
         categorie_offre="A",
+        etapes=[
+            EtapeDto(etape_uuid=uuid4(), nom="Réception", categorie="ENTREE"),
+            EtapeDto(etape_uuid=uuid4(), nom="Présélection", categorie="EN_COURS"),
+        ],
     )
 
 
@@ -186,6 +190,7 @@ class TestRecrutementDetailView:
             "localisation",
             "organisme_recruteur",
             "categorie_offre",
+            "etapes",
         }
 
     def test_localisation_structure(self, authenticated_client):
@@ -201,6 +206,13 @@ class TestRecrutementDetailView:
         organisme = data["organisme_recruteur"]
         assert "nom" in organisme
         assert "siret" in organisme
+
+    def test_etape_structure(self, authenticated_client):
+        data = authenticated_client.get(RECRUTEMENT_DETAIL_URL).json()
+        etape = data["etapes"][0]
+        assert "etape_uuid" in etape
+        assert "nom" in etape
+        assert "categorie" in etape
 
     def test_returns_404_for_unknown_recrutement(self, container, authenticated_client):
         container.get_recrutement_detail_usecase.return_value.execute.return_value = (

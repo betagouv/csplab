@@ -104,6 +104,7 @@ class RecrutementDetailReadModel:
     localisation: LocalisationDto
     organisme_recruteur: OrganismeRecruteurDto
     categorie_offre: str
+    etapes: list[EtapeDto]
 
 
 @dataclass(frozen=True, kw_only=True)
