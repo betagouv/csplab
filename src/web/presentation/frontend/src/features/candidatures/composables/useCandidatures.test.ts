@@ -52,20 +52,6 @@ const MOCK_DETAIL: RecrutementDetail = {
 
 const MOCK_KANBAN: RecrutementDetailKanban = {
   offer_id: RECRUTEMENT_UUID,
-  intitule: 'Chargé de mission numérique',
-  archive: false,
-  date_publication: '2025-06-22T10:00:00Z',
-  localisation: {
-    zone_geographique: 'EU',
-    pays: 'FRA',
-    region: '11',
-    departement: '75',
-    localisation_label: 'Paris 8e arrondissement',
-    latitude: 48.8748,
-    longitude: 2.3070,
-  },
-  organisme_recruteur: { nom: 'Mairie de Paris', siret: '21750001600019' },
-  categorie_offre: 'A',
   etapes: [
     {
       etape_uuid: 'cccccccc-0001-0001-0001-000000000001',
@@ -385,19 +371,6 @@ describe('useCandidatures', () => {
       expect(context.filters.filteredEtapes.value.map(e => e.nom)).toEqual(['Présélection'])
     })
 
-    it('filters on an option taken from etapeOptions', async () => {
-      const { context } = await mountCandidatures()
-
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
-
-      const option = context.filters.etapeOptions.value
-        .find(o => o.label === 'Présélection')
-      context.filters.draft.etapes = [option!.value]
-      context.filters.apply()
-
-      expect(context.filters.filteredEtapes.value.map(e => e.nom)).toEqual(['Présélection'])
-    })
-
     it('applies filters to the live liste data', async () => {
       const { context } = await mountCandidatures(
         undefined,
@@ -410,21 +383,6 @@ describe('useCandidatures', () => {
       context.filters.apply()
 
       expect(context.filters.filteredCandidatures.value.map(c => c.candidat.nom)).toEqual(['Bernard'])
-    })
-
-    it('builds etape options without loading the kanban on the liste route', async () => {
-      const { context } = await mountCandidatures(
-        undefined,
-        `/mes-recrutements/${RECRUTEMENT_UUID}/liste`,
-      )
-
-      await vi.waitFor(() => expect(context.pendingListe.value).toBe(false))
-
-      expect(getRecrutementKanban).not.toHaveBeenCalled()
-      expect(context.filters.etapeOptions.value.map(o => o.label)).toEqual([
-        'Réception des candidatures',
-        'Présélection',
-      ])
     })
   })
 

@@ -73,7 +73,6 @@ class TestGetRecrutementKanbanRbac:
         assert result.etapes[0].candidatures[0].uuid == UUID(candidature.id)
         assert result.etapes[-1].categorie == "ACCEPTE"
         assert result.etapes[-1].candidatures == []
-        assert result.organisme_recruteur.siret == organisme.siret
 
     def test_forbidden_when_membre_not_assigned_to_recrutement(self, usecase):
         agent, organisme = OrganismeFactory.create_model_with_agent(

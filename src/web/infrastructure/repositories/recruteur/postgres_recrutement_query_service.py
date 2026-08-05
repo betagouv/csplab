@@ -275,7 +275,6 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             RecrutementModel.objects.filter(
                 pk=recrutement_id, organisme_id=organisme_id
             )
-            .select_related("offre", "organisme")
             .prefetch_related(
                 Prefetch(
                     "etapes",
@@ -301,28 +300,8 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             if etape_id in etapes_by_id
         ]
 
-        offre = recrutement.offre
-        organisme = recrutement.organisme
-
         return RecrutementKanbanReadModel(
             offer_id=recrutement.offre_id,
-            intitule=offre.title,
-            archive=offre.archived_at is not None,
-            date_publication=offre.publication_date,
-            localisation=LocalisationDto(
-                zone_geographique=offre.area or "",
-                pays=offre.country or "",
-                region=offre.region or "",
-                departement=offre.department or "",
-                localisation_label=offre.location_label or "",
-                latitude=offre.latitude,
-                longitude=offre.longitude,
-            ),
-            organisme_recruteur=OrganismeRecruteurDto(
-                nom=organisme.nom,
-                siret=organisme.siret,
-            ),
-            categorie_offre=offre.category or "",
             etapes=[
                 EtapeKanbanReadModel(
                     etape_uuid=etape.id,

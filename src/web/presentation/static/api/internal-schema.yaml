@@ -1651,32 +1651,13 @@ components:
         offer_id:
           type: string
           format: uuid
-        intitule:
-          type: string
-        archive:
-          type: boolean
-        date_publication:
-          type: string
-          format: date-time
-        localisation:
-          $ref: '#/components/schemas/Localisation'
-        organisme_recruteur:
-          $ref: '#/components/schemas/Organisme'
-        categorie_offre:
-          $ref: '#/components/schemas/CategorieOffreEnum'
         etapes:
           type: array
           items:
             $ref: '#/components/schemas/EtapeRecrutementDetailedCandidatures'
       required:
-      - archive
-      - categorie_offre
-      - date_publication
       - etapes
-      - intitule
-      - localisation
       - offer_id
-      - organisme_recruteur
     RecrutementsActifs:
       type: object
       properties:

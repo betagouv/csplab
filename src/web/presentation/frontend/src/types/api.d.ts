@@ -557,13 +557,6 @@ export interface components {
         RecrutementDetailKanban: {
             /** Format: uuid */
             offer_id: string;
-            intitule: string;
-            archive: boolean;
-            /** Format: date-time */
-            date_publication: string;
-            localisation: components["schemas"]["Localisation"];
-            organisme_recruteur: components["schemas"]["Organisme"];
-            categorie_offre: components["schemas"]["CategorieOffreEnum"];
             etapes: components["schemas"]["EtapeRecrutementDetailedCandidatures"][];
         };
         RecrutementsActifs: {

@@ -68,22 +68,6 @@ def _recrutement_detail_read_model() -> RecrutementDetailReadModel:
 def _recrutement_kanban_read_model() -> RecrutementKanbanReadModel:
     return RecrutementKanbanReadModel(
         offer_id=UUID(RECRUTEMENT_UUID),
-        intitule="Chargé de mission numérique",
-        archive=False,
-        date_publication=datetime.now(tz=timezone.utc),
-        localisation=LocalisationDto(
-            zone_geographique="EU",
-            pays="FRA",
-            region="11",
-            departement="75",
-            localisation_label="Paris 8e arrondissement",
-            latitude=48.8748,
-            longitude=2.3070,
-        ),
-        organisme_recruteur=OrganismeRecruteurDto(
-            nom="Mairie de Paris", siret="21750001600019"
-        ),
-        categorie_offre="A",
         etapes=[
             EtapeKanbanReadModel(
                 etape_uuid=uuid4(),
@@ -268,28 +252,8 @@ class TestRecrutementKanbanView:
 
     def test_response_structure(self, authenticated_client):
         data = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()
-        assert "offer_id" in data
-        assert "intitule" in data
-        assert "date_publication" in data
-        assert "localisation" in data
-        assert "organisme_recruteur" in data
-        assert "categorie_offre" in data
-        assert "etapes" in data
+        assert set(data) == {"offer_id", "etapes"}
         assert isinstance(data["etapes"], list)
-
-    def test_localisation_structure(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()
-        localisation = data["localisation"]
-        assert "zone_geographique" in localisation
-        assert "pays" in localisation
-        assert "region" in localisation
-        assert "departement" in localisation
-
-    def test_organisme_recruteur_structure(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()
-        organisme = data["organisme_recruteur"]
-        assert "nom" in organisme
-        assert "siret" in organisme
 
     def test_etape_structure(self, authenticated_client):
         etape = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()["etapes"][0]

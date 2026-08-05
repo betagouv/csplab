@@ -110,7 +110,7 @@ describe('useCandidaturesFilters', () => {
     expect(filters.activeFiltersCount.value).toBe(0)
   })
 
-  it('builds etape options from the pipeline, including etapes without candidatures', () => {
+  it('builds etape options from the recrutement etapes', () => {
     const { filters } = setup()
     expect(filters.etapeOptions.value).toEqual([
       { value: ETAPE_RECEPTION, label: 'Réception des candidatures' },

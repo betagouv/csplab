@@ -8,8 +8,6 @@ from application.recruteur.dtos.recrutement_read_models import (
     CandidatDto,
     CandidatureKanbanDto,
     EtapeKanbanReadModel,
-    LocalisationDto,
-    OrganismeRecruteurDto,
     RecrutementKanbanReadModel,
 )
 from application.recruteur.services.recrutement_query_service_interface import (
@@ -30,22 +28,6 @@ from domain.recruteur.value_objects.roles import AgentOrganismeRole
 def _recrutement_kanban_read_model() -> RecrutementKanbanReadModel:
     return RecrutementKanbanReadModel(
         offer_id=uuid4(),
-        intitule="Chargé de mission numérique",
-        archive=False,
-        date_publication=datetime.now(tz=timezone.utc),
-        localisation=LocalisationDto(
-            zone_geographique="EU",
-            pays="FRA",
-            region="11",
-            departement="75",
-            localisation_label="Paris 8e arrondissement",
-            latitude=48.8748,
-            longitude=2.3070,
-        ),
-        organisme_recruteur=OrganismeRecruteurDto(
-            nom="Mairie de Paris", siret="21750001600019"
-        ),
-        categorie_offre="A",
         etapes=[
             EtapeKanbanReadModel(
                 etape_uuid=uuid4(),
