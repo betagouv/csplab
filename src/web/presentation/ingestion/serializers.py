@@ -189,6 +189,47 @@ class ListOffersFiltersSerializer(serializers.Serializer):
         help_text="Valeurs séparées par une virgule (ex. `FRA,BEL`).",
         source="country",
     )
+    latitude = serializers.FloatField(
+        required=False,
+        min_value=-90,
+        max_value=90,
+        default=None,
+        help_text=(
+            "Filtre géographique : latitude du point en degrés décimaux "
+            "(à fournir avec `longitude` et `radius`)."
+        ),
+    )
+    longitude = serializers.FloatField(
+        required=False,
+        min_value=-180,
+        max_value=180,
+        default=None,
+        help_text=(
+            "Filtre géographique : longitude du point en degrés décimaux "
+            "(à fournir avec `latitude` et `radius`)."
+        ),
+    )
+    radius = serializers.IntegerField(
+        required=False,
+        min_value=1,
+        default=None,
+        source="radius_km",
+        help_text=(
+            "Filtre géographique : rayon de recherche en kilomètres "
+            "(à fournir avec `latitude` et `longitude`)."
+        ),
+    )
+
+    _GEO_FIELDS = ("latitude", "longitude", "radius_km")
+
+    def validate(self, data):
+        provided = [key for key in self._GEO_FIELDS if data.get(key) is not None]
+        if provided and len(provided) != len(self._GEO_FIELDS):
+            raise serializers.ValidationError(
+                "Les paramètres latitude, longitude et radius doivent être "
+                "fournis ensemble."
+            )
+        return data
 
 
 class OfferSummariesQuerySerializer(serializers.Serializer):
@@ -218,13 +259,34 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
     )
     country = _CommaSeparatedCodeField(COUNTRY_NAMES, "pays", Country)
     latitude = serializers.FloatField(
-        required=False, min_value=-90, max_value=90, default=None
+        required=False,
+        min_value=-90,
+        max_value=90,
+        default=None,
+        help_text=(
+            "Filtre géographique : latitude du point en degrés décimaux "
+            "(à fournir avec `longitude` et `radius`)."
+        ),
     )
     longitude = serializers.FloatField(
-        required=False, min_value=-180, max_value=180, default=None
+        required=False,
+        min_value=-180,
+        max_value=180,
+        default=None,
+        help_text=(
+            "Filtre géographique : longitude du point en degrés décimaux "
+            "(à fournir avec `latitude` et `radius`)."
+        ),
     )
     radius = serializers.IntegerField(
-        required=False, min_value=1, default=None, source="radius_km"
+        required=False,
+        min_value=1,
+        default=None,
+        source="radius_km",
+        help_text=(
+            "Filtre géographique : rayon de recherche en kilomètres "
+            "(à fournir avec `latitude` et `longitude`)."
+        ),
     )
 
     _GEO_FIELDS = ("latitude", "longitude", "radius_km")
