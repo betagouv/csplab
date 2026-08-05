@@ -232,9 +232,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                     ),
                 )
             )
-            qs = qs.annotate(distance_km=distance_km).filter(
-                distance_km__lte=radius_km
-            )
+            qs = qs.annotate(distance_km=distance_km).filter(distance_km__lte=radius_km)
 
         return QuerySetPage(qs.order_by("-updated_at"), self.mapper.to_domain)
 
