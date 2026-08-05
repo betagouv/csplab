@@ -67,6 +67,7 @@ REGION_NAMES = {code: Region.NAMES.get(code, code) for code in Region.VALID_CODE
 DEPARTMENT_NAMES = {
     code: Department.NAMES.get(code, code) for code in Department.VALID_CODES
 }
+DOMAIN_NAMES = {e.value: e.label for e in DomaineFonctionnel}
 
 
 def _parse_code_list(value, valid_codes, error_label):
@@ -258,6 +259,31 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
         DEPARTMENT_NAMES, "département", lambda code: Department(code=code)
     )
     country = _CommaSeparatedCodeField(COUNTRY_NAMES, "pays", Country)
+    domain = _CommaSeparatedCodeField(DOMAIN_NAMES, "domaine", lambda code: code)
+    organization = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        default=None,
+        help_text=(
+            "Filtre sur l'organisme (nom exact). Répéter le paramètre pour "
+            "filtrer sur plusieurs organismes (ex. "
+            "`?organization=Foo&organization=Bar`). Ne pas séparer les "
+            "valeurs par une virgule, le nom d'un organisme pouvant en "
+            "contenir une."
+        ),
+    )
+    publicationDate = serializers.IntegerField(
+        required=False,
+        max_value=-1,
+        default=None,
+        source="published_within_days",
+        help_text=(
+            "Filtre sur la date de publication : nombre de jours négatif "
+            "pour ne retourner que les offres publiées au cours des N "
+            "derniers jours (ex. `-7` pour les offres publiées ces 7 "
+            "derniers jours)."
+        ),
+    )
     latitude = serializers.FloatField(
         required=False,
         min_value=-90,

@@ -24,6 +24,9 @@ class GetFilteredOffersInput:
     region: Optional[List[Region]] = None
     department: Optional[List[Department]] = None
     country: Optional[List[Country]] = None
+    domain: Optional[List[str]] = None
+    organization: Optional[List[str]] = None
+    published_within_days: Optional[int] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     radius_km: Optional[int] = None
