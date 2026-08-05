@@ -1,5 +1,6 @@
-import type { RecrutementsActifs, RecrutementsArchives } from '../types'
-import { computed, ref } from 'vue'
+import type { MaybeRefOrGetter } from 'vue'
+import type { RecrutementBase } from '../types'
+import { computed, ref, toValue } from 'vue'
 import { useDebounce } from '@/composables/async/useDebounce'
 import { useDraft } from '@/composables/storage/useDraft'
 import {
@@ -13,10 +14,9 @@ import {
 
 const SEARCH_DEBOUNCE_MS = 250
 
-export function useRecrutementsFilters(recrutements: {
-  actifs: RecrutementsActifs[]
-  archives: RecrutementsArchives[]
-}) {
+export function useRecrutementsFilters<T extends RecrutementBase>(
+  rows: MaybeRefOrGetter<T[]>,
+) {
   const {
     draft,
     applied,
@@ -29,20 +29,16 @@ export function useRecrutementsFilters(recrutements: {
   const search = ref('')
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS)
 
-  function matches(row: RecrutementsActifs | RecrutementsArchives): boolean {
+  function matches(row: T): boolean {
     return matchesFilters(row, applied) && matchesSearch(row, debouncedSearch.value)
   }
 
-  const filteredActifs = computed(() => recrutements.actifs.filter(matches))
-  const filteredArchives = computed(() => recrutements.archives.filter(matches))
+  const filtered = computed(() => toValue(rows).filter(matches))
 
   const activeFiltersCount = computed(() => countActiveFilters(applied))
 
   const responsableOptions = computed(() =>
-    withAllOption('Tous les responsables', buildResponsableOptions([
-      ...recrutements.actifs,
-      ...recrutements.archives,
-    ])),
+    withAllOption('Tous les responsables', buildResponsableOptions(toValue(rows))),
   )
 
   function reset(): void {
@@ -58,8 +54,7 @@ export function useRecrutementsFilters(recrutements: {
     apply,
     reset,
     search,
-    filteredActifs,
-    filteredArchives,
+    filtered,
     activeFiltersCount,
     responsableOptions,
   }

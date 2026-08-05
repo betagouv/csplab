@@ -57,18 +57,11 @@ const recrutementsActifsPage = ref(1)
 const recrutementsArchivesPage = ref(1)
 
 const PAGE_SIZE = 6
-const {
-  draft: filtersDraft,
-  canReset: canResetFilters,
-  syncDraft: syncFiltersDraft,
-  apply: applyFiltersDraft,
-  reset: resetFilters,
-  search,
-  filteredActifs,
-  filteredArchives,
-  activeFiltersCount,
-  responsableOptions,
-} = useRecrutementsFilters(recrutementsData)
+
+const actifsFilters = useRecrutementsFilters(computed(() => recrutementsData.actifs))
+const archivesFilters = useRecrutementsFilters(computed(() => recrutementsData.archives))
+
+const activeFilters = computed(() => (activeTab.value === 'actifs' ? actifsFilters : archivesFilters))
 
 const {
   isOpen: isFiltersDrawerOpen,
@@ -77,29 +70,29 @@ const {
 } = useDisclosure()
 
 function openFilters() {
-  syncFiltersDraft()
+  activeFilters.value.syncDraft()
   openFiltersDrawer()
 }
 
 function applyFilters() {
-  applyFiltersDraft()
+  activeFilters.value.apply()
   closeFiltersDrawer()
 }
 
-watch(filteredActifs, () => {
+watch(actifsFilters.filtered, () => {
   recrutementsActifsPage.value = 1
 })
 
-watch(filteredArchives, () => {
+watch(archivesFilters.filtered, () => {
   recrutementsArchivesPage.value = 1
 })
 
 const countLabel = computed(() => {
   if (activeTab.value === 'actifs') {
-    const count = filteredActifs.value.length
+    const count = actifsFilters.filtered.value.length
     return `${count} recrutement${count > 1 ? 's' : ''} en cours`
   }
-  const count = filteredArchives.value.length
+  const count = archivesFilters.filtered.value.length
   return `${count} offre${count > 1 ? 's' : ''} archivée${count > 1 ? 's' : ''}`
 })
 </script>
@@ -143,14 +136,14 @@ const countLabel = computed(() => {
           </p>
           <div class="mes-recrutement-view__actions">
             <CspInput
-              v-model="search"
+              v-model="activeFilters.search.value"
               type="search"
               aria-label="Rechercher un recrutement"
               placeholder="Rechercher une offre, un candidat,…"
               class="mes-recrutement-view__search"
             />
             <CspButton
-              :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
+              :label="activeFilters.activeFiltersCount.value ? `Filtres (${activeFilters.activeFiltersCount.value})` : 'Filtres'"
               variant="tertiary"
               icon="ri:filter-line"
               is-icon-left
@@ -160,12 +153,12 @@ const countLabel = computed(() => {
         </div>
         <RecrutementsFiltersDrawer
           v-model:open="isFiltersDrawerOpen"
-          v-model:responsable="filtersDraft.responsable"
-          v-model:type-contrat="filtersDraft.typeContrat"
-          :responsable-options="responsableOptions"
-          :can-reset="canResetFilters"
+          v-model:responsable="activeFilters.draft.responsable"
+          v-model:type-contrat="activeFilters.draft.typeContrat"
+          :responsable-options="activeFilters.responsableOptions.value"
+          :can-reset="activeFilters.canReset.value"
           @apply="applyFilters"
-          @reset="resetFilters"
+          @reset="activeFilters.reset()"
         />
       </template>
     </template>
@@ -186,7 +179,7 @@ const countLabel = computed(() => {
         </template>
         <CspDataTable
           v-model:page="recrutementsActifsPage"
-          :rows="filteredActifs"
+          :rows="actifsFilters.filtered.value"
           :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
           :row-key="row => row.offer_id"
           activation-mode="cell"
@@ -223,7 +216,7 @@ const countLabel = computed(() => {
         </template>
         <CspDataTable
           v-model:page="recrutementsArchivesPage"
-          :rows="filteredArchives"
+          :rows="archivesFilters.filtered.value"
           :columns="RECRUTEMENTS_ARCHIVES_COLUMNS"
           :row-key="row => row.offer_id"
           activation-mode="cell"
