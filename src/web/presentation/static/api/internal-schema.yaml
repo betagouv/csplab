@@ -555,6 +555,59 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}:
+    get:
+      operationId: recruteur_organisme_recrutements_retrieve
+      summary: Détail d'un recrutement
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: recrutement_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecrutementDetail'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/etape:
     patch:
       operationId: recruteur_organisme_recrutements_candidatures_etape_partial_update
@@ -1560,7 +1613,7 @@ components:
       properties:
         message:
           type: string
-    RecrutementDetailKanban:
+    RecrutementDetail:
       type: object
       properties:
         offer_id:
@@ -1582,7 +1635,7 @@ components:
         etapes:
           type: array
           items:
-            $ref: '#/components/schemas/EtapeRecrutementDetailedCandidatures'
+            $ref: '#/components/schemas/EtapeRecrutement'
       required:
       - archive
       - categorie_offre
@@ -1592,6 +1645,19 @@ components:
       - localisation
       - offer_id
       - organisme_recruteur
+    RecrutementDetailKanban:
+      type: object
+      properties:
+        offer_id:
+          type: string
+          format: uuid
+        etapes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EtapeRecrutementDetailedCandidatures'
+      required:
+      - etapes
+      - offer_id
     RecrutementsActifs:
       type: object
       properties:

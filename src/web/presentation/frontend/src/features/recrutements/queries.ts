@@ -4,7 +4,11 @@ import type {
   PaginatedRecrutementsArchivesResponse,
 } from './types'
 import { defineQueryOptions } from '@pinia/colada'
-import { getRecrutementsActifs, getRecrutementsArchives } from './api'
+import {
+  getRecrutementDetail,
+  getRecrutementsActifs,
+  getRecrutementsArchives,
+} from './api'
 
 export const RECRUTEMENTS_QUERY_KEYS = {
   root: ['recrutements'] as const,
@@ -12,7 +16,19 @@ export const RECRUTEMENTS_QUERY_KEYS = {
     [...RECRUTEMENTS_QUERY_KEYS.root, organismeUuid, 'actifs'] as const,
   archives: (organismeUuid: string) =>
     [...RECRUTEMENTS_QUERY_KEYS.root, organismeUuid, 'archives'] as const,
+  detail: (organismeUuid: string, recrutementUuid: string) =>
+    [...RECRUTEMENTS_QUERY_KEYS.root, organismeUuid, recrutementUuid] as const,
 }
+
+export const recrutementDetailQuery = defineQueryOptions(
+  ({ organismeUuid, recrutementUuid }: {
+    organismeUuid: string
+    recrutementUuid: string
+  }) => ({
+    key: RECRUTEMENTS_QUERY_KEYS.detail(organismeUuid, recrutementUuid),
+    query: () => getRecrutementDetail(organismeUuid, recrutementUuid),
+  }),
+)
 
 export const recrutementsActifsQuery = defineQueryOptions(
   ({ organismeUuid }: { organismeUuid: string }) => ({

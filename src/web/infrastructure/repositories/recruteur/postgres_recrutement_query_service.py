@@ -16,6 +16,7 @@ from application.recruteur.dtos.recrutement_read_models import (
     OrganismeRecruteurDto,
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
+    RecrutementDetailReadModel,
     RecrutementKanbanReadModel,
 )
 from application.recruteur.services.recrutement_query_service_interface import (
@@ -214,6 +215,59 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
 
         return QuerySetPage(qs, mapper=_mapper)
 
+    def get_detail_by_recrutement(
+        self, organisme_id: UUID, recrutement_id: UUID
+    ) -> RecrutementDetailReadModel | None:
+        recrutement = (
+            RecrutementModel.objects.filter(
+                pk=recrutement_id, organisme_id=organisme_id
+            )
+            .select_related("offre", "organisme")
+            .prefetch_related("etapes")
+            .first()
+        )
+        if recrutement is None:
+            return None
+
+        etapes_by_id = {str(etape.id): etape for etape in recrutement.etapes.all()}
+        etapes_ordonnees = [
+            etapes_by_id[etape_id]
+            for etape_id in recrutement.ordre_etapes
+            if etape_id in etapes_by_id
+        ]
+
+        offre = recrutement.offre
+        organisme = recrutement.organisme
+
+        return RecrutementDetailReadModel(
+            offer_id=recrutement.offre_id,
+            intitule=offre.title,
+            archive=offre.archived_at is not None,
+            date_publication=offre.publication_date,
+            localisation=LocalisationDto(
+                zone_geographique=offre.area or "",
+                pays=offre.country or "",
+                region=offre.region or "",
+                departement=offre.department or "",
+                localisation_label=offre.location_label or "",
+                latitude=offre.latitude,
+                longitude=offre.longitude,
+            ),
+            organisme_recruteur=OrganismeRecruteurDto(
+                nom=organisme.nom,
+                siret=organisme.siret,
+            ),
+            categorie_offre=offre.category or "",
+            etapes=[
+                EtapeDto(
+                    etape_uuid=etape.id,
+                    nom=etape.nom,
+                    categorie=CategorieEtapeRecrutement(etape.categorie).name,
+                )
+                for etape in etapes_ordonnees
+            ],
+        )
+
     def get_kanban_by_recrutement(
         self, organisme_id: UUID, recrutement_id: UUID
     ) -> RecrutementKanbanReadModel | None:
@@ -221,7 +275,6 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             RecrutementModel.objects.filter(
                 pk=recrutement_id, organisme_id=organisme_id
             )
-            .select_related("offre", "organisme")
             .prefetch_related(
                 Prefetch(
                     "etapes",
@@ -247,28 +300,8 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             if etape_id in etapes_by_id
         ]
 
-        offre = recrutement.offre
-        organisme = recrutement.organisme
-
         return RecrutementKanbanReadModel(
             offer_id=recrutement.offre_id,
-            intitule=offre.title,
-            archive=offre.archived_at is not None,
-            date_publication=offre.publication_date,
-            localisation=LocalisationDto(
-                zone_geographique=offre.area or "",
-                pays=offre.country or "",
-                region=offre.region or "",
-                departement=offre.department or "",
-                localisation_label=offre.location_label or "",
-                latitude=offre.latitude,
-                longitude=offre.longitude,
-            ),
-            organisme_recruteur=OrganismeRecruteurDto(
-                nom=organisme.nom,
-                siret=organisme.siret,
-            ),
-            categorie_offre=offre.category or "",
             etapes=[
                 EtapeKanbanReadModel(
                     etape_uuid=etape.id,

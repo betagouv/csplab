@@ -5,17 +5,17 @@ from uuid import uuid4
 import pytest
 
 from application.recruteur.dtos.recrutement_read_models import (
-    CandidatDto,
-    CandidatureKanbanDto,
-    EtapeKanbanReadModel,
-    RecrutementKanbanReadModel,
+    EtapeDto,
+    LocalisationDto,
+    OrganismeRecruteurDto,
+    RecrutementDetailReadModel,
 )
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
 )
-from application.recruteur.usecases.get_recrutement_kanban import (
-    GetRecrutementKanbanQuery,
-    GetRecrutementKanbanUsecase,
+from application.recruteur.usecases.get_recrutement_detail import (
+    GetRecrutementDetailQuery,
+    GetRecrutementDetailUsecase,
 )
 from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.services.organisme_permission_service import (
@@ -25,26 +25,26 @@ from domain.recruteur.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 
 
-def _recrutement_kanban_read_model() -> RecrutementKanbanReadModel:
-    return RecrutementKanbanReadModel(
+def _recrutement_detail_read_model() -> RecrutementDetailReadModel:
+    return RecrutementDetailReadModel(
         offer_id=uuid4(),
-        etapes=[
-            EtapeKanbanReadModel(
-                etape_uuid=uuid4(),
-                nom="Réception des candidatures",
-                categorie="ENTREE",
-                candidatures=[
-                    CandidatureKanbanDto(
-                        uuid=uuid4(),
-                        date_soumission=datetime.now(tz=timezone.utc),
-                        date_derniere_activite=datetime.now(tz=timezone.utc),
-                        candidat=CandidatDto(
-                            uuid=uuid4(), nom="Dupont", prenom="Alice"
-                        ),
-                    )
-                ],
-            )
-        ],
+        intitule="Chargé de mission numérique",
+        archive=False,
+        date_publication=datetime.now(tz=timezone.utc),
+        localisation=LocalisationDto(
+            zone_geographique="EU",
+            pays="FRA",
+            region="11",
+            departement="75",
+            localisation_label="Paris 8e arrondissement",
+            latitude=48.8748,
+            longitude=2.3070,
+        ),
+        organisme_recruteur=OrganismeRecruteurDto(
+            nom="Mairie de Paris", siret="21750001600019"
+        ),
+        categorie_offre="A",
+        etapes=[EtapeDto(etape_uuid=uuid4(), nom="Réception", categorie="ENTREE")],
     )
 
 
@@ -60,13 +60,13 @@ def recrutement_query_service_fixture():
 
 @pytest.fixture(name="usecase")
 def usecase_fixture(organisme_permission_service, recrutement_query_service):
-    return GetRecrutementKanbanUsecase(
+    return GetRecrutementDetailUsecase(
         organisme_permission_service=organisme_permission_service,
         recrutement_query_service=recrutement_query_service,
     )
 
 
-class TestGetRecrutementKanban:
+class TestGetRecrutementDetail:
     @pytest.mark.parametrize(
         "role",
         [
@@ -84,12 +84,12 @@ class TestGetRecrutementKanban:
         organisme_permission_service.est_autorise.return_value = role
         organisme_id = uuid4()
         recrutement_id = uuid4()
-        read_model = _recrutement_kanban_read_model()
-        recrutement_query_service.get_kanban_by_recrutement.return_value = read_model
+        read_model = _recrutement_detail_read_model()
+        recrutement_query_service.get_detail_by_recrutement.return_value = read_model
 
         utilisateur_id = uuid4()
         result = usecase.execute(
-            GetRecrutementKanbanQuery(
+            GetRecrutementDetailQuery(
                 organisme_id=organisme_id,
                 recrutement_id=recrutement_id,
                 utilisateur_id=utilisateur_id,
@@ -104,7 +104,7 @@ class TestGetRecrutementKanban:
             est_staff=False,
             recrutement_id=recrutement_id,
         )
-        recrutement_query_service.get_kanban_by_recrutement.assert_called_once_with(
+        recrutement_query_service.get_detail_by_recrutement.assert_called_once_with(
             organisme_id=organisme_id, recrutement_id=recrutement_id
         )
 
@@ -117,12 +117,11 @@ class TestGetRecrutementKanban:
         organisme_permission_service.est_autorise.return_value = (
             AgentOrganismeRole.RESPONSABLE
         )
-        organisme_id = uuid4()
-        recrutement_query_service.get_kanban_by_recrutement.return_value = None
+        recrutement_query_service.get_detail_by_recrutement.return_value = None
 
         result = usecase.execute(
-            GetRecrutementKanbanQuery(
-                organisme_id=organisme_id,
+            GetRecrutementDetailQuery(
+                organisme_id=uuid4(),
                 recrutement_id=uuid4(),
                 utilisateur_id=uuid4(),
             )
@@ -138,7 +137,7 @@ class TestGetRecrutementKanban:
 
         with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(
-                GetRecrutementKanbanQuery(
+                GetRecrutementDetailQuery(
                     organisme_id=organisme_id,
                     recrutement_id=uuid4(),
                     utilisateur_id=uuid4(),

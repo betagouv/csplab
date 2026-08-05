@@ -75,7 +75,7 @@ class EtapeRecrutementDetailedCandidaturesSerializer(EtapeRecrutementSerializer)
     candidatures = CandidatureSerializer(many=True)
 
 
-class RecrutementDetailKanbanSerializer(serializers.Serializer):
+class RecrutementDetailSerializer(serializers.Serializer):
     offer_id = serializers.UUIDField()
     intitule = serializers.CharField()
     archive = serializers.BooleanField()
@@ -85,6 +85,11 @@ class RecrutementDetailKanbanSerializer(serializers.Serializer):
     categorie_offre = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in Category]
     )
+    etapes = EtapeRecrutementSerializer(many=True)
+
+
+class RecrutementDetailKanbanSerializer(serializers.Serializer):
+    offer_id = serializers.UUIDField()
     etapes = EtapeRecrutementDetailedCandidaturesSerializer(many=True)
 
 

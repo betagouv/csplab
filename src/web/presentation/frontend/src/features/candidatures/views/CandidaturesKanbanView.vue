@@ -16,8 +16,9 @@ import { useKanbanSelection } from '../composables/useKanbanSelection'
 
 const {
   recrutementUuid,
-  etapes,
-  pending,
+  recrutementEtapes,
+  candidatureKanban,
+  pendingKanban,
   moveCandidature,
   moveCandidaturesBatch,
   filters,
@@ -25,7 +26,7 @@ const {
 
 const { filteredEtapes } = filters
 
-const showSkeleton = useMinimumPending(pending)
+const showSkeleton = useMinimumPending(pendingKanban)
 
 const {
   selectedByEtape,
@@ -45,7 +46,7 @@ const isRefusDialogOpen = ref(false)
 const sourceEtape = computed(() => {
   if (!currentEtapeUuid.value)
     return null
-  return etapes.value.find(e => e.etape_uuid === currentEtapeUuid.value) ?? null
+  return candidatureKanban.value.find(e => e.etape_uuid === currentEtapeUuid.value) ?? null
 })
 
 const selectedCandidatureUuids = computed(() => {
@@ -75,7 +76,7 @@ function handleRefuser(): void {
 }
 
 function handleConfirmRefus(): void {
-  const refusEtape = etapes.value.find(e => e.categorie === 'REFUS')
+  const refusEtape = recrutementEtapes.value.find(e => e.categorie === 'REFUS')
   if (!refusEtape)
     return
 
@@ -176,7 +177,7 @@ const refusDescription = computed(() => {
       :open="isDrawerOpen"
       :source-etape="sourceEtape"
       :selected-candidature-uuids="selectedCandidatureUuids"
-      :etapes="etapes"
+      :etapes="recrutementEtapes"
       @update:open="handleDrawerClose"
       @confirm="handleConfirmBatchMove"
       @toggle-candidature="handleToggleCandidature"

@@ -96,7 +96,7 @@ class EtapeKanbanReadModel:
 
 
 @dataclass(frozen=True, kw_only=True)
-class RecrutementKanbanReadModel:
+class RecrutementDetailReadModel:
     offer_id: UUID
     intitule: str
     archive: bool
@@ -104,4 +104,10 @@ class RecrutementKanbanReadModel:
     localisation: LocalisationDto
     organisme_recruteur: OrganismeRecruteurDto
     categorie_offre: str
+    etapes: list[EtapeDto]
+
+
+@dataclass(frozen=True, kw_only=True)
+class RecrutementKanbanReadModel:
+    offer_id: UUID
     etapes: list[EtapeKanbanReadModel]

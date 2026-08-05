@@ -1,12 +1,13 @@
-import type { CandidatureListe, RecrutementDetailKanban } from './types'
+import type { CandidatureListe } from './types'
 import type { CspMetaItem } from '@/components/base/CspMeta/types'
+import type { RecrutementDetail } from '@/features/recrutements/types'
 import { formatDateLong } from '@/utils/date'
 
 export function formatCandidatName(candidat: CandidatureListe['candidat']): string {
   return `${candidat.prenom} ${candidat.nom}`
 }
 
-export function formatRecrutementMeta(detail: RecrutementDetailKanban): CspMetaItem[] {
+export function formatRecrutementMeta(detail: RecrutementDetail): CspMetaItem[] {
   return [
     {
       icon: 'ri:calendar-line',

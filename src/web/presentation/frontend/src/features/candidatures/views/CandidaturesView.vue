@@ -26,16 +26,16 @@ const recrutementUuid = route.params.recrutementUuid as string
 const {
   recrutementDetail,
   intitule,
-  pending,
+  pendingDetail,
   error,
   filters,
 } = useCandidatures()
 
 const showTitleSkeleton = useMinimumPending(
-  computed(() => pending.value && !intitule.value),
+  computed(() => pendingDetail.value && !intitule.value),
 )
 const showSubtitleSkeleton = useMinimumPending(
-  computed(() => pending.value && !recrutementDetail.value),
+  computed(() => pendingDetail.value && !recrutementDetail.value),
 )
 
 const {
@@ -76,10 +76,10 @@ const metaItems = computed(() =>
   recrutementDetail.value ? formatRecrutementMeta(recrutementDetail.value) : [],
 )
 
-const loadFailed = computed(() => !pending.value && Boolean(error.value))
+const loadFailed = computed(() => !pendingDetail.value && Boolean(error.value))
 
 const isNotFound = computed(() =>
-  !pending.value && !error.value && !recrutementDetail.value,
+  !pendingDetail.value && !error.value && !recrutementDetail.value,
 )
 
 const currentView = computed(() => {
