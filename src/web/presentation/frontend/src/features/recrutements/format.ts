@@ -12,3 +12,7 @@ export const TYPE_CONTRAT_LABELS = {
 export function formatResponsablesLabel(row: RecrutementBase): string {
   return row.responsables.map(r => r.nom).join(', ') || '-'
 }
+
+export function formatTypeContratLabel(row: RecrutementBase): string {
+  return row.type_contrat ? TYPE_CONTRAT_LABELS[row.type_contrat] : '-'
+}
