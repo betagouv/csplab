@@ -105,6 +105,7 @@ function handleCheckboxChange(): void {
 
 <style scoped lang="scss">
 .candidature-kanban-column {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 0 0 18.75rem;
