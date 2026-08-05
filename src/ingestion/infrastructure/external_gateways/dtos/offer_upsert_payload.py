@@ -124,10 +124,12 @@ class OfferUpsertPayload(BaseModel):
             ]
 
         domaine_length = 3
+        er_prefix = "ER"
+        family_code = offer.family_code or ""
+        if family_code.startswith(er_prefix):
+            family_code = family_code[len(er_prefix) :]
         domaine = (
-            offer.family_code[:domaine_length]
-            if offer.family_code and len(offer.family_code) >= domaine_length
-            else ""
+            family_code[:domaine_length] if len(family_code) >= domaine_length else ""
         )
 
         return cls(
