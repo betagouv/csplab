@@ -275,6 +275,11 @@ critères suivants :
 - `region` — un ou plusieurs codes région (ex. `11,84`)
 - `departement` — un ou plusieurs codes département (ex. `75,69`)
 - `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
+- filtre géographique par rayon autour d'un point, les trois paramètres
+  doivent être fournis ensemble :
+  - `latitude` — latitude du point en degrés décimaux (entre -90 et 90)
+  - `longitude` — longitude du point en degrés décimaux (entre -180 et 180)
+  - `radius` — rayon de recherche en kilomètres (entier positif)
 
 Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
 virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.

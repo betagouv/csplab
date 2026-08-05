@@ -382,6 +382,84 @@ def test_invalid_pays_returns_400(mock_offers_container, authenticated_client):
     assert "INVALID" in response.json()["error"]
 
 
+def test_geo_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(
+        URL, {"latitude": "48.8566", "longitude": "2.3522", "radius": "10"}
+    )
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            latitude=48.8566,
+            longitude=2.3522,
+            radius_km=10,
+        )
+    )
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"latitude": "48.8566"},
+        {"longitude": "2.3522"},
+        {"radius": "10"},
+        {"latitude": "48.8566", "longitude": "2.3522"},
+        {"latitude": "48.8566", "radius": "10"},
+        {"longitude": "2.3522", "radius": "10"},
+    ],
+)
+def test_partial_geo_filter_returns_400(
+    mock_offers_container, authenticated_client, params
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, params)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_radius_below_one_returns_400(mock_offers_container, authenticated_client):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(
+        URL, {"latitude": "48.8566", "longitude": "2.3522", "radius": "0"}
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_non_integer_radius_returns_400(mock_offers_container, authenticated_client):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(
+        URL, {"latitude": "48.8566", "longitude": "2.3522", "radius": "10.5"}
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"latitude": "-91", "longitude": "2.3522", "radius": "10"},
+        {"latitude": "48.8566", "longitude": "181", "radius": "10"},
+    ],
+)
+def test_out_of_range_lat_lon_returns_400(
+    mock_offers_container, authenticated_client, params
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, params)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
 def test_returns_error_500(mock_offers_container, authenticated_client):
     mock_usecase = MagicMock()
     mock_usecase.execute.side_effect = Exception("db error")

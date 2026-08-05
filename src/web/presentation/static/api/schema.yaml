@@ -391,6 +391,11 @@ paths:
         - `region` — un ou plusieurs codes région (ex. `11,84`)
         - `departement` — un ou plusieurs codes département (ex. `75,69`)
         - `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
+        - filtre géographique par rayon autour d'un point, les trois paramètres
+          doivent être fournis ensemble :
+          - `latitude` — latitude du point en degrés décimaux (entre -90 et 90)
+          - `longitude` — longitude du point en degrés décimaux (entre -180 et 180)
+          - `radius` — rayon de recherche en kilomètres (entier positif)
 
         Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
         virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.
@@ -654,6 +659,15 @@ paths:
               * `WLF` - WLF
         description: Valeurs séparées par une virgule (ex. `75,69`).
       - in: query
+        name: latitude
+        schema:
+          type: number
+          format: double
+          maximum: 90
+          minimum: -90
+        description: 'Filtre géographique : latitude du point en degrés décimaux (à
+          fournir avec `longitude` et `radius`).'
+      - in: query
         name: lieu_de_travail
         schema:
           type: array
@@ -668,6 +682,15 @@ paths:
               * `SUR_SITE` - Sur site
               * `TELETRAVAIL` - Télétravail
         description: Valeurs séparées par une virgule (ex. `SUR_SITE,TELETRAVAIL`).
+      - in: query
+        name: longitude
+        schema:
+          type: number
+          format: double
+          maximum: 180
+          minimum: -180
+        description: 'Filtre géographique : longitude du point en degrés décimaux
+          (à fournir avec `latitude` et `radius`).'
       - in: query
         name: management
         schema:
@@ -1211,6 +1234,13 @@ paths:
               * `ZMB` - Zambie
               * `ZWE` - Zimbabwe
         description: Valeurs séparées par une virgule (ex. `FRA,BEL`).
+      - in: query
+        name: radius
+        schema:
+          type: integer
+          minimum: 1
+        description: 'Filtre géographique : rayon de recherche en kilomètres (à fournir
+          avec `latitude` et `longitude`).'
       - in: query
         name: region
         schema:
