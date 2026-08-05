@@ -1,8 +1,9 @@
 import type { RouteRecordRaw } from 'vue-router'
+import { UUID_ROUTE_PARAM } from '@/router/params'
 
 export const candidaturesRoutes: RouteRecordRaw[] = [
   {
-    path: '/mes-recrutements/:recrutementUuid',
+    path: `/mes-recrutements/:recrutementUuid${UUID_ROUTE_PARAM}`,
     component: () => import('./views/CandidaturesView.vue'),
     children: [
       {

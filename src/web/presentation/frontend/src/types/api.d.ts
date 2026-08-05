@@ -529,6 +529,7 @@ export interface components {
             /** Format: uuid */
             offer_id: string;
             intitule: string;
+            archive: boolean;
             /** Format: date-time */
             date_publication: string;
             localisation: components["schemas"]["Localisation"];

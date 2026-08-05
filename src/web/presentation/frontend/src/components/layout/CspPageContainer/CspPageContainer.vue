@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends string = string">
 import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
@@ -7,13 +7,13 @@ import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 withDefaults(defineProps<{
   fill?: boolean
   width?: 'reading' | 'wide' | 'full'
-  tabs?: CspTabItem[]
+  tabs?: CspTabItem<T>[]
 }>(), {
   fill: false,
   width: 'wide',
 })
 
-const activeTab = defineModel<string>('activeTab')
+const activeTab = defineModel<T>('activeTab')
 </script>
 
 <template>

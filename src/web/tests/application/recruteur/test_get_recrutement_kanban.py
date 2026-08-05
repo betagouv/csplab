@@ -31,6 +31,7 @@ def _recrutement_kanban_read_model() -> RecrutementKanbanReadModel:
     return RecrutementKanbanReadModel(
         offer_id=uuid4(),
         intitule="Chargé de mission numérique",
+        archive=False,
         date_publication=datetime.now(tz=timezone.utc),
         localisation=LocalisationDto(
             zone_geographique="EU",

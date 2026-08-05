@@ -99,6 +99,7 @@ class EtapeKanbanReadModel:
 class RecrutementKanbanReadModel:
     offer_id: UUID
     intitule: str
+    archive: bool
     date_publication: datetime
     localisation: LocalisationDto
     organisme_recruteur: OrganismeRecruteurDto

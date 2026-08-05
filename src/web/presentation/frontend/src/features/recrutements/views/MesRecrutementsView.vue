@@ -16,22 +16,26 @@ import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
 import RecrutementsFiltersDrawer from '../components/RecrutementsFiltersDrawer.vue'
-import { useRecrutements } from '../composables/useRecrutements'
 
+import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
+import { DEFAULT_RECRUTEMENT_TAB, RECRUTEMENTS_TAB_ROUTE_NAMES } from '../routes'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },
   { label: 'Mes recrutements' },
 ]
 
-const activeTab = ref<RecrutementKey>('actifs')
+const router = useRouter()
 
-const TABS: CspTabItem[] = [
+const activeTab = useRouteTab(RECRUTEMENTS_TAB_ROUTE_NAMES, DEFAULT_RECRUTEMENT_TAB)
+
+const TABS: CspTabItem<RecrutementKey>[] = [
   { value: 'actifs', label: 'Recrutements en cours' },
   { value: 'archives', label: 'Offres archivées' },
 ]
@@ -44,8 +48,6 @@ const {
 
 const showActifsSkeleton = useMinimumPending(pendingActifs, 300)
 const showArchivesSkeleton = useMinimumPending(pendingArchives, 300)
-
-const router = useRouter()
 
 function openOffre(recrutementUuid: string) {
   void router.push({ name: 'recrutement-candidatures-kanban', params: { recrutementUuid } })

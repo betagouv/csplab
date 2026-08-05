@@ -8,6 +8,7 @@ import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { recrutementKanbanQuery } from '@/features/candidatures/queries'
 import { peekRecrutementIntitule } from '@/features/recrutements/queries'
+import { recrutementsListLocation } from '@/features/recrutements/routes'
 import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
 
@@ -26,6 +27,10 @@ const intitule = computed<string | null>(() =>
   ?? peekRecrutementIntitule(queryCache, TEMP_ORGANISME_UUID, recrutementUuid),
 )
 
+const recrutementsListLink = computed(() =>
+  recrutementsListLocation(recrutementDetail.value?.archive),
+)
+
 const candidaturesRoute = computed(() => ({
   name: 'recrutement-candidatures-kanban',
   params: { recrutementUuid },
@@ -33,7 +38,7 @@ const candidaturesRoute = computed(() => ({
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
   { label: 'Accueil', to: { name: 'home' } },
-  { label: 'Mes recrutements', to: { name: 'mes-recrutements' } },
+  { label: 'Mes recrutements', to: recrutementsListLink.value },
   ...(intitule.value ? [{ label: intitule.value, to: candidaturesRoute.value }] : []),
   { label: 'Étapes de recrutement' },
 ])

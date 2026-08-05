@@ -1568,6 +1568,8 @@ components:
           format: uuid
         intitule:
           type: string
+        archive:
+          type: boolean
         date_publication:
           type: string
           format: date-time
@@ -1582,6 +1584,7 @@ components:
           items:
             $ref: '#/components/schemas/EtapeRecrutementDetailedCandidatures'
       required:
+      - archive
       - categorie_offre
       - date_publication
       - etapes
