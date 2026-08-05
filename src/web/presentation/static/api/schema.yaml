@@ -391,6 +391,13 @@ paths:
         - `region` — un ou plusieurs codes région (ex. `11,84`)
         - `departement` — un ou plusieurs codes département (ex. `75,69`)
         - `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
+        - `domaine` — un ou plusieurs codes de domaine fonctionnel (ex. `NUM,ACH`)
+        - `organisme` — un ou plusieurs noms d'organisme (nom exact). Répéter le
+          paramètre pour filtrer sur plusieurs organismes (ex.
+          `?organisme=Foo&organisme=Bar`), ne pas séparer les valeurs par une
+          virgule, le nom d'un organisme pouvant en contenir une.
+        - `date_publication` — nombre de jours négatif pour ne retourner que les
+          offres publiées au cours des N derniers jours (ex. `-7`)
         - filtre géographique par rayon autour d'un point, les trois paramètres
           doivent être fournis ensemble :
           - `latitude` — latitude du point en degrés décimaux (entre -90 et 90)
@@ -435,6 +442,14 @@ paths:
               * `B` - B
               * `C` - C
         description: Valeurs séparées par une virgule (ex. `A,B`).
+      - in: query
+        name: date_publication
+        schema:
+          type: integer
+          maximum: -1
+        description: 'Filtre sur la date de publication : nombre de jours négatif
+          pour ne retourner que les offres publiées au cours des N derniers jours
+          (ex. `-7` pour les offres publiées ces 7 derniers jours).'
       - in: query
         name: departement
         schema:
@@ -659,6 +674,73 @@ paths:
               * `WLF` - WLF
         description: Valeurs séparées par une virgule (ex. `75,69`).
       - in: query
+        name: domaine
+        schema:
+          type: array
+          items:
+            enum:
+            - ACH
+            - AGR
+            - AMT
+            - ASP
+            - BAT
+            - COM
+            - CTL
+            - CUL
+            - DEF
+            - DIR
+            - DOC
+            - ENS
+            - ENV
+            - FIP
+            - GBF
+            - GRH
+            - INT
+            - JUR
+            - JUS
+            - LOG
+            - MED
+            - NUM
+            - RCH
+            - REN
+            - SAN
+            - SEC
+            - SOC
+            - TRA
+            - USA
+            type: string
+            description: |-
+              * `ACH` - Achat
+              * `AGR` - Agriculture
+              * `AMT` - Aménagement et développement durable du territoire
+              * `ASP` - Animation, jeunesse et sports
+              * `BAT` - Bâtiment
+              * `COM` - Communication
+              * `CTL` - Organisation, contrôle et évaluation
+              * `CUL` - Culture et Patrimoine
+              * `DEF` - Défense
+              * `DIR` - Direction et pilotage des politiques publiques
+              * `DOC` - Lecture publique et Documentation
+              * `ENS` - Enseignement et Formation
+              * `ENV` - Environnement
+              * `FIP` - Finances publiques
+              * `GBF` - Gestion budgétaire et financière
+              * `GRH` - Ressources humaines
+              * `INT` - International
+              * `JUR` - Affaires juridiques
+              * `JUS` - Justice
+              * `LOG` - Interventions techniques et logistiques
+              * `MED` - Médical et paramédical
+              * `NUM` - Numérique
+              * `RCH` - Recherche
+              * `REN` - Renseignement
+              * `SAN` - Prévention, conseil et pilotage en santé
+              * `SEC` - Sécurité
+              * `SOC` - Social, enfance et famille
+              * `TRA` - Transports
+              * `USA` - Relation à l'usager
+        description: Valeurs séparées par une virgule (ex. `NUM,ACH`).
+      - in: query
         name: latitude
         schema:
           type: number
@@ -719,6 +801,16 @@ paths:
               * `CONFIRME` - Confirmé
               * `EXPERT` - Expert
         description: Valeurs séparées par une virgule (ex. `DEBUTANT,EXPERT`).
+      - in: query
+        name: organisme
+        schema:
+          type: array
+          items:
+            type: string
+        description: Filtre sur l'organisme (nom exact). Répéter le paramètre pour
+          filtrer sur plusieurs organismes (ex. `?organisme=Foo&organisme=Bar`). Ne
+          pas séparer les valeurs par une virgule, le nom d'un organisme pouvant en
+          contenir une.
       - name: page
         required: false
         in: query

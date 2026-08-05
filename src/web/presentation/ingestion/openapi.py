@@ -275,6 +275,13 @@ critères suivants :
 - `region` — un ou plusieurs codes région (ex. `11,84`)
 - `departement` — un ou plusieurs codes département (ex. `75,69`)
 - `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
+- `domaine` — un ou plusieurs codes de domaine fonctionnel (ex. `NUM,ACH`)
+- `organisme` — un ou plusieurs noms d'organisme (nom exact). Répéter le
+  paramètre pour filtrer sur plusieurs organismes (ex.
+  `?organisme=Foo&organisme=Bar`), ne pas séparer les valeurs par une
+  virgule, le nom d'un organisme pouvant en contenir une.
+- `date_publication` — nombre de jours négatif pour ne retourner que les
+  offres publiées au cours des N derniers jours (ex. `-7`)
 - filtre géographique par rayon autour d'un point, les trois paramètres
   doivent être fournis ensemble :
   - `latitude` — latitude du point en degrés décimaux (entre -90 et 90)
