@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List
 from uuid import UUID
 
@@ -176,6 +176,9 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         region: List[Region] | None = None,
         department: List[Department] | None = None,
         country: List[Country] | None = None,
+        domain: List[str] | None = None,
+        organization: List[str] | None = None,
+        published_within_days: int | None = None,
         latitude: float | None = None,
         longitude: float | None = None,
         radius_km: int | None = None,
@@ -185,56 +188,62 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         if external_id_contains:
             qs = qs.filter(external_id__contains=external_id_contains)
 
-        if category:
-            qs = qs.filter(category__in=[c.value for c in category])
+        qs = self._apply_field_filters(
+            qs,
+            [
+                ("category__in", category, lambda c: c.value),
+                ("verse__in", verse, lambda v: v.value),
+                ("contract_type__in", contract_type, lambda c: c.value),
+                ("criteria__experience__in", experience_level, lambda e: e.name),
+                ("conditions__management__in", management, lambda m: m.name),
+                (
+                    "conditions__lieu_de_travail__in",
+                    working_place,
+                    lambda w: w.name,
+                ),
+                ("region__in", region, lambda r: r.code),
+                ("department__in", department, lambda d: d.code),
+                ("country__in", country, str),
+                ("functional_area_code__in", domain, str),
+                ("organization__in", organization, str),
+            ],
+        )
 
-        if verse:
-            qs = qs.filter(verse__in=[v.value for v in verse])
-
-        if contract_type:
-            qs = qs.filter(contract_type__in=[c.value for c in contract_type])
-
-        if experience_level:
-            qs = qs.filter(criteria__experience__in=[e.name for e in experience_level])
-
-        if management:
-            qs = qs.filter(conditions__management__in=[m.name for m in management])
-
-        if working_place:
-            qs = qs.filter(
-                conditions__lieu_de_travail__in=[w.name for w in working_place]
-            )
-
-        if region:
-            qs = qs.filter(region__in=[r.code for r in region])
-
-        if department:
-            qs = qs.filter(department__in=[d.code for d in department])
-
-        if country:
-            qs = qs.filter(country__in=[str(c) for c in country])
+        if published_within_days is not None:
+            since = timezone.now() - timedelta(days=abs(published_within_days))
+            qs = qs.filter(publication_date__gte=since)
 
         if latitude is not None and longitude is not None and radius_km is not None:
-            qs = qs.filter(latitude__isnull=False, longitude__isnull=False)
-            distance_km = EARTH_RADIUS_KM * ACos(
-                Least(
-                    Value(1.0, output_field=FloatField()),
-                    Greatest(
-                        Value(-1.0, output_field=FloatField()),
-                        Cos(Radians(Value(latitude, output_field=FloatField())))
-                        * Cos(Radians(F("latitude")))
-                        * Cos(
-                            Radians(F("longitude"))
-                            - Radians(Value(longitude, output_field=FloatField()))
-                        )
-                        + Sin(Radians(Value(latitude, output_field=FloatField())))
-                        * Sin(Radians(F("latitude"))),
-                    ),
-                )
-            )
-            qs = qs.annotate(distance_km=distance_km).filter(distance_km__lte=radius_km)
+            qs = self._filter_by_radius(qs, latitude, longitude, radius_km)
 
         return QuerySetPage(qs.order_by("-updated_at"), self.mapper.to_domain)
+
+    @staticmethod
+    def _apply_field_filters(qs, filters):
+        for lookup, values, transform in filters:
+            if values:
+                qs = qs.filter(**{lookup: [transform(v) for v in values]})
+        return qs
+
+    def _filter_by_radius(self, qs, latitude: float, longitude: float, radius_km: int):
+        qs = qs.filter(latitude__isnull=False, longitude__isnull=False)
+        distance_km = EARTH_RADIUS_KM * ACos(
+            Least(
+                Value(1.0, output_field=FloatField()),
+                Greatest(
+                    Value(-1.0, output_field=FloatField()),
+                    Cos(Radians(Value(latitude, output_field=FloatField())))
+                    * Cos(Radians(F("latitude")))
+                    * Cos(
+                        Radians(F("longitude"))
+                        - Radians(Value(longitude, output_field=FloatField()))
+                    )
+                    + Sin(Radians(Value(latitude, output_field=FloatField())))
+                    * Sin(Radians(F("latitude"))),
+                ),
+            )
+        )
+        return qs.annotate(distance_km=distance_km).filter(distance_km__lte=radius_km)
 
     def get_by_source_id(self, source_id: UUID) -> IPage[Offer]:
         qs = OfferModel.objects.filter(source_id=source_id, archived_at__isnull=True)

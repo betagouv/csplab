@@ -307,6 +307,123 @@ class TestGetFilteredByGeo:
         assert page.count() == 1
 
 
+class TestGetFilteredByDomain:
+    def test_filters_offers_by_single_domain(self, db, repository):
+        numerique = OfferFactory.create_model(functional_area_code="NUM")
+        OfferFactory.create_model(functional_area_code="ACH")
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            domain=["NUM"],
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {numerique.id}
+
+    def test_filters_offers_by_multiple_domains(self, db, repository):
+        numerique = OfferFactory.create_model(functional_area_code="NUM")
+        achat = OfferFactory.create_model(functional_area_code="ACH")
+        OfferFactory.create_model(functional_area_code="JUR")
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            domain=["NUM", "ACH"],
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {numerique.id, achat.id}
+
+    def test_no_domain_filter_returns_all_offers(self, db, repository):
+        offers = OfferFactory.create_model_batch(2)
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+        )
+
+        assert page.count() == len(offers)
+
+
+class TestGetFilteredByOrganization:
+    def test_filters_offers_by_single_organization(self, db, repository):
+        mairie = OfferFactory.create_model(organization="Mairie de Paris")
+        OfferFactory.create_model(organization="Société Générale")
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            organization=["Mairie de Paris"],
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {mairie.id}
+
+    def test_filters_offers_by_multiple_organizations(self, db, repository):
+        mairie = OfferFactory.create_model(organization="Mairie de Paris")
+        societe = OfferFactory.create_model(organization="Société Générale, SA")
+        OfferFactory.create_model(organization="Ministère de la Justice")
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            organization=["Mairie de Paris", "Société Générale, SA"],
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {mairie.id, societe.id}
+
+    def test_organization_names_with_commas_are_matched_exactly(self, db, repository):
+        exact_match = OfferFactory.create_model(organization="Société Générale, SA")
+        OfferFactory.create_model(organization="Société Générale")
+        OfferFactory.create_model(organization="SA")
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            organization=["Société Générale, SA"],
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {exact_match.id}
+
+    def test_no_organization_filter_returns_all_offers(self, db, repository):
+        offers = OfferFactory.create_model_batch(2)
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+        )
+
+        assert page.count() == len(offers)
+
+
+class TestGetFilteredByPublicationDate:
+    def test_filters_offers_published_within_the_last_n_days(self, db, repository):
+        recent = OfferFactory.create_model(publication_date=NOW - relativedelta(days=2))
+        OfferFactory.create_model(publication_date=NOW - relativedelta(days=30))
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            published_within_days=-7,
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {recent.id}
+
+    def test_no_publication_date_filter_returns_all_offers(self, db, repository):
+        offers = OfferFactory.create_model_batch(2)
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+        )
+
+        assert page.count() == len(offers)
+
+
 class TestGetBySourceId:
     def test_returns_only_non_archived_offers_for_source(self, db, repository):
         source_id = SourceFactory.create_model().source_id
