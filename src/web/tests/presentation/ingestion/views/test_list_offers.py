@@ -9,6 +9,7 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
+from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.region import Region
@@ -380,6 +381,95 @@ def test_invalid_pays_returns_400(mock_offers_container, authenticated_client):
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
+
+
+def test_domaine_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"domaine": "NUM,ACH"})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            domain=[DomaineFonctionnel.NUMERIQUE.value, DomaineFonctionnel.ACHAT.value],
+        )
+    )
+
+
+def test_invalid_domaine_returns_400(mock_offers_container, authenticated_client):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"domaine": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+
+
+def test_organisme_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, [("organisme", "Mairie de Paris")])
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            organization=["Mairie de Paris"],
+        )
+    )
+
+
+def test_organisme_filter_with_multiple_values_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(
+        URL,
+        [
+            ("organisme", "Mairie de Paris"),
+            ("organisme", "Société Générale, SA"),
+        ],
+    )
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            organization=["Mairie de Paris", "Société Générale, SA"],
+        )
+    )
+
+
+def test_date_publication_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"date_publication": "-7"})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            published_within_days=-7,
+        )
+    )
+
+
+def test_positive_date_publication_returns_400(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"date_publication": "7"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_geo_filter_is_forwarded_to_usecase(
