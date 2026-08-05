@@ -42,6 +42,9 @@ class IOffersRepository(Protocol):
         region: Optional[List[Region]] = None,
         department: Optional[List[Department]] = None,
         country: Optional[List[Country]] = None,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
+        radius_km: Optional[int] = None,
     ) -> IPage[Offer]: ...
 
     def get_by_source_id(self, source_id: UUID) -> IPage[Offer]: ...

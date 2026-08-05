@@ -210,6 +210,103 @@ class TestUpsertBatch:
         assert archived_offer.archived_at is None
 
 
+class TestGetFilteredByGeo:
+    def test_filters_offers_within_radius(self, db, repository):
+        paris = OfferFactory.create_model(
+            localisation=Localisation(
+                area=GeographicalArea("EU"),
+                country=Country("FRA"),
+                region=Region(code="11"),
+                department=Department(code="75"),
+                latitude=48.8566,
+                longitude=2.3522,
+            )
+        )
+        lyon = OfferFactory.create_model(
+            localisation=Localisation(
+                area=GeographicalArea("EU"),
+                country=Country("FRA"),
+                region=Region(code="84"),
+                department=Department(code="69"),
+                latitude=45.7640,
+                longitude=4.8357,
+            )
+        )
+        OfferFactory.create_model(
+            localisation=Localisation(
+                area=GeographicalArea("EU"),
+                country=Country("FRA"),
+                region=Region(code="11"),
+                department=Department(code="75"),
+            )
+        )
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            latitude=48.8566,
+            longitude=2.3522,
+            radius_km=50,
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {paris.id}
+        assert lyon.id not in ids
+
+    def test_widening_radius_includes_more_offers(self, db, repository):
+        paris = OfferFactory.create_model(
+            localisation=Localisation(
+                area=GeographicalArea("EU"),
+                country=Country("FRA"),
+                region=Region(code="11"),
+                department=Department(code="75"),
+                latitude=48.8566,
+                longitude=2.3522,
+            )
+        )
+        lyon = OfferFactory.create_model(
+            localisation=Localisation(
+                area=GeographicalArea("EU"),
+                country=Country("FRA"),
+                region=Region(code="84"),
+                department=Department(code="69"),
+                latitude=45.7640,
+                longitude=4.8357,
+            )
+        )
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            latitude=48.8566,
+            longitude=2.3522,
+            radius_km=500,
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {paris.id, lyon.id}
+
+    def test_ignores_geo_filter_when_not_fully_provided(self, db, repository):
+        OfferFactory.create_model(
+            localisation=Localisation(
+                area=GeographicalArea("EU"),
+                country=Country("FRA"),
+                region=Region(code="11"),
+                department=Department(code="75"),
+                latitude=48.8566,
+                longitude=2.3522,
+            )
+        )
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            latitude=48.8566,
+        )
+
+        assert page.count() == 1
+
+
 class TestGetBySourceId:
     def test_returns_only_non_archived_offers_for_source(self, db, repository):
         source_id = SourceFactory.create_model().source_id
