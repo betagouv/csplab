@@ -21,6 +21,7 @@ class OrganisationPayload(BaseModel):
 
 
 class ProfessionPayload(BaseModel):
+    referentiel: str = "RMFPv2"
     domaine: str
     metier: str
 
