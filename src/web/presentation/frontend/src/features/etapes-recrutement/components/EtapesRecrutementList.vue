@@ -308,9 +308,10 @@ function getMenuSections(
     <CspDialog
       v-model:open="deleteModalOpen"
       title="Supprimer l'étape"
-      :description="`Voulez-vous vraiment supprimer l'étape « ${deleteEtapeNom} » ? Cette action est irréversible.`"
       size="sm"
     >
+      Voulez-vous vraiment supprimer l'étape « {{ deleteEtapeNom }} » ? Cette action est irréversible.
+
       <template #footer>
         <div class="etapes-list__modal-footer">
           <CspButton
@@ -331,9 +332,10 @@ function getMenuSections(
     <CspDialog
       v-model:open="resetModalOpen"
       title="Réinitialiser les étapes"
-      :description="texts.resetDescription"
       size="sm"
     >
+      {{ texts.resetDescription }}
+
       <template #footer>
         <div class="etapes-list__modal-footer">
           <CspButton
