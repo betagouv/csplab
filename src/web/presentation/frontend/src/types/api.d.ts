@@ -132,6 +132,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Détail d'un recrutement */
+        get: operations["recruteur_organisme_recrutements_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/etape": {
         parameters: {
             query?: never;
@@ -524,6 +541,17 @@ export interface components {
         };
         PatchedEditerNote: {
             message?: string;
+        };
+        RecrutementDetail: {
+            /** Format: uuid */
+            offer_id: string;
+            intitule: string;
+            archive: boolean;
+            /** Format: date-time */
+            date_publication: string;
+            localisation: components["schemas"]["Localisation"];
+            organisme_recruteur: components["schemas"]["Organisme"];
+            categorie_offre: components["schemas"]["CategorieOffreEnum"];
         };
         RecrutementDetailKanban: {
             /** Format: uuid */
@@ -1152,6 +1180,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organisme_recrutements_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecrutementDetail"];
                 };
             };
             401: {

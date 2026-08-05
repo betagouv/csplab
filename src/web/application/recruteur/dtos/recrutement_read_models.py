@@ -96,6 +96,17 @@ class EtapeKanbanReadModel:
 
 
 @dataclass(frozen=True, kw_only=True)
+class RecrutementDetailReadModel:
+    offer_id: UUID
+    intitule: str
+    archive: bool
+    date_publication: datetime
+    localisation: LocalisationDto
+    organisme_recruteur: OrganismeRecruteurDto
+    categorie_offre: str
+
+
+@dataclass(frozen=True, kw_only=True)
 class RecrutementKanbanReadModel:
     offer_id: UUID
     intitule: str

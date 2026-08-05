@@ -555,6 +555,59 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}:
+    get:
+      operationId: recruteur_organisme_recrutements_retrieve
+      summary: Détail d'un recrutement
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: recrutement_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecrutementDetail'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/etape:
     patch:
       operationId: recruteur_organisme_recrutements_candidatures_etape_partial_update
@@ -1560,6 +1613,33 @@ components:
       properties:
         message:
           type: string
+    RecrutementDetail:
+      type: object
+      properties:
+        offer_id:
+          type: string
+          format: uuid
+        intitule:
+          type: string
+        archive:
+          type: boolean
+        date_publication:
+          type: string
+          format: date-time
+        localisation:
+          $ref: '#/components/schemas/Localisation'
+        organisme_recruteur:
+          $ref: '#/components/schemas/Organisme'
+        categorie_offre:
+          $ref: '#/components/schemas/CategorieOffreEnum'
+      required:
+      - archive
+      - categorie_offre
+      - date_publication
+      - intitule
+      - localisation
+      - offer_id
+      - organisme_recruteur
     RecrutementDetailKanban:
       type: object
       properties:
