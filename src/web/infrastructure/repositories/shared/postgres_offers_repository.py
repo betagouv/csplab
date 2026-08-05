@@ -5,7 +5,8 @@ from uuid import UUID
 from ddd.page_interface import IPage
 from ddd.services.logger_interface import ILogger
 from django.db import DatabaseError, transaction
-from django.db.models import F, Q
+from django.db.models import F, FloatField, Q, Value
+from django.db.models.functions import ACos, Cos, Greatest, Least, Radians, Sin
 from django.utils import timezone
 from referentiel.entities.offer import Offer
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
@@ -25,6 +26,8 @@ from domain.ingestion.repositories.ingestion_offers_repository_interface import 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.mappers.queryset_page import QuerySetPage
+
+EARTH_RADIUS_KM = 6371.0
 
 
 class PostgresOffersRepository(IIngestionOffersRepository):
@@ -173,6 +176,9 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         region: List[Region] | None = None,
         department: List[Department] | None = None,
         country: List[Country] | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+        radius_km: int | None = None,
     ) -> IPage[Offer]:
         qs = OfferModel.objects.filter(archived_at__isnull=active)
 
@@ -207,6 +213,26 @@ class PostgresOffersRepository(IIngestionOffersRepository):
 
         if country:
             qs = qs.filter(country__in=[str(c) for c in country])
+
+        if latitude is not None and longitude is not None and radius_km is not None:
+            qs = qs.filter(latitude__isnull=False, longitude__isnull=False)
+            distance_km = EARTH_RADIUS_KM * ACos(
+                Least(
+                    Value(1.0, output_field=FloatField()),
+                    Greatest(
+                        Value(-1.0, output_field=FloatField()),
+                        Cos(Radians(Value(latitude, output_field=FloatField())))
+                        * Cos(Radians(F("latitude")))
+                        * Cos(
+                            Radians(F("longitude"))
+                            - Radians(Value(longitude, output_field=FloatField()))
+                        )
+                        + Sin(Radians(Value(latitude, output_field=FloatField())))
+                        * Sin(Radians(F("latitude"))),
+                    ),
+                )
+            )
+            qs = qs.annotate(distance_km=distance_km).filter(distance_km__lte=radius_km)
 
         return QuerySetPage(qs.order_by("-updated_at"), self.mapper.to_domain)
 

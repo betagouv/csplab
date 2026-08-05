@@ -541,6 +541,72 @@ def test_list_offers_filtered_by_multiple_criteria(
     }
 
 
+@pytest.fixture(name="offers_by_geo")
+def offers_by_geo_fixture(db):
+    return {
+        "paris": OfferFactory.create_model(
+            external_id="test-paris-geo",
+            localisation=Localisation(
+                area=GeographicalArea.EUROPE,
+                country=Country("FRA"),
+                region=Region(code="11"),
+                department=Department(code="75"),
+                latitude=48.8566,
+                longitude=2.3522,
+            ),
+        ),
+        "lyon": OfferFactory.create_model(
+            external_id="test-lyon-geo",
+            localisation=Localisation(
+                area=GeographicalArea.EUROPE,
+                country=Country("FRA"),
+                region=Region(code="84"),
+                department=Department(code="69"),
+                latitude=45.7640,
+                longitude=4.8357,
+            ),
+        ),
+        "no_coordinates": OfferFactory.create_model(
+            external_id="test-no-coordinates-geo",
+            localisation=Localisation(
+                area=GeographicalArea.EUROPE,
+                country=Country("FRA"),
+                region=Region(code="11"),
+                department=Department(code="75"),
+            ),
+        ),
+    }
+
+
+@pytest.mark.parametrize(
+    "latitude,longitude,radius_km,expected_keys",
+    [
+        pytest.param(
+            None, None, None, ["paris", "lyon", "no_coordinates"], id="no_filter"
+        ),
+        pytest.param(48.8566, 2.3522, 50, ["paris"], id="small_radius_around_paris"),
+        pytest.param(
+            48.8566, 2.3522, 500, ["paris", "lyon"], id="wide_radius_around_paris"
+        ),
+    ],
+)
+def test_list_offers_filtered_by_geo(
+    ingestion_container, offers_by_geo, latitude, longitude, radius_km, expected_keys
+):
+    input_data = GetFilteredOffersInput(
+        active=True,
+        external_id_contains=None,
+        latitude=latitude,
+        longitude=longitude,
+        radius_km=radius_km,
+    )
+    result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
+
+    assert {offer.external_id for offer in result._qs} == {
+        offers_by_geo[key].external_id for key in expected_keys
+    }
+
+
 def test_get_filtered_raises_error(db, ingestion_container):
     shared_container = ingestion_container.shared_container()
     offers_repo = shared_container.offers_repository()

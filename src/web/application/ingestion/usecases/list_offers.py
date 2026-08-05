@@ -29,4 +29,7 @@ class ListOffersUseCase(IUseCase[GetFilteredOffersInput, IPage[Offer]]):
             region=input_data.region,
             department=input_data.department,
             country=input_data.country,
+            latitude=input_data.latitude,
+            longitude=input_data.longitude,
+            radius_km=input_data.radius_km,
         )

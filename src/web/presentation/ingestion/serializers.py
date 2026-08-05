@@ -217,6 +217,26 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
         DEPARTMENT_NAMES, "département", lambda code: Department(code=code)
     )
     country = _CommaSeparatedCodeField(COUNTRY_NAMES, "pays", Country)
+    latitude = serializers.FloatField(
+        required=False, min_value=-90, max_value=90, default=None
+    )
+    longitude = serializers.FloatField(
+        required=False, min_value=-180, max_value=180, default=None
+    )
+    radius = serializers.IntegerField(
+        required=False, min_value=1, default=None, source="radius_km"
+    )
+
+    _GEO_FIELDS = ("latitude", "longitude", "radius_km")
+
+    def validate(self, data):
+        provided = [key for key in self._GEO_FIELDS if data.get(key) is not None]
+        if provided and len(provided) != len(self._GEO_FIELDS):
+            raise serializers.ValidationError(
+                "Les paramètres latitude, longitude et radius doivent être "
+                "fournis ensemble."
+            )
+        return data
 
 
 class LocalisationInputSerializer(LocalisationSerializer):
