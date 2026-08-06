@@ -213,7 +213,7 @@ const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
 }
 
 .candidatures-view__search {
-  min-width: 32rem;
+  min-width: 20rem;
 }
 
 .candidatures-view__placeholder {

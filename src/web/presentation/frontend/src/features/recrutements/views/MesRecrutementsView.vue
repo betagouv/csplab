@@ -304,7 +304,7 @@ const archivesCountLabel = computed(() => {
 }
 
 .mes-recrutement-view__search {
-  min-width: 32rem;
+  min-width: 20rem;
 }
 
 .mes-recrutement-view__candidatures-head {
