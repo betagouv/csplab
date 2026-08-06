@@ -43,9 +43,19 @@ const boardId = computed(() => `kanban-${recrutementUuid.value}`)
 const isDrawerOpen = ref(false)
 const isRefusDialogOpen = ref(false)
 const drawerInitialEtapeUuid = ref<string | null>(null)
+const pendingMove = ref<KanbanDropEvent | null>(null)
 
 const refusEtapeUuid = computed(() => {
   return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.etape_uuid ?? null
+})
+
+const pendingCandidature = computed(() => {
+  const move = pendingMove.value
+  if (!move)
+    return null
+
+  const etape = candidatureKanban.value.find(e => e.etape_uuid === move.sourceColumnId)
+  return etape?.candidatures.find(c => c.uuid === move.cardId) ?? null
 })
 
 const sourceEtape = computed(() => {
@@ -61,6 +71,12 @@ const selectedCandidatureUuids = computed(() => {
 })
 
 function handleMove(event: KanbanDropEvent) {
+  if (event.sourceColumnId !== event.targetColumnId && event.targetColumnId === refusEtapeUuid.value) {
+    pendingMove.value = event
+    isRefusDialogOpen.value = true
+    return
+  }
+
   moveCandidature({
     sourceColumnId: event.sourceColumnId,
     targetColumnId: event.targetColumnId,
@@ -83,22 +99,21 @@ function handleRefuser(): void {
 }
 
 function handleConfirmRefus(): void {
-  const refusEtape = recrutementEtapes.value.find(e => e.categorie === 'REFUS')
-  if (!refusEtape)
+  if (!pendingMove.value)
     return
 
-  const candidaturesByEtape = new Map<string, string[]>()
-
-  for (const [etapeUuid, uuids] of selectedByEtape.value) {
-    candidaturesByEtape.set(etapeUuid, [...uuids])
-  }
-
-  moveCandidaturesBatch({
-    candidaturesByEtape,
-    targetColumnId: refusEtape.etape_uuid,
+  moveCandidature({
+    sourceColumnId: pendingMove.value.sourceColumnId,
+    targetColumnId: pendingMove.value.targetColumnId,
+    cardId: pendingMove.value.cardId,
   })
 
-  clearSelection()
+  pendingMove.value = null
+  isRefusDialogOpen.value = false
+}
+
+function handleCancelRefus(): void {
+  pendingMove.value = null
   isRefusDialogOpen.value = false
 }
 
@@ -132,12 +147,14 @@ const countLabel = computed(() => {
 })
 
 const refusDescription = computed(() => {
-  const n = selectedCount.value
-  return `Vous êtes sur le point de refuser ${n} ${pluralize(n, 'candidature')}. `
-    + `Cette action n'est pas définitive, néanmoins ${pluralize(n, 'le', 'les')} `
-    + `${pluralize(n, 'candidat', 'candidats')} ${pluralize(n, 'sera', 'seront')} `
-    + `${pluralize(n, 'informé', 'informés')} du changement de statut de `
-    + `${pluralize(n, 'sa', 'leur')} candidature.`
+  const candidature = pendingCandidature.value
+  const candidatLabel = candidature
+    ? `${candidature.candidat.prenom} ${candidature.candidat.nom}`
+    : 'ce candidat'
+
+  return `Vous êtes sur le point de refuser la candidature de ${candidatLabel}. `
+    + `Cette action n'est pas définitive, néanmoins le candidat sera informé du changement `
+    + `de statut de sa candidature.`
 })
 </script>
 
@@ -195,7 +212,7 @@ const refusDescription = computed(() => {
       :open="isRefusDialogOpen"
       size="sm"
       title="Refus de candidature"
-      @update:open="isRefusDialogOpen = $event"
+      @update:open="(open) => { if (!open) handleCancelRefus() }"
     >
       {{ refusDescription }}
 
@@ -204,7 +221,7 @@ const refusDescription = computed(() => {
           <CspButton
             label="Annuler"
             variant="secondary"
-            @click="isRefusDialogOpen = false"
+            @click="handleCancelRefus"
           />
           <CspButton
             label="Valider"
