@@ -120,9 +120,11 @@ const archivesCountLabel = computed(() => {
     class="mes-recrutement-view"
     :tabs="TABS"
   >
-    <template #shared>
+    <template
+      v-if="recrutementsError"
+      #shared
+    >
       <CspErrorState
-        v-if="recrutementsError"
         title="Une erreur est survenue lors du chargement des recrutements."
       />
     </template>
