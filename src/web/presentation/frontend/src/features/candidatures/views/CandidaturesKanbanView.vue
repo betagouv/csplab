@@ -42,6 +42,11 @@ const {
 const boardId = computed(() => `kanban-${recrutementUuid.value}`)
 const isDrawerOpen = ref(false)
 const isRefusDialogOpen = ref(false)
+const drawerInitialEtapeUuid = ref<string | null>(null)
+
+const refusEtapeUuid = computed(() => {
+  return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.etape_uuid ?? null
+})
 
 const sourceEtape = computed(() => {
   if (!currentEtapeUuid.value)
@@ -68,11 +73,13 @@ function handleToggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures
 }
 
 function handleOpenChangerEtape(): void {
+  drawerInitialEtapeUuid.value = null
   isDrawerOpen.value = true
 }
 
 function handleRefuser(): void {
-  isRefusDialogOpen.value = true
+  drawerInitialEtapeUuid.value = refusEtapeUuid.value
+  isDrawerOpen.value = true
 }
 
 function handleConfirmRefus(): void {
@@ -178,6 +185,7 @@ const refusDescription = computed(() => {
       :source-etape="sourceEtape"
       :selected-candidature-uuids="selectedCandidatureUuids"
       :etapes="recrutementEtapes"
+      :initial-etape-uuid="drawerInitialEtapeUuid"
       @update:open="handleDrawerClose"
       @confirm="handleConfirmBatchMove"
       @toggle-candidature="handleToggleCandidature"
