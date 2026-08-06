@@ -18,18 +18,21 @@
 - [Limitations d'usage (quotas)](#limitations-dusage-quotas)
 - [Les fonctionnalités de l'API](#les-fonctionnalités-de-lapi)
   - [1. Consulter les offres d'emploi — `GET /api/v1/offres/`](#1-consulter-les-offres-demploi--get-apiv1offres)
-  - [2. Archiver une offre — `POST /api/v1/offres/archiver`](#2-archiver-une-offre--post-apiv1offresarchiver)
-  - [3. Créer ou modifier des offres — `POST /api/v1/offres/creer_modifier/`](#3-créer-ou-modifier-des-offres--post-apiv1offrescreer_modifier)
+    - [Filtres disponibles](#filtres-disponibles)
+  - [2. Consulter les offres d'une source — `GET /api/v1/offres/sources/{source_id}`](#2-consulter-les-offres-dune-source--get-apiv1offressourcessource_id)
+  - [3. Archiver une offre — `POST /api/v1/offres/archiver`](#3-archiver-une-offre--post-apiv1offresarchiver)
+  - [4. Créer ou modifier des offres — `POST /api/v1/offres/creer_modifier/`](#4-créer-ou-modifier-des-offres--post-apiv1offrescreer_modifier)
     - [Structure d'une offre et contraintes sur les champs](#structure-dune-offre-et-contraintes-sur-les-champs)
     - [En cas de problème](#en-cas-de-problème)
-  - [4. Consulter les métiers — `GET /api/v1/metiers/`](#4-consulter-les-métiers--get-apiv1metiers)
-  - [5. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`](#5-importer-des-concours-fichier-csv--post-apiv1concoursupload)
+  - [5. Consulter les métiers — `GET /api/v1/metiers/`](#5-consulter-les-métiers--get-apiv1metiers)
+  - [6. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`](#6-importer-des-concours-fichier-csv--post-apiv1concoursupload)
     - [Format du fichier attendu](#format-du-fichier-attendu)
     - [Colonnes obligatoires](#colonnes-obligatoires)
     - [Comment se passe le traitement ?](#comment-se-passe-le-traitement-)
     - [Réponses possibles](#réponses-possibles)
 - [Annexe — Les codes de réponse, en clair](#annexe--les-codes-de-réponse-en-clair)
 - [Annexe — Récapitulatif des listes de valeurs autorisées](#annexe--récapitulatif-des-listes-de-valeurs-autorisées)
+  - [Domaine fonctionnel (référentiel RMFPv2)](#domaine-fonctionnel-référentiel-rmfpv2)
 
 
 
@@ -58,8 +61,8 @@ Avant d'utiliser l'API, l'appelant doit prouver son identité. Trois moyens exis
 | Moyen | Description | Où est-il utilisé ? |
 |---|---|---|
 | **Jeton JWT** (`jwtAuth`) | Un jeton temporaire obtenu en échange d'un identifiant + mot de passe. Il expire au bout d'un certain temps et doit être renouvelé. | Toutes les routes protégées |
-| **Clé d'API** (`ApiKeyAuth`) | Une clé permanente fournie au partenaire, à placer dans l'en-tête sous la forme `Api-Key <clé>`. | Création/modification et archivage d'offres |
-| **Cookie de session** (`cookieAuth`) | Utilisé lorsqu'on est connecté via le site web. | Consultation des offres, métiers et import de concours |
+| **Clé d'API** (`ApiKeyAuth`) | Une clé permanente fournie au partenaire, à placer dans l'en-tête sous la forme `Api-Key <clé>`. | Consultation, création/modification et archivage d'offres |
+| **Cookie de session** (`cookieAuth`) | Utilisé lorsqu'on est connecté via le site web. | Consultation des métiers et import de concours |
 
 > **Règle générale :** un jeton invalide ou expiré entraîne systématiquement un refus
 > (`401 Non autorisé`).
@@ -104,7 +107,31 @@ L'API est organisée en quatre grands domaines :
 ## 1. Consulter les offres d'emploi — `GET /api/v1/offres/`
 
 Retourne la liste des offres d'emploi de la Fonction Publique, **paginée** (renvoyée
-par lots plutôt qu'en une seule fois).
+par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramètres
+`page` (numéro de page, défaut `1`) et `taille` (nombre d'éléments par page, défaut
+`100`).
+
+### Filtres disponibles
+
+| Paramètre | Rôle | Format |
+|---|---|---|
+| `actif` | Ne retourner que les offres actives (`true`, valeur par défaut) ou archivées (`false`) | Booléen |
+| `categorie` | Filtrer par catégorie(s) | Liste séparée par virgules parmi APLUS, A, B, C |
+| `versant` | Filtrer par versant(s) | Liste séparée par virgules parmi FPT, FPE, FPH |
+| `type_contrat` | Filtrer par type(s) de contrat | Liste séparée par virgules parmi TITULAIRE_CONTRACTUEL, CONTRACTUELS, TERRITORIAL |
+| `niveau_experience` | Filtrer par niveau(x) d'expérience | Liste séparée par virgules parmi DEBUTANT, CONFIRME, EXPERT |
+| `lieu_de_travail` | Filtrer par mode de travail | Liste séparée par virgules parmi NON_DEFINI, SUR_SITE, TELETRAVAIL |
+| `management` | Filtrer selon la présence de management | Liste séparée par virgules parmi SANS, AVEC |
+| `region` | Filtrer par code(s) région officiel(s) | Liste séparée par virgules (ex. `11,84`) |
+| `departement` | Filtrer par code(s) département officiel(s) | Liste séparée par virgules (ex. `75,69`) |
+| `pays` | Filtrer par code(s) pays alpha-3 | Liste séparée par virgules (ex. `FRA,BEL`) |
+| `domaine` | Filtrer par code(s) de domaine fonctionnel | Liste séparée par virgules (ex. `NUM,ACH`) |
+| `organisme` | Filtrer par nom exact d'organisme | Répéter le paramètre pour en filtrer plusieurs (ex. `?organisme=Foo&organisme=Bar`) — ne pas séparer les valeurs par une virgule, un nom d'organisme pouvant en contenir une |
+| `date_publication` | Ne retourner que les offres publiées au cours des N derniers jours | Entier négatif (ex. `-7`) |
+| `latitude`, `longitude`, `radius` | Filtre géographique par rayon autour d'un point — **les trois doivent être fournis ensemble** | `latitude`/`longitude` en degrés décimaux, `radius` en kilomètres (entier positif) |
+
+> Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
+> virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.
 
 Chaque offre renvoyée contient notamment :
 
@@ -126,7 +153,32 @@ Chaque offre renvoyée contient notamment :
 
 
 
-## 2. Archiver une offre — `POST /api/v1/offres/archiver`
+## 2. Consulter les offres d'une source — `GET /api/v1/offres/sources/{source_id}`
+
+Retourne, **paginée**, la liste complète des offres d'emploi rattachées à la source
+identifiée par son identifiant unique (`source_id`, UUID). La pagination fonctionne
+comme pour la liste principale des offres (paramètres `page` et `taille`).
+
+> **Règle métier :** l'accès à une source non autorisée pour l'utilisateur authentifié
+> renvoie une erreur `401`, même si la source existe.
+
+Chaque offre renvoyée contient, en plus des informations de la liste principale
+(voir section précédente), le détail complet de l'offre : `long_title`, `employer`,
+`profile`, `mission`, `complements`, `verse`, `contract_kind`, `job_vacancy`,
+`application_url`, `localisation`, `criteria`, `conditions`, `contacts`,
+`beginning_date`.
+
+**Réponses possibles :**
+
+| Code | Signification |
+|---|---|
+| `200 OK` | La liste des offres de la source est renvoyée |
+| `401` | Authentification absente/invalide, ou source non autorisée pour l'utilisateur |
+| `500` | Erreur inattendue du serveur |
+
+
+
+## 3. Archiver une offre — `POST /api/v1/offres/archiver`
 
 Permet de retirer une offre de la liste des offres actives, en l'identifiant par sa
 référence.
@@ -150,7 +202,7 @@ référence.
 
 
 
-## 3. Créer ou modifier des offres — `POST /api/v1/offres/creer_modifier/`
+## 4. Créer ou modifier des offres — `POST /api/v1/offres/creer_modifier/`
 
 C'est la fonctionnalité la plus riche. Elle permet d'envoyer **entre 1 et 100 offres**
 en un seul appel.
@@ -186,20 +238,22 @@ longueur et de valeurs autorisées**.
 | Champ | Règle |
 |---|---|
 | `nom` | Obligatoire. Nom de l'organisme. |
-| `siret` | Obligatoire. **15 caractères maximum.** |
+| `siret` | Obligatoire. **14 caractères maximum.** |
 
 #### Bloc « Profession » (`profession`) — obligatoire
 | Champ | Règle |
 |---|---|
-| `domaine` | Obligatoire. Code du domaine fonctionnel. **3 caractères maximum.** |
+| `referentiel` | Référentiel utilisé. Valeur par défaut : **RMFPv2**. |
+| `domaine` | Obligatoire. Code du domaine fonctionnel (vérifié uniquement si `referentiel=RMFPv2`). **3 caractères maximum.** |
 | `metier` | Obligatoire. Code métier. **8 caractères maximum.** |
+| `code_emploi_local` | Code emploi local propre au partenaire. Peut être vide. **50 caractères maximum.** |
 
 #### Catégorie et contrat
 | Champ | Règle |
 |---|---|
 | `categories` | Liste. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE** (ou vide). |
 | `type_contrat` | Valeurs autorisées : **TITULAIRE_CONTRACTUEL, CONTRACTUELS, TERRITORIAL**. |
-| `forme_contrat` | Liste. Valeurs autorisées : **CDD, CDI, PERMANENT, VACATION, STAGE** (ou vide). |
+| `forme_contrat` | Liste. Valeurs autorisées : **CDD, CDI, PERMANENT, VACATION** (ou vide). |
 | `vacance_poste` | **OUI** = poste vacant ; **NON** = poste susceptible d'être vacant (ou vide). |
 
 #### Bloc « Description » (`description`) — obligatoire
@@ -272,12 +326,13 @@ Tous les champs ci-dessous sont obligatoires.
 
 
 
-## 4. Consulter les métiers — `GET /api/v1/metiers/`
+## 5. Consulter les métiers — `GET /api/v1/metiers/`
 
-Retourne la liste **paginée** des métiers de la Fonction Publique. On peut filtrer par
-**code de domaine fonctionnel** grâce au paramètre `domain`.
+Retourne la liste **paginée** des métiers de la Fonction Publique (paramètres `page`
+et `taille`, mêmes règles que pour la liste des offres). On peut filtrer par
+**code de domaine fonctionnel** grâce au paramètre `domaine`.
 
-> **Contrainte du filtre `domain` :** texte de **1 à 3 caractères** (ex. `AMT`, `AGR`).
+> **Contrainte du filtre `domaine` :** texte de **1 à 3 caractères** (ex. `AMT`, `AGR`).
 
 Chaque métier renvoyé contient :
 
@@ -293,7 +348,7 @@ Chaque métier renvoyé contient :
 
 
 
-## 5. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`
+## 6. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`
 
 Permet d'importer en masse des données de concours **GRECO** via un fichier CSV.
 
@@ -353,7 +408,7 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 | **Versant** | FPT (Territoriale), FPE (État), FPH (Hospitalière) |
 | **Catégorie** | APLUS, A, B, C, HORS_CATEGORIE |
 | **Type de contrat** | TITULAIRE_CONTRACTUEL, CONTRACTUELS, TERRITORIAL |
-| **Forme de contrat** | CDD, CDI, PERMANENT, VACATION, STAGE |
+| **Forme de contrat** | CDD, CDI, PERMANENT, VACATION |
 | **Vacance de poste** | OUI (vacant), NON (susceptible d'être vacant) |
 | **Expérience** | DEBUTANT, CONFIRME, EXPERT |
 | **Niveau de langue** | A1, A2, B1, B2, C1, C2 |
@@ -363,6 +418,44 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 | **Ouvert aux militaires** | OUI, NON |
 | **Zone géographique** | AF, EU, AS, AM, OC, AN |
 | **Niveau de diplôme** | Entier de 1 à 8 |
+| **Domaine fonctionnel** | Voir tableau ci-dessous |
+
+### Domaine fonctionnel (référentiel RMFPv2)
+
+Utilisé dans le bloc `profession.domaine` (création/modification d'offres) et dans le
+filtre `domaine` des routes de consultation des offres et des métiers.
+
+| Code | Libellé |
+|---|---|
+| `ACH` | Achat |
+| `AGR` | Agriculture |
+| `AMT` | Aménagement et développement durable du territoire |
+| `ASP` | Animation, jeunesse et sports |
+| `BAT` | Bâtiment |
+| `COM` | Communication |
+| `CTL` | Organisation, contrôle et évaluation |
+| `CUL` | Culture et Patrimoine |
+| `DEF` | Défense |
+| `DIR` | Direction et pilotage des politiques publiques |
+| `DOC` | Lecture publique et Documentation |
+| `ENS` | Enseignement et Formation |
+| `ENV` | Environnement |
+| `FIP` | Finances publiques |
+| `GBF` | Gestion budgétaire et financière |
+| `GRH` | Ressources humaines |
+| `INT` | International |
+| `JUR` | Affaires juridiques |
+| `JUS` | Justice |
+| `LOG` | Interventions techniques et logistiques |
+| `MED` | Médical et paramédical |
+| `NUM` | Numérique |
+| `RCH` | Recherche |
+| `REN` | Renseignement |
+| `SAN` | Prévention, conseil et pilotage en santé |
+| `SEC` | Sécurité |
+| `SOC` | Social, enfance et famille |
+| `TRA` | Transports |
+| `USA` | Relation à l'usager |
 
 
 
