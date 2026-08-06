@@ -283,6 +283,7 @@ const archivesCountLabel = computed(() => {
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
+  margin-bottom: var(--csp-page-content-padding-block);
 }
 
 .mes-recrutement-view__count {
