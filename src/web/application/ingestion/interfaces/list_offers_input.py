@@ -30,3 +30,4 @@ class GetFilteredOffersInput:
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     radius_km: Optional[int] = None
+    keywords: Optional[str] = None

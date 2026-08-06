@@ -48,6 +48,7 @@ class IOffersRepository(Protocol):
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
         radius_km: Optional[int] = None,
+        keywords: Optional[str] = None,
     ) -> IPage[Offer]: ...
 
     def get_by_source_id(self, source_id: UUID) -> IPage[Offer]: ...

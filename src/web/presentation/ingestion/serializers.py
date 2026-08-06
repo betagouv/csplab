@@ -265,6 +265,16 @@ class ListOffersFiltersSerializer(serializers.Serializer):
 
 
 class OfferSummariesQuerySerializer(serializers.Serializer):
+    keywords = serializers.CharField(
+        required=False,
+        default=None,
+        allow_blank=False,
+        help_text=(
+            "Recherche plein texte (en français) sur le titre, l'intitulé "
+            "long, la mission, le profil, l'organisme, l'employeur et les "
+            "compléments de l'offre."
+        ),
+    )
     start = serializers.IntegerField(required=False, min_value=0, default=0)
     count = serializers.IntegerField(
         required=False, min_value=1, max_value=1_000, default=100

@@ -35,4 +35,5 @@ class ListOffersUseCase(IUseCase[GetFilteredOffersInput, IPage[Offer]]):
             latitude=input_data.latitude,
             longitude=input_data.longitude,
             radius_km=input_data.radius_km,
+            keywords=input_data.keywords,
         )
