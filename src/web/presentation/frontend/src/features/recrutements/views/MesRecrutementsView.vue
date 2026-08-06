@@ -20,7 +20,8 @@ import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
-import RecrutementsFiltersDrawer from '../components/RecrutementsFiltersDrawer.vue'
+import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
+import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
 
 import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
@@ -57,49 +58,48 @@ const recrutementsActifsPage = ref(1)
 const recrutementsArchivesPage = ref(1)
 
 const PAGE_SIZE = 6
-const {
-  draft: filtersDraft,
-  canReset: canResetFilters,
-  syncDraft: syncFiltersDraft,
-  apply: applyFiltersDraft,
-  reset: resetFilters,
-  search,
-  filteredActifs,
-  filteredArchives,
-  activeFiltersCount,
-  responsableOptions,
-} = useRecrutementsFilters(recrutementsData)
 
-const {
-  isOpen: isFiltersDrawerOpen,
-  open: openFiltersDrawer,
-  close: closeFiltersDrawer,
-} = useDisclosure()
+const actifsFilters = useRecrutementsFilters(computed(() => recrutementsData.actifs))
+const archivesFilters = useRecrutementsFilters(computed(() => recrutementsData.archives))
 
-function openFilters() {
-  syncFiltersDraft()
-  openFiltersDrawer()
+const actifsFiltersDrawer = useDisclosure()
+const archivesFiltersDrawer = useDisclosure()
+
+function openActifsFilters() {
+  actifsFilters.syncDraft()
+  actifsFiltersDrawer.open()
 }
 
-function applyFilters() {
-  applyFiltersDraft()
-  closeFiltersDrawer()
+function applyActifsFilters() {
+  actifsFilters.apply()
+  actifsFiltersDrawer.close()
 }
 
-watch(filteredActifs, () => {
+function openArchivesFilters() {
+  archivesFilters.syncDraft()
+  archivesFiltersDrawer.open()
+}
+
+function applyArchivesFilters() {
+  archivesFilters.apply()
+  archivesFiltersDrawer.close()
+}
+
+watch(actifsFilters.filtered, () => {
   recrutementsActifsPage.value = 1
 })
 
-watch(filteredArchives, () => {
+watch(archivesFilters.filtered, () => {
   recrutementsArchivesPage.value = 1
 })
 
-const countLabel = computed(() => {
-  if (activeTab.value === 'actifs') {
-    const count = filteredActifs.value.length
-    return `${count} recrutement${count > 1 ? 's' : ''} en cours`
-  }
-  const count = filteredArchives.value.length
+const actifsCountLabel = computed(() => {
+  const count = actifsFilters.filtered.value.length
+  return `${count} recrutement${count > 1 ? 's' : ''} en cours`
+})
+
+const archivesCountLabel = computed(() => {
+  const count = archivesFilters.filtered.value.length
   return `${count} offre${count > 1 ? 's' : ''} archivée${count > 1 ? 's' : ''}`
 })
 </script>
@@ -125,54 +125,49 @@ const countLabel = computed(() => {
         v-if="recrutementsError"
         title="Une erreur est survenue lors du chargement des recrutements."
       />
-      <template v-else>
-        <div
-          class="mes-recrutement-view__toolbar"
-        >
-          <CspSkeleton
-            v-if="showActifsSkeleton || showArchivesSkeleton"
-            class="mes-recrutement-view__count-skeleton"
-            width="12rem"
-            height="0.9375rem"
-          />
-          <p
-            v-else
-            class="mes-recrutement-view__count"
-          >
-            {{ countLabel }}
-          </p>
-          <div class="mes-recrutement-view__actions">
-            <CspInput
-              v-model="search"
-              type="search"
-              aria-label="Rechercher un recrutement"
-              placeholder="Rechercher une offre, un candidat,…"
-              class="mes-recrutement-view__search"
-            />
-            <CspButton
-              :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
-              variant="tertiary"
-              icon="ri:filter-line"
-              is-icon-left
-              @click="openFilters"
-            />
-          </div>
-        </div>
-        <RecrutementsFiltersDrawer
-          v-model:open="isFiltersDrawerOpen"
-          v-model:responsable="filtersDraft.responsable"
-          v-model:type-contrat="filtersDraft.typeContrat"
-          :responsable-options="responsableOptions"
-          :can-reset="canResetFilters"
-          @apply="applyFilters"
-          @reset="resetFilters"
-        />
-      </template>
     </template>
     <template
       v-if="!recrutementsError"
       #tab-actifs
     >
+      <div class="mes-recrutement-view__toolbar">
+        <CspSkeleton
+          v-if="showActifsSkeleton"
+          class="mes-recrutement-view__count-skeleton"
+          width="12rem"
+          height="0.9375rem"
+        />
+        <p
+          v-else
+          class="mes-recrutement-view__count"
+        >
+          {{ actifsCountLabel }}
+        </p>
+        <div class="mes-recrutement-view__actions">
+          <CspInput
+            v-model="actifsFilters.search.value"
+            type="search"
+            aria-label="Rechercher un recrutement"
+            placeholder="Rechercher une offre, une référence,…"
+            class="mes-recrutement-view__search"
+          />
+          <CspButton
+            :label="actifsFilters.activeFiltersCount.value ? `Filtres (${actifsFilters.activeFiltersCount.value})` : 'Filtres'"
+            variant="tertiary"
+            icon="ri:filter-line"
+            is-icon-left
+            @click="openActifsFilters"
+          />
+        </div>
+      </div>
+      <RecrutementsActifsFiltersDrawer
+        v-model:open="actifsFiltersDrawer.isOpen.value"
+        v-model:responsable="actifsFilters.draft.responsable"
+        :responsable-options="actifsFilters.responsableOptions.value"
+        :can-reset="actifsFilters.canReset.value"
+        @apply="applyActifsFilters"
+        @reset="actifsFilters.reset()"
+      />
       <CspAsyncSection
         :pending="showActifsSkeleton"
         loading-label="Chargement des recrutements en cours"
@@ -186,7 +181,7 @@ const countLabel = computed(() => {
         </template>
         <CspDataTable
           v-model:page="recrutementsActifsPage"
-          :rows="filteredActifs"
+          :rows="actifsFilters.filtered.value"
           :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
           :row-key="row => row.offer_id"
           activation-mode="cell"
@@ -210,6 +205,45 @@ const countLabel = computed(() => {
       v-if="!recrutementsError"
       #tab-archives
     >
+      <div class="mes-recrutement-view__toolbar">
+        <CspSkeleton
+          v-if="showArchivesSkeleton"
+          class="mes-recrutement-view__count-skeleton"
+          width="12rem"
+          height="0.9375rem"
+        />
+        <p
+          v-else
+          class="mes-recrutement-view__count"
+        >
+          {{ archivesCountLabel }}
+        </p>
+        <div class="mes-recrutement-view__actions">
+          <CspInput
+            v-model="archivesFilters.search.value"
+            type="search"
+            aria-label="Rechercher un recrutement"
+            placeholder="Rechercher une offre, une référence,…"
+            class="mes-recrutement-view__search"
+          />
+          <CspButton
+            :label="archivesFilters.activeFiltersCount.value ? `Filtres (${archivesFilters.activeFiltersCount.value})` : 'Filtres'"
+            variant="tertiary"
+            icon="ri:filter-line"
+            is-icon-left
+            @click="openArchivesFilters"
+          />
+        </div>
+      </div>
+      <RecrutementsArchivesFiltersDrawer
+        v-model:open="archivesFiltersDrawer.isOpen.value"
+        v-model:responsable="archivesFilters.draft.responsable"
+        v-model:type-contrat="archivesFilters.draft.typeContrat"
+        :responsable-options="archivesFilters.responsableOptions.value"
+        :can-reset="archivesFilters.canReset.value"
+        @apply="applyArchivesFilters"
+        @reset="archivesFilters.reset()"
+      />
       <CspAsyncSection
         :pending="showArchivesSkeleton"
         loading-label="Chargement des offres archivées"
@@ -223,7 +257,7 @@ const countLabel = computed(() => {
         </template>
         <CspDataTable
           v-model:page="recrutementsArchivesPage"
-          :rows="filteredArchives"
+          :rows="archivesFilters.filtered.value"
           :columns="RECRUTEMENTS_ARCHIVES_COLUMNS"
           :row-key="row => row.offer_id"
           activation-mode="cell"
@@ -249,6 +283,7 @@ const countLabel = computed(() => {
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
+  margin-bottom: var(--csp-page-content-padding-block);
 }
 
 .mes-recrutement-view__count {
