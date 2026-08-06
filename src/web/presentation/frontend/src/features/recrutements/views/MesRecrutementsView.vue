@@ -148,7 +148,7 @@ const archivesCountLabel = computed(() => {
             v-model="actifsFilters.search.value"
             type="search"
             aria-label="Rechercher un recrutement"
-            placeholder="Rechercher une offre, un candidat,…"
+            placeholder="Rechercher une offre, une référence,…"
             class="mes-recrutement-view__search"
           />
           <CspButton
@@ -223,7 +223,7 @@ const archivesCountLabel = computed(() => {
             v-model="archivesFilters.search.value"
             type="search"
             aria-label="Rechercher un recrutement"
-            placeholder="Rechercher une offre, un candidat,…"
+            placeholder="Rechercher une offre, une référence,…"
             class="mes-recrutement-view__search"
           />
           <CspButton
