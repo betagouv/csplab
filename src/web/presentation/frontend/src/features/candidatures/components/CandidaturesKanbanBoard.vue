@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { EtapeRecrutementDetailedCandidatures } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
-import { useKanbanBoardMonitor } from '@/composables/dnd/useKanbanDnd'
+import { ref } from 'vue'
+import { useKanbanBoardAutoScroll, useKanbanBoardMonitor } from '@/composables/dnd/useKanbanDnd'
 import CandidatureKanbanColumn from './CandidatureKanbanColumn.vue'
 
 const props = defineProps<{
@@ -15,6 +16,8 @@ const emit = defineEmits<{
   toggleColumnSelection: [etape: EtapeRecrutementDetailedCandidatures]
 }>()
 
+const boardRef = ref<HTMLElement | null>(null)
+
 useKanbanBoardMonitor({
   boardId: props.boardId,
   onDrop: (event) => {
@@ -23,10 +26,15 @@ useKanbanBoardMonitor({
     }
   },
 })
+
+useKanbanBoardAutoScroll({ element: boardRef })
 </script>
 
 <template>
-  <div class="candidatures-kanban-board">
+  <div
+    ref="boardRef"
+    class="candidatures-kanban-board"
+  >
     <CandidatureKanbanColumn
       v-for="etape in etapes"
       :key="etape.etape_uuid"

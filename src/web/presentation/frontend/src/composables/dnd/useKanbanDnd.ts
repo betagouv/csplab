@@ -1,5 +1,6 @@
 import type { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import type { Ref } from 'vue'
+import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element'
 import { attachClosestEdge, extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import { draggable, dropTargetForElements, monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
@@ -116,6 +117,25 @@ export function useDropTargetKanbanColumn(options: UseDropTargetKanbanColumnOpti
   )
 
   return { isDraggedOver, closestEdge }
+}
+
+interface UseKanbanBoardAutoScrollOptions {
+  element: Ref<HTMLElement | null>
+}
+
+export function useKanbanBoardAutoScroll(options: UseKanbanBoardAutoScrollOptions) {
+  watch(
+    options.element,
+    (element, _, onCleanup) => {
+      if (!element)
+        return
+
+      const cleanup = autoScrollForElements({ element })
+
+      onCleanup(cleanup)
+    },
+    { flush: 'post', immediate: true },
+  )
 }
 
 interface UseKanbanBoardMonitorOptions {
