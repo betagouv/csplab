@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAttrs, useId } from 'vue'
+import { computed, useAttrs, useId } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 export interface CspInputProps {
@@ -29,12 +29,18 @@ withDefaults(defineProps<CspInputProps>(), {
 const model = defineModel<string>({ default: '' })
 
 const attrs = useAttrs()
+
+const inputAttrs = computed(() => {
+  const { class: _class, style: _style, ...rest } = attrs
+  return rest
+})
 </script>
 
 <template>
   <div
     class="csp-input-group"
-    :class="{ 'csp-input-group--error': error }"
+    :class="[attrs.class, { 'csp-input-group--error': error }]"
+    :style="attrs.style as string"
   >
     <label
       v-if="label"
@@ -44,7 +50,7 @@ const attrs = useAttrs()
       {{ label }}
     </label>
     <input
-      v-bind="attrs"
+      v-bind="inputAttrs"
       :id="id"
       v-model="model"
       :name="name"
