@@ -1,9 +1,12 @@
+import operator
 from datetime import datetime, timedelta
+from functools import reduce
 from typing import Dict, List
 from uuid import UUID
 
 from ddd.page_interface import IPage
 from ddd.services.logger_interface import ILogger
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.db import DatabaseError, transaction
 from django.db.models import F, FloatField, Q, Value
 from django.db.models.functions import ACos, Cos, Greatest, Least, Radians, Sin
@@ -28,6 +31,12 @@ from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.mappers.queryset_page import QuerySetPage
 
 EARTH_RADIUS_KM = 6371.0
+SEARCH_CONFIG = "french"
+KEYWORDS_SEARCH_WEIGHTS = {
+    "A": ("title",),
+    "B": ("long_title",),
+    "C": ("mission", "profile", "organization", "employer", "complements"),
+}
 
 
 class PostgresOffersRepository(IIngestionOffersRepository):
@@ -182,6 +191,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         latitude: float | None = None,
         longitude: float | None = None,
         radius_km: int | None = None,
+        keywords: str | None = None,
     ) -> IPage[Offer]:
         qs = OfferModel.objects.filter(archived_at__isnull=active)
 
@@ -216,7 +226,13 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         if latitude is not None and longitude is not None and radius_km is not None:
             qs = self._filter_by_radius(qs, latitude, longitude, radius_km)
 
-        return QuerySetPage(qs.order_by("-updated_at"), self.mapper.to_domain)
+        if keywords:
+            qs = self._filter_by_keywords(qs, keywords)
+            qs = qs.order_by("-rank", "-updated_at")
+        else:
+            qs = qs.order_by("-updated_at")
+
+        return QuerySetPage(qs, self.mapper.to_domain)
 
     @staticmethod
     def _apply_field_filters(qs, filters):
@@ -244,6 +260,18 @@ class PostgresOffersRepository(IIngestionOffersRepository):
             )
         )
         return qs.annotate(distance_km=distance_km).filter(distance_km__lte=radius_km)
+
+    @staticmethod
+    def _filter_by_keywords(qs, keywords: str):
+        vectors = [
+            SearchVector(*fields, weight=weight, config=SEARCH_CONFIG)
+            for weight, fields in KEYWORDS_SEARCH_WEIGHTS.items()
+        ]
+        search_vector = reduce(operator.add, vectors)
+        search_query = SearchQuery(keywords, config=SEARCH_CONFIG)
+        return qs.annotate(
+            search=search_vector, rank=SearchRank(search_vector, search_query)
+        ).filter(search=search_query)
 
     def get_by_source_id(self, source_id: UUID) -> IPage[Offer]:
         qs = OfferModel.objects.filter(source_id=source_id, archived_at__isnull=True)

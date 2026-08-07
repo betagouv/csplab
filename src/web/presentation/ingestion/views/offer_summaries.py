@@ -51,6 +51,7 @@ class OfferSummariesView(APIView):
                     latitude=query.validated_data.get("latitude"),
                     longitude=query.validated_data.get("longitude"),
                     radius_km=query.validated_data.get("radius_km"),
+                    keywords=query.validated_data.get("keywords"),
                 )
             )
 
