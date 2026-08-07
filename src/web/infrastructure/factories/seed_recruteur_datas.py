@@ -40,7 +40,7 @@ from infrastructure.factories.referentiel.metier_factory import MetierFactory
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 # Sentinelle pour l'idempotence : si cet email existe, le seed a déjà tourné.
-_SEED_SENTINEL_EMAIL = "marie.dupont@transition-eco.gouv.fr"
+_SEED_SENTINEL_EMAIL = "marie.dupont.gouv.fr@yopmail.com"
 
 _ORGANISME_SIRET = "21050023700354"
 _ORGANISME_UUID = UUID("00000000-0000-0000-0000-000000000000")
@@ -50,17 +50,17 @@ _AGENTS_SPECS = [
     {
         "prenom": "Paul",
         "nom": "Bernard",
-        "email": "paul.bernard@transition-eco.gouv.fr",
+        "email": "paul.bernard.gouv.fr@yopmail.com",
     },
     {
         "prenom": "Claire",
         "nom": "Moreau",
-        "email": "claire.moreau@transition-eco.gouv.fr",
+        "email": "claire.moreau.gouv.fr@yopmail.com",
     },
     {
         "prenom": "David",
         "nom": "Roux",
-        "email": "david.roux@transition-eco.gouv.fr",
+        "email": "david.roux.gouv.fr@yopmail.com",
     },
 ]
 
