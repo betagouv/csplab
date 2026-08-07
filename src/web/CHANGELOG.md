@@ -4,6 +4,42 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.15] - 2026-08-07
+
+### <!-- 1 --> Added
+
+- ✨(api) utiliser Redis comme backend de cache pour le throttling ([#1086](https://github.com/betagouv/csplab/pull/1086))
+- ✨(api) valider domaine et metier RMFP sur ProfessionInputSerializer ([#1089](https://github.com/betagouv/csplab/pull/1089))
+- ✨(ats-recrutement) Modification des étapes de recrutement au niveau d'une offre ([#1088](https://github.com/betagouv/csplab/pull/1088))
+- ✨(api) filtrer OfferSummariesView par region, department et country ([#1091](https://github.com/betagouv/csplab/pull/1091))
+- ✨(api) valider pays alpha-3 et bornes lat/long sur LocalisationSerializer ([#1090](https://github.com/betagouv/csplab/pull/1090))
+- ✨(api) filtrer OffersListView par région, département et pays ([#1092](https://github.com/betagouv/csplab/pull/1092))
+- ✨(api) amélioration de la navigation ([#1094](https://github.com/betagouv/csplab/pull/1094))
+- ✨(ingestion) ajouter le référentiel RMFPv2 au payload metier ([#1095](https://github.com/betagouv/csplab/pull/1095))
+- 🐛(ingestion) ignorer le préfixe ER pour calculer le domaine RMFPv2 ([#1096](https://github.com/betagouv/csplab/pull/1096))
+- ✨(ingestion) filtrer OfferSummariesView par latitude, longitude et rayon ([#1097](https://github.com/betagouv/csplab/pull/1097))
+- ✨(api) filtrer OffersListView par latitude, longitude et rayon ([#1098](https://github.com/betagouv/csplab/pull/1098))
+- ✨(api) ajouter les filtres domain, organization et publicationDate sur OfferSummariesView ([#1099](https://github.com/betagouv/csplab/pull/1099))
+- ✨(api) ajouter les filtres domaine, organisme et date_publication sur OffersListView ([#1100](https://github.com/betagouv/csplab/pull/1100))
+- ✨(ats-recrutements) Clarification comportement drawer et modale traitement par lot ([#1105](https://github.com/betagouv/csplab/pull/1105))
+- ✨(ats-recrutements) add autoscroll to kanban for better ux ([#1107](https://github.com/betagouv/csplab/pull/1107))
+- ✨(api) filtrer OfferSummariesView par mots-clés (recherche plein texte) ([#1110](https://github.com/betagouv/csplab/pull/1110))
+
+### <!-- 2 --> Modified
+
+- ✨(recrutements) Endpoint dédié pour le détail d'un recrutement ([#1101](https://github.com/betagouv/csplab/pull/1101))
+- ♻️(ats-recrutements) Séparer les filtres des tableaux mes recrutements ([#1103](https://github.com/betagouv/csplab/pull/1103))
+
+### <!-- 3 --> Removed
+
+- ♻️(ats-recrutements) Remove kindcontrat filter ([#1084](https://github.com/betagouv/csplab/pull/1084))
+
+### <!-- 4 --> Fixed
+
+- 🐛(ats-frontend): Correct CspDialog content placement ([#1093](https://github.com/betagouv/csplab/pull/1093))
+- ✨(ats-recrutements) Fix overflow x kanban ([#1102](https://github.com/betagouv/csplab/pull/1102))
+- 🐛(ats-recrutements) Corriger la largeur des searchbar ([#1104](https://github.com/betagouv/csplab/pull/1104))
+
 ## [0.1.14] - 2026-08-04
 
 ### <!-- 0 --> Breaking Changes
