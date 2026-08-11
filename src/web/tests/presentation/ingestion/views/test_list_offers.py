@@ -446,6 +446,35 @@ def test_organisme_filter_with_multiple_values_is_forwarded_to_usecase(
     )
 
 
+def test_keywords_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"mots_cles": "développeur informatique"})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            keywords="développeur informatique",
+        )
+    )
+
+
+def test_blank_keywords_is_treated_as_not_provided(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"mots_cles": ""})
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(active=True, external_id_contains=None)
+    )
+
+
 def test_date_publication_filter_is_forwarded_to_usecase(
     mock_offers_container, authenticated_client
 ):

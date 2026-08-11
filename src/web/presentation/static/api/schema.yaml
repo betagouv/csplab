@@ -403,6 +403,9 @@ paths:
           - `latitude` — latitude du point en degrés décimaux (entre -90 et 90)
           - `longitude` — longitude du point en degrés décimaux (entre -180 et 180)
           - `radius` — rayon de recherche en kilomètres (entier positif)
+        - `mots_cles` — recherche plein texte (en français) sur le titre,
+          l'intitulé long, la mission, le profil, l'organisme, l'employeur et les
+          compléments de l'offre
 
         Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
         virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.
@@ -786,6 +789,14 @@ paths:
               * `SANS` - Sans management
               * `AVEC` - Avec management
         description: Valeurs séparées par une virgule (ex. `SANS,AVEC`).
+      - in: query
+        name: mots_cles
+        schema:
+          type: string
+          minLength: 1
+        description: Recherche plein texte (en français) sur le titre, l'intitulé
+          long, la mission, le profil, l'organisme, l'employeur et les compléments
+          de l'offre.
       - in: query
         name: niveau_experience
         schema:
