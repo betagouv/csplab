@@ -251,6 +251,17 @@ class ListOffersFiltersSerializer(serializers.Serializer):
             "(à fournir avec `latitude` et `longitude`)."
         ),
     )
+    mots_cles = serializers.CharField(
+        required=False,
+        default=None,
+        allow_blank=False,
+        source="keywords",
+        help_text=(
+            "Recherche plein texte (en français) sur le titre, l'intitulé "
+            "long, la mission, le profil, l'organisme, l'employeur et les "
+            "compléments de l'offre."
+        ),
+    )
 
     _GEO_FIELDS = ("latitude", "longitude", "radius_km")
 

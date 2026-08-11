@@ -129,6 +129,7 @@ par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramè
 | `organisme` | Filtrer par nom exact d'organisme | Répéter le paramètre pour en filtrer plusieurs (ex. `?organisme=Foo&organisme=Bar`) — ne pas séparer les valeurs par une virgule, un nom d'organisme pouvant en contenir une |
 | `date_publication` | Ne retourner que les offres publiées au cours des N derniers jours | Entier négatif (ex. `-7`) |
 | `latitude`, `longitude`, `radius` | Filtre géographique par rayon autour d'un point — **les trois doivent être fournis ensemble** | `latitude`/`longitude` en degrés décimaux, `radius` en kilomètres (entier positif) |
+| `mots_cles` | Recherche plein texte (en français) sur le titre, l'intitulé long, la mission, le profil, l'organisme, l'employeur et les compléments de l'offre | Texte libre |
 
 > Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
 > virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.
