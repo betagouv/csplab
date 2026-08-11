@@ -174,6 +174,44 @@ def test_category_filter_is_forwarded_to_usecase(
     )
 
 
+def test_category_legacy_numeric_codes_are_translated(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"category": "1805,1806,1807,4327,4328"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            category=[
+                Category.A,
+                Category.B,
+                Category.C,
+                Category.APLUS,
+                Category.APLUS,
+            ],
+        )
+    )
+
+
+def test_category_legacy_range_alias_is_translated(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"category": "4327-4328"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            category=[Category.APLUS],
+        )
+    )
+
+
 def test_invalid_category_returns_400(
     mock_offer_summaries_container, authenticated_client
 ):
@@ -230,6 +268,26 @@ def test_contract_type_filter_is_forwarded_to_usecase(
     )
 
 
+def test_contract_type_legacy_numeric_codes_are_translated(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"contractType": "2349,4534,2267"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            contract_type=[
+                ContractType.TITULAIRE_CONTRACTUEL,
+                ContractType.TERRITORIAL,
+                ContractType.CONTRACTUELS,
+            ],
+        )
+    )
+
+
 def test_invalid_contract_type_returns_400(
     mock_offer_summaries_container, authenticated_client
 ):
@@ -256,6 +314,26 @@ def test_experience_level_filter_is_forwarded_to_usecase(
             active=True,
             external_id_contains=None,
             experience_level=[ExperienceLevel.DEBUTANT, ExperienceLevel.EXPERT],
+        )
+    )
+
+
+def test_experience_level_legacy_numeric_codes_are_translated(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"experienceLevel": "1835,1834,1833"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            experience_level=[
+                ExperienceLevel.DEBUTANT,
+                ExperienceLevel.CONFIRME,
+                ExperienceLevel.EXPERT,
+            ],
         )
     )
 
@@ -288,6 +366,22 @@ def test_management_filter_is_forwarded_to_usecase(
     )
 
 
+def test_management_legacy_numeric_code_is_translated(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"management": "1814"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            management=[Management.AVEC],
+        )
+    )
+
+
 def test_invalid_management_returns_400(
     mock_offer_summaries_container, authenticated_client
 ):
@@ -312,6 +406,22 @@ def test_working_place_filter_is_forwarded_to_usecase(
             active=True,
             external_id_contains=None,
             working_place=[WorkingPlace.SUR_SITE, WorkingPlace.TELETRAVAIL],
+        )
+    )
+
+
+def test_working_place_legacy_numeric_code_is_translated(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"workingPlace": "1814"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            working_place=[WorkingPlace.TELETRAVAIL],
         )
     )
 
@@ -344,6 +454,22 @@ def test_region_filter_is_forwarded_to_usecase(
     )
 
 
+def test_region_legacy_numeric_codes_are_translated(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"region": "208,198,219"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            region=[Region(code="11"), Region(code="84"), Region(code="TOM")],
+        )
+    )
+
+
 def test_invalid_region_returns_400(
     mock_offer_summaries_container, authenticated_client
 ):
@@ -361,6 +487,22 @@ def test_department_filter_is_forwarded_to_usecase(
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
     authenticated_client.get(URL, {"department": "75,69"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            department=[Department(code="75"), Department(code="69")],
+        )
+    )
+
+
+def test_department_legacy_numeric_codes_are_translated(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"department": "284,336"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -398,6 +540,22 @@ def test_country_filter_is_forwarded_to_usecase(
     )
 
 
+def test_country_legacy_numeric_codes_are_translated(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"country": "29,40"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            country=[Country("DEU"), Country("BEL")],
+        )
+    )
+
+
 def test_invalid_country_returns_400(
     mock_offer_summaries_container, authenticated_client
 ):
@@ -409,12 +567,76 @@ def test_invalid_country_returns_400(
     assert "INVALID" in response.json()["error"]
 
 
+def test_locations_filter_detects_country_region_and_department(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"locations": "29,198,330"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            country=[Country("DEU")],
+            region=[Region(code="84")],
+            department=[Department(code="01")],
+        )
+    )
+
+
+def test_locations_filter_is_merged_with_explicit_filters(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(
+        URL, {"locations": "198", "region": "11", "country": "fra"}
+    )
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            country=[Country("FRA")],
+            region=[Region(code="11"), Region(code="84")],
+        )
+    )
+
+
+def test_invalid_locations_returns_400(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"locations": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+
+
 def test_domain_filter_is_forwarded_to_usecase(
     mock_offer_summaries_container, authenticated_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
     authenticated_client.get(URL, {"domain": "NUM,ACH"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            domain=[DomaineFonctionnel.NUMERIQUE.value, DomaineFonctionnel.ACHAT.value],
+        )
+    )
+
+
+def test_domain_legacy_numeric_codes_are_translated(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"domain": "3522,3503"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -515,6 +737,30 @@ def test_publication_date_filter_is_forwarded_to_usecase(
             active=True,
             external_id_contains=None,
             published_within_days=-7,
+        )
+    )
+
+
+@pytest.mark.parametrize(
+    "alias,expected_days",
+    [
+        ("dernieres_48_heures", -2),
+        ("7_derniers_jours", -7),
+        ("14_derniers_jours", -14),
+    ],
+)
+def test_publication_date_legacy_aliases_are_translated(
+    mock_offer_summaries_container, authenticated_client, alias, expected_days
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"publicationDate": alias})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            published_within_days=expected_days,
         )
     )
 
