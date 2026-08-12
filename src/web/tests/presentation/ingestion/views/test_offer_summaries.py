@@ -607,9 +607,7 @@ def test_area_legacy_numeric_codes_are_translated(
     )
 
 
-def test_invalid_area_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_invalid_area_returns_400(mock_offer_summaries_container, authenticated_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
     response = authenticated_client.get(URL, {"area": "INVALID"})
