@@ -33,7 +33,9 @@ _TALENTSOFT_TO_AREA: dict[str, GeographicalArea] = {
     "_TS_CO_GeographicalArea_AmriquesCaraibe": GeographicalArea.AMERIQUE,
     "_TS_CO_GeographicalArea_Asie": GeographicalArea.ASIE,
     "_TS_CO_GeographicalArea_Europe": GeographicalArea.EUROPE,
-    "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord": GeographicalArea.AFRIQUE,
+    "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord": (
+        GeographicalArea.MOYEN_ORIENT_AFRIQUE_DU_NORD
+    ),
     "_TS_CO_GeographicalArea_Ocanie": GeographicalArea.OCEANIE,
 }
 

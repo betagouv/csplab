@@ -189,6 +189,15 @@ def test_clean_maps_category_from_custom_fields(
             "84",
             "988",
         ),
+        (
+            "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord",
+            "FRA",
+            "R11",
+            "75",
+            "MO",
+            "11",
+            "75",
+        ),
     ],
 )
 def test_clean_maps_geographical_area(

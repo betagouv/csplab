@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from django.urls import reverse
 from drf_spectacular.generators import SchemaGenerator
+from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
@@ -567,12 +568,62 @@ def test_invalid_country_returns_400(
     assert "INVALID" in response.json()["error"]
 
 
-def test_locations_filter_detects_country_region_and_department(
+def test_area_filter_is_forwarded_to_usecase(
     mock_offer_summaries_container, authenticated_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"locations": "29,198,330"})
+    authenticated_client.get(URL, {"area": "EUROPE,AFRIQUE"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            area=[GeographicalArea.EUROPE, GeographicalArea.AFRIQUE],
+        )
+    )
+
+
+def test_area_legacy_numeric_codes_are_translated(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"area": "22,19,20,21,23,24"})
+
+    mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            area=[
+                GeographicalArea.EUROPE,
+                GeographicalArea.AFRIQUE,
+                GeographicalArea.AMERIQUE,
+                GeographicalArea.ASIE,
+                GeographicalArea.MOYEN_ORIENT_AFRIQUE_DU_NORD,
+                GeographicalArea.OCEANIE,
+            ],
+        )
+    )
+
+
+def test_invalid_area_returns_400(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"area": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+
+
+def test_locations_filter_detects_country_region_department_and_area(
+    mock_offer_summaries_container, authenticated_client
+):
+    _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"locations": "29,198,330,19"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -581,6 +632,7 @@ def test_locations_filter_detects_country_region_and_department(
             country=[Country("DEU")],
             region=[Region(code="84")],
             department=[Department(code="01")],
+            area=[GeographicalArea.AFRIQUE],
         )
     )
 
@@ -591,7 +643,13 @@ def test_locations_filter_is_merged_with_explicit_filters(
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
     authenticated_client.get(
-        URL, {"locations": "198", "region": "11", "country": "fra"}
+        URL,
+        {
+            "locations": "198,19",
+            "region": "11",
+            "country": "fra",
+            "area": "EUROPE",
+        },
     )
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
@@ -600,6 +658,7 @@ def test_locations_filter_is_merged_with_explicit_filters(
             external_id_contains=None,
             country=[Country("FRA")],
             region=[Region(code="11"), Region(code="84")],
+            area=[GeographicalArea.EUROPE, GeographicalArea.AFRIQUE],
         )
     )
 

@@ -2,6 +2,7 @@ import gettext
 
 import pycountry
 from drf_spectacular.utils import extend_schema_field
+from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.country import Country
@@ -25,6 +26,7 @@ from rest_framework import serializers
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
 from presentation.ingestion.legacy_client_aliases import (
+    AREA_CODE_ALIASES,
     CATEGORY_CODE_ALIASES,
     CONTRACT_TYPE_CODE_ALIASES,
     COUNTRY_CODE_ALIASES,
@@ -127,14 +129,14 @@ class _CommaSeparatedCodeField(serializers.MultipleChoiceField):
 def _resolve_location_codes(value):
     """
     For each legacy client identifier provided in `locations`, detects
-    whether it refers to a country, a region or a department, then
-    translates it to the corresponding target code. Legacy identifiers are
-    unique across the three referentials, so a given identifier can only
-    match one type.
+    whether it refers to a country, a region, a department or a
+    geographical area, then translates it to the corresponding target
+    code. Legacy identifiers are unique across the four referentials, so a
+    given identifier can only match one type.
     """
     requested = [part.strip() for part in value.split(",") if part.strip()]
 
-    countries, regions, departments, invalid = [], [], [], []
+    countries, regions, departments, areas, invalid = [], [], [], [], []
     for code in requested:
         if code in COUNTRY_CODE_ALIASES:
             countries.append(COUNTRY_CODE_ALIASES[code])
@@ -142,6 +144,8 @@ def _resolve_location_codes(value):
             regions.append(REGION_CODE_ALIASES[code])
         elif code in DEPARTMENT_CODE_ALIASES:
             departments.append(DEPARTMENT_CODE_ALIASES[code])
+        elif code in AREA_CODE_ALIASES:
+            areas.append(AREA_CODE_ALIASES[code])
         else:
             invalid.append(code)
 
@@ -150,7 +154,7 @@ def _resolve_location_codes(value):
             "Valeurs de localisation invalides : {}.".format(", ".join(invalid))
         )
 
-    return countries, regions, departments
+    return countries, regions, departments, areas
 
 
 class _AliasedIntegerField(serializers.IntegerField):
@@ -397,6 +401,9 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
     country = _CommaSeparatedCodeField(
         COUNTRY_NAMES, "pays", Country, aliases=COUNTRY_CODE_ALIASES
     )
+    area = _CommaSeparatedEnumField(
+        GeographicalArea, "zone géographique", aliases=AREA_CODE_ALIASES
+    )
     domain = _CommaSeparatedCodeField(
         DOMAIN_NAMES, "domaine", lambda code: code, aliases=DOMAIN_CODE_ALIASES
     )
@@ -407,9 +414,10 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
         help_text=(
             "Filtre géographique par identifiants du référentiel legacy du "
             "client, séparés par une virgule (ex. `?locations=27,208,330`). "
-            "Le type (pays, région ou département) de chaque identifiant est "
-            "détecté automatiquement et vient compléter les filtres "
-            "`country`, `region` et `department`."
+            "Le type (pays, région, département ou zone géographique) de "
+            "chaque identifiant est détecté automatiquement et vient "
+            "compléter les filtres `country`, `region`, `department` et "
+            "`area`."
         ),
     )
     organization = serializers.ListField(
@@ -480,8 +488,8 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
 
         locations = data.pop("locations", None)
         if locations:
-            country_codes, region_codes, department_codes = _resolve_location_codes(
-                locations
+            country_codes, region_codes, department_codes, area_names = (
+                _resolve_location_codes(locations)
             )
             if country_codes:
                 data["country"] = (data.get("country") or []) + [
@@ -494,6 +502,10 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
             if department_codes:
                 data["department"] = (data.get("department") or []) + [
                     Department(code=code) for code in department_codes
+                ]
+            if area_names:
+                data["area"] = (data.get("area") or []) + [
+                    GeographicalArea[name] for name in area_names
                 ]
 
         return data

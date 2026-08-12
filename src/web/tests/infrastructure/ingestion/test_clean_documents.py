@@ -420,6 +420,16 @@ def test_execute_clean_offers_with_category(
             "84",
             "988",
         ),
+        (
+            "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord",
+            "FRA",
+            "R11",
+            "75",
+            "MO",
+            "FRA",
+            "11",
+            "75",
+        ),
     ],
 )
 def test_execute_clean_offers_with_geographical_area(
