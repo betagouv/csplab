@@ -74,6 +74,8 @@ class Recrutement(AggregateRoot):
                 )
             else:
                 candidature.changer_etape(etape_id=etape_cible_id)
+                for event in candidature.collect_events():
+                    self.add_event(event)
                 successes.append(candidature)
         # business rules about etapes order can be managed here
         self._derniere_activite_le = datetime.now(tz=timezone.utc)

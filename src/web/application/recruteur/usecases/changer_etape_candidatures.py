@@ -3,6 +3,7 @@ from uuid import UUID
 
 from ddd.usecase_interface import IUseCase
 
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
@@ -42,11 +43,13 @@ class ChangerEtapeCandidaturesUsecase(
         organisme_recruteur_repository: IOrganismeRecruteurRepository,
         recrutement_repository: IRecrutementRepository,
         candidature_recruteur_repository: ICandidatureRecruteurRepository,
+        audit_log_writer: AuditLogWriter,
     ):
         self.permission_service = permission_service
         self.organisme_recruteur_repository = organisme_recruteur_repository
         self.recrutement_repository = recrutement_repository
         self.candidature_recruteur_repository = candidature_recruteur_repository
+        self.audit_log_writer = audit_log_writer
 
     def can_execute(
         self, command: ChangerEtapeCandidaturesCommand
@@ -78,7 +81,9 @@ class ChangerEtapeCandidaturesUsecase(
             self.candidature_recruteur_repository.upsert(recrutement_modifie.reussites)
         )
 
-        # todo: audit logs
+        self.audit_log_writer.drain_events(
+            utilisateur_id=command.utilisateur_id, aggregate=recrutement
+        )
         return ChangementEtapeCandidaturesResultat(
             reussites=candidatures_traitees.reussites,
             echecs=recrutement_modifie.echecs + candidatures_traitees.echecs,

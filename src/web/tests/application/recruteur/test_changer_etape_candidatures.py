@@ -8,12 +8,15 @@ from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesUsecase,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.errors.organisme_permission_errors import AccesRecrutementRefuse
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
+from domain.recruteur.events.candidature_events import CandidatureEtapeModifiee
+from domain.recruteur.events.recrutement_events import EtapeCandidaturesChangees
 from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
     ICandidatureRecruteurRepository,
 )
@@ -66,8 +69,13 @@ def candidatures_recruteur_fixture(recrutement):
 
 @pytest.fixture(name="candidatures_recruteur_changees")
 def candidatures_recruteur_changees_fixture(candidatures_recruteur, recrutement):
+    etape_cible_id = recrutement.etapes[-1].entity_id
     return [
-        c.changer_etape(etape_id=recrutement.etapes[-1]) for c in candidatures_recruteur
+        CandidatureRecruteurFactory.create_entity(
+            recrutement_id=c.recrutement_id,
+            etape_id=etape_cible_id,
+        )
+        for c in candidatures_recruteur
     ]
 
 
@@ -103,6 +111,7 @@ def usecase_fixture(
         candidature_recruteur_repository=candidature_recruteur_repository,
         recrutement_repository=recrutement_repository,
         permission_service=permission_service,
+        audit_log_writer=MagicMock(spec=AuditLogWriter),
     )
 
 
@@ -129,6 +138,15 @@ class TestChangerEtapeCandidaturesUsecase:
 
         assert resultat.reussites == candidatures_recruteur_changees
         assert resultat.echecs == []
+
+        events = recrutement.collect_events()
+        assert len(events) == len(candidatures_recruteur_changees) + 1
+        assert sum(isinstance(e, CandidatureEtapeModifiee) for e in events) == len(
+            candidatures_recruteur_changees
+        )
+        assert sum(isinstance(e, EtapeCandidaturesChangees) for e in events) == 1
+
+        assert usecase.audit_log_writer.drain_events.call_count == 1
 
     def test_raises_when_recrutement_not_found(
         self, recrutement_repository, candidatures_recruteur, usecase
