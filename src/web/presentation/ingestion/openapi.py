@@ -275,6 +275,7 @@ critères suivants :
 - `region` — un ou plusieurs codes région (ex. `11,84`)
 - `departement` — un ou plusieurs codes département (ex. `75,69`)
 - `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
+- `zone` — une ou plusieurs zones géographiques (ex. `EUROPE,ASIE`)
 - `domaine` — un ou plusieurs codes de domaine fonctionnel (ex. `NUM,ACH`)
 - `organisme` — un ou plusieurs noms d'organisme (nom exact). Répéter le
   paramètre pour filtrer sur plusieurs organismes (ex.

@@ -5,6 +5,7 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from django.urls import reverse
 from faker import Faker
+from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
@@ -378,6 +379,31 @@ def test_invalid_pays_returns_400(mock_offers_container, authenticated_client):
     _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
 
     response = authenticated_client.get(URL, {"pays": "INVALID"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "INVALID" in response.json()["error"]
+
+
+def test_zone_filter_is_forwarded_to_usecase(
+    mock_offers_container, authenticated_client
+):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    authenticated_client.get(URL, {"zone": "EUROPE,AFRIQUE"})
+
+    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
+        GetFilteredOffersInput(
+            active=True,
+            external_id_contains=None,
+            area=[GeographicalArea.EUROPE, GeographicalArea.AFRIQUE],
+        )
+    )
+
+
+def test_invalid_zone_returns_400(mock_offers_container, authenticated_client):
+    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+
+    response = authenticated_client.get(URL, {"zone": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]

@@ -391,6 +391,7 @@ paths:
         - `region` — un ou plusieurs codes région (ex. `11,84`)
         - `departement` — un ou plusieurs codes département (ex. `75,69`)
         - `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
+        - `zone` — une ou plusieurs zones géographiques (ex. `EUROPE,ASIE`)
         - `domaine` — un ou plusieurs codes de domaine fonctionnel (ex. `NUM,ACH`)
         - `organisme` — un ou plusieurs noms d'organisme (nom exact). Répéter le
           paramètre pour filtrer sur plusieurs organismes (ex.
@@ -1431,6 +1432,29 @@ paths:
               * `FPE` - FPE
               * `FPH` - FPH
         description: Valeurs séparées par une virgule (ex. `FPE,FPT`).
+      - in: query
+        name: zone
+        schema:
+          type: array
+          items:
+            enum:
+            - AFRIQUE
+            - EUROPE
+            - ASIE
+            - AMERIQUE
+            - OCEANIE
+            - ANTARTIQUE
+            - MOYEN_ORIENT_AFRIQUE_DU_NORD
+            type: string
+            description: |-
+              * `AFRIQUE` - AF
+              * `EUROPE` - EU
+              * `ASIE` - AS
+              * `AMERIQUE` - AM
+              * `OCEANIE` - OC
+              * `ANTARTIQUE` - AN
+              * `MOYEN_ORIENT_AFRIQUE_DU_NORD` - MO
+        description: Valeurs séparées par une virgule (ex. `EUROPE,ASIE`).
       tags:
       - offres
       security:

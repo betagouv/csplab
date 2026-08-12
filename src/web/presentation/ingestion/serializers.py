@@ -258,6 +258,12 @@ class ListOffersFiltersSerializer(serializers.Serializer):
         help_text="Valeurs séparées par une virgule (ex. `FRA,BEL`).",
         source="country",
     )
+    zone = _CommaSeparatedEnumField(
+        GeographicalArea,
+        "zone géographique",
+        help_text="Valeurs séparées par une virgule (ex. `EUROPE,ASIE`).",
+        source="area",
+    )
     domaine = _CommaSeparatedCodeField(
         DOMAIN_NAMES,
         "domaine",
