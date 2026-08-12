@@ -8,3 +8,8 @@ from ddd.domain_event import DomainEvent
 class CandidatureRecue(DomainEvent):
     candidat_id: UUID
     etape_id: UUID
+
+
+@dataclass(frozen=True)
+class CandidatureEtapeModifiee(DomainEvent):
+    etape_id: UUID

@@ -118,8 +118,8 @@ def mutate(event_type: type) -> Callable:
         _check_payload_coverage(event_type, method, exclude="self")
 
         @wraps(method)
-        def wrapper(self: "AggregateRoot", **kwargs: object) -> None:
-            method(self, **kwargs)
+        def wrapper(self: "AggregateRoot", **kwargs: object) -> object:
+            result = method(self, **kwargs)
             event = event_type(
                 aggregate_id=self.entity_id,
                 aggregate=self.__class__.__name__,
@@ -127,6 +127,7 @@ def mutate(event_type: type) -> Callable:
                 **kwargs,
             )
             self.add_event(event)
+            return result
 
         wrapper.__is_mutation__ = True  # type: ignore[attr-defined]
         return wrapper
