@@ -30,7 +30,7 @@ from infrastructure.factories.referentiel.offer_factory import OfferFactory
 class RecrutementFactory:
     @staticmethod
     def create_entity(
-        derniere_activite_le: datetime,
+        derniere_activite_le: datetime | None = None,
         offre_id: UUID | None = None,
         organisme_id: UUID | None = None,
         etapes: tuple[EtapeRecrutement, ...] | None = None,
@@ -49,6 +49,12 @@ class RecrutementFactory:
             candidat_recrute_id=candidat_recrute_id,
             derniere_activite_le=derniere_activite_le or datetime.now(tz=timezone.utc),
         )
+
+    @staticmethod
+    def create_entities(
+        count: int = 1,
+    ) -> list[Recrutement]:
+        return [RecrutementFactory.create_entity() for _ in range(count)]
 
     @staticmethod
     def create_actif_read_model(

@@ -53,6 +53,9 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.INIT_RECRUTEMENT_ETAPES: frozenset(
         {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
     ),
+    OrganismeAction.CHANGER_ETAPE_CANDIDATURES: frozenset(
+        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+    ),
 }
 
 # -------------------------------------
@@ -81,6 +84,9 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
     OrganismeAction.INIT_RECRUTEMENT_ETAPES: frozenset(
         {AgentRecrutementRole.RESPONSABLE}
     ),
+    OrganismeAction.CHANGER_ETAPE_CANDIDATURES: frozenset(
+        {AgentRecrutementRole.RESPONSABLE, AgentRecrutementRole.RECRUTEUR}
+    ),
 }
 
 
@@ -104,6 +110,7 @@ class OrganismePermissionService:
         est_staff: bool,
         recrutement_id: UUID | None = None,
     ) -> AgentOrganismeRole | None:
+        # todo : cette guard devrait etre au niveau du usecase
         self._organisme_recruteur_repository.get_by_id(organisme_id)
 
         if est_staff and action in _AUTORISE_POUR_STAFF:

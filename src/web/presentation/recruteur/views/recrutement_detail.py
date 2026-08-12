@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from application.recruteur.usecases.changer_etape_candidatures import (
-    CandidatureAChanger,
     ChangerEtapeCandidaturesCommand,
 )
 from application.recruteur.usecases.get_recrutement_detail import (
@@ -223,13 +222,9 @@ class RecrutementCandidaturesEtapeView(APIView):
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
                     etape_cible_id=data["etape_cible_uuid"],
-                    candidatures=[
-                        CandidatureAChanger(
-                            candidature_id=c["candidature_uuid"],
-                            etape_actuelle_id=c["etape_actuelle_uuid"],
-                        )
-                        for c in data["candidatures"]
-                    ],
+                    candidatures=[c["candidature_uuid"] for c in data["candidatures"]],
+                    utilisateur_id=UUID(request.user.username),
+                    est_staff=request.user.is_staff,
                 )
             )
             return Response(

@@ -4,11 +4,13 @@ from uuid import UUID
 
 from ddd.aggregate_root import AggregateRoot, mutate
 
-from domain.recruteur.events.candidature_events import CandidatureRecue
+from domain.recruteur.events.candidature_events import (
+    CandidatureEtapeModifiee,
+    CandidatureRecue,
+)
 
 
 # todo when back for Kanban:
-# CandidatureTraitee: moved from step
 # CandidaturePositionEnforced: maybe, waiting for UX
 # CandidatureRefusee,
 # CandidatureAcceptee
@@ -41,6 +43,11 @@ class CandidatureRecruteur(AggregateRoot):
     def recevoir_candidature(self, etape_id: UUID, candidat_id: UUID) -> None:
         self._etape_id = etape_id
         self._candidat_id = candidat_id
+        self._derniere_activite_le = datetime.now(tz=timezone.utc)
+
+    @mutate(CandidatureEtapeModifiee)
+    def changer_etape(self, etape_id: UUID) -> None:
+        self._etape_id = etape_id
         self._derniere_activite_le = datetime.now(tz=timezone.utc)
 
     @property
