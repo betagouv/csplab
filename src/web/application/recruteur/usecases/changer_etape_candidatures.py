@@ -17,9 +17,10 @@ from domain.recruteur.repositories.recrutement_repository_interface import (
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from domain.recruteur.value_objects.changement_etape_candidatures import (
+    ChangementEtapeCandidaturesResultat,
+)
 from domain.recruteur.value_objects.organisme_action import OrganismeAction
-
-# les candidature dans le contexte d'un recruteur ont déjà la notion de _etape_id: UUID
 
 
 @dataclass
@@ -29,20 +30,11 @@ class ChangerEtapeCandidaturesCommand:
     utilisateur_id: UUID
     est_staff: bool
     etape_cible_id: UUID
-    candidatures: list[UUID]  # list of CandidatureRecruteur
+    candidatures: list[UUID]
 
 
-@dataclass
-class ChangerEtapeResultat:
-    reussites: list[UUID]
-    echecs: list[tuple[UUID, str]]  # (candidature_id, reason code)
-
-
-# TODO: ajouter
-# - emission evenement + drain par auditlog
-# - sauvegarde
 class ChangerEtapeCandidaturesUsecase(
-    IUseCase[ChangerEtapeCandidaturesCommand, ChangerEtapeResultat]
+    IUseCase[ChangerEtapeCandidaturesCommand, ChangementEtapeCandidaturesResultat]
 ):
     def __init__(
         self,
@@ -72,10 +64,22 @@ class ChangerEtapeCandidaturesUsecase(
         )
         return recrutement, candidatures
 
-    def execute(self, command: ChangerEtapeCandidaturesCommand) -> ChangerEtapeResultat:
+    def execute(
+        self, command: ChangerEtapeCandidaturesCommand
+    ) -> ChangementEtapeCandidaturesResultat:
         recrutement, candidatures = self.can_execute(command)
-        successes, failures = recrutement.changer_etapes_candidatures(
-            candidatures=candidatures, etape_cible_id=command.etape_cible_id
+        recrutement_modifie: ChangementEtapeCandidaturesResultat = (
+            recrutement.changer_etapes_candidatures(
+                candidatures=candidatures, etape_cible_id=command.etape_cible_id
+            )
         )
-        # todo: sauvegarder les changements d'etape
-        return ChangerEtapeResultat(reussites=successes, echecs=failures)
+
+        candidatures_traitees: ChangementEtapeCandidaturesResultat = (
+            self.candidature_recruteur_repository.upsert(recrutement_modifie.reussites)
+        )
+
+        # todo: audit logs
+        return ChangementEtapeCandidaturesResultat(
+            reussites=candidatures_traitees.reussites,
+            echecs=recrutement_modifie.echecs + candidatures_traitees.echecs,
+        )

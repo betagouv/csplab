@@ -26,6 +26,9 @@ from domain.recruteur.repositories.recrutement_repository_interface import (
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from domain.recruteur.value_objects.changement_etape_candidatures import (
+    ChangementEtapeCandidaturesResultat,
+)
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.factories.recruteur.candidature_recruteur_factory import (
     CandidatureRecruteurFactory,
@@ -61,10 +64,23 @@ def candidatures_recruteur_fixture(recrutement):
     )
 
 
+@pytest.fixture(name="candidatures_recruteur_changees")
+def candidatures_recruteur_changees_fixture(candidatures_recruteur, recrutement):
+    return [
+        c.changer_etape(etape_id=recrutement.etapes[-1]) for c in candidatures_recruteur
+    ]
+
+
 @pytest.fixture(name="candidature_recruteur_repository")
-def candidature_recruteur_repository_fixture(candidatures_recruteur):
+def candidature_recruteur_repository_fixture(
+    candidatures_recruteur, candidatures_recruteur_changees
+):
     repo = Mock(spec=ICandidatureRecruteurRepository)
     repo.get_by_ids.return_value = candidatures_recruteur
+    repo.upsert.return_value = ChangementEtapeCandidaturesResultat(
+        reussites=candidatures_recruteur_changees, echecs=[]
+    )
+
     return repo
 
 
@@ -92,14 +108,18 @@ def usecase_fixture(
 
 class TestChangerEtapeCandidaturesUsecase:
     def test_echoes_all_candidatures_as_reussites(
-        self, recrutement, candidatures_recruteur, usecase
+        self,
+        recrutement,
+        candidatures_recruteur,
+        candidatures_recruteur_changees,
+        usecase,
     ):
         command = ChangerEtapeCandidaturesCommand(
             organisme_id=recrutement.organisme_id,
             recrutement_id=recrutement.entity_id,
             utilisateur_id=uuid4(),
             est_staff=False,
-            etape_cible_id=recrutement.etapes[1].entity_id,
+            etape_cible_id=recrutement.etapes[-1].entity_id,
             candidatures=[
                 candidature.entity_id for candidature in candidatures_recruteur
             ],
@@ -107,40 +127,8 @@ class TestChangerEtapeCandidaturesUsecase:
 
         resultat = usecase.execute(command)
 
-        assert resultat.reussites == [
-            candidature.entity_id for candidature in candidatures_recruteur
-        ]
+        assert resultat.reussites == candidatures_recruteur_changees
         assert resultat.echecs == []
-
-    def test_raises_when_candidatures_does_not_belong_to_recrutement(
-        self, recrutement, candidature_recruteur_repository, usecase
-    ):
-        candidatures = CandidatureRecruteurFactory.create_entities(
-            3, recrutement_id=uuid4()
-        )
-        candidature_recruteur_repository.get_by_ids.return_value = candidatures
-
-        result = usecase.execute(
-            ChangerEtapeCandidaturesCommand(
-                organisme_id=recrutement.organisme_id,
-                recrutement_id=recrutement.entity_id,
-                utilisateur_id=uuid4(),
-                est_staff=False,
-                etape_cible_id=recrutement.etapes[1].entity_id,
-                candidatures=[c.entity_id for c in candidatures],
-            )
-        )
-        assert result.reussites == []
-        assert result.echecs == [
-            (
-                candidature.entity_id,
-                RecrutementCandidatureInexistante(
-                    candidature_id=candidature.entity_id,
-                    recrutement_id=recrutement.entity_id,
-                ).message,
-            )
-            for candidature in candidatures
-        ]
 
     def test_raises_when_recrutement_not_found(
         self, recrutement_repository, candidatures_recruteur, usecase
@@ -226,3 +214,35 @@ class TestChangerEtapeCandidaturesUsecase:
                     candidatures=[c.entity_id for c in candidatures_recruteur],
                 )
             )
+
+    def test_return_results_with_domain_errors(
+        self, recrutement, candidature_recruteur_repository, usecase
+    ):
+        candidatures = CandidatureRecruteurFactory.create_entities(
+            3, recrutement_id=uuid4()
+        )
+        candidature_recruteur_repository.get_by_ids.return_value = candidatures
+        candidature_recruteur_repository.upsert.return_value = (
+            ChangementEtapeCandidaturesResultat(reussites=[], echecs=[])
+        )
+        result = usecase.execute(
+            ChangerEtapeCandidaturesCommand(
+                organisme_id=recrutement.organisme_id,
+                recrutement_id=recrutement.entity_id,
+                utilisateur_id=uuid4(),
+                est_staff=False,
+                etape_cible_id=recrutement.etapes[1].entity_id,
+                candidatures=[c.entity_id for c in candidatures],
+            )
+        )
+        assert result.reussites == []
+        assert result.echecs == [
+            (
+                candidature.entity_id,
+                RecrutementCandidatureInexistante(
+                    candidature_id=candidature.entity_id,
+                    recrutement_id=recrutement.entity_id,
+                ).message,
+            )
+            for candidature in candidatures
+        ]
