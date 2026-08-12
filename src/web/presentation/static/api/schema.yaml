@@ -2981,6 +2981,7 @@ components:
       - AM
       - OC
       - AN
+      - MO
       type: string
       description: |-
         * `AF` - AFRIQUE
@@ -2989,6 +2990,7 @@ components:
         * `AM` - AMERIQUE
         * `OC` - OCEANIE
         * `AN` - ANTARTIQUE
+        * `MO` - MOYEN_ORIENT_AFRIQUE_DU_NORD
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

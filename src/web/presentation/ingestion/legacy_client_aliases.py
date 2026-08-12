@@ -32,6 +32,15 @@ WORKING_PLACE_CODE_ALIASES = {
     "1814": "TELETRAVAIL",
 }
 
+AREA_CODE_ALIASES = {
+    "22": "EUROPE",
+    "19": "AFRIQUE",
+    "20": "AMERIQUE",
+    "21": "ASIE",
+    "23": "MOYEN_ORIENT_AFRIQUE_DU_NORD",
+    "24": "OCEANIE",
+}
+
 REGION_CODE_ALIASES = {
     "198": "84",
     "200": "27",

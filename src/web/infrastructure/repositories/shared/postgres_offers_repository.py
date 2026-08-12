@@ -14,6 +14,7 @@ from django.utils import timezone
 from referentiel.entities.offer import Offer
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from referentiel.types import IUpsertResult
+from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
@@ -185,6 +186,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         region: List[Region] | None = None,
         department: List[Department] | None = None,
         country: List[Country] | None = None,
+        area: List[GeographicalArea] | None = None,
         domain: List[str] | None = None,
         organization: List[str] | None = None,
         published_within_days: int | None = None,
@@ -214,6 +216,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                 ("region__in", region, lambda r: r.code),
                 ("department__in", department, lambda d: d.code),
                 ("country__in", country, str),
+                ("area__in", area, lambda a: a.value),
                 ("functional_area_code__in", domain, str),
                 ("organization__in", organization, str),
             ],

@@ -55,6 +55,7 @@ class TestGeographicalArea:
         assert GeographicalArea.AMERIQUE.value == "AM"
         assert GeographicalArea.OCEANIE.value == "OC"
         assert GeographicalArea.ANTARTIQUE.value == "AN"
+        assert GeographicalArea.MOYEN_ORIENT_AFRIQUE_DU_NORD.value == "MO"
 
 
 class TestLocalisation:

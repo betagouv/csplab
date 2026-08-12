@@ -29,6 +29,7 @@ class ListOffersUseCase(IUseCase[GetFilteredOffersInput, IPage[Offer]]):
             region=input_data.region,
             department=input_data.department,
             country=input_data.country,
+            area=input_data.area,
             domain=input_data.domain,
             organization=input_data.organization,
             published_within_days=input_data.published_within_days,

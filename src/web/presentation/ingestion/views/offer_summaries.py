@@ -43,6 +43,7 @@ class OfferSummariesView(APIView):
                     region=query.validated_data.get("region"),
                     department=query.validated_data.get("department"),
                     country=query.validated_data.get("country"),
+                    area=query.validated_data.get("area"),
                     domain=query.validated_data.get("domain"),
                     organization=query.validated_data.get("organization"),
                     published_within_days=query.validated_data.get(
