@@ -647,9 +647,10 @@ export interface components {
          *     * `AM` - AMERIQUE
          *     * `OC` - OCEANIE
          *     * `AN` - ANTARTIQUE
+         *     * `MO` - MOYEN_ORIENT_AFRIQUE_DU_NORD
          * @enum {string}
          */
-        ZoneGeographiqueEnum: "AF" | "EU" | "AS" | "AM" | "OC" | "AN";
+        ZoneGeographiqueEnum: "AF" | "EU" | "AS" | "AM" | "OC" | "AN" | "MO";
     };
     responses: never;
     parameters: never;
