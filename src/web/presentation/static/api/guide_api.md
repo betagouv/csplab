@@ -125,6 +125,7 @@ par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramè
 | `region` | Filtrer par code(s) région officiel(s) | Liste séparée par virgules (ex. `11,84`) |
 | `departement` | Filtrer par code(s) département officiel(s) | Liste séparée par virgules (ex. `75,69`) |
 | `pays` | Filtrer par code(s) pays alpha-3 | Liste séparée par virgules (ex. `FRA,BEL`) |
+| `zone` | Filtrer par zone(s) géographique(s) | Liste séparée par virgules parmi AFRIQUE, EUROPE, ASIE, AMERIQUE, OCEANIE, ANTARTIQUE, MOYEN_ORIENT_AFRIQUE_DU_NORD |
 | `domaine` | Filtrer par code(s) de domaine fonctionnel | Liste séparée par virgules (ex. `NUM,ACH`) |
 | `organisme` | Filtrer par nom exact d'organisme | Répéter le paramètre pour en filtrer plusieurs (ex. `?organisme=Foo&organisme=Bar`) — ne pas séparer les valeurs par une virgule, un nom d'organisme pouvant en contenir une |
 | `date_publication` | Ne retourner que les offres publiées au cours des N derniers jours | Entier négatif (ex. `-7`) |
