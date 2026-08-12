@@ -20,9 +20,6 @@ from domain.recruteur.events.recrutement_events import EtapeCandidaturesChangees
 from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
     ICandidatureRecruteurRepository,
 )
-from domain.recruteur.repositories.organisme_repository_interface import (
-    IOrganismeRecruteurRepository,
-)
 from domain.recruteur.repositories.recrutement_repository_interface import (
     IRecrutementRepository,
 )
@@ -37,13 +34,6 @@ from infrastructure.factories.recruteur.candidature_recruteur_factory import (
     CandidatureRecruteurFactory,
 )
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
-
-
-@pytest.fixture(name="organisme_recruteur_repository")
-def organisme_recruteur_repository_fixture():
-    repo = Mock(spec=IOrganismeRecruteurRepository)
-    repo.get_by_id.return_value = Mock()
-    return repo
 
 
 @pytest.fixture(name="recrutement")
@@ -101,13 +91,11 @@ def permission_service_fixture():
 
 @pytest.fixture(name="usecase")
 def usecase_fixture(
-    organisme_recruteur_repository,
     recrutement_repository,
     candidature_recruteur_repository,
     permission_service,
 ):
     return ChangerEtapeCandidaturesUsecase(
-        organisme_recruteur_repository=organisme_recruteur_repository,
         candidature_recruteur_repository=candidature_recruteur_repository,
         recrutement_repository=recrutement_repository,
         permission_service=permission_service,

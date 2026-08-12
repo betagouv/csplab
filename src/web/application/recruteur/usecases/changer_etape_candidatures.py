@@ -9,9 +9,6 @@ from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
     ICandidatureRecruteurRepository,
 )
-from domain.recruteur.repositories.organisme_repository_interface import (
-    IOrganismeRecruteurRepository,
-)
 from domain.recruteur.repositories.recrutement_repository_interface import (
     IRecrutementRepository,
 )
@@ -40,13 +37,11 @@ class ChangerEtapeCandidaturesUsecase(
     def __init__(
         self,
         permission_service: OrganismePermissionService,
-        organisme_recruteur_repository: IOrganismeRecruteurRepository,
         recrutement_repository: IRecrutementRepository,
         candidature_recruteur_repository: ICandidatureRecruteurRepository,
         audit_log_writer: AuditLogWriter,
     ):
         self.permission_service = permission_service
-        self.organisme_recruteur_repository = organisme_recruteur_repository
         self.recrutement_repository = recrutement_repository
         self.candidature_recruteur_repository = candidature_recruteur_repository
         self.audit_log_writer = audit_log_writer
