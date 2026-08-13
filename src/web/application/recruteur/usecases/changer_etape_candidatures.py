@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List
 from uuid import UUID
 
+from ddd.unit_of_work import IUnitOfWork
 from ddd.usecase_interface import IUseCase
 from referentiel.types import IBatchUpdate
 
@@ -43,11 +44,13 @@ class ChangerEtapeCandidaturesUsecase(
         recrutement_repository: IRecrutementRepository,
         candidature_recruteur_repository: ICandidatureRecruteurRepository,
         audit_log_writer: AuditLogWriter,
+        unit_of_work: IUnitOfWork,
     ):
         self.permission_service = permission_service
         self.recrutement_repository = recrutement_repository
         self.candidature_recruteur_repository = candidature_recruteur_repository
         self.audit_log_writer = audit_log_writer
+        self.unit_of_work = unit_of_work
 
     def can_execute(
         self, command: ChangerEtapeCandidaturesCommand
@@ -68,25 +71,26 @@ class ChangerEtapeCandidaturesUsecase(
     def execute(
         self, command: ChangerEtapeCandidaturesCommand
     ) -> IBatchUpdate[CandidatureRecruteur, CandidatureRecruteurError]:
-        recrutement, candidatures = self.can_execute(command)
-        recrutement_modifie: IBatchUpdate[
-            CandidatureRecruteur, CandidatureRecruteurError
-        ] = recrutement.changer_etapes_candidatures(
-            candidatures=candidatures, etape_cible_id=command.etape_cible_id
-        )
+        with self.unit_of_work.atomic():
+            recrutement, candidatures = self.can_execute(command)
+            recrutement_modifie: IBatchUpdate[
+                CandidatureRecruteur, CandidatureRecruteurError
+            ] = recrutement.changer_etapes_candidatures(
+                candidatures=candidatures, etape_cible_id=command.etape_cible_id
+            )
 
-        candidatures_traitees: IBatchUpdate[
-            CandidatureRecruteur, CandidatureRecruteurError
-        ] = self.candidature_recruteur_repository.upsert_batch(
-            recrutement_modifie["successes"]
-        )
+            candidatures_traitees: IBatchUpdate[
+                CandidatureRecruteur, CandidatureRecruteurError
+            ] = self.candidature_recruteur_repository.upsert_batch(
+                recrutement_modifie["successes"]
+            )
 
-        self.audit_log_writer.drain_events(
-            utilisateur_id=command.utilisateur_id, aggregate=recrutement
-        )
+            self.audit_log_writer.drain_events(
+                utilisateur_id=command.utilisateur_id, aggregate=recrutement
+            )
 
-        return {
-            "successes": candidatures_traitees["successes"],
-            "failures": recrutement_modifie["failures"]
-            + candidatures_traitees["failures"],
-        }
+            return {
+                "successes": candidatures_traitees["successes"],
+                "failures": recrutement_modifie["failures"]
+                + candidatures_traitees["failures"],
+            }

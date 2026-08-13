@@ -1,7 +1,9 @@
+from contextlib import nullcontext
 from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 import pytest
+from ddd.unit_of_work import IUnitOfWork
 
 from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesCommand,
@@ -89,17 +91,26 @@ def permission_service_fixture():
     return service
 
 
+@pytest.fixture(name="unit_of_work")
+def unit_of_work_fixture():
+    uow = Mock(spec=IUnitOfWork)
+    uow.atomic.return_value = nullcontext()
+    return uow
+
+
 @pytest.fixture(name="usecase")
 def usecase_fixture(
     recrutement_repository,
     candidature_recruteur_repository,
     permission_service,
+    unit_of_work,
 ):
     return ChangerEtapeCandidaturesUsecase(
         candidature_recruteur_repository=candidature_recruteur_repository,
         recrutement_repository=recrutement_repository,
         permission_service=permission_service,
         audit_log_writer=MagicMock(spec=AuditLogWriter),
+        unit_of_work=unit_of_work,
     )
 
 
