@@ -40,6 +40,7 @@ class Recrutement(AggregateRoot):
         candidat_recrute_id: UUID | None = None,
     ) -> "Recrutement":
         return cls(
+            entity_id=offre_id,
             _offre_id=offre_id,
             _organisme_id=organisme_id,
             _etapes=etapes,

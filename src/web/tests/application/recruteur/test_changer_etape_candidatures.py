@@ -76,7 +76,7 @@ def candidature_recruteur_repository_fixture(
 ):
     repo = Mock(spec=ICandidatureRecruteurRepository)
     repo.get_by_ids.return_value = candidatures_recruteur
-    repo.upsert_batch.return_value = {
+    repo.update_batch.return_value = {
         "successes": candidatures_recruteur_changees,
         "failures": [],
     }
@@ -239,7 +239,7 @@ class TestChangerEtapeCandidaturesUsecase:
             3, recrutement_id=uuid4()
         )
         candidature_recruteur_repository.get_by_ids.return_value = candidatures
-        candidature_recruteur_repository.upsert_batch.return_value = {
+        candidature_recruteur_repository.update_batch.return_value = {
             "successes": [],
             "failures": [],
         }

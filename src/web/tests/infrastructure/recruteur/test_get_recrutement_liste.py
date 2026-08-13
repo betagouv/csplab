@@ -70,8 +70,8 @@ class TestGetRecrutementListeRbac:
         assert result.count() == 1
         items = list(result.slice(0, 10))
         item = items[0]
-        assert item.uuid == UUID(candidature.id)
-        assert item.candidat.uuid == UUID(candidature.candidat_id)
+        assert item.uuid == UUID(str(candidature.id))
+        assert item.candidat.uuid == UUID(str(candidature.candidat_id))
         assert item.etape.etape_uuid == etape_entree.id
         assert item.etape.categorie == "ENTREE"
 

@@ -1,6 +1,5 @@
 from datetime import datetime
-from typing import cast
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from faker import Faker
 
@@ -22,8 +21,8 @@ fake = Faker("fr_FR")
 
 def make_documents() -> tuple[UUID, ...]:
     return (
-        cast(UUID, fake.uuid4()),
-        cast(UUID, fake.uuid4()),
+        uuid4(),
+        uuid4(),
     )
 
 
@@ -38,9 +37,9 @@ class CandidatureFactory:
         soumise_le: datetime | None = None,
         mise_a_jour_le: datetime | None = None,
     ) -> "Candidature":
-        entity_id = cast(UUID, fake.uuid4())
-        candidat_id = candidat_id or cast(UUID, fake.uuid4())
-        offre_id = offre_id or cast(UUID, fake.uuid4())
+        entity_id = uuid4()
+        candidat_id = candidat_id or uuid4()
+        offre_id = offre_id or uuid4()
         statut = statut or StatutCandidature.INITIAL
         return Candidature.build(
             entity_id=entity_id,
@@ -93,3 +92,14 @@ class CandidatureFactory:
         model = CandidatureMapper().from_domain(candidature, etape_id=etape_id)
         model.save()
         return model
+
+    @staticmethod
+    def create_models(
+        count: int = 1,
+        offre_id: UUID | None = None,
+    ) -> list[CandidatureModel]:
+        if offre_id is None:
+            offre_id = OfferFactory.create_model().id
+        return [
+            CandidatureFactory.create_model(offre_id=offre_id) for _ in range(count)
+        ]

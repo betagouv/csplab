@@ -1,19 +1,18 @@
+from datetime import datetime, timezone
 from typing import List
 from uuid import UUID
 
-from django.db import transaction
 from referentiel.types import IBatchUpdate
 
-from domain.candidate.entities.candidature import Candidature
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.errors.candidature_errors import (
     CandidatureInexistante,
-    CandidatureRecruteurError,
 )
 from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
     ICandidatureRecruteurRepository,
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.exceptions.exceptions import InfrastructureError
 from infrastructure.mappers.candidature_recruteur_mapper import (
     CandidatureRecruteurMapper,
 )
@@ -23,9 +22,7 @@ class PostgresCandidatureRecrutementRepository(ICandidatureRecruteurRepository):
     def __init__(self, mapper: CandidatureRecruteurMapper) -> None:
         self.mapper = mapper
 
-    def get_by_ids(
-        self, ids: List[UUID]
-    ) -> List[tuple[Candidature, CandidatureRecruteur]]:
+    def get_by_ids(self, ids: List[UUID]) -> List[CandidatureRecruteur]:
         candidatures = list(
             CandidatureModel.objects.filter(id__in=ids)
             .select_for_update()  # protect from concurrency errors in usecase
@@ -39,30 +36,20 @@ class PostgresCandidatureRecrutementRepository(ICandidatureRecruteurRepository):
 
         return [self.mapper.to_domain(c) for c in candidatures]
 
-    def upsert_batch(
+    def update_batch(
         self,
-        candidatures: List[tuple[Candidature, CandidatureRecruteur]],
-    ) -> IBatchUpdate[CandidatureRecruteur, CandidatureRecruteurError]:
+        candidatures: List[CandidatureRecruteur],
+    ) -> IBatchUpdate[CandidatureRecruteur, InfrastructureError]:
         successes: List[CandidatureRecruteur] = []
-        failures: List[tuple[UUID, CandidatureRecruteurError]] = []
+        failures: List[tuple[UUID, InfrastructureError]] = []
 
-        with transaction.atomic():  # protect from concurrency errors
-            for entities in candidatures:
-                _, candidature_recruteur = entities
-                sp = transaction.savepoint()
-                try:
-                    model = self.mapper.from_domain(entities)
-                    model.save()
-                    successes.append(candidature_recruteur)
-                except Exception as e:
-                    transaction.savepoint_rollback(
-                        sp
-                    )  # avoid global rollback if error on one item and save error
-                    failures.append(
-                        (
-                            candidature_recruteur.entity_id,
-                            CandidatureRecruteurError(str(e)),
-                        )
-                    )
-
+        for candidature in candidatures:
+            try:
+                CandidatureModel.objects.filter(id=candidature.entity_id).update(
+                    etape_id=candidature.etape_id,
+                    updated_at=datetime.now(tz=timezone.utc),
+                )
+                successes.append(candidature)
+            except Exception as e:
+                failures.append((candidature.entity_id, InfrastructureError(str(e))))
         return {"successes": successes, "failures": failures}

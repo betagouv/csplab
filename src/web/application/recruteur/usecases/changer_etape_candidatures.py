@@ -56,7 +56,7 @@ class ChangerEtapeCandidaturesUsecase(
         self, command: ChangerEtapeCandidaturesCommand
     ) -> tuple[Recrutement, List[CandidatureRecruteur]]:
         recrutement = self.recrutement_repository.get_by_id(command.recrutement_id)
-        candidatures = self.candidature_recruteur_repository.get_by_ids(
+        candidatures_recruteur = self.candidature_recruteur_repository.get_by_ids(
             command.candidatures
         )
         self.permission_service.est_autorise(
@@ -66,22 +66,23 @@ class ChangerEtapeCandidaturesUsecase(
             est_staff=command.est_staff,
             recrutement_id=command.recrutement_id,
         )
-        return recrutement, candidatures
+        return recrutement, candidatures_recruteur
 
     def execute(
         self, command: ChangerEtapeCandidaturesCommand
     ) -> IBatchUpdate[CandidatureRecruteur, CandidatureRecruteurError]:
         with self.unit_of_work.atomic():
-            recrutement, candidatures = self.can_execute(command)
+            recrutement, candidatures_recruteur = self.can_execute(command)
             recrutement_modifie: IBatchUpdate[
                 CandidatureRecruteur, CandidatureRecruteurError
             ] = recrutement.changer_etapes_candidatures(
-                candidatures=candidatures, etape_cible_id=command.etape_cible_id
+                candidatures=candidatures_recruteur,
+                etape_cible_id=command.etape_cible_id,
             )
 
             candidatures_traitees: IBatchUpdate[
                 CandidatureRecruteur, CandidatureRecruteurError
-            ] = self.candidature_recruteur_repository.upsert_batch(
+            ] = self.candidature_recruteur_repository.update_batch(
                 recrutement_modifie["successes"]
             )
 

@@ -8,8 +8,8 @@ from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.errors.candidature_errors import CandidatureRecruteurError
 
 
-class ICandidatureRecruteurRepository(IBaseRepository, Protocol):
+class ICandidatureRecruteurRepository(IBaseRepository[CandidatureRecruteur], Protocol):
     def get_by_ids(self, ids: List[UUID]) -> List[CandidatureRecruteur]: ...
-    def upsert_batch(
+    def update_batch(
         self, candidatures: List[CandidatureRecruteur]
     ) -> IBatchUpdate[CandidatureRecruteur, CandidatureRecruteurError]: ...

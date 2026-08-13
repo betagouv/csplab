@@ -44,14 +44,24 @@ from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from infrastructure.mappers.candidature_mapper import CandidatureMapper
+from infrastructure.mappers.candidature_recruteur_mapper import (
+    CandidatureRecruteurMapper,
+)
+from infrastructure.mappers.recrutement_mapper import RecrutementMapper
 from infrastructure.repositories.candidate.postgres_candidature_repository import (
     PostgresCandidatureRepository,
 )
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
+from infrastructure.repositories.commons.postgres_unit_of_work import (
+    PostgresUnitOfWork,
+)
 from infrastructure.repositories.identite.postgres_agent_repository import (
     PostgresAgentRepository,
+)
+from infrastructure.repositories.recruteur import (
+    postgres_candidature_recruteur_repository,
 )
 from infrastructure.repositories.recruteur.postgres_note_query_service import (
     PostgresNoteQueryService,
@@ -71,11 +81,16 @@ from infrastructure.repositories.recruteur.postgres_recrutement_agent_repository
 from infrastructure.repositories.recruteur.postgres_recrutement_query_service import (
     PostgresRecrutementQueryService,
 )
+from infrastructure.repositories.recruteur.postgres_recrutement_repository import (
+    PostgresRecrutementRepository,
+)
 
 
 class RecruteurContainer(containers.DeclarativeContainer):
     app_config: providers.Dependency = providers.Dependency()
     logger_service: providers.Dependency = providers.Dependency()
+
+    postgres_unit_of_work = providers.Singleton(PostgresUnitOfWork)
 
     postgres_audit_log_repository = providers.Singleton(PostgresAuditLogRepository)
 
@@ -99,15 +114,26 @@ class RecruteurContainer(containers.DeclarativeContainer):
         recrutement_agent_repository=postgres_recrutement_agent_repository,
     )
     candidature_mapper = providers.Factory(CandidatureMapper)
+    recrutement_mapper = providers.Factory(RecrutementMapper)
     postgres_recrutement_query_service = providers.Singleton(
         PostgresRecrutementQueryService
+    )
+    postgres_recrutement_repository = providers.Singleton(
+        PostgresRecrutementRepository, mapper=recrutement_mapper
     )
     postgres_note_repository = providers.Singleton(PostgresNoteRepository)
     postgres_note_query_service = providers.Singleton(PostgresNoteQueryService)
     postgres_candidature_repository = providers.Singleton(
         PostgresCandidatureRepository,
         mapper=candidature_mapper,
+    )  # todo PostgresCandidatureRecruteurRepository and candidature_recruteur_mapper
+
+    candidature_recruteur_mapper = providers.Factory(CandidatureRecruteurMapper)
+    postgres_candidature_recruteur_repository = providers.Singleton(
+        postgres_candidature_recruteur_repository.PostgresCandidatureRecrutementRepository,
+        mapper=candidature_recruteur_mapper,
     )
+
     postgres_agent_repository = providers.Singleton(PostgresAgentRepository)
 
     creer_note_usecase = providers.Factory(
@@ -197,4 +223,12 @@ class RecruteurContainer(containers.DeclarativeContainer):
     init_recrutement_etapes_usecase = providers.Factory(
         InitRecrutementEtapesUsecase,
         organisme_permission_service=organisme_permission_service,
+    )
+    changer_etape_candidatures_usecase = providers.Factory(
+        ChangerEtapeCandidaturesUsecase,
+        permission_service=organisme_permission_service,
+        recrutement_repository=postgres_recrutement_repository,
+        candidature_recruteur_repository=postgres_candidature_recruteur_repository,
+        audit_log_writer=audit_log_writer,
+        unit_of_work=postgres_unit_of_work,
     )
