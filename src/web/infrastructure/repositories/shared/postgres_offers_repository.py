@@ -12,7 +12,10 @@ from django.db.models import F, FloatField, Q, Value
 from django.db.models.functions import ACos, Cos, Greatest, Least, Radians, Sin
 from django.utils import timezone
 from referentiel.entities.offer import Offer
-from referentiel.exceptions.offer_errors import OfferDoesNotExist
+from referentiel.exceptions.offer_errors import (
+    MultipleOffersFoundForReference,
+    OfferDoesNotExist,
+)
 from referentiel.types import IUpsertResult
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
@@ -164,6 +167,15 @@ class PostgresOffersRepository(IIngestionOffersRepository):
             return self.mapper.to_domain(offer_model)
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(reference) from e
+
+    def get_by_reference(self, reference: str) -> Offer:
+        try:
+            offer_model = OfferModel.objects.get(reference=reference)
+        except OfferModel.DoesNotExist as e:
+            raise OfferDoesNotExist(reference) from e
+        except OfferModel.MultipleObjectsReturned as e:
+            raise MultipleOffersFoundForReference(reference) from e
+        return self.mapper.to_domain(offer_model)
 
     def get_by_external_ids(self, external_ids: List[str]) -> List[Offer]:
         offers = OfferModel.objects.filter(external_id__in=external_ids)

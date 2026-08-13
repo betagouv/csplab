@@ -8,6 +8,7 @@ from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -78,7 +79,7 @@ class OfferMapper(
             job_vacancy=model.job_vacancy,
             employer=model.employer,
             complements=model.complements,
-            criteria=model.criteria,
+            criteria=OfferCriteria.from_dict(model.criteria),
             conditions=model.conditions,
             contacts=model.contacts,
         )
@@ -146,7 +147,7 @@ class OfferMapper(
             job_vacancy=entity.job_vacancy,
             employer=entity.employer,
             complements=entity.complements,
-            criteria=entity.criteria,
+            criteria=entity.criteria.to_dict() if entity.criteria else None,
             conditions=entity.conditions,
             contacts=entity.contacts,
         )

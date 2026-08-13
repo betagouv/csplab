@@ -11,8 +11,12 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
+from referentiel.value_objects.diploma import Diploma
+from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
@@ -142,6 +146,30 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
 
     forme_contrat = payload.get("forme_contrat")
 
+    criteres = payload.get("criteres")
+    criteria = (
+        OfferCriteria(
+            diploma_level=Diploma(criteres["diplome_niveau"])
+            if criteres.get("diplome_niveau") is not None
+            else None,
+            diploma=criteres.get("diplome") or None,
+            experience_level=ExperienceLevel[criteres["experience"]]
+            if criteres.get("experience")
+            else None,
+            specialisations=list(criteres.get("specialisations") or []),
+            documents_requis=list(criteres.get("documents_requis") or []),
+            competences_requises=list(criteres.get("competences_requises") or []),
+            languages=[
+                OfferLanguage(
+                    iso_code=langue["iso_code"], level=LanguageLevel[langue["niveau"]]
+                )
+                for langue in criteres.get("langues") or []
+            ],
+        )
+        if criteres
+        else None
+    )
+
     return Offer(
         external_id=f"{versant}-{reference}",
         reference=reference,
@@ -170,7 +198,7 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         job_vacancy=payload.get("vacance_poste") or None,
         employer=payload["description"].get("employeur") or None,
         complements=payload["description"].get("complements") or None,
-        criteria=payload.get("criteres") or None,
+        criteria=criteria,
         conditions=conditions,
         contacts=list(payload["contacts"]) if payload.get("contacts") else None,
     )

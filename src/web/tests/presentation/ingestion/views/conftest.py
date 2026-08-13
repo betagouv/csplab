@@ -36,3 +36,9 @@ def mock_metiers_container():
 def mock_offer_summaries_container():
     with patch_ingestion_container("offer_summaries") as container:
         yield container
+
+
+@pytest.fixture
+def mock_offer_detail_container():
+    with patch_ingestion_container("offer_detail") as container:
+        yield container

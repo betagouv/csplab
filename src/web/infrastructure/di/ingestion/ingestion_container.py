@@ -12,6 +12,9 @@ from application.ingestion.usecases.archive_offer_by_reference import (
 )
 from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
+from application.ingestion.usecases.get_offer_by_reference import (
+    GetOfferByReferenceUseCase,
+)
 from application.ingestion.usecases.get_offers_by_source import (
     GetOffersBySourceUseCase,
 )
@@ -180,6 +183,11 @@ class IngestionContainer(containers.DeclarativeContainer):
         ListOffersUseCase,
         offers_repository=offers_repository,
         logger=logger_service,
+    )
+
+    get_offer_by_reference_usecase = providers.Factory(
+        GetOfferByReferenceUseCase,
+        offers_repository=offers_repository,
     )
 
     list_metiers_usecase = providers.Factory(
