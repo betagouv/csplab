@@ -1,19 +1,18 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import List
 from uuid import UUID
 
 from ddd.aggregate_root import AggregateRoot, mutate
+from referentiel.types import IBatchUpdate
 
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
+from domain.recruteur.errors.candidature_errors import CandidatureInexistante
 from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
 )
 from domain.recruteur.events.recrutement_events import EtapeCandidaturesChangees
-from domain.recruteur.value_objects.changement_etape_candidatures import (
-    ChangementEtapeCandidaturesResultat,
-)
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 
 
@@ -53,23 +52,22 @@ class Recrutement(AggregateRoot):
 
     @mutate(EtapeCandidaturesChangees)
     def changer_etapes_candidatures(
-        self, candidatures: list[CandidatureRecruteur], etape_cible_id: UUID
-    ) -> ChangementEtapeCandidaturesResultat:
+        self, candidatures: List[CandidatureRecruteur], etape_cible_id: UUID
+    ) -> IBatchUpdate[CandidatureRecruteur, CandidatureInexistante]:
         if etape_cible_id not in [e.entity_id for e in self._etapes]:
             raise RecrutementEtapeInexistante(
                 etape_id=etape_cible_id, recrutement_id=self.entity_id
             )
-        successes: list[CandidatureRecruteur] = []
-        failures: list[tuple[UUID, str]] = []
+        successes: List[CandidatureRecruteur] = []
+        failures: List[tuple[UUID, CandidatureInexistante]] = []
         for candidature in candidatures:
             if candidature.recrutement_id != self.entity_id:
                 failures.append(
                     (
                         candidature.entity_id,
-                        RecrutementCandidatureInexistante(
-                            candidature_id=candidature.entity_id,
-                            recrutement_id=self.entity_id,
-                        ).message,
+                        CandidatureInexistante(
+                            candidature.entity_id,
+                        ),
                     )
                 )
             else:
@@ -79,7 +77,7 @@ class Recrutement(AggregateRoot):
                 successes.append(candidature)
         # business rules about etapes order can be managed here
         self._derniere_activite_le = datetime.now(tz=timezone.utc)
-        return ChangementEtapeCandidaturesResultat(reussites=successes, echecs=failures)
+        return {"successes": successes, "failures": failures}
 
     @property
     def offre_id(self) -> UUID:

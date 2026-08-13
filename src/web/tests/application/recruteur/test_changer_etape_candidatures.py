@@ -9,9 +9,11 @@ from application.recruteur.usecases.changer_etape_candidatures import (
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.recruteur.errors.candidature_errors import (
+    CandidatureInexistante,
+)
 from domain.recruteur.errors.organisme_permission_errors import AccesRecrutementRefuse
 from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
@@ -25,9 +27,6 @@ from domain.recruteur.repositories.recrutement_repository_interface import (
 )
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
-)
-from domain.recruteur.value_objects.changement_etape_candidatures import (
-    ChangementEtapeCandidaturesResultat,
 )
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.factories.recruteur.candidature_recruteur_factory import (
@@ -75,9 +74,10 @@ def candidature_recruteur_repository_fixture(
 ):
     repo = Mock(spec=ICandidatureRecruteurRepository)
     repo.get_by_ids.return_value = candidatures_recruteur
-    repo.upsert.return_value = ChangementEtapeCandidaturesResultat(
-        reussites=candidatures_recruteur_changees, echecs=[]
-    )
+    repo.upsert_batch.return_value = {
+        "successes": candidatures_recruteur_changees,
+        "failures": [],
+    }
 
     return repo
 
@@ -124,8 +124,8 @@ class TestChangerEtapeCandidaturesUsecase:
 
         resultat = usecase.execute(command)
 
-        assert resultat.reussites == candidatures_recruteur_changees
-        assert resultat.echecs == []
+        assert resultat["successes"] == candidatures_recruteur_changees
+        assert resultat["failures"] == []
 
         events = recrutement.collect_events()
         assert len(events) == len(candidatures_recruteur_changees) + 1
@@ -228,9 +228,10 @@ class TestChangerEtapeCandidaturesUsecase:
             3, recrutement_id=uuid4()
         )
         candidature_recruteur_repository.get_by_ids.return_value = candidatures
-        candidature_recruteur_repository.upsert.return_value = (
-            ChangementEtapeCandidaturesResultat(reussites=[], echecs=[])
-        )
+        candidature_recruteur_repository.upsert_batch.return_value = {
+            "successes": [],
+            "failures": [],
+        }
         result = usecase.execute(
             ChangerEtapeCandidaturesCommand(
                 organisme_id=recrutement.organisme_id,
@@ -241,13 +242,15 @@ class TestChangerEtapeCandidaturesUsecase:
                 candidatures=[c.entity_id for c in candidatures],
             )
         )
-        assert result.reussites == []
-        assert result.echecs == [
+        assert result["successes"] == []
+        assert [
+            (candidature_id, erreur.message)
+            for candidature_id, erreur in result["failures"]
+        ] == [
             (
                 candidature.entity_id,
-                RecrutementCandidatureInexistante(
+                CandidatureInexistante(
                     candidature_id=candidature.entity_id,
-                    recrutement_id=recrutement.entity_id,
                 ).message,
             )
             for candidature in candidatures

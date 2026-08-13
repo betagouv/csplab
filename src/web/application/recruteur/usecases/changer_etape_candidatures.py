@@ -1,11 +1,14 @@
 from dataclasses import dataclass
+from typing import List
 from uuid import UUID
 
 from ddd.usecase_interface import IUseCase
+from referentiel.types import IBatchUpdate
 
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.recrutement import Recrutement
+from domain.recruteur.errors.candidature_errors import CandidatureRecruteurError
 from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
     ICandidatureRecruteurRepository,
 )
@@ -14,9 +17,6 @@ from domain.recruteur.repositories.recrutement_repository_interface import (
 )
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
-)
-from domain.recruteur.value_objects.changement_etape_candidatures import (
-    ChangementEtapeCandidaturesResultat,
 )
 from domain.recruteur.value_objects.organisme_action import OrganismeAction
 
@@ -28,11 +28,14 @@ class ChangerEtapeCandidaturesCommand:
     utilisateur_id: UUID
     est_staff: bool
     etape_cible_id: UUID
-    candidatures: list[UUID]
+    candidatures: List[UUID]
 
 
 class ChangerEtapeCandidaturesUsecase(
-    IUseCase[ChangerEtapeCandidaturesCommand, ChangementEtapeCandidaturesResultat]
+    IUseCase[
+        ChangerEtapeCandidaturesCommand,
+        IBatchUpdate[CandidatureRecruteur, CandidatureRecruteurError],
+    ]
 ):
     def __init__(
         self,
@@ -48,7 +51,7 @@ class ChangerEtapeCandidaturesUsecase(
 
     def can_execute(
         self, command: ChangerEtapeCandidaturesCommand
-    ) -> tuple[Recrutement, list[CandidatureRecruteur]]:
+    ) -> tuple[Recrutement, List[CandidatureRecruteur]]:
         recrutement = self.recrutement_repository.get_by_id(command.recrutement_id)
         candidatures = self.candidature_recruteur_repository.get_by_ids(
             command.candidatures
@@ -64,22 +67,26 @@ class ChangerEtapeCandidaturesUsecase(
 
     def execute(
         self, command: ChangerEtapeCandidaturesCommand
-    ) -> ChangementEtapeCandidaturesResultat:
+    ) -> IBatchUpdate[CandidatureRecruteur, CandidatureRecruteurError]:
         recrutement, candidatures = self.can_execute(command)
-        recrutement_modifie: ChangementEtapeCandidaturesResultat = (
-            recrutement.changer_etapes_candidatures(
-                candidatures=candidatures, etape_cible_id=command.etape_cible_id
-            )
+        recrutement_modifie: IBatchUpdate[
+            CandidatureRecruteur, CandidatureRecruteurError
+        ] = recrutement.changer_etapes_candidatures(
+            candidatures=candidatures, etape_cible_id=command.etape_cible_id
         )
 
-        candidatures_traitees: ChangementEtapeCandidaturesResultat = (
-            self.candidature_recruteur_repository.upsert(recrutement_modifie.reussites)
+        candidatures_traitees: IBatchUpdate[
+            CandidatureRecruteur, CandidatureRecruteurError
+        ] = self.candidature_recruteur_repository.upsert_batch(
+            recrutement_modifie["successes"]
         )
 
         self.audit_log_writer.drain_events(
             utilisateur_id=command.utilisateur_id, aggregate=recrutement
         )
-        return ChangementEtapeCandidaturesResultat(
-            reussites=candidatures_traitees.reussites,
-            echecs=recrutement_modifie.echecs + candidatures_traitees.echecs,
-        )
+
+        return {
+            "successes": candidatures_traitees["successes"],
+            "failures": recrutement_modifie["failures"]
+            + candidatures_traitees["failures"],
+        }
