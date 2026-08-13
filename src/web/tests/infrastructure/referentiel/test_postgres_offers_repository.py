@@ -6,6 +6,10 @@ from django.db import DatabaseError
 from faker import Faker
 from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
+from referentiel.exceptions.offer_errors import (
+    MultipleOffersFoundForReference,
+    OfferDoesNotExist,
+)
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
@@ -537,6 +541,27 @@ class TestGetFilteredByKeywords:
 
         ids = [offer.id for offer in page.slice(0, 10)]
         assert ids == [title_match.id, mission_match.id]
+
+
+class TestGetByReference:
+    def test_returns_offer_with_matching_reference(self, db, repository):
+        offer = OfferFactory.create_model(reference="REF-1")
+        OfferFactory.create_model(reference="REF-2")
+
+        result = repository.get_by_reference("REF-1")
+
+        assert result.id == offer.id
+
+    def test_unknown_reference_raises(self, db, repository):
+        with pytest.raises(OfferDoesNotExist):
+            repository.get_by_reference("UNKNOWN")
+
+    def test_multiple_offers_sharing_reference_raises(self, db, repository):
+        OfferFactory.create_model(reference="REF-1")
+        OfferFactory.create_model(reference="REF-1")
+
+        with pytest.raises(MultipleOffersFoundForReference):
+            repository.get_by_reference("REF-1")
 
 
 class TestGetBySourceId:

@@ -10,6 +10,7 @@ from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -216,15 +217,15 @@ def offers_by_experience_level_fixture(db):
     return {
         "debutant": OfferFactory.create_model(
             external_id="test-debutant",
-            criteria={"experience": ExperienceLevel.DEBUTANT.name},
+            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT),
         ),
         "confirme": OfferFactory.create_model(
             external_id="test-confirme",
-            criteria={"experience": ExperienceLevel.CONFIRME.name},
+            criteria=OfferCriteria(experience_level=ExperienceLevel.CONFIRME),
         ),
         "expert": OfferFactory.create_model(
             external_id="test-expert",
-            criteria={"experience": ExperienceLevel.EXPERT.name},
+            criteria=OfferCriteria(experience_level=ExperienceLevel.EXPERT),
         ),
     }
 
@@ -489,35 +490,35 @@ def offers_by_multiple_criteria_fixture(db):
             category=Category.A,
             verse=Verse.FPE,
             contract_type=ContractType.CONTRACTUELS,
-            criteria={"experience": ExperienceLevel.DEBUTANT.name},
+            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT),
         ),
         "match_other_values": OfferFactory.create_model(
             external_id="test-match-other-values",
             category=Category.B,
             verse=Verse.FPT,
             contract_type=ContractType.CONTRACTUELS,
-            criteria={"experience": ExperienceLevel.EXPERT.name},
+            criteria=OfferCriteria(experience_level=ExperienceLevel.EXPERT),
         ),
         "wrong_category": OfferFactory.create_model(
             external_id="test-wrong-category",
             category=Category.C,
             verse=Verse.FPE,
             contract_type=ContractType.CONTRACTUELS,
-            criteria={"experience": ExperienceLevel.DEBUTANT.name},
+            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT),
         ),
         "wrong_contract_type": OfferFactory.create_model(
             external_id="test-wrong-contract-type",
             category=Category.A,
             verse=Verse.FPE,
             contract_type=ContractType.TERRITORIAL,
-            criteria={"experience": ExperienceLevel.DEBUTANT.name},
+            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT),
         ),
         "wrong_experience_level": OfferFactory.create_model(
             external_id="test-wrong-experience-level",
             category=Category.A,
             verse=Verse.FPE,
             contract_type=ContractType.CONTRACTUELS,
-            criteria={"experience": ExperienceLevel.CONFIRME.name},
+            criteria=OfferCriteria(experience_level=ExperienceLevel.CONFIRME),
         ),
     }
 

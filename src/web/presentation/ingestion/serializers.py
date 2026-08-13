@@ -517,6 +517,14 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
         return data
 
 
+class OfferDetailQuerySerializer(serializers.Serializer):
+    reference = serializers.CharField(
+        required=True,
+        allow_blank=False,
+        help_text="La référence de l'offre.",
+    )
+
+
 class LocalisationInputSerializer(LocalisationSerializer):
     def validate(self, data):
         if data.get("pays") == "FRA" and not (
@@ -550,7 +558,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     offer_url = serializers.CharField(allow_null=True)
     application_url = serializers.CharField(allow_null=True)
     localisation = serializers.SerializerMethodField()
-    criteria = serializers.DictField(allow_null=True)
+    criteria = serializers.SerializerMethodField()
     conditions = serializers.DictField(allow_null=True)
     contacts = serializers.ListField(child=serializers.DictField(), allow_null=True)
     publication_date = serializers.DateTimeField()
@@ -571,6 +579,10 @@ class OfferDetailResponseSerializer(serializers.Serializer):
             "latitude": loc.latitude,
             "longitude": loc.longitude,
         }
+
+    @extend_schema_field(serializers.DictField(allow_null=True))
+    def get_criteria(self, obj):
+        return obj.criteria.to_dict() if obj.criteria else None
 
     @extend_schema_field(serializers.DateTimeField(allow_null=True))
     def get_beginning_date(self, obj):

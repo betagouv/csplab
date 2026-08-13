@@ -12,6 +12,7 @@ from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -106,7 +107,7 @@ class OfferFactory:
         processing: bool = False,
         processed_at: Optional[datetime] = None,
         archived_at: Optional[datetime] = None,
-        criteria: Optional[dict] = None,
+        criteria: Optional[OfferCriteria] = None,
         conditions: Optional[dict] = None,
     ) -> OfferModel:
         if processed_at:

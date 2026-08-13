@@ -10,6 +10,7 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.verse import Verse
 
 
@@ -38,7 +39,7 @@ class Offer(IEntity):
     job_vacancy: Optional[str] = None
     employer: Optional[str] = None
     complements: Optional[str] = None
-    criteria: Optional[dict] = None
+    criteria: Optional[OfferCriteria] = None
     conditions: Optional[dict] = None
     contacts: Optional[list[dict]] = None
     source_id: UUID = field(default_factory=uuid4)
