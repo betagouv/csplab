@@ -16,6 +16,7 @@ from infrastructure.external_gateways.albert_text_formatter import AlbertTextFor
 from infrastructure.external_gateways.ocr_extractor import OCRExtractor
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
+from infrastructure.mappers.candidature_mapper import CandidatureMapper
 from infrastructure.mappers.recrutement_mapper import RecrutementMapper
 from infrastructure.repositories.candidate.async_postgres_cv_metadata_repository import (  # noqa E501
     AsyncPostgresCVMetadataRepository,
@@ -69,8 +70,10 @@ class CandidateContainer(containers.DeclarativeContainer):
         AsyncPostgresCVMetadataRepository
     )
     postgres_cv_metadata_repository = providers.Singleton(PostgresCVMetadataRepository)
+    candidature_mapper = providers.Factory(CandidatureMapper)
     candidature_repository = providers.Singleton(
         PostgresCandidatureRepository,
+        mapper=candidature_mapper,
     )
     recrutement_mapper = providers.Factory(RecrutementMapper)
 
