@@ -11,10 +11,10 @@ from application.recruteur.usecases.lister_notes_candidature import (
 )
 from application.recruteur.usecases.supprimer_note import SupprimerNoteCommand
 from config.app_config import AppConfig
-from domain.candidate.exceptions.candidature_errors import CandidatureIntrouvable
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.recruteur.errors.note_errors import NoteIntrouvable
+from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
 from domain.recruteur.repositories.note_repository_interface import INoteRepository
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
@@ -40,7 +40,6 @@ class TestCreerNote:
     def test_creer_note(self, db, recruteur_integration_container):
         message = fake.sentence()
         profil_agent = AgentFactory.create_model()
-        # pourquoi candidature factory n'a pas un build model ?
         candidature = CandidatureFactory.create_model()
         usecase = recruteur_integration_container.creer_note_usecase()
 
@@ -62,7 +61,7 @@ class TestCreerNote:
         profil_agent = AgentFactory.create_model()
         usecase = recruteur_integration_container.creer_note_usecase()
 
-        with pytest.raises(CandidatureIntrouvable):
+        with pytest.raises(CandidatureInexistante):
             usecase.execute(
                 command=CreerNoteCommand(
                     candidature_id=uuid4(),

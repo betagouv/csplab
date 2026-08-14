@@ -3,7 +3,10 @@ from uuid import UUID
 from django.db import IntegrityError
 
 from domain.candidate.entities.candidature import Candidature
-from domain.candidate.exceptions.candidature_errors import CandidatureDejaSoumise
+from domain.candidate.exceptions.candidature_errors import (
+    CandidatureDejaSoumise,
+    CandidatureIntrouvable,
+)
 from domain.candidate.repositories.candidature_repository_interface import (
     ICandidatureRepository,
 )
@@ -20,10 +23,12 @@ class PostgresCandidatureRepository(ICandidatureRepository):
     def __init__(self, mapper: CandidatureMapper) -> None:
         self.mapper = mapper
 
-    def exists(self, candidature_id: UUID) -> bool:
-        return CandidatureModel.objects.filter(  # type: ignore[attr-defined]
-            id=candidature_id
-        ).exists()
+    def get_by_id(self, candidature_id: UUID) -> Candidature:
+        try:
+            model = CandidatureModel.objects.get(id=candidature_id)
+            return self.mapper.to_domain(model)
+        except CandidatureModel.DoesNotExist as e:
+            raise CandidatureIntrouvable(candidature_id) from e
 
     def exists_by_candidat_and_offre(self, candidat_id: UUID, offre_id: UUID) -> bool:
         return CandidatureModel.objects.filter(  # type: ignore[attr-defined]

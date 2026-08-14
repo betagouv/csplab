@@ -13,9 +13,9 @@ from application.recruteur.usecases.lister_notes_candidature import (
     ListerNotesCandidatureQuery,
 )
 from application.recruteur.usecases.supprimer_note import SupprimerNoteCommand
-from domain.candidate.exceptions.candidature_errors import CandidatureIntrouvable
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.recruteur.errors.note_errors import NoteIntrouvable
+from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.recruteur.serializers import (
@@ -90,7 +90,7 @@ class CandidatureNotesView(APIView):
                 NoteDetailSerializer(note).data,
                 status=status.HTTP_201_CREATED,
             )
-        except CandidatureIntrouvable:
+        except CandidatureInexistante:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except ProfilAgentNexistePas:
             return Response(
