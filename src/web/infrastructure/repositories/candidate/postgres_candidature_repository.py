@@ -47,6 +47,7 @@ class PostgresCandidatureRepository(ICandidatureRepository):
                         if candidature.documents
                         else None
                     ),
+                    "updated_by_candidate": candidature.mise_a_jour_le,
                 },
                 create_defaults={
                     "id": candidature.entity_id,
@@ -57,6 +58,7 @@ class PostgresCandidatureRepository(ICandidatureRepository):
                         if candidature.documents
                         else None
                     ),
+                    "updated_by_candidate": candidature.mise_a_jour_le,
                     "etape_id": EtapeModel.objects.filter(
                         recrutement_id=candidature.offre_id,
                         categorie=CategorieEtapeRecrutement.ENTREE.value,

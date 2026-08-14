@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from typing import List
 from uuid import UUID
 
@@ -54,7 +53,7 @@ class PostgresCandidatureRecrutementRepository(ICandidatureRecruteurRepository):
             try:
                 CandidatureModel.objects.filter(id=candidature.entity_id).update(
                     etape_id=candidature.etape_id,
-                    updated_at=datetime.now(tz=timezone.utc),
+                    updated_by_recruteur=candidature.derniere_activite_le,
                 )
                 successes.append(candidature)
             except Exception as e:

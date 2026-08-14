@@ -19,6 +19,8 @@ class CandidatureModel(BaseDatedModel):
         choices=[(s.value, s.value) for s in StatutCandidature],
         default=StatutCandidature.INITIAL.value,
     )
+    updated_by_candidate = models.DateTimeField(null=True, blank=True)
+    updated_by_recruteur = models.DateTimeField(null=True, blank=True)
     documents = models.JSONField(null=True, blank=True)
     etape = models.ForeignKey(
         EtapeModel,
