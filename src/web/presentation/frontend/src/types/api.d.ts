@@ -276,8 +276,6 @@ export interface components {
         CandidatureAChanger: {
             /** Format: uuid */
             candidature_uuid: string;
-            /** Format: uuid */
-            etape_actuelle_uuid: string;
         };
         CandidatureEchec: {
             /** Format: uuid */

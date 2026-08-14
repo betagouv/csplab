@@ -1066,12 +1066,8 @@ components:
         candidature_uuid:
           type: string
           format: uuid
-        etape_actuelle_uuid:
-          type: string
-          format: uuid
       required:
       - candidature_uuid
-      - etape_actuelle_uuid
     CandidatureEchec:
       type: object
       properties:

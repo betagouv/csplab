@@ -1,7 +1,9 @@
+from contextlib import nullcontext
 from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 import pytest
+from ddd.unit_of_work import IUnitOfWork
 
 from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesCommand,
@@ -20,30 +22,17 @@ from domain.recruteur.events.recrutement_events import EtapeCandidaturesChangees
 from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
     ICandidatureRecruteurRepository,
 )
-from domain.recruteur.repositories.organisme_repository_interface import (
-    IOrganismeRecruteurRepository,
-)
 from domain.recruteur.repositories.recrutement_repository_interface import (
     IRecrutementRepository,
 )
 from domain.recruteur.services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from domain.recruteur.value_objects.changement_etape_candidatures import (
-    ChangementEtapeCandidaturesResultat,
-)
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.factories.recruteur.candidature_recruteur_factory import (
     CandidatureRecruteurFactory,
 )
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
-
-
-@pytest.fixture(name="organisme_recruteur_repository")
-def organisme_recruteur_repository_fixture():
-    repo = Mock(spec=IOrganismeRecruteurRepository)
-    repo.get_by_id.return_value = Mock()
-    return repo
 
 
 @pytest.fixture(name="recrutement")
@@ -85,9 +74,10 @@ def candidature_recruteur_repository_fixture(
 ):
     repo = Mock(spec=ICandidatureRecruteurRepository)
     repo.get_by_ids.return_value = candidatures_recruteur
-    repo.upsert.return_value = ChangementEtapeCandidaturesResultat(
-        reussites=candidatures_recruteur_changees, echecs=[]
-    )
+    repo.update_batch.return_value = {
+        "successes": candidatures_recruteur_changees,
+        "failures": [],
+    }
 
     return repo
 
@@ -99,19 +89,26 @@ def permission_service_fixture():
     return service
 
 
+@pytest.fixture(name="unit_of_work")
+def unit_of_work_fixture():
+    uow = Mock(spec=IUnitOfWork)
+    uow.atomic.return_value = nullcontext()
+    return uow
+
+
 @pytest.fixture(name="usecase")
 def usecase_fixture(
-    organisme_recruteur_repository,
     recrutement_repository,
     candidature_recruteur_repository,
     permission_service,
+    unit_of_work,
 ):
     return ChangerEtapeCandidaturesUsecase(
-        organisme_recruteur_repository=organisme_recruteur_repository,
         candidature_recruteur_repository=candidature_recruteur_repository,
         recrutement_repository=recrutement_repository,
         permission_service=permission_service,
         audit_log_writer=MagicMock(spec=AuditLogWriter),
+        unit_of_work=unit_of_work,
     )
 
 
@@ -136,8 +133,8 @@ class TestChangerEtapeCandidaturesUsecase:
 
         resultat = usecase.execute(command)
 
-        assert resultat.reussites == candidatures_recruteur_changees
-        assert resultat.echecs == []
+        assert resultat["successes"] == candidatures_recruteur_changees
+        assert resultat["failures"] == []
 
         events = recrutement.collect_events()
         assert len(events) == len(candidatures_recruteur_changees) + 1
@@ -240,9 +237,10 @@ class TestChangerEtapeCandidaturesUsecase:
             3, recrutement_id=uuid4()
         )
         candidature_recruteur_repository.get_by_ids.return_value = candidatures
-        candidature_recruteur_repository.upsert.return_value = (
-            ChangementEtapeCandidaturesResultat(reussites=[], echecs=[])
-        )
+        candidature_recruteur_repository.update_batch.return_value = {
+            "successes": [],
+            "failures": [],
+        }
         result = usecase.execute(
             ChangerEtapeCandidaturesCommand(
                 organisme_id=recrutement.organisme_id,
@@ -253,13 +251,15 @@ class TestChangerEtapeCandidaturesUsecase:
                 candidatures=[c.entity_id for c in candidatures],
             )
         )
-        assert result.reussites == []
-        assert result.echecs == [
+        assert result["successes"] == []
+        assert [
+            (candidature_id, erreur.message)
+            for candidature_id, erreur in result["failures"]
+        ] == [
             (
                 candidature.entity_id,
                 RecrutementCandidatureInexistante(
                     candidature_id=candidature.entity_id,
-                    recrutement_id=recrutement.entity_id,
                 ).message,
             )
             for candidature in candidatures

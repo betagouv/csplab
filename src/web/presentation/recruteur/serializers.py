@@ -138,7 +138,6 @@ class EditerNoteSerializer(serializers.Serializer):
 
 class CandidatureAChangerSerializer(serializers.Serializer):
     candidature_uuid = serializers.UUIDField()
-    etape_actuelle_uuid = serializers.UUIDField()
 
 
 class ChangerEtapeCandidaturesSerializer(serializers.Serializer):
