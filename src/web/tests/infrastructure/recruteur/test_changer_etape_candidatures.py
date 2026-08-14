@@ -161,13 +161,11 @@ class TestChangerEtapeCandidaturesUsecase:
                 )
             )
 
-    def test_upsert_batch_isolates_single_failure(
+    def test_update_batch_isolates_single_failure(
         self,
         recruteur_integration_container,
     ):
-        repo = (
-            recruteur_integration_container.postgres_candidature_recruteur_repository()
-        )
+        repo = recruteur_integration_container.postgres_candidature_repository()
 
         models = CandidatureFactory.create_models(2)
         candidatures = [repo.mapper.to_domain(m) for m in models]

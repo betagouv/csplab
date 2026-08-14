@@ -22,6 +22,13 @@ class PostgresCandidatureRecrutementRepository(ICandidatureRecruteurRepository):
     def __init__(self, mapper: CandidatureRecruteurMapper) -> None:
         self.mapper = mapper
 
+    def get_by_id(self, candidature_id: UUID) -> CandidatureRecruteur:
+        try:
+            model = CandidatureModel.objects.get(id=candidature_id)
+            return self.mapper.to_domain(model)
+        except CandidatureModel.DoesNotExist as e:
+            raise CandidatureInexistante(candidature_id) from e
+
     def get_by_ids(self, ids: List[UUID]) -> List[CandidatureRecruteur]:
         candidatures = list(
             CandidatureModel.objects.filter(id__in=ids)

@@ -13,18 +13,9 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
-from infrastructure.mappers.candidature_mapper import CandidatureMapper
 
 
 class PostgresCandidatureRepository(ICandidatureRepository):
-    def __init__(self, mapper: CandidatureMapper) -> None:
-        self.mapper = mapper
-
-    def exists(self, candidature_id: UUID) -> bool:
-        return CandidatureModel.objects.filter(  # type: ignore[attr-defined]
-            id=candidature_id
-        ).exists()
-
     def exists_by_candidat_and_offre(self, candidat_id: UUID, offre_id: UUID) -> bool:
         return CandidatureModel.objects.filter(  # type: ignore[attr-defined]
             candidat_id=str(candidat_id),  # type: ignore[misc]  # UUID → VARCHAR(36)
