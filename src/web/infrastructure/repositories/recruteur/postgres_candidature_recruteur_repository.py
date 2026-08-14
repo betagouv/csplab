@@ -5,7 +5,7 @@ from uuid import UUID
 from referentiel.types import IBatchUpdate
 
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
-from domain.recruteur.errors.candidature_errors import (
+from domain.recruteur.errors.recrutement_errors import (
     CandidatureInexistante,
 )
 from domain.recruteur.repositories.candidature_recruteur_repository_interface import (

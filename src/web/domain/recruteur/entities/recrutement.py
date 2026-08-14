@@ -8,8 +8,8 @@ from referentiel.types import IBatchUpdate
 
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
-from domain.recruteur.errors.candidature_errors import CandidatureInexistante
 from domain.recruteur.errors.recrutement_errors import (
+    RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
 )
 from domain.recruteur.events.recrutement_events import EtapeCandidaturesChangees
@@ -54,19 +54,19 @@ class Recrutement(AggregateRoot):
     @mutate(EtapeCandidaturesChangees)
     def changer_etapes_candidatures(
         self, candidatures: List[CandidatureRecruteur], etape_cible_id: UUID
-    ) -> IBatchUpdate[CandidatureRecruteur, CandidatureInexistante]:
+    ) -> IBatchUpdate[CandidatureRecruteur, RecrutementCandidatureInexistante]:
         if etape_cible_id not in [e.entity_id for e in self._etapes]:
             raise RecrutementEtapeInexistante(
                 etape_id=etape_cible_id, recrutement_id=self.entity_id
             )
         successes: List[CandidatureRecruteur] = []
-        failures: List[tuple[UUID, CandidatureInexistante]] = []
+        failures: List[tuple[UUID, RecrutementCandidatureInexistante]] = []
         for candidature in candidatures:
             if candidature.recrutement_id != self.entity_id:
                 failures.append(
                     (
                         candidature.entity_id,
-                        CandidatureInexistante(
+                        RecrutementCandidatureInexistante(
                             candidature.entity_id,
                         ),
                     )

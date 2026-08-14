@@ -6,10 +6,10 @@ from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesCommand,
 )
 from config.app_config import AppConfig
-from domain.recruteur.errors.candidature_errors import CandidatureInexistante
 from domain.recruteur.errors.organisme_permission_errors import (
     AccesRecrutementRefuse,
 )
+from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,

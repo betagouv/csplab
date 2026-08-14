@@ -20,6 +20,14 @@ from application.recruteur.dtos.recrutement_read_models import (
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.recruteur.errors.recrutement_errors import (
+    CandidatureInexistante,
+    RecrutementEtapeInexistante,
+    RecrutementInexistant,
+)
+from infrastructure.factories.recruteur.candidature_recruteur_factory import (
+    CandidatureRecruteurFactory,
+)
 
 fake = Faker()
 
@@ -99,6 +107,8 @@ ORGANISME_UUID = fake.uuid4()
 # UUID du recrutement statique défini dans views.py
 RECRUTEMENT_UUID = "aaaaaaaa-0001-0001-0001-000000000001"
 UNKNOWN_RECRUTEMENT_UUID = fake.uuid4()
+
+CANDIDATURE_UUID = "aaaaaaaa-0002-0002-0002-000000000002"
 
 RECRUTEMENT_CANDIDATURES_ETAPE_URL = reverse(
     "recruteur:organisme-recrutement-candidatures-etape",
@@ -440,11 +450,12 @@ class TestRecrutementCandidaturesEtapeView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_echoes_candidatures_as_reussites(self, container, authenticated_client):
-        candidature_uuid = str(uuid4())
+        candidatures = CandidatureRecruteurFactory.create_entities(3)
         mock_usecase = container.changer_etape_candidatures_usecase.return_value
-        mock_usecase.execute.return_value = MagicMock(
-            reussites=[UUID(candidature_uuid)], echecs=[]
-        )
+        mock_usecase.execute.return_value = {
+            "successes": candidatures,
+            "failures": [],
+        }
 
         response = authenticated_client.patch(
             RECRUTEMENT_CANDIDATURES_ETAPE_URL,
@@ -452,9 +463,9 @@ class TestRecrutementCandidaturesEtapeView:
                 "etape_cible_uuid": fake.uuid4(),
                 "candidatures": [
                     {
-                        "candidature_uuid": candidature_uuid,
-                        "etape_actuelle_uuid": fake.uuid4(),
+                        "candidature_uuid": str(c.entity_id),
                     }
+                    for c in candidatures
                 ],
             },
             format="json",
@@ -462,7 +473,7 @@ class TestRecrutementCandidaturesEtapeView:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["reussites"] == [candidature_uuid]
+        assert data["reussites"] == [str(c.entity_id) for c in candidatures]
         assert data["echecs"] == []
 
     def test_requires_etape_cible_uuid(self, authenticated_client):
@@ -473,9 +484,31 @@ class TestRecrutementCandidaturesEtapeView:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
+    @pytest.mark.parametrize(
+        ("entity_id", "domain_error"),
+        [
+            pytest.param(
+                ORGANISME_UUID,
+                OrganismeNexistePas,
+                id="organisme",
+            ),
+            pytest.param(
+                RECRUTEMENT_UUID,
+                RecrutementInexistant,
+                id="recrutement",
+            ),
+            pytest.param(
+                CANDIDATURE_UUID,
+                CandidatureInexistante,
+                id="candidature",
+            ),
+        ],
+    )
+    def test_returns_404_for_unknown(
+        self, container, authenticated_client, entity_id, domain_error
+    ):
         mock_usecase = container.changer_etape_candidatures_usecase.return_value
-        mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
+        mock_usecase.execute.side_effect = domain_error(entity_id)
 
         response = authenticated_client.patch(
             RECRUTEMENT_CANDIDATURES_ETAPE_URL,
@@ -484,7 +517,25 @@ class TestRecrutementCandidaturesEtapeView:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
+        assert response.json() == {"error": domain_error(entity_id).message}
+
+    def test_returns_400_for_unknown_etape(self, container, authenticated_client):
+        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        uuid = fake.uuid4()
+        mock_usecase.execute.side_effect = RecrutementEtapeInexistante(
+            uuid, RECRUTEMENT_UUID
+        )
+
+        response = authenticated_client.patch(
+            RECRUTEMENT_CANDIDATURES_ETAPE_URL,
+            data={"etape_cible_uuid": fake.uuid4(), "candidatures": []},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            "error": RecrutementEtapeInexistante(uuid, RECRUTEMENT_UUID).message
+        }
 
     def test_returns_500_on_unexpected_error(self, container, authenticated_client):
         mock_usecase = container.changer_etape_candidatures_usecase.return_value

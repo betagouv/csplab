@@ -11,11 +11,9 @@ from application.recruteur.usecases.changer_etape_candidatures import (
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.recruteur.errors.candidature_errors import (
-    CandidatureInexistante,
-)
 from domain.recruteur.errors.organisme_permission_errors import AccesRecrutementRefuse
 from domain.recruteur.errors.recrutement_errors import (
+    RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
@@ -260,7 +258,7 @@ class TestChangerEtapeCandidaturesUsecase:
         ] == [
             (
                 candidature.entity_id,
-                CandidatureInexistante(
+                RecrutementCandidatureInexistante(
                     candidature_id=candidature.entity_id,
                 ).message,
             )

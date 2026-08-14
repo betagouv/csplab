@@ -23,6 +23,11 @@ from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import (
     OrganismePermissionError,
 )
+from domain.recruteur.errors.recrutement_errors import (
+    CandidatureInexistante,
+    RecrutementEtapeInexistante,
+    RecrutementInexistant,
+)
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
@@ -187,7 +192,6 @@ class RecrutementListeView(APIView):
             )
 
 
-# TODO: stub sans persistance, voir ChangerEtapeCandidaturesUsecase.
 @extend_schema(
     summary="Changer l'étape d'une ou plusieurs candidatures (batch, statique)",
     tags=["recruteur"],
@@ -230,18 +234,26 @@ class RecrutementCandidaturesEtapeView(APIView):
             return Response(
                 ChangerEtapeResultatSerializer(
                     {
-                        "reussites": resultat.reussites,
+                        "reussites": [c.entity_id for c in resultat["successes"]],
                         "echecs": [
                             {"candidature_uuid": cid, "raison": reason}
-                            for cid, reason in resultat.echecs
+                            for cid, reason in resultat["failures"]
                         ],
                     }
                 ).data
             )
-        except OrganismeNexistePas:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except (
+            OrganismeNexistePas,
+            RecrutementInexistant,
+            CandidatureInexistante,
+        ) as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
+        except RecrutementEtapeInexistante as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
-            error_serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
-                error_serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Unexpected error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

@@ -9,7 +9,7 @@ from referentiel.types import IBatchUpdate
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.recrutement import Recrutement
-from domain.recruteur.errors.candidature_errors import CandidatureRecruteurError
+from domain.recruteur.errors.recrutement_errors import RecrutementError
 from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
     ICandidatureRecruteurRepository,
 )
@@ -35,7 +35,7 @@ class ChangerEtapeCandidaturesCommand:
 class ChangerEtapeCandidaturesUsecase(
     IUseCase[
         ChangerEtapeCandidaturesCommand,
-        IBatchUpdate[CandidatureRecruteur, CandidatureRecruteurError],
+        IBatchUpdate[CandidatureRecruteur, RecrutementError],
     ]
 ):
     def __init__(
@@ -70,18 +70,18 @@ class ChangerEtapeCandidaturesUsecase(
 
     def execute(
         self, command: ChangerEtapeCandidaturesCommand
-    ) -> IBatchUpdate[CandidatureRecruteur, CandidatureRecruteurError]:
+    ) -> IBatchUpdate[CandidatureRecruteur, RecrutementError]:
         with self.unit_of_work.atomic():
             recrutement, candidatures_recruteur = self.can_execute(command)
             recrutement_modifie: IBatchUpdate[
-                CandidatureRecruteur, CandidatureRecruteurError
+                CandidatureRecruteur, RecrutementError
             ] = recrutement.changer_etapes_candidatures(
                 candidatures=candidatures_recruteur,
                 etape_cible_id=command.etape_cible_id,
             )
 
             candidatures_traitees: IBatchUpdate[
-                CandidatureRecruteur, CandidatureRecruteurError
+                CandidatureRecruteur, RecrutementError
             ] = self.candidature_recruteur_repository.update_batch(
                 recrutement_modifie["successes"]
             )
