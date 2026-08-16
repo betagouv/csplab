@@ -198,7 +198,8 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             return CandidatureListeReadModel(
                 uuid=candidature.id,
                 date_soumission=candidature.created_at,
-                date_derniere_activite=candidature.updated_at,
+                date_derniere_activite=candidature.updated_by_recruteur
+                or candidature.updated_at,
                 candidat=CandidatDto(
                     uuid=UUID(candidature.candidat_id),
                     nom=candidature.candidat.utilisateur.last_name,
@@ -311,7 +312,8 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                         CandidatureKanbanDto(
                             uuid=candidature.id,
                             date_soumission=candidature.created_at,
-                            date_derniere_activite=candidature.updated_at,
+                            date_derniere_activite=candidature.updated_by_recruteur
+                            or candidature.updated_at,
                             candidat=CandidatDto(
                                 uuid=UUID(candidature.candidat_id),
                                 nom=candidature.candidat.utilisateur.last_name,

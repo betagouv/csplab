@@ -15,5 +15,5 @@ class CandidatureRecruteurMapper(
             candidat_id=UUID(model.candidat_id),
             recrutement_id=model.etape.recrutement.offre_id,
             etape_id=model.etape_id,
-            derniere_activite_le=model.updated_at,  # par le recruteur
+            derniere_activite_le=model.updated_by_recruteur or model.updated_at,
         )

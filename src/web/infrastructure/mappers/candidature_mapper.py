@@ -19,7 +19,7 @@ class CandidatureMapper(IFromDomainMapper, IToDomainMapper):
             if model.documents
             else None,
             soumise_le=model.created_at,
-            mise_a_jour_le=model.updated_at,
+            mise_a_jour_le=model.updated_by_candidate,
         )
 
     def from_domain(
@@ -36,4 +36,5 @@ class CandidatureMapper(IFromDomainMapper, IToDomainMapper):
             documents=[str(d) for d in candidature.documents]
             if candidature.documents
             else None,
+            updated_by_candidate=candidature.mise_a_jour_le,
         )
