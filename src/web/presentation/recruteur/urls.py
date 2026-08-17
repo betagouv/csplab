@@ -28,7 +28,7 @@ app_name = "recruteur"
 
 urlpatterns = [
     path(
-        "organisme/<uuid:organisme_uuid>",
+        "organisme",
         OrganismeView.as_view(),
         name="organisme",
     ),

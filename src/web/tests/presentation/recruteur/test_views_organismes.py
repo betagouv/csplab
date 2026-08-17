@@ -4,28 +4,32 @@ from uuid import UUID
 import pytest
 from django.urls import reverse
 from faker import Faker
+from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.identite.errors.organisme_errors import (
+    OrganismeSiretExisteDeja,
+    SiretInvalide,
+)
+from domain.identite.errors.organisme_permission_errors import CreationOrganismeRefusee
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.erreur_recrutement import (
     ConfigurationEtapesInvalide,
-    ErreurRecruteur,
 )
 from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.recruteur.organisme_factory import (
     OrganismeRecruteurFactory,
 )
 
-fake = Faker()
+fake = Faker("fr_FR")
 
 ORGANISME_UUID = fake.uuid4()
-ORGANISME_URL = reverse(
-    "recruteur:organisme", kwargs={"organisme_uuid": ORGANISME_UUID}
-)
+ORGANISME_URL = reverse("recruteur:organisme")
 ETAPES_URL = reverse(
     "recruteur:organisme-parametres-etapes",
     kwargs={"organisme_uuid": ORGANISME_UUID},
@@ -55,11 +59,29 @@ def etapes_as_json(etapes: tuple[EtapeRecrutement, ...]) -> list[dict]:
 
 
 @pytest.fixture
-def container():
-    with patch("presentation.recruteur.views.organismes.recruteur_container") as mock:
+def identite_container():
+    with patch(
+        "presentation.recruteur.views.organismes.create_identite_container"
+    ) as mock:
         instance = MagicMock()
         mock.return_value = instance
         yield instance
+
+
+@pytest.fixture
+def organisme():
+    org = OrganismeFactory.create_entity()
+    return {
+        "nom": org.nom,
+        "siret": org.siret.value,
+        "gestion_ats": True,
+        "gestionnaire": None,
+        "date_derniere_activite": "2026-01-15T10:00:00Z",
+        "date_creation": "2026-01-01T09:00:00Z",
+    }
+
+
+siret = fake.siret().replace(" ", "")
 
 
 class TestOrganismeView:
@@ -67,64 +89,84 @@ class TestOrganismeView:
         response = api_client.get(ORGANISME_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_authenticated_access_is_ok(self, container, authenticated_client):
-        mock_organisme = MagicMock()
-        mock_organisme.nom = "COMMUNE DE BRIANCON"
-        mock_organisme.siret = "21050023700354"
-
+    def test_post_create_organisme(
+        self,
+        organisme,
+        identite_container,
+        authenticated_client,
+    ):
         mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = mock_organisme
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-
-        response = authenticated_client.get(ORGANISME_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {
-            "nom": "COMMUNE DE BRIANCON",
-            "siret": "21050023700354",
+        mock_usecase.execute.return_value = organisme
+        identite_container.create_organisme_usecase.return_value = mock_usecase
+        body = {
+            "nom": organisme["nom"],
+            "siret": organisme["siret"],
+            "versant": fake.random_choices(
+                [Verse.FPE.value, Verse.FPT.value, Verse.FPH.value]
+            ),
+            "gestion_ats": True,
         }
+        response = authenticated_client.post(ORGANISME_URL, body)
 
-    def test_returns_404_when_organisme_not_found(
-        self, container, authenticated_client
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json() == organisme
+
+    @pytest.mark.parametrize(
+        ("exception", "expected_status", "expected_body"),
+        [
+            (
+                OrganismeSiretExisteDeja(siret),
+                status.HTTP_400_BAD_REQUEST,
+                {"error": OrganismeSiretExisteDeja(siret).message},
+            ),
+            (
+                SiretInvalide(siret),
+                status.HTTP_400_BAD_REQUEST,
+                {"error": SiretInvalide(siret).message},
+            ),
+            (
+                CreationOrganismeRefusee(),
+                status.HTTP_403_FORBIDDEN,
+                {"error": CreationOrganismeRefusee().message},
+            ),
+            (
+                Exception("unexpected"),
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"error": "Unexpected error"},
+            ),
+        ],
+    )
+    def test_post_returns_error_from_usecase(
+        self,
+        identite_container,
+        authenticated_client,
+        exception,
+        expected_status,
+        expected_body,
     ):
         mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = ErreurRecruteur("not found")
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        mock_usecase.execute.side_effect = exception
+        identite_container.create_organisme_usecase.return_value = mock_usecase
+        body = {
+            "nom": fake.name(),
+            "siret": siret,
+            "versant": fake.random_choices(
+                [Verse.FPE.value, Verse.FPT.value, Verse.FPH.value]
+            ),
+            "gestion_ats": fake.boolean(),
+        }
+        response = authenticated_client.post(ORGANISME_URL, body)
 
-        response = authenticated_client.get(ORGANISME_URL)
+        assert response.status_code == expected_status
+        assert response.json() == expected_body
 
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
 
-    def test_returns_403_when_not_responsable(self, container, authenticated_client):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-
-        response = authenticated_client.get(ORGANISME_URL)
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"detail": "Forbidden."}
-
-    def test_forwards_est_staff_to_usecase(
-        self, container, authenticated_client, test_user
-    ):
-        test_user.is_staff = True
-        test_user.save()
-
-        mock_organisme = MagicMock()
-        mock_organisme.nom = "COMMUNE DE BRIANCON"
-        mock_organisme.siret = "21050023700354"
-
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = mock_organisme
-
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-
-        authenticated_client.get(ORGANISME_URL)
-
-        command = mock_usecase.execute.call_args.args[0]
-        assert command.est_staff is True
+@pytest.fixture
+def recruteur_container():
+    with patch("presentation.recruteur.views.organismes.recruteur_container") as mock:
+        instance = MagicMock()
+        mock.return_value = instance
+        yield instance
 
 
 class TestEtapesRecrutementOrganismeView:
@@ -149,7 +191,7 @@ class TestEtapesRecrutementOrganismeView:
     )
     def test_get_returns_error_from_usecase(
         self,
-        container,
+        recruteur_container,
         authenticated_client,
         exception,
         expected_status,
@@ -157,19 +199,21 @@ class TestEtapesRecrutementOrganismeView:
     ):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = exception
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        recruteur_container.get_organisme_recruteur_usecase.return_value = mock_usecase
 
         response = authenticated_client.get(ETAPES_URL)
 
         assert response.status_code == expected_status
         assert response.json() == expected_body
 
-    def test_authenticated_access_is_ok(self, container, authenticated_client):
+    def test_authenticated_access_is_ok(
+        self, recruteur_container, authenticated_client
+    ):
         organisme = OrganismeRecruteurFactory.create_entity()
 
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = organisme
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        recruteur_container.get_organisme_recruteur_usecase.return_value = mock_usecase
 
         response = authenticated_client.get(ETAPES_URL)
 
@@ -177,14 +221,14 @@ class TestEtapesRecrutementOrganismeView:
         assert response.json() == etapes_as_json(organisme.etapes or ())
 
     def test_forwards_est_staff_to_usecase(
-        self, container, authenticated_client, test_user
+        self, recruteur_container, authenticated_client, test_user
     ):
         test_user.is_staff = True
         test_user.save()
 
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = OrganismeRecruteurFactory.create_entity()
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        recruteur_container.get_organisme_recruteur_usecase.return_value = mock_usecase
 
         authenticated_client.get(ETAPES_URL)
 
@@ -219,7 +263,7 @@ class TestInitEtapesRecrutementOrganismeView:
     )
     def test_post_returns_error_from_usecase(
         self,
-        container,
+        recruteur_container,
         authenticated_client,
         exception,
         expected_status,
@@ -227,20 +271,26 @@ class TestInitEtapesRecrutementOrganismeView:
     ):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = exception
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
+        recruteur_container.initialize_organisme_steps_usecase.return_value = (
+            mock_usecase
+        )
 
         response = authenticated_client.post(INIT_ETAPES_URL)
 
         assert response.status_code == expected_status
         assert response.json() == expected_body
 
-    def test_authenticated_post_initialize_steps(self, container, authenticated_client):
+    def test_authenticated_post_initialize_steps(
+        self, recruteur_container, authenticated_client
+    ):
         organisme = OrganismeRecruteurFactory.create_entity()
         organisme.initialiser_etapes()
 
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = organisme
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
+        recruteur_container.initialize_organisme_steps_usecase.return_value = (
+            mock_usecase
+        )
 
         response = authenticated_client.post(INIT_ETAPES_URL)
 
@@ -248,7 +298,7 @@ class TestInitEtapesRecrutementOrganismeView:
         assert response.json() == etapes_as_json(organisme.etapes or ())
 
     def test_forwards_est_staff_to_usecase(
-        self, container, authenticated_client, test_user
+        self, recruteur_container, authenticated_client, test_user
     ):
         test_user.is_staff = True
         test_user.save()
@@ -257,7 +307,9 @@ class TestInitEtapesRecrutementOrganismeView:
         organisme.initialiser_etapes()
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = organisme
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
+        recruteur_container.initialize_organisme_steps_usecase.return_value = (
+            mock_usecase
+        )
 
         authenticated_client.post(INIT_ETAPES_URL)
 
@@ -286,7 +338,9 @@ class TestPutEtapesRecrutementOrganismeView:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_put_mixed_existing_and_new_etapes(self, container, authenticated_client):
+    def test_put_mixed_existing_and_new_etapes(
+        self, recruteur_container, authenticated_client
+    ):
         existing_uuid = fake.uuid4()
         new_uuid = fake.uuid4()
         other_uuid = fake.uuid4()
@@ -312,7 +366,7 @@ class TestPutEtapesRecrutementOrganismeView:
 
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = organisme
-        container.update_organisme_steps_usecase.return_value = mock_usecase
+        recruteur_container.update_organisme_steps_usecase.return_value = mock_usecase
 
         payload = [
             {
@@ -337,12 +391,14 @@ class TestPutEtapesRecrutementOrganismeView:
         assert data[1]["etape_uuid"] == str(new_uuid)
         assert data[1]["nom"] == "Nouvelle étape"
 
-    def test_put_returns_400_on_invalid_steps(self, container, authenticated_client):
+    def test_put_returns_400_on_invalid_steps(
+        self, recruteur_container, authenticated_client
+    ):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = ConfigurationEtapesInvalide(
             "la première étape doit être de catégorie ENTREE"
         )
-        container.update_organisme_steps_usecase.return_value = mock_usecase
+        recruteur_container.update_organisme_steps_usecase.return_value = mock_usecase
 
         payload = [
             {"nom": "Entretien", "categorie": "EN_COURS"},
@@ -379,7 +435,7 @@ class TestPutEtapesRecrutementOrganismeView:
     )
     def test_put_returns_error_from_usecase(
         self,
-        container,
+        recruteur_container,
         authenticated_client,
         exception,
         expected_status,
@@ -387,7 +443,7 @@ class TestPutEtapesRecrutementOrganismeView:
     ):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = exception
-        container.update_organisme_steps_usecase.return_value = mock_usecase
+        recruteur_container.update_organisme_steps_usecase.return_value = mock_usecase
 
         response = authenticated_client.put(
             ETAPES_URL, VALID_ETAPES_PAYLOAD, format="json"
@@ -397,14 +453,14 @@ class TestPutEtapesRecrutementOrganismeView:
         assert response.json() == expected_body
 
     def test_forwards_est_staff_to_usecase(
-        self, container, authenticated_client, test_user
+        self, recruteur_container, authenticated_client, test_user
     ):
         test_user.is_staff = True
         test_user.save()
 
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = OrganismeRecruteurFactory.create_entity()
-        container.update_organisme_steps_usecase.return_value = mock_usecase
+        recruteur_container.update_organisme_steps_usecase.return_value = mock_usecase
 
         authenticated_client.put(ETAPES_URL, VALID_ETAPES_PAYLOAD, format="json")
 
