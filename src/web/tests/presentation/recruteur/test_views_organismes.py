@@ -10,7 +10,10 @@ from domain.identite.errors.organisme_errors import (
     OrganismeSiretExisteDeja,
     SiretInvalide,
 )
-from domain.identite.errors.organisme_permission_errors import CreationOrganismeRefusee
+from domain.identite.errors.organisme_permission_errors import (
+    ConsultationOrganismesRefusee,
+    CreationOrganismeRefusee,
+)
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.seed_recruteur_datas import _ORGANISME_UUID
 
@@ -33,10 +36,70 @@ def container():
 siret = fake.siret().replace(" ", "")
 
 
+@pytest.fixture
+def organismes() -> list[dict]:
+    return [
+        {
+            "nom": org.nom,
+            "siret": org.siret.value,
+            "gestion_ats": True,
+            "gestionnaire": None,
+            "date_derniere_activite": "2026-01-15T10:00:00Z",
+            "date_creation": "2026-01-01T09:00:00Z",
+        }
+        for org in OrganismeFactory.create_entities()
+    ]
+
+
 class TestOrganismesView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(ORGANISME_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_get_returns_organismes(
+        self,
+        organismes,
+        identite_container,
+        authenticated_client,
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.return_value = organismes
+        identite_container.list_organismes_usecase.return_value = mock_usecase
+        response = authenticated_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == organismes
+
+    @pytest.mark.parametrize(
+        ("exception", "expected_status", "expected_body"),
+        [
+            (
+                ConsultationOrganismesRefusee(),
+                status.HTTP_403_FORBIDDEN,
+                {"error": ConsultationOrganismesRefusee().message},
+            ),
+            (
+                Exception("unexpected"),
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"error": "Unexpected error"},
+            ),
+        ],
+    )
+    def test_get_returns_error_from_usecase(
+        self,
+        identite_container,
+        authenticated_client,
+        exception,
+        expected_status,
+        expected_body,
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = exception
+        identite_container.list_organismes_usecase.return_value = mock_usecase
+        response = authenticated_client.get(ORGANISME_URL)
+
+        assert response.status_code == expected_status
+        assert response.json() == expected_body
 
     def test_post_create_organisme(
         self,
@@ -56,7 +119,6 @@ class TestOrganismesView:
             "gestion_ats": True,
         }
         response = authenticated_client.post(ORGANISME_URL, body)
-
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json()["organisme_uuid"] == str(organisme.entity_id)
         assert response.json()["gestion_ats"]

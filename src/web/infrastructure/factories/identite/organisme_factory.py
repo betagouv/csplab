@@ -73,6 +73,12 @@ class OrganismeFactory:
         )
 
     @staticmethod
+    def create_entities(
+        count: int = 3,
+    ) -> List[Organisme]:
+        return [OrganismeFactory.create_entity() for _ in range(count)]
+
+    @staticmethod
     def create_model(
         entity_id: UUID | None = None,
         nom: str = "Ministère de l'Économie, des Finances et de la Relance",
