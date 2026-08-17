@@ -26,6 +26,19 @@ class CreerOrganismeSerializer(serializers.Serializer):
     gestion_ats = serializers.BooleanField()
 
 
+class ModifierOrganismeSerializer(serializers.Serializer):
+    nom = serializers.CharField(required=False)
+    versant = serializers.ChoiceField(choices=[c.value for c in Verse], required=False)
+    gestion_ats = serializers.BooleanField(required=False)
+
+    def validate(self, attrs):
+        if not any(attrs.get(k) is not None for k in ("nom", "versant", "gestion_ats")):
+            raise serializers.ValidationError(
+                "Au moins un champ (nom, versant, gestion_ats) doit être renseigné."
+            )
+        return attrs
+
+
 class EtapeRecrutementSerializer(serializers.Serializer):
     etape_uuid = serializers.UUIDField()
     nom = serializers.CharField()

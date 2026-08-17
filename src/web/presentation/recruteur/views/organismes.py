@@ -14,7 +14,7 @@ from domain.identite.errors.organisme_errors import (
     SiretInvalide,
 )
 from domain.identite.errors.organisme_permission_errors import (
-    ConsultationOrganismesRefusee,
+    AccesAdminRefuse,
     CreationOrganismeRefusee,
 )
 from domain.identite.value_objects.siret import SIRET
@@ -46,7 +46,7 @@ def fake_organismes() -> list[dict]:
 
 @extend_schema_view(
     get=extend_schema(
-        summary="Lister oganismes",
+        summary="Lister les organismes",
         tags=["recruteur"],
         responses={
             200: OrganismeDetailSerializer(many=True),
@@ -98,7 +98,7 @@ class OrganismesView(APIView):
                 for organisme in organismes
             ]
             return Response(OrganismeDetailSerializer(organismes_dto, many=True).data)
-        except ConsultationOrganismesRefusee as e:
+        except AccesAdminRefuse as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
         except Exception:

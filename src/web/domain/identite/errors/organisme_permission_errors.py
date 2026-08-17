@@ -1,15 +1,15 @@
 from ddd.domain_errors import DomainError
 
 
-class OrganismePermissionError(DomainError):
+class PermissionError(DomainError):
     pass
 
 
-class ConsultationOrganismesRefusee(OrganismePermissionError):
+class AccesAdminRefuse(PermissionError):
     def __init__(self):
-        super().__init__("Seul un membre du staff peut consulter les organismes")
+        super().__init__("Seul un membre du staff peut effectuer cette opération")
 
 
-class CreationOrganismeRefusee(OrganismePermissionError):
+class CreationOrganismeRefusee(PermissionError):
     def __init__(self):
         super().__init__("Seul un membre du staff peut créer un organisme")

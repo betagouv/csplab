@@ -1,12 +1,16 @@
 from uuid import UUID
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from referentiel.value_objects.verse import Verse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.identite.usecases.update_organisme import (
+    UpdateOrganismeCommand,
+)
 from application.recruteur.usecases.get_organisme_recruteur import (
     GetOrganismeRecruteurQuery,
 )
@@ -18,6 +22,7 @@ from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsCommand,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.identite.errors.organisme_permission_errors import AccesAdminRefuse
 from domain.recruteur.errors.erreur_recrutement import (
     ConfigurationEtapesInvalide,
     ErreurRecruteur,
@@ -26,41 +31,50 @@ from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRe
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.commons.serializers import (
+    OrganismeSerializer,
+)
 from presentation.recruteur.mappers import (
     EtapesMapper,
 )
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
-    OrganismeSerializer,
+    ModifierOrganismeSerializer,
+    OrganismeDetailSerializer,
     UpdateEtapeRecrutementSerializer,
 )
 
 
-@extend_schema(
-    summary="Detail d'un organisme",
-    tags=["recruteur"],
-    responses={
-        200: OrganismeSerializer,
-        401: TokenErrorSerializer,
-        403: GenericErrorSerializer,
-        404: GenericErrorSerializer,
-        500: GenericErrorSerializer,
-    },
+@extend_schema_view(
+    put=extend_schema(
+        summary="Modifier un organisme",
+        tags=["recruteur"],
+        request=ModifierOrganismeSerializer,
+        responses={
+            200: OrganismeDetailSerializer,
+            400: GenericErrorSerializer,
+            401: TokenErrorSerializer,
+            403: GenericErrorSerializer,
+            404: GenericErrorSerializer,
+            500: GenericErrorSerializer,
+        },
+    ),
 )
 class OrganismeDetailView(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = OrganismeSerializer
+    serializer_class = OrganismeDetailSerializer
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.container = recruteur_container()
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
             utilisateur_id = UUID(request.user.username)
-            usecase = self.container.get_organisme_recruteur_usecase()
+            container = recruteur_container()
+            usecase = container.get_organisme_recruteur_usecase()
             organisme = usecase.execute(
                 GetOrganismeRecruteurQuery(
                     organisme_id=organisme_uuid,
@@ -74,6 +88,53 @@ class OrganismeDetailView(APIView):
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
         except (ErreurRecruteur, OrganismeNexistePas):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def put(self, request: Request, organisme_uuid: UUID) -> Response:
+        serializer = ModifierOrganismeSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            container = create_identite_container()
+            usecase = container.update_organisme_usecase()
+            data = serializer.validated_data
+            command = UpdateOrganismeCommand(
+                organisme_id=organisme_uuid,
+                name=data.get("nom"),
+                verse=Verse(data["versant"]) if data.get("versant") else None,
+                managed_ats=data.get("gestion_ats"),
+                is_staff=request.user.is_staff,
+            )
+            organisme = usecase.execute(command)
+            organisme_dto = {
+                **data,
+                "nom": data["nom"] if data.get("nom") is not None else organisme.nom,
+                "siret": organisme.siret.value,
+                "versant": data["versant"]
+                if data.get("versant") is not None
+                else organisme.versant,
+                "gestionnaire": None,
+                "gestion_ats": data["gestion_ats"]
+                if data.get("gestion_ats") is not None
+                else True,
+                "date_derniere_activite": "2026-01-15T10:00:00Z",
+                "date_creation": "2026-01-01T09:00:00Z",
+            }
+            return Response(
+                OrganismeDetailSerializer(organisme_dto).data,
+                status=status.HTTP_200_OK,
+            )
+        except AccesAdminRefuse as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
+        except OrganismeNexistePas as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
