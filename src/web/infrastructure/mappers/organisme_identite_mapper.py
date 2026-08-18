@@ -23,6 +23,9 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
                 country=Country(loc["country"]),
                 region=Region(code=loc["region"]),
                 department=Department(code=loc["department"]),
+                label=loc.get("label"),
+                latitude=loc.get("latitude"),
+                longitude=loc.get("longitude"),
             )
         return Organisme.build(
             entity_id=UUID(str(model.id)),
@@ -48,6 +51,9 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
                 "country": str(loc.country),
                 "region": loc.region.code,
                 "department": loc.department.code,
+                "label": loc.label,
+                "latitude": loc.latitude,
+                "longitude": loc.longitude,
             }
         return OrganismeModel(
             id=organisme.entity_id,

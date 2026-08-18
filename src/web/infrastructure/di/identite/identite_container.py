@@ -6,6 +6,9 @@ from application.identite.usecases.create_organisme import CreateOrganismeUsecas
 from application.identite.usecases.get_utilisateur_details import (
     GetUtilisateurDetailUsecase,
 )
+from application.identite.usecases.import_etablissements_finess import (
+    ImportEtablissementsFinessUsecase,
+)
 from application.identite.usecases.log_utilisateur_connexion import (
     LogUtilisateurConnexionUsecase,
 )
@@ -13,6 +16,7 @@ from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.services.identite_permission_service import (
     OrganismeCreationPermissionService,
 )
+from infrastructure.external_gateways.finess_client import FinessClient
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -74,4 +78,13 @@ class IdentiteContainer(containers.DeclarativeContainer):
         CreateOrganismeUsecase,
         organisme_repository=postgres_organisme_repository,
         permission_service=organisme_creation_permission_service,
+    )
+
+    finess_gateway = providers.Singleton(FinessClient, logger=logger_service)
+
+    import_etablissements_finess_usecase = providers.Factory(
+        ImportEtablissementsFinessUsecase,
+        finess_gateway=finess_gateway,
+        organisme_repository=postgres_organisme_repository,
+        logger=logger_service,
     )
