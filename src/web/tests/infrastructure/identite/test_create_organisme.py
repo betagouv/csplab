@@ -29,6 +29,7 @@ def test_create_organisme(identite_integration_container):
         localisation=None,
         siret=SIRET("19754687200015"),
         parent_id=None,
+        external_id="ext-123",
         est_staff=True,
     )
 
@@ -50,6 +51,7 @@ def test_create_organisme_avec_siret(identite_integration_container):
         localisation=None,
         siret=SIRET("19754687200015"),
         parent_id=None,
+        external_id="ext-123",
         est_staff=True,
     )
 

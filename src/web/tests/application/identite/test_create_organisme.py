@@ -15,6 +15,7 @@ def test_create_organisme_success(create_organisme_usecase):
         localisation=None,
         siret=None,
         parent_id=None,
+        external_id="ext-123",
         est_staff=True,
     )
 
@@ -34,6 +35,7 @@ def test_create_organisme_refuse_non_staff(create_organisme_usecase):
         localisation=None,
         siret=None,
         parent_id=None,
+        external_id="ext-123",
         est_staff=False,
     )
 

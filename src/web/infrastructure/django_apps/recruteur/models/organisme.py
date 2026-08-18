@@ -13,6 +13,9 @@ class OrganismeModel(BaseDatedModel):
         choices=[(v.value, v.value) for v in Verse],
     )
     siret = models.CharField(max_length=14, unique=True)
+    external_id = models.CharField(max_length=50, null=True, blank=True)
+    referentiel = models.CharField(max_length=50, null=True, blank=True)
+    millesime = models.CharField(max_length=25, null=True, blank=True)
     parent_id = models.UUIDField(null=True, blank=True)
     localisation = models.JSONField(null=True, blank=True)
     etapes = models.JSONField(

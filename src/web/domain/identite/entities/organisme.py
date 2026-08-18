@@ -18,6 +18,9 @@ class Organisme(AggregateRoot):
     _localisation: Localisation | None
     _siret: SIRET
     _parent_id: UUID | None
+    _external_id: str | None
+    _referentiel: str | None
+    _millesime: str | None
 
     @classmethod
     def build(
@@ -28,6 +31,9 @@ class Organisme(AggregateRoot):
         localisation: Localisation | None,
         siret: SIRET,
         parent_id: UUID | None = None,
+        external_id: str | None = None,
+        referentiel: str | None = None,
+        millesime: str | None = None,
     ) -> "Organisme":
         return cls(
             entity_id=entity_id,
@@ -36,6 +42,9 @@ class Organisme(AggregateRoot):
             _localisation=localisation,
             _siret=siret,
             _parent_id=parent_id,
+            _external_id=external_id,
+            _referentiel=referentiel,
+            _millesime=millesime,
         )
 
     @property
@@ -58,6 +67,18 @@ class Organisme(AggregateRoot):
     def parent_id(self) -> UUID | None:
         return self._parent_id
 
+    @property
+    def external_id(self) -> str | None:
+        return self._external_id
+
+    @property
+    def referentiel(self) -> str | None:
+        return self._referentiel
+
+    @property
+    def millesime(self) -> str | None:
+        return self._millesime
+
     @classmethod
     @factory(OrganismeCree)
     def create(
@@ -67,6 +88,9 @@ class Organisme(AggregateRoot):
         localisation: Localisation | None,
         siret: SIRET,
         parent_id: UUID | None,
+        external_id: str | None = None,
+        referentiel: str | None = None,
+        millesime: str | None = None,
     ) -> "Organisme":
         return cls(
             _nom=nom,
@@ -74,4 +98,7 @@ class Organisme(AggregateRoot):
             _localisation=localisation,
             _siret=siret,
             _parent_id=parent_id,
+            _external_id=external_id,
+            _referentiel=referentiel,
+            _millesime=millesime,
         )
