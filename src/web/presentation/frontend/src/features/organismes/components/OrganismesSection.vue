@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CreateOrganismePayload } from '../types'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef, watch } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -8,18 +8,30 @@ import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue
 import { useToast } from '@/composables/ui/useToast'
 import { pluralize } from '@/utils/format'
 import { ORGANISMES_COLUMNS } from '../columns'
+import { useOrganismeEdition } from '../composables/useOrganismeEdition'
 import { useOrganismes } from '../composables/useOrganismes'
 import OrganismeFormDrawer from './OrganismeFormDrawer.vue'
 
 const PAGE_SIZE = 8
 
-const { organismes, pending, error, create, creating } = useOrganismes()
+const { organismes, pending, error, create, creating, update, updating } = useOrganismes()
+const { editedOrganisme, closeEdition } = useOrganismeEdition()
 const { addToast } = useToast()
 
 const page = ref(1)
 const drawerOpen = ref(false)
 
 const formDrawer = useTemplateRef('formDrawer')
+
+watch(editedOrganisme, (organisme) => {
+  if (organisme)
+    drawerOpen.value = true
+})
+
+watch(drawerOpen, (isOpen) => {
+  if (!isOpen)
+    closeEdition()
+})
 
 const rows = computed(() => organismes.value ?? [])
 
@@ -28,10 +40,19 @@ const countLabel = computed(() => {
   return `${count} ${pluralize(count, 'organisme')}`
 })
 
+const saving = computed(() => creating.value || updating.value)
+
 async function handleSubmit(payload: CreateOrganismePayload): Promise<void> {
   try {
-    await create(payload)
-    addToast({ variant: 'success', title: 'Organisme créé' })
+    if (editedOrganisme.value) {
+      const { siret: _siret, ...updatePayload } = payload
+      await update({ uuid: editedOrganisme.value.uuid, payload: updatePayload })
+      addToast({ variant: 'success', title: 'Organisme modifié' })
+    }
+    else {
+      await create(payload)
+      addToast({ variant: 'success', title: 'Organisme créé' })
+    }
     drawerOpen.value = false
   }
   catch (submitError) {
@@ -91,7 +112,8 @@ async function handleSubmit(payload: CreateOrganismePayload): Promise<void> {
     <OrganismeFormDrawer
       ref="formDrawer"
       v-model:open="drawerOpen"
-      :saving="creating"
+      :organisme="editedOrganisme"
+      :saving="saving"
       @submit="handleSubmit"
     />
   </section>

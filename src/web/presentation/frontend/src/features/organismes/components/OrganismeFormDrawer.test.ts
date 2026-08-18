@@ -1,13 +1,24 @@
+import type { OrganismeAdmin } from '../types'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
 import { SiretConflictError } from '../api'
 import OrganismeFormDrawer from './OrganismeFormDrawer.vue'
 
-function mountDrawer() {
+const ORGANISME: OrganismeAdmin = {
+  uuid: '11111111-1111-1111-1111-111111111111',
+  nom: 'Organisme 1',
+  siret: '11111111111111',
+  versant: 'FPT',
+  gestion_candidatures: false,
+  gestionnaire: null,
+}
+
+function mountDrawer(props: { organisme?: OrganismeAdmin | null } = {}) {
   return mount(OrganismeFormDrawer, {
     props: {
       open: true,
+      organisme: props.organisme ?? null,
     },
     attachTo: document.body,
   })
@@ -48,6 +59,35 @@ describe('organismeFormDrawer', () => {
     await fill('input[name="siret"]', '123')
     expect(submitButton().disabled).toBe(true)
     expect(document.body.textContent).not.toContain('SIRET doit')
+    wrapper.unmount()
+  })
+
+  it('prefills and disables the siret in edition mode', async () => {
+    const wrapper = mountDrawer({ organisme: ORGANISME })
+    await nextTick()
+    const siret = document.querySelector<HTMLInputElement>('input[name="siret"]')!
+    expect(siret.value).toBe(ORGANISME.siret)
+    expect(siret.disabled).toBe(true)
+    expect(document.body.textContent).toContain('Modifier l\'organisme')
+    expect(document.body.textContent).toContain('Enregistrer les modifications')
+    wrapper.unmount()
+  })
+
+  it('emits the payload on submit', async () => {
+    const wrapper = mountDrawer({ organisme: ORGANISME })
+    await nextTick()
+    await fill('input[name="nom"]', 'Organisme renommé')
+    submitButton().click()
+    await nextTick()
+
+    const emitted = wrapper.emitted('submit')
+    expect(emitted).toHaveLength(1)
+    expect(emitted![0][0]).toEqual({
+      nom: 'Organisme renommé',
+      siret: ORGANISME.siret,
+      versant: 'FPT',
+      gestion_candidatures: false,
+    })
     wrapper.unmount()
   })
 

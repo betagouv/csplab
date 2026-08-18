@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CreateOrganismePayload, Versant } from '../types'
+import type { CreateOrganismePayload, OrganismeAdmin, Versant } from '../types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
@@ -9,6 +9,7 @@ import { SiretConflictError } from '../api'
 import { SIRET_LENGTH, VERSANT_LABELS } from '../constants/organisme'
 
 const props = defineProps<{
+  organisme?: OrganismeAdmin | null
   saving?: boolean
 }>()
 
@@ -17,6 +18,8 @@ const emit = defineEmits<{
 }>()
 
 const open = defineModel<boolean>('open', { required: true })
+
+const isEdition = computed(() => Boolean(props.organisme))
 
 const nom = ref('')
 const siret = ref('')
@@ -27,10 +30,10 @@ const siretError = ref<string | null>(null)
 watch(open, (isOpen) => {
   if (!isOpen)
     return
-  nom.value = ''
-  siret.value = ''
-  versant.value = ''
-  gestionCandidatures.value = 'oui'
+  nom.value = props.organisme?.nom ?? ''
+  siret.value = props.organisme?.siret ?? ''
+  versant.value = props.organisme?.versant ?? ''
+  gestionCandidatures.value = (props.organisme?.gestion_candidatures ?? true) ? 'oui' : 'non'
   siretError.value = null
 }, { immediate: true })
 
@@ -53,7 +56,7 @@ const siretValid = computed(() =>
 
 const canSubmit = computed(() =>
   nom.value.trim().length > 0
-  && siretValid.value
+  && (isEdition.value || siretValid.value)
   && versant.value !== '',
 )
 
@@ -80,7 +83,7 @@ defineExpose({ setSiretConflict })
 <template>
   <CspDrawer
     v-model:open="open"
-    title="Ajouter un organisme"
+    :title="isEdition ? 'Modifier l\'organisme' : 'Ajouter un organisme'"
     size="md"
   >
     <form
@@ -102,6 +105,7 @@ defineExpose({ setSiretConflict })
         v-model="siret"
         label="SIRET de l'organisme"
         name="siret"
+        :disabled="isEdition"
         :error="Boolean(siretError)"
         :error-message="siretError ?? undefined"
       />
@@ -128,8 +132,8 @@ defineExpose({ setSiretConflict })
       <div class="organisme-form__actions">
         <CspButton
           type="submit"
-          label="Créer l'organisme"
-          icon="ri:add-line"
+          :label="isEdition ? 'Enregistrer les modifications' : 'Créer l\'organisme'"
+          :icon="isEdition ? undefined : 'ri:add-line'"
           is-icon-left
           :disabled="!canSubmit || saving"
         />

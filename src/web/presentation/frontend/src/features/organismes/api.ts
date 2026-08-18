@@ -1,4 +1,4 @@
-import type { CreateOrganismePayload, OrganismeAdmin } from './types'
+import type { CreateOrganismePayload, OrganismeAdmin, UpdateOrganismePayload } from './types'
 
 // In-memory implementation until the organisme admin endpoints land (#1145-#1147).
 
@@ -66,4 +66,18 @@ export async function createOrganisme(payload: CreateOrganismePayload): Promise<
   }
   organismes = [...organismes, organisme]
   return organisme
+}
+
+export async function updateOrganisme(
+  uuid: string,
+  payload: UpdateOrganismePayload,
+): Promise<OrganismeAdmin> {
+  await delay()
+  const current = organismes.find(o => o.uuid === uuid)
+  if (!current) {
+    throw new Error('Organisme introuvable')
+  }
+  const updated: OrganismeAdmin = { ...current, ...payload }
+  organismes = organismes.map(o => (o.uuid === uuid ? updated : o))
+  return updated
 }

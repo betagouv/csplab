@@ -22,3 +22,9 @@ export interface CreateOrganismePayload {
   versant: Versant
   gestion_candidatures: boolean
 }
+
+export interface UpdateOrganismePayload {
+  nom: string
+  versant: Versant
+  gestion_candidatures: boolean
+}

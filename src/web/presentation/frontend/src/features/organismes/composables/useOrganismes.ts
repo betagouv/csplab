@@ -1,6 +1,6 @@
-import type { CreateOrganismePayload } from '../types'
+import type { CreateOrganismePayload, UpdateOrganismePayload } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
-import { createOrganisme } from '../api'
+import { createOrganisme, updateOrganisme } from '../api'
 import { ORGANISMES_QUERY_KEYS, organismesQuery } from '../queries'
 
 export function useOrganismes() {
@@ -16,11 +16,19 @@ export function useOrganismes() {
     onSettled: invalidate,
   })
 
+  const updateMutation = useMutation({
+    mutation: ({ uuid, payload }: { uuid: string, payload: UpdateOrganismePayload }) =>
+      updateOrganisme(uuid, payload),
+    onSettled: invalidate,
+  })
+
   return {
     organismes: query.data,
     pending: query.isPending,
     error: query.error,
     create: createMutation.mutateAsync,
     creating: createMutation.isLoading,
+    update: updateMutation.mutateAsync,
+    updating: updateMutation.isLoading,
   }
 }
