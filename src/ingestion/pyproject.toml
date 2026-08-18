@@ -86,21 +86,22 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"api/routes.py" = [
+"api/*" = [
     "B008", # Function call in argument defaults (acceptable for FastAPI)
     "PLR0913", # Too many arguments (acceptable for FastAPI routes with injected dependencies)
+    "PLR0917", # too many positionnal arguments
 ]
-"api/talentsoft.py" = [
+"infrastructure/*" = [
     "B008", # Function call in argument defaults (acceptable for FastAPI)
-]
-"infrastructure/di/container.py" = [
-    "B008", # Function call in argument defaults (acceptable for FastAPI)
+    "PLR0913", # Too many arguments (acceptable for FastAPI routes with injected dependencies)
+    "PLR0917", # too many positionnal arguments
 ]
 "**/tests/*" = [
     "S101", # use of assert
     "S105", # hardcoded passwords (acceptable for test fixtures)
     "S311", # standard pseudo-random generators not suitable for crypto
     "PLR0913", # too many args in function definition
+    "PLR0917", # too many positionnal arguments
     "PLW0108", # Lambda may be unnecessary; consider inlining inner function
     "PLR2004", # Magic value used in comparison (acceptable for HTTP status codes in tests)
 ]
