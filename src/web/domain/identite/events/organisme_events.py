@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 from uuid import UUID
 
 from ddd.domain_event import DomainEvent
@@ -18,3 +19,6 @@ class OrganismeCree(DomainEvent):
     external_id: str | None = None
     referentiel: str | None = None
     millesime: str | None = None
+    gestion_ats: bool | None = False
+    date_creation: date | None = None
+    date_derniere_activite: date | None = None

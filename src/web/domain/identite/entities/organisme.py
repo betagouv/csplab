@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 from uuid import UUID
 
 from ddd.aggregate_root import AggregateRoot, factory
@@ -21,6 +22,9 @@ class Organisme(AggregateRoot):
     _external_id: str | None
     _referentiel: str | None
     _millesime: str | None
+    _gestion_ats: bool | None
+    _date_creation: date | None
+    _date_derniere_activite: date | None
 
     @classmethod
     def build(
@@ -34,6 +38,9 @@ class Organisme(AggregateRoot):
         external_id: str | None = None,
         referentiel: str | None = None,
         millesime: str | None = None,
+        gestion_ats: bool | None = False,
+        date_creation: date | None = None,
+        date_derniere_activite: date | None = None,
     ) -> "Organisme":
         return cls(
             entity_id=entity_id,
@@ -45,6 +52,9 @@ class Organisme(AggregateRoot):
             _external_id=external_id,
             _referentiel=referentiel,
             _millesime=millesime,
+            _gestion_ats=gestion_ats,
+            _date_creation=date_creation,
+            _date_derniere_activite=date_derniere_activite,
         )
 
     @property
@@ -79,6 +89,18 @@ class Organisme(AggregateRoot):
     def millesime(self) -> str | None:
         return self._millesime
 
+    @property
+    def gestion_ats(self) -> bool | None:
+        return self._gestion_ats
+
+    @property
+    def date_creation(self) -> date | None:
+        return self._date_creation
+
+    @property
+    def date_derniere_activite(self) -> date | None:
+        return self._date_derniere_activite
+
     @classmethod
     @factory(OrganismeCree)
     def create(
@@ -91,6 +113,9 @@ class Organisme(AggregateRoot):
         external_id: str | None = None,
         referentiel: str | None = None,
         millesime: str | None = None,
+        gestion_ats: bool | None = False,
+        date_creation: date | None = None,
+        date_derniere_activite: date | None = None,
     ) -> "Organisme":
         return cls(
             _nom=nom,
@@ -101,4 +126,7 @@ class Organisme(AggregateRoot):
             _external_id=external_id,
             _referentiel=referentiel,
             _millesime=millesime,
+            _gestion_ats=gestion_ats,
+            _date_creation=date_creation,
+            _date_derniere_activite=date_derniere_activite,
         )

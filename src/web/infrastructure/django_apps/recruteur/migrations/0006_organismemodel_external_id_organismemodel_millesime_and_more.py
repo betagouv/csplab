@@ -24,4 +24,19 @@ class Migration(migrations.Migration):
             name="millesime",
             field=models.CharField(blank=True, max_length=25, null=True),
         ),
+        migrations.AddField(
+            model_name="organismemodel",
+            name="gestion_ats",
+            field=models.BooleanField(blank=True, default=False, null=True),
+        ),
+        migrations.AddField(
+            model_name="organismemodel",
+            name="date_creation",
+            field=models.DateField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name="organismemodel",
+            name="date_derniere_activite",
+            field=models.DateField(blank=True, null=True),
+        ),
     ]
