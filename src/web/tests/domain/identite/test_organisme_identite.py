@@ -19,6 +19,7 @@ def test_organisme_creation():
         localisation=parent_organisme.localisation,
         siret=SIRET("19754687200015"),
         parent_id=parent_organisme.entity_id,
+        external_id="ext-123",
     )
     assert organisme.nom == "Ecole du Louvre"
     assert organisme.versant == Verse.FPE
