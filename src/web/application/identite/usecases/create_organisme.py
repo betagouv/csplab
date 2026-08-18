@@ -23,9 +23,6 @@ class CreateOrganismeCommand:
     siret: SIRET | None
     parent_id: UUID | None
     est_staff: bool = False
-    external_id: str | None = None
-    referentiel: str | None = None
-    millesime: str | None = None
 
 
 class CreateOrganismeUsecase(IUseCase[CreateOrganismeCommand, Organisme]):
@@ -45,8 +42,5 @@ class CreateOrganismeUsecase(IUseCase[CreateOrganismeCommand, Organisme]):
             localisation=input_data.localisation,
             siret=input_data.siret,
             parent_id=input_data.parent_id,
-            external_id=input_data.external_id,
-            referentiel=input_data.referentiel,
-            millesime=input_data.millesime,
         )
         return self.organisme_repository.create(organisme)
