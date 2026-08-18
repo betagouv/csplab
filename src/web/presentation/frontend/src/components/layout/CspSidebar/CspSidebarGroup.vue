@@ -2,7 +2,7 @@
 import { useSidebar } from '@/composables/ui/useSidebar'
 
 interface CspSidebarGroupProps {
-  label: string
+  label?: string
 }
 
 defineProps<CspSidebarGroupProps>()
@@ -17,7 +17,7 @@ const { isExpanded, isMobile } = useSidebar()
     :aria-label="label"
   >
     <span
-      v-if="isExpanded || isMobile"
+      v-if="label && (isExpanded || isMobile)"
       class="csp-sidebar-group__label"
     >
       {{ label }}
