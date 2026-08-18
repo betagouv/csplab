@@ -9,11 +9,17 @@ import { useOrganismes } from './useOrganismes'
 const mockGetOrganismes = vi.fn()
 const mockCreateOrganisme = vi.fn()
 const mockUpdateOrganisme = vi.fn()
+const mockSearchUtilisateurs = vi.fn()
+const mockAssignGestionnaire = vi.fn()
+const mockCreateCompteGestionnaire = vi.fn()
 
 vi.mock('../api', () => ({
   getOrganismes: (...args: unknown[]) => mockGetOrganismes(...args),
   createOrganisme: (...args: unknown[]) => mockCreateOrganisme(...args),
   updateOrganisme: (...args: unknown[]) => mockUpdateOrganisme(...args),
+  searchUtilisateurs: (...args: unknown[]) => mockSearchUtilisateurs(...args),
+  assignGestionnaire: (...args: unknown[]) => mockAssignGestionnaire(...args),
+  createCompteGestionnaire: (...args: unknown[]) => mockCreateCompteGestionnaire(...args),
 }))
 
 const ORGANISMES: OrganismeAdmin[] = [
@@ -116,6 +122,45 @@ describe('useOrganismes', () => {
       gestion_candidatures: true,
     })
     expect(mockGetOrganismes).toHaveBeenCalledTimes(2)
+  })
+
+  it('assigns a gestionnaire', async () => {
+    const utilisateur = {
+      uuid: 'a1111111-1111-1111-1111-111111111111',
+      prenom: 'Marie',
+      nom: 'Dupont',
+      email: 'marie.dupont@transition-eco.gouv.fr',
+    }
+    mockAssignGestionnaire.mockResolvedValue({
+      ...ORGANISMES[0],
+      gestionnaire: { prenom: utilisateur.prenom, nom: utilisateur.nom },
+    })
+    const { assign } = mountOrganismes()
+    await flush()
+
+    await assign({ uuid: ORGANISMES[0].uuid, utilisateur })
+
+    expect(mockAssignGestionnaire).toHaveBeenCalledWith(ORGANISMES[0].uuid, utilisateur)
+  })
+
+  it('creates a compte gestionnaire', async () => {
+    const payload = {
+      email: 'jean.plat@exemple.gouv.fr',
+      nom: 'Plat',
+      prenom: 'Jean',
+      poste: 'Chargé de recrutement',
+      type: 'gestionnaire' as const,
+    }
+    mockCreateCompteGestionnaire.mockResolvedValue({
+      ...ORGANISMES[0],
+      gestionnaire: { prenom: 'Jean', nom: 'Plat', invitation_en_attente: true },
+    })
+    const { createCompte } = mountOrganismes()
+    await flush()
+
+    await createCompte({ uuid: ORGANISMES[0].uuid, payload })
+
+    expect(mockCreateCompteGestionnaire).toHaveBeenCalledWith(ORGANISMES[0].uuid, payload)
   })
 
   it('propagates creation errors to the caller', async () => {

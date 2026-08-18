@@ -5,6 +5,24 @@ export type Versant = typeof VERSANTS[number]
 export interface OrganismeGestionnaire {
   prenom: string
   nom: string
+  invitation_en_attente?: boolean
+}
+
+export interface UtilisateurRecherche {
+  uuid: string
+  prenom: string
+  nom: string
+  email: string
+}
+
+export type CompteUtilisateurType = 'gestionnaire' | 'agent'
+
+export interface CreateCompteUtilisateurPayload {
+  email: string
+  nom: string
+  prenom: string
+  poste: string
+  type: CompteUtilisateurType
 }
 
 export interface OrganismeAdmin {

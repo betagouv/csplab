@@ -1,25 +1,32 @@
 <script setup lang="ts">
-import type { CreateOrganismePayload } from '../types'
+import type { CreateCompteUtilisateurPayload, CreateOrganismePayload, UtilisateurRecherche } from '../types'
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
+import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
 import { pluralize } from '@/utils/format'
 import { ORGANISMES_COLUMNS } from '../columns'
+import { useGestionnaireAssignation } from '../composables/useGestionnaireAssignation'
 import { useOrganismeEdition } from '../composables/useOrganismeEdition'
 import { useOrganismes } from '../composables/useOrganismes'
+import GestionnaireAssignDrawer from './GestionnaireAssignDrawer.vue'
 import OrganismeFormDrawer from './OrganismeFormDrawer.vue'
 
 const PAGE_SIZE = 8
 
-const { organismes, pending, error, create, creating, update, updating } = useOrganismes()
+const { organismes, pending, error, create, creating, update, updating, assign, assigning, createCompte, creatingCompte } = useOrganismes()
 const { editedOrganisme, closeEdition } = useOrganismeEdition()
+const { assignationOrganisme, closeAssignation } = useGestionnaireAssignation()
 const { addToast } = useToast()
+
+const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
 const drawerOpen = ref(false)
+const assignDrawerOpen = ref(false)
 
 const formDrawer = useTemplateRef('formDrawer')
 
@@ -31,6 +38,16 @@ watch(editedOrganisme, (organisme) => {
 watch(drawerOpen, (isOpen) => {
   if (!isOpen)
     closeEdition()
+})
+
+watch(assignationOrganisme, (organisme) => {
+  if (organisme)
+    assignDrawerOpen.value = true
+})
+
+watch(assignDrawerOpen, (isOpen) => {
+  if (!isOpen)
+    closeAssignation()
 })
 
 const rows = computed(() => organismes.value ?? [])
@@ -59,6 +76,26 @@ async function handleSubmit(payload: CreateOrganismePayload): Promise<void> {
     formDrawer.value?.setSiretConflict(submitError)
   }
 }
+
+async function handleAssign(utilisateur: UtilisateurRecherche): Promise<void> {
+  if (!assignationOrganisme.value)
+    return
+  await assign({ uuid: assignationOrganisme.value.uuid, utilisateur })
+  addToast({ variant: 'success', title: 'Gestionnaire assigné' })
+  assignDrawerOpen.value = false
+}
+
+async function handleCreateCompte(payload: CreateCompteUtilisateurPayload): Promise<void> {
+  if (!assignationOrganisme.value)
+    return
+  await createCompte({ uuid: assignationOrganisme.value.uuid, payload })
+  addToast({
+    variant: 'success',
+    title: 'Compte créé et gestionnaire assigné',
+    description: `Une invitation a été envoyée à ${payload.email}`,
+  })
+  assignDrawerOpen.value = false
+}
 </script>
 
 <template>
@@ -82,7 +119,7 @@ async function handleSubmit(payload: CreateOrganismePayload): Promise<void> {
     </div>
 
     <CspAsyncSection
-      :pending="pending"
+      :pending="showSkeleton"
       :error="error"
       loading-label="Chargement des organismes"
       error-title="Impossible de charger les organismes"
@@ -115,6 +152,14 @@ async function handleSubmit(payload: CreateOrganismePayload): Promise<void> {
       :organisme="editedOrganisme"
       :saving="saving"
       @submit="handleSubmit"
+    />
+
+    <GestionnaireAssignDrawer
+      v-model:open="assignDrawerOpen"
+      :organisme="assignationOrganisme"
+      :saving="assigning || creatingCompte"
+      @assign="handleAssign"
+      @create="handleCreateCompte"
     />
   </section>
 </template>

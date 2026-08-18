@@ -3,6 +3,7 @@ import type { OrganismeAdmin } from '../../types'
 import { computed } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import { useGestionnaireAssignation } from '../../composables/useGestionnaireAssignation'
 
 defineOptions({ inheritAttrs: false })
 
@@ -10,24 +11,42 @@ const props = defineProps<{
   row: OrganismeAdmin
 }>()
 
-const gestionnaireLabel = computed(() => {
-  const g = props.row.gestionnaire
-  return g ? `${g.prenom} ${g.nom}` : null
-})
+const { openAssignation } = useGestionnaireAssignation()
+
+const gestionnaire = computed(() => props.row.gestionnaire)
+
+const gestionnaireLabel = computed(() =>
+  gestionnaire.value ? `${gestionnaire.value.prenom} ${gestionnaire.value.nom}` : null,
+)
 </script>
 
 <template>
-  <CspBadge
+  <span
     v-if="gestionnaireLabel"
-    variant="soft"
-    size="sm"
-    :label="gestionnaireLabel"
-  />
+    class="gestionnaire-cell"
+  >
+    {{ gestionnaireLabel }}
+    <CspBadge
+      v-if="gestionnaire?.invitation_en_attente"
+      variant="soft"
+      size="sm"
+      type="new"
+      label="Invitation en attente"
+    />
+  </span>
   <CspButton
     v-else
     variant="secondary"
     size="sm"
     label="Assigner un gestionnaire"
-    disabled
+    @click="openAssignation(props.row)"
   />
 </template>
+
+<style scoped lang="scss">
+.gestionnaire-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--csp-space-2);
+}
+</style>
