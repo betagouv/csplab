@@ -1,6 +1,12 @@
-import type { OrganismeAdmin } from './types'
+import type { CreateOrganismePayload, OrganismeAdmin } from './types'
 
 // In-memory implementation until the organisme admin endpoints land (#1145-#1147).
+
+export class SiretConflictError extends Error {
+  constructor() {
+    super('Ce SIRET est déjà utilisé par un autre organisme')
+  }
+}
 
 const FIXTURE_ORGANISMES: OrganismeAdmin[] = [
   {
@@ -37,7 +43,7 @@ const FIXTURE_ORGANISMES: OrganismeAdmin[] = [
   },
 ]
 
-const organismes = [...FIXTURE_ORGANISMES]
+let organismes = [...FIXTURE_ORGANISMES]
 
 function delay(ms = 300): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -46,4 +52,18 @@ function delay(ms = 300): Promise<void> {
 export async function getOrganismes(): Promise<OrganismeAdmin[]> {
   await delay()
   return [...organismes]
+}
+
+export async function createOrganisme(payload: CreateOrganismePayload): Promise<OrganismeAdmin> {
+  await delay()
+  if (organismes.some(o => o.siret === payload.siret)) {
+    throw new SiretConflictError()
+  }
+  const organisme: OrganismeAdmin = {
+    uuid: crypto.randomUUID(),
+    ...payload,
+    gestionnaire: null,
+  }
+  organismes = [...organismes, organisme]
+  return organisme
 }

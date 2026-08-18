@@ -15,3 +15,10 @@ export interface OrganismeAdmin {
   gestion_candidatures: boolean
   gestionnaire: OrganismeGestionnaire | null
 }
+
+export interface CreateOrganismePayload {
+  nom: string
+  siret: string
+  versant: Versant
+  gestion_candidatures: boolean
+}

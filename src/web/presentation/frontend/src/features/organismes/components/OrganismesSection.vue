@@ -1,17 +1,25 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import type { CreateOrganismePayload } from '../types'
+import { computed, ref, useTemplateRef } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
+import { useToast } from '@/composables/ui/useToast'
 import { pluralize } from '@/utils/format'
 import { ORGANISMES_COLUMNS } from '../columns'
 import { useOrganismes } from '../composables/useOrganismes'
+import OrganismeFormDrawer from './OrganismeFormDrawer.vue'
 
 const PAGE_SIZE = 8
 
-const { organismes, pending, error } = useOrganismes()
+const { organismes, pending, error, create, creating } = useOrganismes()
+const { addToast } = useToast()
 
 const page = ref(1)
+const drawerOpen = ref(false)
+
+const formDrawer = useTemplateRef('formDrawer')
 
 const rows = computed(() => organismes.value ?? [])
 
@@ -19,6 +27,17 @@ const countLabel = computed(() => {
   const count = rows.value.length
   return `${count} ${pluralize(count, 'organisme')}`
 })
+
+async function handleSubmit(payload: CreateOrganismePayload): Promise<void> {
+  try {
+    await create(payload)
+    addToast({ variant: 'success', title: 'Organisme créé' })
+    drawerOpen.value = false
+  }
+  catch (submitError) {
+    formDrawer.value?.setSiretConflict(submitError)
+  }
+}
 </script>
 
 <template>
@@ -33,6 +52,12 @@ const countLabel = computed(() => {
           dispose de ses propres utilisateurs, offres et paramètres.
         </p>
       </div>
+      <CspButton
+        label="Ajouter un organisme"
+        icon="ri:add-line"
+        is-icon-left
+        @click="drawerOpen = true"
+      />
     </div>
 
     <CspAsyncSection
@@ -62,6 +87,13 @@ const countLabel = computed(() => {
         :page-size="PAGE_SIZE"
       />
     </CspAsyncSection>
+
+    <OrganismeFormDrawer
+      ref="formDrawer"
+      v-model:open="drawerOpen"
+      :saving="creating"
+      @submit="handleSubmit"
+    />
   </section>
 </template>
 
