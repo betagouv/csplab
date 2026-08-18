@@ -9,8 +9,8 @@ import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContai
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
-import ComptesUtilisateursSection from '@/features/organismes/components/ComptesUtilisateursSection.vue'
-import { organismesQuery } from '@/features/organismes/queries'
+import ComptesUtilisateursSection from '../components/ComptesUtilisateursSection.vue'
+import { organismesQuery } from '../queries'
 
 const route = useRoute()
 const organismeUuid = computed(() => String(route.params.organismeUuid))
