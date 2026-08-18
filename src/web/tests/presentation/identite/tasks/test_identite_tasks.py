@@ -12,9 +12,7 @@ from presentation.identite.tasks import (
 
 @pytest.fixture
 def mock_container():
-    with patch(
-        "presentation.identite.tasks.create_identite_container"
-    ) as mock_factory:
+    with patch("presentation.identite.tasks.create_identite_container") as mock_factory:
         mock_container = MagicMock()
         mock_factory.return_value = mock_container
         yield mock_container
