@@ -252,8 +252,8 @@ def test_get_method_not_allowed(authenticated_client):
 @pytest.mark.parametrize(
     "num_offers,expected_msg",
     [
-        (101, "Ensure this field has no more than 100 elements."),
-        (0, "Ensure this field has at least 1 elements."),
+        (101, "Assurez-vous que ce champ n'a pas plus de 100 éléments."),
+        (0, "Assurez-vous que ce champ a au moins 1 éléments."),
     ],
 )
 def test_invalid_payload_returns_error_400(
