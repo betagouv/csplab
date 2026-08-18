@@ -169,6 +169,13 @@ jobs:
       - name: Install Playwright OS dependencies
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: uv run playwright install-deps chromium
+      - uses: ./.github/actions/setup-pnpm-node
+        with:
+          lock-file-path: src/web/pnpm-lock.yaml
+      - name: Build frontend for e2e
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
       - name: Test Web suite with coverage
         run: uv run pytest -m "e2e" .
 
