@@ -14,6 +14,11 @@ const appRoutes: RouteRecordRaw[] = [
     name: 'parametres',
     component: () => import('@/views/ParametresView.vue'),
   },
+  {
+    path: '/parametres/organismes/:organismeUuid',
+    name: 'parametres-organisme',
+    component: () => import('@/views/OrganismeParametresView.vue'),
+  },
 ]
 
 const notFoundRoute: RouteRecordRaw = {
