@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CreateCompteUtilisateurPayload, OrganismeAdmin, UtilisateurRecherche } from '../types'
+import type { CreateCompteUtilisateurPayload, OrganismeAdmin, UtilisateurSearchResult } from '../types'
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCombobox from '@/components/base/CspCombobox/CspCombobox.vue'
@@ -14,16 +14,16 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  assign: [utilisateur: UtilisateurRecherche]
+  assign: [utilisateur: UtilisateurSearchResult]
   create: [payload: CreateCompteUtilisateurPayload]
 }>()
 
 const open = defineModel<boolean>('open', { required: true })
 
-const step = ref<'recherche' | 'creation'>('recherche')
+const step = ref<'search' | 'creation'>('search')
 const searchTerm = ref('')
 const selected = ref<string | null>(null)
-const results = ref<UtilisateurRecherche[]>([])
+const results = ref<UtilisateurSearchResult[]>([])
 const searching = ref(false)
 
 const stepTitle = useTemplateRef('stepTitle')
@@ -31,7 +31,7 @@ const stepTitle = useTemplateRef('stepTitle')
 watch(open, (isOpen) => {
   if (!isOpen)
     return
-  step.value = 'recherche'
+  step.value = 'search'
   searchTerm.value = ''
   selected.value = null
   results.value = []
@@ -90,8 +90,8 @@ async function goToCreation(): Promise<void> {
   stepTitle.value?.focus()
 }
 
-function backToRecherche(): void {
-  step.value = 'recherche'
+function backToSearch(): void {
+  step.value = 'search'
   selected.value = null
 }
 </script>
@@ -104,7 +104,7 @@ function backToRecherche(): void {
     size="md"
   >
     <div
-      v-if="step === 'recherche'"
+      v-if="step === 'search'"
       class="gestionnaire-assign"
     >
       <CspCombobox
@@ -132,7 +132,7 @@ function backToRecherche(): void {
           size="sm"
           icon="ri:arrow-left-line"
           aria-label="Retour à la recherche"
-          @click="backToRecherche"
+          @click="backToSearch"
         />
         <h3
           ref="stepTitle"
@@ -149,7 +149,7 @@ function backToRecherche(): void {
         submit-label="Créer le compte et l'assigner"
         :saving="saving"
         @submit="payload => emit('create', payload)"
-        @cancel="backToRecherche"
+        @cancel="backToSearch"
       />
     </div>
   </CspDrawer>

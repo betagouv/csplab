@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CreateCompteUtilisateurPayload, CreateOrganismePayload, UtilisateurRecherche } from '../types'
+import type { CreateCompteUtilisateurPayload, CreateOrganismePayload, UtilisateurSearchResult } from '../types'
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -77,7 +77,7 @@ async function handleSubmit(payload: CreateOrganismePayload): Promise<void> {
   }
 }
 
-async function handleAssign(utilisateur: UtilisateurRecherche): Promise<void> {
+async function handleAssign(utilisateur: UtilisateurSearchResult): Promise<void> {
   if (!assignationOrganisme.value)
     return
   await assign({ uuid: assignationOrganisme.value.uuid, utilisateur })

@@ -8,7 +8,7 @@ export interface OrganismeGestionnaire {
   invitation_en_attente?: boolean
 }
 
-export interface UtilisateurRecherche {
+export interface UtilisateurSearchResult {
   uuid: string
   prenom: string
   nom: string
@@ -45,4 +45,16 @@ export interface UpdateOrganismePayload {
   nom: string
   versant: Versant
   gestion_candidatures: boolean
+}
+
+export interface CompteUtilisateur {
+  uuid: string
+  prenom: string
+  nom: string
+  email: string
+  type: CompteUtilisateurType
+  poste: string
+  derniere_activite: string | null
+  creation_compte: string
+  invitation_en_attente: boolean
 }

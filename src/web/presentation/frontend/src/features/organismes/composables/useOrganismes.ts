@@ -1,4 +1,4 @@
-import type { CreateCompteUtilisateurPayload, CreateOrganismePayload, UpdateOrganismePayload, UtilisateurRecherche } from '../types'
+import type { CreateCompteUtilisateurPayload, CreateOrganismePayload, UpdateOrganismePayload, UtilisateurSearchResult } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { assignGestionnaire, createCompteGestionnaire, createOrganisme, updateOrganisme } from '../api'
 import { ORGANISMES_QUERY_KEYS, organismesQuery } from '../queries'
@@ -23,7 +23,7 @@ export function useOrganismes() {
   })
 
   const assignMutation = useMutation({
-    mutation: ({ uuid, utilisateur }: { uuid: string, utilisateur: UtilisateurRecherche }) =>
+    mutation: ({ uuid, utilisateur }: { uuid: string, utilisateur: UtilisateurSearchResult }) =>
       assignGestionnaire(uuid, utilisateur),
     onSettled: invalidate,
   })
