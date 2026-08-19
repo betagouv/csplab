@@ -201,7 +201,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 date_derniere_activite=candidature.updated_by_recruteur
                 or candidature.updated_at,
                 candidat=CandidatDto(
-                    uuid=UUID(candidature.candidat_id),
+                    uuid=candidature.candidat_id,
                     nom=candidature.candidat.utilisateur.last_name,
                     prenom=candidature.candidat.utilisateur.first_name,
                 ),
@@ -315,7 +315,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                             date_derniere_activite=candidature.updated_by_recruteur
                             or candidature.updated_at,
                             candidat=CandidatDto(
-                                uuid=UUID(candidature.candidat_id),
+                                uuid=candidature.candidat_id,
                                 nom=candidature.candidat.utilisateur.last_name,
                                 prenom=candidature.candidat.utilisateur.first_name,
                             ),
