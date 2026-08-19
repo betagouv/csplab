@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from ddd.mapper_interface import IFromDomainMapper, IToDomainMapper
 
 from domain.recruteur.entities.note import Note
@@ -12,7 +10,7 @@ class NoteMapper(IFromDomainMapper, IToDomainMapper):
             entity_id=model.id,
             candidature_id=model.candidature_id,
             message=model.message,
-            publie_par_id=UUID(model.publie_par_id),  # type: ignore[arg-type]
+            publie_par_id=model.publie_par_id,
         )
 
     def from_domain(self, note: Note) -> NoteModel:
@@ -21,5 +19,5 @@ class NoteMapper(IFromDomainMapper, IToDomainMapper):
             id=note.entity_id,
             candidature_id=note.candidature_id,
             message=note.message,
-            publie_par_id=str(note.publie_par_id),
+            publie_par_id=note.publie_par_id,
         )

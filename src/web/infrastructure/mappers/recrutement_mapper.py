@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from ddd.mapper_interface import IFromDomainMapper, IToDomainMapper
 
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
@@ -22,7 +20,7 @@ class RecrutementMapper(IFromDomainMapper, IToDomainMapper):
             for e in model.etapes.all()  # type: ignore[attr-defined]
         )
         agents = tuple(
-            UUID(str(liaison.agent_id))
+            liaison.agent_id
             for liaison in model.agents_liaisons.all()  # type: ignore[attr-defined]
         )
         return Recrutement.build(
