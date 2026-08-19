@@ -78,7 +78,7 @@ class TestChangerEtapeCandidaturesUsecase:
         role_recrutement,
     ):
         agent, organisme = OrganismeFactory.create_model_with_agent(role=role_organisme)
-        agent_id = UUID(agent.utilisateur_id)
+        agent_id = agent.utilisateur_id
         recrutement = RecrutementFactory.create_model(
             organisme_id=organisme.id, agent_id=agent_id, agent_role=role_recrutement
         )
@@ -110,7 +110,7 @@ class TestChangerEtapeCandidaturesUsecase:
         agent, organisme = OrganismeFactory.create_model_with_agent(
             role=AgentOrganismeRole.MEMBRE
         )
-        agent_id = UUID(agent.utilisateur_id)
+        agent_id = agent.utilisateur_id
         recrutement = RecrutementFactory.create_model(
             organisme_id=organisme.id,
             agent_id=agent_id,

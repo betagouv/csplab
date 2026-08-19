@@ -46,7 +46,7 @@ class TestGetRecrutementListeRbac:
     )
     def test_authorized(self, usecase, role, assign_agent_to_recrutement):
         agent, organisme = OrganismeFactory.create_model_with_agent(role=role)
-        agent_id = UUID(agent.utilisateur_id) if assign_agent_to_recrutement else None
+        agent_id = agent.utilisateur_id if assign_agent_to_recrutement else None
         recrutement = RecrutementFactory.create_model(
             organisme_id=organisme.id, agent_id=agent_id
         )
@@ -71,7 +71,7 @@ class TestGetRecrutementListeRbac:
         items = list(result.slice(0, 10))
         item = items[0]
         assert item.uuid == UUID(str(candidature.id))
-        assert item.candidat.uuid == UUID(str(candidature.candidat_id))
+        assert item.candidat.uuid == candidature.candidat_id
         assert item.etape.etape_uuid == etape_entree.id
         assert item.etape.categorie == "ENTREE"
 

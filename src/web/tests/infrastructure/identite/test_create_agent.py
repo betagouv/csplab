@@ -49,7 +49,7 @@ def test_create_agent_with_existing_user(identite_integration_container):
 
     result = identite_integration_container.create_agent_usecase().execute(input_data)
 
-    assert str(result.entity_id) == existing_user.username
+    assert result.entity_id == existing_user.username
 
 
 def test_cannot_create_agent_twice(identite_integration_container):

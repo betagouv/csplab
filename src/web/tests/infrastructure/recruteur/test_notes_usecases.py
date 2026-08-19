@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 from faker import Faker
@@ -117,7 +117,7 @@ class TestEditerNote:
             command=EditerNoteCommand(
                 note_id=note_model.id,
                 message=nouveau_message,
-                mis_a_jour_par_id=UUID(note_model.publie_par_id),
+                mis_a_jour_par_id=note_model.publie_par_id,
             )
         )
 
@@ -168,7 +168,7 @@ class TestEditerNote:
                 command=EditerNoteCommand(
                     note_id=note_model.id,
                     message=fake.sentence(),
-                    mis_a_jour_par_id=UUID(note_model.publie_par_id),
+                    mis_a_jour_par_id=note_model.publie_par_id,
                 )
             )
 
@@ -181,7 +181,7 @@ class TestSupprimerNote:
         usecase.execute(
             command=SupprimerNoteCommand(
                 note_id=note_model.id,
-                supprime_par_id=UUID(note_model.publie_par_id),
+                supprime_par_id=note_model.publie_par_id,
             )
         )
 
@@ -230,7 +230,7 @@ class TestSupprimerNote:
             usecase.execute(
                 command=SupprimerNoteCommand(
                     note_id=note_model.id,
-                    supprime_par_id=UUID(note_model.publie_par_id),
+                    supprime_par_id=note_model.publie_par_id,
                 )
             )
 
