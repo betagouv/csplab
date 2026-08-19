@@ -11,8 +11,7 @@ from domain.identite.errors.organisme_errors import (
     SiretInvalide,
 )
 from domain.identite.errors.organisme_permission_errors import (
-    ConsultationOrganismesRefusee,
-    CreationOrganismeRefusee,
+    OperationOrganismeRefusee,
 )
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.seed_recruteur_datas import _ORGANISME_UUID
@@ -61,9 +60,9 @@ class TestOrganismesView:
         ("exception", "expected_status", "expected_body"),
         [
             (
-                ConsultationOrganismesRefusee(),
+                OperationOrganismeRefusee(),
                 status.HTTP_403_FORBIDDEN,
-                {"error": ConsultationOrganismesRefusee().message},
+                {"error": OperationOrganismeRefusee().message},
             ),
             (
                 Exception("unexpected"),
@@ -124,9 +123,9 @@ class TestOrganismesView:
                 {"error": SiretInvalide(siret).message},
             ),
             (
-                CreationOrganismeRefusee(),
+                OperationOrganismeRefusee(),
                 status.HTTP_403_FORBIDDEN,
-                {"error": CreationOrganismeRefusee().message},
+                {"error": OperationOrganismeRefusee().message},
             ),
             (
                 Exception("unexpected"),
