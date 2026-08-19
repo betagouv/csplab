@@ -19,3 +19,14 @@ def test_siret_too_short_raises():
 def test_siret_non_numeric_raises():
     with pytest.raises(ValidationError):
         SIRET(code="2606004730034A")
+
+
+def test_siret_invalid_luhn_checksum_raises():
+    with pytest.raises(ValidationError):
+        SIRET(code="26060047300341")
+
+
+def test_la_poste_siret_bypasses_luhn_checksum():
+    siret = SIRET(code="35600000000001")
+
+    assert siret.code == "35600000000001"
