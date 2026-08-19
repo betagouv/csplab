@@ -1,26 +1,14 @@
-import os
 from pathlib import Path
 
 import pytest
 from django.conf import settings as django_settings
-from django.db import connections
 from django.test import Client
 from playwright.sync_api import BrowserContext, Page
 
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.factories.seed_recruteur_datas import seed_recruteur_datas
 
-os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
-
 SEED_AGENT_EMAIL = "marie.dupont@transition-eco.gouv.fr"
-
-
-@pytest.fixture(autouse=True)
-def close_worker_thread_connections():
-    # Override the async version from shared_fixtures to avoid event loop
-    # conflicts with Playwright, which manages its own event loop.
-    yield
-    connections.close_all()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -31,14 +19,6 @@ def require_frontend_build() -> None:
             "Frontend build missing: the ATS e2e tests serve the built SPA. "
             "Run `make frontend-build` first."
         )
-
-
-@pytest.fixture(scope="session")
-def browser_context_args(browser_context_args: dict) -> dict:
-    return {
-        **browser_context_args,
-        "locale": "fr-FR",
-    }
 
 
 @pytest.fixture(autouse=True)
