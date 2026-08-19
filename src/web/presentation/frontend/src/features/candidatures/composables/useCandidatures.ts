@@ -1,10 +1,12 @@
-import type { Candidature } from '../types'
+import type { Candidature, RecrutementDetailKanban } from '../types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 import { defineQuery, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useToast } from '@/composables/ui/useToast'
 import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
+import { patchEtapeCandidatures } from '../api'
 import { candidatureListeQuery, recrutementKanbanQuery } from '../queries'
 import { useCandidaturesFilters } from './useCandidaturesFilters'
 
@@ -82,6 +84,46 @@ export const useCandidatures = defineQuery(() => {
     candidatureKanban.value.reduce((sum, etape) => sum + etape.candidatures.length, 0),
   )
 
+  const { addToast } = useToast()
+
+  function kanbanQueryKey() {
+    return recrutementKanbanQuery({
+      organismeUuid: TEMP_ORGANISME_UUID,
+      recrutementUuid: recrutementUuid.value!,
+    }).key
+  }
+
+  async function persistEtapeChange(
+    targetColumnId: string,
+    candidatureUuids: string[],
+    previousData: RecrutementDetailKanban,
+  ): Promise<void> {
+    const key = kanbanQueryKey()
+    try {
+      const resultat = await patchEtapeCandidatures(
+        TEMP_ORGANISME_UUID,
+        recrutementUuid.value!,
+        targetColumnId,
+        candidatureUuids,
+      )
+      if (resultat.echecs.length > 0) {
+        await queryCache.invalidateQueries({ key })
+        addToast({
+          variant: 'warning',
+          title: 'Certaines candidatures n\'ont pas changé d\'étape',
+        })
+      }
+    }
+    catch {
+      queryCache.setQueryData(key, previousData)
+      addToast({
+        variant: 'error',
+        title: 'Le changement d\'étape a échoué',
+        description: 'Vos candidatures sont restées à leur étape actuelle.',
+      })
+    }
+  }
+
   function moveCandidature(params: MoveCandidatureParams): void {
     const { sourceColumnId, targetColumnId, cardId } = params
 
@@ -120,11 +162,8 @@ export const useCandidatures = defineQuery(() => {
       return etape
     })
 
-    const { key } = recrutementKanbanQuery({
-      organismeUuid: TEMP_ORGANISME_UUID,
-      recrutementUuid: recrutementUuid.value!,
-    })
-    queryCache.setQueryData(key, { ...kanbanData, etapes: newEtapes })
+    queryCache.setQueryData(kanbanQueryKey(), { ...kanbanData, etapes: newEtapes })
+    void persistEtapeChange(targetColumnId, [cardId], kanbanData)
   }
 
   function moveCandidaturesBatch(params: MoveCandidaturesBatchParams): void {
@@ -179,11 +218,12 @@ export const useCandidatures = defineQuery(() => {
       return etape
     })
 
-    const { key } = recrutementKanbanQuery({
-      organismeUuid: TEMP_ORGANISME_UUID,
-      recrutementUuid: recrutementUuid.value!,
-    })
-    queryCache.setQueryData(key, { ...kanbanData, etapes: newEtapes })
+    queryCache.setQueryData(kanbanQueryKey(), { ...kanbanData, etapes: newEtapes })
+    void persistEtapeChange(
+      targetColumnId,
+      candidaturesToMove.map(c => c.uuid),
+      kanbanData,
+    )
   }
 
   const filters = useCandidaturesFilters({
