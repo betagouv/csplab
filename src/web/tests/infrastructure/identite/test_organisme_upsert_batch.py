@@ -35,7 +35,11 @@ def test_upsert_batch_creates_new_organismes(db, repository):
 
     result = repository.upsert_batch([organisme])
 
-    assert result == {"created": 1, "updated": 0, "errors": []}
+    assert result["created"] == 1
+    assert result["updated"] == 0
+    assert result["errors"] == []
+    assert result["created_organismes"] == [organisme]
+    assert result["updated_organismes"] == []
     model = OrganismeModel.objects.get(siret="77220148900022")
     assert model.nom == "Clinique du Docteur Convert"
     assert model.referentiel == "FINESS"
@@ -50,7 +54,7 @@ def test_upsert_batch_updates_existing_organisme_by_siret(db, repository):
         external_id="010780195",
         referentiel="FINESS",
         millesime="2026-08-17",
-        gestion_ats=False,
+        gestion_ats=True,
     )
     existing_model.parent_id = parent_id
     existing_model.save()
@@ -65,17 +69,22 @@ def test_upsert_batch_updates_existing_organisme_by_siret(db, repository):
         external_id="010780195",
         referentiel="FINESS",
         millesime="2026-08-18",
-        gestion_ats=True,
+        gestion_ats=False,
     )
 
     result = repository.upsert_batch([updated_organisme])
 
-    assert result == {"created": 0, "updated": 1, "errors": []}
+    assert result["created"] == 0
+    assert result["updated"] == 1
+    assert result["errors"] == []
+    assert result["created_organismes"] == []
+    assert result["updated_organismes"] == [updated_organisme]
     model = OrganismeModel.objects.get(siret="77220148900022")
     assert model.id == existing_model.id
     assert model.nom == "Nouveau nom"
     assert model.millesime == "2026-08-18"
-    # gestion_ats is (re)asserted by the import.
+    # gestion_ats is only set on creation: a re-import must not un-onboard
+    # an organisme that started managing its HR through the ATS since.
     assert model.gestion_ats is True
     # parent_id is managed manually and never touched by the import.
     assert model.parent_id == parent_id

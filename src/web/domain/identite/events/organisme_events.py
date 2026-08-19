@@ -22,3 +22,18 @@ class OrganismeCree(DomainEvent):
     gestion_ats: bool | None = False
     date_creation: date | None = None
     date_derniere_activite: date | None = None
+
+
+@dataclass(frozen=True)
+class OrganismeModifie(DomainEvent):
+    nom: str
+    versant: Verse
+    localisation: Localisation | None
+    siret: SIRET | None
+    parent_id: UUID | None
+    external_id: str | None = None
+    referentiel: str | None = None
+    millesime: str | None = None
+    gestion_ats: bool | None = False
+    date_creation: date | None = None
+    date_derniere_activite: date | None = None

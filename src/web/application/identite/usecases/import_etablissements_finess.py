@@ -1,88 +1,66 @@
-from uuid import uuid4
-
+from ddd.domain_event import DomainEvent
 from ddd.services.logger_interface import ILogger
+from ddd.unit_of_work import IUnitOfWork
 from ddd.usecase_interface import IUseCase
-from pydantic import ValidationError
 from referentiel.types import IUpsertResult
-from referentiel.value_objects.country import Country
-from referentiel.value_objects.departement_region import (
-    region_et_zone_pour_departement,
-)
-from referentiel.value_objects.department import Department
-from referentiel.value_objects.localisation import Localisation
-from referentiel.value_objects.verse import Verse
 
+from domain.commons.constants import SYSTEM_UTILISATEUR_ID
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.organisme import Organisme
-from domain.identite.gateways.finess_gateway_interface import (
-    FinessEtablissement,
-    IFinessGateway,
-)
+from domain.identite.errors.organisme_errors import EtablissementInvalideError
+from domain.identite.events.organisme_events import OrganismeCree, OrganismeModifie
+from domain.identite.gateways.organisme_gateway_interface import IOrganismeGateway
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
+    IOrganismeUpsertResult,
 )
-from domain.identite.value_objects.siret import SIRET
 
-REFERENTIEL_FINESS = "FINESS"
 BATCH_SIZE = 500
-
-
-def _build_localisation(etablissement: FinessEtablissement) -> Localisation | None:
-    if etablissement.departement is None:
-        return None
-
-    try:
-        department = Department(code=etablissement.departement)
-    except ValidationError:
-        return None
-
-    region_et_zone = region_et_zone_pour_departement(department)
-    if region_et_zone is None:
-        return None
-
-    return Localisation(
-        area=region_et_zone.area,
-        country=Country("FRA"),
-        region=region_et_zone.region,
-        department=department,
-        latitude=etablissement.latitude,
-        longitude=etablissement.longitude,
-    )
 
 
 class ImportEtablissementsFinessUsecase(IUseCase[None, IUpsertResult]):
     def __init__(
         self,
-        finess_gateway: IFinessGateway,
+        organisme_gateway: IOrganismeGateway,
         organisme_repository: IOrganismeRepository,
         logger: ILogger,
+        unit_of_work: IUnitOfWork,
+        audit_log_writer: AuditLogWriter,
     ):
-        self.finess_gateway = finess_gateway
+        self.organisme_gateway = organisme_gateway
         self.organisme_repository = organisme_repository
         self.logger = logger
+        self.unit_of_work = unit_of_work
+        self.audit_log_writer = audit_log_writer
 
     def execute(self, input_data: None = None) -> IUpsertResult:
-        resource = self.finess_gateway.find_latest_journalier()
-        millesime = resource.millesime.isoformat()
+        resource = self.organisme_gateway.find_latest_resource()
         self.logger.info(
-            "Import FINESS: fichier %s (millésime %s)", resource.url, millesime
+            "Import FINESS: fichier %s (millésime %s)",
+            resource.url,
+            resource.millesime.isoformat(),
         )
 
         result: IUpsertResult = {"created": 0, "updated": 0, "errors": []}
         batch: list[Organisme] = []
 
-        for etablissement in self.finess_gateway.stream_etablissements(resource.url):
+        organismes = self.organisme_gateway.stream_organismes(resource)
+        while True:
             try:
-                batch.append(self._to_organisme(etablissement, millesime))
-            except Exception as e:  # invalid SIRET, etc.
+                organisme = next(organismes)
+            except StopIteration:
+                break
+            except EtablissementInvalideError as e:
                 result["errors"].append(
                     {
-                        "entity_id": etablissement.external_id,
+                        "entity_id": e.external_id,
                         "error": str(e),
                         "exception": e,
                     }
                 )
                 continue
 
+            batch.append(organisme)
             if len(batch) >= BATCH_SIZE:
                 self._flush(batch, result)
                 batch = []
@@ -93,22 +71,40 @@ class ImportEtablissementsFinessUsecase(IUseCase[None, IUpsertResult]):
         return result
 
     def _flush(self, batch: list[Organisme], result: IUpsertResult) -> None:
-        batch_result = self.organisme_repository.upsert_batch(batch)
+        with self.unit_of_work.atomic():
+            batch_result: IOrganismeUpsertResult = (
+                self.organisme_repository.upsert_batch(batch)
+            )
         result["created"] += batch_result["created"]
         result["updated"] += batch_result["updated"]
         result["errors"].extend(batch_result["errors"])
+        self._log_events(batch_result)
 
-    @staticmethod
-    def _to_organisme(etablissement: FinessEtablissement, millesime: str) -> Organisme:
-        return Organisme.build(
-            entity_id=uuid4(),
-            nom=etablissement.nom,
-            versant=Verse.FPH,
-            localisation=_build_localisation(etablissement),
-            siret=SIRET(etablissement.siret),
-            parent_id=None,
-            external_id=etablissement.external_id,
-            referentiel=REFERENTIEL_FINESS,
-            millesime=millesime,
-            gestion_ats=True,
+    def _log_events(self, batch_result: IOrganismeUpsertResult) -> None:
+        for organisme in batch_result["created_organismes"]:
+            self._drain_event(organisme, OrganismeCree)
+        for organisme in batch_result["updated_organismes"]:
+            self._drain_event(organisme, OrganismeModifie)
+
+    def _drain_event(self, organisme: Organisme, event_type: type[DomainEvent]) -> None:
+        organisme.add_event(
+            event_type(
+                aggregate_id=organisme.entity_id,
+                aggregate=Organisme.__name__,
+                event_name=event_type.__name__,
+                nom=organisme.nom,
+                versant=organisme.versant,
+                localisation=organisme.localisation,
+                siret=organisme.siret,
+                parent_id=organisme.parent_id,
+                external_id=organisme.external_id,
+                referentiel=organisme.referentiel,
+                millesime=organisme.millesime,
+                gestion_ats=organisme.gestion_ats,
+                date_creation=organisme.date_creation,
+                date_derniere_activite=organisme.date_derniere_activite,
+            )
+        )
+        self.audit_log_writer.drain_events(
+            utilisateur_id=SYSTEM_UTILISATEUR_ID, aggregate=organisme
         )

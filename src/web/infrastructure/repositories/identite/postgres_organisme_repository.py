@@ -4,12 +4,15 @@ from uuid import UUID
 
 from django.db import transaction
 from django.utils import timezone
-from referentiel.types import IUpsertResult
+from referentiel.types import IUpsertError
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.entities.organisme import Organisme
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository as IOrganismeIdentiteRepository,
+)
+from domain.identite.repositories.organisme_repository_interface import (
+    IOrganismeUpsertResult,
 )
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
@@ -17,7 +20,9 @@ from infrastructure.exceptions.exceptions import DatabaseError
 from infrastructure.mappers.organisme_identite_mapper import OrganismeIdentiteMapper
 
 # Fields sourced from external referentials (e.g. FINESS): overwritten on
-# upsert. parent_id is managed manually and never touched.
+# upsert. parent_id is managed manually and never touched. gestion_ats is
+# only set on creation: re-imports must not un-onboard an organisme that
+# started managing its HR through the ATS in the meantime.
 _UPSERT_UPDATE_FIELDS = [
     "nom",
     "versant",
@@ -26,7 +31,6 @@ _UPSERT_UPDATE_FIELDS = [
     "referentiel",
     "millesime",
     "date_creation",
-    "gestion_ats",
     "updated_at",
 ]
 
@@ -54,7 +58,7 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
             raise OrganismeNexistePas(siret.value) from e
         return self._mapper_identite.to_domain(model)
 
-    def upsert_batch(self, organismes: List[Organisme]) -> IUpsertResult:
+    def upsert_batch(self, organismes: List[Organisme]) -> IOrganismeUpsertResult:
         try:
             with transaction.atomic():
                 existing_models = list(
@@ -99,7 +103,15 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
                         models_to_update, fields=_UPSERT_UPDATE_FIELDS
                     )
 
-            return {"created": created, "updated": updated, "errors": []}
+            errors: List[IUpsertError] = []
+            result: IOrganismeUpsertResult = {
+                "created": created,
+                "updated": updated,
+                "errors": errors,
+                "created_organismes": partitioned["new"],
+                "updated_organismes": partitioned["existing"],
+            }
+            return result
 
         except Exception as e:
             raise DatabaseError(

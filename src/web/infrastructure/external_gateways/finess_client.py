@@ -6,17 +6,20 @@ from typing import TYPE_CHECKING, Iterator
 
 import httpx
 import ijson
+from ddd.mapper_interface import IToDomainMapper
 from ddd.services.logger_interface import ILogger
+from referentiel.value_objects.department import Department
 
 if TYPE_CHECKING:
     from _typeshed import WriteableBuffer
 
-from domain.identite.gateways.finess_gateway_interface import (
-    FinessEtablissement,
-    FinessResource,
-    IFinessGateway,
+from domain.identite.entities.organisme import Organisme
+from domain.identite.gateways.organisme_gateway_interface import (
+    IOrganismeGateway,
+    OrganismeImportResource,
 )
 from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.external_gateways.dtos.finess_dtos import EtablissementDTO
 
 DATASET_API_URL = "https://www.data.gouv.fr/api/1/datasets/finess-structures-1/"
 JOURNALIER_TITLE_PATTERN = re.compile(
@@ -51,12 +54,18 @@ class _ChunkedBinaryStream(io.RawIOBase):
         return len(chunk)
 
 
-class FinessClient(IFinessGateway):
-    def __init__(self, logger: ILogger, timeout: int = 300):
+class FinessClient(IOrganismeGateway):
+    def __init__(
+        self,
+        logger: ILogger,
+        organisme_mapper: IToDomainMapper[EtablissementDTO, Organisme],
+        timeout: int = 300,
+    ):
         self.logger = logger
+        self.organisme_mapper = organisme_mapper
         self.timeout = timeout
 
-    def find_latest_journalier(self) -> FinessResource:
+    def find_latest_resource(self) -> OrganismeImportResource:
         try:
             response = httpx.get(DATASET_API_URL, timeout=30)
             response.raise_for_status()
@@ -72,7 +81,7 @@ class FinessClient(IFinessGateway):
             if match and resource.get("url"):
                 millesime = datetime.strptime(match.group(1), "%Y%m%d").date()
                 candidates.append(
-                    FinessResource(url=resource["url"], millesime=millesime)
+                    OrganismeImportResource(url=resource["url"], millesime=millesime)
                 )
 
         if not candidates:
@@ -83,10 +92,13 @@ class FinessClient(IFinessGateway):
 
         return max(candidates, key=lambda candidate: candidate.millesime)
 
-    def stream_etablissements(self, url: str) -> Iterator[FinessEtablissement]:
+    def stream_organismes(
+        self, resource: OrganismeImportResource
+    ) -> Iterator[Organisme]:
+        millesime = resource.millesime.isoformat()
         try:
             with httpx.stream(
-                "GET", url, timeout=self.timeout, follow_redirects=True
+                "GET", resource.url, timeout=self.timeout, follow_redirects=True
             ) as response:
                 response.raise_for_status()
                 binary_stream = io.BufferedReader(
@@ -94,15 +106,18 @@ class FinessClient(IFinessGateway):
                 )
                 with gzip.GzipFile(fileobj=binary_stream) as gzip_stream:
                     for pmej in ijson.items(gzip_stream, "pmej.item"):
-                        yield from self._extract_etablissements(pmej)
+                        for dto in self._extract_etablissements(pmej, millesime):
+                            yield self.organisme_mapper.to_domain(dto)
         except httpx.HTTPError as err:
             raise ExternalApiError(
                 "Erreur lors du téléchargement du fichier FINESS",
-                details={"url": url, "error": str(err)},
+                details={"url": resource.url, "error": str(err)},
             ) from err
 
     @staticmethod
-    def _extract_etablissements(pmej: dict) -> Iterator[FinessEtablissement]:
+    def _extract_etablissements(
+        pmej: dict, millesime: str
+    ) -> Iterator[EtablissementDTO]:
         for ege in pmej.get("ege") or []:
             infos = ege.get("informationsGeneralesEGE") or {}
             siret = infos.get("siret")
@@ -113,13 +128,14 @@ class FinessClient(IFinessGateway):
 
             latitude, longitude, departement = FinessClient._extract_localisation(ege)
 
-            yield FinessEtablissement(
+            yield EtablissementDTO(
                 nom=nom,
                 external_id=numero_finess,
                 siret=siret,
                 latitude=latitude,
                 longitude=longitude,
                 departement=departement,
+                millesime=millesime,
             )
 
     @staticmethod
@@ -135,9 +151,9 @@ class FinessClient(IFinessGateway):
         longitude = _to_float(coordonnees.get("coordonneeX"))
 
         commune = adresses[0].get("cogCommune")
-        departement = _departement_from_commune(commune) if commune else None
+        department = Department.from_commune_code(commune) if commune else None
 
-        return latitude, longitude, departement
+        return latitude, longitude, department.code if department else None
 
 
 def _to_float(value: str | None) -> float | None:
@@ -145,17 +161,3 @@ def _to_float(value: str | None) -> float | None:
         return float(value) if value is not None else None
     except (TypeError, ValueError):
         return None
-
-
-DEPARTEMENT_CODE_LENGTH = 2
-DOM_TOM_DEPARTEMENT_CODE_LENGTH = 3
-
-
-def _departement_from_commune(cog_commune: str) -> str | None:
-    if len(cog_commune) < DEPARTEMENT_CODE_LENGTH:
-        return None
-    if cog_commune[:DEPARTEMENT_CODE_LENGTH] in ("97", "98"):
-        if len(cog_commune) >= DOM_TOM_DEPARTEMENT_CODE_LENGTH:
-            return cog_commune[:DOM_TOM_DEPARTEMENT_CODE_LENGTH]
-        return None
-    return cog_commune[:DEPARTEMENT_CODE_LENGTH]
