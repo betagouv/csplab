@@ -1,19 +1,18 @@
 from unittest.mock import Mock, patch
-from uuid import uuid4
 
 import pytest
 from django.db.models.deletion import ProtectedError
 
-from application.recruteur.usecases.init_recrutement_etapes import (
-    InitRecrutementEtapesCommand,
+from application.recruteur.dtos.recrutement_request import (
+    RecrutementRequest,
 )
 from config.app_config import AppConfig
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
-from domain.recruteur.errors.organisme_permission_errors import (
+from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementRefuse,
 )
+from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.recrutement_errors import SupressionEtapeImpossible
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
@@ -24,6 +23,7 @@ from infrastructure.django_apps.candidate.models.candidature import CandidatureM
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
@@ -50,7 +50,7 @@ def setup_base(db):
     )
     recrutement_model = RecrutementFactory.create_model(
         organisme_id=organisme.id,
-        agent_id=agent.utilisateur_id,
+        agent_id=agent.utilisateur.username,
         agent_role=AgentRecrutementRole.RESPONSABLE,
         etapes=etapes,
         persist_etapes=True,
@@ -78,19 +78,23 @@ class TestInitRecrutementEtapes:
         agent, organisme = OrganismeFactory.create_model_with_agent(
             role=kwargs.get("organisme_role"), etapes=etapes
         )
+        utilisateur = UtilisateurFactory.create_entity(
+            entity_id=agent.utilisateur.username
+        )
+
         recrutement_model = RecrutementFactory.create_model(
             organisme_id=organisme.id,
-            agent_id=agent.utilisateur_id,
+            agent_id=agent.utilisateur.username,
             agent_role=kwargs.get("agent_role"),
             persist_etapes=False,
         )
         usecase = recruteur_integration_container.init_recrutement_etapes_usecase()
 
         resultat = usecase.execute(
-            InitRecrutementEtapesCommand(
+            RecrutementRequest(
                 organisme_id=recrutement_model.organisme_id,
                 recrutement_id=recrutement_model.offre_id,
-                utilisateur_id=agent.utilisateur_id,
+                utilisateur=utilisateur,
             )
         )
 
@@ -108,9 +112,12 @@ class TestInitRecrutementEtapes:
         agent, organisme = OrganismeFactory.create_model_with_agent(
             role=AgentOrganismeRole.MEMBRE, etapes=etapes
         )
+        utilisateur = UtilisateurFactory.create_entity(
+            entity_id=agent.utilisateur.username
+        )
         recrutement_model = RecrutementFactory.create_model(
             organisme_id=organisme.id,
-            agent_id=agent.utilisateur_id,
+            agent_id=agent.utilisateur.username,
             agent_role=agent_role,
             etapes=etapes,
             persist_etapes=True,
@@ -119,10 +126,10 @@ class TestInitRecrutementEtapes:
 
         with pytest.raises(AccesRecrutementRefuse):
             usecase.execute(
-                InitRecrutementEtapesCommand(
+                RecrutementRequest(
                     organisme_id=recrutement_model.organisme_id,
                     recrutement_id=recrutement_model.offre_id,
-                    utilisateur_id=recrutement_model.agents_liaisons.get().agent_id,
+                    utilisateur=utilisateur,
                 )
             )
 
@@ -132,10 +139,10 @@ class TestInitRecrutementEtapes:
 
         with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(
-                InitRecrutementEtapesCommand(
+                RecrutementRequest(
                     organisme_id=recrutement_model.organisme_id,
                     recrutement_id=recrutement_model.offre_id,
-                    utilisateur_id=uuid4(),
+                    utilisateur=UtilisateurFactory.create_entity(),
                 )
             )
 
@@ -152,10 +159,12 @@ class TestInitRecrutementEtapes:
 
         with pytest.raises(SupressionEtapeImpossible):
             usecase.execute(
-                InitRecrutementEtapesCommand(
+                RecrutementRequest(
                     organisme_id=recrutement_model.organisme_id,
                     recrutement_id=recrutement_model.offre_id,
-                    utilisateur_id=agent.utilisateur_id,
+                    utilisateur=UtilisateurFactory.create_entity(
+                        entity_id=agent.utilisateur.username
+                    ),
                 )
             )
 
@@ -184,10 +193,12 @@ class TestInitRecrutementEtapes:
 
             with pytest.raises(ProtectedError):
                 usecase.execute(
-                    InitRecrutementEtapesCommand(
+                    RecrutementRequest(
                         organisme_id=recrutement_model.organisme_id,
                         recrutement_id=recrutement_model.offre_id,
-                        utilisateur_id=agent.utilisateur_id,
+                        utilisateur=UtilisateurFactory.create_entity(
+                            entity_id=agent.utilisateur.username
+                        ),
                     )
                 )
 
