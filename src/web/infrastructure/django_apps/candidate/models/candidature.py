@@ -11,7 +11,6 @@ class CandidatureModel(BaseDatedModel):
         ProfilCandidatModel,
         to_field="utilisateur_id",
         on_delete=models.PROTECT,
-        db_column="candidat_id",
         related_name="candidatures",
     )
     statut = models.CharField(

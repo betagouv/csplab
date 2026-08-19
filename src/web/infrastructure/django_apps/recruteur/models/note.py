@@ -19,7 +19,6 @@ class NoteModel(BaseDatedModel):
         ProfilAgentModel,
         on_delete=models.PROTECT,
         to_field="utilisateur_id",
-        db_column="publie_par_id",
         related_name="notes_publiees",
     )
     supprimee_le = models.DateTimeField(null=True, blank=True)

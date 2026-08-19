@@ -54,7 +54,6 @@ class RecrutementAgentModel(BaseDatedModel):
         ProfilAgentModel,
         to_field="utilisateur_id",
         on_delete=models.PROTECT,
-        db_column="agent_id",
         related_name="recrutements_agents",
     )
     role = models.CharField(
