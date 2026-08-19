@@ -22,7 +22,7 @@ class CandidatureRecruteurFactory:
         )
 
     @staticmethod
-    def create_entities(
+    def create_entity_batch(
         count: int = 1,
         recrutement_id: UUID | None = None,
     ) -> list[CandidatureRecruteur]:

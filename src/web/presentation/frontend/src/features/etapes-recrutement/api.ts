@@ -2,7 +2,7 @@ import type { EtapeRecrutement, UpdateEtapeRecrutement } from './types'
 import { api } from '@/api/client'
 
 export async function getEtapesRecrutement(organismeUuid: string): Promise<EtapeRecrutement[]> {
-  const { data } = await api.GET('/recruteur/organisme/{organisme_uuid}/parametres/etapes', {
+  const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/parametres/etapes', {
     params: { path: { organisme_uuid: organismeUuid } },
   })
   return data!
@@ -12,7 +12,7 @@ export async function updateEtapesRecrutement(
   organismeUuid: string,
   etapes: UpdateEtapeRecrutement[],
 ): Promise<EtapeRecrutement[]> {
-  const { data } = await api.PUT('/recruteur/organisme/{organisme_uuid}/parametres/etapes', {
+  const { data } = await api.PUT('/recruteur/organismes/{organisme_uuid}/parametres/etapes', {
     params: { path: { organisme_uuid: organismeUuid } },
     body: etapes,
   })
@@ -20,7 +20,7 @@ export async function updateEtapesRecrutement(
 }
 
 export async function initEtapesRecrutement(organismeUuid: string): Promise<EtapeRecrutement[]> {
-  const { data } = await api.POST('/recruteur/organisme/{organisme_uuid}/parametres/etapes/init', {
+  const { data } = await api.POST('/recruteur/organismes/{organisme_uuid}/parametres/etapes/init', {
     params: { path: { organisme_uuid: organismeUuid } },
   })
   return data!
@@ -31,7 +31,7 @@ export async function getEtapesOffre(
   recrutementUuid: string,
 ): Promise<EtapeRecrutement[]> {
   const { data } = await api.GET(
-    '/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes',
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes',
     {
       params: {
         path: {
@@ -50,7 +50,7 @@ export async function updateEtapesOffre(
   etapes: UpdateEtapeRecrutement[],
 ): Promise<EtapeRecrutement[]> {
   const { data } = await api.PATCH(
-    '/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes',
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes',
     {
       params: {
         path: {
@@ -69,7 +69,7 @@ export async function initEtapesOffre(
   recrutementUuid: string,
 ): Promise<EtapeRecrutement[]> {
   const { data } = await api.POST(
-    '/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes/init',
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes/init',
     {
       params: {
         path: {

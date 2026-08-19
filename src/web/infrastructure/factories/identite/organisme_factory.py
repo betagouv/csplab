@@ -1,4 +1,5 @@
 from datetime import date
+from typing import List
 from uuid import UUID, uuid4
 
 from faker import Faker
@@ -71,6 +72,12 @@ class OrganismeFactory:
             date_creation=date_creation,
             date_derniere_activite=date_derniere_activite,
         )
+
+    @staticmethod
+    def create_entity_batch(
+        count: int = 3,
+    ) -> List[Organisme]:
+        return [OrganismeFactory.create_entity() for _ in range(count)]
 
     @staticmethod
     def create_model(

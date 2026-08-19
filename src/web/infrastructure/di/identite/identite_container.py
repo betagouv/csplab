@@ -6,9 +6,11 @@ from application.identite.usecases.create_organisme import CreateOrganismeUsecas
 from application.identite.usecases.get_utilisateur_details import (
     GetUtilisateurDetailUsecase,
 )
+from application.identite.usecases.list_organismes import ListOrganismeUsecase
 from application.identite.usecases.log_utilisateur_connexion import (
     LogUtilisateurConnexionUsecase,
 )
+from application.identite.usecases.update_organisme import UpdateOrganismeUsecase
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.services.identite_permission_service import (
     OrganismeCreationPermissionService,
@@ -72,6 +74,18 @@ class IdentiteContainer(containers.DeclarativeContainer):
 
     create_organisme_usecase = providers.Factory(
         CreateOrganismeUsecase,
+        organisme_repository=postgres_organisme_repository,
+        permission_service=organisme_creation_permission_service,
+    )
+
+    list_organismes_usecase = providers.Factory(
+        ListOrganismeUsecase,
+        organisme_repository=postgres_organisme_repository,
+        permission_service=organisme_creation_permission_service,
+    )
+
+    update_organisme_usecase = providers.Factory(
+        UpdateOrganismeUsecase,
         organisme_repository=postgres_organisme_repository,
         permission_service=organisme_creation_permission_service,
     )

@@ -71,7 +71,7 @@ def test_initialize_organisme_steps(recruteur_integration_container):
 
 
 def test_update_organisme_steps(recruteur_integration_container):
-    etapes = EtapeRecrutementFactory.create_entities()
+    etapes = EtapeRecrutementFactory.create_entity_batch()
 
     agent, organisme_model = OrganismeFactory.create_model_with_agent(
         AgentOrganismeRole.RESPONSABLE, etapes=etapes
@@ -167,7 +167,7 @@ class TestInitializeOrganismeStepsRbac:
 
 class TestUpdateOrganismeStepsRbac:
     def _command(self, organisme, agent, *, est_staff=False):
-        etapes = EtapeRecrutementFactory.create_entities()
+        etapes = EtapeRecrutementFactory.create_entity_batch()
         nouvelles_etapes = EtapeRecrutementFactory.to_etape_data_list(etapes)
         return UpdateOrganismeStepsCommand(
             utilisateur_id=agent.utilisateur_id,

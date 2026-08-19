@@ -55,7 +55,7 @@ def test_initialize_organisme_steps(initialize_organisme_steps_usecase):
 
 
 def test_update_organsime_steps(update_organisme_steps_usecase):
-    etapes = EtapeRecrutementFactory.create_entities()
+    etapes = EtapeRecrutementFactory.create_entity_batch()
     organisme_before = OrganismeRecruteurFactory.create_entity(etapes=etapes)
     update_organisme_steps_usecase.organisme_recruteur_repository.save(organisme_before)
     utilisateur_id = uuid4()
@@ -123,7 +123,7 @@ def test_initialize_organisme_steps_raises_when_not_responsable(
 def test_update_organisme_steps_raises_when_not_responsable(
     update_organisme_steps_usecase,
 ):
-    etapes = EtapeRecrutementFactory.create_entities()
+    etapes = EtapeRecrutementFactory.create_entity_batch()
     organisme_before = OrganismeRecruteurFactory.create_entity(etapes=etapes)
     update_organisme_steps_usecase.organisme_recruteur_repository.save(organisme_before)
     permission_service = update_organisme_steps_usecase.organisme_permission_service
