@@ -22,6 +22,7 @@ from application.recruteur.usecases.update_recrutement_etapes import (
     UpdateRecrutementEtapesCommand,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.organisme_permission_errors import (
     OrganismePermissionError,
 )
@@ -37,7 +38,7 @@ from presentation.recruteur.serializers import (
 )
 
 
-def _etapes_to_serializer_data(etapes: list) -> list[dict]:
+def _etapes_to_serializer_data(etapes: tuple[EtapeRecrutement, ...]) -> list[dict]:
     return [
         {"etape_uuid": e.etape_uuid, "nom": e.nom, "categorie": e.categorie.name}
         for e in etapes
@@ -186,10 +187,15 @@ class InitRecrutementEtapeView(APIView):
                 _etapes_to_serializer_data(resultat), many=True
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except OrganismePermissionError:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        except (OrganismeNexistePas, RecrutementInexistant):
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except (OrganismeRecruteurSansEtapes, OrganismeRecrutementIncoherents) as e:
+            error_serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        except OrganismePermissionError as e:
+            error_serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(error_serializer.data, status=status.HTTP_403_FORBIDDEN)
+        except (OrganismeNexistePas, RecrutementInexistant) as e:
+            error_serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(error_serializer.data, status=status.HTTP_404_NOT_FOUND)
         except Exception:
             error_serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
