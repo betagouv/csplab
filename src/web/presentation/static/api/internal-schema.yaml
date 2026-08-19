@@ -201,7 +201,7 @@ paths:
   /recruteur/organismes:
     get:
       operationId: recruteur_organismes_list
-      summary: Lister oganismes
+      summary: Lister les organismes
       tags:
       - recruteur
       security:
@@ -300,7 +300,6 @@ paths:
   /recruteur/organismes/{organisme_uuid}:
     get:
       operationId: recruteur_organismes_retrieve
-      summary: Detail d'un organisme
       parameters:
       - in: path
         name: organisme_uuid
@@ -318,7 +317,46 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Organisme'
+                $ref: '#/components/schemas/OrganismeDetail'
+          description: ''
+    put:
+      operationId: recruteur_organismes_update
+      summary: Modifier un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModifierOrganisme'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ModifierOrganisme'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ModifierOrganisme'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganismeDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
           description: ''
         '401':
           content:
@@ -1580,6 +1618,15 @@ components:
       - pays
       - region
       - zone_geographique
+    ModifierOrganisme:
+      type: object
+      properties:
+        nom:
+          type: string
+        versant:
+          $ref: '#/components/schemas/VersantEnum'
+        gestion_ats:
+          type: boolean
     Note:
       type: object
       properties:

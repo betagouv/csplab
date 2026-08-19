@@ -47,7 +47,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Lister oganismes */
+        /** Lister les organismes */
         get: operations["recruteur_organismes_list"];
         put?: never;
         /** Créer un organisme */
@@ -65,9 +65,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Detail d'un organisme */
         get: operations["recruteur_organismes_retrieve"];
-        put?: never;
+        /** Modifier un organisme */
+        put: operations["recruteur_organismes_update"];
         post?: never;
         delete?: never;
         options?: never;
@@ -482,6 +482,11 @@ export interface components {
             latitude: number | null;
             /** Format: double */
             longitude: number | null;
+        };
+        ModifierOrganisme: {
+            nom?: string;
+            versant?: components["schemas"]["VersantEnum"];
+            gestion_ats?: boolean;
         };
         Note: {
             /** Format: uuid */
@@ -1026,7 +1031,42 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Organisme"];
+                    "application/json": components["schemas"]["OrganismeDetail"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ModifierOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["ModifierOrganisme"];
+                "multipart/form-data": components["schemas"]["ModifierOrganisme"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganismeDetail"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
                 };
             };
             401: {
