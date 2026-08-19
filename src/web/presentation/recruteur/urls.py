@@ -4,10 +4,13 @@ from presentation.recruteur.views.notes import (
     CandidatureNoteDetailView,
     CandidatureNotesView,
 )
-from presentation.recruteur.views.organismes import (
+from presentation.recruteur.views.organisme_detail import (
     EtapesRecrutementOrganismeView,
     InitEtapesRecrutementOrganismeView,
-    OrganismeView,
+    OrganismeDetailView,
+)
+from presentation.recruteur.views.organismes import (
+    OrganismesView,
 )
 from presentation.recruteur.views.recrutement_detail import (
     RecrutementCandidaturesEtapeView,
@@ -28,67 +31,72 @@ app_name = "recruteur"
 
 urlpatterns = [
     path(
-        "organisme/<uuid:organisme_uuid>",
-        OrganismeView.as_view(),
-        name="organisme",
+        "organismes",
+        OrganismesView.as_view(),
+        name="organismes",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/parametres/etapes",
+        "organismes/<uuid:organisme_uuid>",
+        OrganismeDetailView.as_view(),
+        name="organisme-detail",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/parametres/etapes",
         EtapesRecrutementOrganismeView.as_view(),
         name="organisme-parametres-etapes",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/parametres/etapes/init",
+        "organismes/<uuid:organisme_uuid>/parametres/etapes/init",
         InitEtapesRecrutementOrganismeView.as_view(),
         name="organisme-parametres-etapes-init",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/recrutements-actifs",
+        "organismes/<uuid:organisme_uuid>/recrutements-actifs",
         RecrutementsActifsView.as_view(),
         name="organisme-recrutements-actifs",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/recrutements-archives",
+        "organismes/<uuid:organisme_uuid>/recrutements-archives",
         RecrutementsArchivesView.as_view(),
         name="organisme-recrutements-archives",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>",
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>",
         RecrutementDetailView.as_view(),
         name="organisme-recrutement",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/kanban",
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/kanban",
         RecrutementKanbanView.as_view(),
         name="organisme-recrutement-kanban",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/liste",
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/liste",
         RecrutementListeView.as_view(),
         name="organisme-recrutement-liste",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/etape",
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/etape",
         RecrutementCandidaturesEtapeView.as_view(),
         name="organisme-recrutement-candidatures-etape",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/etapes",
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/etapes",
         RecrutementEtapeView.as_view(),
         name="organisme-recrutement-etapes",
     ),
     path(
-        "organisme/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/etapes/init",
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/etapes/init",
         InitRecrutementEtapeView.as_view(),
         name="organisme-recrutement-etapes-init",
     ),
     path(
-        "candidature/<uuid:candidature_uuid>/notes",
+        "candidatures/<uuid:candidature_uuid>/notes",
         CandidatureNotesView.as_view(),
         name="candidature-notes",
     ),
     path(
-        "candidature/<uuid:candidature_uuid>/notes/<uuid:note_uuid>",
+        "candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>",
         CandidatureNoteDetailView.as_view(),
         name="candidature-note-detail",
     ),

@@ -14,7 +14,7 @@ class EtapeRecrutementFactory:
         return EtapeRecrutement.create(categorie=categorie, nom=nom)
 
     @staticmethod
-    def create_entities(
+    def create_entity_batch(
         en_cours: tuple[EtapeRecrutement, ...] | None = None,
     ) -> tuple[EtapeRecrutement, ...]:
         etapes_en_cours = en_cours or (

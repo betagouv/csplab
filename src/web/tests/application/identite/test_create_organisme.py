@@ -3,7 +3,7 @@ from referentiel.value_objects.verse import Verse
 
 from application.identite.usecases.create_organisme import CreateOrganismeCommand
 from domain.identite.errors.organisme_permission_errors import (
-    CreationOrganismeRefusee,
+    OperationOrganismeRefusee,
 )
 from domain.identite.events.organisme_events import OrganismeCree
 
@@ -37,5 +37,5 @@ def test_create_organisme_refuse_non_staff(create_organisme_usecase):
         est_staff=False,
     )
 
-    with pytest.raises(CreationOrganismeRefusee):
+    with pytest.raises(OperationOrganismeRefusee):
         create_organisme_usecase.execute(input_data=command)

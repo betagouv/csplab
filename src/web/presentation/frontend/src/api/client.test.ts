@@ -39,10 +39,10 @@ describe('api client', () => {
 
   it('substitutes path parameters from the OpenAPI schema', async () => {
     mockFetchResponse([])
-    await api.GET('/recruteur/organisme/{organisme_uuid}/parametres/etapes', {
+    await api.GET('/recruteur/organismes/{organisme_uuid}/parametres/etapes', {
       params: { path: { organisme_uuid: 'abc-123' } },
     })
-    expect(getLastRequest().url).toContain('/recruteur/organisme/abc-123/parametres/etapes')
+    expect(getLastRequest().url).toContain('/recruteur/organismes/abc-123/parametres/etapes')
   })
 
   it('does not include CSRF token on GET', async () => {
@@ -53,7 +53,7 @@ describe('api client', () => {
 
   it('reads CSRF token from cookie on mutating requests', async () => {
     mockFetchResponse([], 200)
-    await api.PUT('/recruteur/organisme/{organisme_uuid}/parametres/etapes', {
+    await api.PUT('/recruteur/organismes/{organisme_uuid}/parametres/etapes', {
       params: { path: { organisme_uuid: 'xxx' } },
       body: [],
     })
@@ -66,7 +66,7 @@ describe('api client', () => {
       get: () => '',
     })
     mockFetchResponse([], 200)
-    await api.PUT('/recruteur/organisme/{organisme_uuid}/parametres/etapes', {
+    await api.PUT('/recruteur/organismes/{organisme_uuid}/parametres/etapes', {
       params: { path: { organisme_uuid: 'xxx' } },
       body: [],
     })
@@ -104,7 +104,7 @@ describe('api client', () => {
     mockFetchResponse(payload, 400, 'Bad Request')
 
     try {
-      await api.PUT('/recruteur/organisme/{organisme_uuid}/parametres/etapes', {
+      await api.PUT('/recruteur/organismes/{organisme_uuid}/parametres/etapes', {
         params: { path: { organisme_uuid: 'xxx' } },
         body: [],
       })

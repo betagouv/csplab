@@ -15,7 +15,7 @@ _FROZEN_TS = datetime.now(tz=timezone.utc)
 @time_machine.travel(_FROZEN_TS, tick=False)
 def test_recrutement() -> None:
     offre_id = uuid4()
-    etapes = EtapeRecrutementFactory.create_entities()
+    etapes = EtapeRecrutementFactory.create_entity_batch()
     candidatures = (uuid4(), uuid4(), uuid4())
     agents = (uuid4(), uuid4())
 
@@ -41,7 +41,7 @@ def test_recrutement() -> None:
 @time_machine.travel(_FROZEN_TS, tick=False)
 def test_recrutement_termine() -> None:
     offre_id = uuid4()
-    etapes = EtapeRecrutementFactory.create_entities()
+    etapes = EtapeRecrutementFactory.create_entity_batch()
     candidatures = (uuid4(), uuid4(), uuid4())
     agents = (uuid4(), uuid4())
     candidat_recrute_id = uuid4()
