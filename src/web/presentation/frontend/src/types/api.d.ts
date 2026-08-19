@@ -336,14 +336,14 @@ export interface components {
             reussites: string[];
             echecs: components["schemas"]["CandidatureEchec"][];
         };
-        CreerNote: {
-            message: string;
-        };
-        CreerOrganisme: {
+        CreateOrganisme: {
             nom: string;
             siret: string;
             versant: components["schemas"]["VersantEnum"];
             gestion_ats: boolean;
+        };
+        CreerNote: {
+            message: string;
         };
         /**
          * @description * `01` - 01
@@ -482,11 +482,6 @@ export interface components {
             latitude: number | null;
             /** Format: double */
             longitude: number | null;
-        };
-        ModifierOrganisme: {
-            nom?: string;
-            versant?: components["schemas"]["VersantEnum"];
-            gestion_ats?: boolean;
         };
         Note: {
             /** Format: uuid */
@@ -672,6 +667,11 @@ export interface components {
             etape_uuid?: string;
             nom: string;
             categorie: components["schemas"]["CategorieEnum"];
+        };
+        UpdateOrganisme: {
+            nom: string;
+            versant: components["schemas"]["VersantEnum"];
+            gestion_ats: boolean;
         };
         Utilisateur: {
             /** Format: email */
@@ -959,9 +959,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreerOrganisme"];
-                "application/x-www-form-urlencoded": components["schemas"]["CreerOrganisme"];
-                "multipart/form-data": components["schemas"]["CreerOrganisme"];
+                "application/json": components["schemas"]["CreateOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["CreateOrganisme"];
+                "multipart/form-data": components["schemas"]["CreateOrganisme"];
             };
         };
         responses: {
@@ -1045,11 +1045,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["ModifierOrganisme"];
-                "application/x-www-form-urlencoded": components["schemas"]["ModifierOrganisme"];
-                "multipart/form-data": components["schemas"]["ModifierOrganisme"];
+                "application/json": components["schemas"]["UpdateOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["UpdateOrganisme"];
+                "multipart/form-data": components["schemas"]["UpdateOrganisme"];
             };
         };
         responses: {
