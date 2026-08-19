@@ -5,7 +5,7 @@ class PermissionError(DomainError):
     pass
 
 
-class AccesAdminRefuse(PermissionError):
+class OperationOrganismeRefusee(PermissionError):
     def __init__(self):
         super().__init__("Seul un membre du staff peut effectuer cette opération")
 

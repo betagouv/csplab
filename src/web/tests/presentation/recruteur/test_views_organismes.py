@@ -11,8 +11,8 @@ from domain.identite.errors.organisme_errors import (
     SiretInvalide,
 )
 from domain.identite.errors.organisme_permission_errors import (
-    AccesAdminRefuse,
     CreationOrganismeRefusee,
+    OperationOrganismeRefusee,
 )
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.seed_recruteur_datas import _ORGANISME_UUID
@@ -61,9 +61,9 @@ class TestOrganismesView:
         ("exception", "expected_status", "expected_body"),
         [
             (
-                AccesAdminRefuse(),
+                OperationOrganismeRefusee(),
                 status.HTTP_403_FORBIDDEN,
-                {"error": AccesAdminRefuse().message},
+                {"error": OperationOrganismeRefusee().message},
             ),
             (
                 Exception("unexpected"),

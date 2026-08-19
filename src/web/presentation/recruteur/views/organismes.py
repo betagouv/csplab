@@ -14,8 +14,8 @@ from domain.identite.errors.organisme_errors import (
     SiretInvalide,
 )
 from domain.identite.errors.organisme_permission_errors import (
-    AccesAdminRefuse,
     CreationOrganismeRefusee,
+    OperationOrganismeRefusee,
 )
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_factory import create_identite_container
@@ -98,7 +98,7 @@ class OrganismesView(APIView):
                 for organisme in organismes
             ]
             return Response(OrganismeDetailSerializer(organismes_dto, many=True).data)
-        except AccesAdminRefuse as e:
+        except OperationOrganismeRefusee as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
         except Exception:

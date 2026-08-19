@@ -22,7 +22,7 @@ from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsCommand,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import AccesAdminRefuse
+from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
 from domain.recruteur.errors.erreur_recrutement import (
     ConfigurationEtapesInvalide,
     ErreurRecruteur,
@@ -113,6 +113,7 @@ class OrganismeDetailView(APIView):
             organisme = usecase.execute(command)
             organisme_dto = {
                 **data,
+                "organisme_uuid": str(organisme.entity_id),
                 "nom": data["nom"] if data.get("nom") is not None else organisme.nom,
                 "siret": organisme.siret.value,
                 "versant": data["versant"]
@@ -129,7 +130,7 @@ class OrganismeDetailView(APIView):
                 OrganismeDetailSerializer(organisme_dto).data,
                 status=status.HTTP_200_OK,
             )
-        except AccesAdminRefuse as e:
+        except OperationOrganismeRefusee as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
         except OrganismeNexistePas as e:
