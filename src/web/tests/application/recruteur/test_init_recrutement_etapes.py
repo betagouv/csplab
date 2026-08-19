@@ -208,7 +208,7 @@ class TestInitRecrutementEtapesUsecase:
         )
         recrutement_repository.get_by_id.return_value = recrutement
 
-        events = recrutement.collect_events()
+        events = recrutement.read_events()
 
         with pytest.raises(SupressionEtapeImpossible):
             usecase.execute(

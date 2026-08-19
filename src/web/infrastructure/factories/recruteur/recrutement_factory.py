@@ -43,8 +43,8 @@ class RecrutementFactory:
             offre_id=offre_id or uuid4(),
             organisme_id=organisme_id or uuid4(),
             etapes=etapes or EtapeRecrutementFactory.create_entity_batch(),
-            candidatures=candidatures or (),
             agents=agents or (),
+            candidatures=candidatures or (),
             status=status or StatutRecrutement.ACTIF,
             candidat_recrute_id=candidat_recrute_id,
             derniere_activite_le=derniere_activite_le or datetime.now(tz=timezone.utc),
@@ -107,10 +107,11 @@ class RecrutementFactory:
         offre_archivee: bool = False,
         organisme_id: UUID | None = None,
         organisme_role: AgentOrganismeRole | None = None,
-        etapes: tuple[EtapeRecrutement, ...] | None = None,
         ordre_etapes: list[str] | None = None,
         agent_id: UUID | None = None,
         agent_role: AgentRecrutementRole | None = None,
+        etapes: tuple[EtapeRecrutement, ...] | None = None,
+        persist_etapes: bool = True,
     ) -> RecrutementModel:
         if offre_id is None:
             archived_at = datetime(2024, 1, 1) if offre_archivee else None
@@ -123,6 +124,12 @@ class RecrutementFactory:
             ).id
         if etapes is None:
             etapes = EtapeRecrutementFactory.create_entity_batch()
+        if organisme_id is None:
+            organisme_id = OrganismeFactory.create_model(
+                agent_id=agent_id,
+                role=organisme_role,
+                etapes=etapes,
+            ).id
 
         recrutement = RecrutementModel(
             offre_id=offre_id,
@@ -131,15 +138,17 @@ class RecrutementFactory:
         )
         recrutement.save()
 
-        for etape in etapes:
-            model = EtapeModel(
-                id=etape.entity_id,
-                recrutement=recrutement,
-                categorie=etape.categorie.value,
-                nom=etape.nom,
-                ordre_candidatures=None,
-            )
-            model.save()
+        if persist_etapes:
+            for etape in etapes:
+                EtapeModel(
+                    id=etape.entity_id,
+                    recrutement=recrutement,
+                    categorie=etape.categorie.value,
+                    nom=etape.nom,
+                    ordre_candidatures=[str(c) for c in etape.candidatures]
+                    if etape.candidatures
+                    else None,
+                ).save()
 
         RecrutementAgentModel(
             id=uuid4(),

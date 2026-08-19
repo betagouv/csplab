@@ -38,7 +38,6 @@ def recruteur_integration_container_fixture(db):
     return container
 
 
-# TODO : update this class after persistence is implemented
 class TestUpdateRecrutementEtapes:
     @pytest.mark.parametrize(
         "kwargs",

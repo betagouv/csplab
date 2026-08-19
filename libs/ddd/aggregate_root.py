@@ -88,6 +88,10 @@ class AggregateRoot(Entity):
         self._pending_events.clear()
         return events
 
+    def read_events(self) -> list[DomainEvent]:
+        events = list(self._pending_events)
+        return events
+
 
 # todo: what if several events can create the same aggregate?
 # @factory does not allow for that
