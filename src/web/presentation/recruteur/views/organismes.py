@@ -14,16 +14,18 @@ from domain.identite.errors.organisme_errors import (
     SiretInvalide,
 )
 from domain.identite.errors.organisme_permission_errors import (
-    CreationOrganismeRefusee,
     OperationOrganismeRefusee,
 )
 from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.seed_recruteur_datas import _ORGANISME_UUID
-from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.api.serializers import (
+    GenericErrorSerializer,
+    generic_response_format,
+)
 from presentation.recruteur.serializers import (
-    CreerOrganismeSerializer,
+    CreateOrganismeSerializer,
     OrganismeDetailSerializer,
 )
 
@@ -49,24 +51,18 @@ def fake_organismes() -> list[dict]:
         summary="Lister les organismes",
         tags=["recruteur"],
         responses={
+            **generic_response_format,
             200: OrganismeDetailSerializer(many=True),
-            401: TokenErrorSerializer,
-            403: GenericErrorSerializer,
-            404: GenericErrorSerializer,
-            500: GenericErrorSerializer,
         },
     ),
     post=extend_schema(
         summary="Créer un organisme",
         tags=["recruteur"],
-        request=CreerOrganismeSerializer,
+        request=CreateOrganismeSerializer,
         responses={
+            **generic_response_format,
             200: OrganismeDetailSerializer,
             400: GenericErrorSerializer,
-            401: TokenErrorSerializer,
-            403: GenericErrorSerializer,
-            404: GenericErrorSerializer,
-            500: GenericErrorSerializer,
         },
     ),
 )
@@ -108,7 +104,7 @@ class OrganismesView(APIView):
             )
 
     def post(self, request: Request) -> Response:
-        serializer = CreerOrganismeSerializer(data=request.data)
+        serializer = CreateOrganismeSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -141,7 +137,7 @@ class OrganismesView(APIView):
         except (OrganismeSiretExisteDeja, SiretInvalide) as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-        except CreationOrganismeRefusee as e:
+        except OperationOrganismeRefusee as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
         except Exception:

@@ -33,7 +33,10 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 )
 from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
-from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.api.serializers import (
+    GenericErrorSerializer,
+    generic_response_format,
+)
 from presentation.commons.serializers import (
     OrganismeSerializer,
 )
@@ -42,9 +45,9 @@ from presentation.recruteur.mappers import (
 )
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
-    ModifierOrganismeSerializer,
     OrganismeDetailSerializer,
     UpdateEtapeRecrutementSerializer,
+    UpdateOrganismeSerializer,
 )
 
 
@@ -52,14 +55,11 @@ from presentation.recruteur.serializers import (
     put=extend_schema(
         summary="Modifier un organisme",
         tags=["recruteur"],
-        request=ModifierOrganismeSerializer,
+        request=UpdateOrganismeSerializer,
         responses={
+            **generic_response_format,
             200: OrganismeDetailSerializer,
             400: GenericErrorSerializer,
-            401: TokenErrorSerializer,
-            403: GenericErrorSerializer,
-            404: GenericErrorSerializer,
-            500: GenericErrorSerializer,
         },
     ),
 )
@@ -95,7 +95,7 @@ class OrganismeDetailView(APIView):
             )
 
     def put(self, request: Request, organisme_uuid: UUID) -> Response:
-        serializer = ModifierOrganismeSerializer(data=request.data)
+        serializer = UpdateOrganismeSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -148,11 +148,8 @@ class OrganismeDetailView(APIView):
         summary="Liste des étapes de recrutement d'un organisme",
         tags=["recruteur"],
         responses={
+            **generic_response_format,
             200: EtapeRecrutementSerializer(many=True),
-            401: TokenErrorSerializer,
-            403: GenericErrorSerializer,
-            404: GenericErrorSerializer,
-            500: GenericErrorSerializer,
         },
     ),
     put=extend_schema(
@@ -160,12 +157,9 @@ class OrganismeDetailView(APIView):
         tags=["recruteur"],
         request=UpdateEtapeRecrutementSerializer(many=True),
         responses={
+            **generic_response_format,
             200: EtapeRecrutementSerializer(many=True),
             400: GenericErrorSerializer,
-            401: TokenErrorSerializer,
-            403: GenericErrorSerializer,
-            404: GenericErrorSerializer,
-            500: GenericErrorSerializer,
         },
     ),
 )
@@ -250,11 +244,8 @@ class EtapesRecrutementOrganismeView(APIView):
     tags=["recruteur"],
     request=None,
     responses={
+        **generic_response_format,
         201: EtapeRecrutementSerializer(many=True),
-        401: TokenErrorSerializer,
-        403: GenericErrorSerializer,
-        404: GenericErrorSerializer,
-        500: GenericErrorSerializer,
     },
 )
 class InitEtapesRecrutementOrganismeView(APIView):

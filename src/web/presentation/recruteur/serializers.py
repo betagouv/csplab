@@ -19,24 +19,19 @@ class OrganismeDetailSerializer(serializers.Serializer):
     date_creation = serializers.DateTimeField()
 
 
-class CreerOrganismeSerializer(serializers.Serializer):
+class CreateOrganismeSerializer(serializers.Serializer):
     nom = serializers.CharField()
     siret = serializers.CharField(min_length=14, max_length=14)
     versant = serializers.ChoiceField(choices=[c.value for c in Verse])
     gestion_ats = serializers.BooleanField()
 
 
-class ModifierOrganismeSerializer(serializers.Serializer):
-    nom = serializers.CharField(required=False)
-    versant = serializers.ChoiceField(choices=[c.value for c in Verse], required=False)
-    gestion_ats = serializers.BooleanField(required=False)
-
-    def validate(self, attrs):
-        if not any(attrs.get(k) is not None for k in ("nom", "versant", "gestion_ats")):
-            raise serializers.ValidationError(
-                "Au moins un champ (nom, versant, gestion_ats) doit être renseigné."
-            )
-        return attrs
+class UpdateOrganismeSerializer(serializers.Serializer):
+    nom = serializers.CharField()
+    versant = serializers.ChoiceField(
+        choices=[c.value for c in Verse],
+    )
+    gestion_ats = serializers.BooleanField()
 
 
 class EtapeRecrutementSerializer(serializers.Serializer):

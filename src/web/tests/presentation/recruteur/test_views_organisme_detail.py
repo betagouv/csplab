@@ -152,6 +152,7 @@ class TestOrganismeDetailView:
         body = {
             "nom": nouveau_nom,
             "gestion_ats": False,
+            "versant": organisme.versant.value,
         }
         response = authenticated_client.put(ORGANISME_URL, body)
         assert response.status_code == status.HTTP_200_OK
@@ -189,8 +190,11 @@ class TestOrganismeDetailView:
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = exception
         identite_container.update_organisme_usecase.return_value = mock_usecase
+        nouveau_nom = fake.name()
         body = {
+            "nom": nouveau_nom,
             "gestion_ats": False,
+            "versant": "FPT",
         }
         response = authenticated_client.put(ORGANISME_URL, body)
 
