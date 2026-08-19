@@ -97,6 +97,46 @@ async def test_upsert_batch_updates_data_and_millesime_on_conflict(
 
 
 @pytest.mark.asyncio
+async def test_upsert_batch_resets_cleaned_at_on_conflict(
+    raw_organisme_repository, db_engine
+):
+    organisme = RawOrganisme(
+        referentiel=REFERENTIEL, millesime="2026-08-18", external_id=EXTERNAL_ID
+    )
+    await raw_organisme_repository.upsert_batch([organisme])
+    await raw_organisme_repository.mark_as_cleaned_batch(
+        [organisme.id], datetime.now(tz=timezone.utc)
+    )
+    assert _fetch(db_engine, REFERENTIEL, EXTERNAL_ID).cleaned_at is not None
+
+    await raw_organisme_repository.upsert_batch(
+        [
+            RawOrganisme(
+                referentiel=REFERENTIEL, millesime="2026-08-19", external_id=EXTERNAL_ID
+            )
+        ]
+    )
+
+    assert _fetch(db_engine, REFERENTIEL, EXTERNAL_ID).cleaned_at is None
+
+
+@pytest.mark.asyncio
+async def test_upsert_batch_does_not_set_cleaned_at_on_insert(
+    raw_organisme_repository, db_engine
+):
+    organisme = RawOrganisme(
+        referentiel=REFERENTIEL,
+        millesime="2026-08-19",
+        external_id=EXTERNAL_ID,
+        cleaned_at=None,
+    )
+
+    await raw_organisme_repository.upsert_batch([organisme])
+
+    assert _fetch(db_engine, REFERENTIEL, EXTERNAL_ID).cleaned_at is None
+
+
+@pytest.mark.asyncio
 async def test_upsert_batch_preserves_id_on_conflict(
     raw_organisme_repository, db_engine
 ):
@@ -239,3 +279,79 @@ async def test_delete_missing_does_not_affect_other_referentiels(
 
     assert deleted == 0
     assert _fetch(db_engine, "OTHER_REF", EXTERNAL_ID) is not None
+
+
+@pytest.mark.asyncio
+async def test_find_uncleaned_returns_only_uncleaned_rows_for_referentiel(
+    raw_organisme_repository, db_engine
+):
+    await raw_organisme_repository.upsert_batch(
+        [
+            RawOrganisme(
+                referentiel=REFERENTIEL, millesime="2026-08-19", external_id="uncleaned"
+            ),
+            RawOrganisme(
+                referentiel="OTHER_REF", millesime="2026-08-19", external_id="other-ref"
+            ),
+        ]
+    )
+    cleaned = RawOrganisme(
+        referentiel=REFERENTIEL, millesime="2026-08-19", external_id="cleaned"
+    )
+    await raw_organisme_repository.upsert_batch([cleaned])
+    await raw_organisme_repository.mark_as_cleaned_batch(
+        [cleaned.id], datetime.now(tz=timezone.utc)
+    )
+
+    found = await raw_organisme_repository.find_uncleaned(REFERENTIEL, limit=10)
+
+    assert {row.external_id for row in found} == {"uncleaned"}
+
+
+@pytest.mark.asyncio
+async def test_find_uncleaned_respects_limit(raw_organisme_repository, db_engine):
+    await raw_organisme_repository.upsert_batch(
+        [
+            RawOrganisme(
+                referentiel=REFERENTIEL, millesime="2026-08-19", external_id=str(i)
+            )
+            for i in range(5)
+        ]
+    )
+
+    found = await raw_organisme_repository.find_uncleaned(REFERENTIEL, limit=2)
+
+    assert len(found) == 2
+
+
+@pytest.mark.asyncio
+async def test_mark_as_cleaned_batch_sets_cleaned_at(
+    raw_organisme_repository, db_engine
+):
+    organisme = RawOrganisme(
+        referentiel=REFERENTIEL, millesime="2026-08-19", external_id=EXTERNAL_ID
+    )
+    await raw_organisme_repository.upsert_batch([organisme])
+    cleaned_at = datetime.now(tz=timezone.utc)
+
+    await raw_organisme_repository.mark_as_cleaned_batch([organisme.id], cleaned_at)
+
+    saved = _fetch(db_engine, REFERENTIEL, EXTERNAL_ID)
+    assert saved.cleaned_at is not None
+
+
+@pytest.mark.asyncio
+async def test_mark_as_cleaned_batch_with_empty_ids_is_noop(
+    raw_organisme_repository, db_engine
+):
+    organisme = RawOrganisme(
+        referentiel=REFERENTIEL, millesime="2026-08-19", external_id=EXTERNAL_ID
+    )
+    await raw_organisme_repository.upsert_batch([organisme])
+
+    await raw_organisme_repository.mark_as_cleaned_batch(
+        [], datetime.now(tz=timezone.utc)
+    )
+
+    saved = _fetch(db_engine, REFERENTIEL, EXTERNAL_ID)
+    assert saved.cleaned_at is None

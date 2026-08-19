@@ -1,9 +1,10 @@
 import asyncio
 from datetime import datetime
+from uuid import UUID
 
-from sqlalchemy import Engine, delete, or_
+from sqlalchemy import Engine, delete, or_, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlmodel import Session, col
+from sqlmodel import Session, col, select
 
 from domain.entities.raw_organisme import RawOrganisme
 from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
@@ -23,17 +24,7 @@ class RawOrganismeRepository(IRawOrganismeRepository):
         with Session(self._engine) as session:
             insert_stmt = pg_insert(RawOrganismeModel).values(
                 [
-                    {
-                        "id": organisme.id,
-                        "referentiel": organisme.referentiel,
-                        "millesime": organisme.millesime,
-                        "external_id": organisme.external_id,
-                        "data": organisme.data,
-                        "error_msg": organisme.error_msg,
-                        "loaded_at": organisme.loaded_at,
-                        "cleaned_at": organisme.cleaned_at,
-                        "upsert_at": organisme.upsert_at,
-                    }
+                    RawOrganismeModel.values_from_entity(organisme)
                     for organisme in organismes
                 ]
             )
@@ -44,6 +35,7 @@ class RawOrganismeRepository(IRawOrganismeRepository):
                     "data": insert_stmt.excluded.data,
                     "error_msg": insert_stmt.excluded.error_msg,
                     "loaded_at": insert_stmt.excluded.loaded_at,
+                    "cleaned_at": None,
                 },
             )
             session.execute(stmt)
@@ -67,3 +59,37 @@ class RawOrganismeRepository(IRawOrganismeRepository):
             )
             session.commit()
             return result.rowcount  # type: ignore[attr-defined]
+
+    async def find_uncleaned(self, referentiel: str, limit: int) -> list[RawOrganisme]:
+        return await asyncio.to_thread(self._find_uncleaned_sync, referentiel, limit)
+
+    def _find_uncleaned_sync(self, referentiel: str, limit: int) -> list[RawOrganisme]:
+        with Session(self._engine) as session:
+            statement = (
+                select(RawOrganismeModel)
+                .where(
+                    col(RawOrganismeModel.referentiel) == referentiel,
+                    col(RawOrganismeModel.cleaned_at).is_(None),
+                )
+                .limit(limit)
+            )
+            rows = session.exec(statement).all()
+            return [row.to_entity() for row in rows]
+
+    async def mark_as_cleaned_batch(
+        self, ids: list[UUID], cleaned_at: datetime
+    ) -> None:
+        if not ids:
+            return
+        await asyncio.to_thread(self._mark_as_cleaned_batch_sync, ids, cleaned_at)
+
+    def _mark_as_cleaned_batch_sync(
+        self, ids: list[UUID], cleaned_at: datetime
+    ) -> None:
+        with Session(self._engine) as session:
+            session.execute(
+                update(RawOrganismeModel)
+                .where(col(RawOrganismeModel.id).in_(ids))
+                .values(cleaned_at=cleaned_at)
+            )
+            session.commit()

@@ -10,6 +10,7 @@ from application.tasks.process_webhook import save_raw_offer_webhook
 from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.batch_archive_offers import BatchArchiveOffersUseCase
 from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
+from application.use_cases.clean_raw_organismes import CleanRawOrganismesUseCase
 from application.use_cases.import_offers import ImportOffersUseCase
 from application.use_cases.import_organismes import ImportOrganismesUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
@@ -19,6 +20,7 @@ from application.use_cases.save_webhook import SaveWebhookUseCase
 from domain.gateways.archive_gateway import IArchiveGateway
 from domain.gateways.offers_by_source_gateway import IOffersBySourceGateway
 from domain.gateways.organisme_gateway import IOrganismeGateway
+from domain.gateways.organismes_cleaner import IOrganismesCleaner
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
@@ -45,6 +47,7 @@ from infrastructure.external_gateways.web_publish_offer_gateway import (
 )
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.gateways.offers_cleaner import OffersCleaner
+from infrastructure.gateways.organismes_cleaner import OrganismesCleaner
 from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.raw_organisme_repository import RawOrganismeRepository
 from infrastructure.sources_repository import SourcesRepository
@@ -158,6 +161,18 @@ class Container(containers.DeclarativeContainer):
         providers.Factory(
             ImportOrganismesUseCase,
             organisme_gateway=organisme_gateway,
+            raw_organisme_repository=raw_organisme_repository,
+        )
+    )
+
+    organismes_cleaner: providers.Provider[IOrganismesCleaner] = providers.Singleton(
+        OrganismesCleaner
+    )
+
+    clean_raw_organismes_use_case: providers.Provider[CleanRawOrganismesUseCase] = (
+        providers.Factory(
+            CleanRawOrganismesUseCase,
+            organismes_cleaner=organismes_cleaner,
             raw_organisme_repository=raw_organisme_repository,
         )
     )

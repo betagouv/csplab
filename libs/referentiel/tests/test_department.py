@@ -1,27 +1,23 @@
+import pytest
+
 from referentiel.value_objects.department import Department
 
 
-def test_from_commune_code_metropole():
-    department = Department.from_commune_code("01053")
+@pytest.mark.parametrize(
+    ("cog_commune", "expected_code"),
+    [
+        pytest.param("01053", "01", id="metropole"),
+        pytest.param("97120", "971", id="dom"),
+        pytest.param("5", None, id="too_short"),
+        pytest.param("97", None, id="dom_prefix_without_enough_digits"),
+        pytest.param("00042", None, id="invalid_department"),
+    ],
+)
+def test_from_commune_code(cog_commune, expected_code):
+    department = Department.from_commune_code(cog_commune)
 
-    assert department is not None
-    assert department.code == "01"
-
-
-def test_from_commune_code_dom():
-    department = Department.from_commune_code("97120")
-
-    assert department is not None
-    assert department.code == "971"
-
-
-def test_from_commune_code_too_short_returns_none():
-    assert Department.from_commune_code("5") is None
-
-
-def test_from_commune_code_dom_prefix_without_enough_digits_returns_none():
-    assert Department.from_commune_code("97") is None
-
-
-def test_from_commune_code_invalid_department_returns_none():
-    assert Department.from_commune_code("00042") is None
+    if expected_code is None:
+        assert department is None
+    else:
+        assert department is not None
+        assert department.code == expected_code
