@@ -1,5 +1,5 @@
 from contextlib import nullcontext
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
@@ -84,7 +84,7 @@ def candidature_recruteur_repository_fixture(
 
 @pytest.fixture(name="permission_service")
 def permission_service_fixture():
-    service = MagicMock(spec=OrganismePermissionService)
+    service = Mock(spec=OrganismePermissionService)
     service.est_autorise.return_value = AgentRecrutementRole.RESPONSABLE
     return service
 
@@ -107,7 +107,7 @@ def usecase_fixture(
         candidature_recruteur_repository=candidature_recruteur_repository,
         recrutement_repository=recrutement_repository,
         permission_service=permission_service,
-        audit_log_writer=MagicMock(spec=AuditLogWriter),
+        audit_log_writer=Mock(spec=AuditLogWriter),
         unit_of_work=unit_of_work,
     )
 

@@ -8,6 +8,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from application.recruteur.dtos.etape_data import EtapeData
+from application.recruteur.errors.application_errors_recruteur import (
+    OrganismeRecrutementIncoherents,
+    OrganismeRecruteurSansEtapes,
+)
 from application.recruteur.usecases.get_recrutement_etapes import (
     GetRecrutementEtapesQuery,
 )
@@ -21,6 +25,7 @@ from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import (
     OrganismePermissionError,
 )
+from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -130,10 +135,14 @@ class RecrutementEtapeView(APIView):
                 _etapes_to_serializer_data(resultat), many=True
             )
             return Response(out_serializer.data)
+        except (OrganismeRecruteurSansEtapes, OrganismeRecrutementIncoherents) as e:
+            error_serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
         except OrganismePermissionError:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        except OrganismeNexistePas:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except (OrganismeNexistePas, RecrutementInexistant) as e:
+            error_serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(error_serializer.data, status=status.HTTP_404_NOT_FOUND)
         except Exception:
             error_serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
@@ -179,7 +188,7 @@ class InitRecrutementEtapeView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except OrganismePermissionError:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        except OrganismeNexistePas:
+        except (OrganismeNexistePas, RecrutementInexistant):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception:
             error_serializer = GenericErrorSerializer({"error": "Unexpected error"})

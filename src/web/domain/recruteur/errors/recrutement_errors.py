@@ -29,3 +29,11 @@ class RecrutementEtapeInexistante(RecrutementError):
 class CandidatureInexistante(RecrutementError):
     def __init__(self, candidature_id: UUID):
         super().__init__((f"Candidature {candidature_id} inexistante"))
+
+
+class ModificationEtapesImpossible(RecrutementError):
+    def __init__(self, recrutement_id: UUID, nombre_candidatures: int):
+        super().__init__(
+            f"Les étapes du recrutement {recrutement_id} ne peuvent être modifiées"
+            f"car {nombre_candidatures} candidatures sont en cours"
+        )

@@ -1,7 +1,9 @@
 import pytest
 
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
-from domain.recruteur.errors.erreur_recrutement import ConfigurationEtapesInvalide
+from domain.recruteur.errors.organisme_recruteur_errors import (
+    ConfigurationEtapesInvalide,
+)
 from domain.recruteur.events.organisme_events import (
     OrganismeEtapesInitialises,
     OrganismeEtapesMisesAJour,
