@@ -29,5 +29,5 @@ class ListOrganismeUsecase(IUseCase[ListOrganismesCommand, List[Organisme]]):
 
     def execute(self, command: ListOrganismesCommand) -> List[Organisme]:
         # todo
-        # self.permission_service.verifier_autorisation(command.user_id)
+        # self.permission_service.est_autorise()
         return self.organisme_repository.get_all()

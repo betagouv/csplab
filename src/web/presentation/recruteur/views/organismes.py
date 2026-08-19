@@ -40,7 +40,7 @@ def fake_organismes() -> list[dict]:
             "date_derniere_activite": "2026-01-15T10:00:00Z",
             "date_creation": "2026-01-01T09:00:00Z",
         }
-        for org in OrganismeFactory.create_entities()
+        for org in OrganismeFactory.create_entity_batch()
     ]
 
 
@@ -81,8 +81,23 @@ class OrganismesView(APIView):
     def get(self, request: Request) -> Response:
         try:
             usecase = self.container.list_organismes_usecase()
-            organismes = usecase.execute(request.user.username) or fake_organismes()
-            return Response(OrganismeDetailSerializer(organismes, many=True).data)
+            organismes = usecase.execute(
+                request.user.username
+            ) or OrganismeFactory.create_entity_batch(
+                3,
+            )
+            organismes_dto = [
+                {
+                    "organisme_uuid": organisme.entity_id,
+                    "nom": organisme.nom,
+                    "siret": organisme.siret.value,
+                    "gestion_ats": organisme.gestion_ats,
+                    "date_creation": organisme.date_creation,
+                    "date_derniere_activite": organisme.date_derniere_activite,
+                }
+                for organisme in organismes
+            ]
+            return Response(OrganismeDetailSerializer(organismes_dto, many=True).data)
         except ConsultationOrganismesRefusee as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)

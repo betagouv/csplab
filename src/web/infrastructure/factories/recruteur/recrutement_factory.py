@@ -42,7 +42,7 @@ class RecrutementFactory:
         return Recrutement.build(
             offre_id=offre_id or uuid4(),
             organisme_id=organisme_id or uuid4(),
-            etapes=etapes or EtapeRecrutementFactory.create_entities(),
+            etapes=etapes or EtapeRecrutementFactory.create_entity_batch(),
             candidatures=candidatures or (),
             agents=agents or (),
             status=status or StatutRecrutement.ACTIF,
@@ -51,7 +51,7 @@ class RecrutementFactory:
         )
 
     @staticmethod
-    def create_entities(
+    def create_entity_batch(
         count: int = 1,
     ) -> list[Recrutement]:
         return [RecrutementFactory.create_entity() for _ in range(count)]
@@ -122,7 +122,7 @@ class RecrutementFactory:
                 agent_id=agent_id, role=organisme_role
             ).id
         if etapes is None:
-            etapes = EtapeRecrutementFactory.create_entities()
+            etapes = EtapeRecrutementFactory.create_entity_batch()
 
         recrutement = RecrutementModel(
             offre_id=offre_id,

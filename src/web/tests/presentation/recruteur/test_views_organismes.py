@@ -36,21 +36,6 @@ def container():
 siret = fake.siret().replace(" ", "")
 
 
-@pytest.fixture
-def organismes() -> list[dict]:
-    return [
-        {
-            "nom": org.nom,
-            "siret": org.siret.value,
-            "gestion_ats": True,
-            "gestionnaire": None,
-            "date_derniere_activite": "2026-01-15T10:00:00Z",
-            "date_creation": "2026-01-01T09:00:00Z",
-        }
-        for org in OrganismeFactory.create_entities()
-    ]
-
-
 class TestOrganismesView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(ORGANISME_URL)
@@ -58,17 +43,19 @@ class TestOrganismesView:
 
     def test_get_returns_organismes(
         self,
-        organismes,
-        identite_container,
+        container,
         authenticated_client,
     ):
         mock_usecase = MagicMock()
+        organismes = OrganismeFactory.create_entity_batch(3)
+
         mock_usecase.execute.return_value = organismes
-        identite_container.list_organismes_usecase.return_value = mock_usecase
+        container.list_organismes_usecase.return_value = mock_usecase
         response = authenticated_client.get(ORGANISME_URL)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == organismes
+        assert response.json()[0]["organisme_uuid"] == str(organismes[0].entity_id)
+        assert len(response.json()) == len(organismes)
 
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
@@ -87,7 +74,7 @@ class TestOrganismesView:
     )
     def test_get_returns_error_from_usecase(
         self,
-        identite_container,
+        container,
         authenticated_client,
         exception,
         expected_status,
@@ -95,7 +82,7 @@ class TestOrganismesView:
     ):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = exception
-        identite_container.list_organismes_usecase.return_value = mock_usecase
+        container.list_organismes_usecase.return_value = mock_usecase
         response = authenticated_client.get(ORGANISME_URL)
 
         assert response.status_code == expected_status

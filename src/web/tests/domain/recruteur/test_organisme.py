@@ -46,7 +46,7 @@ def test_organisme_default_steps() -> None:
 
 def test_organisme_update_steps() -> None:
     organisme = OrganismeRecruteurFactory.create_entity(
-        etapes=EtapeRecrutementFactory.create_entities()
+        etapes=EtapeRecrutementFactory.create_entity_batch()
     )
     nouvelles_etapes = (
         EtapeRecrutement.create(
@@ -187,7 +187,7 @@ def test_organisme_update_steps_fails(
     etapes_invalides: tuple[EtapeRecrutement, ...],
 ) -> None:
     organisme = OrganismeRecruteurFactory.create_entity(
-        etapes=EtapeRecrutementFactory.create_entities()
+        etapes=EtapeRecrutementFactory.create_entity_batch()
     )
 
     with pytest.raises(ConfigurationEtapesInvalide):

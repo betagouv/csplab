@@ -64,7 +64,7 @@ class TestListerMesRecrutements:
         recrutement_actif = RecrutementFactory.create_model(
             organisme_id=organisme.id,
             agent_id=agent_id,
-            etapes=EtapeRecrutementFactory.create_entities(),
+            etapes=EtapeRecrutementFactory.create_entity_batch(),
         )
         RecrutementFactory.create_model(
             offre_archivee=True,
@@ -138,7 +138,7 @@ class TestListerMesRecrutements:
             offre_id=offre.id,
             organisme_id=organisme.id,
             agent_id=agent_id,
-            etapes=EtapeRecrutementFactory.create_entities(),
+            etapes=EtapeRecrutementFactory.create_entity_batch(),
         )
 
         result = self._lister_recrutements(
