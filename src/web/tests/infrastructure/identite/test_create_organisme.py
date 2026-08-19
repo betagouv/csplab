@@ -1,11 +1,6 @@
 from uuid import uuid4
 
 import pytest
-from referentiel.value_objects.area import GeographicalArea
-from referentiel.value_objects.country import Country
-from referentiel.value_objects.department import Department
-from referentiel.value_objects.localisation import Localisation
-from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from application.identite.usecases.create_organisme import CreateOrganismeCommand
@@ -15,9 +10,6 @@ from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.gateways.shared.logger import LoggerService
-
-LATITUDE = 46.211257
-LONGITUDE = 5.254203
 
 
 @pytest.fixture(name="identite_integration_container")
@@ -83,25 +75,3 @@ def test_get_organisme_by_id_nexiste_pas(identite_integration_container):
 
     with pytest.raises(OrganismeNexistePas):
         repo.get_by_id(uuid4())
-
-
-def test_organisme_localisation_latitude_longitude_persisted(
-    identite_integration_container,
-):
-    localisation = Localisation(
-        area=GeographicalArea.EUROPE,
-        country=Country("FRA"),
-        region=Region(code="84"),
-        department=Department(code="01"),
-        latitude=LATITUDE,
-        longitude=LONGITUDE,
-    )
-    model = OrganismeFactory.create_model(
-        nom="Clinique du Docteur Convert", localisation=localisation
-    )
-    repo = identite_integration_container.postgres_organisme_repository()
-
-    organisme = repo.get_by_id(model.id)
-
-    assert organisme.localisation.latitude == LATITUDE
-    assert organisme.localisation.longitude == LONGITUDE

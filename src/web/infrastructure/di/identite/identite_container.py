@@ -6,9 +6,6 @@ from application.identite.usecases.create_organisme import CreateOrganismeUsecas
 from application.identite.usecases.get_utilisateur_details import (
     GetUtilisateurDetailUsecase,
 )
-from application.identite.usecases.import_etablissements_finess import (
-    ImportEtablissementsFinessUsecase,
-)
 from application.identite.usecases.log_utilisateur_connexion import (
     LogUtilisateurConnexionUsecase,
 )
@@ -16,13 +13,8 @@ from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.services.identite_permission_service import (
     OrganismeCreationPermissionService,
 )
-from infrastructure.external_gateways.finess_client import FinessClient
-from infrastructure.mappers.organisme_finess_mapper import OrganismeFinessMapper
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
-)
-from infrastructure.repositories.commons.postgres_unit_of_work import (
-    PostgresUnitOfWork,
 )
 from infrastructure.repositories.identite.postgres_agent_repository import (
     PostgresAgentRepository,
@@ -52,7 +44,6 @@ class IdentiteContainer(containers.DeclarativeContainer):
         repository=postgres_audit_log_repository,
     )
     postgres_organisme_repository = providers.Singleton(PostgresOrganismeRepository)
-    postgres_unit_of_work = providers.Singleton(PostgresUnitOfWork)
 
     get_utilisateur_details_usecase = providers.Factory(
         GetUtilisateurDetailUsecase,
@@ -83,19 +74,4 @@ class IdentiteContainer(containers.DeclarativeContainer):
         CreateOrganismeUsecase,
         organisme_repository=postgres_organisme_repository,
         permission_service=organisme_creation_permission_service,
-    )
-
-    organisme_finess_mapper = providers.Factory(OrganismeFinessMapper)
-
-    organisme_gateway = providers.Singleton(
-        FinessClient, logger=logger_service, organisme_mapper=organisme_finess_mapper
-    )
-
-    import_etablissements_finess_usecase = providers.Factory(
-        ImportEtablissementsFinessUsecase,
-        organisme_gateway=organisme_gateway,
-        organisme_repository=postgres_organisme_repository,
-        logger=logger_service,
-        unit_of_work=postgres_unit_of_work,
-        audit_log_writer=audit_log_writer,
     )
