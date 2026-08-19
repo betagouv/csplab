@@ -6,9 +6,7 @@ from django.test import Client
 from playwright.sync_api import BrowserContext, Page
 
 from infrastructure.django_apps.users.models import UserModel
-from infrastructure.factories.seed_recruteur_datas import seed_recruteur_datas
-
-SEED_AGENT_EMAIL = "marie.dupont@transition-eco.gouv.fr"
+from infrastructure.factories.identite.agent_factory import AgentFactory
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -29,13 +27,8 @@ def insecure_cookies(settings) -> None:
 
 
 @pytest.fixture
-def seed(db) -> dict:
-    return seed_recruteur_datas(force=True)
-
-
-@pytest.fixture
-def agent_user(seed) -> UserModel:
-    return UserModel.objects.get(email=SEED_AGENT_EMAIL)
+def agent_user(db) -> UserModel:
+    return AgentFactory.create_model().utilisateur
 
 
 @pytest.fixture
