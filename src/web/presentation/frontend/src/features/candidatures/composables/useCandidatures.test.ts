@@ -9,13 +9,14 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import { RECRUTEMENTS_QUERY_KEYS } from '@/features/recrutements/queries'
 import { routes } from '@/router'
-import { getCandidatureListe, getRecrutementKanban } from '../api'
+import { getCandidatureListe, getRecrutementKanban, patchEtapeCandidatures } from '../api'
 import { CANDIDATURES_QUERY_KEYS } from '../queries'
 import { useCandidatures } from './useCandidatures'
 
 vi.mock('../api', () => ({
   getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
+  patchEtapeCandidatures: vi.fn(),
 }))
 
 vi.mock('@/features/recrutements/api', () => ({
@@ -150,6 +151,8 @@ describe('useCandidatures', () => {
     vi.mocked(getRecrutementDetail).mockReset()
     vi.mocked(getRecrutementKanban).mockReset()
     vi.mocked(getCandidatureListe).mockReset()
+    vi.mocked(patchEtapeCandidatures).mockReset()
+    vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [], echecs: [] })
     vi.mocked(getRecrutementDetail).mockResolvedValue(MOCK_DETAIL)
     vi.mocked(getRecrutementKanban).mockResolvedValue(MOCK_KANBAN)
     vi.mocked(getCandidatureListe).mockResolvedValue(MOCK_LISTE)
@@ -190,6 +193,64 @@ describe('useCandidatures', () => {
 
       expect(source?.candidatures).toHaveLength(1)
       expect(target?.candidatures).toHaveLength(2)
+    })
+
+    it('persists the move through the api', async () => {
+      const { context } = await mountCandidatures()
+
+      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+
+      context.moveCandidature({
+        sourceColumnId: ETAPE_RECEPTION,
+        targetColumnId: ETAPE_PRESELECTION,
+        cardId: CANDIDATURE_ALICE,
+      })
+
+      await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith(
+        ORGANISME_UUID,
+        RECRUTEMENT_UUID,
+        ETAPE_PRESELECTION,
+        [CANDIDATURE_ALICE],
+      ))
+    })
+
+    it('rolls the move back when the api call fails', async () => {
+      vi.mocked(patchEtapeCandidatures).mockRejectedValue(new Error('boom'))
+      const { context } = await mountCandidatures()
+
+      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+
+      const before = structuredClone(context.candidatureKanban.value)
+      context.moveCandidature({
+        sourceColumnId: ETAPE_RECEPTION,
+        targetColumnId: ETAPE_PRESELECTION,
+        cardId: CANDIDATURE_ALICE,
+      })
+
+      await vi.waitFor(() =>
+        expect(context.candidatureKanban.value).toEqual(before),
+      )
+    })
+
+    it('refetches the kanban when the api reports partial failures', async () => {
+      vi.mocked(patchEtapeCandidatures).mockResolvedValue({
+        reussites: [],
+        echecs: [{ candidature_uuid: CANDIDATURE_ALICE, raison: 'conflit' }],
+      })
+      const { context } = await mountCandidatures()
+
+      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      expect(getRecrutementKanban).toHaveBeenCalledTimes(1)
+
+      context.moveCandidature({
+        sourceColumnId: ETAPE_RECEPTION,
+        targetColumnId: ETAPE_PRESELECTION,
+        cardId: CANDIDATURE_ALICE,
+      })
+
+      await vi.waitFor(() =>
+        expect(getRecrutementKanban).toHaveBeenCalledTimes(2),
+      )
     })
 
     it.each([

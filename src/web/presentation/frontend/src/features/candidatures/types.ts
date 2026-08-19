@@ -13,3 +13,5 @@ export type PaginatedCandidatureListeList = components['schemas']['PaginatedCand
 export type CandidatureListe = components['schemas']['CandidatureListe']
 
 export type EtapeRecrutement = components['schemas']['EtapeRecrutement']
+
+export type ChangerEtapeResultat = components['schemas']['ChangerEtapeResultat']
