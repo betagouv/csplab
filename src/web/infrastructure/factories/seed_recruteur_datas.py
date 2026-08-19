@@ -288,10 +288,10 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # ------------------------------------------------------------------ #
     # 7. Recrutements (1 par offre active et archivée) : étapes + responsables #
     # ------------------------------------------------------------------ #
-    marie_id = UUID(agents[0].utilisateur_id)
-    paul_id = UUID(agents[1].utilisateur_id)
-    claire_id = UUID(agents[2].utilisateur_id)
-    david_id = UUID(agents[3].utilisateur_id)
+    marie_id = agents[0].utilisateur_id
+    paul_id = agents[1].utilisateur_id
+    claire_id = agents[2].utilisateur_id
+    david_id = agents[3].utilisateur_id
 
     recrutements_specs: list[
         tuple[OfferModel, UUID, tuple[UUID, AgentRecrutementRole] | None]
@@ -320,7 +320,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
             RecrutementAgentModel(
                 id=uuid4(),
                 recrutement=recrutement,
-                agent_id=str(extra_agent_id),
+                agent_id=extra_agent_id,
                 role=extra_agent_role.value,
             ).save()
         recrutements.append(recrutement)

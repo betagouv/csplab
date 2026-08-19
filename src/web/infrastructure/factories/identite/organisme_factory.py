@@ -131,7 +131,7 @@ class OrganismeFactory:
         agent = AgentFactory.create_model()
         if role is not None:
             organisme = OrganismeFactory.create_model(
-                agent_id=UUID(agent.utilisateur_id), role=role, **organisme_kwargs
+                agent_id=agent.utilisateur_id, role=role, **organisme_kwargs
             )
         else:
             organisme = OrganismeFactory.create_model(**organisme_kwargs)
