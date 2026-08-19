@@ -3,9 +3,9 @@ info:
   title: CSPLab Internal API
   version: 0.0.1
 paths:
-  /recruteur/candidature/{candidature_uuid}/notes:
+  /recruteur/candidatures/{candidature_uuid}/notes:
     get:
-      operationId: recruteur_candidature_notes_list
+      operationId: recruteur_candidatures_notes_list
       summary: Liste des notes d'une candidature
       parameters:
       - in: path
@@ -41,7 +41,7 @@ paths:
                 $ref: '#/components/schemas/GenericError'
           description: ''
     post:
-      operationId: recruteur_candidature_notes_create
+      operationId: recruteur_candidatures_notes_create
       summary: Ajouter une note à une candidature
       parameters:
       - in: path
@@ -98,9 +98,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/candidature/{candidature_uuid}/notes/{note_uuid}:
+  /recruteur/candidatures/{candidature_uuid}/notes/{note_uuid}:
     patch:
-      operationId: recruteur_candidature_notes_partial_update
+      operationId: recruteur_candidatures_notes_partial_update
       summary: Modifier une note d'une candidature
       parameters:
       - in: path
@@ -157,7 +157,7 @@ paths:
                 $ref: '#/components/schemas/GenericError'
           description: ''
     delete:
-      operationId: recruteur_candidature_notes_destroy
+      operationId: recruteur_candidatures_notes_destroy
       summary: Supprimer une note d'une candidature
       parameters:
       - in: path
@@ -198,9 +198,67 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}:
+  /recruteur/organismes:
+    post:
+      operationId: recruteur_organismes_create
+      summary: Créer un organisme
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreerOrganisme'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreerOrganisme'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreerOrganisme'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganismeDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+  /recruteur/organismes/{organisme_uuid}:
     get:
-      operationId: recruteur_organisme_retrieve
+      operationId: recruteur_organismes_retrieve
       summary: Detail d'un organisme
       parameters:
       - in: path
@@ -245,9 +303,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/parametres/etapes:
+  /recruteur/organismes/{organisme_uuid}/parametres/etapes:
     get:
-      operationId: recruteur_organisme_parametres_etapes_list
+      operationId: recruteur_organismes_parametres_etapes_list
       summary: Liste des étapes de recrutement d'un organisme
       parameters:
       - in: path
@@ -295,7 +353,7 @@ paths:
                 $ref: '#/components/schemas/GenericError'
           description: ''
     put:
-      operationId: recruteur_organisme_parametres_etapes_update
+      operationId: recruteur_organismes_parametres_etapes_update
       summary: Modifier les étapes de recrutement d'un organisme
       parameters:
       - in: path
@@ -366,9 +424,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/parametres/etapes/init:
+  /recruteur/organismes/{organisme_uuid}/parametres/etapes/init:
     post:
-      operationId: recruteur_organisme_parametres_etapes_init_create
+      operationId: recruteur_organismes_parametres_etapes_init_create
       summary: Initialiser les étapes de recrutement par défaut d'un organisme
       parameters:
       - in: path
@@ -415,9 +473,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements-actifs:
+  /recruteur/organismes/{organisme_uuid}/recrutements-actifs:
     get:
-      operationId: recruteur_organisme_recrutements_actifs_list
+      operationId: recruteur_organismes_recrutements_actifs_list
       description: 'Retourne la liste paginée des recrutements d''un organisme. '
       summary: Liste des recrutements actifs d'un organisme
       parameters:
@@ -485,9 +543,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements-archives:
+  /recruteur/organismes/{organisme_uuid}/recrutements-archives:
     get:
-      operationId: recruteur_organisme_recrutements_archives_list
+      operationId: recruteur_organismes_recrutements_archives_list
       description: 'Retourne la liste paginée des recrutements archivés d''un organisme. '
       summary: Liste des recrutements archivés d'un organisme
       parameters:
@@ -555,9 +613,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}:
+  /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}:
     get:
-      operationId: recruteur_organisme_recrutements_retrieve
+      operationId: recruteur_organismes_recrutements_retrieve
       summary: Détail d'un recrutement
       parameters:
       - in: path
@@ -608,9 +666,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/etape:
+  /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/etape:
     patch:
-      operationId: recruteur_organisme_recrutements_candidatures_etape_partial_update
+      operationId: recruteur_organismes_recrutements_candidatures_etape_partial_update
       summary: Changer l'étape d'une ou plusieurs candidatures (batch, statique)
       parameters:
       - in: path
@@ -672,9 +730,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes:
+  /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes:
     get:
-      operationId: recruteur_organisme_recrutements_etapes_list
+      operationId: recruteur_organismes_recrutements_etapes_list
       summary: Étapes d'un recrutement
       parameters:
       - in: path
@@ -728,7 +786,7 @@ paths:
                 $ref: '#/components/schemas/GenericError'
           description: ''
     patch:
-      operationId: recruteur_organisme_recrutements_etapes_partial_update
+      operationId: recruteur_organismes_recrutements_etapes_partial_update
       summary: Modifier les étapes d'un recrutement
       parameters:
       - in: path
@@ -805,9 +863,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes/init:
+  /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes/init:
     post:
-      operationId: recruteur_organisme_recrutements_etapes_init_create
+      operationId: recruteur_organismes_recrutements_etapes_init_create
       summary: Réinitialiser les étapes par défaut d'un recrutement
       parameters:
       - in: path
@@ -860,9 +918,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban:
+  /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban:
     get:
-      operationId: recruteur_organisme_recrutements_kanban_retrieve
+      operationId: recruteur_organismes_recrutements_kanban_retrieve
       summary: Détail d'un recrutement — vue kanban
       parameters:
       - in: path
@@ -913,9 +971,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
-  /recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/liste:
+  /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste:
     get:
-      operationId: recruteur_organisme_recrutements_liste_list
+      operationId: recruteur_organismes_recrutements_liste_list
       summary: Détail d'un recrutement — vue liste (paginée)
       parameters:
       - in: path
@@ -1165,6 +1223,24 @@ components:
           type: string
       required:
       - message
+    CreerOrganisme:
+      type: object
+      properties:
+        nom:
+          type: string
+        siret:
+          type: string
+          maxLength: 14
+          minLength: 14
+        versant:
+          $ref: '#/components/schemas/VersantEnum'
+        gestion_ats:
+          type: boolean
+      required:
+      - gestion_ats
+      - nom
+      - siret
+      - versant
     DepartementEnum:
       enum:
       - '01'
@@ -1525,6 +1601,37 @@ components:
       required:
       - nom
       - siret
+    OrganismeDetail:
+      type: object
+      properties:
+        organisme_uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        siret:
+          type: string
+          maxLength: 14
+          minLength: 14
+        gestionnaire:
+          type: string
+          nullable: true
+        gestion_ats:
+          type: boolean
+        date_derniere_activite:
+          type: string
+          format: date-time
+        date_creation:
+          type: string
+          format: date-time
+      required:
+      - date_creation
+      - date_derniere_activite
+      - gestion_ats
+      - gestionnaire
+      - nom
+      - organisme_uuid
+      - siret
     PaginatedCandidatureListeList:
       type: object
       required:
@@ -1844,6 +1951,16 @@ components:
       - email
       - nom
       - prenom
+    VersantEnum:
+      enum:
+      - FPT
+      - FPE
+      - FPH
+      type: string
+      description: |-
+        * `FPT` - FPT
+        * `FPE` - FPE
+        * `FPH` - FPH
     ZoneGeographiqueEnum:
       enum:
       - AF
