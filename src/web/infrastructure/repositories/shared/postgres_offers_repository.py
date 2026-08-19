@@ -1,16 +1,23 @@
+import operator
 from datetime import datetime, timedelta
+from functools import reduce
 from typing import Dict, List
 from uuid import UUID
 
 from ddd.page_interface import IPage
 from ddd.services.logger_interface import ILogger
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.db import DatabaseError, transaction
 from django.db.models import F, FloatField, Q, Value
 from django.db.models.functions import ACos, Cos, Greatest, Least, Radians, Sin
 from django.utils import timezone
 from referentiel.entities.offer import Offer
-from referentiel.exceptions.offer_errors import OfferDoesNotExist
+from referentiel.exceptions.offer_errors import (
+    MultipleOffersFoundForReference,
+    OfferDoesNotExist,
+)
 from referentiel.types import IUpsertResult
+from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
@@ -28,6 +35,12 @@ from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.mappers.queryset_page import QuerySetPage
 
 EARTH_RADIUS_KM = 6371.0
+SEARCH_CONFIG = "french"
+KEYWORDS_SEARCH_WEIGHTS = {
+    "A": ("title",),
+    "B": ("long_title",),
+    "C": ("mission", "profile", "organization", "employer", "complements"),
+}
 
 
 class PostgresOffersRepository(IIngestionOffersRepository):
@@ -155,6 +168,15 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(reference) from e
 
+    def get_by_reference(self, reference: str) -> Offer:
+        try:
+            offer_model = OfferModel.objects.get(reference=reference)
+        except OfferModel.DoesNotExist as e:
+            raise OfferDoesNotExist(reference) from e
+        except OfferModel.MultipleObjectsReturned as e:
+            raise MultipleOffersFoundForReference(reference) from e
+        return self.mapper.to_domain(offer_model)
+
     def get_by_external_ids(self, external_ids: List[str]) -> List[Offer]:
         offers = OfferModel.objects.filter(external_id__in=external_ids)
         return [self.mapper.to_domain(offer) for offer in offers]
@@ -176,12 +198,14 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         region: List[Region] | None = None,
         department: List[Department] | None = None,
         country: List[Country] | None = None,
+        area: List[GeographicalArea] | None = None,
         domain: List[str] | None = None,
         organization: List[str] | None = None,
         published_within_days: int | None = None,
         latitude: float | None = None,
         longitude: float | None = None,
         radius_km: int | None = None,
+        keywords: str | None = None,
     ) -> IPage[Offer]:
         qs = OfferModel.objects.filter(archived_at__isnull=active)
 
@@ -204,6 +228,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                 ("region__in", region, lambda r: r.code),
                 ("department__in", department, lambda d: d.code),
                 ("country__in", country, str),
+                ("area__in", area, lambda a: a.value),
                 ("functional_area_code__in", domain, str),
                 ("organization__in", organization, str),
             ],
@@ -216,7 +241,13 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         if latitude is not None and longitude is not None and radius_km is not None:
             qs = self._filter_by_radius(qs, latitude, longitude, radius_km)
 
-        return QuerySetPage(qs.order_by("-updated_at"), self.mapper.to_domain)
+        if keywords:
+            qs = self._filter_by_keywords(qs, keywords)
+            qs = qs.order_by("-rank", "-updated_at")
+        else:
+            qs = qs.order_by("-updated_at")
+
+        return QuerySetPage(qs, self.mapper.to_domain)
 
     @staticmethod
     def _apply_field_filters(qs, filters):
@@ -244,6 +275,18 @@ class PostgresOffersRepository(IIngestionOffersRepository):
             )
         )
         return qs.annotate(distance_km=distance_km).filter(distance_km__lte=radius_km)
+
+    @staticmethod
+    def _filter_by_keywords(qs, keywords: str):
+        vectors = [
+            SearchVector(*fields, weight=weight, config=SEARCH_CONFIG)
+            for weight, fields in KEYWORDS_SEARCH_WEIGHTS.items()
+        ]
+        search_vector = reduce(operator.add, vectors)
+        search_query = SearchQuery(keywords, config=SEARCH_CONFIG)
+        return qs.annotate(
+            search=search_vector, rank=SearchRank(search_vector, search_query)
+        ).filter(search=search_query)
 
     def get_by_source_id(self, source_id: UUID) -> IPage[Offer]:
         qs = OfferModel.objects.filter(source_id=source_id, archived_at__isnull=True)

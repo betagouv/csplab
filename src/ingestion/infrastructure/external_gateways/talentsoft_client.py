@@ -37,7 +37,7 @@ class TalentsoftConfig:
 class BaseTalentsoftClient(AsyncHttpClient):
     api_name: str
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         base_url: str,
         client_id: str,

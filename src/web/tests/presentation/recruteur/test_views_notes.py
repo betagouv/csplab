@@ -9,8 +9,8 @@ from rest_framework import status
 from application.recruteur.usecases.creer_note import CreerNoteCommand
 from application.recruteur.usecases.editer_note import EditerNoteCommand
 from application.recruteur.usecases.supprimer_note import SupprimerNoteCommand
-from domain.candidate.exceptions.candidature_errors import CandidatureIntrouvable
 from domain.recruteur.errors.note_errors import NoteIntrouvable
+from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
 from infrastructure.factories.recruteur.note_factory import NoteFactory
 
 fake = Faker()
@@ -84,7 +84,7 @@ class TestCandidatureNotesView:
 
     def test_create_note_unknown_candidature(self, container, authenticated_client):
         mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = CandidatureIntrouvable(uuid4())
+        mock_usecase.execute.side_effect = CandidatureInexistante(uuid4())
         container.creer_note_usecase.return_value = mock_usecase
 
         response = authenticated_client.post(

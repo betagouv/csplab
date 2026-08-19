@@ -3,8 +3,8 @@ from uuid import UUID, uuid4
 
 from faker import Faker
 
+from application.recruteur.dtos.note_read_models import NoteReadModel
 from domain.recruteur.entities.note import Note
-from domain.recruteur.services.note_query_service_interface import NoteReadModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
 from infrastructure.factories.identite.agent_factory import AgentFactory

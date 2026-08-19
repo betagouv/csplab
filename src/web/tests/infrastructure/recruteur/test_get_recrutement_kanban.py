@@ -70,7 +70,7 @@ class TestGetRecrutementKanbanRbac:
         assert result.offer_id == recrutement.offre_id
         assert len(result.etapes) == 6  # noqa
         assert result.etapes[0].categorie == "ENTREE"
-        assert result.etapes[0].candidatures[0].uuid == UUID(candidature.id)
+        assert result.etapes[0].candidatures[0].uuid == candidature.id
         assert result.etapes[-1].categorie == "ACCEPTE"
         assert result.etapes[-1].candidatures == []
 

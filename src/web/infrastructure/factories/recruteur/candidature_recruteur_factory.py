@@ -7,7 +7,7 @@ from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 class CandidatureRecruteurFactory:
     @staticmethod
     def create_entity(
-        derniere_activite_le: datetime,
+        derniere_activite_le: datetime | None = None,
         entity_id: UUID | None = None,
         candidat_id: UUID | None = None,
         recrutement_id: UUID | None = None,
@@ -20,3 +20,15 @@ class CandidatureRecruteurFactory:
             etape_id=etape_id or uuid4(),
             derniere_activite_le=derniere_activite_le or datetime.now(tz=timezone.utc),
         )
+
+    @staticmethod
+    def create_entities(
+        count: int = 1,
+        recrutement_id: UUID | None = None,
+    ) -> list[CandidatureRecruteur]:
+        if recrutement_id is None:
+            recrutement_id = uuid4()
+        return [
+            CandidatureRecruteurFactory.create_entity(recrutement_id=recrutement_id)
+            for _ in range(count)
+        ]

@@ -71,7 +71,7 @@ class TestCreateNote:
         note_model = NoteModel.objects.get()
 
         assert note_model.id == note.entity_id
-        assert str(note_model.candidature_id) == candidature_id
+        assert note_model.candidature_id == candidature_id
         assert str(note_model.publie_par_id) == agent_id
         assert note_model.message == note.message
 
@@ -93,7 +93,7 @@ class TestGetById:
         fetched = repository.get_by_id(existing_note_model.id)
 
         assert fetched.entity_id == existing_note_model.id
-        assert str(fetched.candidature_id) == candidature_id
+        assert fetched.candidature_id == candidature_id
         assert str(fetched.publie_par_id) == agent_id
         assert fetched.message == existing_note_model.message
 

@@ -14,6 +14,11 @@ class OfferDoesNotExist(DomainError):
         super().__init__(f"Offer with ID {offer_id} does not exist")
 
 
+class MultipleOffersFoundForReference(DomainError):
+    def __init__(self, reference: str):
+        super().__init__(f"Multiple offers found for reference {reference}")
+
+
 class InvalidOfferDataFormatError(DomainError):
     def __init__(self, offer_reference: str, validation_details: str):
         super().__init__(

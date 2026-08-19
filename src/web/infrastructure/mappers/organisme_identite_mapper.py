@@ -31,6 +31,12 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
             localisation=localisation,
             siret=SIRET(model.siret),
             parent_id=UUID(str(model.parent_id)) if model.parent_id else None,
+            external_id=model.external_id,
+            referentiel=model.referentiel,
+            millesime=model.millesime,
+            gestion_ats=model.gestion_ats,
+            date_creation=model.date_creation,
+            date_derniere_activite=model.date_derniere_activite,
         )
 
     def from_domain(self, organisme: Organisme) -> OrganismeModel:
@@ -50,4 +56,10 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
             siret=organisme.siret.value,
             parent_id=organisme.parent_id,
             localisation=localisation_data,
+            external_id=organisme.external_id,
+            referentiel=organisme.referentiel,
+            millesime=organisme.millesime,
+            gestion_ats=organisme.gestion_ats,
+            date_creation=organisme.date_creation,
+            date_derniere_activite=organisme.date_derniere_activite,
         )

@@ -17,13 +17,13 @@ from application.recruteur.usecases.supprimer_note import (
     SupprimerNoteCommand,
     SupprimerNoteUsecase,
 )
-from domain.candidate.exceptions.candidature_errors import CandidatureIntrouvable
-from domain.candidate.repositories.candidature_repository_interface import (
-    ICandidatureRepository,
-)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
+from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
+from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
+    ICandidatureRecruteurRepository,
+)
 from domain.recruteur.repositories.note_repository_interface import INoteRepository
 from infrastructure.factories.recruteur.note_factory import NoteFactory
 from tests.utils.interface_aware_mock import create_interface_aware_mock
@@ -38,7 +38,9 @@ def repository_fixture() -> INoteRepository:
 
 @pytest.fixture(name="candidature_repository")
 def candidature_repository_fixture() -> MagicMock:
-    return MagicMock(spec=ICandidatureRepository, exists=MagicMock(return_value=True))
+    return MagicMock(
+        spec=ICandidatureRecruteurRepository, exists=MagicMock(return_value=True)
+    )
 
 
 @pytest.fixture(name="agent_repository")
@@ -98,12 +100,15 @@ class TestCreerNote:
     def test_creer_note_raises_candidature_introuvable(
         self, candidature_repository, usecase, audit_log_writer
     ):
-        candidature_repository.exists.return_value = False
+        candidature_id = uuid4()
+        candidature_repository.get_by_id.side_effect = CandidatureInexistante(
+            candidature_id
+        )
 
-        with pytest.raises(CandidatureIntrouvable):
+        with pytest.raises(CandidatureInexistante):
             usecase.execute(
                 CreerNoteCommand(
-                    candidature_id=uuid4(),
+                    candidature_id=candidature_id,
                     publie_par_id=uuid4(),
                     message=fake.sentence(),
                 )

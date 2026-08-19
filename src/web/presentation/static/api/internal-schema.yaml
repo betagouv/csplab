@@ -1066,12 +1066,8 @@ components:
         candidature_uuid:
           type: string
           format: uuid
-        etape_actuelle_uuid:
-          type: string
-          format: uuid
       required:
       - candidature_uuid
-      - etape_actuelle_uuid
     CandidatureEchec:
       type: object
       properties:
@@ -1856,6 +1852,7 @@ components:
       - AM
       - OC
       - AN
+      - MO
       type: string
       description: |-
         * `AF` - AFRIQUE
@@ -1864,6 +1861,7 @@ components:
         * `AM` - AMERIQUE
         * `OC` - OCEANIE
         * `AN` - ANTARTIQUE
+        * `MO` - MOYEN_ORIENT_AFRIQUE_DU_NORD
   securitySchemes:
     cookieAuth:
       type: apiKey

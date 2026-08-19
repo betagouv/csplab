@@ -12,9 +12,9 @@
     "lint:styles:fix": "eslint \"presentation/assets/styles/**/*.scss\" --fix"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.13",
-    "eslint": "^9.28",
+    "@antfu/eslint-config": "^4.19.0",
+    "eslint": "^9.39.5",
     "eslint-plugin-format": "^2.0.1",
-    "sass": "^1.89.0"
+    "sass": "^1.102.0"
   }
 }

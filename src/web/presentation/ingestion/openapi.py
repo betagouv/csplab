@@ -275,6 +275,7 @@ critères suivants :
 - `region` — un ou plusieurs codes région (ex. `11,84`)
 - `departement` — un ou plusieurs codes département (ex. `75,69`)
 - `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
+- `zone` — une ou plusieurs zones géographiques (ex. `EUROPE,ASIE`)
 - `domaine` — un ou plusieurs codes de domaine fonctionnel (ex. `NUM,ACH`)
 - `organisme` — un ou plusieurs noms d'organisme (nom exact). Répéter le
   paramètre pour filtrer sur plusieurs organismes (ex.
@@ -287,6 +288,9 @@ critères suivants :
   - `latitude` — latitude du point en degrés décimaux (entre -90 et 90)
   - `longitude` — longitude du point en degrés décimaux (entre -180 et 180)
   - `radius` — rayon de recherche en kilomètres (entier positif)
+- `mots_cles` — recherche plein texte (en français) sur le titre,
+  l'intitulé long, la mission, le profil, l'organisme, l'employeur et les
+  compléments de l'offre
 
 Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
 virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.

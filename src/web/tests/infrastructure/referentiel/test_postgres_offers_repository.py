@@ -6,6 +6,10 @@ from django.db import DatabaseError
 from faker import Faker
 from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
+from referentiel.exceptions.offer_errors import (
+    MultipleOffersFoundForReference,
+    OfferDoesNotExist,
+)
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
@@ -422,6 +426,142 @@ class TestGetFilteredByPublicationDate:
         )
 
         assert page.count() == len(offers)
+
+
+class TestGetFilteredByKeywords:
+    def test_filters_offers_matching_keywords_in_title(self, db, repository):
+        developpeur = OfferFactory.create_model(
+            title="Développeur informatique",
+            mission="Développement d'applications web",
+        )
+        OfferFactory.create_model(
+            title="Jardinier paysagiste", mission="Entretien des espaces verts"
+        )
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            keywords="développeur",
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {developpeur.id}
+
+    def test_matches_across_multiple_fields(self, db, repository):
+        offer = OfferFactory.create_model(
+            title="Chargé de mission",
+            organization="Mairie de Bordeaux",
+        )
+        OfferFactory.create_model(
+            title="Chargé de mission", organization="Mairie de Nantes"
+        )
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            keywords="Bordeaux",
+        )
+
+        ids = {o.id for o in page.slice(0, 10)}
+        assert ids == {offer.id}
+
+    def test_no_match_returns_empty_page(self, db, repository):
+        OfferFactory.create_model(title="Développeur informatique")
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            keywords="astrophysicien",
+        )
+
+        assert page.count() == 0
+
+    def test_no_keywords_filter_returns_all_offers(self, db, repository):
+        offers = OfferFactory.create_model_batch(2)
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+        )
+
+        assert page.count() == len(offers)
+
+    def test_multiple_keywords_require_all_terms_to_match(self, db, repository):
+        both_terms = OfferFactory.create_model(
+            title="Développeur back-end Python",
+        )
+        OfferFactory.create_model(title="Développeur front-end JavaScript")
+        OfferFactory.create_model(title="Chef de projet Python")
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            keywords="développeur python",
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {both_terms.id}
+
+    def test_combines_with_another_filter(self, db, repository):
+        matching = OfferFactory.create_model(
+            title="Développeur informatique", functional_area_code="NUM"
+        )
+        OfferFactory.create_model(
+            title="Développeur informatique", functional_area_code="ACH"
+        )
+        OfferFactory.create_model(
+            title="Jardinier paysagiste", functional_area_code="NUM"
+        )
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            keywords="développeur",
+            domain=["NUM"],
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {matching.id}
+
+    def test_results_are_ranked_with_title_matches_first(self, db, repository):
+        title_match = OfferFactory.create_model(
+            title="Développeur informatique",
+            mission="Gestion de projets divers",
+        )
+        mission_match = OfferFactory.create_model(
+            title="Chargé de mission",
+            mission="Encadrement d'une équipe de développeurs",
+        )
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            keywords="développeur",
+        )
+
+        ids = [offer.id for offer in page.slice(0, 10)]
+        assert ids == [title_match.id, mission_match.id]
+
+
+class TestGetByReference:
+    def test_returns_offer_with_matching_reference(self, db, repository):
+        offer = OfferFactory.create_model(reference="REF-1")
+        OfferFactory.create_model(reference="REF-2")
+
+        result = repository.get_by_reference("REF-1")
+
+        assert result.id == offer.id
+
+    def test_unknown_reference_raises(self, db, repository):
+        with pytest.raises(OfferDoesNotExist):
+            repository.get_by_reference("UNKNOWN")
+
+    def test_multiple_offers_sharing_reference_raises(self, db, repository):
+        OfferFactory.create_model(reference="REF-1")
+        OfferFactory.create_model(reference="REF-1")
+
+        with pytest.raises(MultipleOffersFoundForReference):
+            repository.get_by_reference("REF-1")
 
 
 class TestGetBySourceId:

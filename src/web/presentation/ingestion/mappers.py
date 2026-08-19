@@ -11,6 +11,7 @@ from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -77,7 +78,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             job_vacancy=data.get("vacance_poste") or None,
             employer=data["description"].get("employeur") or None,
             complements=data["description"].get("complements") or None,
-            criteria=data.get("criteres") or None,
+            criteria=OfferCriteria.from_dict(data.get("criteres")),
             conditions=conditions,
             contacts=list(data["contacts"]) if data.get("contacts") else None,
         )
@@ -183,4 +184,85 @@ class OfferSummaryOutputMapper:
             "type": type_name,
             "parentType": "",
             "hasChildren": False,
+        }
+
+
+class OfferDetailOutputMapper(OfferSummaryOutputMapper):
+    def to_dict(self, offer: Offer) -> dict:
+        criteria = offer.criteria
+
+        geolocation = (
+            {
+                "latitude": offer.localisation.latitude,
+                "longitude": offer.localisation.longitude,
+            }
+            if offer.localisation
+            and offer.localisation.latitude is not None
+            and offer.localisation.longitude is not None
+            else None
+        )
+
+        return {
+            **super().to_dict(offer),
+            "applicationUrl": str(offer.application_url)
+            if offer.application_url
+            else None,
+            "endPublicationDate": None,
+            "isAnonymousOrganisation": False,
+            "organisation": {
+                "entityCode": "",
+                "name": offer.organization,
+                "description": offer.employer,
+                "url": str(offer.offer_url) if offer.offer_url else None,
+                "phoneNumber": None,
+                "postCode": None,
+                "geolocation": geolocation,
+                "parentName": None,
+                "logoUrl": None,
+                "maxDelayForConsent": None,
+                "retentionPeriod": None,
+                "generalConditions": None,
+                "personalDataConsent": None,
+            },
+            "operationalManager": None,
+            "educationLevel": self._coded_object(
+                str(criteria.diploma_level.value),
+                str(criteria.diploma_level.value),
+                "educationLevel",
+            )
+            if criteria and criteria.diploma_level is not None
+            else None,
+            "diploma": self._coded_object(criteria.diploma, criteria.diploma, "diploma")
+            if criteria and criteria.diploma
+            else None,
+            "experienceLevel": self._coded_object(
+                criteria.experience_level.name,
+                criteria.experience_level.value,
+                "experienceLevel",
+            )
+            if criteria and criteria.experience_level
+            else None,
+            "languages": [self._language(langue) for langue in criteria.languages]
+            if criteria
+            else [],
+            "specialisations": [
+                self._coded_object(specialisation, specialisation, "specialisation")
+                for specialisation in criteria.specialisations
+            ]
+            if criteria
+            else [],
+            "applicationQuestions": [],
+            "attachedFilesUrls": [],
+            "geolocation": geolocation,
+            "customFields": None,
+        }
+
+    def _language(self, langue: OfferLanguage) -> dict:
+        return {
+            "languageName": self._coded_object(
+                langue.iso_code, langue.iso_code, "language"
+            ),
+            "languageLevel": self._coded_object(
+                langue.level.name, langue.level.value, "languageLevel"
+            ),
         }

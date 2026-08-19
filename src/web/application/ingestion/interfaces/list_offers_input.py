@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
@@ -24,9 +25,11 @@ class GetFilteredOffersInput:
     region: Optional[List[Region]] = None
     department: Optional[List[Department]] = None
     country: Optional[List[Country]] = None
+    area: Optional[List[GeographicalArea]] = None
     domain: Optional[List[str]] = None
     organization: Optional[List[str]] = None
     published_within_days: Optional[int] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     radius_km: Optional[int] = None
+    keywords: Optional[str] = None

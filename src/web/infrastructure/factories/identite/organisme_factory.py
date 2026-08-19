@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID, uuid4
 
 from faker import Faker
@@ -50,6 +51,12 @@ class OrganismeFactory:
         versant: Verse = Verse.FPE,
         localisation: Localisation | None = None,
         siret: SIRET | None = None,
+        external_id: str | None = None,
+        referentiel: str | None = None,
+        millesime: str | None = None,
+        gestion_ats: bool | None = False,
+        date_creation: date | None = None,
+        date_derniere_activite: date | None = None,
     ) -> Organisme:
         return Organisme.build(
             entity_id=entity_id or uuid4(),
@@ -57,6 +64,12 @@ class OrganismeFactory:
             versant=versant,
             localisation=localisation or make_localisation(),
             siret=siret or SIRET(_fake.siret().replace(" ", "")),
+            external_id=external_id or str(uuid4()),
+            referentiel=referentiel,
+            millesime=millesime,
+            gestion_ats=gestion_ats,
+            date_creation=date_creation,
+            date_derniere_activite=date_derniere_activite,
         )
 
     @staticmethod
@@ -69,6 +82,12 @@ class OrganismeFactory:
         etapes: tuple[EtapeRecrutement, ...] | None = None,
         agent_id: UUID | None = None,
         role: AgentOrganismeRole | None = None,
+        external_id: str | None = None,
+        referentiel: str | None = None,
+        millesime: str | None = None,
+        gestion_ats: bool | None = False,
+        date_creation: date | None = None,
+        date_derniere_activite: date | None = None,
     ):
         organisme = OrganismeFactory.create_entity(
             entity_id=entity_id,
@@ -76,6 +95,12 @@ class OrganismeFactory:
             versant=versant,
             localisation=localisation,
             siret=siret or SIRET(_fake.siret().replace(" ", "")),
+            external_id=external_id,
+            referentiel=referentiel,
+            millesime=millesime,
+            gestion_ats=gestion_ats,
+            date_creation=date_creation,
+            date_derniere_activite=date_derniere_activite,
         )
         mapper = OrganismeIdentiteMapper()
         model = mapper.from_domain(organisme)

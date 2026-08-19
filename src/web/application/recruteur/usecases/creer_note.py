@@ -3,14 +3,13 @@ from uuid import UUID
 
 from ddd.usecase_interface import IUseCase
 
-from domain.candidate.exceptions.candidature_errors import CandidatureIntrouvable
-from domain.candidate.repositories.candidature_repository_interface import (
-    ICandidatureRepository,
-)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
 from domain.recruteur.entities.note import Note
+from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
+    ICandidatureRecruteurRepository,
+)
 from domain.recruteur.repositories.note_repository_interface import INoteRepository
 
 
@@ -25,7 +24,7 @@ class CreerNoteUsecase(IUseCase[CreerNoteCommand, Note]):
     def __init__(
         self,
         note_repository: INoteRepository,
-        candidature_repository: ICandidatureRepository,
+        candidature_repository: ICandidatureRecruteurRepository,
         agent_repository: IAgentRepository,
         audit_log_writer: AuditLogWriter,
     ):
@@ -35,8 +34,7 @@ class CreerNoteUsecase(IUseCase[CreerNoteCommand, Note]):
         self.audit_log_writer = audit_log_writer
 
     def execute(self, command: CreerNoteCommand) -> Note:
-        if not self.candidature_repository.exists(command.candidature_id):
-            raise CandidatureIntrouvable(command.candidature_id)
+        self.candidature_repository.get_by_id(command.candidature_id)
         if not self.agent_repository.exists(command.publie_par_id):
             raise ProfilAgentNexistePas(command.publie_par_id)
 

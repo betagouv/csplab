@@ -43,6 +43,7 @@ class OfferSummariesView(APIView):
                     region=query.validated_data.get("region"),
                     department=query.validated_data.get("department"),
                     country=query.validated_data.get("country"),
+                    area=query.validated_data.get("area"),
                     domain=query.validated_data.get("domain"),
                     organization=query.validated_data.get("organization"),
                     published_within_days=query.validated_data.get(
@@ -51,6 +52,7 @@ class OfferSummariesView(APIView):
                     latitude=query.validated_data.get("latitude"),
                     longitude=query.validated_data.get("longitude"),
                     radius_km=query.validated_data.get("radius_km"),
+                    keywords=query.validated_data.get("keywords"),
                 )
             )
 

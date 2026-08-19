@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from application.recruteur.usecases.changer_etape_candidatures import (
-    CandidatureAChanger,
     ChangerEtapeCandidaturesCommand,
 )
 from application.recruteur.usecases.get_recrutement_detail import (
@@ -23,6 +22,11 @@ from application.recruteur.usecases.get_recrutement_liste import (
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.organisme_permission_errors import (
     OrganismePermissionError,
+)
+from domain.recruteur.errors.recrutement_errors import (
+    CandidatureInexistante,
+    RecrutementEtapeInexistante,
+    RecrutementInexistant,
 )
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
@@ -188,7 +192,6 @@ class RecrutementListeView(APIView):
             )
 
 
-# TODO: stub sans persistance, voir ChangerEtapeCandidaturesUsecase.
 @extend_schema(
     summary="Changer l'étape d'une ou plusieurs candidatures (batch, statique)",
     tags=["recruteur"],
@@ -223,30 +226,34 @@ class RecrutementCandidaturesEtapeView(APIView):
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
                     etape_cible_id=data["etape_cible_uuid"],
-                    candidatures=[
-                        CandidatureAChanger(
-                            candidature_id=c["candidature_uuid"],
-                            etape_actuelle_id=c["etape_actuelle_uuid"],
-                        )
-                        for c in data["candidatures"]
-                    ],
+                    candidatures=[c["candidature_uuid"] for c in data["candidatures"]],
+                    utilisateur_id=UUID(request.user.username),
+                    est_staff=request.user.is_staff,
                 )
             )
             return Response(
                 ChangerEtapeResultatSerializer(
                     {
-                        "reussites": resultat.reussites,
+                        "reussites": [c.entity_id for c in resultat["successes"]],
                         "echecs": [
                             {"candidature_uuid": cid, "raison": reason}
-                            for cid, reason in resultat.echecs
+                            for cid, reason in resultat["failures"]
                         ],
                     }
                 ).data
             )
-        except OrganismeNexistePas:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except (
+            OrganismeNexistePas,
+            RecrutementInexistant,
+            CandidatureInexistante,
+        ) as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
+        except RecrutementEtapeInexistante as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
-            error_serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
-                error_serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Unexpected error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
