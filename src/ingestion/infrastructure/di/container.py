@@ -11,21 +11,27 @@ from application.use_cases.archive_offer import ArchiveOfferUseCase
 from application.use_cases.batch_archive_offers import BatchArchiveOffersUseCase
 from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
 from application.use_cases.import_offers import ImportOffersUseCase
+from application.use_cases.import_organismes import ImportOrganismesUseCase
 from application.use_cases.load_sources import LoadSourcesUseCase
 from application.use_cases.publish_offer import PublishOfferUseCase
 from application.use_cases.save_raw_offer import SaveRawOfferUseCase
 from application.use_cases.save_webhook import SaveWebhookUseCase
 from domain.gateways.archive_gateway import IArchiveGateway
 from domain.gateways.offers_by_source_gateway import IOffersBySourceGateway
+from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
+from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.repositories.webhook_repository import IWebhookRepository
 from domain.value_objects.credentials import Credentials
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from infrastructure.credentials_store import CredentialsStore
 from infrastructure.database import make_engine
+from infrastructure.external_gateways.finess_organisme_gateway import (
+    FinessOrganismeGateway,
+)
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
@@ -40,6 +46,7 @@ from infrastructure.external_gateways.web_publish_offer_gateway import (
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.gateways.offers_cleaner import OffersCleaner
 from infrastructure.raw_offer_repository import RawOfferRepository
+from infrastructure.raw_organisme_repository import RawOrganismeRepository
 from infrastructure.sources_repository import SourcesRepository
 from infrastructure.talentsoft_client_repository import TalentsoftClientRepository
 from infrastructure.webhook_repository import WebhookRepository
@@ -134,6 +141,25 @@ class Container(containers.DeclarativeContainer):
     raw_offer_repository: providers.Provider[IRawOfferRepository] = providers.Singleton(
         RawOfferRepository,
         engine=db_engine,
+    )
+
+    raw_organisme_repository: providers.Provider[IRawOrganismeRepository] = (
+        providers.Singleton(
+            RawOrganismeRepository,
+            engine=db_engine,
+        )
+    )
+
+    organisme_gateway: providers.Provider[IOrganismeGateway] = providers.Singleton(
+        FinessOrganismeGateway
+    )
+
+    import_organismes_use_case: providers.Provider[ImportOrganismesUseCase] = (
+        providers.Factory(
+            ImportOrganismesUseCase,
+            organisme_gateway=organisme_gateway,
+            raw_organisme_repository=raw_organisme_repository,
+        )
     )
 
     webhook_repository: providers.Provider[IWebhookRepository] = providers.Singleton(
