@@ -3,9 +3,7 @@ from django.db import models
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
-from infrastructure.django_apps.users.models import (
-    ProfilAgentModel,
-)
+from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
@@ -50,12 +48,7 @@ class RecrutementAgentModel(BaseDatedModel):
         db_column="recrutement_id",
         related_name="agents_liaisons",
     )
-    agent = models.ForeignKey(
-        ProfilAgentModel,
-        to_field="utilisateur_id",
-        on_delete=models.PROTECT,
-        related_name="recrutements_agents",
-    )
+    agent = agent_fk(related_name="recrutements_agents")
     role = models.CharField(
         max_length=20,
         choices=[(r.value, r.value) for r in AgentRecrutementRole],
