@@ -72,7 +72,7 @@ class OrganismeDetailView(APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            utilisateur_id = UUID(request.user.username)
+            utilisateur_id = request.user.username
             container = recruteur_container()
             usecase = container.get_organisme_recruteur_usecase()
             organisme = usecase.execute(
@@ -172,7 +172,7 @@ class EtapesRecrutementOrganismeView(APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            utilisateur_id = UUID(request.user.username)
+            utilisateur_id = request.user.username
             usecase = self.container.get_organisme_recruteur_usecase()
             organisme = usecase.execute(
                 GetOrganismeRecruteurQuery(
@@ -211,7 +211,7 @@ class EtapesRecrutementOrganismeView(APIView):
             for etape in validated_etapes
         ]
         try:
-            utilisateur_id = UUID(request.user.username)
+            utilisateur_id = request.user.username
             usecase = self.container.update_organisme_steps_usecase()
             organisme = usecase.execute(
                 UpdateOrganismeStepsCommand(
@@ -257,7 +257,7 @@ class InitEtapesRecrutementOrganismeView(APIView):
 
     def post(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            utilisateur_id = UUID(request.user.username)
+            utilisateur_id = request.user.username
             usecase = self.container.initialize_organisme_steps_usecase()
             organisme = usecase.execute(
                 InitializeOrganismeStepsCommand(

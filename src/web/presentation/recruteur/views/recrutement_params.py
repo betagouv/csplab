@@ -81,7 +81,7 @@ class RecrutementEtapeView(APIView):
                 GetRecrutementEtapesQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=UUID(request.user.username),
+                    utilisateur_id=request.user.username,
                     est_staff=request.user.is_staff,
                 )
             )
@@ -121,7 +121,7 @@ class RecrutementEtapeView(APIView):
                 UpdateRecrutementEtapesCommand(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=UUID(request.user.username),
+                    utilisateur_id=request.user.username,
                     est_staff=request.user.is_staff,
                     etapes=etapes,
                 )
@@ -169,7 +169,7 @@ class InitRecrutementEtapeView(APIView):
                 InitRecrutementEtapesCommand(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=UUID(request.user.username),
+                    utilisateur_id=request.user.username,
                     est_staff=request.user.is_staff,
                 )
             )

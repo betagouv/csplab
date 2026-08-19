@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from drf_spectacular.utils import (
     PolymorphicProxySerializer,
     extend_schema,
@@ -141,7 +139,7 @@ class OffersBySourceView(APIView):
 
     def get(self, request, source_id):
         utilisateur_entity_id = (
-            UUID(request.user.username) if isinstance(request.user, UserModel) else None
+            request.user.username if isinstance(request.user, UserModel) else None
         )
         try:
             usecase = self.container.get_offers_by_source_usecase()
@@ -216,7 +214,7 @@ class ArchiveOffersView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         utilisateur_entity_id = (
-            UUID(request.user.username) if isinstance(request.user, UserModel) else None
+            request.user.username if isinstance(request.user, UserModel) else None
         )
         container = create_ingestion_container()
         use_case = container.archive_offer_by_reference_usecase()
@@ -338,7 +336,7 @@ class OffersUpsertView(APIView):
                 )
 
         utilisateur_entity_id = (
-            UUID(request.user.username) if isinstance(request.user, UserModel) else None
+            request.user.username if isinstance(request.user, UserModel) else None
         )
         try:
             usecase = container.upsert_offers_usecase()

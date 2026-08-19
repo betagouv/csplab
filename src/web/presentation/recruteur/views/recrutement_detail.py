@@ -67,7 +67,7 @@ class RecrutementDetailView(APIView):
                 GetRecrutementDetailQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=UUID(request.user.username),
+                    utilisateur_id=request.user.username,
                     est_staff=request.user.is_staff,
                 )
             )
@@ -116,7 +116,7 @@ class RecrutementKanbanView(APIView):
                 GetRecrutementKanbanQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=UUID(request.user.username),
+                    utilisateur_id=request.user.username,
                     est_staff=request.user.is_staff,
                 )
             )
@@ -167,7 +167,7 @@ class RecrutementListeView(APIView):
                 GetRecrutementListeQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=UUID(request.user.username),
+                    utilisateur_id=request.user.username,
                     est_staff=request.user.is_staff,
                 )
             )
@@ -227,7 +227,7 @@ class RecrutementCandidaturesEtapeView(APIView):
                     recrutement_id=recrutement_uuid,
                     etape_cible_id=data["etape_cible_uuid"],
                     candidatures=[c["candidature_uuid"] for c in data["candidatures"]],
-                    utilisateur_id=UUID(request.user.username),
+                    utilisateur_id=request.user.username,
                     est_staff=request.user.is_staff,
                 )
             )
