@@ -199,39 +199,15 @@ paths:
                 $ref: '#/components/schemas/GenericError'
           description: ''
   /recruteur/organismes:
-    post:
-      operationId: recruteur_organismes_create
-      summary: Créer un organisme
+    get:
+      operationId: recruteur_organismes_list
+      summary: Lister les organismes
       tags:
       - recruteur
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreerOrganisme'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CreerOrganisme'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/CreerOrganisme'
-        required: true
       security:
       - jwtAuth: []
       - cookieAuth: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganismeDetail'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericError'
-          description: ''
         '401':
           content:
             application/json:
@@ -256,10 +232,74 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganismeDetail'
+          description: ''
+    post:
+      operationId: recruteur_organismes_create
+      summary: Créer un organisme
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganisme'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateOrganisme'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateOrganisme'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganismeDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organismes/{organisme_uuid}:
     get:
       operationId: recruteur_organismes_retrieve
-      summary: Detail d'un organisme
       parameters:
       - in: path
         name: organisme_uuid
@@ -277,8 +317,36 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Organisme'
+                $ref: '#/components/schemas/OrganismeDetail'
           description: ''
+    put:
+      operationId: recruteur_organismes_update
+      summary: Modifier un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrganisme'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UpdateOrganisme'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpdateOrganisme'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
         '401':
           content:
             application/json:
@@ -298,6 +366,18 @@ paths:
                 $ref: '#/components/schemas/GenericError'
           description: ''
         '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganismeDetail'
+          description: ''
+        '400':
           content:
             application/json:
               schema:
@@ -320,14 +400,6 @@ paths:
       - jwtAuth: []
       - cookieAuth: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EtapeRecrutement'
-          description: ''
         '401':
           content:
             application/json:
@@ -351,6 +423,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EtapeRecrutement'
           description: ''
     put:
       operationId: recruteur_organismes_parametres_etapes_update
@@ -386,20 +466,6 @@ paths:
       - jwtAuth: []
       - cookieAuth: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EtapeRecrutement'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericError'
-          description: ''
         '401':
           content:
             application/json:
@@ -419,6 +485,20 @@ paths:
                 $ref: '#/components/schemas/GenericError'
           description: ''
         '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EtapeRecrutement'
+          description: ''
+        '400':
           content:
             application/json:
               schema:
@@ -441,14 +521,6 @@ paths:
       - jwtAuth: []
       - cookieAuth: []
       responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EtapeRecrutement'
-          description: ''
         '401':
           content:
             application/json:
@@ -472,6 +544,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EtapeRecrutement'
           description: ''
   /recruteur/organismes/{organisme_uuid}/recrutements-actifs:
     get:
@@ -1216,14 +1296,7 @@ components:
       required:
       - echecs
       - reussites
-    CreerNote:
-      type: object
-      properties:
-        message:
-          type: string
-      required:
-      - message
-    CreerOrganisme:
+    CreateOrganisme:
       type: object
       properties:
         nom:
@@ -1241,6 +1314,13 @@ components:
       - nom
       - siret
       - versant
+    CreerNote:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
     DepartementEnum:
       enum:
       - '01'
@@ -1937,6 +2017,19 @@ components:
       required:
       - categorie
       - nom
+    UpdateOrganisme:
+      type: object
+      properties:
+        nom:
+          type: string
+        versant:
+          $ref: '#/components/schemas/VersantEnum'
+        gestion_ats:
+          type: boolean
+      required:
+      - gestion_ats
+      - nom
+      - versant
     Utilisateur:
       type: object
       properties:

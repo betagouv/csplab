@@ -47,7 +47,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Lister les organismes */
+        get: operations["recruteur_organismes_list"];
         put?: never;
         /** Créer un organisme */
         post: operations["recruteur_organismes_create"];
@@ -64,9 +65,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Detail d'un organisme */
         get: operations["recruteur_organismes_retrieve"];
-        put?: never;
+        /** Modifier un organisme */
+        put: operations["recruteur_organismes_update"];
         post?: never;
         delete?: never;
         options?: never;
@@ -335,14 +336,14 @@ export interface components {
             reussites: string[];
             echecs: components["schemas"]["CandidatureEchec"][];
         };
-        CreerNote: {
-            message: string;
-        };
-        CreerOrganisme: {
+        CreateOrganisme: {
             nom: string;
             siret: string;
             versant: components["schemas"]["VersantEnum"];
             gestion_ats: boolean;
+        };
+        CreerNote: {
+            message: string;
         };
         /**
          * @description * `01` - 01
@@ -667,6 +668,11 @@ export interface components {
             nom: string;
             categorie: components["schemas"]["CategorieEnum"];
         };
+        UpdateOrganisme: {
+            nom: string;
+            versant: components["schemas"]["VersantEnum"];
+            gestion_ats: boolean;
+        };
         Utilisateur: {
             /** Format: email */
             email: string;
@@ -893,6 +899,57 @@ export interface operations {
             };
         };
     };
+    recruteur_organismes_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganismeDetail"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
     recruteur_organismes_create: {
         parameters: {
             query?: never;
@@ -902,9 +959,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreerOrganisme"];
-                "application/x-www-form-urlencoded": components["schemas"]["CreerOrganisme"];
-                "multipart/form-data": components["schemas"]["CreerOrganisme"];
+                "application/json": components["schemas"]["CreateOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["CreateOrganisme"];
+                "multipart/form-data": components["schemas"]["CreateOrganisme"];
             };
         };
         responses: {
@@ -974,7 +1031,42 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Organisme"];
+                    "application/json": components["schemas"]["OrganismeDetail"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["UpdateOrganisme"];
+                "multipart/form-data": components["schemas"]["UpdateOrganisme"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganismeDetail"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
                 };
             };
             401: {

@@ -1,4 +1,4 @@
-from domain.identite.errors.organisme_permission_errors import CreationOrganismeRefusee
+from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
 
 
 # TODO : refactor into a generic IdentitePermissionService fed with
@@ -6,4 +6,4 @@ from domain.identite.errors.organisme_permission_errors import CreationOrganisme
 class OrganismeCreationPermissionService:
     def verifier_autorisation(self, *, est_staff: bool) -> None:
         if not est_staff:
-            raise CreationOrganismeRefusee()
+            raise OperationOrganismeRefusee()

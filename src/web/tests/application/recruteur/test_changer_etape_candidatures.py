@@ -50,7 +50,7 @@ def recrutement_repository_fixture(recrutement):
 
 @pytest.fixture(name="candidatures_recruteur")
 def candidatures_recruteur_fixture(recrutement):
-    return CandidatureRecruteurFactory.create_entities(
+    return CandidatureRecruteurFactory.create_entity_batch(
         3,
         recrutement_id=recrutement.entity_id,
     )
@@ -233,7 +233,7 @@ class TestChangerEtapeCandidaturesUsecase:
     def test_return_results_with_domain_errors(
         self, recrutement, candidature_recruteur_repository, usecase
     ):
-        candidatures = CandidatureRecruteurFactory.create_entities(
+        candidatures = CandidatureRecruteurFactory.create_entity_batch(
             3, recrutement_id=uuid4()
         )
         candidature_recruteur_repository.get_by_ids.return_value = candidatures

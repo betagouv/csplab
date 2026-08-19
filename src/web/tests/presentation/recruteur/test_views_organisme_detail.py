@@ -7,6 +7,7 @@ from faker import Faker
 from rest_framework import status
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.erreur_recrutement import (
     ConfigurationEtapesInvalide,
@@ -16,6 +17,7 @@ from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRe
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.recruteur.organisme_factory import (
     OrganismeRecruteurFactory,
 )
@@ -58,6 +60,16 @@ def etapes_as_json(etapes: tuple[EtapeRecrutement, ...]) -> list[dict]:
 def container():
     with patch(
         "presentation.recruteur.views.organisme_detail.recruteur_container"
+    ) as mock:
+        instance = MagicMock()
+        mock.return_value = instance
+        yield instance
+
+
+@pytest.fixture
+def identite_container():
+    with patch(
+        "presentation.recruteur.views.organisme_detail.create_identite_container"
     ) as mock:
         instance = MagicMock()
         mock.return_value = instance
@@ -123,6 +135,68 @@ class TestOrganismeDetailView:
         mock_usecase.execute.side_effect = exception
         container.get_organisme_recruteur_usecase.return_value = mock_usecase
         response = authenticated_client.get(ORGANISME_URL)
+
+        assert response.status_code == expected_status
+        assert response.json() == expected_body
+
+    def test_put_update_organisme(
+        self,
+        identite_container,
+        authenticated_client,
+    ):
+        mock_usecase = MagicMock()
+        organisme = OrganismeFactory.create_entity(entity_id=UUID(ORGANISME_UUID))
+        mock_usecase.execute.return_value = organisme
+        identite_container.update_organisme_usecase.return_value = mock_usecase
+        nouveau_nom = fake.name()
+        body = {
+            "nom": nouveau_nom,
+            "gestion_ats": False,
+            "versant": organisme.versant.value,
+        }
+        response = authenticated_client.put(ORGANISME_URL, body)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["nom"] == nouveau_nom
+        assert response.json()["gestion_ats"] is False
+
+    @pytest.mark.parametrize(
+        ("exception", "expected_status", "expected_body"),
+        [
+            (
+                OrganismeNexistePas(ORGANISME_UUID),
+                status.HTTP_404_NOT_FOUND,
+                {"error": OrganismeNexistePas(ORGANISME_UUID).message},
+            ),
+            (
+                OperationOrganismeRefusee(),
+                status.HTTP_403_FORBIDDEN,
+                {"error": OperationOrganismeRefusee().message},
+            ),
+            (
+                Exception("unexpected"),
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"error": "Unexpected error"},
+            ),
+        ],
+    )
+    def test_put_returns_error_from_usecase(
+        self,
+        identite_container,
+        authenticated_client,
+        exception,
+        expected_status,
+        expected_body,
+    ):
+        mock_usecase = MagicMock()
+        mock_usecase.execute.side_effect = exception
+        identite_container.update_organisme_usecase.return_value = mock_usecase
+        nouveau_nom = fake.name()
+        body = {
+            "nom": nouveau_nom,
+            "gestion_ats": False,
+            "versant": "FPT",
+        }
+        response = authenticated_client.put(ORGANISME_URL, body)
 
         assert response.status_code == expected_status
         assert response.json() == expected_body
