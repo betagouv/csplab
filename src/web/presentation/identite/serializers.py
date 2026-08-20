@@ -11,4 +11,4 @@ class UtilisateurSerializer(serializers.Serializer):
     email = serializers.EmailField()
     prenom = serializers.CharField()
     nom = serializers.CharField()
-    organisme = OrganismeRoleSerializer(source="organismes", many=True)
+    organisme_roles = OrganismeRoleSerializer(many=True)

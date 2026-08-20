@@ -700,7 +700,7 @@ export interface components {
             email: string;
             prenom: string;
             nom: string;
-            organisme: components["schemas"]["OrganismeRole"][];
+            organisme_roles: components["schemas"]["OrganismeRole"][];
         };
         /**
          * @description * `FPT` - FPT

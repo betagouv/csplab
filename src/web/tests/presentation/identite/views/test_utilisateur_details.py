@@ -54,7 +54,7 @@ def test_returned_payload(mock_container, authenticated_client, test_user):
         "email": entity.email,
         "prenom": entity.prenom,
         "nom": entity.nom,
-        "organisme": [
+        "organisme_roles": [
             {
                 "organisme_uuid": str(organisme_role.organisme_uuid),
                 "nom": organisme_role.nom,

@@ -12,4 +12,4 @@ class Utilisateur(Entity):
     prenom: str
     nom: str
     is_superuser: bool = False
-    organismes: list[OrganismeRole] = field(default_factory=list)
+    organisme_roles: list[OrganismeRole] = field(default_factory=list)

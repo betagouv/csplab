@@ -2076,14 +2076,14 @@ components:
           type: string
         nom:
           type: string
-        organisme:
+        organisme_roles:
           type: array
           items:
             $ref: '#/components/schemas/OrganismeRole'
       required:
       - email
       - nom
-      - organisme
+      - organisme_roles
       - prenom
     VersantEnum:
       enum:

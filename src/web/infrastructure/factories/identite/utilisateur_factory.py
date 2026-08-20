@@ -27,7 +27,7 @@ class UtilisateurFactory:
             prenom=prenom or fake.first_name(),
             nom=nom or fake.last_name(),
             is_superuser=is_superuser,
-            organismes=organismes or [],
+            organisme_roles=organismes or [],
         )
 
     @staticmethod

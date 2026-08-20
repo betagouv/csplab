@@ -23,4 +23,4 @@ class GetUtilisateurDetailUsecase:
 
     def execute(self, entity_id: UUID) -> Utilisateur:
         utilisateur = self.utilisateur_repository.get_by_entity_id(entity_id)
-        return replace(utilisateur, organismes=STATIC_ORGANISMES)
+        return replace(utilisateur, organisme_roles=STATIC_ORGANISMES)
