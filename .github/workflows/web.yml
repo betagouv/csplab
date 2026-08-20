@@ -154,8 +154,21 @@ jobs:
           uv run python config/setup-qdrant.py --collection-name fonction_publique_test
       - name: Test with pytest
         run: uv run pytest -m "not accessibility and not e2e" .
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "version=$(uv run playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - name: Install Playwright browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: uv run playwright install --with-deps chromium
+      - name: Install Playwright OS dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: uv run playwright install-deps chromium
       - name: Test Web suite with coverage
         run: uv run pytest -m "e2e" .
 

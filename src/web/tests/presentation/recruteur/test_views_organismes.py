@@ -1,149 +1,73 @@
 from unittest.mock import MagicMock, patch
-from uuid import UUID
 
 import pytest
 from django.urls import reverse
 from faker import Faker
+from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
-from domain.recruteur.errors.erreur_recrutement import (
-    ConfigurationEtapesInvalide,
-    ErreurRecruteur,
+from domain.identite.errors.organisme_errors import (
+    OrganismeSiretExisteDeja,
+    SiretInvalide,
 )
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.recruteur.value_objects.categorie_etapes_recrutement import (
-    CategorieEtapeRecrutement,
+from domain.identite.errors.organisme_permission_errors import (
+    OperationOrganismeRefusee,
 )
-from infrastructure.factories.recruteur.organisme_factory import (
-    OrganismeRecruteurFactory,
-)
+from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.seed_recruteur_datas import _ORGANISME_UUID
 
-fake = Faker()
+fake = Faker("fr_FR")
 
 ORGANISME_UUID = fake.uuid4()
-ORGANISME_URL = reverse(
-    "recruteur:organisme", kwargs={"organisme_uuid": ORGANISME_UUID}
-)
-ETAPES_URL = reverse(
-    "recruteur:organisme-parametres-etapes",
-    kwargs={"organisme_uuid": ORGANISME_UUID},
-)
-INIT_ETAPES_URL = reverse(
-    "recruteur:organisme-parametres-etapes-init",
-    kwargs={"organisme_uuid": ORGANISME_UUID},
-)
-
-VALID_ETAPES_PAYLOAD = [
-    {"nom": "Réception", "categorie": "ENTREE"},
-    {"nom": "Entretien", "categorie": "EN_COURS"},
-    {"nom": "Refus", "categorie": "REFUS"},
-    {"nom": "Recrutement", "categorie": "ACCEPTE"},
-]
-
-
-def etapes_as_json(etapes: tuple[EtapeRecrutement, ...]) -> list[dict]:
-    return [
-        {
-            "etape_uuid": str(etape.entity_id),
-            "nom": etape.nom,
-            "categorie": etape.categorie.name,
-        }
-        for etape in etapes
-    ]
+ORGANISME_URL = reverse("recruteur:organismes")
 
 
 @pytest.fixture
 def container():
-    with patch("presentation.recruteur.views.organismes.recruteur_container") as mock:
+    with patch(
+        "presentation.recruteur.views.organismes.create_identite_container"
+    ) as mock:
         instance = MagicMock()
         mock.return_value = instance
         yield instance
 
 
-class TestOrganismeView:
+siret = fake.siret().replace(" ", "")
+
+
+class TestOrganismesView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(ORGANISME_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_authenticated_access_is_ok(self, container, authenticated_client):
-        mock_organisme = MagicMock()
-        mock_organisme.nom = "COMMUNE DE BRIANCON"
-        mock_organisme.siret = "21050023700354"
-
+    def test_get_returns_organismes(
+        self,
+        container,
+        authenticated_client,
+    ):
         mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = mock_organisme
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        organismes = OrganismeFactory.create_entity_batch(3)
 
+        mock_usecase.execute.return_value = organismes
+        container.list_organismes_usecase.return_value = mock_usecase
         response = authenticated_client.get(ORGANISME_URL)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {
-            "nom": "COMMUNE DE BRIANCON",
-            "siret": "21050023700354",
-        }
-
-    def test_returns_404_when_organisme_not_found(
-        self, container, authenticated_client
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = ErreurRecruteur("not found")
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-
-        response = authenticated_client.get(ORGANISME_URL)
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
-
-    def test_returns_403_when_not_responsable(self, container, authenticated_client):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-
-        response = authenticated_client.get(ORGANISME_URL)
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"detail": "Forbidden."}
-
-    def test_forwards_est_staff_to_usecase(
-        self, container, authenticated_client, test_user
-    ):
-        test_user.is_staff = True
-        test_user.save()
-
-        mock_organisme = MagicMock()
-        mock_organisme.nom = "COMMUNE DE BRIANCON"
-        mock_organisme.siret = "21050023700354"
-
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = mock_organisme
-
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-
-        authenticated_client.get(ORGANISME_URL)
-
-        command = mock_usecase.execute.call_args.args[0]
-        assert command.est_staff is True
-
-
-class TestEtapesRecrutementOrganismeView:
-    def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.get(ETAPES_URL)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json()[0]["organisme_uuid"] == str(organismes[0].entity_id)
+        assert len(response.json()) == len(organismes)
 
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
         [
             (
-                OrganismeNexistePas("not found"),
-                status.HTTP_404_NOT_FOUND,
-                {"organisme_uuid": "Not found."},
+                OperationOrganismeRefusee(),
+                status.HTTP_403_FORBIDDEN,
+                {"error": OperationOrganismeRefusee().message},
             ),
             (
-                AccesOrganismeRefuse(UUID(fake.uuid4())),
-                status.HTTP_403_FORBIDDEN,
-                {"detail": "Forbidden."},
+                Exception("unexpected"),
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"error": "Unexpected error"},
             ),
         ],
     )
@@ -157,58 +81,51 @@ class TestEtapesRecrutementOrganismeView:
     ):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = exception
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-
-        response = authenticated_client.get(ETAPES_URL)
+        container.list_organismes_usecase.return_value = mock_usecase
+        response = authenticated_client.get(ORGANISME_URL)
 
         assert response.status_code == expected_status
         assert response.json() == expected_body
 
-    def test_authenticated_access_is_ok(self, container, authenticated_client):
-        organisme = OrganismeRecruteurFactory.create_entity()
-
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = organisme
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-
-        response = authenticated_client.get(ETAPES_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json() == etapes_as_json(organisme.etapes or ())
-
-    def test_forwards_est_staff_to_usecase(
-        self, container, authenticated_client, test_user
+    def test_post_create_organisme(
+        self,
+        container,
+        authenticated_client,
     ):
-        test_user.is_staff = True
-        test_user.save()
-
         mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = OrganismeRecruteurFactory.create_entity()
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-
-        authenticated_client.get(ETAPES_URL)
-
-        command = mock_usecase.execute.call_args.args[0]
-        assert command.est_staff is True
-
-
-class TestInitEtapesRecrutementOrganismeView:
-    def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.post(INIT_ETAPES_URL)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        organisme = OrganismeFactory.create_entity(entity_id=_ORGANISME_UUID)
+        mock_usecase.execute.return_value = organisme
+        container.create_organisme_usecase.return_value = mock_usecase
+        body = {
+            "nom": organisme.nom,
+            "siret": organisme.siret.value,
+            "versant": fake.random_choices(
+                [Verse.FPE.value, Verse.FPT.value, Verse.FPH.value]
+            ),
+            "gestion_ats": True,
+        }
+        response = authenticated_client.post(ORGANISME_URL, body)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["organisme_uuid"] == str(organisme.entity_id)
+        assert response.json()["gestion_ats"]
 
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
         [
             (
-                OrganismeNexistePas("not found"),
-                status.HTTP_404_NOT_FOUND,
-                {"organisme_uuid": "Not found."},
+                OrganismeSiretExisteDeja(siret),
+                status.HTTP_400_BAD_REQUEST,
+                {"error": OrganismeSiretExisteDeja(siret).message},
             ),
             (
-                AccesOrganismeRefuse(UUID(fake.uuid4())),
+                SiretInvalide(siret),
+                status.HTTP_400_BAD_REQUEST,
+                {"error": SiretInvalide(siret).message},
+            ),
+            (
+                OperationOrganismeRefusee(),
                 status.HTTP_403_FORBIDDEN,
-                {"detail": "Forbidden."},
+                {"error": OperationOrganismeRefusee().message},
             ),
             (
                 Exception("unexpected"),
@@ -227,186 +144,16 @@ class TestInitEtapesRecrutementOrganismeView:
     ):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = exception
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
-
-        response = authenticated_client.post(INIT_ETAPES_URL)
-
-        assert response.status_code == expected_status
-        assert response.json() == expected_body
-
-    def test_authenticated_post_initialize_steps(self, container, authenticated_client):
-        organisme = OrganismeRecruteurFactory.create_entity()
-        organisme.initialiser_etapes()
-
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = organisme
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
-
-        response = authenticated_client.post(INIT_ETAPES_URL)
-
-        assert response.status_code == status.HTTP_201_CREATED
-        assert response.json() == etapes_as_json(organisme.etapes or ())
-
-    def test_forwards_est_staff_to_usecase(
-        self, container, authenticated_client, test_user
-    ):
-        test_user.is_staff = True
-        test_user.save()
-
-        organisme = OrganismeRecruteurFactory.create_entity()
-        organisme.initialiser_etapes()
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = organisme
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
-
-        authenticated_client.post(INIT_ETAPES_URL)
-
-        command = mock_usecase.execute.call_args.args[0]
-        assert command.est_staff is True
-
-
-class TestPutEtapesRecrutementOrganismeView:
-    def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.put(ETAPES_URL, [], format="json")
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_invalid_body_returns_400(self, authenticated_client):
-        response = authenticated_client.put(
-            ETAPES_URL,
-            [{"nom": "Entretien", "categorie": "INVALIDE"}],
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    def test_missing_nom_returns_400(self, authenticated_client):
-        response = authenticated_client.put(
-            ETAPES_URL,
-            [{"categorie": "EN_COURS"}],
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    def test_put_mixed_existing_and_new_etapes(self, container, authenticated_client):
-        existing_uuid = fake.uuid4()
-        new_uuid = fake.uuid4()
-        other_uuid = fake.uuid4()
-
-        organisme = OrganismeRecruteurFactory.create_entity()
-        organisme._etapes = (
-            EtapeRecrutement.build(
-                entity_id=UUID(existing_uuid),
-                nom="Réception",
-                categorie=CategorieEtapeRecrutement.ENTREE,
+        container.create_organisme_usecase.return_value = mock_usecase
+        body = {
+            "nom": fake.name(),
+            "siret": siret,
+            "versant": fake.random_choices(
+                [Verse.FPE.value, Verse.FPT.value, Verse.FPH.value]
             ),
-            EtapeRecrutement.build(
-                entity_id=UUID(new_uuid),
-                nom="Nouvelle étape",
-                categorie=CategorieEtapeRecrutement.EN_COURS,
-            ),
-            EtapeRecrutement.build(
-                entity_id=UUID(other_uuid),
-                nom="Recrutement",
-                categorie=CategorieEtapeRecrutement.ACCEPTE,
-            ),
-        )
-
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = organisme
-        container.update_organisme_steps_usecase.return_value = mock_usecase
-
-        payload = [
-            {
-                "etape_uuid": str(existing_uuid),
-                "nom": "Réception",
-                "categorie": "ENTREE",
-            },
-            {"nom": "Nouvelle étape", "categorie": "EN_COURS"},
-            {
-                "etape_uuid": str(other_uuid),
-                "nom": "Recrutement",
-                "categorie": "ACCEPTE",
-            },
-        ]
-
-        response = authenticated_client.put(ETAPES_URL, payload, format="json")
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert len(data) == len(payload)
-        assert data[0]["etape_uuid"] == str(existing_uuid)
-        assert data[1]["etape_uuid"] == str(new_uuid)
-        assert data[1]["nom"] == "Nouvelle étape"
-
-    def test_put_returns_400_on_invalid_steps(self, container, authenticated_client):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = ConfigurationEtapesInvalide(
-            "la première étape doit être de catégorie ENTREE"
-        )
-        container.update_organisme_steps_usecase.return_value = mock_usecase
-
-        payload = [
-            {"nom": "Entretien", "categorie": "EN_COURS"},
-            {"nom": "Refus", "categorie": "REFUS"},
-            {"nom": "Recrutement", "categorie": "ACCEPTE"},
-        ]
-
-        response = authenticated_client.put(ETAPES_URL, payload, format="json")
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {
-            "error": "la première étape doit être de catégorie ENTREE"
+            "gestion_ats": fake.boolean(),
         }
-
-    @pytest.mark.parametrize(
-        ("exception", "expected_status", "expected_body"),
-        [
-            (
-                OrganismeNexistePas("not found"),
-                status.HTTP_404_NOT_FOUND,
-                {"organisme_uuid": "Not found."},
-            ),
-            (
-                AccesOrganismeRefuse(UUID(fake.uuid4())),
-                status.HTTP_403_FORBIDDEN,
-                {"detail": "Forbidden."},
-            ),
-            (
-                Exception("unexpected"),
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                {"error": "Unexpected error"},
-            ),
-        ],
-    )
-    def test_put_returns_error_from_usecase(
-        self,
-        container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = exception
-        container.update_organisme_steps_usecase.return_value = mock_usecase
-
-        response = authenticated_client.put(
-            ETAPES_URL, VALID_ETAPES_PAYLOAD, format="json"
-        )
+        response = authenticated_client.post(ORGANISME_URL, body)
 
         assert response.status_code == expected_status
         assert response.json() == expected_body
-
-    def test_forwards_est_staff_to_usecase(
-        self, container, authenticated_client, test_user
-    ):
-        test_user.is_staff = True
-        test_user.save()
-
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = OrganismeRecruteurFactory.create_entity()
-        container.update_organisme_steps_usecase.return_value = mock_usecase
-
-        authenticated_client.put(ETAPES_URL, VALID_ETAPES_PAYLOAD, format="json")
-
-        command = mock_usecase.execute.call_args.args[0]
-        assert command.est_staff is True

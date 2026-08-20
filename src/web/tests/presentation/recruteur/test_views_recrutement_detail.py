@@ -450,7 +450,7 @@ class TestRecrutementCandidaturesEtapeView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_echoes_candidatures_as_reussites(self, container, authenticated_client):
-        candidatures = CandidatureRecruteurFactory.create_entities(3)
+        candidatures = CandidatureRecruteurFactory.create_entity_batch(3)
         mock_usecase = container.changer_etape_candidatures_usecase.return_value
         mock_usecase.execute.return_value = {
             "successes": candidatures,

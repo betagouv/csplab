@@ -1,11 +1,37 @@
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
+
+
+class OrganismeDetailSerializer(serializers.Serializer):
+    organisme_uuid = serializers.UUIDField()
+    nom = serializers.CharField()
+    siret = serializers.CharField(min_length=14, max_length=14)
+    gestionnaire = serializers.CharField(allow_null=True)
+    gestion_ats = serializers.BooleanField()
+    date_derniere_activite = serializers.DateTimeField()
+    date_creation = serializers.DateTimeField()
+
+
+class CreateOrganismeSerializer(serializers.Serializer):
+    nom = serializers.CharField()
+    siret = serializers.CharField(min_length=14, max_length=14)
+    versant = serializers.ChoiceField(choices=[c.value for c in Verse])
+    gestion_ats = serializers.BooleanField()
+
+
+class UpdateOrganismeSerializer(serializers.Serializer):
+    nom = serializers.CharField()
+    versant = serializers.ChoiceField(
+        choices=[c.value for c in Verse],
+    )
+    gestion_ats = serializers.BooleanField()
 
 
 class EtapeRecrutementSerializer(serializers.Serializer):

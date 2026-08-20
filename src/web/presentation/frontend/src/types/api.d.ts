@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/recruteur/candidature/{candidature_uuid}/notes": {
+    "/recruteur/candidatures/{candidature_uuid}/notes": {
         parameters: {
             query?: never;
             header?: never;
@@ -12,17 +12,17 @@ export interface paths {
             cookie?: never;
         };
         /** Liste des notes d'une candidature */
-        get: operations["recruteur_candidature_notes_list"];
+        get: operations["recruteur_candidatures_notes_list"];
         put?: never;
         /** Ajouter une note à une candidature */
-        post: operations["recruteur_candidature_notes_create"];
+        post: operations["recruteur_candidatures_notes_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/recruteur/candidature/{candidature_uuid}/notes/{note_uuid}": {
+    "/recruteur/candidatures/{candidature_uuid}/notes/{note_uuid}": {
         parameters: {
             query?: never;
             header?: never;
@@ -33,23 +33,41 @@ export interface paths {
         put?: never;
         post?: never;
         /** Supprimer une note d'une candidature */
-        delete: operations["recruteur_candidature_notes_destroy"];
+        delete: operations["recruteur_candidatures_notes_destroy"];
         options?: never;
         head?: never;
         /** Modifier une note d'une candidature */
-        patch: operations["recruteur_candidature_notes_partial_update"];
+        patch: operations["recruteur_candidatures_notes_partial_update"];
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}": {
+    "/recruteur/organismes": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Detail d'un organisme */
-        get: operations["recruteur_organisme_retrieve"];
+        /** Lister les organismes */
+        get: operations["recruteur_organismes_list"];
         put?: never;
+        /** Créer un organisme */
+        post: operations["recruteur_organismes_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recruteur/organismes/{organisme_uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["recruteur_organismes_retrieve"];
+        /** Modifier un organisme */
+        put: operations["recruteur_organismes_update"];
         post?: never;
         delete?: never;
         options?: never;
@@ -57,7 +75,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/parametres/etapes": {
+    "/recruteur/organismes/{organisme_uuid}/parametres/etapes": {
         parameters: {
             query?: never;
             header?: never;
@@ -65,9 +83,9 @@ export interface paths {
             cookie?: never;
         };
         /** Liste des étapes de recrutement d'un organisme */
-        get: operations["recruteur_organisme_parametres_etapes_list"];
+        get: operations["recruteur_organismes_parametres_etapes_list"];
         /** Modifier les étapes de recrutement d'un organisme */
-        put: operations["recruteur_organisme_parametres_etapes_update"];
+        put: operations["recruteur_organismes_parametres_etapes_update"];
         post?: never;
         delete?: never;
         options?: never;
@@ -75,7 +93,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/parametres/etapes/init": {
+    "/recruteur/organismes/{organisme_uuid}/parametres/etapes/init": {
         parameters: {
             query?: never;
             header?: never;
@@ -85,14 +103,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Initialiser les étapes de recrutement par défaut d'un organisme */
-        post: operations["recruteur_organisme_parametres_etapes_init_create"];
+        post: operations["recruteur_organismes_parametres_etapes_init_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/recrutements-actifs": {
+    "/recruteur/organismes/{organisme_uuid}/recrutements-actifs": {
         parameters: {
             query?: never;
             header?: never;
@@ -103,7 +121,7 @@ export interface paths {
          * Liste des recrutements actifs d'un organisme
          * @description Retourne la liste paginée des recrutements d'un organisme.
          */
-        get: operations["recruteur_organisme_recrutements_actifs_list"];
+        get: operations["recruteur_organismes_recrutements_actifs_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -112,7 +130,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/recrutements-archives": {
+    "/recruteur/organismes/{organisme_uuid}/recrutements-archives": {
         parameters: {
             query?: never;
             header?: never;
@@ -123,7 +141,7 @@ export interface paths {
          * Liste des recrutements archivés d'un organisme
          * @description Retourne la liste paginée des recrutements archivés d'un organisme.
          */
-        get: operations["recruteur_organisme_recrutements_archives_list"];
+        get: operations["recruteur_organismes_recrutements_archives_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -132,7 +150,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}": {
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}": {
         parameters: {
             query?: never;
             header?: never;
@@ -140,7 +158,7 @@ export interface paths {
             cookie?: never;
         };
         /** Détail d'un recrutement */
-        get: operations["recruteur_organisme_recrutements_retrieve"];
+        get: operations["recruteur_organismes_recrutements_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -149,7 +167,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/etape": {
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/etape": {
         parameters: {
             query?: never;
             header?: never;
@@ -163,10 +181,10 @@ export interface paths {
         options?: never;
         head?: never;
         /** Changer l'étape d'une ou plusieurs candidatures (batch, statique) */
-        patch: operations["recruteur_organisme_recrutements_candidatures_etape_partial_update"];
+        patch: operations["recruteur_organismes_recrutements_candidatures_etape_partial_update"];
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes": {
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes": {
         parameters: {
             query?: never;
             header?: never;
@@ -174,17 +192,17 @@ export interface paths {
             cookie?: never;
         };
         /** Étapes d'un recrutement */
-        get: operations["recruteur_organisme_recrutements_etapes_list"];
+        get: operations["recruteur_organismes_recrutements_etapes_list"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Modifier les étapes d'un recrutement */
-        patch: operations["recruteur_organisme_recrutements_etapes_partial_update"];
+        patch: operations["recruteur_organismes_recrutements_etapes_partial_update"];
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes/init": {
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes/init": {
         parameters: {
             query?: never;
             header?: never;
@@ -194,14 +212,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Réinitialiser les étapes par défaut d'un recrutement */
-        post: operations["recruteur_organisme_recrutements_etapes_init_create"];
+        post: operations["recruteur_organismes_recrutements_etapes_init_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban": {
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban": {
         parameters: {
             query?: never;
             header?: never;
@@ -209,7 +227,7 @@ export interface paths {
             cookie?: never;
         };
         /** Détail d'un recrutement — vue kanban */
-        get: operations["recruteur_organisme_recrutements_kanban_retrieve"];
+        get: operations["recruteur_organismes_recrutements_kanban_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -218,7 +236,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organisme/{organisme_uuid}/recrutements/{recrutement_uuid}/liste": {
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste": {
         parameters: {
             query?: never;
             header?: never;
@@ -226,7 +244,7 @@ export interface paths {
             cookie?: never;
         };
         /** Détail d'un recrutement — vue liste (paginée) */
-        get: operations["recruteur_organisme_recrutements_liste_list"];
+        get: operations["recruteur_organismes_recrutements_liste_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -317,6 +335,12 @@ export interface components {
         ChangerEtapeResultat: {
             reussites: string[];
             echecs: components["schemas"]["CandidatureEchec"][];
+        };
+        CreateOrganisme: {
+            nom: string;
+            siret: string;
+            versant: components["schemas"]["VersantEnum"];
+            gestion_ats: boolean;
         };
         CreerNote: {
             message: string;
@@ -487,6 +511,18 @@ export interface components {
             nom: string;
             siret: string;
         };
+        OrganismeDetail: {
+            /** Format: uuid */
+            organisme_uuid: string;
+            nom: string;
+            siret: string;
+            gestionnaire: string | null;
+            gestion_ats: boolean;
+            /** Format: date-time */
+            date_derniere_activite: string;
+            /** Format: date-time */
+            date_creation: string;
+        };
         PaginatedCandidatureListeList: {
             /** @example 1 */
             count: number;
@@ -632,12 +668,24 @@ export interface components {
             nom: string;
             categorie: components["schemas"]["CategorieEnum"];
         };
+        UpdateOrganisme: {
+            nom: string;
+            versant: components["schemas"]["VersantEnum"];
+            gestion_ats: boolean;
+        };
         Utilisateur: {
             /** Format: email */
             email: string;
             prenom: string;
             nom: string;
         };
+        /**
+         * @description * `FPT` - FPT
+         *     * `FPE` - FPE
+         *     * `FPH` - FPH
+         * @enum {string}
+         */
+        VersantEnum: "FPT" | "FPE" | "FPH";
         /**
          * @description * `AF` - AFRIQUE
          *     * `EU` - EUROPE
@@ -658,7 +706,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    recruteur_candidature_notes_list: {
+    recruteur_candidatures_notes_list: {
         parameters: {
             query?: never;
             header?: never;
@@ -695,7 +743,7 @@ export interface operations {
             };
         };
     };
-    recruteur_candidature_notes_create: {
+    recruteur_candidatures_notes_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -754,7 +802,7 @@ export interface operations {
             };
         };
     };
-    recruteur_candidature_notes_destroy: {
+    recruteur_candidatures_notes_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -799,7 +847,7 @@ export interface operations {
             };
         };
     };
-    recruteur_candidature_notes_partial_update: {
+    recruteur_candidatures_notes_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -851,13 +899,11 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_retrieve: {
+    recruteur_organismes_list: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                organisme_uuid: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -867,7 +913,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Organisme"];
+                    "application/json": components["schemas"]["OrganismeDetail"][];
                 };
             };
             401: {
@@ -904,7 +950,160 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_parametres_etapes_list: {
+    recruteur_organismes_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["CreateOrganisme"];
+                "multipart/form-data": components["schemas"]["CreateOrganisme"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganismeDetail"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganismeDetail"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["UpdateOrganisme"];
+                "multipart/form-data": components["schemas"]["UpdateOrganisme"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganismeDetail"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_parametres_etapes_list: {
         parameters: {
             query?: never;
             header?: never;
@@ -957,7 +1156,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_parametres_etapes_update: {
+    recruteur_organismes_parametres_etapes_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -1024,7 +1223,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_parametres_etapes_init_create: {
+    recruteur_organismes_parametres_etapes_init_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -1077,7 +1276,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_actifs_list: {
+    recruteur_organismes_recrutements_actifs_list: {
         parameters: {
             query?: {
                 /** @description Numéro de la page. */
@@ -1143,7 +1342,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_archives_list: {
+    recruteur_organismes_recrutements_archives_list: {
         parameters: {
             query?: {
                 /** @description Numéro de la page. */
@@ -1209,7 +1408,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_retrieve: {
+    recruteur_organismes_recrutements_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -1263,7 +1462,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_candidatures_etape_partial_update: {
+    recruteur_organismes_recrutements_candidatures_etape_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -1323,7 +1522,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_etapes_list: {
+    recruteur_organismes_recrutements_etapes_list: {
         parameters: {
             query?: never;
             header?: never;
@@ -1377,7 +1576,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_etapes_partial_update: {
+    recruteur_organismes_recrutements_etapes_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -1445,7 +1644,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_etapes_init_create: {
+    recruteur_organismes_recrutements_etapes_init_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -1499,7 +1698,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_kanban_retrieve: {
+    recruteur_organismes_recrutements_kanban_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -1553,7 +1752,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organisme_recrutements_liste_list: {
+    recruteur_organismes_recrutements_liste_list: {
         parameters: {
             query?: {
                 /** @description Numéro de la page. */

@@ -137,7 +137,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         versant=Verse.FPE,
         siret=SIRET(_ORGANISME_SIRET),
     )
-    default_etapes_entities = EtapeRecrutementFactory.create_entities()
+    default_etapes_entities = EtapeRecrutementFactory.create_entity_batch()
 
     OrganismeModel.objects.filter(id=_ORGANISME_UUID).update(
         etapes=[
