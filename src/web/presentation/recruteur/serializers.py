@@ -12,11 +12,17 @@ from presentation.commons.serializers import LocalisationSerializer, OrganismeSe
 class OrganismeDetailSerializer(serializers.Serializer):
     organisme_uuid = serializers.UUIDField()
     nom = serializers.CharField()
+    versant = serializers.ChoiceField(choices=[c.value for c in Verse])
     siret = serializers.CharField(min_length=14, max_length=14)
     gestionnaire = serializers.CharField(allow_null=True)
     gestion_ats = serializers.BooleanField()
     date_derniere_activite = serializers.DateTimeField()
     date_creation = serializers.DateTimeField()
+
+
+class OrganismesListSerializer(OrganismeDetailSerializer):
+    nombre_agents = serializers.IntegerField()
+    nombre_offres_publiees = serializers.IntegerField()
 
 
 class CreateOrganismeSerializer(serializers.Serializer):

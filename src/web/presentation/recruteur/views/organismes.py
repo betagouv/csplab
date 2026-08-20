@@ -25,23 +25,10 @@ from presentation.api.serializers import (
 from presentation.recruteur.serializers import (
     CreateOrganismeSerializer,
     OrganismeDetailSerializer,
+    OrganismesListSerializer,
 )
 
 _FROZEN_TS = datetime.now(tz=timezone.utc)
-
-
-def fake_organismes() -> list[dict]:
-    return [
-        {
-            "nom": org.nom,
-            "siret": org.siret.code,
-            "gestion_ats": True,
-            "gestionnaire": None,
-            "date_derniere_activite": "2026-01-15T10:00:00Z",
-            "date_creation": "2026-01-01T09:00:00Z",
-        }
-        for org in OrganismeFactory.create_entity_batch()
-    ]
 
 
 @extend_schema_view(
@@ -50,7 +37,7 @@ def fake_organismes() -> list[dict]:
         tags=["recruteur"],
         responses={
             **generic_response_format,
-            200: OrganismeDetailSerializer(many=True),
+            200: OrganismesListSerializer(many=True),
         },
     ),
     post=extend_schema(
@@ -84,14 +71,17 @@ class OrganismesView(APIView):
                 {
                     "organisme_uuid": organisme.entity_id,
                     "nom": organisme.nom,
+                    "versant": organisme.versant.value,
                     "siret": organisme.siret.code,
                     "gestion_ats": organisme.gestion_ats,
                     "date_creation": organisme.date_creation,
                     "date_derniere_activite": organisme.date_derniere_activite,
+                    "nombre_agents": 10,
+                    "nombre_offres_publiees": 20,
                 }
                 for organisme in organismes
             ]
-            return Response(OrganismeDetailSerializer(organismes_dto, many=True).data)
+            return Response(OrganismesListSerializer(organismes_dto, many=True).data)
         except OperationOrganismeRefusee as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)

@@ -238,7 +238,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/OrganismeDetail'
+                  $ref: '#/components/schemas/OrganismesList'
           description: ''
     post:
       operationId: recruteur_organismes_create
@@ -1668,6 +1668,8 @@ components:
           format: uuid
         nom:
           type: string
+        versant:
+          $ref: '#/components/schemas/VersantEnum'
         siret:
           type: string
           maxLength: 14
@@ -1691,6 +1693,47 @@ components:
       - nom
       - organisme_uuid
       - siret
+      - versant
+    OrganismesList:
+      type: object
+      properties:
+        organisme_uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        versant:
+          $ref: '#/components/schemas/VersantEnum'
+        siret:
+          type: string
+          maxLength: 14
+          minLength: 14
+        gestionnaire:
+          type: string
+          nullable: true
+        gestion_ats:
+          type: boolean
+        date_derniere_activite:
+          type: string
+          format: date-time
+        date_creation:
+          type: string
+          format: date-time
+        nombre_agents:
+          type: integer
+        nombre_offres_publiees:
+          type: integer
+      required:
+      - date_creation
+      - date_derniere_activite
+      - gestion_ats
+      - gestionnaire
+      - nom
+      - nombre_agents
+      - nombre_offres_publiees
+      - organisme_uuid
+      - siret
+      - versant
     PaginatedCandidatureListeList:
       type: object
       required:
