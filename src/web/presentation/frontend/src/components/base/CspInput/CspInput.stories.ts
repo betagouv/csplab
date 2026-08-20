@@ -153,6 +153,7 @@ const meta = {
     disabled: false,
     id: 'base-input-story',
     name: 'base-input',
+    label: 'Libellé',
   },
   render: (args: CspInputProps) => ({
     components: { CspInput },
@@ -174,12 +175,6 @@ const meta = {
     },
     template: `
       <div class="w-96">
-        <label
-          class="block mb-2 text-sm font-medium"
-          :for="args.id"
-        >
-          Libellé
-        </label>
         <CspInput
           v-bind="args"
           :model-value="value"
