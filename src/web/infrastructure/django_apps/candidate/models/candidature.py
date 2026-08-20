@@ -2,18 +2,12 @@ from django.db import models
 
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
-from infrastructure.django_apps.users.models import ProfilCandidatModel
+from infrastructure.django_apps.users.fields import candidat_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
 class CandidatureModel(BaseDatedModel):
-    candidat = models.ForeignKey(
-        ProfilCandidatModel,
-        to_field="utilisateur_id",
-        on_delete=models.PROTECT,
-        db_column="candidat_id",
-        related_name="candidatures",
-    )
+    candidat = candidat_fk(related_name="candidatures")
     statut = models.CharField(
         max_length=20,
         choices=[(s.value, s.value) for s in StatutCandidature],
