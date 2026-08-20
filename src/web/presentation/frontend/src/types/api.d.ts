@@ -515,6 +515,7 @@ export interface components {
             /** Format: uuid */
             organisme_uuid: string;
             nom: string;
+            versant: components["schemas"]["VersantEnum"];
             siret: string;
             gestionnaire: string | null;
             gestion_ats: boolean;
@@ -522,6 +523,21 @@ export interface components {
             date_derniere_activite: string;
             /** Format: date-time */
             date_creation: string;
+        };
+        OrganismesList: {
+            /** Format: uuid */
+            organisme_uuid: string;
+            nom: string;
+            versant: components["schemas"]["VersantEnum"];
+            siret: string;
+            gestionnaire: string | null;
+            gestion_ats: boolean;
+            /** Format: date-time */
+            date_derniere_activite: string;
+            /** Format: date-time */
+            date_creation: string;
+            nombre_agents: number;
+            nombre_offres_publiees: number;
         };
         PaginatedCandidatureListeList: {
             /** @example 1 */
@@ -913,7 +929,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrganismeDetail"][];
+                    "application/json": components["schemas"]["OrganismesList"][];
                 };
             };
             401: {
