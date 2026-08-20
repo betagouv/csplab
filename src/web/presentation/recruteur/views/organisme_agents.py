@@ -29,6 +29,7 @@ _AGENTS_STATIQUES = [
         "role": AgentOrganismeRole.RESPONSABLE.value,
         "date_derniere_activite": "2026-08-18T09:12:00Z",
         "date_creation_compte": "2025-01-10T08:00:00Z",
+        "date_revocation": None,
     },
     {
         "agent_id": uuid4(),
@@ -40,6 +41,7 @@ _AGENTS_STATIQUES = [
         "role": AgentOrganismeRole.MEMBRE.value,
         "date_derniere_activite": "2026-08-15T14:30:00Z",
         "date_creation_compte": "2025-03-22T08:00:00Z",
+        "date_revocation": None,
     },
 ]
 
@@ -64,7 +66,7 @@ _AGENTS_STATIQUES = [
         },
     ),
     patch=extend_schema(
-        summary="Modifier un agent d'un organisme",
+        summary="Modifier ou revoquer un agent d'un organisme",
         tags=["recruteur"],
         request=UpdateAgentOrganismeSerializer,
         responses={
@@ -97,6 +99,7 @@ class OrganismeAgentsView(APIView):
             "role": data["role"],
             "date_derniere_activite": None,
             "date_creation_compte": now(),
+            "date_revocation": None,
         }
         out_serializer = AgentOrganismeSerializer(agent)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
@@ -117,6 +120,7 @@ class OrganismeAgentsView(APIView):
             "role": data.get("role", ""),
             "date_derniere_activite": None,
             "date_creation_compte": now(),
+            "date_revocation": data.get("date_revocation"),
         }
         out_serializer = AgentOrganismeSerializer(agent)
         return Response(out_serializer.data, status=status.HTTP_200_OK)

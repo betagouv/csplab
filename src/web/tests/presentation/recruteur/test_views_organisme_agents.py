@@ -100,3 +100,20 @@ class TestOrganismeAgentsView:
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_revoquer_agent(self, authenticated_client):
+        agent_uuid = str(uuid4())
+
+        response = authenticated_client.patch(
+            AGENTS_URL,
+            data={
+                "agent_uuid": agent_uuid,
+                "date_revocation": "2026-08-20T10:00:00Z",
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["agent_id"] == agent_uuid
+        assert data["date_revocation"] == "2026-08-20T10:00:00Z"

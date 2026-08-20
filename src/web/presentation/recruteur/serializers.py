@@ -149,6 +149,7 @@ class AgentOrganismeSerializer(serializers.Serializer):
     role = serializers.CharField()
     date_derniere_activite = serializers.DateTimeField(allow_null=True)
     date_creation_compte = serializers.DateTimeField()
+    date_revocation = serializers.DateTimeField(required=False, allow_null=True)
 
 
 class SetAgentRoleOnOrganismeSerializer(serializers.Serializer):
@@ -166,6 +167,7 @@ class UpdateAgentOrganismeSerializer(serializers.Serializer):
     nom = serializers.CharField(required=False)
     prenom = serializers.CharField(required=False)
     poste = serializers.CharField(required=False)
+    date_revocation = serializers.DateTimeField(required=False)
 
 
 # ---------------------------------------------------------------------------
