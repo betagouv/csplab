@@ -362,6 +362,55 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+  /recruteur/organismes/{organisme_uuid}/parametres/agents:
+    get:
+      operationId: recruteur_organismes_parametres_agents_list
+      summary: Liste des agents rattachés à un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgentOrganisme'
+          description: ''
   /recruteur/organismes/{organisme_uuid}/parametres/etapes:
     get:
       operationId: recruteur_organismes_parametres_etapes_list
@@ -1141,6 +1190,39 @@ paths:
           description: ''
 components:
   schemas:
+    AgentOrganisme:
+      type: object
+      properties:
+        agent_id:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        prenom:
+          type: string
+        email:
+          type: string
+          format: email
+        poste:
+          type: string
+        role:
+          type: string
+        date_derniere_activite:
+          type: string
+          format: date-time
+          nullable: true
+        date_creation_compte:
+          type: string
+          format: date-time
+      required:
+      - agent_id
+      - date_creation_compte
+      - date_derniere_activite
+      - email
+      - nom
+      - poste
+      - prenom
+      - role
     BlankEnum:
       enum:
       - ''
