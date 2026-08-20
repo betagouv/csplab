@@ -4,8 +4,8 @@ import { defineQuery, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useToast } from '@/composables/ui/useToast'
-import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
+import { useCurrentOrganisme } from '@/stores/currentOrganisme'
 import { patchEtapeCandidatures } from '../api'
 import { candidatureListeQuery, recrutementKanbanQuery } from '../queries'
 import { useCandidaturesFilters } from './useCandidaturesFilters'
@@ -28,6 +28,8 @@ export const useCandidatures = defineQuery(() => {
     return typeof param === 'string' && param !== '' ? param : null
   })
 
+  const { organismeUuid } = useCurrentOrganisme()
+
   const isKanbanRoute = computed(() => route.name === 'recrutement-candidatures-kanban')
   const isListeRoute = computed(() => route.name === 'recrutement-candidatures')
 
@@ -35,26 +37,37 @@ export const useCandidatures = defineQuery(() => {
 
   const detail = useQuery(() => ({
     ...recrutementDetailQuery({
-      organismeUuid: TEMP_ORGANISME_UUID,
+      organismeUuid: organismeUuid.value ?? '',
       recrutementUuid: recrutementUuid.value ?? '',
     }),
-    enabled: recrutementUuid.value !== null,
+    enabled: (
+      recrutementUuid.value !== null
+      && organismeUuid.value !== null
+    ),
   }))
 
   const kanban = useQuery(() => ({
     ...recrutementKanbanQuery({
-      organismeUuid: TEMP_ORGANISME_UUID,
+      organismeUuid: organismeUuid.value ?? '',
       recrutementUuid: recrutementUuid.value ?? '',
     }),
-    enabled: recrutementUuid.value !== null && isKanbanRoute.value,
+    enabled: (
+      recrutementUuid.value !== null
+      && isKanbanRoute.value
+      && organismeUuid.value !== null
+    ),
   }))
 
   const liste = useQuery(() => ({
     ...candidatureListeQuery({
-      organismeUuid: TEMP_ORGANISME_UUID,
+      organismeUuid: organismeUuid.value ?? '',
       recrutementUuid: recrutementUuid.value ?? '',
     }),
-    enabled: recrutementUuid.value !== null && isListeRoute.value,
+    enabled: (
+      recrutementUuid.value !== null
+      && isListeRoute.value
+      && organismeUuid.value !== null
+    ),
   }))
 
   const recrutementDetail = computed<RecrutementDetail | null>(
@@ -62,12 +75,15 @@ export const useCandidatures = defineQuery(() => {
   )
   const candidatureListe = liste.data
 
-  const intitule = computed<string | null>(() =>
-    recrutementDetail.value?.intitule
-    ?? (recrutementUuid.value
-      ? peekRecrutementIntitule(queryCache, TEMP_ORGANISME_UUID, recrutementUuid.value)
-      : null),
-  )
+  const intitule = computed<string | null>(() => {
+    if (recrutementDetail.value?.intitule) {
+      return recrutementDetail.value.intitule
+    }
+    if (!organismeUuid.value || !recrutementUuid.value) {
+      return null
+    }
+    return peekRecrutementIntitule(queryCache, organismeUuid.value, recrutementUuid.value)
+  })
 
   const recrutementEtapes = computed(() => detail.data.value?.etapes ?? [])
   const candidatureKanban = computed(() => kanban.data.value?.etapes ?? [])
@@ -88,7 +104,7 @@ export const useCandidatures = defineQuery(() => {
 
   function kanbanQueryKey() {
     return recrutementKanbanQuery({
-      organismeUuid: TEMP_ORGANISME_UUID,
+      organismeUuid: organismeUuid.value!,
       recrutementUuid: recrutementUuid.value!,
     }).key
   }
@@ -101,7 +117,7 @@ export const useCandidatures = defineQuery(() => {
     const key = kanbanQueryKey()
     try {
       const resultat = await patchEtapeCandidatures(
-        TEMP_ORGANISME_UUID,
+        organismeUuid.value!,
         recrutementUuid.value!,
         targetColumnId,
         candidatureUuids,

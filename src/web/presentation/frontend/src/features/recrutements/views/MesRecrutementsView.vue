@@ -18,11 +18,11 @@ import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
-import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
+import { useCurrentOrganisme } from '@/stores/currentOrganisme'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
-import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
 
+import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
 import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
 import { DEFAULT_RECRUTEMENT_TAB, RECRUTEMENTS_TAB_ROUTE_NAMES } from '../routes'
@@ -40,12 +40,15 @@ const TABS: CspTabItem<RecrutementKey>[] = [
   { value: 'actifs', label: 'Recrutements en cours' },
   { value: 'archives', label: 'Offres archivées' },
 ]
+
+const { organismeUuid } = useCurrentOrganisme()
+
 const {
   pendingActifs,
   pendingArchives,
   error: recrutementsError,
   data: recrutementsData,
-} = useRecrutements(TEMP_ORGANISME_UUID, activeTab)
+} = useRecrutements(organismeUuid, activeTab)
 
 const showActifsSkeleton = useMinimumPending(pendingActifs, 300)
 const showArchivesSkeleton = useMinimumPending(pendingArchives, 300)
