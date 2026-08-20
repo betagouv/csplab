@@ -1,9 +1,8 @@
 from typing import Any, Dict, List, cast
 
-from ddd.entity_interface import IEntity, IOfferEntity
+from ddd.entity_interface import IEntity
 from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
-from django.db import transaction
 from referentiel.types import IUpsertResult
 
 from domain.ingestion.entities.document import DocumentType
@@ -40,67 +39,6 @@ class CleanDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
             "error_details": [],
         }
 
-        if document_type == DocumentType.OFFERS:
-            return self._clean_offers(document_type, limit, results)
-        return self._clean_concours_or_corps_metiers(document_type, results)
-
-    def _clean_offers(
-        self, document_type: DocumentType, limit: int, results: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        raw_documents = self.document_repository.get_pending_processing(
-            document_type=document_type,
-            limit=limit,
-        )
-
-        cleaning_result = self.document_cleaner.clean(raw_documents)
-        cleaned_entities = cast(List[IOfferEntity], cleaning_result.entities)
-        cleaning_errors = cleaning_result.cleaning_errors
-
-        cleaned_entities_external_id = [
-            cleaned_entity.external_id for cleaned_entity in cleaned_entities
-        ]
-
-        cleaned_raw_documents = [
-            raw_doc
-            for raw_doc in raw_documents
-            if raw_doc.external_id in cleaned_entities_external_id
-        ]
-        failed_raw_documents = [
-            raw_doc
-            for raw_doc in raw_documents
-            if raw_doc.external_id not in cleaned_entities_external_id
-        ]
-
-        with transaction.atomic():
-            if cleaned_entities:
-                repository = self.repository_factory.get_repository(document_type)
-                save_result: IUpsertResult = repository.upsert_batch(
-                    cast(List, cleaned_entities)
-                )
-                self.document_repository.mark_as_processed(
-                    cast(List, cleaned_raw_documents)
-                )
-
-                results["processed"] = len(raw_documents)  # type: ignore
-                results["cleaned"] = len(cleaned_entities)  # type: ignore
-                results["created"] = save_result["created"]  # type: ignore
-                results["updated"] = save_result["updated"]  # type: ignore
-                results["errors"] = len(cleaning_errors)  # type: ignore
-                results["error_details"] = cleaning_errors  # type: ignore[operator]
-
-            if cleaning_errors and failed_raw_documents:
-                error_msg = " | ".join(
-                    [str(err.get("error", "Unknown error")) for err in cleaning_errors]
-                )
-                self.document_repository.mark_as_failed(
-                    cast(List, failed_raw_documents), error_msg
-                )
-
-        return results
-
-    def _clean_concours_or_corps_metiers(
-        self, document_type: DocumentType, results: Dict[str, Any]
-    ) -> Dict[str, Any]:
         start = 0
         has_more = True
 

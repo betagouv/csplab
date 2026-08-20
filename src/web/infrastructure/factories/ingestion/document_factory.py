@@ -11,9 +11,6 @@ from infrastructure.factories.ingestion.ingres_corps_factories import (
 from infrastructure.factories.ingestion.ingres_metiers_factories import (
     IngresMetiersDocumentFactory,
 )
-from infrastructure.factories.ingestion.talentsoft_factories import (
-    TalentsoftDetailOfferFactory,
-)
 from infrastructure.factories.referentiel.concours_row_factory import ConcoursRowFactory
 
 
@@ -32,16 +29,6 @@ class DocumentFactory:
             raw_data = corps_dto.model_dump()
             if external_id is None:
                 external_id = f"corps_{corps_dto.identifiant}"
-        elif document_type == DocumentType.OFFERS:
-            offer_dto = TalentsoftDetailOfferFactory.build()
-            raw_data = offer_dto.model_dump()
-            if external_id is None:
-                salary_range_code = (
-                    raw_data["salaryRange"]["clientCode"]
-                    if raw_data.get("salaryRange")
-                    else "UNK"
-                )
-                external_id = f"{salary_range_code}-{raw_data['reference']}"
         elif document_type == DocumentType.CONCOURS:
             concours_dto = ConcoursRowFactory.build()
             raw_data = concours_dto.model_dump()

@@ -15,18 +15,6 @@ class PisteConfig(BaseModel):
     client_secret: str
 
 
-class TalentsoftConfig(BaseModel):
-    base_url: HttpUrl
-    client_id: str
-    client_secret: str
-
-
-class TalentsoftBackConfig(BaseModel):
-    base_url: HttpUrl
-    client_id: str
-    client_secret: str
-
-
 class QdrantConfig(BaseModel):
     url: str | None
     api_key: str
@@ -56,15 +44,6 @@ class AppConfig(BaseModel):
     ingres_client_id: str
     ingres_client_secret: str
 
-    # Talentsoft
-    talentsoft_base_url: HttpUrl
-    talentsoft_client_id: str
-    talentsoft_client_secret: str
-
-    talentsoft_back_base_url: HttpUrl
-    talentsoft_back_client_id: str
-    talentsoft_back_client_secret: str
-
     # Qdrant
     qdrant_url: str
     qdrant_api_key: str
@@ -87,12 +66,6 @@ class AppConfig(BaseModel):
             ingres_base_url=settings.INGRES_BASE_URL,
             ingres_client_id=settings.INGRES_CLIENT_ID,
             ingres_client_secret=settings.INGRES_CLIENT_SECRET,
-            talentsoft_base_url=settings.TALENTSOFT_BASE_URL,
-            talentsoft_client_id=settings.TALENTSOFT_CLIENT_ID,
-            talentsoft_client_secret=settings.TALENTSOFT_CLIENT_SECRET,
-            talentsoft_back_base_url=settings.TALENTSOFT_BACK_BASE_URL,
-            talentsoft_back_client_id=settings.TALENTSOFT_BACK_CLIENT_ID,
-            talentsoft_back_client_secret=settings.TALENTSOFT_BACK_CLIENT_SECRET,
             qdrant_url=settings.QDRANT_URL,
             qdrant_api_key=settings.QDRANT_API_KEY,
             ocr_api_key=settings.OCR_API_KEY,
@@ -115,22 +88,6 @@ class AppConfig(BaseModel):
             ingres_base_url=self.ingres_base_url,
             client_id=self.ingres_client_id,
             client_secret=self.ingres_client_secret,
-        )
-
-    @property
-    def talentsoft(self) -> TalentsoftConfig:
-        return TalentsoftConfig(
-            base_url=self.talentsoft_base_url,
-            client_id=self.talentsoft_client_id,
-            client_secret=self.talentsoft_client_secret,
-        )
-
-    @property
-    def talentsoft_back(self) -> TalentsoftBackConfig:
-        return TalentsoftBackConfig(
-            base_url=self.talentsoft_back_base_url,
-            client_id=self.talentsoft_back_client_id,
-            client_secret=self.talentsoft_back_client_secret,
         )
 
     @property

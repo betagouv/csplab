@@ -1,8 +1,7 @@
 import asyncio
 import logging
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
-from dateutil.relativedelta import relativedelta
 from huey import crontab
 from huey.contrib.djhuey import db_periodic_task, db_task, lock_task
 
@@ -85,11 +84,6 @@ def clean_concours():
     clean_documents(DocumentType.CONCOURS)
 
 
-@db_periodic_task(crontab(minute="*/10"))
-def clean_offers():
-    clean_documents(DocumentType.OFFERS)
-
-
 @db_task()
 def clean_documents(document_type: DocumentType):
     container = create_ingestion_container()
@@ -132,17 +126,6 @@ def load_corps():
 def load_metiers():
     kwargs = {"document_type": DocumentType.METIERS}
     load_documents(kwargs, usecase_name="load_documents_usecase")
-
-
-@db_periodic_task(crontab(hour="5-21", minute="0"))
-def load_offers(reload=False, batch_size=100, max_pages=0):
-    kwargs = {
-        "document_type": DocumentType.OFFERS,
-        "reload": reload,
-        "batch_size": batch_size,
-        "max_pages": max_pages,
-    }
-    load_documents(kwargs, usecase_name="load_offers_usecase")
 
 
 @db_task()
@@ -238,41 +221,4 @@ def calculate_daily_stats(target_date: date):
         raise TaskError(
             message="Failed to calculate daily stats",
             details={"error": str(e), "target_date": str(target_date)},
-        ) from e
-
-
-@db_periodic_task(crontab(hour="5-21", minute="15"))
-def archive_offers_periodic(reload=False):
-    updated_after = datetime.now() - relativedelta(hours=24)
-    archive_offers(updated_after=updated_after)
-
-
-@db_task()
-def archive_offers(updated_after: datetime):
-    container = create_ingestion_container()
-    logger = container.logger_service()
-    usecase = container.archive_offers_usecase()
-
-    try:
-        result = usecase.execute(updated_after)
-        logger.info(
-            "✅ Archive offers completed: %d fetched, %d vectors deleted, %d archived",
-            result["fetched"],
-            result["vector_deleted"],
-            result["entity_archived"],
-        )
-
-        if len(result["errors"]) > 0:
-            logger.warning("⚠️ %d errors occurred", len(result["errors"]))
-
-        for error in result["errors"]:
-            logger.warning(
-                "Entity %s: %s",
-                error["entity_id"],
-                error["error"],
-            )
-    except Exception as e:
-        raise TaskError(
-            message="Failed to archive offers",
-            details={"error": str(e)},
         ) from e
