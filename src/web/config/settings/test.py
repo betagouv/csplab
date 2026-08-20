@@ -32,14 +32,6 @@ INGRES_CLIENT_SECRET = "fake-client-secret"  # noqa S105
 ALBERT_API_BASE_URL = "https://fake-albert.example.com"
 ALBERT_API_KEY = "test-api-key"
 
-TALENTSOFT_BASE_URL = "https://fake-talentsoft.example.com"
-TALENTSOFT_CLIENT_ID = "fake-client-id"
-TALENTSOFT_CLIENT_SECRET = "fake-client-secret"  # noqa S105
-
-TALENTSOFT_BACK_BASE_URL = "https://fake-talentsoft-back.example.com"
-TALENTSOFT_BACK_CLIENT_ID = "fake-client-id"
-TALENTSOFT_BACK_CLIENT_SECRET = "fake-client-secret"  # noqa S105
-
 PROCONNECT_CLIENT_ID = "fake-client-id"
 PROCONNECT_CLIENT_SECRET = "fake-client-secret"  # noqa S105
 PROCONNECT_BASE_URL = "https://fake-proconnect.example.com"

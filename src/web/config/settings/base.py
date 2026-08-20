@@ -31,12 +31,6 @@ env = environ.Env(
     WEB_OPIK_API_KEY=(str, "opik-api-key"),
     WEB_INGESTION_API_KEY=(str, secrets.token_urlsafe(32)),
     WEB_INGESTION_API_KEY_ALLOWED_IP_RANGES=(list, []),
-    WEB_TALENTSOFT_BACK_CLIENT_ID=(str, "fake-client-id"),
-    WEB_TALENTSOFT_BACK_CLIENT_SECRET=(str, "fake-client-secret"),
-    WEB_TALENTSOFT_BACK_BASE_URL=(str, "https://fake-talentsoft-back.example.com"),
-    WEB_TALENTSOFT_CLIENT_ID=(str, "fake-client-id"),
-    WEB_TALENTSOFT_CLIENT_SECRET=(str, "fake-client-secret"),
-    WEB_TALENTSOFT_BASE_URL=(str, "https://fake-talentsoft.example.com"),
     WEB_PROCONNECT_CLIENT_ID=(str, "fake-client-id"),
     WEB_PROCONNECT_CLIENT_SECRET=(str, "fake-client-secret"),
     WEB_PROCONNECT_BASE_URL=(str, "https://fake-proconnect.example.com"),
@@ -447,14 +441,6 @@ OCR_API_KEY = env.str("OCR_API_KEY")
 OCR_BASE_URL = env.str("OCR_BASE_URL")
 
 OPIK_API_KEY = env.str("OPIK_API_KEY")
-
-TALENTSOFT_BASE_URL = env.str("TALENTSOFT_BASE_URL")
-TALENTSOFT_CLIENT_ID = env.str("TALENTSOFT_CLIENT_ID")
-TALENTSOFT_CLIENT_SECRET = env.str("TALENTSOFT_CLIENT_SECRET")
-
-TALENTSOFT_BACK_BASE_URL = env.str("TALENTSOFT_BACK_BASE_URL")
-TALENTSOFT_BACK_CLIENT_ID = env.str("TALENTSOFT_BACK_CLIENT_ID")
-TALENTSOFT_BACK_CLIENT_SECRET = env.str("TALENTSOFT_BACK_CLIENT_SECRET")
 
 # ProConnect (OIDC login for public-sector agents)
 PROCONNECT_CLIENT_ID = env.str("PROCONNECT_CLIENT_ID")
