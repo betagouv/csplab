@@ -1,8 +1,8 @@
+from referentiel.entities.organisme import Organisme
+from referentiel.events.organisme_events import OrganismeCree
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
-from domain.identite.entities.organisme import Organisme
-from domain.identite.events.organisme_events import OrganismeCree
-from domain.identite.value_objects.siret import SIRET
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 
 
@@ -17,7 +17,7 @@ def test_organisme_creation():
         nom="Ecole du Louvre",
         versant=Verse.FPE,
         localisation=parent_organisme.localisation,
-        siret=SIRET("19754687200015"),
+        siret=SIRET(code="19754687200015"),
         parent_id=parent_organisme.entity_id,
         external_id="ext-123",
     )
@@ -27,5 +27,5 @@ def test_organisme_creation():
     assert len(events) == 1
     assert isinstance(events[0], OrganismeCree)
     assert organisme.parent_id == parent_organisme.entity_id
-    assert organisme.siret == SIRET("19754687200015")
+    assert organisme.siret == SIRET(code="19754687200015")
     assert organisme.localisation == parent_organisme.localisation

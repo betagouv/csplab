@@ -3,13 +3,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.urls import reverse
 from faker import Faker
+from pydantic import ValidationError
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
-from domain.identite.errors.organisme_errors import (
-    OrganismeSiretExisteDeja,
-    SiretInvalide,
-)
+from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
@@ -20,6 +19,14 @@ fake = Faker("fr_FR")
 
 ORGANISME_UUID = fake.uuid4()
 ORGANISME_URL = reverse("recruteur:organismes")
+
+
+def _invalid_siret_error() -> ValidationError:
+    try:
+        SIRET(code="not-a-siret")
+    except ValidationError as err:
+        return err
+    raise AssertionError("expected SIRET validation to fail")
 
 
 @pytest.fixture
@@ -98,7 +105,7 @@ class TestOrganismesView:
         container.create_organisme_usecase.return_value = mock_usecase
         body = {
             "nom": organisme.nom,
-            "siret": organisme.siret.value,
+            "siret": organisme.siret.code,
             "versant": fake.random_choices(
                 [Verse.FPE.value, Verse.FPT.value, Verse.FPH.value]
             ),
@@ -118,9 +125,9 @@ class TestOrganismesView:
                 {"error": OrganismeSiretExisteDeja(siret).message},
             ),
             (
-                SiretInvalide(siret),
+                _invalid_siret_error(),
                 status.HTTP_400_BAD_REQUEST,
-                {"error": SiretInvalide(siret).message},
+                {"error": str(_invalid_siret_error())},
             ),
             (
                 OperationOrganismeRefusee(),

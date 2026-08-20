@@ -1,6 +1,9 @@
-from typing import ClassVar
+from typing import ClassVar, Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ValidationError, field_validator
+
+COMMUNE_CODE_LENGTH = 2
+DOM_TOM_COMMUNE_CODE_LENGTH = 3
 
 
 class Department(BaseModel):
@@ -129,3 +132,20 @@ class Department(BaseModel):
     @property
     def name(self) -> str:
         return self.NAMES.get(self.code, self.code)
+
+    @classmethod
+    def from_commune_code(cls, cog_commune: str) -> Optional["Department"]:
+        if len(cog_commune) < COMMUNE_CODE_LENGTH:
+            return None
+
+        if cog_commune[:COMMUNE_CODE_LENGTH] in ("97", "98"):
+            if len(cog_commune) < DOM_TOM_COMMUNE_CODE_LENGTH:
+                return None
+            code = cog_commune[:DOM_TOM_COMMUNE_CODE_LENGTH]
+        else:
+            code = cog_commune[:COMMUNE_CODE_LENGTH]
+
+        try:
+            return cls(code=code)
+        except ValidationError:
+            return None

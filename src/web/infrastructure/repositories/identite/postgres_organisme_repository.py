@@ -1,11 +1,12 @@
 from uuid import UUID
 
+from referentiel.entities.organisme import Organisme
+from referentiel.value_objects.siret import SIRET
+
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.entities.organisme import Organisme
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository as IOrganismeIdentiteRepository,
 )
-from domain.identite.value_objects.siret import SIRET
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.mappers.organisme_identite_mapper import OrganismeIdentiteMapper
 
@@ -28,7 +29,7 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
 
     def get_by_siret(self, siret: SIRET) -> Organisme:
         try:
-            model = OrganismeModel.objects.get(siret=siret.value)
+            model = OrganismeModel.objects.get(siret=siret.code)
         except OrganismeModel.DoesNotExist as e:
-            raise OrganismeNexistePas(siret.value) from e
+            raise OrganismeNexistePas(siret.code) from e
         return self._mapper_identite.to_domain(model)

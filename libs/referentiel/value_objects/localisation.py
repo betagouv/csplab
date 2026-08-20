@@ -3,6 +3,9 @@ from typing import Optional
 
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.country import Country
+from referentiel.value_objects.departement_region import (
+    region_et_zone_pour_departement,
+)
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.region import Region
 
@@ -27,4 +30,26 @@ class Localisation:
     def __str__(self):
         return (
             f"{self.country.short_name} - {self.region.code} - {self.department.code}"
+        )
+
+    @classmethod
+    def from_department(
+        cls,
+        department: Department,
+        *,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
+    ) -> Optional["Localisation"]:
+        region_et_zone = region_et_zone_pour_departement(department)
+        if region_et_zone is None:
+            return None
+
+        region, area = region_et_zone
+        return cls(
+            area=area,
+            country=Country("FRA"),
+            region=region,
+            department=department,
+            latitude=latitude,
+            longitude=longitude,
         )

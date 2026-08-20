@@ -7,7 +7,8 @@ Shared Kernel — cross-service objects for the CSPLab monorepo.
 ## Contents
 
 - `value_objects/` — `Verse`, `GeographicalArea`, `Category`, `Region`, `Department`, `Country`, `ContractType`, `LimitDate`, `Localisation`, …
-- `entities/` — `Offer`, `Corps`, `Concours`, `Metier`, `Document`, …
+- `entities/` — `Offer`, `Corps`, `Concours`, `Metier`, `Document`, `Organisme`, …
+- `events/` — événements de domaine partagés
 - `exceptions/` — domain errors partagées
 - `repositories/` — interfaces de repository (protocols)
 - `services/` — interfaces de services (protocols)
