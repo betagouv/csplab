@@ -1,5 +1,8 @@
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timezone
+
+from ddd.async_usecase_interface import IAsyncUseCase
 
 from domain.entities.raw_organisme import RawOrganisme
 from domain.gateways.organisme_gateway import IOrganismeGateway
@@ -10,7 +13,22 @@ logger = logging.getLogger(__name__)
 BATCH_SIZE = 500
 
 
-class ImportOrganismesUseCase:
+@dataclass(frozen=True)
+class ImportOrganismesCommand:
+    pass
+
+
+@dataclass(frozen=True)
+class ImportOrganismesResult:
+    referentiel: str | None
+    millesime: str
+    total_imported: int
+    total_deleted: int
+
+
+class ImportOrganismesUseCase(
+    IAsyncUseCase[ImportOrganismesCommand, ImportOrganismesResult]
+):
     def __init__(
         self,
         organisme_gateway: IOrganismeGateway,
@@ -19,7 +37,7 @@ class ImportOrganismesUseCase:
         self._organisme_gateway = organisme_gateway
         self._raw_organisme_repository = raw_organisme_repository
 
-    async def execute(self) -> None:
+    async def execute(self, command: ImportOrganismesCommand) -> ImportOrganismesResult:
         resource = self._organisme_gateway.find_resource()
         millesime = resource.millesime.isoformat()
         loaded_at = datetime.now(tz=timezone.utc)
@@ -49,6 +67,7 @@ class ImportOrganismesUseCase:
 
         logger.info("Imported %d organismes for millesime %s", total, millesime)
 
+        deleted = 0
         if referentiel is not None:
             deleted = await self._raw_organisme_repository.delete_missing(
                 referentiel, loaded_at
@@ -58,3 +77,10 @@ class ImportOrganismesUseCase:
                 deleted,
                 referentiel,
             )
+
+        return ImportOrganismesResult(
+            referentiel=referentiel,
+            millesime=millesime,
+            total_imported=total,
+            total_deleted=deleted,
+        )
