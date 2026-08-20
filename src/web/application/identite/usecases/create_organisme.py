@@ -2,17 +2,17 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from ddd.usecase_interface import IUseCase
+from referentiel.entities.organisme import Organisme
 from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
-from domain.identite.entities.organisme import Organisme
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
 from domain.identite.services.identite_permission_service import (
     OrganismeCreationPermissionService,
 )
-from domain.identite.value_objects.siret import SIRET
 
 
 @dataclass

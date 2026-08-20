@@ -4,10 +4,10 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from referentiel.value_objects.category import Category
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
-from domain.identite.value_objects.siret import SIRET
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -135,7 +135,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         entity_id=_ORGANISME_UUID,
         nom="Ministère de la Transition Écologique",
         versant=Verse.FPE,
-        siret=SIRET(_ORGANISME_SIRET),
+        siret=SIRET(code=_ORGANISME_SIRET),
     )
     default_etapes_entities = EtapeRecrutementFactory.create_entity_batch()
 

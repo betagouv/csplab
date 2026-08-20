@@ -3,15 +3,15 @@ from typing import List
 from uuid import UUID, uuid4
 
 from faker import Faker
+from referentiel.entities.organisme import Organisme
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
-from domain.identite.entities.organisme import Organisme
-from domain.identite.value_objects.siret import SIRET
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import (
@@ -64,7 +64,7 @@ class OrganismeFactory:
             nom=nom,
             versant=versant,
             localisation=localisation or make_localisation(),
-            siret=siret or SIRET(_fake.siret().replace(" ", "")),
+            siret=siret or SIRET(code=_fake.siret().replace(" ", "")),
             external_id=external_id or str(uuid4()),
             referentiel=referentiel,
             millesime=millesime,
@@ -101,7 +101,7 @@ class OrganismeFactory:
             nom=nom,
             versant=versant,
             localisation=localisation,
-            siret=siret or SIRET(_fake.siret().replace(" ", "")),
+            siret=siret or SIRET(code=_fake.siret().replace(" ", "")),
             external_id=external_id,
             referentiel=referentiel,
             millesime=millesime,

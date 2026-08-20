@@ -1,15 +1,15 @@
 from django import forms
 from django.contrib import admin
+from pydantic import ValidationError
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
 from application.identite.usecases.create_organisme import CreateOrganismeCommand
-from domain.identite.errors.organisme_errors import SiretInvalide
-from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
@@ -67,8 +67,8 @@ class CreateOrganismeAdminForm(forms.ModelForm):
     def clean_siret(self):
         siret = self.cleaned_data["siret"]
         try:
-            SIRET(siret)
-        except SiretInvalide as e:
+            SIRET(code=siret)
+        except ValidationError as e:
             raise forms.ValidationError(f"SIRET invalide : {siret}") from e
         return siret
 
@@ -102,7 +102,7 @@ class OrganismeAdmin(admin.ModelAdmin):
                 nom=form.cleaned_data["nom"],
                 versant=Verse(form.cleaned_data["versant"]),
                 localisation=localisation,
-                siret=SIRET(siret_raw),
+                siret=SIRET(code=siret_raw),
                 parent_id=form.cleaned_data.get("parent_id"),
                 est_staff=request.user.is_staff,
             )

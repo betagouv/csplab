@@ -4,9 +4,9 @@ from uuid import uuid4
 import pytest
 from django.contrib import admin
 from django.test import RequestFactory
+from pydantic import ValidationError
 from referentiel.value_objects.verse import Verse
 
-from domain.identite.errors.organisme_errors import SiretInvalide
 from infrastructure.django_apps.recruteur.admin import OrganismeAdmin
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 
@@ -38,7 +38,7 @@ def _organisme(siret):
 def test_edit_with_invalid_siret_is_rejected(organisme_admin, request_):
     organisme = _organisme(siret="siret-invalide")
 
-    with pytest.raises(SiretInvalide):
+    with pytest.raises(ValidationError):
         organisme_admin.save_model(request_, organisme, form=None, change=True)
 
     organisme.save.assert_not_called()

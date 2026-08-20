@@ -1,15 +1,15 @@
 from uuid import UUID
 
 from ddd.mapper_interface import IFromDomainMapper, IToDomainMapper
+from referentiel.entities.organisme import Organisme
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
-from domain.identite.entities.organisme import Organisme
-from domain.identite.value_objects.siret import SIRET
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 
 
@@ -29,7 +29,7 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
             nom=model.nom,
             versant=Verse(model.versant),
             localisation=localisation,
-            siret=SIRET(model.siret),
+            siret=SIRET(code=model.siret),
             parent_id=UUID(str(model.parent_id)) if model.parent_id else None,
             external_id=model.external_id,
             referentiel=model.referentiel,
@@ -53,7 +53,7 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
             id=organisme.entity_id,
             nom=organisme.nom,
             versant=organisme.versant.value,
-            siret=organisme.siret.value,
+            siret=organisme.siret.code,
             parent_id=organisme.parent_id,
             localisation=localisation_data,
             external_id=organisme.external_id,

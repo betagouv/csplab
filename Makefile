@@ -560,7 +560,7 @@ test-ingestion: \
   create-ingestion-db \
   create-ingestion-test-db
 	@echo 'test:ingestion started…'
-	$(INGESTION_UV) env DATABASE=$${TEST_DATABASE_URL:-psql://ingestion:pass@localhost:5432/ingestion_test} pytest $(ARGS)
+	$(INGESTION_UV) env DATABASE_URL=$${TEST_DATABASE_URL:-psql://ingestion:pass@localhost:5432/ingestion_test} pytest $(ARGS)
 .PHONY: test-ingestion
 
 test-a11y: ## run a11y tests with Playwright and axe-playwright-python
@@ -606,7 +606,7 @@ test-cov-ingestion: ## run ingestion tests with detailed HTML coverage report
 		echo '⚠️  Coverage report not found. Creating directory structure...'; \
 		mkdir -p src/ingestion/tests/cov_html; \
 	fi
-	$(INGESTION_UV) pytest --cov=. --cov-report=html:tests/cov_html --cov-report=term-missing $(ARGS)
+	$(INGESTION_UV) env DATABASE_URL=$${TEST_DATABASE_URL:-psql://ingestion:pass@localhost:5432/ingestion_test} pytest --cov=. --cov-report=html:tests/cov_html --cov-report=term-missing $(ARGS)
 	@echo '✅ Coverage report generated in src/ingestion/tests/cov_html/'
 	@open src/ingestion/tests/cov_html/index.html
 .PHONY: test-cov-ingestion
