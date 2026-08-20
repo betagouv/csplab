@@ -60,8 +60,21 @@ class TestOrganismesView:
         response = authenticated_client.get(ORGANISME_URL)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()[0]["organisme_uuid"] == str(organismes[0].entity_id)
-        assert len(response.json()) == len(organismes)
+        assert response.json() == [
+            {
+                "organisme_uuid": str(organisme.entity_id),
+                "nom": organisme.nom,
+                "versant": organisme.versant.value,
+                "siret": organisme.siret.code,
+                "gestionnaire": None,
+                "gestion_ats": organisme.gestion_ats,
+                "date_creation": organisme.date_creation,
+                "date_derniere_activite": organisme.date_derniere_activite,
+                "nombre_agents": 10,
+                "nombre_offres_publiees": 20,
+            }
+            for organisme in organismes
+        ]
 
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
