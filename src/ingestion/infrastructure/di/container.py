@@ -15,6 +15,7 @@ from application.usecases.import_offers import ImportOffersUsecase
 from application.usecases.import_organismes import ImportOrganismesUsecase
 from application.usecases.load_sources import LoadSourcesUsecase
 from application.usecases.publish_offer import PublishOfferUsecase
+from application.usecases.publish_organismes import PublishOrganismesUseCase
 from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from application.usecases.save_webhook import SaveWebhookUsecase
 from domain.gateways.archive_gateway import IArchiveGateway
@@ -22,6 +23,7 @@ from domain.gateways.offers_by_source_gateway import IOffersBySourceGateway
 from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.gateways.organismes_cleaner import IOrganismesCleaner
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
+from domain.gateways.publish_organismes_gateway import IPublishOrganismesGateway
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
@@ -44,6 +46,9 @@ from infrastructure.external_gateways.web_offers_by_source_gateway import (
 )
 from infrastructure.external_gateways.web_publish_offer_gateway import (
     WebPublishOfferGateway,
+)
+from infrastructure.external_gateways.web_publish_organismes_gateway import (
+    WebPublishOrganismesGateway,
 )
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.gateways.offers_cleaner import OffersCleaner
@@ -116,6 +121,16 @@ def _make_publish_offer_gateway(
     return WebPublishOfferGateway(client=client, base_url=base_url, api_key=api_key)
 
 
+def _make_publish_organismes_gateway(
+    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
+) -> IPublishOrganismesGateway:
+    if not base_url or not api_key:
+        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
+    return WebPublishOrganismesGateway(
+        client=client, base_url=base_url, api_key=api_key
+    )
+
+
 class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(
         modules=["api.routes", "api.talentsoft", "infrastructure.di.container"]
@@ -174,6 +189,22 @@ class Container(containers.DeclarativeContainer):
             CleanRawOrganismesUsecase,
             organismes_cleaner=organismes_cleaner,
             raw_organisme_repository=raw_organisme_repository,
+        )
+    )
+
+    publish_organismes_gateway: providers.Provider[IPublishOrganismesGateway] = (
+        providers.Factory(
+            _make_publish_organismes_gateway,
+            client=http_client,
+            base_url=config.web_base_url,
+            api_key=config.web_api_key,
+        )
+    )
+
+    publish_organismes_use_case: providers.Provider[PublishOrganismesUseCase] = (
+        providers.Factory(
+            PublishOrganismesUseCase,
+            publish_organismes_gateway=publish_organismes_gateway,
         )
     )
 

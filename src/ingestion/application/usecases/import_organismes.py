@@ -7,6 +7,7 @@ from ddd.async_usecase_interface import IAsyncUseCase
 from domain.entities.raw_organisme import RawOrganisme
 from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
+from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ BATCH_SIZE = 500
 
 @dataclass(frozen=True)
 class ImportOrganismesCommand:
-    pass
+    referentiel: OrganismeReferentiel
 
 
 @dataclass(frozen=True)
@@ -38,6 +39,9 @@ class ImportOrganismesUsecase(
         self._raw_organisme_repository = raw_organisme_repository
 
     async def execute(self, command: ImportOrganismesCommand) -> ImportOrganismesResult:
+        if command.referentiel is not OrganismeReferentiel.FINESS:
+            raise ValueError(f"Unsupported referentiel: {command.referentiel}")
+
         resource = self._organisme_gateway.find_resource()
         millesime = resource.millesime.isoformat()
         loaded_at = datetime.now(tz=timezone.utc)
