@@ -115,7 +115,7 @@ class OrganismeDetailView(APIView):
                 **data,
                 "organisme_uuid": str(organisme.entity_id),
                 "nom": data["nom"] if data.get("nom") is not None else organisme.nom,
-                "siret": organisme.siret.value,
+                "siret": organisme.siret.code,
                 "versant": data["versant"]
                 if data.get("versant") is not None
                 else organisme.versant,

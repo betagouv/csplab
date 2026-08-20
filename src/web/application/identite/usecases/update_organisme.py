@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from ddd.usecase_interface import IUseCase
+from referentiel.entities.organisme import Organisme
 from referentiel.value_objects.verse import Verse
 
-from domain.identite.entities.organisme import Organisme
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )

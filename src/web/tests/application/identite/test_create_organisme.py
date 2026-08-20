@@ -1,11 +1,11 @@
 import pytest
+from referentiel.events.organisme_events import OrganismeCree
 from referentiel.value_objects.verse import Verse
 
 from application.identite.usecases.create_organisme import CreateOrganismeCommand
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
-from domain.identite.events.organisme_events import OrganismeCree
 
 
 def test_create_organisme_success(create_organisme_usecase):

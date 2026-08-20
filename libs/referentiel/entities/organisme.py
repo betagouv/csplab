@@ -3,13 +3,11 @@ from datetime import date
 from uuid import UUID
 
 from ddd.aggregate_root import AggregateRoot, factory
-from referentiel.value_objects.localisation import Localisation
-from referentiel.value_objects.verse import Verse
 
-from domain.identite.events.organisme_events import (
-    OrganismeCree,
-)
-from domain.identite.value_objects.siret import SIRET
+from referentiel.events.organisme_events import OrganismeCree
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.siret import SIRET
+from referentiel.value_objects.verse import Verse
 
 
 @dataclass(kw_only=True)

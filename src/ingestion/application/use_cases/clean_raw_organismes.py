@@ -1,7 +1,8 @@
 import logging
 from datetime import datetime, timezone
 
-from domain.entities.organisme import Organisme
+from referentiel.entities.organisme import Organisme
+
 from domain.gateways.organismes_cleaner import IOrganismesCleaner
 from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
 

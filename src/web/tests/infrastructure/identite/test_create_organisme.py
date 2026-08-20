@@ -1,12 +1,12 @@
 from uuid import uuid4
 
 import pytest
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
 from application.identite.usecases.create_organisme import CreateOrganismeCommand
 from config.app_config import AppConfig
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.value_objects.siret import SIRET
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.gateways.shared.logger import LoggerService
@@ -27,7 +27,7 @@ def test_create_organisme(identite_integration_container):
         nom="Commune de Paris",
         versant=Verse.FPT,
         localisation=None,
-        siret=SIRET("19754687200015"),
+        siret=SIRET(code="19754687200015"),
         parent_id=None,
         est_staff=True,
     )
@@ -39,7 +39,7 @@ def test_create_organisme(identite_integration_container):
     assert organisme.nom == "Commune de Paris"
     assert organisme.versant == Verse.FPT
     assert organisme.entity_id is not None
-    assert organisme.siret == SIRET("19754687200015")
+    assert organisme.siret == SIRET(code="19754687200015")
 
 
 def test_create_organisme_avec_siret(identite_integration_container):
@@ -48,7 +48,7 @@ def test_create_organisme_avec_siret(identite_integration_container):
         nom="Ecole du Louvre",
         versant=Verse.FPE,
         localisation=None,
-        siret=SIRET("19754687200015"),
+        siret=SIRET(code="19754687200015"),
         parent_id=None,
         est_staff=True,
     )
@@ -57,7 +57,7 @@ def test_create_organisme_avec_siret(identite_integration_container):
         command
     )
 
-    assert organisme.siret == SIRET("19754687200015")
+    assert organisme.siret == SIRET(code="19754687200015")
 
 
 def test_get_organisme_by_id(identite_integration_container):

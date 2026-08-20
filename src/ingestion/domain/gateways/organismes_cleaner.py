@@ -1,6 +1,7 @@
 from typing import Optional, Protocol
 
-from domain.entities.organisme import Organisme
+from referentiel.entities.organisme import Organisme
+
 from domain.entities.raw_organisme import RawOrganisme
 
 

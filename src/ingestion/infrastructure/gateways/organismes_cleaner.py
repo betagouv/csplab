@@ -2,14 +2,15 @@ import csv
 import logging
 from pathlib import Path
 from typing import Any, Optional
+from uuid import uuid4
 
 from pydantic import ValidationError
+from referentiel.entities.organisme import Organisme
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
-from domain.entities.organisme import Organisme
 from domain.entities.raw_organisme import RawOrganisme
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,8 @@ class OrganismesCleaner:
 
         localisation = self._map_localisation(data)
 
-        return Organisme(
+        return Organisme.build(
+            entity_id=uuid4(),
             nom=nom,
             versant=Verse.FPH,
             siret=siret,
