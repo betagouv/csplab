@@ -24,7 +24,7 @@ class PostgresUtilisateurRepository(IUtilisateurRepository):
             raise UtilisateurNexistePas(email) from e
 
     def create(self, utilisateur: Utilisateur) -> Utilisateur:
-        if UserModel.objects.filter(username=str(utilisateur.entity_id)).exists():
+        if UserModel.objects.filter(username=utilisateur.entity_id).exists():
             raise UtilisateurExisteDeja(utilisateur.entity_id)
         model = UserModel.from_entity(utilisateur)
         model.set_unusable_password()

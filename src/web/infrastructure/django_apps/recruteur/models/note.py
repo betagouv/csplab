@@ -18,7 +18,7 @@ class NoteModel(BaseDatedModel):
     publie_par = models.ForeignKey(
         ProfilAgentModel,
         on_delete=models.PROTECT,
-        to_field="utilisateur_id",  # UUID-as-string (VARCHAR(36))
+        to_field="utilisateur_id",
         db_column="publie_par_id",
         related_name="notes_publiees",
     )

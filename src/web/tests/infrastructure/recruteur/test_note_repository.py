@@ -41,7 +41,7 @@ def candidature_id_fixture(db) -> UUID:
 
 
 @pytest.fixture(name="agent_id")
-def agent_id_fixture(db) -> str:
+def agent_id_fixture(db) -> UUID:
     return AgentFactory.create_model().utilisateur_id
 
 
@@ -72,7 +72,7 @@ class TestCreateNote:
 
         assert note_model.id == note.entity_id
         assert note_model.candidature_id == candidature_id
-        assert str(note_model.publie_par_id) == agent_id
+        assert note_model.publie_par_id == agent_id
         assert note_model.message == note.message
 
     def test_create_note_propagates_unhandled_db_error(
@@ -94,7 +94,7 @@ class TestGetById:
 
         assert fetched.entity_id == existing_note_model.id
         assert fetched.candidature_id == candidature_id
-        assert str(fetched.publie_par_id) == agent_id
+        assert fetched.publie_par_id == agent_id
         assert fetched.message == existing_note_model.message
 
     def test_get_by_id_does_not_return_soft_deleted_note(

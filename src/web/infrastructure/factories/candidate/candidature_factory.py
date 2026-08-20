@@ -60,7 +60,7 @@ class CandidatureFactory:
         etape: EtapeModel | None = None,
     ) -> CandidatureModel:
         if candidat_id is None:
-            candidat_id = UUID(CandidatFactory.create_model().utilisateur_id)
+            candidat_id = CandidatFactory.create_model().utilisateur_id
         if offre_id is None:
             offre_id = OfferFactory.create_model().id
 

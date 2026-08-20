@@ -70,7 +70,7 @@ class TestCandidatureNotesView:
         mock_usecase.execute.assert_called_once_with(
             CreerNoteCommand(
                 candidature_id=UUID(CANDIDATURE_UUID),
-                publie_par_id=UUID(test_user.username),
+                publie_par_id=test_user.username,
                 message="nouvelle note",
             )
         )
@@ -117,7 +117,7 @@ class TestNoteDetailView:
             EditerNoteCommand(
                 note_id=UUID(NOTE_UUID),
                 message="modifiée",
-                mis_a_jour_par_id=UUID(test_user.username),
+                mis_a_jour_par_id=test_user.username,
             )
         )
 
@@ -143,7 +143,7 @@ class TestNoteDetailView:
         mock_usecase.execute.assert_called_once_with(
             SupprimerNoteCommand(
                 note_id=UUID(NOTE_UUID),
-                supprime_par_id=UUID(test_user.username),
+                supprime_par_id=test_user.username,
             )
         )
 

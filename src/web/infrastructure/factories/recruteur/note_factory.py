@@ -54,7 +54,7 @@ class NoteFactory:
         if candidature_id is None:
             candidature_id = CandidatureFactory.create_model().id
         if publie_par_id is None:
-            publie_par_id = UUID(AgentFactory.create_model().utilisateur_id)
+            publie_par_id = AgentFactory.create_model().utilisateur_id
 
         note = NoteFactory.create_entity(
             candidature_id=candidature_id,

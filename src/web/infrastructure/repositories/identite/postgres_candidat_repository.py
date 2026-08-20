@@ -13,7 +13,7 @@ class PostgresCandidatRepository(ICandidatRepository):
     def get_by_id(self, candidat_id: UUID) -> Candidat:
         try:
             profil = ProfilCandidatModel.objects.select_related("utilisateur").get(
-                utilisateur_id=str(candidat_id)  # type: ignore[misc]  # to_field='username' (VARCHAR)
+                utilisateur_id=candidat_id  # type: ignore[misc]
             )
             return profil.to_entity()
         except ProfilCandidatModel.DoesNotExist as e:

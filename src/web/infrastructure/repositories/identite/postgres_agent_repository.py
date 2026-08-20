@@ -17,9 +17,7 @@ class PostgresAgentRepository(IAgentRepository):
             return None
 
     def exists(self, agent_id: UUID) -> bool:
-        return ProfilAgentModel.objects.filter(
-            utilisateur__username=str(agent_id)
-        ).exists()
+        return ProfilAgentModel.objects.filter(utilisateur__username=agent_id).exists()
 
     def create(self, utilisateur: Utilisateur, agent: Agent) -> Agent:
         ProfilAgentModel.from_entity(utilisateur, agent).save()
