@@ -158,6 +158,16 @@ class SetAgentRoleOnOrganismeSerializer(serializers.Serializer):
     )
 
 
+class ModifierAgentSerializer(serializers.Serializer):
+    agent_uuid = serializers.UUIDField()
+    role = serializers.ChoiceField(
+        choices=[(r.value, r.value) for r in AgentOrganismeRole], required=False
+    )
+    nom = serializers.CharField(required=False)
+    prenom = serializers.CharField(required=False)
+    poste = serializers.CharField(required=False)
+
+
 # ---------------------------------------------------------------------------
 # Serializers pour les notes attachées à une candidature
 # ---------------------------------------------------------------------------

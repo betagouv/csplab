@@ -475,6 +475,69 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+    patch:
+      operationId: recruteur_organismes_parametres_agents_partial_update
+      summary: Modifier un agent d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedModifierAgent'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedModifierAgent'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedModifierAgent'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentOrganisme'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organismes/{organisme_uuid}/parametres/etapes:
     get:
       operationId: recruteur_organismes_parametres_etapes_list
@@ -1981,6 +2044,20 @@ components:
       type: object
       properties:
         message:
+          type: string
+    PatchedModifierAgent:
+      type: object
+      properties:
+        agent_uuid:
+          type: string
+          format: uuid
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        nom:
+          type: string
+        prenom:
+          type: string
+        poste:
           type: string
     RecrutementDetail:
       type: object
