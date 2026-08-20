@@ -1,30 +1,72 @@
 code;libelle
 101;Centre Hospitalier Régional (C.H.R.)
+106;Centre hospitalier, ex Hôpital local
+109;Etablissement de santé privé autorisé en SSR
+124;Centre de Santé
+127;Hospitalisation à Domicile
 156;Centre Médico-Psychologique (C.M.P.)
-160;Centre de Soins Spécifiques pour Toxicomanes (C.S.S.T.)
-162;Centre de Cure Ambulatoire en Alcoologie (C.C.A.A.)
 165;Appartement de Coordination Thérapeutique (A.C.T.)
+166;Centre Parents-Enfants de moins de 3 ans
+172;Pouponnière à Caractère Social
+175;Foyer de l'Enfance
+177;Maison d'Enfants à Caractère Social
 178;Ctre.Accueil- Accomp.Réduc.Risq.Usag. Drogues (C.A.A.R.U.D.)
+182;Service d'Éducation Spéciale et de Soins à Domicile
 183;Institut Médico-Educatif (I.M.E.)
 186;Institut Thérapeutique Éducatif et Pédagogique (I.T.E.P.)
+188;Etablissement pour Enfants ou Adolescents Polyhandicapés
 189;Centre Médico-Psycho-Pédagogique (C.M.P.P.)
 190;Centre Action Médico-Sociale Précoce (C.A.M.S.P.)
+192;Institut d'éducation motrice
+194;Institut pour Déficients Visuels
+195;Institut pour Déficients Auditifs
+196;Institut d'Education Sensorielle Sourd-Aveugle
 197;Centre soins accompagnement prévention addictologie (CSAPA)
-200;Maison de Retraite
+202;Résidences autonomie
+207;Centre de Jour pour Personnes Agées
+209;Service autonomie aide et soins (SAAS)
 214;Centre Hébergement & Réinsertion Sociale (C.H.R.S.)
+219;Autre Centre d'Accueil
 223;Protection Maternelle et Infantile (P.M.I.)
+228;Centre de Santé Sexuelle
+236;Service de placement familial
+238;Centre d'Accueil Familial Spécialisé
 246;Etablissement et Service d'Aide par le Travail (E.S.A.T.)
+247;Entreprise adaptée
+249;Établissement et Service de Réadaptation Professionnelle
+252;Foyer Hébergement Adultes Handicapés
 255;Maison d'Accueil Spécialisée (M.A.S.)
+258;Maisons Relais - Pensions de Famille
 292;Centre Hospitalier Spécialisé lutte Maladies Mentales
+295;Service AEMO et AED
+300;Ecoles Formant aux Professions Sanitaires
 354;Service de Soins Infirmiers A Domicile (S.S.I.A.D)
 355;Centre Hospitalier (C.H.)
 362;Etablissement de Soins Longue Durée
+366;Atelier Thérapeutique
+370;Etablissement Expérimental pour personnes handicapées
+377;Etablissement Expérimental pour Enfance Handicapée
+378;Etablissement Expérimental Enfance Protégée
+379;Etablissement Expérimental pour Adultes Handicapés
+381;Etablissement Expérimental pour Personnes Agées
+382;Foyer de Vie pour Adultes Handicapés
+412;Appartement Thérapeutique
 415;Service Médico-Psychologique Régional (S.M.P.R.)
 425;Centre d'Accueil Thérapeutique à temps partiel (C.A.T.T.P.)
 426;Syndicat Inter Hospitalier (S.I.H.)
+430;Centre Postcure Malades Mentaux
+433;Etablissement Sanitaire des Prisons
+436;Ecoles Formant aux Professions Sanitaires et Sociales
 437;Foyer d'Accueil Médicalisé pour Adultes Handicapés (F.A.M.)
+444;Centre Crise Accueil Permanent
 445;Service d'accompagnement médico-social adultes handicapés
 446;Service d'Accompagnement à la Vie Sociale (S.A.V.S.)
 448;Etab.Acc.Médicalisé en tout ou partie personnes handicapées
 449;Etab.Accueil Non Médicalisé pour personnes handicapées
+460;Service autonomie aide (SAA)
 463;Centres Locaux Information Coordination P.A.(C.L.I.C.)
+500;Etablissement d'hébergement pour personnes âgées dépendantes
+502;EHPA ne percevant pas des crédits d'assurance maladie
+638;Centre gratuit d'information de dépistage et de diagnostic (CeGIDD)
+696;Groupement de coopération sanitaire de moyens
+698;Autre Etablissement Loi Hospitalière
