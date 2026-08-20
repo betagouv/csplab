@@ -6,12 +6,13 @@ from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
 from domain.identite.value_objects.organisme_role import OrganismeRole
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
 
 STATIC_ORGANISMES = [
     OrganismeRole(
         organisme_uuid=UUID("00000000-0000-0000-0000-000000000000"),
         nom="Ministère de la Transition Écologique",
-        role="responsable",
+        role=AgentOrganismeRole.RESPONSABLE.value,
     )
 ]
 
