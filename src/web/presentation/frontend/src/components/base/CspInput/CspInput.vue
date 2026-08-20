@@ -40,7 +40,7 @@ const inputAttrs = computed(() => {
   <div
     class="csp-input-group"
     :class="[attrs.class, { 'csp-input-group--error': error }]"
-    :style="attrs.style as string"
+    :style="(attrs.style as string)"
   >
     <label
       v-if="label"
