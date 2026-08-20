@@ -12,13 +12,13 @@ from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_organisme import RawOrganisme
+from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 
 logger = logging.getLogger(__name__)
 
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
+# From https://smt.esante.gouv.fr/fhir/CodeSystem/tre-r397-categorie-entite-geographique-exercice
 _CATEGORIES_CSV = _DATA_DIR / "categories_entite_geographique_exercice.csv"
-
-FINESS_REFERENTIEL = "FINESS"
 
 
 def _load_allowed_categories(csv_path: Path) -> set[str]:
@@ -32,7 +32,7 @@ class OrganismesCleaner:
         self._allowed_categories = _load_allowed_categories(categories_csv_path)
 
     def clean(self, raw_organisme: RawOrganisme) -> Optional[Organisme]:
-        if raw_organisme.referentiel != FINESS_REFERENTIEL:
+        if raw_organisme.referentiel != OrganismeReferentiel.FINESS:
             return None
         return self._clean_finess(raw_organisme)
 

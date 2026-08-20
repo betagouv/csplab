@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 from application.use_cases.import_organismes import BATCH_SIZE, ImportOrganismesCommand
 from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.value_objects.organisme import OrganismeData, OrganismeImportResource
+from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from infrastructure.di.container import Container
 from infrastructure.models.raw_organisme import RawOrganismeModel
 from infrastructure.raw_organisme_repository import RawOrganismeRepository
@@ -68,7 +69,7 @@ async def test_batches_of_exactly_batch_size_upsert_once(
     )
 
     result = await container.import_organismes_use_case().execute(
-        ImportOrganismesCommand()
+        ImportOrganismesCommand(referentiel=OrganismeReferentiel.FINESS)
     )
 
     repository_spy.upsert_batch.assert_called_once()
@@ -84,7 +85,7 @@ async def test_flushes_remaining_items_below_batch_size(
     mock_organisme_gateway.stream_organismes.return_value = iter(_organismes(2))
 
     result = await container.import_organismes_use_case().execute(
-        ImportOrganismesCommand()
+        ImportOrganismesCommand(referentiel=OrganismeReferentiel.FINESS)
     )
 
     repository_spy.upsert_batch.assert_called_once()
@@ -102,7 +103,7 @@ async def test_more_than_batch_size_calls_upsert_batch_twice(
     )
 
     result = await container.import_organismes_use_case().execute(
-        ImportOrganismesCommand()
+        ImportOrganismesCommand(referentiel=OrganismeReferentiel.FINESS)
     )
 
     assert repository_spy.upsert_batch.call_count == 2
@@ -120,7 +121,7 @@ async def test_raw_organisme_has_correct_fields(
     )
 
     result = await container.import_organismes_use_case().execute(
-        ImportOrganismesCommand()
+        ImportOrganismesCommand(referentiel=OrganismeReferentiel.FINESS)
     )
 
     saved = _fetch_all(db_engine)
@@ -142,7 +143,9 @@ async def test_stream_organismes_called_with_found_resource(
     mock_organisme_gateway.find_resource.return_value = RESOURCE
     mock_organisme_gateway.stream_organismes.return_value = iter([])
 
-    await container.import_organismes_use_case().execute(ImportOrganismesCommand())
+    await container.import_organismes_use_case().execute(
+        ImportOrganismesCommand(referentiel=OrganismeReferentiel.FINESS)
+    )
 
     mock_organisme_gateway.stream_organismes.assert_called_once_with(RESOURCE)
 
@@ -154,7 +157,9 @@ async def test_no_organismes_streamed_does_not_upsert(
     mock_organisme_gateway.find_resource.return_value = RESOURCE
     mock_organisme_gateway.stream_organismes.return_value = iter([])
 
-    await container.import_organismes_use_case().execute(ImportOrganismesCommand())
+    await container.import_organismes_use_case().execute(
+        ImportOrganismesCommand(referentiel=OrganismeReferentiel.FINESS)
+    )
 
     repository_spy.upsert_batch.assert_not_called()
     assert _fetch_all(db_engine) == []
@@ -167,7 +172,9 @@ async def test_no_organismes_streamed_does_not_delete(
     mock_organisme_gateway.find_resource.return_value = RESOURCE
     mock_organisme_gateway.stream_organismes.return_value = iter([])
 
-    await container.import_organismes_use_case().execute(ImportOrganismesCommand())
+    await container.import_organismes_use_case().execute(
+        ImportOrganismesCommand(referentiel=OrganismeReferentiel.FINESS)
+    )
 
     repository_spy.delete_missing.assert_not_called()
 
@@ -192,12 +199,22 @@ async def test_deletes_organismes_missing_from_latest_import(
     )
 
     result = await container.import_organismes_use_case().execute(
-        ImportOrganismesCommand()
+        ImportOrganismesCommand(referentiel=OrganismeReferentiel.FINESS)
     )
 
     remaining = {row.external_id for row in _fetch_all(db_engine)}
     assert remaining == {"123456789"}
     assert result.total_deleted == 1
+
+
+@pytest.mark.asyncio
+async def test_rejects_unsupported_referentiel(container, mock_organisme_gateway):
+    with pytest.raises(ValueError, match="Unsupported referentiel"):
+        await container.import_organismes_use_case().execute(
+            ImportOrganismesCommand(referentiel="RNE")
+        )
+
+    mock_organisme_gateway.find_resource.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -209,7 +226,9 @@ async def test_delete_missing_uses_the_run_loaded_at_watermark(
         [OrganismeData(referentiel=REFERENTIEL, external_id="123456789", data={"a": 1})]
     )
 
-    await container.import_organismes_use_case().execute(ImportOrganismesCommand())
+    await container.import_organismes_use_case().execute(
+        ImportOrganismesCommand(referentiel=OrganismeReferentiel.FINESS)
+    )
 
     upserted_loaded_at = repository_spy.upsert_batch.call_args.args[0][0].loaded_at
     deleted_loaded_before = repository_spy.delete_missing.call_args.args[1]
