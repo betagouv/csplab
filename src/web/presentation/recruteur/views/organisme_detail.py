@@ -37,9 +37,6 @@ from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
 )
-from presentation.commons.serializers import (
-    OrganismeSerializer,
-)
 from presentation.recruteur.mappers import (
     EtapesMapper,
 )
@@ -69,30 +66,7 @@ class OrganismeDetailView(APIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-    def get(self, request: Request, organisme_uuid: UUID) -> Response:
-        try:
-            utilisateur_id = request.user.username
-            container = recruteur_container()
-            usecase = container.get_organisme_recruteur_usecase()
-            organisme = usecase.execute(
-                GetOrganismeRecruteurQuery(
-                    organisme_id=organisme_uuid,
-                    utilisateur_id=utilisateur_id,
-                    est_staff=request.user.is_staff,
-                )
-            )
-            serializer = OrganismeSerializer(organisme)
-            return Response(serializer.data)
-        except AccesOrganismeRefuse:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        except (ErreurRecruteur, OrganismeNexistePas):
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Exception:
-            serializer = GenericErrorSerializer({"error": "Unexpected error"})
-            return Response(
-                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        self.container = create_identite_container()
 
     def put(self, request: Request, organisme_uuid: UUID) -> Response:
         serializer = UpdateOrganismeSerializer(data=request.data)
@@ -100,8 +74,7 @@ class OrganismeDetailView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            container = create_identite_container()
-            usecase = container.update_organisme_usecase()
+            usecase = self.container.update_organisme_usecase()
             data = serializer.validated_data
             command = UpdateOrganismeCommand(
                 organisme_id=organisme_uuid,

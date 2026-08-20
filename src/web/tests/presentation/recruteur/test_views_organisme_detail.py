@@ -11,7 +11,6 @@ from domain.identite.errors.organisme_permission_errors import OperationOrganism
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.erreur_recrutement import (
     ConfigurationEtapesInvalide,
-    ErreurRecruteur,
 )
 from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
@@ -77,68 +76,6 @@ def identite_container():
 
 
 class TestOrganismeDetailView:
-    def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.get(ORGANISME_URL)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_get_organisme_recruteur(self, container, authenticated_client):
-        mock_organisme = MagicMock()
-        mock_organisme.nom = "COMMUNE DE BRIANCON"
-        mock_organisme.siret = "21050023700354"
-
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = mock_organisme
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-
-        response = authenticated_client.get(ORGANISME_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {
-            "nom": "COMMUNE DE BRIANCON",
-            "siret": "21050023700354",
-        }
-
-    @pytest.mark.parametrize(
-        ("exception", "expected_status", "expected_body"),
-        [
-            (
-                ErreurRecruteur(ORGANISME_UUID),
-                status.HTTP_404_NOT_FOUND,
-                {"detail": "Not found."},
-            ),
-            (
-                OrganismeNexistePas(ORGANISME_UUID),
-                status.HTTP_404_NOT_FOUND,
-                {"detail": "Not found."},
-            ),
-            (
-                AccesOrganismeRefuse(UUID(ORGANISME_UUID)),
-                status.HTTP_403_FORBIDDEN,
-                {"detail": "Forbidden."},
-            ),
-            (
-                Exception("unexpected"),
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                {"error": "Unexpected error"},
-            ),
-        ],
-    )
-    def test_get_organisme_recruteur_returns_error_from_usecase(
-        self,
-        container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = exception
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-        response = authenticated_client.get(ORGANISME_URL)
-
-        assert response.status_code == expected_status
-        assert response.json() == expected_body
-
     def test_put_update_organisme(
         self,
         identite_container,
