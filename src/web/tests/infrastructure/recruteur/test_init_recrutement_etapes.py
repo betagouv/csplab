@@ -1,5 +1,5 @@
-from unittest.mock import MagicMock
-from uuid import uuid4
+from unittest.mock import Mock
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -7,7 +7,6 @@ from application.recruteur.usecases.init_recrutement_etapes import (
     InitRecrutementEtapesCommand,
 )
 from config.app_config import AppConfig
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
@@ -18,6 +17,10 @@ from domain.recruteur.value_objects.roles import (
     AgentRecrutementRole,
 )
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
+from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
+)
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -31,11 +34,10 @@ def recruteur_integration_container_fixture(db):
     logger_service = LoggerService()
     container.app_config.override(app_config)
     container.logger_service.override(logger_service)
-    container.audit_log_writer.override(MagicMock(spec=AuditLogWriter))
+    container.audit_log_writer.override(Mock(spec=AuditLogWriter))
     return container
 
 
-# TODO : update this class after persistence is implemented
 class TestInitRecrutementEtapes:
     @pytest.mark.parametrize(
         "kwargs",
@@ -49,18 +51,30 @@ class TestInitRecrutementEtapes:
         ids=["responsable_organisme", "responsable_recrutement"],
     )
     def test_init_recrutement_etapes(self, db, recruteur_integration_container, kwargs):
-        recrutement_model = RecrutementFactory.create_model(**kwargs)
+        # parametres par defaut = une seule etape en cours
+        en_cours = EtapeRecrutementFactory.create_entity()
+        etapes = EtapeRecrutementFactory.create_entity_batch(en_cours=(en_cours,))
+
+        agent, organisme = OrganismeFactory.create_model_with_agent(
+            role=kwargs.get("organisme_role"), etapes=etapes
+        )
+        recrutement_model = RecrutementFactory.create_model(
+            organisme_id=organisme.id,
+            agent_id=UUID(agent.utilisateur_id),
+            agent_role=kwargs.get("agent_role"),
+            avec_etapes=False,
+        )
         usecase = recruteur_integration_container.init_recrutement_etapes_usecase()
 
         resultat = usecase.execute(
             InitRecrutementEtapesCommand(
                 organisme_id=recrutement_model.organisme_id,
                 recrutement_id=recrutement_model.offre_id,
-                utilisateur_id=recrutement_model.agents_liaisons.get().agent_id,
+                utilisateur_id=UUID(agent.utilisateur_id),
             )
         )
 
-        assert len(resultat) == NB_ETAPES_PAR_DEFAUT
+        assert resultat == etapes
 
     @pytest.mark.parametrize(
         "agent_role",
@@ -88,20 +102,6 @@ class TestInitRecrutementEtapes:
                 InitRecrutementEtapesCommand(
                     organisme_id=recrutement_model.organisme_id,
                     recrutement_id=recrutement_model.offre_id,
-                    utilisateur_id=uuid4(),
-                )
-            )
-
-    def test_init_recrutement_etapes_raises_when_organisme_introuvable(
-        self, db, recruteur_integration_container
-    ):
-        usecase = recruteur_integration_container.init_recrutement_etapes_usecase()
-
-        with pytest.raises(OrganismeNexistePas):
-            usecase.execute(
-                InitRecrutementEtapesCommand(
-                    organisme_id=uuid4(),
-                    recrutement_id=uuid4(),
                     utilisateur_id=uuid4(),
                 )
             )

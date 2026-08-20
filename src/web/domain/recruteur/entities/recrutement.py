@@ -9,10 +9,14 @@ from referentiel.types import IBatchUpdate
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.recrutement_errors import (
+    ModificationEtapesImpossible,
     RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
 )
-from domain.recruteur.events.recrutement_events import EtapeCandidaturesChangees
+from domain.recruteur.events.recrutement_events import (
+    EtapeCandidaturesChangees,
+    RecrutementEtapesInitialisees,
+)
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 
 
@@ -79,6 +83,14 @@ class Recrutement(AggregateRoot):
         # business rules about etapes order can be managed here
         self._derniere_activite_le = datetime.now(tz=timezone.utc)
         return {"successes": successes, "failures": failures}
+
+    @mutate(RecrutementEtapesInitialisees)
+    def init_etapes_recrutement(self, etapes: tuple[EtapeRecrutement, ...]):
+        if len(self.candidatures) == 0:
+            self._etapes = etapes
+            self._derniere_activite_le = datetime.now(tz=timezone.utc)
+        else:
+            raise ModificationEtapesImpossible(self.entity_id, len(self.candidatures))
 
     @property
     def offre_id(self) -> UUID:

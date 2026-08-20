@@ -9,11 +9,10 @@ from rest_framework import status
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
-from domain.recruteur.errors.erreur_recrutement import (
-    ConfigurationEtapesInvalide,
-    ErreurRecruteur,
-)
 from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.recruteur.errors.organisme_recruteur_errors import (
+    ConfigurationEtapesInvalide,
+)
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -101,11 +100,6 @@ class TestOrganismeDetailView:
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
         [
-            (
-                ErreurRecruteur(ORGANISME_UUID),
-                status.HTTP_404_NOT_FOUND,
-                {"detail": "Not found."},
-            ),
             (
                 OrganismeNexistePas(ORGANISME_UUID),
                 status.HTTP_404_NOT_FOUND,

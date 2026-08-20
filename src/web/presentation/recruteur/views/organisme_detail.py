@@ -23,11 +23,10 @@ from application.recruteur.usecases.update_organisme_steps import (
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
-from domain.recruteur.errors.erreur_recrutement import (
-    ConfigurationEtapesInvalide,
-    ErreurRecruteur,
-)
 from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.recruteur.errors.organisme_recruteur_errors import (
+    ConfigurationEtapesInvalide,
+)
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -86,7 +85,7 @@ class OrganismeDetailView(APIView):
             return Response(serializer.data)
         except AccesOrganismeRefuse:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        except (ErreurRecruteur, OrganismeNexistePas):
+        except OrganismeNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
@@ -271,7 +270,7 @@ class InitEtapesRecrutementOrganismeView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except AccesOrganismeRefuse:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        except (ErreurRecruteur, OrganismeNexistePas):
+        except OrganismeNexistePas:
             return Response(
                 {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
             )
