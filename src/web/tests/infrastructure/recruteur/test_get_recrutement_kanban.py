@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 
@@ -46,7 +46,7 @@ class TestGetRecrutementKanbanRbac:
     )
     def test_authorized(self, usecase, role, assign_agent_to_recrutement):
         agent, organisme = OrganismeFactory.create_model_with_agent(role=role)
-        agent_id = UUID(agent.utilisateur_id) if assign_agent_to_recrutement else None
+        agent_id = agent.utilisateur_id if assign_agent_to_recrutement else None
         recrutement = RecrutementFactory.create_model(
             organisme_id=organisme.id, agent_id=agent_id
         )

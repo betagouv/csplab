@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -10,12 +8,11 @@ from domain.identite.entities.utilisateurs import Utilisateur
 
 class UserModel(AbstractUser):
     email = models.EmailField(unique=True, null=False, blank=False)
-    username = models.CharField(
+    username = models.UUIDField(  # type: ignore[assignment]
         unique=True,
         null=False,
         blank=False,
         editable=False,
-        max_length=36,
     )
 
     USERNAME_FIELD = "email"
@@ -34,7 +31,7 @@ class UserModel(AbstractUser):
 
     def to_entity(self) -> Utilisateur:
         return Utilisateur(
-            entity_id=UUID(self.username),
+            entity_id=self.username,
             email=self.email,
             prenom=self.first_name,
             nom=self.last_name,
@@ -44,7 +41,7 @@ class UserModel(AbstractUser):
     @classmethod
     def from_entity(cls, utilisateur: Utilisateur) -> "UserModel":
         return cls(
-            username=str(utilisateur.entity_id),
+            username=utilisateur.entity_id,
             email=utilisateur.email,
             first_name=utilisateur.prenom,
             last_name=utilisateur.nom,
@@ -72,7 +69,7 @@ class ProfilCandidatModel(models.Model):
 
     def to_entity(self) -> Candidat:
         return Candidat.build(
-            entity_id=UUID(self.utilisateur.username),
+            entity_id=self.utilisateur.username,
             email=self.utilisateur.email,
             prenom=self.utilisateur.first_name,
             nom=self.utilisateur.last_name,
@@ -84,7 +81,7 @@ class ProfilCandidatModel(models.Model):
         cls, utilisateur: Utilisateur, candidat: Candidat
     ) -> "ProfilCandidatModel":
         return cls(
-            utilisateur_id=str(utilisateur.entity_id),
+            utilisateur_id=utilisateur.entity_id,
             resume=candidat.resume,
         )
 
@@ -109,7 +106,7 @@ class ProfilAgentModel(models.Model):
 
     def to_entity(self) -> Agent:
         return Agent.build(
-            entity_id=UUID(self.utilisateur.username),
+            entity_id=self.utilisateur.username,
             email=self.utilisateur.email,
             prenom=self.utilisateur.first_name,
             nom=self.utilisateur.last_name,
@@ -119,7 +116,7 @@ class ProfilAgentModel(models.Model):
     @classmethod
     def from_entity(cls, utilisateur: Utilisateur, agent: Agent) -> "ProfilAgentModel":
         return cls(
-            utilisateur_id=str(utilisateur.entity_id),
+            utilisateur_id=utilisateur.entity_id,
             intitule_poste=agent.intitule_poste,
         )
 

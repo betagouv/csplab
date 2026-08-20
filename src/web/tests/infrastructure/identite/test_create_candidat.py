@@ -53,7 +53,7 @@ def test_create_candidat_with_existing_user(identite_integration_container):
         input_data
     )
 
-    assert str(result.entity_id) == existing_user.username
+    assert result.entity_id == existing_user.username
 
 
 def test_cannot_create_candidat_twice(identite_integration_container):

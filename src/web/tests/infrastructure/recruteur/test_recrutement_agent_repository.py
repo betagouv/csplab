@@ -1,5 +1,3 @@
-from uuid import UUID
-
 import pytest
 
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
@@ -17,7 +15,7 @@ def repository_fixture():
 
 def test_get_role_returns_assigned_role(db, repository):
     agent = AgentFactory.create_model()
-    agent_id = UUID(agent.utilisateur_id)
+    agent_id = agent.utilisateur_id
     recrutement = RecrutementFactory.create_model(
         agent_id=agent_id,
         agent_role=AgentRecrutementRole.RECRUTEUR,
@@ -33,7 +31,7 @@ def test_get_role_returns_none_when_no_liaison(db, repository):
     recrutement = RecrutementFactory.create_model()
 
     role = repository.get_role(
-        recrutement_id=recrutement.offre_id, agent_id=UUID(agent.utilisateur_id)
+        recrutement_id=recrutement.offre_id, agent_id=agent.utilisateur_id
     )
 
     assert role is None

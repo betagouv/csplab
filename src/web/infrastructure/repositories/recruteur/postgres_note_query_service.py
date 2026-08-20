@@ -22,7 +22,7 @@ class PostgresNoteQueryService(INoteQueryService):
                 entity_id=model.id,
                 candidature_id=model.candidature_id,
                 message=model.message,
-                publie_par_id=UUID(model.publie_par_id),  # type: ignore[arg-type]
+                publie_par_id=model.publie_par_id,
                 publie_par_prenom=model.publie_par.utilisateur.first_name,
                 publie_par_nom=model.publie_par.utilisateur.last_name,
                 publie_le=model.created_at,

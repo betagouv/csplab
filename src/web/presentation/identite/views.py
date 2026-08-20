@@ -125,7 +125,7 @@ class UtilisateurDetailsView(APIView):
 
     def get(self, request):
         try:
-            entity_id = UUID(request.user.username)
+            entity_id = request.user.username
             usecase = self.container.get_utilisateur_details_usecase()
             utilisateur = usecase.execute(entity_id)
             return Response(UtilisateurSerializer(utilisateur).data)

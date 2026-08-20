@@ -116,7 +116,7 @@ class RecrutementFactory:
             archived_at = datetime(2024, 1, 1) if offre_archivee else None
             offre_id = OfferFactory.create_model(archived_at=archived_at).id
         if agent_id is None:
-            agent_id = UUID(AgentFactory.create_model().utilisateur_id)
+            agent_id = AgentFactory.create_model().utilisateur_id
         if organisme_id is None:
             organisme_id = OrganismeFactory.create_model(
                 agent_id=agent_id, role=organisme_role

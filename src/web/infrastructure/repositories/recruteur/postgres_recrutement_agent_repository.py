@@ -16,7 +16,7 @@ class PostgresRecrutementAgentRepository(IRecrutementAgentRepository):
         try:
             liaison = RecrutementAgentModel.objects.get(
                 recrutement_id=recrutement_id,
-                agent_id=str(agent_id),  # type: ignore[misc]
+                agent_id=agent_id,  # type: ignore[misc]
             )
         except RecrutementAgentModel.DoesNotExist:
             return None

@@ -93,7 +93,7 @@ class TestOffersBySourceView:
         use_case.execute.assert_called_once_with(
             GetOffersBySourceInput(
                 source_id=SOURCE_ID,
-                utilisateur_entity_id=UUID(test_user.username),
+                utilisateur_entity_id=test_user.username,
             )
         )
 

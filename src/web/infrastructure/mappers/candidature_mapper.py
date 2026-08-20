@@ -11,7 +11,7 @@ class CandidatureMapper(IFromDomainMapper, IToDomainMapper):
     def to_domain(self, model: CandidatureModel) -> Candidature:
         return Candidature.build(
             entity_id=model.id,
-            candidat_id=UUID(model.candidat_id),  # type: ignore[arg-type]
+            candidat_id=model.candidat_id,
             # recrutement.id == offre.id (PK partagée entre recrutement et offre)
             offre_id=model.etape.recrutement_id,
             statut=StatutCandidature(model.statut),
@@ -30,7 +30,7 @@ class CandidatureMapper(IFromDomainMapper, IToDomainMapper):
         # l'appelant (repository) et injectée ici via `etape_id`.
         return CandidatureModel(
             id=candidature.entity_id,
-            candidat_id=str(candidature.candidat_id),  # UUID → VARCHAR(36)
+            candidat_id=candidature.candidat_id,
             etape_id=etape_id,
             statut=candidature.statut.value,
             documents=[str(d) for d in candidature.documents]

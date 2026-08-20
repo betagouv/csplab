@@ -29,7 +29,7 @@ class Command(BaseCommand):
 
         with transaction.atomic():
             user = UserModel.objects.create_user(
-                username=str(uuid4()),
+                username=uuid4(),
                 email=email,
                 password=password,
                 first_name=first_name,

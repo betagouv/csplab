@@ -82,7 +82,7 @@ class CandidatureNotesView(APIView):
             note = usecase.execute(
                 CreerNoteCommand(
                     candidature_id=candidature_uuid,
-                    publie_par_id=UUID(request.user.username),
+                    publie_par_id=request.user.username,
                     message=serializer.validated_data["message"],
                 )
             )
@@ -146,7 +146,7 @@ class CandidatureNoteDetailView(APIView):
                 EditerNoteCommand(
                     note_id=note_uuid,
                     message=serializer.validated_data["message"],
-                    mis_a_jour_par_id=UUID(request.user.username),
+                    mis_a_jour_par_id=request.user.username,
                 )
             )
             return Response(NoteDetailSerializer(note).data)
@@ -166,7 +166,7 @@ class CandidatureNoteDetailView(APIView):
             usecase.execute(
                 SupprimerNoteCommand(
                     note_id=note_uuid,
-                    supprime_par_id=UUID(request.user.username),
+                    supprime_par_id=request.user.username,
                 )
             )
             return Response(status=status.HTTP_204_NO_CONTENT)

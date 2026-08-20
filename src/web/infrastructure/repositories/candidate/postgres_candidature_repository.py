@@ -32,7 +32,7 @@ class PostgresCandidatureRepository(ICandidatureRepository):
 
     def exists_by_candidat_and_offre(self, candidat_id: UUID, offre_id: UUID) -> bool:
         return CandidatureModel.objects.filter(  # type: ignore[attr-defined]
-            candidat_id=str(candidat_id),  # type: ignore[misc]  # UUID → VARCHAR(36)
+            candidat_id=candidat_id,  # type: ignore[misc]
             etape__recrutement_id=offre_id,
         ).exists()
 
@@ -51,7 +51,7 @@ class PostgresCandidatureRepository(ICandidatureRepository):
                 },
                 create_defaults={
                     "id": candidature.entity_id,
-                    "candidat_id": str(candidature.candidat_id),  # type: ignore[misc]  # UUID → VARCHAR(36)
+                    "candidat_id": candidature.candidat_id,
                     "statut": candidature.statut.value,
                     "documents": (
                         [str(d) for d in candidature.documents]

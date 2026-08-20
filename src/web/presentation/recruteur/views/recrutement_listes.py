@@ -52,7 +52,7 @@ class RecrutementsActifsView(APIView):
                 ListerMesRecrutementsQuery(
                     organisme_id=organisme_uuid,
                     statut=StatutRecrutement.ACTIF,
-                    utilisateur_id=UUID(request.user.username),
+                    utilisateur_id=request.user.username,
                     est_staff=request.user.is_staff,
                 )
             )
@@ -105,7 +105,7 @@ class RecrutementsArchivesView(APIView):
                 ListerMesRecrutementsQuery(
                     organisme_id=organisme_uuid,
                     statut=StatutRecrutement.ARCHIVE,
-                    utilisateur_id=UUID(request.user.username),
+                    utilisateur_id=request.user.username,
                     est_staff=request.user.is_staff,
                 )
             )

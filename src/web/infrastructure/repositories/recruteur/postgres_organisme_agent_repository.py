@@ -14,7 +14,7 @@ class PostgresOrganismeAgentRepository(IOrganismeAgentRepository):
         try:
             liaison = OrganismeAgentModel.objects.get(
                 organisme_id=organisme_id,
-                agent_id=str(agent_id),  # type: ignore[misc]
+                agent_id=agent_id,  # type: ignore[misc]
             )
         except OrganismeAgentModel.DoesNotExist:
             return None

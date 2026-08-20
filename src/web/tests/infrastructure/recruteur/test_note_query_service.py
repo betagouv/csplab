@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 from faker import Faker
@@ -31,15 +31,15 @@ def service_fixture(recruteur_integration_container) -> PostgresNoteQueryService
 
 def test_get_by_candidature_service_returns_ordered_notes(service):
     agent = AgentFactory.create_model()
-    note = NoteFactory.create_model(publie_par_id=UUID(agent.utilisateur_id))
+    note = NoteFactory.create_model(publie_par_id=agent.utilisateur_id)
     note_recent = NoteFactory.create_model(
-        candidature_id=note.candidature_id, publie_par_id=UUID(agent.utilisateur_id)
+        candidature_id=note.candidature_id, publie_par_id=agent.utilisateur_id
     )
 
     notes = service.get_by_candidature(note.candidature_id)
 
     assert [n.entity_id for n in notes] == [note_recent.id, note.id]
-    assert notes[0].publie_par_id == UUID(agent.utilisateur_id)
+    assert notes[0].publie_par_id == agent.utilisateur_id
     assert notes[0].publie_par_prenom == agent.utilisateur.first_name
     assert notes[0].publie_par_nom == agent.utilisateur.last_name
 

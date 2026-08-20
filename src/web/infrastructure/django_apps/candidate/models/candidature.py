@@ -9,7 +9,7 @@ from infrastructure.django_apps.utils.models import BaseDatedModel
 class CandidatureModel(BaseDatedModel):
     candidat = models.ForeignKey(
         ProfilCandidatModel,
-        to_field="utilisateur_id",  # UUID-as-string (VARCHAR(36))
+        to_field="utilisateur_id",
         on_delete=models.PROTECT,
         db_column="candidat_id",
         related_name="candidatures",
