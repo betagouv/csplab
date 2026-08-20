@@ -10,7 +10,6 @@ from application.ingestion.interfaces.load_documents_input import LoadDocumentsI
 from application.ingestion.usecases.archive_offer_by_reference import (
     ArchiveOfferByReferenceUseCase,
 )
-from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.get_offer_by_reference import (
     GetOfferByReferenceUseCase,
@@ -22,14 +21,12 @@ from application.ingestion.usecases.list_metiers import ListMetiersUseCase
 from application.ingestion.usecases.list_offers import ListOffersUseCase
 from application.ingestion.usecases.list_sources import ListSourcesUseCase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
-from application.ingestion.usecases.load_offers import LoadOffersUsecase
 from application.ingestion.usecases.upsert_offers import UpsertOffersUseCase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from domain.ingestion.services.document_cleaner_interface import IDocumentCleaner
 from infrastructure.external_gateways import (
     external_document_gateway,
     piste_client,
-    talentsoft_client,
 )
 from infrastructure.gateways.ingestion import (
     load_documents_strategy_factory as load_strategy,
@@ -71,23 +68,9 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger_service=logger_service,
     )
 
-    talentsoft_front_client = providers.Singleton(
-        talentsoft_client.TalentsoftFrontClient,
-        config=providers.Callable(lambda cfg: cfg.talentsoft, app_config),
-        logger_service=logger_service,
-    )
-
-    talentsoft_back_client = providers.Singleton(
-        talentsoft_client.TalentsoftBackClient,
-        config=providers.Callable(lambda cfg: cfg.talentsoft_back, app_config),
-        logger_service=logger_service,
-    )
-
     document_gateway = providers.Singleton(
         external_document_gateway.ExternalDocumentGateway,
         piste_client=piste_client,
-        talentsoft_front_client=talentsoft_front_client,
-        talentsoft_back_client=talentsoft_back_client,
         logger_service=logger_service,
     )
 
@@ -121,9 +104,7 @@ class IngestionContainer(containers.DeclarativeContainer):
             logger=logger_service,
             corps_repository=corps_repository,
             concours_repository=concours_repository,
-            offers_repository=offers_repository,
             metiers_repository=metiers_repository,
-            source_repository=source_repository,
         )
     )
 
@@ -145,15 +126,6 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger=logger_service,
     )
 
-    load_offers_usecase: providers.Provider[
-        IAsyncUseCase[LoadDocumentsInput, IUpsertResult]
-    ] = providers.Factory(
-        LoadOffersUsecase,
-        document_repository=document_repository,
-        document_gateway=document_gateway,
-        logger=logger_service,
-    )
-
     clean_documents_usecase = providers.Factory(
         CleanDocumentsUsecase,
         document_repository=document_repository,
@@ -169,14 +141,6 @@ class IngestionContainer(containers.DeclarativeContainer):
         embedding_generator=embedding_generator,
         logger=logger_service,
         repository_factory=repository_factory,
-    )
-
-    archive_offers_usecase = providers.Factory(
-        ArchiveOffersUsecase,
-        offers_repository=offers_repository,
-        document_gateway=document_gateway,
-        vector_repository=vector_repository,
-        logger=logger_service,
     )
 
     list_offers_usecase = providers.Factory(

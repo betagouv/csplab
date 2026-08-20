@@ -33,7 +33,6 @@ from application.commons.usecases.calculate_daily_stats import (
 )
 from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.identite.usecases.create_organisme import CreateOrganismeUsecase
-from application.ingestion.usecases.archive_offers import ArchiveOffersUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.get_offers_by_source import (
     GetOffersBySourceUseCase,
@@ -386,25 +385,6 @@ def vectorize_documents_usecase():
         embedding_generator=embedding_generator,
         logger=logger_service,
         repository_factory=repository_factory,
-    )
-
-
-@pytest.fixture
-def archive_offers_usecase():
-    logger = MagicMock()
-    vector_repo = cast(
-        IVectorRepository, create_interface_aware_mock(IVectorRepository)
-    )
-    offers_repo = cast(
-        IIngestionOffersRepository,
-        create_interface_aware_mock(IIngestionOffersRepository),
-    )
-
-    return ArchiveOffersUsecase(
-        offers_repository=offers_repo,
-        document_gateway=MagicMock(),
-        vector_repository=vector_repo,
-        logger=logger,
     )
 
 

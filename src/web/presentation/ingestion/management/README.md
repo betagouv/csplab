@@ -9,7 +9,6 @@ Ce répertoire contient les commandes Django pour orchestrer les use cases d'ing
 ```bash
 ./bin/manage load_corps
 ./bin/manage load_metiers
-./bin/manage load_offers
 ```
 
 Utilise `LoadDocumentsUsecase` pour récupérer et persister les documents depuis l'API externe.

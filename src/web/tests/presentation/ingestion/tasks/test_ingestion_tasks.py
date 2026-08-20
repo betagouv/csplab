@@ -12,11 +12,9 @@ from presentation.ingestion.tasks import (
     clean_corps,
     clean_documents,
     clean_metiers,
-    clean_offers,
     load_corps,
     load_documents,
     load_metiers,
-    load_offers,
     vectorize_concours,
     vectorize_corps,
     vectorize_documents,
@@ -51,18 +49,6 @@ class TestLoadDocumentsTasks:
                 "usecase_name": "load_documents_usecase",
             },
             id="metiers",
-        ),
-        pytest.param(
-            {
-                "task": load_offers,
-                "kwargs": {
-                    "document_type": DocumentType.OFFERS,
-                    "reload": False,
-                    "batch_size": 100,
-                },
-                "usecase_name": "load_offers_usecase",
-            },
-            id="offers",
         ),
     ]
 
@@ -126,9 +112,7 @@ class TestLoadDocumentsTasks:
 
 
 class TestCleanTasks:
-    @pytest.mark.parametrize(
-        "task", [clean_corps, clean_concours, clean_offers, clean_metiers]
-    )
+    @pytest.mark.parametrize("task", [clean_corps, clean_concours, clean_metiers])
     def test_periodic_task_does_not_call_usecase(self, mock_container, task):
         assert issubclass(task.task_class, PeriodicTask)
         task.call_local()
