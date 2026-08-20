@@ -76,6 +76,10 @@ def identite_container():
 
 
 class TestOrganismeDetailView:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = api_client.put(ORGANISME_URL, {}, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
     def test_put_update_organisme(
         self,
         identite_container,
