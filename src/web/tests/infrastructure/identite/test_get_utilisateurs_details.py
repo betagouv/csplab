@@ -1,6 +1,9 @@
+from dataclasses import replace
+
 import pytest
 from faker import Faker
 
+from application.identite.usecases.get_utilisateur_details import STATIC_ORGANISMES
 from config.app_config import AppConfig
 from domain.identite.errors.identite_errors import UtilisateurNexistePas
 from infrastructure.di.identite.identite_container import IdentiteContainer
@@ -23,7 +26,7 @@ def test_get_existing_user(db, test_user, identite_integration_container):
     usecase = identite_integration_container.get_utilisateur_details_usecase()
     result = usecase.execute(test_user.username)
 
-    assert result == test_user.to_entity()
+    assert result == replace(test_user.to_entity(), organismes=STATIC_ORGANISMES)
 
 
 def test_get_unknown_uuid(db, identite_integration_container):

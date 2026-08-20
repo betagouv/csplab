@@ -1,10 +1,12 @@
 from unittest.mock import MagicMock, patch
+from uuid import uuid4
 
 import pytest
 from django.urls import reverse
 from rest_framework import status
 
 from domain.identite.errors.identite_errors import UtilisateurNexistePas
+from domain.identite.value_objects.organisme_role import OrganismeRole
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
 URL = reverse("identite:user-details")
@@ -33,7 +35,10 @@ def test_authentified_access(authenticated_client):
 
 
 def test_returned_payload(mock_container, authenticated_client, test_user):
-    entity = UtilisateurFactory.create_entity()
+    organisme_role = OrganismeRole(
+        organisme_uuid=uuid4(), nom="Organisme de test", role="responsable"
+    )
+    entity = UtilisateurFactory.create_entity(organismes=[organisme_role])
 
     mock_usecase = MagicMock()
     mock_usecase.execute.return_value = entity
@@ -49,6 +54,13 @@ def test_returned_payload(mock_container, authenticated_client, test_user):
         "email": entity.email,
         "prenom": entity.prenom,
         "nom": entity.nom,
+        "organisme": [
+            {
+                "organisme_uuid": str(organisme_role.organisme_uuid),
+                "nom": organisme_role.nom,
+                "role": organisme_role.role,
+            }
+        ],
     }
 
 

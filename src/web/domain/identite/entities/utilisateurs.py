@@ -1,7 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ddd.entity import Entity
 from pydantic import EmailStr
+
+from domain.identite.value_objects.organisme_role import OrganismeRole
 
 
 @dataclass(kw_only=True)
@@ -10,3 +12,4 @@ class Utilisateur(Entity):
     prenom: str
     nom: str
     is_superuser: bool = False
+    organismes: list[OrganismeRole] = field(default_factory=list)
