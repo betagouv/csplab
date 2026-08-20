@@ -1,14 +1,19 @@
 from uuid import UUID, uuid4
 
-from drf_spectacular.utils import extend_schema
+from django.utils.timezone import now
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
-from presentation.api.serializers import generic_response_format
-from presentation.recruteur.serializers import AgentOrganismeSerializer
+from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.recruteur.serializers import (
+    AgentOrganismeSerializer,
+    RattacherAgentSerializer,
+)
 
 # TODO : données statiques en attendant le branchement sur OrganismeAgentModel
 # (issue à venir)
@@ -36,13 +41,25 @@ _AGENTS_STATIQUES = [
 ]
 
 
-@extend_schema(
-    summary="Liste des agents rattachés à un organisme",
-    tags=["recruteur"],
-    responses={
-        **generic_response_format,
-        200: AgentOrganismeSerializer(many=True),
-    },
+@extend_schema_view(
+    get=extend_schema(
+        summary="Liste des agents rattachés à un organisme",
+        tags=["recruteur"],
+        responses={
+            **generic_response_format,
+            200: AgentOrganismeSerializer(many=True),
+        },
+    ),
+    post=extend_schema(
+        summary="Rattacher un agent à un organisme",
+        tags=["recruteur"],
+        request=RattacherAgentSerializer,
+        responses={
+            **generic_response_format,
+            201: AgentOrganismeSerializer,
+            400: GenericErrorSerializer,
+        },
+    ),
 )
 class OrganismeAgentsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -50,3 +67,22 @@ class OrganismeAgentsView(APIView):
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         serializer = AgentOrganismeSerializer(_AGENTS_STATIQUES, many=True)
         return Response(serializer.data)
+
+    def post(self, request: Request, organisme_uuid: UUID) -> Response:
+        serializer = RattacherAgentSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        agent = {
+            "agent_id": data["agent_uuid"],
+            "nom": "",
+            "prenom": "",
+            "email": "",
+            "poste": "",
+            "role": data["role"],
+            "date_derniere_activite": None,
+            "date_creation_compte": now(),
+        }
+        out_serializer = AgentOrganismeSerializer(agent)
+        return Response(out_serializer.data, status=status.HTTP_201_CREATED)
