@@ -10,11 +10,6 @@ const appRoutes: RouteRecordRaw[] = [
     name: 'home',
     component: () => import('@/views/HomeView.vue'),
   },
-  {
-    path: '/parametres',
-    name: 'parametres',
-    component: () => import('@/views/ParametresView.vue'),
-  },
 ]
 
 const notFoundRoute: RouteRecordRaw = {

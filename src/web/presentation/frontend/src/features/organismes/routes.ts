@@ -6,4 +6,9 @@ export const organismesRoutes: RouteRecordRaw[] = [
     name: 'organismes',
     component: () => import('./views/GestionOrganismesView.vue'),
   },
+  {
+    path: '/organismes/:organismeUuid',
+    name: 'organisme',
+    component: () => import('./views/OrganismeView.vue'),
+  },
 ]

@@ -39,7 +39,6 @@ function isItemActive(routeName: string): boolean {
   if (path === '/') {
     return route.path === '/'
   }
-  console.log('route.path', route.path, 'path', path, 'startsWith', route.path.startsWith(`${path}/`))
   return route.path === path || route.path.startsWith(`${path}/`)
 }
 </script>
