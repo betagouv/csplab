@@ -90,7 +90,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Modifier un agent d'un organisme */
+        patch: operations["recruteur_organismes_parametres_agents_partial_update"];
         trace?: never;
     };
     "/recruteur/organismes/{organisme_uuid}/parametres/etapes": {
@@ -631,6 +632,14 @@ export interface components {
         };
         PatchedEditerNote: {
             message?: string;
+        };
+        PatchedUpdateAgentOrganisme: {
+            /** Format: uuid */
+            agent_id?: string;
+            role?: components["schemas"]["RoleEnum"];
+            nom?: string;
+            prenom?: string;
+            poste?: string;
         };
         RecrutementDetail: {
             /** Format: uuid */
@@ -1221,6 +1230,73 @@ export interface operations {
         };
         responses: {
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentOrganisme"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_parametres_agents_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedUpdateAgentOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedUpdateAgentOrganisme"];
+                "multipart/form-data": components["schemas"]["PatchedUpdateAgentOrganisme"];
+            };
+        };
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

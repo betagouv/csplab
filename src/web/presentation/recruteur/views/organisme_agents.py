@@ -13,6 +13,7 @@ from presentation.api.serializers import GenericErrorSerializer, generic_respons
 from presentation.recruteur.serializers import (
     AgentOrganismeSerializer,
     SetAgentRoleOnOrganismeSerializer,
+    UpdateAgentOrganismeSerializer,
 )
 
 # TODO : données statiques en attendant le branchement sur OrganismeAgentModel
@@ -62,6 +63,16 @@ _AGENTS_STATIQUES = [
             400: GenericErrorSerializer,
         },
     ),
+    patch=extend_schema(
+        summary="Modifier un agent d'un organisme",
+        tags=["recruteur"],
+        request=UpdateAgentOrganismeSerializer,
+        responses={
+            **generic_response_format,
+            200: AgentOrganismeSerializer,
+            400: GenericErrorSerializer,
+        },
+    ),
 )
 class OrganismeAgentsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -89,3 +100,23 @@ class OrganismeAgentsView(APIView):
         }
         out_serializer = AgentOrganismeSerializer(agent)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
+
+    def patch(self, request: Request, organisme_uuid: UUID) -> Response:
+        serializer = UpdateAgentOrganismeSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        agent = {
+            "agent_id": data["agent_id"],
+            "organisme_id": "00000000-0000-0000-0000-000000000000",
+            "nom": data.get("nom", ""),
+            "prenom": data.get("prenom", ""),
+            "email": "",
+            "poste": data.get("poste", ""),
+            "role": data.get("role", ""),
+            "date_derniere_activite": None,
+            "date_creation_compte": now(),
+        }
+        out_serializer = AgentOrganismeSerializer(agent)
+        return Response(out_serializer.data, status=status.HTTP_200_OK)
