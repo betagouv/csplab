@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
+import checker from 'vite-plugin-checker'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -31,7 +32,7 @@ const server = devUrl.protocol === 'https:'
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/static/frontend/' : '/',
-  plugins: [vue(), tailwindcss()],
+  plugins: [vue(), tailwindcss(), checker({ vueTsc: true, enableBuild: false })],
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
