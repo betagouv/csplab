@@ -27,7 +27,7 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_rattacher_agent(self, authenticated_client):
+    def test_set_agent_role(self, authenticated_client):
         agent_id = str(uuid4())
 
         response = authenticated_client.post(
@@ -41,7 +41,7 @@ class TestOrganismeAgentsView:
         assert data["agent_id"] == agent_id
         assert data["role"] == AgentOrganismeRole.MEMBRE.value
 
-    def test_rattacher_agent_invalid_role(self, authenticated_client):
+    def test_set_agent_role_invalid_role(self, authenticated_client):
         response = authenticated_client.post(
             AGENTS_URL,
             data={"agent_id": str(uuid4()), "role": "not-a-role"},
@@ -50,7 +50,7 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_rattacher_agent_requires_agent_id(self, authenticated_client):
+    def test_set_agent_role_requires_agent_id(self, authenticated_client):
         response = authenticated_client.post(
             AGENTS_URL,
             data={"role": AgentOrganismeRole.MEMBRE.value},
@@ -100,3 +100,20 @@ class TestOrganismeAgentsView:
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_revoke_agent_role_on_organisme(self, authenticated_client):
+        agent_id = str(uuid4())
+
+        response = authenticated_client.patch(
+            AGENTS_URL,
+            data={
+                "agent_id": agent_id,
+                "date_revocation": "2026-08-20T10:00:00Z",
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["agent_id"] == agent_id
+        assert data["date_revocation"] == "2026-08-20T10:00:00Z"
