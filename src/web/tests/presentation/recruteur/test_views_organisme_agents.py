@@ -64,7 +64,7 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_modifier_agent(self, authenticated_client):
+    def test_update_agent(self, authenticated_client):
         agent_id = str(uuid4())
 
         response = authenticated_client.patch(
@@ -83,7 +83,7 @@ class TestOrganismeAgentsView:
         assert data["role"] == AgentOrganismeRole.RESPONSABLE.value
         assert data["poste"] == "Directeur des recrutements"
 
-    def test_modifier_agent_invalid_role(self, authenticated_client):
+    def test_update_agent_invalid_role(self, authenticated_client):
         response = authenticated_client.patch(
             AGENTS_URL,
             data={"agent_id": str(uuid4()), "role": "not-a-role"},
@@ -92,7 +92,7 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_modifier_agent_requires_agent_uuid(self, authenticated_client):
+    def test_update_agent_requires_agent_id(self, authenticated_client):
         response = authenticated_client.patch(
             AGENTS_URL,
             data={"role": AgentOrganismeRole.MEMBRE.value},
