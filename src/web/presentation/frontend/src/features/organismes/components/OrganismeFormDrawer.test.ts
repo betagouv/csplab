@@ -58,7 +58,7 @@ describe('organismeFormDrawer', () => {
     const wrapper = mountDrawer()
     await nextTick()
     await fill('input[name="nom"]', 'Nouvel organisme')
-    await fill('input[name="siret"]', '12345678901234')
+    await fill('input[name="siret"]', '11004601800021')
     await pickVersant('FPT')
     submitButton().click()
     await nextTick()
@@ -67,10 +67,26 @@ describe('organismeFormDrawer', () => {
     expect(emitted).toHaveLength(1)
     expect(emitted![0][0]).toEqual({
       nom: 'Nouvel organisme',
-      siret: '12345678901234',
+      siret: '11004601800021',
       versant: 'FPT',
       gestion_ats: true,
     })
+    wrapper.unmount()
+  })
+
+  it('rejects an invalid checksum on submit without emitting', async () => {
+    const wrapper = mountDrawer()
+    await nextTick()
+    await fill('input[name="nom"]', 'Nouvel organisme')
+    await fill('input[name="siret"]', '12345671234567')
+    await pickVersant('FPT')
+    submitButton().click()
+    await nextTick()
+
+    expect(wrapper.emitted('submit')).toBeUndefined()
+    expect(document.body.textContent).toContain(
+      'Ce SIRET n\'est pas valide, vérifiez votre saisie.',
+    )
     wrapper.unmount()
   })
 
