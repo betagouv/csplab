@@ -21,6 +21,6 @@ class GetUtilisateurDetailUsecase:
     def __init__(self, utilisateur_repository: IUtilisateurRepository):
         self.utilisateur_repository = utilisateur_repository
 
-    def execute(self, entity_id: UUID) -> Utilisateur:
-        utilisateur = self.utilisateur_repository.get_by_entity_id(entity_id)
+    def execute(self, username: UUID) -> Utilisateur:
+        utilisateur = self.utilisateur_repository.get_by_username(username)
         return replace(utilisateur, organisme_roles=STATIC_ORGANISMES)

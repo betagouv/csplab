@@ -10,11 +10,11 @@ from infrastructure.django_apps.users.models import UserModel
 
 
 class PostgresUtilisateurRepository(IUtilisateurRepository):
-    def get_by_entity_id(self, entity_id) -> Utilisateur:
+    def get_by_username(self, username) -> Utilisateur:
         try:
-            utilisateur = UserModel.objects.get(username=entity_id)
+            utilisateur = UserModel.objects.get(username=username)
         except UserModel.DoesNotExist as e:
-            raise UtilisateurNexistePas(entity_id) from e
+            raise UtilisateurNexistePas(username) from e
         return utilisateur.to_entity()
 
     def get_by_email(self, email: str) -> Utilisateur:

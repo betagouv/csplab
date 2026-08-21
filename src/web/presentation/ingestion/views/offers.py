@@ -138,7 +138,7 @@ class OffersBySourceView(APIView):
         self.logger = self.container.logger_service()
 
     def get(self, request, source_id):
-        utilisateur_entity_id = (
+        utilisateur_username = (
             request.user.username if isinstance(request.user, UserModel) else None
         )
         try:
@@ -146,7 +146,7 @@ class OffersBySourceView(APIView):
             result = usecase.execute(
                 GetOffersBySourceInput(
                     source_id=source_id,
-                    utilisateur_entity_id=utilisateur_entity_id,
+                    utilisateur_username=utilisateur_username,
                 )
             )
             paginator = WebPagination()
@@ -213,7 +213,7 @@ class ArchiveOffersView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        utilisateur_entity_id = (
+        utilisateur_username = (
             request.user.username if isinstance(request.user, UserModel) else None
         )
         container = create_ingestion_container()
@@ -223,7 +223,7 @@ class ArchiveOffersView(APIView):
                 ArchiveOfferByReferenceInput(
                     reference=serializer.validated_data["reference"],
                     source_id=serializer.validated_data["source_id"],
-                    utilisateur_entity_id=utilisateur_entity_id,
+                    utilisateur_username=utilisateur_username,
                 )
             )
         except SourceAuthorizationError as e:
@@ -335,7 +335,7 @@ class OffersUpsertView(APIView):
                     }
                 )
 
-        utilisateur_entity_id = (
+        utilisateur_username = (
             request.user.username if isinstance(request.user, UserModel) else None
         )
         try:
@@ -344,7 +344,7 @@ class OffersUpsertView(APIView):
                 UpsertOffersInput(
                     source_id=source_id,
                     offers=valid_offers,
-                    utilisateur_entity_id=utilisateur_entity_id,
+                    utilisateur_username=utilisateur_username,
                 )
             )
             result["errors"].extend(errors)
