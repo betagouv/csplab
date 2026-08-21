@@ -6,6 +6,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from presentation.api.serializers import generic_response_format
 from presentation.recruteur.serializers import AgentOrganismeSerializer
 
@@ -18,7 +19,7 @@ _AGENTS_STATIQUES = [
         "prenom": "Jeanne",
         "email": "jeanne.dupont@example.gouv.fr",
         "poste": "Responsable recrutement",
-        "role": "RESPONSABLE",
+        "role": AgentOrganismeRole.RESPONSABLE.value,
         "date_derniere_activite": "2026-08-18T09:12:00Z",
         "date_creation_compte": "2025-01-10T08:00:00Z",
     },
@@ -28,7 +29,7 @@ _AGENTS_STATIQUES = [
         "prenom": "Lucas",
         "email": "lucas.martin@example.gouv.fr",
         "poste": "Chargé de recrutement",
-        "role": "MEMBRE",
+        "role": AgentOrganismeRole.MEMBRE.value,
         "date_derniere_activite": "2026-08-15T14:30:00Z",
         "date_creation_compte": "2025-03-22T08:00:00Z",
     },
