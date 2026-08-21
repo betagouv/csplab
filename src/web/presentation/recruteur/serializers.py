@@ -134,6 +134,22 @@ class CandidatureListeSerializer(serializers.Serializer):
 
 
 # ---------------------------------------------------------------------------
+# Serializers pour les agents rattachés à un organisme
+# ---------------------------------------------------------------------------
+
+
+class AgentOrganismeSerializer(serializers.Serializer):
+    agent_id = serializers.UUIDField()
+    nom = serializers.CharField()
+    prenom = serializers.CharField()
+    email = serializers.EmailField()
+    poste = serializers.CharField()
+    role = serializers.CharField()
+    date_derniere_activite = serializers.DateTimeField(allow_null=True)
+    date_creation_compte = serializers.DateTimeField()
+
+
+# ---------------------------------------------------------------------------
 # Serializers pour les notes attachées à une candidature
 # ---------------------------------------------------------------------------
 
