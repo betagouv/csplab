@@ -49,8 +49,7 @@ async function handleSubmit(payload: CreateOrganismePayload): Promise<void> {
   }
   catch (submitError) {
     if (submitError instanceof ValidationError) {
-      const data = submitError.data as { error?: string } | undefined
-      formDrawer.value?.setSiretError(data?.error ?? 'Ce SIRET ne peut pas être utilisé')
+      formDrawer.value?.setSiretError('Ce SIRET est déjà utilisé ou n\'est pas valide.')
       return
     }
     addToast({ variant: 'error', title: 'La création de l\'organisme a échoué' })

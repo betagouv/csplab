@@ -6,6 +6,7 @@ import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import { SIRET_LENGTH, VERSANT_LABELS } from '../constants/organisme'
+import { isSiretValid } from '../siret'
 
 const props = defineProps<{
   saving?: boolean
@@ -59,6 +60,10 @@ const canSubmit = computed(() =>
 function handleSubmit(): void {
   if (!canSubmit.value || props.saving)
     return
+  if (!isSiretValid(siret.value)) {
+    siretError.value = 'Ce SIRET n\'est pas valide, vérifiez votre saisie.'
+    return
+  }
   emit('submit', {
     nom: nom.value.trim(),
     siret: siret.value,
