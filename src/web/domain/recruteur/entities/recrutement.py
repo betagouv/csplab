@@ -12,7 +12,10 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
 )
-from domain.recruteur.events.recrutement_events import EtapeCandidaturesChangees
+from domain.recruteur.events.recrutement_events import (
+    EtapeCandidaturesChangees,
+    EtapesReinitialisees,
+)
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 
 
@@ -27,6 +30,7 @@ class Recrutement(AggregateRoot):
     _candidat_recrute_id: UUID | None = None
     _derniere_activite_le: datetime
 
+    # todo passer le schema processus de recrutement au moment du create
     @classmethod
     def build(
         cls,
@@ -55,7 +59,7 @@ class Recrutement(AggregateRoot):
     def changer_etapes_candidatures(
         self, candidatures: List[CandidatureRecruteur], etape_cible_id: UUID
     ) -> IBatchUpdate[CandidatureRecruteur, RecrutementCandidatureInexistante]:
-        if etape_cible_id not in [e.entity_id for e in self._etapes]:
+        if etape_cible_id not in [etape.entity_id for etape in self._etapes]:
             raise RecrutementEtapeInexistante(
                 etape_id=etape_cible_id, recrutement_id=self.entity_id
             )
@@ -79,6 +83,26 @@ class Recrutement(AggregateRoot):
         # business rules about etapes order can be managed here
         self._derniere_activite_le = datetime.now(tz=timezone.utc)
         return {"successes": successes, "failures": failures}
+
+    @mutate(EtapesReinitialisees)
+    def reinitialiser_etapes(
+        self,
+        etapes_organisme: tuple[EtapeRecrutement, ...],
+    ):
+        for step in self._etapes:
+            step.delete()
+            for event in step.collect_events():
+                self.add_event(event)
+
+        new_steps = []
+        for step in etapes_organisme:
+            new_step = EtapeRecrutement.create(nom=step.nom, categorie=step.categorie)
+            new_steps.append(new_step)
+            for event in new_step.collect_events():
+                self.add_event(event)
+
+        self._etapes = tuple(new_steps)
+        self._derniere_activite_le = datetime.now(tz=timezone.utc)
 
     @property
     def offre_id(self) -> UUID:
