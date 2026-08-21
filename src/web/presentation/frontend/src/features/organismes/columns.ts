@@ -1,6 +1,7 @@
 import type { OrganismesList } from './types'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
 import ElapsedDaysCell from '@/features/organismes/components/cells/ElapsedDaysCell.vue'
+import OrganismeActionsCell from './components/cells/OrganismeActionsCell.vue'
 import OrganismeNomCell from './components/cells/OrganismeNomCell.vue'
 
 export const ORGANISMES_LIST_COLUMNS: CspColumnDef<OrganismesList>[] = [
@@ -11,4 +12,5 @@ export const ORGANISMES_LIST_COLUMNS: CspColumnDef<OrganismesList>[] = [
   { id: 'date_derniere_activite', header: 'Dernière activité', sortable: true, accessor: row => row.date_derniere_activite, cellComponent: ElapsedDaysCell },
   { id: 'nombre_agents', header: 'Nombre d\'agents', accessor: row => row.nombre_agents ?? '-' },
   { id: 'nombre_offres_publiees', header: 'Nombre de recrutements', accessor: row => row.nombre_offres_publiees ?? '-' },
+  { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: OrganismeActionsCell },
 ]

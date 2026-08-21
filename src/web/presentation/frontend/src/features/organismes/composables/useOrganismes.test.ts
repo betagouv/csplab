@@ -8,10 +8,12 @@ import { useOrganismes } from './useOrganismes'
 
 const mockGetOrganismesList = vi.fn()
 const mockCreateOrganisme = vi.fn()
+const mockUpdateOrganisme = vi.fn()
 
 vi.mock('../api', () => ({
   getOrganismesList: (...args: unknown[]) => mockGetOrganismesList(...args),
   createOrganisme: (...args: unknown[]) => mockCreateOrganisme(...args),
+  updateOrganisme: (...args: unknown[]) => mockUpdateOrganisme(...args),
 }))
 
 const ORGANISMES: OrganismesList[] = [
@@ -104,6 +106,19 @@ describe('useOrganismes', () => {
       versant: 'FPH',
       gestion_ats: true,
     })
+    expect(mockGetOrganismesList).toHaveBeenCalledTimes(2)
+  })
+
+  it('updates an organisme and refetches the list', async () => {
+    mockUpdateOrganisme.mockResolvedValue({ ...ORGANISMES[0], nom: 'Renommé' })
+    const { update } = mountOrganismes()
+    await flush()
+
+    const payload = { nom: 'Renommé', versant: 'FPE' as const, gestion_ats: true }
+    await update({ organismeUuid: ORGANISMES[0].organisme_uuid, payload })
+    await flush()
+
+    expect(mockUpdateOrganisme).toHaveBeenCalledWith(ORGANISMES[0].organisme_uuid, payload)
     expect(mockGetOrganismesList).toHaveBeenCalledTimes(2)
   })
 
