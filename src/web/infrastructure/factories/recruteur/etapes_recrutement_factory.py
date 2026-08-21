@@ -1,3 +1,6 @@
+from typing import List
+from uuid import UUID, uuid4
+
 from application.recruteur.usecases.update_organisme_steps import EtapeData
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
@@ -10,35 +13,54 @@ class EtapeRecrutementFactory:
     def create_entity(
         categorie: CategorieEtapeRecrutement = CategorieEtapeRecrutement.EN_COURS,
         nom: str = "Entretien",
+        candidatures: List[UUID] | None = None,
     ) -> EtapeRecrutement:
-        return EtapeRecrutement.create(categorie=categorie, nom=nom)
+        return EtapeRecrutement.build(
+            entity_id=uuid4(),
+            categorie=categorie,
+            nom=nom,
+            candidatures=candidatures,
+        )
 
     @staticmethod
     def create_entity_batch(
         en_cours: tuple[EtapeRecrutement, ...] | None = None,
+        candidatures: List[UUID] | None = None,
     ) -> tuple[EtapeRecrutement, ...]:
         etapes_en_cours = en_cours or (
-            EtapeRecrutement.create(
-                categorie=CategorieEtapeRecrutement.EN_COURS, nom="Présélection"
+            EtapeRecrutement.build(
+                entity_id=uuid4(),
+                categorie=CategorieEtapeRecrutement.EN_COURS,
+                nom="Présélection",
             ),
-            EtapeRecrutement.create(
-                categorie=CategorieEtapeRecrutement.EN_COURS, nom="Entretien"
+            EtapeRecrutement.build(
+                entity_id=uuid4(),
+                categorie=CategorieEtapeRecrutement.EN_COURS,
+                nom="Entretien",
+                candidatures=candidatures,
             ),
-            EtapeRecrutement.create(
-                categorie=CategorieEtapeRecrutement.EN_COURS, nom="Proposition"
+            EtapeRecrutement.build(
+                entity_id=uuid4(),
+                categorie=CategorieEtapeRecrutement.EN_COURS,
+                nom="Proposition",
             ),
         )
         return (
-            EtapeRecrutement.create(
+            EtapeRecrutement.build(
+                entity_id=uuid4(),
                 categorie=CategorieEtapeRecrutement.ENTREE,
                 nom="Réception des candidatures",
             ),
             *etapes_en_cours,
-            EtapeRecrutement.create(
-                categorie=CategorieEtapeRecrutement.REFUS, nom="Refus"
+            EtapeRecrutement.build(
+                entity_id=uuid4(),
+                categorie=CategorieEtapeRecrutement.REFUS,
+                nom="Refus",
             ),
-            EtapeRecrutement.create(
-                categorie=CategorieEtapeRecrutement.ACCEPTE, nom="Recrutement"
+            EtapeRecrutement.build(
+                entity_id=uuid4(),
+                categorie=CategorieEtapeRecrutement.ACCEPTE,
+                nom="Recrutement",
             ),
         )
 
