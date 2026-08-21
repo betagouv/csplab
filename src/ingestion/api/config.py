@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     # credentials are only used to verify webhook signatures.
     talentsoft_credentials: list[TalentsoftCredential] = []
 
+    gipcdg_api_key: str | None = None
+
     web_base_url: str | None = None
     web_api_key: str | None = None
 

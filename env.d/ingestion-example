@@ -4,6 +4,10 @@
 # signatures. Add as many entries as needed.
 TALENTSOFT_CREDENTIALS=[]
 
+# API key sent as X-API-Key when calling the GIPCDG collectivités endpoint
+# (emploi-territorial.fr) for the organismes import.
+GIPCDG_API_KEY=
+
 WEB_BASE_URL=
 WEB_API_KEY=
 
