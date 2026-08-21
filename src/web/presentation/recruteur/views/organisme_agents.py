@@ -12,7 +12,7 @@ from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.serializers import (
     AgentOrganismeSerializer,
-    RattacherAgentSerializer,
+    SetAgentRoleOnOrganismeSerializer,
 )
 
 # TODO : données statiques en attendant le branchement sur OrganismeAgentModel
@@ -53,7 +53,7 @@ _AGENTS_STATIQUES = [
     post=extend_schema(
         summary="Rattacher un agent à un organisme",
         tags=["recruteur"],
-        request=RattacherAgentSerializer,
+        request=SetAgentRoleOnOrganismeSerializer,
         responses={
             **generic_response_format,
             201: AgentOrganismeSerializer,
@@ -69,7 +69,7 @@ class OrganismeAgentsView(APIView):
         return Response(serializer.data)
 
     def post(self, request: Request, organisme_uuid: UUID) -> Response:
-        serializer = RattacherAgentSerializer(data=request.data)
+        serializer = SetAgentRoleOnOrganismeSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

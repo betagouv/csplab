@@ -150,7 +150,7 @@ class AgentOrganismeSerializer(serializers.Serializer):
     date_creation_compte = serializers.DateTimeField()
 
 
-class RattacherAgentSerializer(serializers.Serializer):
+class SetAgentRoleOnOrganismeSerializer(serializers.Serializer):
     agent_uuid = serializers.UUIDField()
     role = serializers.ChoiceField(
         choices=[(r.value, r.value) for r in AgentOrganismeRole]
