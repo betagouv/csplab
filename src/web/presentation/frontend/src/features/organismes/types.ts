@@ -6,4 +6,6 @@ export type OrganismeDetail = components['schemas']['OrganismeDetail']
 
 export type CreateOrganismePayload = components['schemas']['CreateOrganisme']
 
+export type UpdateOrganismePayload = components['schemas']['UpdateOrganisme']
+
 export type Versant = components['schemas']['VersantEnum']
