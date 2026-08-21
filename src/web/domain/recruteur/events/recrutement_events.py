@@ -13,7 +13,7 @@ from domain.recruteur.value_objects.schema_etape_recrutement import (
 
 @dataclass(frozen=True)
 class ProcessusRecrutementReinitialise(DomainEvent):
-    processus_recrutement: tuple[SchemaEtapeRecrutement, ...]
+    processus: tuple[SchemaEtapeRecrutement, ...]
 
 
 @dataclass(frozen=True)

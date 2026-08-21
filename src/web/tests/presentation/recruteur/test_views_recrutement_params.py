@@ -135,7 +135,7 @@ class TestRecrutementEtapeView:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
+        assert response.json() == {"error": OrganismeNexistePas("not found").message}
 
     def test_patch_returns_403_when_forbidden(self, container, authenticated_client):
         container.update_recrutement_etapes_usecase.return_value.execute.side_effect = (

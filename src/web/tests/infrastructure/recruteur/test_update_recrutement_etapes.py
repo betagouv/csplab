@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
@@ -33,7 +33,7 @@ def recruteur_integration_container_fixture(db):
     logger_service = LoggerService()
     container.app_config.override(app_config)
     container.logger_service.override(logger_service)
-    container.audit_log_writer.override(MagicMock(spec=AuditLogWriter))
+    container.audit_log_writer.override(Mock(spec=AuditLogWriter))
     return container
 
 
