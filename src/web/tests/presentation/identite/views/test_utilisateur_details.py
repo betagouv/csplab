@@ -7,6 +7,9 @@ from rest_framework import status
 
 from domain.identite.errors.identite_errors import UtilisateurNexistePas
 from domain.identite.value_objects.organisme_role import OrganismeRole
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
 URL = reverse("identite:user-details")
@@ -59,6 +62,29 @@ def test_returned_payload(mock_container, authenticated_client, test_user):
                 "organisme_uuid": str(organisme_role.organisme_uuid),
                 "nom": organisme_role.nom,
                 "role": organisme_role.role,
+            }
+        ],
+    }
+
+
+def test_returned_payload_from_db(authenticated_client, test_user):
+    AgentFactory.create_model(username=test_user.username)
+    organisme = OrganismeFactory.create_model(
+        agent_id=test_user.username, role=AgentOrganismeRole.MEMBRE
+    )
+
+    response = authenticated_client.get(URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "email": test_user.email,
+        "prenom": test_user.first_name,
+        "nom": test_user.last_name,
+        "organisme_roles": [
+            {
+                "organisme_uuid": str(organisme.id),
+                "nom": organisme.nom,
+                "role": AgentOrganismeRole.MEMBRE.value,
             }
         ],
     }
