@@ -170,7 +170,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # Mot de passe généré à chaque seed (visible dans les logs de déploiement)
     seed_password = os.environ.get("SEED_USER_PASSWORD") or secrets.token_urlsafe(16)
     agents = [
-        AgentFactory.create_model(password=seed_password, **spec)
+        AgentFactory.create_model(password=seed_password, username=None, **spec)
         for spec in _AGENTS_SPECS
     ]
 
@@ -281,7 +281,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     # 6. Candidats (8)                                                     #
     # ------------------------------------------------------------------ #
     candidats = [
-        CandidatFactory.create_model(password=seed_password, **spec)
+        CandidatFactory.create_model(password=seed_password, username=None, **spec)
         for spec in _CANDIDATS_SPECS
     ]
 
