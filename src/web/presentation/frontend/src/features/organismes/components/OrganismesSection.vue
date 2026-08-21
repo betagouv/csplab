@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import type { CreateOrganismePayload } from '../types'
+import { computed, ref, useTemplateRef, watch } from 'vue'
+import { ValidationError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -7,17 +9,22 @@ import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
+import { useToast } from '@/composables/ui/useToast'
 import { pluralize } from '@/utils/format'
 import { ORGANISMES_LIST_COLUMNS } from '../columns'
 import { useOrganismes } from '../composables/useOrganismes'
+import OrganismeFormDrawer from './OrganismeFormDrawer.vue'
 
 const PAGE_SIZE = 8
 
-const { organismesList, pending, error } = useOrganismes()
+const { organismesList, pending, error, create, creating } = useOrganismes()
 
 const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
+const drawerOpen = ref(false)
+
+const formDrawer = useTemplateRef('formDrawer')
 
 const rows = computed(() => organismesList.value ?? [])
 
@@ -31,6 +38,23 @@ const countLabel = computed(() => {
   const count = filtered.value.length
   return `${count} ${pluralize(count, 'organisme')}`
 })
+
+const { addToast } = useToast()
+
+async function handleSubmit(payload: CreateOrganismePayload): Promise<void> {
+  try {
+    await create(payload)
+    addToast({ variant: 'success', title: 'Organisme créé' })
+    drawerOpen.value = false
+  }
+  catch (submitError) {
+    if (submitError instanceof ValidationError) {
+      formDrawer.value?.setSiretError('Ce SIRET est déjà utilisé ou n\'est pas valide.')
+      return
+    }
+    addToast({ variant: 'error', title: 'La création de l\'organisme a échoué' })
+  }
+}
 </script>
 
 <template>
@@ -49,7 +73,7 @@ const countLabel = computed(() => {
         label="Ajouter un organisme"
         icon="ri:add-line"
         is-icon-left
-        disabled
+        @click="drawerOpen = true"
       />
     </div>
 
@@ -91,6 +115,13 @@ const countLabel = computed(() => {
         :page-size="PAGE_SIZE"
       />
     </CspAsyncSection>
+
+    <OrganismeFormDrawer
+      ref="formDrawer"
+      v-model:open="drawerOpen"
+      :saving="creating"
+      @submit="handleSubmit"
+    />
   </section>
 </template>
 

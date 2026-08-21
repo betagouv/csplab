@@ -1,4 +1,4 @@
-import type { OrganismesList } from '../types'
+import type { OrganismeDetail, OrganismesList } from '../types'
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
@@ -6,10 +6,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 import { useOrganismes } from './useOrganismes'
 
-const mockGetOrganismes = vi.fn()
+const mockGetOrganismesList = vi.fn()
+const mockCreateOrganisme = vi.fn()
 
 vi.mock('../api', () => ({
-  getOrganismesList: (...args: unknown[]) => mockGetOrganismes(...args),
+  getOrganismesList: (...args: unknown[]) => mockGetOrganismesList(...args),
+  createOrganisme: (...args: unknown[]) => mockCreateOrganisme(...args),
 }))
 
 const ORGANISMES: OrganismesList[] = [
@@ -62,7 +64,7 @@ function mountOrganismes() {
 describe('useOrganismes', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGetOrganismes.mockResolvedValue(ORGANISMES)
+    mockGetOrganismesList.mockResolvedValue(ORGANISMES)
   })
 
   it('exposes the organismes list', async () => {
@@ -71,5 +73,50 @@ describe('useOrganismes', () => {
     await flush()
     expect(pending.value).toBe(false)
     expect(organismesList.value).toEqual(ORGANISMES)
+  })
+
+  it('creates an organisme and refetches the list', async () => {
+    const created: OrganismeDetail = {
+      organisme_uuid: '33333333-3333-3333-3333-333333333333',
+      nom: 'Organisme 3',
+      siret: '33333333333333',
+      gestionnaire: null,
+      gestion_ats: true,
+      date_derniere_activite: '2026-08-19T00:00:00Z',
+      date_creation: '2026-08-19T00:00:00Z',
+      versant: 'FPH',
+    }
+    mockCreateOrganisme.mockResolvedValue(created)
+    const { create } = mountOrganismes()
+    await flush()
+
+    await create({
+      nom: 'Organisme 3',
+      siret: '33333333333333',
+      versant: 'FPH',
+      gestion_ats: true,
+    })
+    await flush()
+
+    expect(mockCreateOrganisme).toHaveBeenCalledWith({
+      nom: 'Organisme 3',
+      siret: '33333333333333',
+      versant: 'FPH',
+      gestion_ats: true,
+    })
+    expect(mockGetOrganismesList).toHaveBeenCalledTimes(2)
+  })
+
+  it('propagates creation errors to the caller', async () => {
+    mockCreateOrganisme.mockRejectedValue(new Error('boom'))
+    const { create } = mountOrganismes()
+    await flush()
+
+    await expect(create({
+      nom: 'X',
+      siret: '44444444444444',
+      versant: 'FPE',
+      gestion_ats: true,
+    })).rejects.toThrow('boom')
   })
 })
