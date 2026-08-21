@@ -633,7 +633,7 @@ export interface components {
         PatchedEditerNote: {
             message?: string;
         };
-        PatchedModifierAgent: {
+        PatchedUpdateAgentOrganisme: {
             /** Format: uuid */
             agent_uuid?: string;
             role?: components["schemas"]["RoleEnum"];
@@ -1290,9 +1290,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedModifierAgent"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedModifierAgent"];
-                "multipart/form-data": components["schemas"]["PatchedModifierAgent"];
+                "application/json": components["schemas"]["PatchedUpdateAgentOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedUpdateAgentOrganisme"];
+                "multipart/form-data": components["schemas"]["PatchedUpdateAgentOrganisme"];
             };
         };
         responses: {

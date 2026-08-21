@@ -491,13 +491,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedModifierAgent'
+              $ref: '#/components/schemas/PatchedUpdateAgentOrganisme'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedModifierAgent'
+              $ref: '#/components/schemas/PatchedUpdateAgentOrganisme'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedModifierAgent'
+              $ref: '#/components/schemas/PatchedUpdateAgentOrganisme'
       security:
       - jwtAuth: []
       - cookieAuth: []
@@ -2045,7 +2045,7 @@ components:
       properties:
         message:
           type: string
-    PatchedModifierAgent:
+    PatchedUpdateAgentOrganisme:
       type: object
       properties:
         agent_uuid:
