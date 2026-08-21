@@ -32,7 +32,7 @@ class UpsertOffersUseCase(IUseCase[UpsertOffersInput, IUpsertResult]):
 
     def execute(self, input_data: UpsertOffersInput) -> IUpsertResult:
         if input_data.utilisateur_entity_id is not None:
-            utilisateur = self.utilisateur_repository.get_by_entity_id(
+            utilisateur = self.utilisateur_repository.get_by_username(
                 input_data.utilisateur_entity_id
             )
             source_ids = {input_data.source_id}

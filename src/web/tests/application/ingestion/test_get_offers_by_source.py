@@ -17,7 +17,7 @@ def test_returns_offers_when_utilisateur_is_authorized(get_offers_by_source_usec
     utilisateur = MagicMock(is_superuser=False)
     page = object()
 
-    get_offers_by_source_usecase.utilisateur_repository.get_by_entity_id = MagicMock(
+    get_offers_by_source_usecase.utilisateur_repository.get_by_username = MagicMock(
         return_value=utilisateur
     )
     get_offers_by_source_usecase.user_source_repository.get_allowed_source_ids = (
@@ -34,7 +34,7 @@ def test_returns_offers_when_utilisateur_is_authorized(get_offers_by_source_usec
     )
 
     assert result is page
-    get_offers_by_source_usecase.utilisateur_repository.get_by_entity_id.assert_called_once_with(
+    get_offers_by_source_usecase.utilisateur_repository.get_by_username.assert_called_once_with(
         utilisateur_entity_id
     )
     get_offers_by_source_usecase.user_source_repository.get_allowed_source_ids.assert_called_once_with(
@@ -49,7 +49,7 @@ def test_raises_when_utilisateur_is_not_authorized(get_offers_by_source_usecase)
     source_id = uuid.uuid4()
     utilisateur_entity_id = uuid.uuid4()
 
-    get_offers_by_source_usecase.utilisateur_repository.get_by_entity_id = MagicMock(
+    get_offers_by_source_usecase.utilisateur_repository.get_by_username = MagicMock(
         return_value=MagicMock(is_superuser=False)
     )
     get_offers_by_source_usecase.user_source_repository.get_allowed_source_ids = (
@@ -75,7 +75,7 @@ def test_returns_offers_for_superuser_without_allowed_source(
     utilisateur_entity_id = uuid.uuid4()
     page = object()
 
-    get_offers_by_source_usecase.utilisateur_repository.get_by_entity_id = MagicMock(
+    get_offers_by_source_usecase.utilisateur_repository.get_by_username = MagicMock(
         return_value=MagicMock(is_superuser=True)
     )
     get_offers_by_source_usecase.user_source_repository.get_allowed_source_ids = (

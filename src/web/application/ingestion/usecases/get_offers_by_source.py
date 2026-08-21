@@ -30,7 +30,7 @@ class GetOffersBySourceUseCase(IUseCase[GetOffersBySourceInput, IPage[Offer]]):
 
     def execute(self, input_data: GetOffersBySourceInput) -> IPage[Offer]:
         if input_data.utilisateur_entity_id is not None:
-            utilisateur = self.utilisateur_repository.get_by_entity_id(
+            utilisateur = self.utilisateur_repository.get_by_username(
                 input_data.utilisateur_entity_id
             )
             if not utilisateur.is_superuser:
