@@ -20,6 +20,7 @@ from presentation.recruteur.serializers import (
 _AGENTS_STATIQUES = [
     {
         "agent_id": uuid4(),
+        "organisme_id": "00000000-0000-0000-0000-000000000000",
         "nom": "Dupont",
         "prenom": "Jeanne",
         "email": "jeanne.dupont@example.gouv.fr",
@@ -30,6 +31,7 @@ _AGENTS_STATIQUES = [
     },
     {
         "agent_id": uuid4(),
+        "organisme_id": "00000000-0000-0000-0000-000000000000",
         "nom": "Martin",
         "prenom": "Lucas",
         "email": "lucas.martin@example.gouv.fr",
@@ -75,7 +77,8 @@ class OrganismeAgentsView(APIView):
 
         data = serializer.validated_data
         agent = {
-            "agent_id": data["agent_uuid"],
+            "agent_id": data["agent_id"],
+            "organisme_id": "00000000-0000-0000-0000-000000000000",
             "nom": "",
             "prenom": "",
             "email": "",

@@ -427,13 +427,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RattacherAgent'
+              $ref: '#/components/schemas/SetAgentRoleOnOrganisme'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/RattacherAgent'
+              $ref: '#/components/schemas/SetAgentRoleOnOrganisme'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/RattacherAgent'
+              $ref: '#/components/schemas/SetAgentRoleOnOrganisme'
         required: true
       security:
       - jwtAuth: []
@@ -1260,6 +1260,9 @@ components:
         agent_id:
           type: string
           format: uuid
+        organisme_id:
+          type: string
+          format: uuid
         nom:
           type: string
         prenom:
@@ -1284,6 +1287,7 @@ components:
       - date_derniere_activite
       - email
       - nom
+      - organisme_id
       - poste
       - prenom
       - role
@@ -1978,17 +1982,6 @@ components:
       properties:
         message:
           type: string
-    RattacherAgent:
-      type: object
-      properties:
-        agent_uuid:
-          type: string
-          format: uuid
-        role:
-          $ref: '#/components/schemas/RoleEnum'
-      required:
-      - agent_uuid
-      - role
     RecrutementDetail:
       type: object
       properties:
@@ -2167,6 +2160,17 @@ components:
       description: |-
         * `responsable` - responsable
         * `membre` - membre
+    SetAgentRoleOnOrganisme:
+      type: object
+      properties:
+        agent_id:
+          type: string
+          format: uuid
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - agent_id
+      - role
     TokenError:
       type: object
       properties:

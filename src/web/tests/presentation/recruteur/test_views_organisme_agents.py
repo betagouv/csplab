@@ -28,29 +28,29 @@ class TestOrganismeAgentsView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_rattacher_agent(self, authenticated_client):
-        agent_uuid = str(uuid4())
+        agent_id = str(uuid4())
 
         response = authenticated_client.post(
             AGENTS_URL,
-            data={"agent_uuid": agent_uuid, "role": AgentOrganismeRole.MEMBRE.value},
+            data={"agent_id": agent_id, "role": AgentOrganismeRole.MEMBRE.value},
             format="json",
         )
 
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
-        assert data["agent_id"] == agent_uuid
+        assert data["agent_id"] == agent_id
         assert data["role"] == AgentOrganismeRole.MEMBRE.value
 
     def test_rattacher_agent_invalid_role(self, authenticated_client):
         response = authenticated_client.post(
             AGENTS_URL,
-            data={"agent_uuid": str(uuid4()), "role": "not-a-role"},
+            data={"agent_id": str(uuid4()), "role": "not-a-role"},
             format="json",
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_rattacher_agent_requires_agent_uuid(self, authenticated_client):
+    def test_rattacher_agent_requires_agent_id(self, authenticated_client):
         response = authenticated_client.post(
             AGENTS_URL,
             data={"role": AgentOrganismeRole.MEMBRE.value},

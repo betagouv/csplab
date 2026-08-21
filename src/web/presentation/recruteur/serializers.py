@@ -141,6 +141,7 @@ class CandidatureListeSerializer(serializers.Serializer):
 
 class AgentOrganismeSerializer(serializers.Serializer):
     agent_id = serializers.UUIDField()
+    organisme_id = serializers.UUIDField()
     nom = serializers.CharField()
     prenom = serializers.CharField()
     email = serializers.EmailField()
@@ -151,7 +152,7 @@ class AgentOrganismeSerializer(serializers.Serializer):
 
 
 class SetAgentRoleOnOrganismeSerializer(serializers.Serializer):
-    agent_uuid = serializers.UUIDField()
+    agent_id = serializers.UUIDField()
     role = serializers.ChoiceField(
         choices=[(r.value, r.value) for r in AgentOrganismeRole]
     )

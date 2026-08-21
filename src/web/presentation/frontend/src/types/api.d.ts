@@ -295,6 +295,8 @@ export interface components {
         AgentOrganisme: {
             /** Format: uuid */
             agent_id: string;
+            /** Format: uuid */
+            organisme_id: string;
             nom: string;
             prenom: string;
             /** Format: email */
@@ -630,11 +632,6 @@ export interface components {
         PatchedEditerNote: {
             message?: string;
         };
-        RattacherAgent: {
-            /** Format: uuid */
-            agent_uuid: string;
-            role: components["schemas"]["RoleEnum"];
-        };
         RecrutementDetail: {
             /** Format: uuid */
             offer_id: string;
@@ -710,6 +707,11 @@ export interface components {
          * @enum {string}
          */
         RoleEnum: "responsable" | "membre";
+        SetAgentRoleOnOrganisme: {
+            /** Format: uuid */
+            agent_id: string;
+            role: components["schemas"]["RoleEnum"];
+        };
         TokenError: {
             detail: string;
             code: string;
@@ -1212,9 +1214,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RattacherAgent"];
-                "application/x-www-form-urlencoded": components["schemas"]["RattacherAgent"];
-                "multipart/form-data": components["schemas"]["RattacherAgent"];
+                "application/json": components["schemas"]["SetAgentRoleOnOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["SetAgentRoleOnOrganisme"];
+                "multipart/form-data": components["schemas"]["SetAgentRoleOnOrganisme"];
             };
         };
         responses: {
