@@ -2,6 +2,7 @@ import pytest
 
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.ingestion.source_factory import SourceFactory
+from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 
 @pytest.fixture(name="repository")
@@ -11,7 +12,7 @@ def repository_fixture(ingestion_container):
 
 def test_returns_empty_set_when_user_has_no_sources(repository):
     user_model = UtilisateurFactory.create_model()
-    utilisateur = user_model.to_entity()
+    utilisateur = UtilisateurMapper().to_domain(user_model)
     source = SourceFactory.create_model()
 
     result = repository.get_allowed_source_ids(utilisateur, {source.source_id})
@@ -21,7 +22,7 @@ def test_returns_empty_set_when_user_has_no_sources(repository):
 
 def test_returns_allowed_source_ids_for_user(repository):
     user_model = UtilisateurFactory.create_model()
-    utilisateur = user_model.to_entity()
+    utilisateur = UtilisateurMapper().to_domain(user_model)
     allowed_source = SourceFactory.create_model()
     user_model.sources.add(allowed_source)
 
@@ -32,7 +33,7 @@ def test_returns_allowed_source_ids_for_user(repository):
 
 def test_filters_out_sources_not_belonging_to_user(repository):
     user_model = UtilisateurFactory.create_model()
-    utilisateur = user_model.to_entity()
+    utilisateur = UtilisateurMapper().to_domain(user_model)
     allowed_source = SourceFactory.create_model()
     other_source = SourceFactory.create_model()
     user_model.sources.add(allowed_source)
@@ -46,7 +47,7 @@ def test_filters_out_sources_not_belonging_to_user(repository):
 
 def test_returns_empty_set_when_source_ids_is_empty(repository):
     user_model = UtilisateurFactory.create_model()
-    utilisateur = user_model.to_entity()
+    utilisateur = UtilisateurMapper().to_domain(user_model)
 
     result = repository.get_allowed_source_ids(utilisateur, set())
 

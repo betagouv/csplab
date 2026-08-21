@@ -5,6 +5,7 @@ from faker import Faker
 from domain.identite.entities.candidat import Candidat
 from infrastructure.django_apps.users.models import ProfilCandidatModel, UserModel
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 fake = Faker()
 
@@ -52,6 +53,8 @@ class CandidatFactory:
                 nom=candidat.nom,
                 password=password,
             )
-        profil = ProfilCandidatModel.from_entity(user.to_entity(), candidat)
+        profil = ProfilCandidatModel.from_entity(
+            UtilisateurMapper().to_domain(user), candidat
+        )
         profil.save()
         return profil
