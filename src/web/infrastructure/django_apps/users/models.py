@@ -29,25 +29,6 @@ class UserModel(AbstractUser):
         verbose_name = "User"
         verbose_name_plural = "Users"
 
-    def to_entity(self) -> Utilisateur:
-        return Utilisateur(
-            entity_id=self.username,
-            email=self.email,
-            prenom=self.first_name,
-            nom=self.last_name,
-            is_superuser=self.is_superuser,
-        )
-
-    @classmethod
-    def from_entity(cls, utilisateur: Utilisateur) -> "UserModel":
-        return cls(
-            username=utilisateur.entity_id,
-            email=utilisateur.email,
-            first_name=utilisateur.prenom,
-            last_name=utilisateur.nom,
-            is_superuser=utilisateur.is_superuser,
-        )
-
     def __str__(self):
         return self.email
 
