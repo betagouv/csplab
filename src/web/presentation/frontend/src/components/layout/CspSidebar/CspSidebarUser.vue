@@ -68,6 +68,7 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
         <div
           v-if="isExpanded || isMobile"
           class="csp-sidebar-user__info"
+          data-testid="sidebar-user-info"
         >
           <span class="csp-sidebar-user__name">{{ name }}</span>
           <span

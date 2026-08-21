@@ -27,28 +27,8 @@ jobs:
               - ".github/workflows/web.yml"
               - ".github/actions/**"
 
-  build-web:
-    needs: check-changes
-    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/web
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-uv-python
-        with:
-          service-path: src/web
-      - uses: ./.github/actions/setup-pnpm-node
-        with:
-          lock-file-path: src/web/pnpm-lock.yaml
-      - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Build frontend
-        run: pnpm run build
-
   lint-web:
-    needs: [check-changes, build-web]
+    needs: check-changes
     if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     defaults:
@@ -79,7 +59,7 @@ jobs:
       - name: Lint frontend
         run: pnpm --filter csplab-frontend lint
       - name: TypeScript check
-        run: pnpm --filter csplab-frontend build
+        run: pnpm --filter csplab-frontend typecheck
       - name: Test frontend with coverage
         run: pnpm --filter csplab-frontend test:run --coverage
       - name: Check no migrations are missing
@@ -95,7 +75,7 @@ jobs:
             (echo "::error::Le schéma OpenAPI interne ou les types TypeScript ne sont pas synchronisés avec le schéma OpenAPI. Lancez 'make frontend-types' et committez." && exit 1)
 
   test-web:
-    needs: [check-changes, build-web]
+    needs: check-changes
     if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     services:
@@ -169,6 +149,13 @@ jobs:
       - name: Install Playwright OS dependencies
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: uv run playwright install-deps chromium
+      - uses: ./.github/actions/setup-pnpm-node
+        with:
+          lock-file-path: src/web/pnpm-lock.yaml
+      - name: Build frontend for e2e
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
       - name: Test Web suite with coverage
         run: uv run pytest -m "e2e" .
 
