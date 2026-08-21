@@ -9,6 +9,7 @@ import ijson
 
 from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.value_objects.organisme import OrganismeData, OrganismeImportResource
+from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from infrastructure.exceptions.exceptions import ExternalApiError
 
 if TYPE_CHECKING:
@@ -18,7 +19,6 @@ DATASET_API_URL = "https://www.data.gouv.fr/api/1/datasets/finess-structures-1/"
 JOURNALIER_TITLE_PATTERN = re.compile(
     r"^finess-structures-journalier-(\d{8})\.json\.gz$"
 )
-REFERENTIEL_FINESS = "FINESS"
 
 
 class _ChunkedBinaryStream(io.RawIOBase):
@@ -107,7 +107,7 @@ class FinessOrganismeGateway(IOrganismeGateway):
             if not numero_finess:
                 continue
             yield OrganismeData(
-                referentiel=REFERENTIEL_FINESS,
+                referentiel=OrganismeReferentiel.FINESS,
                 external_id=numero_finess,
                 data=ege,
             )

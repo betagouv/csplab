@@ -3,6 +3,7 @@ import argparse
 import asyncio
 import logging
 
+from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from infrastructure.di.container import create_container
 
 logging.basicConfig(level=logging.INFO)
@@ -15,7 +16,7 @@ async def _run(referentiel: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--referentiel", default="FINESS")
+    parser.add_argument("--referentiel", default=OrganismeReferentiel.FINESS)
     args = parser.parse_args()
     asyncio.run(_run(args.referentiel))
 
