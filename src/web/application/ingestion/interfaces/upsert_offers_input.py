@@ -8,4 +8,4 @@ from referentiel.entities.offer import Offer
 class UpsertOffersInput:
     source_id: UUID
     offers: list[Offer]
-    utilisateur_entity_id: UUID | None = None
+    utilisateur_username: UUID | None = None

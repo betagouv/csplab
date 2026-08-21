@@ -32,9 +32,9 @@ class ArchiveOfferByReferenceUseCase(IUseCase[ArchiveOfferByReferenceInput, None
         self.utilisateur_repository = utilisateur_repository
 
     def execute(self, input_data: ArchiveOfferByReferenceInput) -> None:
-        if input_data.utilisateur_entity_id is not None:
-            utilisateur = self.utilisateur_repository.get_by_entity_id(
-                input_data.utilisateur_entity_id
+        if input_data.utilisateur_username is not None:
+            utilisateur = self.utilisateur_repository.get_by_username(
+                input_data.utilisateur_username
             )
             allowed = self.user_source_repository.get_allowed_source_ids(
                 utilisateur, {input_data.source_id}

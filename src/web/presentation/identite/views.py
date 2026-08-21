@@ -125,9 +125,9 @@ class UtilisateurDetailsView(APIView):
 
     def get(self, request):
         try:
-            entity_id = request.user.username
+            username = request.user.username
             usecase = self.container.get_utilisateur_details_usecase()
-            utilisateur = usecase.execute(entity_id)
+            utilisateur = usecase.execute(username)
             return Response(UtilisateurSerializer(utilisateur).data)
         except UtilisateurNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)

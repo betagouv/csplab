@@ -69,7 +69,7 @@ class TestOffersBySourceView:
 
         assert response.status_code == status.HTTP_200_OK
         use_case.execute.assert_called_once_with(
-            GetOffersBySourceInput(source_id=SOURCE_ID, utilisateur_entity_id=None)
+            GetOffersBySourceInput(source_id=SOURCE_ID, utilisateur_username=None)
         )
 
     def test_post_not_allowed(self, authenticated_client):
@@ -93,7 +93,7 @@ class TestOffersBySourceView:
         use_case.execute.assert_called_once_with(
             GetOffersBySourceInput(
                 source_id=SOURCE_ID,
-                utilisateur_entity_id=test_user.username,
+                utilisateur_username=test_user.username,
             )
         )
 
