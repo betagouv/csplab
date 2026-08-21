@@ -524,6 +524,12 @@ export interface components {
             /** Format: date-time */
             date_creation: string;
         };
+        OrganismeRole: {
+            /** Format: uuid */
+            organisme_uuid: string;
+            nom: string;
+            role: string;
+        };
         OrganismesList: {
             /** Format: uuid */
             organisme_uuid: string;
@@ -694,6 +700,7 @@ export interface components {
             email: string;
             prenom: string;
             nom: string;
+            organisme_roles: components["schemas"]["OrganismeRole"][];
         };
         /**
          * @description * `FPT` - FPT

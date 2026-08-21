@@ -33,7 +33,12 @@ describe('useCurrentUser', () => {
   })
 
   it('fetches user and exposes reactive state', async () => {
-    const userData = { email: 'test@example.com', prenom: 'Jean', nom: 'Dupont' }
+    const userData = {
+      email: 'test@example.com',
+      prenom: 'Jean',
+      nom: 'Dupont',
+      organisme_roles: [{ organisme_uuid: 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1', nom: 'Ministère de la Transition Écologique', role: 'responsable' }],
+    }
     vi.mocked(getMe).mockResolvedValue(userData)
 
     const { user, displayName, isPending } = mountUseCurrentUser()

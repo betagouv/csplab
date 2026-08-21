@@ -1694,6 +1694,20 @@ components:
       - organisme_uuid
       - siret
       - versant
+    OrganismeRole:
+      type: object
+      properties:
+        organisme_uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        role:
+          type: string
+      required:
+      - nom
+      - organisme_uuid
+      - role
     OrganismesList:
       type: object
       properties:
@@ -2062,9 +2076,14 @@ components:
           type: string
         nom:
           type: string
+        organisme_roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganismeRole'
       required:
       - email
       - nom
+      - organisme_roles
       - prenom
     VersantEnum:
       enum:
