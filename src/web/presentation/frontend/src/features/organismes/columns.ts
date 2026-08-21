@@ -1,6 +1,7 @@
 import type { AgentOrganisme, OrganismesList } from './types'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
 import ElapsedDaysCell from '@/features/organismes/components/cells/ElapsedDaysCell.vue'
+import AgentActionsCell from './components/cells/AgentActionsCell.vue'
 import OrganismeActionsCell from './components/cells/OrganismeActionsCell.vue'
 import OrganismeNomCell from './components/cells/OrganismeNomCell.vue'
 import { ROLE_LABELS } from './constants/organisme'
@@ -25,4 +26,5 @@ export const ORGANISME_AGENTS_COLUMNS: CspColumnDef<AgentOrganisme>[] = [
   { id: 'email', header: 'Courriel', accessor: row => row.email },
   { id: 'date_derniere_activite', header: 'Dernière activité', sortable: true, accessor: row => row.date_derniere_activite, cellComponent: ElapsedDaysCell },
   { id: 'date_creation_compte', header: 'Création de compte', accessor: row => shortDate.format(new Date(row.date_creation_compte)) },
+  { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: AgentActionsCell },
 ]

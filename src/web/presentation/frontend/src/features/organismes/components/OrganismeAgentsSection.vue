@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { useQuery } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
+import { useToast } from '@/composables/ui/useToast'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
-import { organismeAgentsQuery } from '../queries'
+import { useAgentActions } from '../composables/useAgentActions'
+import { useOrganismeAgents } from '../composables/useOrganismeAgents'
+import { ROLE_LABELS } from '../constants/organisme'
 
 const props = defineProps<{
   organismeUuid: string
@@ -17,13 +21,16 @@ const props = defineProps<{
 
 const PAGE_SIZE = 8
 
-const query = useQuery(() => organismeAgentsQuery({ organismeUuid: props.organismeUuid }))
+const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
+const { roleChange, clearRoleChange, revocationAgent, clearRevocation } = useAgentActions()
+const { addToast } = useToast()
 
-const showSkeleton = useMinimumPending(query.isPending)
+const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
+const revocationDialogOpen = ref(false)
 
-const rows = computed(() => query.data.value ?? [])
+const rows = computed(() => agents.value ?? [])
 
 const { search, filtered } = useTextSearch(rows, row => [`${row.prenom} ${row.nom}`, row.email])
 
@@ -35,6 +42,52 @@ const countLabel = computed(() => {
   const count = filtered.value.length
   return `${count} ${pluralize(count, 'membre')}`
 })
+
+watch(roleChange, async (change) => {
+  if (!change)
+    return
+  const { agent, role } = change
+  clearRoleChange()
+  try {
+    await updateAgent({ agent_id: agent.agent_id, role })
+    addToast({
+      variant: 'success',
+      title: 'Rôle modifié',
+      description: `${agent.prenom} ${agent.nom} est maintenant ${ROLE_LABELS[role].toLowerCase()}.`,
+    })
+  }
+  catch {
+    addToast({ variant: 'error', title: 'La modification du rôle a échoué' })
+  }
+})
+
+watch(revocationAgent, (agent) => {
+  if (agent)
+    revocationDialogOpen.value = true
+})
+
+watch(revocationDialogOpen, (isOpen) => {
+  if (!isOpen)
+    clearRevocation()
+})
+
+async function handleRevocation(): Promise<void> {
+  if (!revocationAgent.value)
+    return
+  const agent = revocationAgent.value
+  try {
+    await updateAgent({ agent_id: agent.agent_id, date_revocation: new Date().toISOString() })
+    addToast({
+      variant: 'success',
+      title: 'Membre révoqué',
+      description: `${agent.prenom} ${agent.nom} n'a plus accès à l'organisme.`,
+    })
+    revocationDialogOpen.value = false
+  }
+  catch {
+    addToast({ variant: 'error', title: 'La révocation a échoué' })
+  }
+}
 </script>
 
 <template>
@@ -51,7 +104,7 @@ const countLabel = computed(() => {
 
     <CspAsyncSection
       :pending="showSkeleton"
-      :error="query.error.value"
+      :error="error"
       loading-label="Chargement des membres"
       error-title="Impossible de charger les membres"
     >
@@ -85,6 +138,26 @@ const countLabel = computed(() => {
         :page-size="PAGE_SIZE"
       />
     </CspAsyncSection>
+
+    <CspDialog
+      v-model:open="revocationDialogOpen"
+      title="Révoquer un membre"
+      :description="revocationAgent ? `${revocationAgent.prenom} ${revocationAgent.nom} perdra l'accès à l'organisme et à ses recrutements.` : undefined"
+      size="sm"
+    >
+      <div class="organisme-agents-section__dialog-actions">
+        <CspButton
+          label="Révoquer"
+          :disabled="updatingAgent"
+          @click="handleRevocation"
+        />
+        <CspButton
+          variant="secondary"
+          label="Annuler"
+          @click="revocationDialogOpen = false"
+        />
+      </div>
+    </CspDialog>
   </section>
 </template>
 
@@ -121,5 +194,11 @@ const countLabel = computed(() => {
 .organisme-agents-section__search {
   min-width: 20rem;
   margin-bottom: var(--csp-space-4);
+}
+
+.organisme-agents-section__dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--csp-space-3);
 }
 </style>

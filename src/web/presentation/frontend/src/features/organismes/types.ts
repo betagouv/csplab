@@ -13,3 +13,7 @@ export type Versant = components['schemas']['VersantEnum']
 export type AgentOrganisme = components['schemas']['AgentOrganisme']
 
 export type Role = components['schemas']['RoleEnum']
+
+export type RattacherAgentPayload = components['schemas']['SetAgentRoleOnOrganisme']
+
+export type ModifierAgentPayload = components['schemas']['PatchedUpdateAgentOrganisme']
