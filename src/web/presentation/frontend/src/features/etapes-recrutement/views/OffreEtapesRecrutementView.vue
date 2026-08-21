@@ -5,9 +5,9 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
-import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
 import { recrutementsListLocation } from '@/features/recrutements/routes'
+import { useCurrentOrganisme } from '@/stores/currentOrganisme'
 import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
 
@@ -16,15 +16,25 @@ const recrutementUuid = route.params.recrutementUuid as string
 
 const queryCache = useQueryCache()
 
-const { data: recrutementDetail } = useQuery(() => recrutementDetailQuery({
-  organismeUuid: TEMP_ORGANISME_UUID,
-  recrutementUuid,
+const { organismeUuid } = useCurrentOrganisme()
+
+const { data: recrutementDetail } = useQuery(() => ({
+  ...recrutementDetailQuery({
+    organismeUuid: organismeUuid.value ?? '',
+    recrutementUuid,
+  }),
+  enabled: organismeUuid.value !== null,
 }))
 
-const intitule = computed<string | null>(() =>
-  recrutementDetail.value?.intitule
-  ?? peekRecrutementIntitule(queryCache, TEMP_ORGANISME_UUID, recrutementUuid),
-)
+const intitule = computed<string | null>(() => {
+  if (recrutementDetail.value?.intitule) {
+    return recrutementDetail.value.intitule
+  }
+  if (!organismeUuid.value || !recrutementUuid) {
+    return null
+  }
+  return peekRecrutementIntitule(queryCache, organismeUuid.value, recrutementUuid)
+})
 
 const recrutementsListLink = computed(() =>
   recrutementsListLocation(recrutementDetail.value?.archive),
@@ -51,7 +61,8 @@ const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
   />
   <CspPageContainer width="reading">
     <EtapesRecrutementList
-      :params="{ type: 'offre', organismeUuid: TEMP_ORGANISME_UUID, recrutementUuid }"
+      v-if="organismeUuid"
+      :params="{ type: 'offre', organismeUuid, recrutementUuid }"
       :texts="ETAPES_TEXTS_OFFRE"
     />
   </CspPageContainer>

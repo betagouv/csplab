@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { CspMetaItem } from '@/components/base/CspMeta/types'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
-import { TEMP_ORGANISME_UUID } from '@/constants/organisme'
 import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
+import { useCurrentOrganisme } from '@/stores/currentOrganisme'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },
@@ -20,11 +20,18 @@ const tabs = [
 
 const activeTab = ref('etapes')
 
-const metaItem: CspMetaItem = {
-  icon: 'ri:government-line',
-  label: 'Ministère de la Transition Écologique',
-  srLabel: 'Organisme',
-}
+const { organisme } = useCurrentOrganisme()
+
+const metaItem = computed<CspMetaItem | null>(() => {
+  if (!organisme.value) {
+    return null
+  }
+  return {
+    icon: 'ri:government-line',
+    label: organisme.value.nom,
+    srLabel: 'Organisme',
+  }
+})
 </script>
 
 <template>
@@ -33,7 +40,10 @@ const metaItem: CspMetaItem = {
     :breadcrumb="BREADCRUMB"
   >
     <template #subtitle>
-      <CspMetaList :items="[metaItem]" />
+      <CspMetaList
+        v-if="metaItem"
+        :items="[metaItem]"
+      />
     </template>
   </CspPageHeader>
   <CspPageContainer
@@ -43,7 +53,8 @@ const metaItem: CspMetaItem = {
   >
     <template #tab-etapes>
       <EtapesRecrutementList
-        :params="{ type: 'organisme', organismeUuid: TEMP_ORGANISME_UUID }"
+        v-if="organisme"
+        :params="{ type: 'organisme', organismeUuid: organisme.organisme_uuid }"
         :texts="ETAPES_TEXTS_ORGANISME"
       />
     </template>
