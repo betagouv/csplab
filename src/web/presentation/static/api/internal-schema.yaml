@@ -411,6 +411,70 @@ paths:
                 items:
                   $ref: '#/components/schemas/AgentOrganisme'
           description: ''
+    post:
+      operationId: recruteur_organismes_parametres_agents_create
+      summary: Rattacher un agent à un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetAgentRoleOnOrganisme'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SetAgentRoleOnOrganisme'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SetAgentRoleOnOrganisme'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentOrganisme'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organismes/{organisme_uuid}/parametres/etapes:
     get:
       operationId: recruteur_organismes_parametres_etapes_list
@@ -1196,6 +1260,9 @@ components:
         agent_id:
           type: string
           format: uuid
+        organisme_id:
+          type: string
+          format: uuid
         nom:
           type: string
         prenom:
@@ -1220,6 +1287,7 @@ components:
       - date_derniere_activite
       - email
       - nom
+      - organisme_id
       - poste
       - prenom
       - role
@@ -2084,6 +2152,25 @@ components:
           type: string
       required:
       - nom
+    RoleEnum:
+      enum:
+      - responsable
+      - membre
+      type: string
+      description: |-
+        * `responsable` - responsable
+        * `membre` - membre
+    SetAgentRoleOnOrganisme:
+      type: object
+      properties:
+        agent_id:
+          type: string
+          format: uuid
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - agent_id
+      - role
     TokenError:
       type: object
       properties:

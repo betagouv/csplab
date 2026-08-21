@@ -6,6 +6,7 @@ from rest_framework import serializers
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
 
 
@@ -140,6 +141,7 @@ class CandidatureListeSerializer(serializers.Serializer):
 
 class AgentOrganismeSerializer(serializers.Serializer):
     agent_id = serializers.UUIDField()
+    organisme_id = serializers.UUIDField()
     nom = serializers.CharField()
     prenom = serializers.CharField()
     email = serializers.EmailField()
@@ -147,6 +149,13 @@ class AgentOrganismeSerializer(serializers.Serializer):
     role = serializers.CharField()
     date_derniere_activite = serializers.DateTimeField(allow_null=True)
     date_creation_compte = serializers.DateTimeField()
+
+
+class SetAgentRoleOnOrganismeSerializer(serializers.Serializer):
+    agent_id = serializers.UUIDField()
+    role = serializers.ChoiceField(
+        choices=[(r.value, r.value) for r in AgentOrganismeRole]
+    )
 
 
 # ---------------------------------------------------------------------------
