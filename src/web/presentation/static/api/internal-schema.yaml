@@ -2048,7 +2048,7 @@ components:
     PatchedUpdateAgentOrganisme:
       type: object
       properties:
-        agent_uuid:
+        agent_id:
           type: string
           format: uuid
         role:

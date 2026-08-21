@@ -108,7 +108,7 @@ class OrganismeAgentsView(APIView):
 
         data = serializer.validated_data
         agent = {
-            "agent_id": data["agent_uuid"],
+            "agent_id": data["agent_id"],
             "organisme_id": "00000000-0000-0000-0000-000000000000",
             "nom": data.get("nom", ""),
             "prenom": data.get("prenom", ""),

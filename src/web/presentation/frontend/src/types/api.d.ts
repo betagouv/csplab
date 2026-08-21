@@ -635,7 +635,7 @@ export interface components {
         };
         PatchedUpdateAgentOrganisme: {
             /** Format: uuid */
-            agent_uuid?: string;
+            agent_id?: string;
             role?: components["schemas"]["RoleEnum"];
             nom?: string;
             prenom?: string;
