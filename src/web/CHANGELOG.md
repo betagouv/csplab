@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.16] - 2026-08-21
+
+### <!-- 0 --> Breaking Changes
+
+- ✨(recruteur-presentation) add create organisme view ([#1178](https://github.com/betagouv/csplab/pull/1178))
+
+### <!-- 1 --> Added
+
+- ✨(ats-presentation) wire etape candidature patch from frontend ([#1197](https://github.com/betagouv/csplab/pull/1197))
+- ⚡️(ci) cache Playwright browsers between runs ([#1202](https://github.com/betagouv/csplab/pull/1202))
+- ✨(ats-presentation) add a combobox base component ([#1198](https://github.com/betagouv/csplab/pull/1198))
+- ✨(ingestion) import et nettoyage d'établissements FINESS ([#1190](https://github.com/betagouv/csplab/pull/1190))
+- ✨(ingestion) complète le référentiel des catégories d'entité géographique ([#1209](https://github.com/betagouv/csplab/pull/1209))
+- ✨(identite) INTERFACE : ajouter la liste des organismes de rattachement d'un utilisateur agent ([#1213](https://github.com/betagouv/csplab/pull/1213))
+- ✨(recruteur) INTERFACE : obtenir la liste des agents d'un organisme ([#1216](https://github.com/betagouv/csplab/pull/1216))
+- ✨(recruteur) INTERFACE : ajouter un rôle pour un agent dans un organisme ([#1219](https://github.com/betagouv/csplab/pull/1219))
+- ✨(recruteur) INTERFACE : modïfier un agent dans un organisme ([#1222](https://github.com/betagouv/csplab/pull/1222))
+- ✨(recruteur) INTERFACE : révoquer un agent d'un organisme ([#1223](https://github.com/betagouv/csplab/pull/1223))
+
+### <!-- 2 --> Modified
+
+- ♻️(identite-infrastructure) convertit `username` en UUIDField ([#1200](https://github.com/betagouv/csplab/pull/1200))
+- ♻️(identite-infrastructure) simplifier la déclaration des clés étrangères sur Agent et Candidat ([#1201](https://github.com/betagouv/csplab/pull/1201))
+- ♻️(recruteur-presentation) add versant and counts in get_organismes ([#1221](https://github.com/betagouv/csplab/pull/1221))
+- ♻️(identite) renommage des variables et méthodes liées aux utilisateurs : `entity_id` devient `username` ([#1226](https://github.com/betagouv/csplab/pull/1226))
+
+### <!-- 3 --> Removed
+
+- 🔥(ingestion) supprime l'import et l'archivage des offres via l'API Talentsoft ([#1217](https://github.com/betagouv/csplab/pull/1217))
+- 🔥(recruteur-presentation) delete endpoint get organisme recruteur details ([#1218](https://github.com/betagouv/csplab/pull/1218))
+
 ## [0.1.15] - 2026-08-18
 
 ### <!-- 1 --> Added
