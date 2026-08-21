@@ -3,7 +3,7 @@ import type { CspColumnDef } from '@/components/base/CspDataTable/table'
 import ElapsedDaysCell from '@/features/organismes/components/cells/ElapsedDaysCell.vue'
 import OrganismeNomCell from './components/cells/OrganismeNomCell.vue'
 
-export const ORGANISMES_COLUMNS: CspColumnDef<OrganismesList>[] = [
+export const ORGANISMES_LIST_COLUMNS: CspColumnDef<OrganismesList>[] = [
   { id: 'nom', header: 'Nom organisme', sortable: true, accessor: row => row.nom, cellComponent: OrganismeNomCell },
   { id: 'siret', header: 'SIRET', accessor: row => row.siret },
   { id: 'gestionnaire', header: 'Gestionnaire', sortable: true, accessor: row => row.gestionnaire ?? '-' },

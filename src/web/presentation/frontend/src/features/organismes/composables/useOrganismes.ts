@@ -1,11 +1,11 @@
 import { useQuery } from '@pinia/colada'
-import { organismesQuery } from '../queries'
+import { organismesListQuery } from '../queries'
 
 export function useOrganismes() {
-  const query = useQuery(organismesQuery)
+  const query = useQuery(organismesListQuery)
 
   return {
-    organismes: query.data,
+    organismesList: query.data,
     pending: query.isPending,
     error: query.error,
   }

@@ -8,18 +8,18 @@ import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { pluralize } from '@/utils/format'
-import { ORGANISMES_COLUMNS } from '../columns'
+import { ORGANISMES_LIST_COLUMNS } from '../columns'
 import { useOrganismes } from '../composables/useOrganismes'
 
 const PAGE_SIZE = 8
 
-const { organismes, pending, error } = useOrganismes()
+const { organismesList, pending, error } = useOrganismes()
 
 const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
 
-const rows = computed(() => organismes.value ?? [])
+const rows = computed(() => organismesList.value ?? [])
 
 const { search, filtered } = useTextSearch(rows, row => [row.nom, row.siret, row.gestionnaire])
 
@@ -62,7 +62,7 @@ const countLabel = computed(() => {
       <template #skeleton>
         <CspSkeletonTable
           :rows="PAGE_SIZE"
-          :columns="ORGANISMES_COLUMNS.length"
+          :columns="ORGANISMES_LIST_COLUMNS.length"
           with-footer
         />
       </template>
@@ -84,7 +84,7 @@ const countLabel = computed(() => {
       <CspDataTable
         v-model:page="page"
         :rows="filtered"
-        :columns="ORGANISMES_COLUMNS"
+        :columns="ORGANISMES_LIST_COLUMNS"
         :row-key="row => row.organisme_uuid"
         caption="Organismes"
         empty-label="Aucun organisme"

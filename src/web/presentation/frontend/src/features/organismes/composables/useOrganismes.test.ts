@@ -9,7 +9,7 @@ import { useOrganismes } from './useOrganismes'
 const mockGetOrganismes = vi.fn()
 
 vi.mock('../api', () => ({
-  getOrganismes: (...args: unknown[]) => mockGetOrganismes(...args),
+  getOrganismesList: (...args: unknown[]) => mockGetOrganismes(...args),
 }))
 
 const ORGANISMES: OrganismesList[] = [
@@ -66,10 +66,10 @@ describe('useOrganismes', () => {
   })
 
   it('exposes the organismes list', async () => {
-    const { organismes, pending } = mountOrganismes()
+    const { organismesList, pending } = mountOrganismes()
     expect(pending.value).toBe(true)
     await flush()
     expect(pending.value).toBe(false)
-    expect(organismes.value).toEqual(ORGANISMES)
+    expect(organismesList.value).toEqual(ORGANISMES)
   })
 })
