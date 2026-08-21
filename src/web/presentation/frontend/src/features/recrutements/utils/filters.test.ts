@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   emptyRecrutementsFilters,
   matchesFilters,
-  matchesSearch,
+  recrutementSearchableText,
 } from './filters'
 
 function makeRow(overrides: Partial<RecrutementBase> = {}): RecrutementBase {
@@ -45,29 +45,21 @@ describe('matchesFilters', () => {
   })
 })
 
-describe('matchesSearch', () => {
-  it('matches every row on a blank search', () => {
-    expect(matchesSearch(makeRow(), '')).toBe(true)
-    expect(matchesSearch(makeRow(), '   ')).toBe(true)
+describe('recrutementSearchableText', () => {
+  it('exposes intitulé, référence and responsable names', () => {
+    const fields = recrutementSearchableText(makeRow({
+      intitule: 'Développeur back-end',
+      reference_csp: 'REF-042',
+      responsables: [{ nom: 'Léa Martin' }],
+    }))
+    expect(fields).toContain('Développeur back-end')
+    expect(fields).toContain('REF-042')
+    expect(fields).toContain('Léa Martin')
   })
 
-  it('matches on intitulé, référence and responsable name', () => {
-    expect(matchesSearch(makeRow({ intitule: 'Développeur back-end' }), 'back')).toBe(true)
-    expect(matchesSearch(makeRow({ reference_csp: 'REF-042' }), 'ref-042')).toBe(true)
-    expect(matchesSearch(makeRow({ responsables: [{ nom: 'Léa Martin' }] }), 'martin')).toBe(true)
-  })
-
-  it('is case- and accent-insensitive', () => {
-    expect(matchesSearch(makeRow({ intitule: 'Chargé de mission' }), 'CHARGE')).toBe(true)
-  })
-
-  it('returns false when no searchable field contains the term', () => {
-    expect(matchesSearch(makeRow({ intitule: 'Juriste' }), 'zzz')).toBe(false)
-  })
-
-  it('matches recruited person on archived offers', () => {
+  it('includes the recruited person on archived offers', () => {
     const archived = makeRow({ intitule: 'Poste' }) as RecrutementBase & { recrute: string | null }
     archived.recrute = 'Nadia Lefèvre'
-    expect(matchesSearch(archived, 'nadia')).toBe(true)
+    expect(recrutementSearchableText(archived)).toContain('Nadia Lefèvre')
   })
 })

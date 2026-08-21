@@ -1,18 +1,16 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { RecrutementBase } from '../types'
-import { computed, ref, toValue } from 'vue'
-import { useDebounce } from '@/composables/async/useDebounce'
+import { computed, toValue } from 'vue'
+import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useDraft } from '@/composables/storage/useDraft'
 import {
   responsableOptions as buildResponsableOptions,
   countActiveFilters,
   emptyRecrutementsFilters,
   matchesFilters,
-  matchesSearch,
+  recrutementSearchableText,
   withAllOption,
 } from '../utils/filters'
-
-const SEARCH_DEBOUNCE_MS = 250
 
 export function useRecrutementsFilters<T extends RecrutementBase>(
   rows: MaybeRefOrGetter<T[]>,
@@ -26,14 +24,11 @@ export function useRecrutementsFilters<T extends RecrutementBase>(
     reset: resetDraft,
   } = useDraft(emptyRecrutementsFilters)
 
-  const search = ref('')
-  const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS)
+  const { search, filtered: searchedRows } = useTextSearch(rows, recrutementSearchableText)
 
-  function matches(row: T): boolean {
-    return matchesFilters(row, applied) && matchesSearch(row, debouncedSearch.value)
-  }
-
-  const filtered = computed(() => toValue(rows).filter(matches))
+  const filtered = computed(() =>
+    searchedRows.value.filter(row => matchesFilters(row, applied)),
+  )
 
   const activeFiltersCount = computed(() => countActiveFilters(applied))
 
