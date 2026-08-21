@@ -477,7 +477,7 @@ paths:
           description: ''
     patch:
       operationId: recruteur_organismes_parametres_agents_partial_update
-      summary: Modifier un agent d'un organisme
+      summary: Modifier ou revoquer un agent d'un organisme
       parameters:
       - in: path
         name: organisme_uuid
@@ -1344,6 +1344,10 @@ components:
         date_creation_compte:
           type: string
           format: date-time
+        date_revocation:
+          type: string
+          format: date-time
+          nullable: true
       required:
       - agent_id
       - date_creation_compte
@@ -2059,6 +2063,9 @@ components:
           type: string
         poste:
           type: string
+        date_revocation:
+          type: string
+          format: date-time
     RecrutementDetail:
       type: object
       properties:

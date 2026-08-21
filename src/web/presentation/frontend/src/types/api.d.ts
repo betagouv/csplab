@@ -90,7 +90,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Modifier un agent d'un organisme */
+        /** Modifier ou revoquer un agent d'un organisme */
         patch: operations["recruteur_organismes_parametres_agents_partial_update"];
         trace?: never;
     };
@@ -308,6 +308,8 @@ export interface components {
             date_derniere_activite: string | null;
             /** Format: date-time */
             date_creation_compte: string;
+            /** Format: date-time */
+            date_revocation?: string | null;
         };
         /** @enum {unknown} */
         BlankEnum: "";
@@ -640,6 +642,8 @@ export interface components {
             nom?: string;
             prenom?: string;
             poste?: string;
+            /** Format: date-time */
+            date_revocation?: string;
         };
         RecrutementDetail: {
             /** Format: uuid */
