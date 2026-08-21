@@ -4,6 +4,7 @@ from django.db import models
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
+from domain.identite.value_objects.organisme_role import OrganismeRole
 
 
 class UserModel(AbstractUser):
@@ -29,13 +30,16 @@ class UserModel(AbstractUser):
         verbose_name = "User"
         verbose_name_plural = "Users"
 
-    def to_entity(self) -> Utilisateur:
+    def to_entity(
+        self, organisme_roles: list[OrganismeRole] | None = None
+    ) -> Utilisateur:
         return Utilisateur(
             entity_id=self.username,
             email=self.email,
             prenom=self.first_name,
             nom=self.last_name,
             is_superuser=self.is_superuser,
+            organisme_roles=organisme_roles or [],
         )
 
     @classmethod
