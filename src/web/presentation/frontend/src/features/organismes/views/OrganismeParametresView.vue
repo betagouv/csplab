@@ -9,6 +9,7 @@ import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContai
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
+import OrganismeAgentsSection from '../components/OrganismeAgentsSection.vue'
 import { organismesListQuery } from '../queries'
 
 const route = useRoute()
@@ -26,10 +27,11 @@ const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
 ])
 
 const tabs = [
+  { value: 'membres', label: 'Membres' },
   { value: 'etapes', label: 'Étapes de recrutement' },
 ]
 
-const activeTab = ref('etapes')
+const activeTab = ref('membres')
 
 const metaItems = computed<CspMetaItem[]>(() =>
   organisme.value
@@ -53,6 +55,12 @@ const metaItems = computed<CspMetaItem[]>(() =>
     width="reading"
     :tabs="tabs"
   >
+    <template #tab-membres>
+      <OrganismeAgentsSection
+        :key="organismeUuid"
+        :organisme-uuid="organismeUuid"
+      />
+    </template>
     <template #tab-etapes>
       <EtapesRecrutementList
         :params="{ type: 'organisme', organismeUuid }"

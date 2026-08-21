@@ -9,3 +9,7 @@ export type CreateOrganismePayload = components['schemas']['CreateOrganisme']
 export type UpdateOrganismePayload = components['schemas']['UpdateOrganisme']
 
 export type Versant = components['schemas']['VersantEnum']
+
+export type AgentOrganisme = components['schemas']['AgentOrganisme']
+
+export type Role = components['schemas']['RoleEnum']
