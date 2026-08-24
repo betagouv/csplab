@@ -2,7 +2,6 @@ import logging
 
 import httpx
 from dependency_injector import containers, providers
-from pydantic import BaseModel, Field, HttpUrl
 from sqlalchemy import Engine
 
 from api.config import get_settings
@@ -34,6 +33,7 @@ from domain.value_objects.credentials import Credentials
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from infrastructure.credentials_store import CredentialsStore
 from infrastructure.database import make_engine
+from infrastructure.external_gateways.base_web_gateway import WebGatewayCredentials
 from infrastructure.external_gateways.finess_organisme_gateway import (
     FinessOrganismeGateway,
 )
@@ -59,11 +59,6 @@ from infrastructure.raw_organisme_repository import RawOrganismeRepository
 from infrastructure.sources_repository import SourcesRepository
 from infrastructure.talentsoft_client_repository import TalentsoftClientRepository
 from infrastructure.webhook_repository import WebhookRepository
-
-
-class WebGatewayCredentials(BaseModel):
-    base_url: HttpUrl
-    api_key: str = Field(min_length=1)
 
 
 def _dispatch_save_raw_offer_webhook(webhook_id: str) -> None:
@@ -95,51 +90,6 @@ def _make_db_engine(database_url: str | None) -> Engine:
     return make_engine(database_url)
 
 
-def _make_sources_gateway(
-    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> ISourcesGateway:
-    creds = WebGatewayCredentials(base_url=base_url, api_key=api_key)
-    return WebSourcesGateway(
-        client=client, base_url=str(creds.base_url), api_key=creds.api_key
-    )
-
-
-def _make_archive_gateway(
-    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> IArchiveGateway:
-    creds = WebGatewayCredentials(base_url=base_url, api_key=api_key)
-    return WebArchiveGateway(
-        client=client, base_url=str(creds.base_url), api_key=creds.api_key
-    )
-
-
-def _make_offers_by_source_gateway(
-    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> IOffersBySourceGateway:
-    creds = WebGatewayCredentials(base_url=base_url, api_key=api_key)
-    return WebOffersBySourceGateway(
-        client=client, base_url=str(creds.base_url), api_key=creds.api_key
-    )
-
-
-def _make_publish_offer_gateway(
-    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> IPublishOfferGateway:
-    creds = WebGatewayCredentials(base_url=base_url, api_key=api_key)
-    return WebPublishOfferGateway(
-        client=client, base_url=str(creds.base_url), api_key=creds.api_key
-    )
-
-
-def _make_publish_organismes_gateway(
-    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> IPublishOrganismesGateway:
-    creds = WebGatewayCredentials(base_url=base_url, api_key=api_key)
-    return WebPublishOrganismesGateway(
-        client=client, base_url=str(creds.base_url), api_key=creds.api_key
-    )
-
-
 class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(
         modules=["api.routes", "api.talentsoft", "infrastructure.di.container"]
@@ -148,6 +98,12 @@ class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
 
     http_client = providers.Factory(httpx.AsyncClient)
+
+    web_gateway_credentials = providers.Singleton(
+        WebGatewayCredentials,
+        base_url=config.web_base_url,
+        api_key=config.web_api_key,
+    )
 
     sources_repository: providers.Provider[ISourcesRepository] = providers.Singleton(
         SourcesRepository
@@ -203,10 +159,9 @@ class Container(containers.DeclarativeContainer):
 
     publish_organismes_gateway: providers.Provider[IPublishOrganismesGateway] = (
         providers.Factory(
-            _make_publish_organismes_gateway,
+            WebPublishOrganismesGateway,
             client=http_client,
-            base_url=config.web_base_url,
-            api_key=config.web_api_key,
+            credentials=web_gateway_credentials,
         )
     )
 
@@ -228,17 +183,15 @@ class Container(containers.DeclarativeContainer):
     )
 
     sources_gateway: providers.Provider[ISourcesGateway] = providers.Factory(
-        _make_sources_gateway,
+        WebSourcesGateway,
         client=http_client,
-        base_url=config.web_base_url,
-        api_key=config.web_api_key,
+        credentials=web_gateway_credentials,
     )
 
     archive_gateway: providers.Provider[IArchiveGateway] = providers.Factory(
-        _make_archive_gateway,
+        WebArchiveGateway,
         client=http_client,
-        base_url=config.web_base_url,
-        api_key=config.web_api_key,
+        credentials=web_gateway_credentials,
     )
 
     archive_offer_usecase: providers.Provider[ArchiveOfferUsecase] = providers.Factory(
@@ -249,10 +202,9 @@ class Container(containers.DeclarativeContainer):
 
     offers_by_source_gateway: providers.Provider[IOffersBySourceGateway] = (
         providers.Factory(
-            _make_offers_by_source_gateway,
+            WebOffersBySourceGateway,
             client=http_client,
-            base_url=config.web_base_url,
-            api_key=config.web_api_key,
+            credentials=web_gateway_credentials,
         )
     )
 
@@ -280,10 +232,9 @@ class Container(containers.DeclarativeContainer):
     )
 
     publish_offer_gateway: providers.Provider[IPublishOfferGateway] = providers.Factory(
-        _make_publish_offer_gateway,
+        WebPublishOfferGateway,
         client=http_client,
-        base_url=config.web_base_url,
-        api_key=config.web_api_key,
+        credentials=web_gateway_credentials,
     )
 
     publish_offer_usecase: providers.Provider[PublishOfferUsecase] = providers.Factory(

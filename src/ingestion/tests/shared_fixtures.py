@@ -21,6 +21,7 @@ from application.usecases.publish_organismes import PublishOrganismesUsecase
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from infrastructure.database import make_engine, run_migrations
 from infrastructure.di.container import Container
+from infrastructure.external_gateways.base_web_gateway import WebGatewayCredentials
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
@@ -227,8 +228,9 @@ def load_sources_usecase(sources_repository: SourcesRepository) -> LoadSourcesUs
     return LoadSourcesUsecase(
         sources_gateway=WebSourcesGateway(
             client=httpx.AsyncClient(),
-            base_url=WEB_BASE_URL,
-            api_key=WEB_API_KEY,
+            credentials=WebGatewayCredentials(
+                base_url=WEB_BASE_URL, api_key=WEB_API_KEY
+            ),
         ),
         repository=sources_repository,
     )

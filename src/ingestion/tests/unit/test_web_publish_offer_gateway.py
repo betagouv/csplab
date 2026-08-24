@@ -23,6 +23,7 @@ from referentiel.value_objects.verse import Verse
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_input import PublishOfferInput
 from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.external_gateways.base_web_gateway import WebGatewayCredentials
 from infrastructure.external_gateways.web_publish_offer_gateway import (
     WebPublishOfferGateway,
 )
@@ -82,7 +83,10 @@ FULL_OFFER = Offer(
 @pytest.fixture
 def gateway():
     client = httpx.AsyncClient()
-    return WebPublishOfferGateway(client=client, base_url=BASE_URL, api_key=API_KEY)
+    return WebPublishOfferGateway(
+        client=client,
+        credentials=WebGatewayCredentials(base_url=BASE_URL, api_key=API_KEY),
+    )
 
 
 @pytest.mark.asyncio

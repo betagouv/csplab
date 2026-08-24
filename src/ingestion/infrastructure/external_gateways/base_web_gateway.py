@@ -1,15 +1,27 @@
 from typing import Any
 
 import httpx
+from pydantic import BaseModel, Field, HttpUrl
 
 _API_PREFIX = "/api/v1"
 
 
+class WebGatewayCredentials(BaseModel):
+    base_url: HttpUrl
+    api_key: str = Field(min_length=1)
+
+    @property
+    def base_url_str(self) -> str:
+        return str(self.base_url).rstrip("/")
+
+
 class BaseWebGateway:
-    def __init__(self, client: httpx.AsyncClient, base_url: str, api_key: str) -> None:
+    def __init__(
+        self, client: httpx.AsyncClient, credentials: WebGatewayCredentials
+    ) -> None:
         self._client = client
-        self._base_url = base_url.rstrip("/")
-        self._api_key = api_key
+        self._base_url = credentials.base_url_str
+        self._api_key = credentials.api_key
 
     @property
     def _auth_headers(self) -> dict[str, str]:
