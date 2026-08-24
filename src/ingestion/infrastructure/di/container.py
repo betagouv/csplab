@@ -2,6 +2,7 @@ import logging
 
 import httpx
 from dependency_injector import containers, providers
+from pydantic import BaseModel, Field, HttpUrl
 from sqlalchemy import Engine
 
 from api.config import get_settings
@@ -60,6 +61,11 @@ from infrastructure.talentsoft_client_repository import TalentsoftClientReposito
 from infrastructure.webhook_repository import WebhookRepository
 
 
+class WebGatewayCredentials(BaseModel):
+    base_url: HttpUrl
+    api_key: str = Field(min_length=1)
+
+
 def _dispatch_save_raw_offer_webhook(webhook_id: str) -> None:
     save_raw_offer_webhook.delay(webhook_id)
 
@@ -92,42 +98,45 @@ def _make_db_engine(database_url: str | None) -> Engine:
 def _make_sources_gateway(
     client: httpx.AsyncClient, base_url: str | None, api_key: str | None
 ) -> ISourcesGateway:
-    if not base_url or not api_key:
-        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
-    return WebSourcesGateway(client=client, base_url=base_url, api_key=api_key)
+    creds = WebGatewayCredentials(base_url=base_url, api_key=api_key)
+    return WebSourcesGateway(
+        client=client, base_url=str(creds.base_url), api_key=creds.api_key
+    )
 
 
 def _make_archive_gateway(
     client: httpx.AsyncClient, base_url: str | None, api_key: str | None
 ) -> IArchiveGateway:
-    if not base_url or not api_key:
-        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
-    return WebArchiveGateway(client=client, base_url=base_url, api_key=api_key)
+    creds = WebGatewayCredentials(base_url=base_url, api_key=api_key)
+    return WebArchiveGateway(
+        client=client, base_url=str(creds.base_url), api_key=creds.api_key
+    )
 
 
 def _make_offers_by_source_gateway(
     client: httpx.AsyncClient, base_url: str | None, api_key: str | None
 ) -> IOffersBySourceGateway:
-    if not base_url or not api_key:
-        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
-    return WebOffersBySourceGateway(client=client, base_url=base_url, api_key=api_key)
+    creds = WebGatewayCredentials(base_url=base_url, api_key=api_key)
+    return WebOffersBySourceGateway(
+        client=client, base_url=str(creds.base_url), api_key=creds.api_key
+    )
 
 
 def _make_publish_offer_gateway(
     client: httpx.AsyncClient, base_url: str | None, api_key: str | None
 ) -> IPublishOfferGateway:
-    if not base_url or not api_key:
-        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
-    return WebPublishOfferGateway(client=client, base_url=base_url, api_key=api_key)
+    creds = WebGatewayCredentials(base_url=base_url, api_key=api_key)
+    return WebPublishOfferGateway(
+        client=client, base_url=str(creds.base_url), api_key=creds.api_key
+    )
 
 
 def _make_publish_organismes_gateway(
     client: httpx.AsyncClient, base_url: str | None, api_key: str | None
 ) -> IPublishOrganismesGateway:
-    if not base_url or not api_key:
-        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
+    creds = WebGatewayCredentials(base_url=base_url, api_key=api_key)
     return WebPublishOrganismesGateway(
-        client=client, base_url=base_url, api_key=api_key
+        client=client, base_url=str(creds.base_url), api_key=creds.api_key
     )
 
 
