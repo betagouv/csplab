@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from dependency_injector import providers
+from pydantic import ValidationError
 from sqlmodel import Session, select
 
 from application.usecases.import_organismes import BATCH_SIZE, ImportOrganismesCommand
@@ -207,14 +208,9 @@ async def test_deletes_organismes_missing_from_latest_import(
     assert result.total_deleted == 1
 
 
-@pytest.mark.asyncio
-async def test_rejects_unsupported_referentiel(container, mock_organisme_gateway):
-    with pytest.raises(ValueError, match="Unsupported referentiel"):
-        await container.import_organismes_usecase().execute(
-            ImportOrganismesCommand(referentiel="RNE")
-        )
-
-    mock_organisme_gateway.find_resource.assert_not_called()
+def test_rejects_unsupported_referentiel():
+    with pytest.raises(ValidationError):
+        ImportOrganismesCommand(referentiel="RNE")
 
 
 @pytest.mark.asyncio
