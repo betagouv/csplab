@@ -6,6 +6,9 @@ const captured = ref<Error | null>(null)
 
 onErrorCaptured((err) => {
   captured.value = err instanceof Error ? err : new Error(String(err))
+  if (import.meta.env.DEV) {
+    console.error('[ErrorBoundary]', err)
+  }
   Sentry.captureException(err)
   return false
 })
