@@ -10,9 +10,10 @@ from referentiel.value_objects.verse import Verse
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
-from domain.identite.services.identite_permission_service import (
-    OrganismeCreationPermissionService,
+from domain.identite.services.organisme_permission_service import (
+    OrganismePermissionService,
 )
+from domain.identite.value_objects.organisme_action import OrganismeAction
 
 
 @dataclass
@@ -22,6 +23,7 @@ class CreateOrganismeCommand:
     localisation: Localisation | None
     siret: SIRET | None
     parent_id: UUID | None
+    utilisateur_id: UUID
     est_staff: bool = False
 
 
@@ -29,13 +31,17 @@ class CreateOrganismeUsecase(IUseCase[CreateOrganismeCommand, Organisme]):
     def __init__(
         self,
         organisme_repository: IOrganismeRepository,
-        permission_service: OrganismeCreationPermissionService,
+        permission_service: OrganismePermissionService,
     ):
         self.organisme_repository = organisme_repository
         self.permission_service = permission_service
 
     def execute(self, input_data: CreateOrganismeCommand) -> Organisme:
-        self.permission_service.verifier_autorisation(est_staff=input_data.est_staff)
+        self.permission_service.est_autorise(
+            action=OrganismeAction.CREER_ORGANISME,
+            agent_id=input_data.utilisateur_id,
+            est_staff=input_data.est_staff,
+        )
         organisme = Organisme.create(
             nom=input_data.nom,
             versant=input_data.versant,

@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 from referentiel.events.organisme_events import OrganismeCree
 from referentiel.value_objects.verse import Verse
@@ -7,6 +9,8 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 
+UTILISATEUR_ID = uuid4()
+
 
 def test_create_organisme_success(create_organisme_usecase):
     command = CreateOrganismeCommand(
@@ -15,6 +19,7 @@ def test_create_organisme_success(create_organisme_usecase):
         localisation=None,
         siret=None,
         parent_id=None,
+        utilisateur_id=UTILISATEUR_ID,
         est_staff=True,
     )
 
@@ -34,6 +39,7 @@ def test_create_organisme_refuse_non_staff(create_organisme_usecase):
         localisation=None,
         siret=None,
         parent_id=None,
+        utilisateur_id=UTILISATEUR_ID,
         est_staff=False,
     )
 
