@@ -5,6 +5,7 @@ from faker import Faker
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_role import OrganismeRole
 from infrastructure.django_apps.users.models import UserModel
+from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 fake = Faker()
 
@@ -46,7 +47,7 @@ class UtilisateurFactory:
             nom=nom,
             is_superuser=is_superuser,
         )
-        user = UserModel.from_entity(utilisateur)
+        user = UtilisateurMapper().from_domain(utilisateur)
         user.set_password(password or DEFAULT_PASSWORD)
         user.save()
         return user

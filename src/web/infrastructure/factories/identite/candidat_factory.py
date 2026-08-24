@@ -3,8 +3,9 @@ from uuid import UUID, uuid4
 from faker import Faker
 
 from domain.identite.entities.candidat import Candidat
-from infrastructure.django_apps.users.models import ProfilCandidatModel
+from infrastructure.django_apps.users.models import ProfilCandidatModel, UserModel
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 fake = Faker()
 
@@ -28,25 +29,32 @@ class CandidatFactory:
 
     @staticmethod
     def create_model(
+        username: UUID | None = None,
         email: str | None = None,
         prenom: str | None = None,
         nom: str | None = None,
         resume: str | None = None,
         password: str | None = None,
     ) -> ProfilCandidatModel:
-        candidat = CandidatFactory.create_entity(
-            email=email,
-            prenom=prenom,
-            nom=nom,
-            resume=resume,
+        if username is not None:
+            user = UserModel.objects.get(username=username)
+            candidat = CandidatFactory.create_entity(entity_id=username, resume=resume)
+        else:
+            candidat = CandidatFactory.create_entity(
+                email=email,
+                prenom=prenom,
+                nom=nom,
+                resume=resume,
+            )
+            user = UtilisateurFactory.create_model(
+                entity_id=candidat.entity_id,
+                email=candidat.email,
+                prenom=candidat.prenom,
+                nom=candidat.nom,
+                password=password,
+            )
+        profil = ProfilCandidatModel.from_entity(
+            UtilisateurMapper().to_domain(user), candidat
         )
-        user = UtilisateurFactory.create_model(
-            entity_id=candidat.entity_id,
-            email=candidat.email,
-            prenom=candidat.prenom,
-            nom=candidat.nom,
-            password=password,
-        )
-        profil = ProfilCandidatModel.from_entity(user.to_entity(), candidat)
         profil.save()
         return profil
