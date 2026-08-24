@@ -22,6 +22,7 @@ from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
 from infrastructure.factories.identite.agent_factory import AgentFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
@@ -55,7 +56,7 @@ class TestListerMesRecrutements:
             ListerMesRecrutementsQuery(
                 organisme_id=organisme.id,
                 statut=statut,
-                utilisateur_id=agent_id,
+                utilisateur=UtilisateurFactory.create_entity(entity_id=agent_id),
             )
         )
 
@@ -204,7 +205,9 @@ class TestListerMesRecrutementsRbac:
             ListerMesRecrutementsQuery(
                 organisme_id=organisme.id,
                 statut=statut,
-                utilisateur_id=agent.utilisateur_id,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=agent.utilisateur_id
+                ),
             )
         )
 

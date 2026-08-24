@@ -16,6 +16,7 @@ from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
+from presentation.recruteur.mappers import utilisateur_from_request
 from presentation.recruteur.serializers import (
     RecrutementsActifsSerializer,
     RecrutementsArchivesSerializer,
@@ -52,8 +53,7 @@ class RecrutementsActifsView(APIView):
                 ListerMesRecrutementsQuery(
                     organisme_id=organisme_uuid,
                     statut=StatutRecrutement.ACTIF,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                 )
             )
 
@@ -105,8 +105,7 @@ class RecrutementsArchivesView(APIView):
                 ListerMesRecrutementsQuery(
                     organisme_id=organisme_uuid,
                     statut=StatutRecrutement.ARCHIVE,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                 )
             )
 

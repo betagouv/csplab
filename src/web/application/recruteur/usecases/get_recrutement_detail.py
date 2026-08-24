@@ -37,9 +37,8 @@ class GetRecrutementDetailUsecase(
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=query.organisme_id,
-            agent_id=query.utilisateur_id,
             recrutement_id=query.recrutement_id,
-            est_staff=query.est_staff,
+            utilisateur=query.utilisateur,
         )
 
         return self.recrutement_query_service.get_detail_by_recrutement(

@@ -19,6 +19,7 @@ from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
 from infrastructure.factories.identite.agent_factory import AgentFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -62,7 +63,9 @@ class TestGetRecrutementKanbanRbac:
             GetRecrutementKanbanQuery(
                 organisme_id=organisme.id,
                 recrutement_id=recrutement.offre_id,
-                utilisateur_id=agent.utilisateur_id,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=agent.utilisateur_id
+                ),
             )
         )
 
@@ -85,7 +88,9 @@ class TestGetRecrutementKanbanRbac:
                 GetRecrutementKanbanQuery(
                     organisme_id=organisme.id,
                     recrutement_id=recrutement.offre_id,
-                    utilisateur_id=agent.utilisateur_id,
+                    utilisateur=UtilisateurFactory.create_entity(
+                        entity_id=agent.utilisateur_id
+                    ),
                 )
             )
 
@@ -99,8 +104,9 @@ class TestGetRecrutementKanbanRbac:
                 GetRecrutementKanbanQuery(
                     organisme_id=organisme.id,
                     recrutement_id=uuid4(),
-                    utilisateur_id=agent.utilisateur_id,
-                    est_staff=est_staff,
+                    utilisateur=UtilisateurFactory.create_entity(
+                        entity_id=agent.utilisateur_id, is_staff=est_staff
+                    ),
                 )
             )
 
@@ -113,7 +119,9 @@ class TestGetRecrutementKanbanRbac:
             GetRecrutementKanbanQuery(
                 organisme_id=organisme.id,
                 recrutement_id=uuid4(),
-                utilisateur_id=agent.utilisateur_id,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=agent.utilisateur_id
+                ),
             )
         )
 
@@ -130,7 +138,9 @@ class TestGetRecrutementKanbanRbac:
             GetRecrutementKanbanQuery(
                 organisme_id=organisme.id,
                 recrutement_id=recrutement.offre_id,
-                utilisateur_id=agent.utilisateur_id,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=agent.utilisateur_id
+                ),
             )
         )
 

@@ -32,8 +32,7 @@ class UpdateRecrutementEtapesUsecase(
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
             organisme_id=command.organisme_id,
-            agent_id=command.utilisateur_id,
             recrutement_id=command.recrutement_id,
-            est_staff=command.est_staff,
+            utilisateur=command.utilisateur,
         )
         return command.etapes

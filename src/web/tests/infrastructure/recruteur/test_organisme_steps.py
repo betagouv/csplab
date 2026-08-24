@@ -17,6 +17,7 @@ from domain.identite.errors.organisme_permission_errors import AccesOrganismeRef
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
@@ -44,7 +45,10 @@ def test_get_organisme_steps(recruteur_integration_container):
 
     organisme = usecase.execute(
         command=GetOrganismeRecruteurQuery(
-            organisme_id=organisme_model.id, utilisateur_id=agent.utilisateur_id
+            organisme_id=organisme_model.id,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=agent.utilisateur_id
+            ),
         )
     )
     events = organisme.collect_events()
@@ -60,7 +64,10 @@ def test_initialize_organisme_steps(recruteur_integration_container):
 
     organisme = usecase.execute(
         command=InitializeOrganismeStepsCommand(
-            organisme_id=organisme_model.id, utilisateur_id=agent.utilisateur_id
+            organisme_id=organisme_model.id,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=agent.utilisateur_id
+            ),
         )
     )
 
@@ -82,7 +89,9 @@ def test_update_organisme_steps(recruteur_integration_container):
     usecase = recruteur_integration_container.update_organisme_steps_usecase()
     organisme = usecase.execute(
         command=UpdateOrganismeStepsCommand(
-            utilisateur_id=agent.utilisateur_id,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=agent.utilisateur_id
+            ),
             organisme_id=organisme_model.id,
             etapes=nouvelles_etapes,
         )
@@ -107,8 +116,9 @@ class TestGetOrganismeRecruteurRbac:
         result = usecase.execute(
             GetOrganismeRecruteurQuery(
                 organisme_id=organisme.id,
-                utilisateur_id=agent.utilisateur_id,
-                est_staff=est_staff,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=agent.utilisateur_id, is_staff=est_staff
+                ),
             )
         )
 
@@ -124,7 +134,10 @@ class TestGetOrganismeRecruteurRbac:
         with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(
                 GetOrganismeRecruteurQuery(
-                    organisme_id=organisme.id, utilisateur_id=agent.utilisateur_id
+                    organisme_id=organisme.id,
+                    utilisateur=UtilisateurFactory.create_entity(
+                        entity_id=agent.utilisateur_id
+                    ),
                 )
             )
 
@@ -142,8 +155,9 @@ class TestInitializeOrganismeStepsRbac:
         result = usecase.execute(
             InitializeOrganismeStepsCommand(
                 organisme_id=organisme.id,
-                utilisateur_id=agent.utilisateur_id,
-                est_staff=est_staff,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=agent.utilisateur_id, is_staff=est_staff
+                ),
             )
         )
 
@@ -160,7 +174,10 @@ class TestInitializeOrganismeStepsRbac:
         with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(
                 InitializeOrganismeStepsCommand(
-                    organisme_id=organisme.id, utilisateur_id=agent.utilisateur_id
+                    organisme_id=organisme.id,
+                    utilisateur=UtilisateurFactory.create_entity(
+                        entity_id=agent.utilisateur_id
+                    ),
                 )
             )
 
@@ -170,10 +187,11 @@ class TestUpdateOrganismeStepsRbac:
         etapes = EtapeRecrutementFactory.create_entity_batch()
         nouvelles_etapes = EtapeRecrutementFactory.to_etape_data_list(etapes)
         return UpdateOrganismeStepsCommand(
-            utilisateur_id=agent.utilisateur_id,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=agent.utilisateur_id, is_staff=est_staff
+            ),
             organisme_id=organisme.id,
             etapes=nouvelles_etapes,
-            est_staff=est_staff,
         )
 
     @pytest.mark.parametrize(

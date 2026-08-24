@@ -16,6 +16,7 @@ from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
 
 @pytest.fixture(name="organisme_permission_service")
@@ -34,7 +35,7 @@ class TestUpdateRecrutementEtapesUsecase:
     def test_echoes_etapes_back_unchanged(self, organisme_permission_service, usecase):
         organisme_id = uuid4()
         recrutement_id = uuid4()
-        utilisateur_id = uuid4()
+        utilisateur = UtilisateurFactory.create_entity()
         etapes = [
             EtapeData(
                 etape_uuid=uuid4(),
@@ -52,7 +53,7 @@ class TestUpdateRecrutementEtapesUsecase:
             UpdateRecrutementEtapesCommand(
                 organisme_id=organisme_id,
                 recrutement_id=recrutement_id,
-                utilisateur_id=utilisateur_id,
+                utilisateur=utilisateur,
                 etapes=etapes,
             )
         )
@@ -61,9 +62,8 @@ class TestUpdateRecrutementEtapesUsecase:
         organisme_permission_service.est_autorise.assert_called_once_with(
             action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
             organisme_id=organisme_id,
-            agent_id=utilisateur_id,
+            utilisateur=utilisateur,
             recrutement_id=recrutement_id,
-            est_staff=False,
         )
 
     def test_empty_etapes_returns_empty_result(self, usecase):
@@ -71,7 +71,7 @@ class TestUpdateRecrutementEtapesUsecase:
             UpdateRecrutementEtapesCommand(
                 organisme_id=uuid4(),
                 recrutement_id=uuid4(),
-                utilisateur_id=uuid4(),
+                utilisateur=UtilisateurFactory.create_entity(),
                 etapes=[],
             )
         )
@@ -89,7 +89,7 @@ class TestUpdateRecrutementEtapesUsecase:
                 UpdateRecrutementEtapesCommand(
                     organisme_id=organisme_id,
                     recrutement_id=uuid4(),
-                    utilisateur_id=uuid4(),
+                    utilisateur=UtilisateurFactory.create_entity(),
                     etapes=[],
                 )
             )

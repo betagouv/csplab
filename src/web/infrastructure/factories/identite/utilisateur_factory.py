@@ -20,6 +20,7 @@ class UtilisateurFactory:
         prenom: str | None = None,
         nom: str | None = None,
         is_superuser: bool = False,
+        is_staff: bool = False,
         organismes: list[OrganismeRole] | None = None,
     ) -> Utilisateur:
         return Utilisateur(
@@ -28,6 +29,7 @@ class UtilisateurFactory:
             prenom=prenom or fake.first_name(),
             nom=nom or fake.last_name(),
             is_superuser=is_superuser,
+            is_staff=is_staff,
             organisme_roles=organismes or [],
         )
 
@@ -39,6 +41,7 @@ class UtilisateurFactory:
         nom: str | None = None,
         password: str | None = None,
         is_superuser: bool = False,
+        is_staff: bool = False,
     ) -> UserModel:
         utilisateur = UtilisateurFactory.create_entity(
             entity_id=entity_id,
@@ -46,6 +49,7 @@ class UtilisateurFactory:
             prenom=prenom,
             nom=nom,
             is_superuser=is_superuser,
+            is_staff=is_staff,
         )
         user = UtilisateurMapper().from_domain(utilisateur)
         user.set_password(password or DEFAULT_PASSWORD)

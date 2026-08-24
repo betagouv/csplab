@@ -1,5 +1,7 @@
+from typing import cast
 from uuid import UUID
 
+from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementInconnu,
@@ -117,17 +119,16 @@ class OrganismePermissionService:
         self,
         *,
         action: OrganismeAction,
-        agent_id: UUID,
-        est_staff: bool,
+        utilisateur: Utilisateur,
         organisme_id: UUID | None = None,
         recrutement_id: UUID | None = None,
     ) -> AgentOrganismeRole | None:
-        if est_staff and action in _ACTIONS_SANS_ORGANISME:
+        if utilisateur.is_staff and action in _ACTIONS_SANS_ORGANISME:
             return None
 
         self._organisme_recruteur_repository.get_by_id(organisme_id)
 
-        if est_staff and action in _AUTORISE_POUR_STAFF:
+        if utilisateur.is_staff and action in _AUTORISE_POUR_STAFF:
             return None
 
         if action not in _ROLES_REQUIS:
@@ -135,10 +136,10 @@ class OrganismePermissionService:
 
         roles_requis = _ROLES_REQUIS[action]
         role = self._organisme_agent_repository.get_role(
-            organisme_id=organisme_id, agent_id=agent_id
+            organisme_id=cast(UUID, organisme_id), agent_id=utilisateur.entity_id
         )
         if role not in roles_requis:
-            raise AccesOrganismeRefuse(organisme_id)
+            raise AccesOrganismeRefuse(cast(UUID, organisme_id))
 
         if (
             role == AgentOrganismeRole.MEMBRE
@@ -148,7 +149,7 @@ class OrganismePermissionService:
                 raise AccesRecrutementInconnu()
 
             recrutement_role = self._recrutement_agent_repository.get_role(
-                recrutement_id=recrutement_id, agent_id=agent_id
+                recrutement_id=recrutement_id, agent_id=utilisateur.entity_id
             )
             if recrutement_role not in _ROLES_RECRUTEMENT_REQUIS[action]:
                 raise AccesRecrutementRefuse(recrutement_id)

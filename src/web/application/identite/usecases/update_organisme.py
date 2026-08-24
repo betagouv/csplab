@@ -5,6 +5,7 @@ from ddd.usecase_interface import IUseCase
 from referentiel.entities.organisme import Organisme
 from referentiel.value_objects.verse import Verse
 
+from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
@@ -20,8 +21,7 @@ class UpdateOrganismeCommand:
     name: str | None
     verse: Verse | None
     managed_ats: bool | None
-    utilisateur_id: UUID
-    is_staff: bool = False
+    utilisateur: Utilisateur
 
 
 class UpdateOrganismeUsecase(IUseCase[UpdateOrganismeCommand, Organisme]):
@@ -37,8 +37,7 @@ class UpdateOrganismeUsecase(IUseCase[UpdateOrganismeCommand, Organisme]):
         self.permission_service.est_autorise(
             action=OrganismeAction.MODIFIER_ORGANISME,
             organisme_id=command.organisme_id,
-            agent_id=command.utilisateur_id,
-            est_staff=command.is_staff,
+            utilisateur=command.utilisateur,
         )
         organisme = self.organisme_repository.get_by_id(command.organisme_id)
         # todo domain

@@ -7,6 +7,7 @@ from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
+from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
@@ -23,8 +24,7 @@ class CreateOrganismeCommand:
     localisation: Localisation | None
     siret: SIRET | None
     parent_id: UUID | None
-    utilisateur_id: UUID
-    est_staff: bool = False
+    utilisateur: Utilisateur
 
 
 class CreateOrganismeUsecase(IUseCase[CreateOrganismeCommand, Organisme]):
@@ -39,8 +39,7 @@ class CreateOrganismeUsecase(IUseCase[CreateOrganismeCommand, Organisme]):
     def execute(self, input_data: CreateOrganismeCommand) -> Organisme:
         self.permission_service.est_autorise(
             action=OrganismeAction.CREER_ORGANISME,
-            agent_id=input_data.utilisateur_id,
-            est_staff=input_data.est_staff,
+            utilisateur=input_data.utilisateur,
         )
         organisme = Organisme.create(
             nom=input_data.nom,

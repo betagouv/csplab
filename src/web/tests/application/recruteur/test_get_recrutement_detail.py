@@ -23,6 +23,7 @@ from domain.identite.services.organisme_permission_service import (
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
 
 def _recrutement_detail_read_model() -> RecrutementDetailReadModel:
@@ -87,12 +88,12 @@ class TestGetRecrutementDetail:
         read_model = _recrutement_detail_read_model()
         recrutement_query_service.get_detail_by_recrutement.return_value = read_model
 
-        utilisateur_id = uuid4()
+        utilisateur = UtilisateurFactory.create_entity()
         result = usecase.execute(
             GetRecrutementDetailQuery(
                 organisme_id=organisme_id,
                 recrutement_id=recrutement_id,
-                utilisateur_id=utilisateur_id,
+                utilisateur=utilisateur,
             )
         )
 
@@ -100,8 +101,7 @@ class TestGetRecrutementDetail:
         organisme_permission_service.est_autorise.assert_called_once_with(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=organisme_id,
-            agent_id=utilisateur_id,
-            est_staff=False,
+            utilisateur=utilisateur,
             recrutement_id=recrutement_id,
         )
         recrutement_query_service.get_detail_by_recrutement.assert_called_once_with(
@@ -123,7 +123,7 @@ class TestGetRecrutementDetail:
             GetRecrutementDetailQuery(
                 organisme_id=uuid4(),
                 recrutement_id=uuid4(),
-                utilisateur_id=uuid4(),
+                utilisateur=UtilisateurFactory.create_entity(),
             )
         )
 
@@ -140,6 +140,6 @@ class TestGetRecrutementDetail:
                 GetRecrutementDetailQuery(
                     organisme_id=organisme_id,
                     recrutement_id=uuid4(),
-                    utilisateur_id=uuid4(),
+                    utilisateur=UtilisateurFactory.create_entity(),
                 )
             )

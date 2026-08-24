@@ -9,6 +9,7 @@ from config.app_config import AppConfig
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
 
@@ -29,8 +30,7 @@ def test_create_organisme(identite_integration_container):
         localisation=None,
         siret=SIRET(code="19754687200015"),
         parent_id=None,
-        utilisateur_id=uuid4(),
-        est_staff=True,
+        utilisateur=UtilisateurFactory.create_entity(is_staff=True),
     )
 
     organisme = identite_integration_container.create_organisme_usecase().execute(
@@ -51,8 +51,7 @@ def test_create_organisme_avec_siret(identite_integration_container):
         localisation=None,
         siret=SIRET(code="19754687200015"),
         parent_id=None,
-        utilisateur_id=uuid4(),
-        est_staff=True,
+        utilisateur=UtilisateurFactory.create_entity(is_staff=True),
     )
 
     organisme = identite_integration_container.create_organisme_usecase().execute(

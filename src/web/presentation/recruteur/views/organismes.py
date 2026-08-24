@@ -23,6 +23,7 @@ from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
 )
+from presentation.recruteur.mappers import utilisateur_from_request
 from presentation.recruteur.serializers import (
     CreateOrganismeSerializer,
     OrganismeDetailSerializer,
@@ -65,8 +66,7 @@ class OrganismesView(APIView):
             usecase = self.container.list_organismes_usecase()
             organismes = usecase.execute(
                 ListOrganismesCommand(
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                 )
             ) or OrganismeFactory.create_entity_batch(
                 3,
@@ -108,8 +108,7 @@ class OrganismesView(APIView):
                 localisation=None,
                 siret=SIRET(code=serializer.validated_data["siret"]),
                 parent_id=None,
-                utilisateur_id=request.user.username,
-                est_staff=request.user.is_staff,
+                utilisateur=utilisateur_from_request(request),
             )
             usecase.execute(command)
             organisme = OrganismeFactory.create_entity(

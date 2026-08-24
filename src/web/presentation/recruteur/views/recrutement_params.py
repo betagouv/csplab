@@ -26,6 +26,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 )
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.recruteur.mappers import utilisateur_from_request
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
     UpdateEtapeRecrutementSerializer,
@@ -81,8 +82,7 @@ class RecrutementEtapeView(APIView):
                 GetRecrutementEtapesQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                 )
             )
             serializer = EtapeRecrutementSerializer(
@@ -121,8 +121,7 @@ class RecrutementEtapeView(APIView):
                 UpdateRecrutementEtapesCommand(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                     etapes=etapes,
                 )
             )
@@ -169,8 +168,7 @@ class InitRecrutementEtapeView(APIView):
                 InitRecrutementEtapesCommand(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                 )
             )
             serializer = EtapeRecrutementSerializer(

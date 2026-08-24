@@ -3,6 +3,7 @@ from uuid import UUID
 
 from ddd.usecase_interface import IUseCase
 
+from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
@@ -16,8 +17,7 @@ from domain.recruteur.repositories.organisme_repository_interface import (
 @dataclass
 class InitializeOrganismeStepsCommand:
     organisme_id: UUID
-    utilisateur_id: UUID
-    est_staff: bool = False
+    utilisateur: Utilisateur
 
 
 class InitializeOrganismeStepsUsecase(
@@ -35,8 +35,7 @@ class InitializeOrganismeStepsUsecase(
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.INITIALIZE_ORGANISME_STEPS,
             organisme_id=command.organisme_id,
-            agent_id=command.utilisateur_id,
-            est_staff=command.est_staff,
+            utilisateur=command.utilisateur,
         )
         organisme = self.organisme_recruteur_repository.get_by_id(command.organisme_id)
         organisme.initialiser_etapes()

@@ -22,6 +22,7 @@ from domain.recruteur.value_objects.roles import (
     AgentRecrutementRole,
 )
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -67,7 +68,9 @@ class TestUpdateRecrutementEtapes:
             UpdateRecrutementEtapesCommand(
                 organisme_id=recrutement_model.organisme_id,
                 recrutement_id=recrutement_model.offre_id,
-                utilisateur_id=recrutement_model.agents_liaisons.get().agent_id,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=recrutement_model.agents_liaisons.get().agent_id
+                ),
                 etapes=etapes,
             )
         )
@@ -87,7 +90,9 @@ class TestUpdateRecrutementEtapes:
                 UpdateRecrutementEtapesCommand(
                     organisme_id=recrutement_model.organisme_id,
                     recrutement_id=recrutement_model.offre_id,
-                    utilisateur_id=recrutement_model.agents_liaisons.get().agent_id,
+                    utilisateur=UtilisateurFactory.create_entity(
+                        entity_id=recrutement_model.agents_liaisons.get().agent_id
+                    ),
                     etapes=[],
                 )
             )
@@ -101,7 +106,7 @@ class TestUpdateRecrutementEtapes:
                 UpdateRecrutementEtapesCommand(
                     organisme_id=recrutement_model.organisme_id,
                     recrutement_id=recrutement_model.offre_id,
-                    utilisateur_id=uuid4(),
+                    utilisateur=UtilisateurFactory.create_entity(),
                     etapes=[],
                 )
             )
@@ -116,7 +121,7 @@ class TestUpdateRecrutementEtapes:
                 UpdateRecrutementEtapesCommand(
                     organisme_id=uuid4(),
                     recrutement_id=uuid4(),
-                    utilisateur_id=uuid4(),
+                    utilisateur=UtilisateurFactory.create_entity(),
                     etapes=[],
                 )
             )

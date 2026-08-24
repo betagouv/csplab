@@ -18,6 +18,7 @@ from domain.identite.services.organisme_permission_service import (
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from tests.utils.interface_aware_mock import create_interface_aware_mock
 
@@ -59,7 +60,7 @@ class TestListerMesRecrutements:
             ListerMesRecrutementsQuery(
                 organisme_id=organisme_id,
                 statut=StatutRecrutement.ACTIF,
-                utilisateur_id=uuid4(),
+                utilisateur=UtilisateurFactory.create_entity(),
             )
         )
 
@@ -77,7 +78,7 @@ class TestListerMesRecrutements:
             ListerMesRecrutementsQuery(
                 organisme_id=organisme_id,
                 statut=StatutRecrutement.ARCHIVE,
-                utilisateur_id=uuid4(),
+                utilisateur=UtilisateurFactory.create_entity(),
             )
         )
 
@@ -99,7 +100,7 @@ class TestListerMesRecrutements:
             ListerMesRecrutementsQuery(
                 organisme_id=organisme_id,
                 statut=StatutRecrutement.ACTIF,
-                utilisateur_id=utilisateur_id,
+                utilisateur=UtilisateurFactory.create_entity(entity_id=utilisateur_id),
             )
         )
 
@@ -125,7 +126,7 @@ class TestListerMesRecrutements:
             ListerMesRecrutementsQuery(
                 organisme_id=organisme_id,
                 statut=StatutRecrutement.ARCHIVE,
-                utilisateur_id=utilisateur_id,
+                utilisateur=UtilisateurFactory.create_entity(entity_id=utilisateur_id),
             )
         )
 
@@ -145,6 +146,6 @@ class TestListerMesRecrutements:
                 ListerMesRecrutementsQuery(
                     organisme_id=organisme_id,
                     statut=StatutRecrutement.ACTIF,
-                    utilisateur_id=uuid4(),
+                    utilisateur=UtilisateurFactory.create_entity(),
                 )
             )

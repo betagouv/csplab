@@ -4,6 +4,7 @@ from uuid import UUID
 from ddd.usecase_interface import IUseCase
 
 from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
@@ -28,9 +29,8 @@ class EtapeData:
 @dataclass
 class UpdateOrganismeStepsCommand:
     organisme_id: UUID
-    utilisateur_id: UUID
+    utilisateur: Utilisateur
     etapes: list[EtapeData]
-    est_staff: bool = False
 
 
 class UpdateOrganismeStepsUsecase(
@@ -50,8 +50,7 @@ class UpdateOrganismeStepsUsecase(
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.UPDATE_ORGANISME_STEPS,
             organisme_id=command.organisme_id,
-            agent_id=command.utilisateur_id,
-            est_staff=command.est_staff,
+            utilisateur=command.utilisateur,
         )
         organisme_recruteur = self.organisme_recruteur_repository.get_by_id(
             command.organisme_id
@@ -75,6 +74,6 @@ class UpdateOrganismeStepsUsecase(
         organisme_recruteur.mettre_a_jour_etapes(etapes=etapes)
         self.organisme_recruteur_repository.save(organisme_recruteur)
         self.audit_log_writer.drain_events(
-            utilisateur_id=command.utilisateur_id, aggregate=organisme_recruteur
+            utilisateur_id=command.utilisateur.entity_id, aggregate=organisme_recruteur
         )
         return organisme_recruteur

@@ -31,6 +31,7 @@ from domain.recruteur.errors.recrutement_errors import (
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
+from presentation.recruteur.mappers import utilisateur_from_request
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     ChangerEtapeCandidaturesSerializer,
@@ -67,8 +68,7 @@ class RecrutementDetailView(APIView):
                 GetRecrutementDetailQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                 )
             )
             if result is None:
@@ -116,8 +116,7 @@ class RecrutementKanbanView(APIView):
                 GetRecrutementKanbanQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                 )
             )
             if result is None:
@@ -167,8 +166,7 @@ class RecrutementListeView(APIView):
                 GetRecrutementListeQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                 )
             )
             if result is None:
@@ -227,8 +225,7 @@ class RecrutementCandidaturesEtapeView(APIView):
                     recrutement_id=recrutement_uuid,
                     etape_cible_id=data["etape_cible_uuid"],
                     candidatures=[c["candidature_uuid"] for c in data["candidatures"]],
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                 )
             )
             return Response(

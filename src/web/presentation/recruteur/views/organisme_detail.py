@@ -41,6 +41,7 @@ from presentation.api.serializers import (
 )
 from presentation.recruteur.mappers import (
     EtapesMapper,
+    utilisateur_from_request,
 )
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
@@ -83,8 +84,7 @@ class OrganismeDetailView(APIView):
                 name=data.get("nom"),
                 verse=Verse(data["versant"]) if data.get("versant") else None,
                 managed_ats=data.get("gestion_ats"),
-                utilisateur_id=request.user.username,
-                is_staff=request.user.is_staff,
+                utilisateur=utilisateur_from_request(request),
             )
             organisme = usecase.execute(command)
             organisme_dto = {
@@ -148,13 +148,11 @@ class EtapesRecrutementOrganismeView(APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            utilisateur_id = request.user.username
             usecase = self.container.get_organisme_recruteur_usecase()
             organisme = usecase.execute(
                 GetOrganismeRecruteurQuery(
                     organisme_id=organisme_uuid,
-                    utilisateur_id=utilisateur_id,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                 )
             )
             data = EtapesMapper().from_domain(organisme)
@@ -187,14 +185,12 @@ class EtapesRecrutementOrganismeView(APIView):
             for etape in validated_etapes
         ]
         try:
-            utilisateur_id = request.user.username
             usecase = self.container.update_organisme_steps_usecase()
             organisme = usecase.execute(
                 UpdateOrganismeStepsCommand(
                     organisme_id=organisme_uuid,
-                    utilisateur_id=utilisateur_id,
+                    utilisateur=utilisateur_from_request(request),
                     etapes=etapes,
-                    est_staff=request.user.is_staff,
                 )
             )
             data = EtapesMapper().from_domain(organisme)
@@ -233,13 +229,11 @@ class InitEtapesRecrutementOrganismeView(APIView):
 
     def post(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            utilisateur_id = request.user.username
             usecase = self.container.initialize_organisme_steps_usecase()
             organisme = usecase.execute(
                 InitializeOrganismeStepsCommand(
                     organisme_id=organisme_uuid,
-                    utilisateur_id=utilisateur_id,
-                    est_staff=request.user.is_staff,
+                    utilisateur=utilisateur_from_request(request),
                 )
             )
             data = EtapesMapper().from_domain(organisme)

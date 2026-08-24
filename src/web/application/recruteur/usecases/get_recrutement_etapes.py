@@ -29,8 +29,7 @@ class GetRecrutementEtapesUsecase(IUseCase[GetRecrutementEtapesQuery, list[Etape
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
             organisme_id=query.organisme_id,
-            agent_id=query.utilisateur_id,
             recrutement_id=query.recrutement_id,
-            est_staff=query.est_staff,
+            utilisateur=query.utilisateur,
         )
         return etapes_par_defaut()

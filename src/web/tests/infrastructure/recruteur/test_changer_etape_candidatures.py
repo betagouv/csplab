@@ -22,6 +22,7 @@ from infrastructure.factories.candidate.candidature_factory import (
 )
 from infrastructure.factories.identite.agent_factory import AgentFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -91,8 +92,7 @@ class TestChangerEtapeCandidaturesUsecase:
         command = ChangerEtapeCandidaturesCommand(
             organisme_id=recrutement.organisme_id,
             recrutement_id=recrutement.offre_id,
-            utilisateur_id=agent_id,
-            est_staff=False,
+            utilisateur=UtilisateurFactory.create_entity(entity_id=agent_id),
             etape_cible_id=etape_cible_id,
             candidatures=[candidature.id for candidature in candidatures],
         )
@@ -124,8 +124,7 @@ class TestChangerEtapeCandidaturesUsecase:
         command = ChangerEtapeCandidaturesCommand(
             organisme_id=recrutement.organisme_id,
             recrutement_id=recrutement.offre_id,
-            utilisateur_id=agent_id,
-            est_staff=False,
+            utilisateur=UtilisateurFactory.create_entity(entity_id=agent_id),
             etape_cible_id=uuid4(),
             candidatures=[candidature.id for candidature in candidatures],
         )
@@ -154,8 +153,9 @@ class TestChangerEtapeCandidaturesUsecase:
                 ChangerEtapeCandidaturesCommand(
                     organisme_id=recrutement.organisme_id,
                     recrutement_id=recrutement.offre_id,
-                    utilisateur_id=agent_model.utilisateur_id,
-                    est_staff=False,
+                    utilisateur=UtilisateurFactory.create_entity(
+                        entity_id=agent_model.utilisateur_id
+                    ),
                     etape_cible_id=etape_cible_id,
                     candidatures=unknown_candidature_ids,
                 )

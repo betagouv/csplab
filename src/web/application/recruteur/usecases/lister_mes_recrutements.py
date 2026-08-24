@@ -10,6 +10,7 @@ from application.recruteur.services.recrutement_query_service_interface import (
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
 )
+from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
@@ -22,8 +23,7 @@ from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 class ListerMesRecrutementsQuery:
     organisme_id: UUID
     statut: StatutRecrutement
-    utilisateur_id: UUID
-    est_staff: bool = False
+    utilisateur: Utilisateur
 
 
 class ListerMesRecrutementsUsecase(
@@ -52,12 +52,13 @@ class ListerMesRecrutementsUsecase(
         role = self.organisme_permission_service.est_autorise(
             action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
             organisme_id=query.organisme_id,
-            agent_id=query.utilisateur_id,
-            est_staff=query.est_staff,
+            utilisateur=query.utilisateur,
         )
 
         agent_id_filtre = (
-            None if role == AgentOrganismeRole.RESPONSABLE else query.utilisateur_id
+            None
+            if role == AgentOrganismeRole.RESPONSABLE
+            else query.utilisateur.entity_id
         )
 
         if query.statut == StatutRecrutement.ACTIF:

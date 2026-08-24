@@ -207,7 +207,7 @@ class TestEtapesRecrutementOrganismeView:
         authenticated_client.get(ETAPES_URL)
 
         command = mock_usecase.execute.call_args.args[0]
-        assert command.est_staff is True
+        assert command.utilisateur.is_staff is True
 
 
 class TestInitEtapesRecrutementOrganismeView:
@@ -280,7 +280,7 @@ class TestInitEtapesRecrutementOrganismeView:
         authenticated_client.post(INIT_ETAPES_URL)
 
         command = mock_usecase.execute.call_args.args[0]
-        assert command.est_staff is True
+        assert command.utilisateur.is_staff is True
 
 
 class TestPutEtapesRecrutementOrganismeView:
@@ -427,4 +427,4 @@ class TestPutEtapesRecrutementOrganismeView:
         authenticated_client.put(ETAPES_URL, VALID_ETAPES_PAYLOAD, format="json")
 
         command = mock_usecase.execute.call_args.args[0]
-        assert command.est_staff is True
+        assert command.utilisateur.is_staff is True
