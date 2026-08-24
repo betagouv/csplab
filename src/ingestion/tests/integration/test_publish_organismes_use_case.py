@@ -14,13 +14,13 @@ from referentiel.value_objects.region import Region
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
-from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.web_publish_organismes_gateway import (
-    WebPublishOrganismesGateway,
+from application.use_cases.publish_organismes import (
+    PublishOrganismesCommand,
+    PublishOrganismesUseCase,
 )
+from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.conftest import PUBLISH_ORGANISMES_URL as PUBLISH_URL
 from tests.conftest import WEB_API_KEY as API_KEY
-from tests.conftest import WEB_BASE_URL as BASE_URL
 
 ORGANISME_ID = UUID("11111111-2222-3333-4444-555555555555")
 
@@ -55,19 +55,15 @@ FULL_ORGANISME = Organisme.build(
 )
 
 
-@pytest.fixture
-def gateway():
-    client = httpx.AsyncClient()
-    return WebPublishOrganismesGateway(
-        client=client, base_url=BASE_URL, api_key=API_KEY
-    )
-
-
 @pytest.mark.asyncio
-async def test_publish_posts_to_correct_url(gateway, httpx_mock: HTTPXMock):
+async def test_execute_posts_to_correct_url(
+    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish([MINIMAL_ORGANISME])
+    await publish_organismes_use_case.execute(
+        PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
+    )
 
     requests = httpx_mock.get_requests()
     assert len(requests) == 1
@@ -75,20 +71,28 @@ async def test_publish_posts_to_correct_url(gateway, httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
-async def test_publish_sends_api_key_header(gateway, httpx_mock: HTTPXMock):
+async def test_execute_sends_api_key_header(
+    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish([MINIMAL_ORGANISME])
+    await publish_organismes_use_case.execute(
+        PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
+    )
 
     request = httpx_mock.get_requests()[0]
     assert request.headers["Authorization"] == f"Api-Key {API_KEY}"
 
 
 @pytest.mark.asyncio
-async def test_publish_serializes_minimal_organisme(gateway, httpx_mock: HTTPXMock):
+async def test_execute_serializes_minimal_organisme(
+    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish([MINIMAL_ORGANISME])
+    await publish_organismes_use_case.execute(
+        PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
+    )
 
     body = json.loads(httpx_mock.get_requests()[0].content)
     assert list(body.keys()) == ["organismes"]
@@ -110,20 +114,28 @@ async def test_publish_serializes_minimal_organisme(gateway, httpx_mock: HTTPXMo
 
 
 @pytest.mark.asyncio
-async def test_publish_serializes_multiple_organismes(gateway, httpx_mock: HTTPXMock):
+async def test_execute_serializes_multiple_organismes(
+    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish([MINIMAL_ORGANISME, FULL_ORGANISME])
+    await publish_organismes_use_case.execute(
+        PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME, FULL_ORGANISME])
+    )
 
     body = json.loads(httpx_mock.get_requests()[0].content)
     assert len(body["organismes"]) == 2
 
 
 @pytest.mark.asyncio
-async def test_publish_serializes_full_organisme(gateway, httpx_mock: HTTPXMock):
+async def test_execute_serializes_full_organisme(
+    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await gateway.publish([FULL_ORGANISME])
+    await publish_organismes_use_case.execute(
+        PublishOrganismesCommand(organismes=[FULL_ORGANISME])
+    )
 
     body = json.loads(httpx_mock.get_requests()[0].content)
     organisme = body["organismes"][0]
@@ -147,16 +159,41 @@ async def test_publish_serializes_full_organisme(gateway, httpx_mock: HTTPXMock)
 
 
 @pytest.mark.asyncio
-async def test_publish_raises_on_http_error(gateway, httpx_mock: HTTPXMock):
+async def test_execute_raises_on_http_error(
+    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=500)
 
     with pytest.raises(httpx.HTTPStatusError):
-        await gateway.publish([MINIMAL_ORGANISME])
+        await publish_organismes_use_case.execute(
+            PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
+        )
 
 
 @pytest.mark.asyncio
-async def test_publish_raises_and_logs_error_when_response_contains_errors(
-    gateway, httpx_mock: HTTPXMock, caplog
+async def test_execute_raises_on_bad_request(
+    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(
+        method="POST",
+        url=PUBLISH_URL,
+        status_code=400,
+        json={"detail": "Invalid payload"},
+    )
+
+    with pytest.raises(httpx.HTTPStatusError) as exc_info:
+        await publish_organismes_use_case.execute(
+            PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
+        )
+
+    assert exc_info.value.response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_execute_raises_and_logs_error_when_response_contains_errors(
+    publish_organismes_use_case: PublishOrganismesUseCase,
+    httpx_mock: HTTPXMock,
+    caplog,
 ):
     httpx_mock.add_response(
         method="POST",
@@ -170,14 +207,18 @@ async def test_publish_raises_and_logs_error_when_response_contains_errors(
     )
 
     with caplog.at_level("ERROR"), pytest.raises(ExternalApiError):
-        await gateway.publish([MINIMAL_ORGANISME])
+        await publish_organismes_use_case.execute(
+            PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
+        )
 
     assert any("invalid" in record.getMessage() for record in caplog.records)
 
 
 @pytest.mark.asyncio
-async def test_publish_does_not_log_when_response_has_no_errors(
-    gateway, httpx_mock: HTTPXMock, caplog
+async def test_execute_does_not_log_when_response_has_no_errors(
+    publish_organismes_use_case: PublishOrganismesUseCase,
+    httpx_mock: HTTPXMock,
+    caplog,
 ):
     httpx_mock.add_response(
         method="POST",
@@ -187,6 +228,8 @@ async def test_publish_does_not_log_when_response_has_no_errors(
     )
 
     with caplog.at_level("ERROR"):
-        await gateway.publish([MINIMAL_ORGANISME])
+        await publish_organismes_use_case.execute(
+            PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
+        )
 
     assert caplog.records == []
