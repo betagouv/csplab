@@ -13,7 +13,7 @@ from application.recruteur.usecases.update_organisme_steps import (
 )
 from config.app_config import AppConfig
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory

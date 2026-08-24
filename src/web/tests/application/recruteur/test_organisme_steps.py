@@ -11,7 +11,7 @@ from application.recruteur.usecases.initialize_organisme_steps import (
 from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsCommand,
 )
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )

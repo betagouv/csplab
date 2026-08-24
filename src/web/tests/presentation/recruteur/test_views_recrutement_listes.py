@@ -11,7 +11,7 @@ from application.recruteur.dtos.recrutement_read_models import (
     CandidaturesCompteurDto,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 
 fake = Faker()

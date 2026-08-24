@@ -4,10 +4,10 @@ from ddd.usecase_interface import IUseCase
 
 from application.recruteur.dtos.etape_data import EtapeData
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
-from domain.recruteur.services.organisme_permission_service import (
+from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.organisme_action import OrganismeAction
 
 
 @dataclass(kw_only=True)

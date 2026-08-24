@@ -6,7 +6,7 @@ from application.recruteur.usecases.get_recrutement_liste import (
     GetRecrutementListeQuery,
 )
 from config.app_config import AppConfig
-from domain.recruteur.errors.organisme_permission_errors import (
+from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementRefuse,
 )

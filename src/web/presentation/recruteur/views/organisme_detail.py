@@ -22,12 +22,14 @@ from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsCommand,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
+from domain.identite.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    OperationOrganismeRefusee,
+)
 from domain.recruteur.errors.erreur_recrutement import (
     ConfigurationEtapesInvalide,
     ErreurRecruteur,
 )
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -81,6 +83,7 @@ class OrganismeDetailView(APIView):
                 name=data.get("nom"),
                 verse=Verse(data["versant"]) if data.get("versant") else None,
                 managed_ats=data.get("gestion_ats"),
+                utilisateur_id=request.user.username,
                 is_staff=request.user.is_staff,
             )
             organisme = usecase.execute(command)

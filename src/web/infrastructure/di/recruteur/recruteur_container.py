@@ -40,7 +40,7 @@ from application.recruteur.usecases.update_recrutement_etapes import (
     UpdateRecrutementEtapesUsecase,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.recruteur.services.organisme_permission_service import (
+from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from infrastructure.mappers.candidature_recruteur_mapper import (

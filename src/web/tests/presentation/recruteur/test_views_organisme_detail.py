@@ -7,12 +7,14 @@ from faker import Faker
 from rest_framework import status
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
+from domain.identite.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    OperationOrganismeRefusee,
+)
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.erreur_recrutement import (
     ConfigurationEtapesInvalide,
 )
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )

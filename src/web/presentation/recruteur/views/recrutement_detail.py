@@ -20,7 +20,7 @@ from application.recruteur.usecases.get_recrutement_liste import (
     GetRecrutementListeQuery,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.errors.organisme_permission_errors import (
+from domain.identite.errors.organisme_permission_errors import (
     OrganismePermissionError,
 )
 from domain.recruteur.errors.recrutement_errors import (

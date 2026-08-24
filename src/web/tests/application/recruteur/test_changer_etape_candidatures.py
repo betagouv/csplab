@@ -11,7 +11,10 @@ from application.recruteur.usecases.changer_etape_candidatures import (
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.recruteur.errors.organisme_permission_errors import AccesRecrutementRefuse
+from domain.identite.errors.organisme_permission_errors import AccesRecrutementRefuse
+from domain.identite.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
@@ -24,9 +27,6 @@ from domain.recruteur.repositories.candidature_recruteur_repository_interface im
 )
 from domain.recruteur.repositories.recrutement_repository_interface import (
     IRecrutementRepository,
-)
-from domain.recruteur.services.organisme_permission_service import (
-    OrganismePermissionService,
 )
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.factories.recruteur.candidature_recruteur_factory import (

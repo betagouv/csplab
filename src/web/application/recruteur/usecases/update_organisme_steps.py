@@ -4,18 +4,18 @@ from uuid import UUID
 from ddd.usecase_interface import IUseCase
 
 from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.identite.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.organisme_recruteur import OrganismeRecruteur
 from domain.recruteur.repositories.organisme_repository_interface import (
     IOrganismeRecruteurRepository,
 )
-from domain.recruteur.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
 
 
 @dataclass

@@ -17,11 +17,11 @@ from application.recruteur.usecases.get_recrutement_detail import (
     GetRecrutementDetailQuery,
     GetRecrutementDetailUsecase,
 )
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.recruteur.services.organisme_permission_service import (
+from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 
 

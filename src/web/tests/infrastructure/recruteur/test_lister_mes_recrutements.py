@@ -6,7 +6,7 @@ from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsQuery,
 )
 from config.app_config import AppConfig
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )

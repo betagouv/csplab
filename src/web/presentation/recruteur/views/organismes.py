@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from application.identite.usecases.create_organisme import CreateOrganismeCommand
+from application.identite.usecases.list_organismes import ListOrganismesCommand
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
@@ -63,7 +64,10 @@ class OrganismesView(APIView):
         try:
             usecase = self.container.list_organismes_usecase()
             organismes = usecase.execute(
-                request.user.username
+                ListOrganismesCommand(
+                    utilisateur_id=request.user.username,
+                    est_staff=request.user.is_staff,
+                )
             ) or OrganismeFactory.create_entity_batch(
                 3,
             )
@@ -104,6 +108,7 @@ class OrganismesView(APIView):
                 localisation=None,
                 siret=SIRET(code=serializer.validated_data["siret"]),
                 parent_id=None,
+                utilisateur_id=request.user.username,
                 est_staff=request.user.is_staff,
             )
             usecase.execute(command)

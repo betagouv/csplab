@@ -8,6 +8,7 @@ from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
+from application.identite.usecases.list_organismes import ListOrganismesCommand
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
@@ -59,6 +60,9 @@ class TestOrganismesView:
         container.list_organismes_usecase.return_value = mock_usecase
         response = authenticated_client.get(ORGANISME_URL)
 
+        mock_usecase.execute.assert_called_once()
+        (called_command,), _ = mock_usecase.execute.call_args
+        assert isinstance(called_command, ListOrganismesCommand)
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == [
             {

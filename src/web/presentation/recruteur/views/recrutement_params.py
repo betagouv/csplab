@@ -18,7 +18,7 @@ from application.recruteur.usecases.update_recrutement_etapes import (
     UpdateRecrutementEtapesCommand,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.errors.organisme_permission_errors import (
+from domain.identite.errors.organisme_permission_errors import (
     OrganismePermissionError,
 )
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (

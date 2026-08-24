@@ -7,6 +7,10 @@ from ddd.usecase_interface import IUseCase
 from referentiel.types import IBatchUpdate
 
 from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.identite.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.errors.recrutement_errors import RecrutementError
@@ -16,10 +20,6 @@ from domain.recruteur.repositories.candidature_recruteur_repository_interface im
 from domain.recruteur.repositories.recrutement_repository_interface import (
     IRecrutementRepository,
 )
-from domain.recruteur.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
 
 
 @dataclass

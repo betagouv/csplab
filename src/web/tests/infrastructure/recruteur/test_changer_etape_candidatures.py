@@ -6,7 +6,7 @@ from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesCommand,
 )
 from config.app_config import AppConfig
-from domain.recruteur.errors.organisme_permission_errors import (
+from domain.identite.errors.organisme_permission_errors import (
     AccesRecrutementRefuse,
 )
 from domain.recruteur.errors.recrutement_errors import CandidatureInexistante

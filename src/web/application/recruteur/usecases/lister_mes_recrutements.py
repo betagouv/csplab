@@ -10,10 +10,10 @@ from application.recruteur.services.recrutement_query_service_interface import (
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
 )
-from domain.recruteur.services.organisme_permission_service import (
+from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 
