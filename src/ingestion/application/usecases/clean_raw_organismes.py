@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timezone
 
+from pydantic import ValidationError
 from referentiel.entities.organisme import Organisme
 
 from domain.gateways.organismes_cleaner import IOrganismesCleaner
@@ -36,9 +37,17 @@ class CleanRawOrganismesUsecase:
                 cleaned_ids.append(raw_organisme.id)
                 try:
                     organisme = self._organismes_cleaner.clean(raw_organisme)
+                except ValidationError as e:
+                    logger.warning(
+                        "Invalid data for raw organisme %s: %s",
+                        raw_organisme.external_id,
+                        e,
+                    )
+                    continue
                 except Exception:
                     logger.exception(
-                        "Failed to clean raw organisme %s", raw_organisme.external_id
+                        "Unexpected error cleaning raw organisme %s",
+                        raw_organisme.external_id,
                     )
                     continue
                 if organisme is not None:

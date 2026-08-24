@@ -4,6 +4,8 @@ from pydantic import BaseModel, ValidationError, field_validator
 
 COMMUNE_CODE_LENGTH = 2
 DOM_TOM_COMMUNE_CODE_LENGTH = 3
+DEPARTMENT_CODE_LENGTH = 2
+DOM_TOM_DEPARTMENT_CODE_LENGTH = 3
 
 
 class Department(BaseModel):
@@ -134,18 +136,27 @@ class Department(BaseModel):
         return self.NAMES.get(self.code, self.code)
 
     @classmethod
+    def from_department_code(cls, code: str) -> Optional["Department"]:
+        normalized = code.strip().lstrip("0")
+        if not normalized:
+            raise ValueError(f"Invalid department code: {code}")
+        formatted = (
+            normalized.zfill(DOM_TOM_DEPARTMENT_CODE_LENGTH)
+            if len(normalized) >= DOM_TOM_DEPARTMENT_CODE_LENGTH
+            else normalized.zfill(DEPARTMENT_CODE_LENGTH)
+        )
+        return cls(code=formatted)
+
+    @classmethod
     def from_commune_code(cls, cog_commune: str) -> Optional["Department"]:
         if len(cog_commune) < COMMUNE_CODE_LENGTH:
-            return None
+            raise ValidationError(cog_commune)
 
         if cog_commune[:COMMUNE_CODE_LENGTH] in ("97", "98"):
             if len(cog_commune) < DOM_TOM_COMMUNE_CODE_LENGTH:
-                return None
+                raise ValidationError(cog_commune)
             code = cog_commune[:DOM_TOM_COMMUNE_CODE_LENGTH]
         else:
             code = cog_commune[:COMMUNE_CODE_LENGTH]
 
-        try:
-            return cls(code=code)
-        except ValidationError:
-            return None
+        return cls(code=code)

@@ -2,6 +2,7 @@ import csv
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
@@ -90,9 +91,6 @@ def test_cleans_valid_raw_organisme(cleaner: OrganismesCleaner):
         pytest.param("OTHER_REF", _ege(), id="non_finess_referentiel"),
         pytest.param("FINESS", _ege(categorie="999"), id="disallowed_categorie"),
         pytest.param("FINESS", None, id="no_data"),
-        pytest.param("FINESS", _ege(siret=None), id="missing_siret"),
-        pytest.param("FINESS", _ege(siret="not-a-siret"), id="invalid_siret"),
-        pytest.param("FINESS", _ege(nom=""), id="missing_nom"),
     ],
 )
 def test_finess_returns_none(
@@ -101,6 +99,21 @@ def test_finess_returns_none(
     raw_organisme = _raw_organisme(data, referentiel=referentiel)
 
     assert cleaner.clean(raw_organisme) is None
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param(_ege(siret=None), id="missing_siret"),
+        pytest.param(_ege(siret="not-a-siret"), id="invalid_siret"),
+        pytest.param(_ege(nom=""), id="missing_nom"),
+    ],
+)
+def test_finess_raises_on_invalid_data(cleaner: OrganismesCleaner, data: dict | None):
+    raw_organisme = _raw_organisme(data)
+
+    with pytest.raises(ValidationError):
+        cleaner.clean(raw_organisme)
 
 
 @pytest.mark.parametrize(
@@ -188,9 +201,6 @@ def test_gipcdg_falls_back_to_libc_col_when_no_libl_col(cleaner: OrganismesClean
     "data",
     [
         pytest.param(None, id="no_data"),
-        pytest.param(_collectivite(siret_col=None), id="missing_siret"),
-        pytest.param(_collectivite(siret_col="not-a-siret"), id="invalid_siret"),
-        pytest.param(_collectivite(libl_col=None, libc_col=""), id="missing_nom"),
     ],
 )
 def test_gipcdg_returns_none(cleaner: OrganismesCleaner, data: dict | None):
@@ -200,9 +210,24 @@ def test_gipcdg_returns_none(cleaner: OrganismesCleaner, data: dict | None):
 
 
 @pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param(_collectivite(siret_col=None), id="missing_siret"),
+        pytest.param(_collectivite(siret_col="not-a-siret"), id="invalid_siret"),
+        pytest.param(_collectivite(libl_col=None, libc_col=""), id="missing_nom"),
+    ],
+)
+def test_gipcdg_raises_on_invalid_data(cleaner: OrganismesCleaner, data: dict | None):
+    raw_organisme = _raw_organisme_gipcdg(data)
+
+    with pytest.raises(ValidationError):
+        cleaner.clean(raw_organisme)
+
+
+@pytest.mark.parametrize(
     "cod_dep_col",
-    [None, "999", "000", "02A"],
-    ids=["missing", "unknown_department", "all_zeros", "not_numeric"],
+    [None, "999", "000", "ZZZ"],
+    ids=["missing", "unknown_department", "all_zeros", "invalid_code"],
 )
 def test_gipcdg_localisation_is_none(
     cleaner: OrganismesCleaner, cod_dep_col: str | None
