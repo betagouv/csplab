@@ -5,7 +5,7 @@ from faker import Faker
 from pytest_httpx import HTTPXMock
 from referentiel.value_objects.source_type import SourceType
 
-from application.use_cases.load_sources import LoadSourcesUseCase
+from application.usecases.load_sources import LoadSourcesUsecase
 from infrastructure.sources_repository import SourcesRepository
 from tests.conftest import SOURCES_URL
 
@@ -26,7 +26,7 @@ SOURCE_DATA = {
 
 @pytest.mark.asyncio
 async def test_execute_populates_registry(
-    load_sources_use_case: LoadSourcesUseCase,
+    load_sources_usecase: LoadSourcesUsecase,
     sources_repository: SourcesRepository,
     httpx_mock: HTTPXMock,
 ):
@@ -34,7 +34,7 @@ async def test_execute_populates_registry(
         method="GET", url=SOURCES_URL, json=[SOURCE_DATA], status_code=200
     )
 
-    await load_sources_use_case.execute()
+    await load_sources_usecase.execute()
 
     source = sources_repository.get_by_client_id_back("client-back-1")
     assert source is not None
@@ -45,7 +45,7 @@ async def test_execute_populates_registry(
 
 @pytest.mark.asyncio
 async def test_execute_loads_only_talentsoft_sources(
-    load_sources_use_case: LoadSourcesUseCase,
+    load_sources_usecase: LoadSourcesUsecase,
     sources_repository: SourcesRepository,
     httpx_mock: HTTPXMock,
 ):
@@ -59,7 +59,7 @@ async def test_execute_loads_only_talentsoft_sources(
         method="GET", url=SOURCES_URL, json=[SOURCE_DATA, api_source], status_code=200
     )
 
-    await load_sources_use_case.execute()
+    await load_sources_usecase.execute()
 
     assert len(sources_repository) == 1
     source = sources_repository.get_by_client_id_back("client-back-1")
@@ -69,13 +69,13 @@ async def test_execute_loads_only_talentsoft_sources(
 
 @pytest.mark.asyncio
 async def test_execute_with_empty_response_leaves_registry_empty(
-    load_sources_use_case: LoadSourcesUseCase,
+    load_sources_usecase: LoadSourcesUsecase,
     sources_repository: SourcesRepository,
     httpx_mock: HTTPXMock,
 ):
     httpx_mock.add_response(method="GET", url=SOURCES_URL, json=[], status_code=200)
 
-    await load_sources_use_case.execute()
+    await load_sources_usecase.execute()
 
     assert len(sources_repository) == 0
     assert sources_repository.get_by_client_id_back("any") is None
@@ -83,7 +83,7 @@ async def test_execute_with_empty_response_leaves_registry_empty(
 
 @pytest.mark.asyncio
 async def test_execute_replaces_previous_registry_contents(
-    load_sources_use_case: LoadSourcesUseCase,
+    load_sources_usecase: LoadSourcesUsecase,
     sources_repository: SourcesRepository,
     httpx_mock: HTTPXMock,
 ):
@@ -101,13 +101,13 @@ async def test_execute_replaces_previous_registry_contents(
     httpx_mock.add_response(
         method="GET", url=SOURCES_URL, json=[first_source], status_code=200
     )
-    await load_sources_use_case.execute()
+    await load_sources_usecase.execute()
     assert len(sources_repository) == 1
 
     httpx_mock.add_response(
         method="GET", url=SOURCES_URL, json=[second_source], status_code=200
     )
-    await load_sources_use_case.execute()
+    await load_sources_usecase.execute()
 
     assert len(sources_repository) == 1
     assert sources_repository.get_by_client_id_back("back-1") is None

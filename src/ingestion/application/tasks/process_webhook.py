@@ -40,7 +40,7 @@ def archive_offer_webhook(self, webhook_id: str) -> None:
 
     async def _run() -> None:
         webhook = await container.webhook_repository().get_by_id(UUID(webhook_id))
-        await container.archive_offer_use_case().execute(
+        await container.archive_offer_usecase().execute(
             reference=webhook.reference, source_id=webhook.source_id
         )
         logger.info("Archived offer %s (webhook %s)", webhook.reference, webhook_id)
@@ -74,7 +74,7 @@ def save_raw_offer_webhook(self, webhook_id: str) -> None:
             )
 
         pipeline = container.ingest_offer_pipeline(
-            save_raw_offer=container.save_raw_offer_use_case(
+            save_raw_offer=container.save_raw_offer_usecase(
                 offers_gateway=client,
             ),
         )

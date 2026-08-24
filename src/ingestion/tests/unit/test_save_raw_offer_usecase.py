@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from application.use_cases.save_raw_offer import SaveRawOfferUseCase
+from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from domain.entities.raw_offer import RawOffer
 from domain.gateways.offers_gateway import IOffersGateway
 from infrastructure.exceptions.exceptions import ExternalApiError
@@ -28,8 +28,8 @@ def mock_raw_offer_repository():
 
 
 @pytest.fixture
-def use_case(mock_offers_gateway, mock_raw_offer_repository) -> SaveRawOfferUseCase:
-    return SaveRawOfferUseCase(
+def usecase(mock_offers_gateway, mock_raw_offer_repository) -> SaveRawOfferUsecase:
+    return SaveRawOfferUsecase(
         offers_gateway=mock_offers_gateway,
         raw_offer_repository=mock_raw_offer_repository,
     )
@@ -37,22 +37,22 @@ def use_case(mock_offers_gateway, mock_raw_offer_repository) -> SaveRawOfferUseC
 
 @pytest.mark.asyncio
 async def test_execute_calls_offers_gateway(
-    use_case, mock_offers_gateway, mock_raw_offer_repository
+    usecase, mock_offers_gateway, mock_raw_offer_repository
 ):
     mock_offers_gateway.get_detail.return_value = GATEWAY_OFFER
 
-    await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
+    await usecase.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
     mock_offers_gateway.get_detail.assert_called_once_with(REFERENCE)
 
 
 @pytest.mark.asyncio
 async def test_execute_returns_raw_offer_on_success(
-    use_case, mock_offers_gateway, mock_raw_offer_repository
+    usecase, mock_offers_gateway, mock_raw_offer_repository
 ):
     mock_offers_gateway.get_detail.return_value = GATEWAY_OFFER
 
-    result = await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
+    result = await usecase.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
     assert result is not None
     assert result.reference == REFERENCE
@@ -64,11 +64,11 @@ async def test_execute_returns_raw_offer_on_success(
 
 @pytest.mark.asyncio
 async def test_execute_upserts_raw_offer_with_data_on_success(
-    use_case, mock_offers_gateway, mock_raw_offer_repository
+    usecase, mock_offers_gateway, mock_raw_offer_repository
 ):
     mock_offers_gateway.get_detail.return_value = GATEWAY_OFFER
 
-    await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
+    await usecase.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
     mock_raw_offer_repository.upsert.assert_called_once()
     saved: RawOffer = mock_raw_offer_repository.upsert.call_args[0][0]
@@ -81,13 +81,13 @@ async def test_execute_upserts_raw_offer_with_data_on_success(
 
 @pytest.mark.asyncio
 async def test_execute_upserts_raw_offer_with_error_msg_on_failure(
-    use_case, mock_offers_gateway, mock_raw_offer_repository
+    usecase, mock_offers_gateway, mock_raw_offer_repository
 ):
     error = ExternalApiError(message="Upstream error", api_name="Talentsoft Front API")
     mock_offers_gateway.get_detail.side_effect = error
 
     with pytest.raises(ExternalApiError):
-        await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
+        await usecase.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
     mock_raw_offer_repository.upsert.assert_called_once()
     saved: RawOffer = mock_raw_offer_repository.upsert.call_args[0][0]
@@ -100,7 +100,7 @@ async def test_execute_upserts_raw_offer_with_error_msg_on_failure(
 
 @pytest.mark.asyncio
 async def test_execute_re_raises_original_error_when_upsert_also_fails(
-    use_case, mock_offers_gateway, mock_raw_offer_repository
+    usecase, mock_offers_gateway, mock_raw_offer_repository
 ):
     original_error = ExternalApiError(
         message="Upstream error", api_name="Talentsoft Front API"
@@ -109,18 +109,18 @@ async def test_execute_re_raises_original_error_when_upsert_also_fails(
     mock_raw_offer_repository.upsert.side_effect = RuntimeError("DB unavailable")
 
     with pytest.raises(ExternalApiError, match="Upstream error"):
-        await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
+        await usecase.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
 
 @pytest.mark.asyncio
-@patch("application.use_cases.save_raw_offer.logger")
+@patch("application.usecases.save_raw_offer.logger")
 async def test_execute_returns_none_when_upsert_fails_after_success(
-    mock_logger, use_case, mock_offers_gateway, mock_raw_offer_repository
+    mock_logger, usecase, mock_offers_gateway, mock_raw_offer_repository
 ):
     mock_offers_gateway.get_detail.return_value = GATEWAY_OFFER
     mock_raw_offer_repository.upsert.side_effect = RuntimeError("DB unavailable")
 
-    result = await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
+    result = await usecase.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
     mock_logger.exception.assert_called_once()
     assert result is None

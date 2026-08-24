@@ -15,8 +15,8 @@ from sqlmodel import Session
 
 from api.config import get_settings
 from api.main import create_app
-from application.use_cases.archive_offer import ArchiveOfferUseCase
-from application.use_cases.load_sources import LoadSourcesUseCase
+from application.usecases.archive_offer import ArchiveOfferUsecase
+from application.usecases.load_sources import LoadSourcesUsecase
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from infrastructure.database import make_engine, run_migrations
 from infrastructure.di.container import Container
@@ -222,8 +222,8 @@ def sources_repository() -> SourcesRepository:
 
 
 @pytest.fixture
-def load_sources_use_case(sources_repository: SourcesRepository) -> LoadSourcesUseCase:
-    return LoadSourcesUseCase(
+def load_sources_usecase(sources_repository: SourcesRepository) -> LoadSourcesUsecase:
+    return LoadSourcesUsecase(
         sources_gateway=WebSourcesGateway(
             client=httpx.AsyncClient(),
             base_url=WEB_BASE_URL,
@@ -243,15 +243,15 @@ def mock_raw_offer_repository() -> MagicMock:
 
 
 @pytest.fixture
-def archive_offer_use_case(mock_raw_offer_repository: MagicMock) -> ArchiveOfferUseCase:
+def archive_offer_usecase(mock_raw_offer_repository: MagicMock) -> ArchiveOfferUsecase:
     container = Container()
     container.config.from_dict(
         {"web_base_url": WEB_BASE_URL, "web_api_key": WEB_API_KEY, "database_url": None}
     )
     container.raw_offer_repository.override(providers.Object(mock_raw_offer_repository))
-    use_case = container.archive_offer_use_case()
-    assert use_case is not None
-    return use_case
+    usecase = container.archive_offer_usecase()
+    assert usecase is not None
+    return usecase
 
 
 @pytest.fixture

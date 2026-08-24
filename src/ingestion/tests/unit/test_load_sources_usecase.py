@@ -5,7 +5,7 @@ from faker import Faker
 from referentiel.entities.source import Source
 from referentiel.value_objects.source_type import SourceType
 
-from application.use_cases.load_sources import LoadSourcesUseCase
+from application.usecases.load_sources import LoadSourcesUsecase
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.sources_repository import ISourcesRepository
 
@@ -32,10 +32,10 @@ async def test_execute_loads_sources_into_repository():
     mock_gateway.fetch_sources = AsyncMock(return_value=[source])
     mock_repository = MagicMock(spec=ISourcesRepository)
 
-    use_case = LoadSourcesUseCase(
+    usecase = LoadSourcesUsecase(
         sources_gateway=mock_gateway, repository=mock_repository
     )
-    await use_case.execute()
+    await usecase.execute()
 
     mock_repository.load.assert_called_once_with([source])
 
@@ -46,11 +46,11 @@ async def test_execute_raises_when_gateway_fails():
     mock_gateway.fetch_sources = AsyncMock(side_effect=Exception("Gateway error"))
     mock_repository = MagicMock(spec=ISourcesRepository)
 
-    use_case = LoadSourcesUseCase(
+    usecase = LoadSourcesUsecase(
         sources_gateway=mock_gateway, repository=mock_repository
     )
 
     with pytest.raises(Exception, match="Gateway error"):
-        await use_case.execute()
+        await usecase.execute()
 
     mock_repository.load.assert_not_called()

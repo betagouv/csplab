@@ -19,7 +19,7 @@ def init_container() -> None:
     from infrastructure.di.container import create_container  # noqa: PLC0415
 
     container = create_container()
-    asyncio.run(container.load_sources_use_case().execute())
+    asyncio.run(container.load_sources_usecase().execute())
     _state["container"] = container
 
 

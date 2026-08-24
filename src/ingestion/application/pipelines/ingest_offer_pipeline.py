@@ -2,9 +2,9 @@ import logging
 from datetime import datetime, timezone
 from typing import cast
 
-from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
-from application.use_cases.publish_offer import PublishOfferUseCase
-from application.use_cases.save_raw_offer import SaveRawOfferUseCase
+from application.usecases.clean_raw_offer import CleanRawOfferUsecase
+from application.usecases.publish_offer import PublishOfferUsecase
+from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 
 logger = logging.getLogger(__name__)
@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 class IngestOfferPipeline:
     def __init__(
         self,
-        save_raw_offer: SaveRawOfferUseCase,
-        clean_raw_offer: CleanRawOfferUseCase,
+        save_raw_offer: SaveRawOfferUsecase,
+        clean_raw_offer: CleanRawOfferUsecase,
         raw_offer_repository: IRawOfferRepository,
-        publish_offer: PublishOfferUseCase | None = None,
+        publish_offer: PublishOfferUsecase | None = None,
     ) -> None:
         self._save_raw_offer = save_raw_offer
         self._clean_raw_offer = clean_raw_offer

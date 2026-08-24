@@ -27,7 +27,7 @@ def _make_mock_container(webhook=None) -> MagicMock:
     container.webhook_repository.return_value.get_by_id = AsyncMock(
         return_value=webhook
     )
-    container.archive_offer_use_case.return_value.execute = AsyncMock()
+    container.archive_offer_usecase.return_value.execute = AsyncMock()
     container.ingest_offer_pipeline.return_value.execute = AsyncMock()
     source = SourceFactory.build(source_id=SOURCE_ID, client_id_front=CLIENT_ID_FRONT)
     container.sources_repository.return_value.get_by_source_id.return_value = source
@@ -50,7 +50,7 @@ def test_archive_called_for_supprime_event(mock_get_container):
 
     archive_offer_webhook(str(WEBHOOK_ID))
 
-    container.archive_offer_use_case.return_value.execute.assert_awaited_once_with(
+    container.archive_offer_usecase.return_value.execute.assert_awaited_once_with(
         reference=REFERENCE, source_id=SOURCE_ID
     )
 
@@ -75,7 +75,7 @@ def test_archive_called_for_statut_change_non_diffuse(
 
     archive_offer_webhook(str(WEBHOOK_ID))
 
-    container.archive_offer_use_case.return_value.execute.assert_awaited_once_with(
+    container.archive_offer_usecase.return_value.execute.assert_awaited_once_with(
         reference=REFERENCE, source_id=SOURCE_ID
     )
 

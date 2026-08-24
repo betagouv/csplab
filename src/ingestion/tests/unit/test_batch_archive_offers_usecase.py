@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from dependency_injector import providers
 
-from application.use_cases.archive_offer import ArchiveOfferUseCase
+from application.usecases.archive_offer import ArchiveOfferUsecase
 from infrastructure.di.container import Container
 from tests.conftest import SOURCE_UUID
 from tests.conftest import TALENTSOFT_FRONT_CLIENT_ID as CLIENT_ID_FRONT
@@ -29,10 +29,10 @@ def mock_talentsoft_repo() -> MagicMock:
 
 
 @pytest.fixture
-def mock_archive_offer_use_case() -> MagicMock:
-    use_case = MagicMock(spec=ArchiveOfferUseCase)
-    use_case.execute = AsyncMock()
-    return use_case
+def mock_archive_offer_usecase() -> MagicMock:
+    usecase = MagicMock(spec=ArchiveOfferUsecase)
+    usecase.execute = AsyncMock()
+    return usecase
 
 
 @pytest.fixture
@@ -40,13 +40,13 @@ def container(
     mock_web_offers_gateway,
     mock_sources_repo,
     mock_talentsoft_repo,
-    mock_archive_offer_use_case,
+    mock_archive_offer_usecase,
 ) -> Container:
     c = Container()
     c.offers_by_source_gateway.override(providers.Object(mock_web_offers_gateway))
     c.sources_repository.override(providers.Object(mock_sources_repo))
     c.talentsoft_client_repository.override(providers.Object(mock_talentsoft_repo))
-    c.archive_offer_use_case.override(providers.Object(mock_archive_offer_use_case))
+    c.archive_offer_usecase.override(providers.Object(mock_archive_offer_usecase))
     return c
 
 
@@ -61,7 +61,7 @@ async def test_raises_when_source_not_found(container, mock_sources_repo):
     mock_sources_repo.get_by_source_id.return_value = None
 
     with pytest.raises(ValueError, match=str(SOURCE_UUID)):
-        await container.archive_offers_use_case().execute(source_id=SOURCE_UUID)
+        await container.archive_offers_usecase().execute(source_id=SOURCE_UUID)
 
 
 @pytest.mark.asyncio
@@ -73,7 +73,7 @@ async def test_raises_when_talentsoft_client_not_found(
     mock_talentsoft_repo.get.return_value = None
 
     with pytest.raises(ValueError, match=str(SOURCE_UUID)):
-        await container.archive_offers_use_case().execute(source_id=SOURCE_UUID)
+        await container.archive_offers_usecase().execute(source_id=SOURCE_UUID)
 
     mock_talentsoft_repo.get.assert_called_once_with(CLIENT_ID_FRONT)
 
@@ -84,7 +84,7 @@ async def test_no_archive_when_all_web_offers_exist_in_talentsoft(
     mock_sources_repo,
     mock_talentsoft_repo,
     mock_web_offers_gateway,
-    mock_archive_offer_use_case,
+    mock_archive_offer_usecase,
 ):
     offers = TalentsoftOfferFactory.batch(size=3)
     references = [o.reference for o in offers]
@@ -93,9 +93,9 @@ async def test_no_archive_when_all_web_offers_exist_in_talentsoft(
     mock_talentsoft_repo.get.return_value = _make_talentsoft_client([(offers, False)])
     mock_web_offers_gateway.fetch_references = AsyncMock(return_value=references)
 
-    await container.archive_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.archive_offers_usecase().execute(source_id=SOURCE_UUID)
 
-    mock_archive_offer_use_case.execute.assert_not_called()
+    mock_archive_offer_usecase.execute.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -104,7 +104,7 @@ async def test_archives_offers_absent_from_talentsoft(
     mock_sources_repo,
     mock_talentsoft_repo,
     mock_web_offers_gateway,
-    mock_archive_offer_use_case,
+    mock_archive_offer_usecase,
 ):
     talentsoft_offers = TalentsoftOfferFactory.batch(size=2)
     stale_reference = "2026-999999"
@@ -117,9 +117,9 @@ async def test_archives_offers_absent_from_talentsoft(
     )
     mock_web_offers_gateway.fetch_references = AsyncMock(return_value=web_references)
 
-    await container.archive_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.archive_offers_usecase().execute(source_id=SOURCE_UUID)
 
-    mock_archive_offer_use_case.execute.assert_called_once_with(
+    mock_archive_offer_usecase.execute.assert_called_once_with(
         reference=stale_reference, source_id=str(SOURCE_UUID)
     )
 
@@ -130,7 +130,7 @@ async def test_archives_all_web_offers_when_talentsoft_is_empty(
     mock_sources_repo,
     mock_talentsoft_repo,
     mock_web_offers_gateway,
-    mock_archive_offer_use_case,
+    mock_archive_offer_usecase,
 ):
     web_references = ["2026-111111", "2026-222222"]
     source = SourceFactory.build(source_id=SOURCE_UUID, client_id_front=CLIENT_ID_FRONT)
@@ -138,12 +138,12 @@ async def test_archives_all_web_offers_when_talentsoft_is_empty(
     mock_talentsoft_repo.get.return_value = _make_talentsoft_client([([], False)])
     mock_web_offers_gateway.fetch_references = AsyncMock(return_value=web_references)
 
-    await container.archive_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.archive_offers_usecase().execute(source_id=SOURCE_UUID)
 
-    assert mock_archive_offer_use_case.execute.call_count == 2
+    assert mock_archive_offer_usecase.execute.call_count == 2
     archived = {
         call.kwargs["reference"]
-        for call in mock_archive_offer_use_case.execute.call_args_list
+        for call in mock_archive_offer_usecase.execute.call_args_list
     }
     assert archived == set(web_references)
 
@@ -154,16 +154,16 @@ async def test_no_archive_when_both_sources_are_empty(
     mock_sources_repo,
     mock_talentsoft_repo,
     mock_web_offers_gateway,
-    mock_archive_offer_use_case,
+    mock_archive_offer_usecase,
 ):
     source = SourceFactory.build(source_id=SOURCE_UUID, client_id_front=CLIENT_ID_FRONT)
     mock_sources_repo.get_by_source_id.return_value = source
     mock_talentsoft_repo.get.return_value = _make_talentsoft_client([([], False)])
     mock_web_offers_gateway.fetch_references = AsyncMock(return_value=[])
 
-    await container.archive_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.archive_offers_usecase().execute(source_id=SOURCE_UUID)
 
-    mock_archive_offer_use_case.execute.assert_not_called()
+    mock_archive_offer_usecase.execute.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -177,7 +177,7 @@ async def test_fetches_web_references_with_correct_source_id(
     mock_sources_repo.get_by_source_id.return_value = source
     mock_talentsoft_repo.get.return_value = _make_talentsoft_client([([], False)])
 
-    await container.archive_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.archive_offers_usecase().execute(source_id=SOURCE_UUID)
 
     mock_web_offers_gateway.fetch_references.assert_called_once_with(SOURCE_UUID)
 
@@ -188,7 +188,7 @@ async def test_talentsoft_pagination_fetches_all_pages(
     mock_sources_repo,
     mock_talentsoft_repo,
     mock_web_offers_gateway,
-    mock_archive_offer_use_case,
+    mock_archive_offer_usecase,
 ):
     first_page = TalentsoftOfferFactory.batch(size=2)
     second_page = TalentsoftOfferFactory.batch(size=1)
@@ -200,7 +200,7 @@ async def test_talentsoft_pagination_fetches_all_pages(
     mock_talentsoft_repo.get.return_value = client
     mock_web_offers_gateway.fetch_references = AsyncMock(return_value=all_references)
 
-    await container.archive_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.archive_offers_usecase().execute(source_id=SOURCE_UUID)
 
     assert client.get_all.call_count == 2
-    mock_archive_offer_use_case.execute.assert_not_called()
+    mock_archive_offer_usecase.execute.assert_not_called()

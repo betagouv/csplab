@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 BATCH_SIZE = 500
 
 
-class CleanRawOrganismesUseCase:
+class CleanRawOrganismesUsecase:
     def __init__(
         self,
         organismes_cleaner: IOrganismesCleaner,

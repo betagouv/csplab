@@ -4,7 +4,7 @@ from domain.gateways.archive_gateway import IArchiveGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 
 
-class ArchiveOfferUseCase:
+class ArchiveOfferUsecase:
     def __init__(
         self,
         archive_gateway: IArchiveGateway,
