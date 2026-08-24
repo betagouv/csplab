@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Optional
 from uuid import uuid4
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError, ValidationInfo, field_validator
 from referentiel.entities.organisme import Organisme
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.localisation import Localisation
@@ -29,6 +29,39 @@ def _load_allowed_categories(csv_path: Path) -> set[str]:
         return {row["code"].strip() for row in reader if row.get("code")}
 
 
+def _external_id(info: ValidationInfo) -> str:
+    if info.context is None:
+        raise ValueError("Missing validation context")
+    return str(info.context["external_id"])
+
+
+class _ValidatedFields(BaseModel):
+    nom: str
+    siret: SIRET
+
+    @field_validator("nom", mode="before")
+    @classmethod
+    def _clean_nom(cls, v: Optional[str], info: ValidationInfo) -> str:
+        nom = v.strip() if v else ""
+        if not nom:
+            logger.warning("RawOrganisme %s has no nom, skipping", _external_id(info))
+            raise ValueError("nom is required")
+        return nom
+
+    @field_validator("siret", mode="before")
+    @classmethod
+    def _build_siret(cls, v: Optional[str], info: ValidationInfo) -> SIRET:
+        external_id = _external_id(info)
+        if not v:
+            logger.warning("RawOrganisme %s has no siret, skipping", external_id)
+            raise ValueError("siret is required")
+        try:
+            return SIRET(code=v)
+        except ValidationError:
+            logger.warning("Invalid SIRET %s for organisme %s", v, external_id)
+            raise
+
+
 class OrganismesCleaner:
     def __init__(self, categories_csv_path: Path = _CATEGORIES_CSV) -> None:
         self._allowed_categories = _load_allowed_categories(categories_csv_path)
@@ -51,29 +84,12 @@ class OrganismesCleaner:
 
         infos = data.get("informationsGeneralesEGE") or {}
 
-        nom = self._map_nom(infos)
-        if not nom:
-            logger.warning(
-                "RawOrganisme %s has no nom, skipping", raw_organisme.external_id
-            )
-            return None
-
-        siret = self._map_siret(infos.get("siret"), raw_organisme.external_id)
-        if siret is None:
-            return None
-
-        localisation = self._map_localisation(data)
-
-        return Organisme.build(
-            entity_id=uuid4(),
-            nom=nom,
+        return self._build_organisme(
+            raw_organisme,
+            nom_raw=infos.get("nomEgeLong") or infos.get("nomEgeCourt"),
+            siret_raw=infos.get("siret"),
             versant=Verse.FPH,
-            siret=siret,
-            localisation=localisation,
-            parent_id=None,
-            external_id=raw_organisme.external_id,
-            referentiel=raw_organisme.referentiel,
-            millesime=raw_organisme.millesime,
+            localisation=self._map_localisation(data),
         )
 
     def _clean_gipcdg(self, raw_organisme: RawOrganisme) -> Optional[Organisme]:
@@ -82,48 +98,42 @@ class OrganismesCleaner:
 
         data = raw_organisme.data
 
-        nom = self._map_nom_gipcdg(data)
-        if not nom:
-            logger.warning(
-                "RawOrganisme %s has no nom, skipping", raw_organisme.external_id
+        return self._build_organisme(
+            raw_organisme,
+            nom_raw=data.get("libl_col") or data.get("libc_col"),
+            siret_raw=data.get("siret_col"),
+            versant=Verse.FPT,
+            localisation=self._map_localisation_gipcdg(data),
+        )
+
+    def _build_organisme(
+        self,
+        raw_organisme: RawOrganisme,
+        *,
+        nom_raw: Optional[str],
+        siret_raw: Optional[str],
+        versant: Verse,
+        localisation: Optional[Localisation],
+    ) -> Optional[Organisme]:
+        try:
+            validated = _ValidatedFields.model_validate(
+                {"nom": nom_raw, "siret": siret_raw},
+                context={"external_id": raw_organisme.external_id},
             )
+        except ValidationError:
             return None
-
-        siret = self._map_siret(data.get("siret_col"), raw_organisme.external_id)
-        if siret is None:
-            return None
-
-        localisation = self._map_localisation_gipcdg(data)
 
         return Organisme.build(
             entity_id=uuid4(),
-            nom=nom,
-            versant=Verse.FPT,
-            siret=siret,
+            nom=validated.nom,
+            versant=versant,
+            siret=validated.siret,
             localisation=localisation,
             parent_id=None,
             external_id=raw_organisme.external_id,
             referentiel=raw_organisme.referentiel,
             millesime=raw_organisme.millesime,
         )
-
-    def _map_nom(self, infos: dict[str, Any]) -> Optional[str]:
-        nom = infos.get("nomEgeLong") or infos.get("nomEgeCourt")
-        return nom.strip() if nom else None
-
-    def _map_nom_gipcdg(self, data: dict[str, Any]) -> Optional[str]:
-        nom = data.get("libl_col") or data.get("libc_col")
-        return nom.strip() if nom else None
-
-    def _map_siret(self, siret_str: Optional[str], external_id: str) -> Optional[SIRET]:
-        if not siret_str:
-            logger.warning("RawOrganisme %s has no siret, skipping", external_id)
-            return None
-        try:
-            return SIRET(code=siret_str)
-        except ValidationError:
-            logger.warning("Invalid SIRET %s for organisme %s", siret_str, external_id)
-            return None
 
     def _map_localisation(self, data: dict[str, Any]) -> Optional[Localisation]:
         adresses = data.get("adresse") or []

@@ -111,12 +111,6 @@ def _make_offers_by_source_gateway(
     return WebOffersBySourceGateway(client=client, base_url=base_url, api_key=api_key)
 
 
-def _make_gipcdg_organisme_gateway(api_key: str | None) -> IOrganismeGateway:
-    if not api_key:
-        raise ValueError("GIPCDG_API_KEY is required")
-    return GipcdgOrganismeGateway(api_key=api_key)
-
-
 def _make_publish_offer_gateway(
     client: httpx.AsyncClient, base_url: str | None, api_key: str | None
 ) -> IPublishOfferGateway:
@@ -176,8 +170,9 @@ class Container(containers.DeclarativeContainer):
 
     gipcdg_organisme_gateway: providers.Provider[IOrganismeGateway] = (
         providers.Singleton(
-            _make_gipcdg_organisme_gateway,
+            GipcdgOrganismeGateway,
             api_key=config.gipcdg_api_key,
+            collectivites_api_url=config.gipcdg_collectivites_api_url,
         )
     )
 
@@ -308,6 +303,9 @@ def create_container() -> Container:
     container.config.database_url.from_value(settings.database_url)
     container.config.talentsoft_credentials.from_value(settings.talentsoft_credentials)
     container.config.gipcdg_api_key.from_value(settings.gipcdg_api_key)
+    container.config.gipcdg_collectivites_api_url.from_value(
+        str(settings.gipcdg_collectivites_api_url)
+    )
 
     _logger = logging.getLogger(__name__)
     register_talentsoft_front_clients(

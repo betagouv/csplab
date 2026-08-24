@@ -8,6 +8,10 @@ TALENTSOFT_CREDENTIALS=[]
 # (emploi-territorial.fr) for the organismes import.
 GIPCDG_API_KEY=
 
+# Endpoint used to fetch collectivités for the GIPCDG organismes import.
+# Defaults to https://emploi-territorial.fr/api/cdg/collectivites?etab=5&limit=1000
+# GIPCDG_COLLECTIVITES_API_URL=
+
 WEB_BASE_URL=
 WEB_API_KEY=
 

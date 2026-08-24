@@ -6,14 +6,19 @@ from pytest_httpx import HTTPXMock
 from domain.value_objects.organisme import OrganismeImportResource
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.gipcdg_organisme_gateway import (
-    COLLECTIVITES_API_URL,
     GipcdgOrganismeGateway,
+)
+
+COLLECTIVITES_API_URL = (
+    "https://emploi-territorial.fr/api/cdg/collectivites?etab=5&limit=1000"
 )
 
 
 @pytest.fixture
 def gateway() -> GipcdgOrganismeGateway:
-    return GipcdgOrganismeGateway(api_key="secret-token")
+    return GipcdgOrganismeGateway(
+        api_key="secret-token", collectivites_api_url=COLLECTIVITES_API_URL
+    )
 
 
 def _collectivite(id_col: int, **extra) -> dict:

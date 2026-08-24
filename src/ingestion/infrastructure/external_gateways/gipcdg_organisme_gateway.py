@@ -2,27 +2,35 @@ from datetime import date
 from typing import Iterator
 
 import httpx
+from pydantic import HttpUrl
+from pydantic.dataclasses import dataclass
 
 from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.value_objects.organisme import OrganismeData, OrganismeImportResource
 from infrastructure.exceptions.exceptions import ExternalApiError
 
-# https://emploi-territorial.fr/api
-COLLECTIVITES_API_URL = (
-    "https://emploi-territorial.fr/api/cdg/collectivites?etab=5&limit=1000"
-)
 REFERENTIEL_GIPCDG = "GIPCDG"
 API_STATUS_OK = 200
 
 
+@dataclass(frozen=True)
+class GipcdgConfig:
+    api_key: str
+    collectivites_api_url: HttpUrl
+
+
 class GipcdgOrganismeGateway(IOrganismeGateway):
-    def __init__(self, api_key: str, timeout: int = 30):
-        self.api_key = api_key
+    def __init__(self, api_key: str, collectivites_api_url: str, timeout: int = 30):
+        config = GipcdgConfig(
+            api_key=api_key, collectivites_api_url=HttpUrl(collectivites_api_url)
+        )
+        self.api_key = config.api_key
+        self.collectivites_api_url = str(config.collectivites_api_url)
         self.timeout = timeout
 
     def find_resource(self) -> OrganismeImportResource:
         return OrganismeImportResource(
-            url=COLLECTIVITES_API_URL, millesime=date.today()
+            url=self.collectivites_api_url, millesime=date.today()
         )
 
     def stream_organismes(
