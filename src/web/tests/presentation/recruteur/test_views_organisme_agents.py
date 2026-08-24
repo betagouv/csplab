@@ -59,15 +59,15 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_anonymous_patch_is_unauthorized(self, api_client):
-        response = api_client.patch(AGENTS_URL, data={}, format="json")
+    def test_anonymous_put_is_unauthorized(self, api_client):
+        response = api_client.put(AGENTS_URL, data={}, format="json")
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_update_agent(self, authenticated_client):
         agent_id = str(uuid4())
 
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             AGENTS_URL,
             data={
                 "agent_id": agent_id,
@@ -84,7 +84,7 @@ class TestOrganismeAgentsView:
         assert data["poste"] == "Directeur des recrutements"
 
     def test_update_agent_invalid_role(self, authenticated_client):
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             AGENTS_URL,
             data={"agent_id": str(uuid4()), "role": "not-a-role"},
             format="json",
@@ -93,7 +93,7 @@ class TestOrganismeAgentsView:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_update_agent_requires_agent_id(self, authenticated_client):
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             AGENTS_URL,
             data={"role": AgentOrganismeRole.MEMBRE.value},
             format="json",
@@ -104,7 +104,7 @@ class TestOrganismeAgentsView:
     def test_revoke_agent_role_on_organisme(self, authenticated_client):
         agent_id = str(uuid4())
 
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             AGENTS_URL,
             data={
                 "agent_id": agent_id,
