@@ -6,7 +6,7 @@ from referentiel.entities.organisme import Organisme
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
-from application.use_cases.publish_organismes import (
+from application.usecases.publish_organismes import (
     PublishOrganismesCommand,
     PublishOrganismesUsecase,
 )
