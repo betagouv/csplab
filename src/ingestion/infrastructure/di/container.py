@@ -16,7 +16,7 @@ from application.usecases.import_offers import ImportOffersUsecase
 from application.usecases.import_organismes import ImportOrganismesUsecase
 from application.usecases.load_sources import LoadSourcesUsecase
 from application.usecases.publish_offer import PublishOfferUsecase
-from application.usecases.publish_organismes import PublishOrganismesUseCase
+from application.usecases.publish_organismes import PublishOrganismesUsecase
 from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from application.usecases.save_webhook import SaveWebhookUsecase
 from domain.gateways.archive_gateway import IArchiveGateway
@@ -210,9 +210,9 @@ class Container(containers.DeclarativeContainer):
         )
     )
 
-    publish_organismes_use_case: providers.Provider[PublishOrganismesUseCase] = (
+    publish_organismes_usecase: providers.Provider[PublishOrganismesUsecase] = (
         providers.Factory(
-            PublishOrganismesUseCase,
+            PublishOrganismesUsecase,
             publish_organismes_gateway=publish_organismes_gateway,
         )
     )

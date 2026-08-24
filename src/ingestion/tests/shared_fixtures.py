@@ -17,7 +17,7 @@ from api.config import get_settings
 from api.main import create_app
 from application.usecases.archive_offer import ArchiveOfferUsecase
 from application.usecases.load_sources import LoadSourcesUsecase
-from application.usecases.publish_organismes import PublishOrganismesUseCase
+from application.usecases.publish_organismes import PublishOrganismesUsecase
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from infrastructure.database import make_engine, run_migrations
 from infrastructure.di.container import Container
@@ -256,14 +256,14 @@ def archive_offer_usecase(mock_raw_offer_repository: MagicMock) -> ArchiveOfferU
 
 
 @pytest.fixture
-def publish_organismes_use_case() -> PublishOrganismesUseCase:
+def publish_organismes_usecase() -> PublishOrganismesUsecase:
     container = Container()
     container.config.from_dict(
         {"web_base_url": WEB_BASE_URL, "web_api_key": WEB_API_KEY, "database_url": None}
     )
-    use_case = container.publish_organismes_use_case()
-    assert use_case is not None
-    return use_case
+    usecase = container.publish_organismes_usecase()
+    assert usecase is not None
+    return usecase
 
 
 @pytest.fixture

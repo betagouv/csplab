@@ -16,7 +16,7 @@ from referentiel.value_objects.verse import Verse
 
 from application.use_cases.publish_organismes import (
     PublishOrganismesCommand,
-    PublishOrganismesUseCase,
+    PublishOrganismesUsecase,
 )
 from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.conftest import PUBLISH_ORGANISMES_URL as PUBLISH_URL
@@ -57,11 +57,11 @@ FULL_ORGANISME = Organisme.build(
 
 @pytest.mark.asyncio
 async def test_execute_posts_to_correct_url(
-    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+    publish_organismes_usecase: PublishOrganismesUsecase, httpx_mock: HTTPXMock
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await publish_organismes_use_case.execute(
+    await publish_organismes_usecase.execute(
         PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
     )
 
@@ -72,11 +72,11 @@ async def test_execute_posts_to_correct_url(
 
 @pytest.mark.asyncio
 async def test_execute_sends_api_key_header(
-    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+    publish_organismes_usecase: PublishOrganismesUsecase, httpx_mock: HTTPXMock
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await publish_organismes_use_case.execute(
+    await publish_organismes_usecase.execute(
         PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
     )
 
@@ -86,11 +86,11 @@ async def test_execute_sends_api_key_header(
 
 @pytest.mark.asyncio
 async def test_execute_serializes_minimal_organisme(
-    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+    publish_organismes_usecase: PublishOrganismesUsecase, httpx_mock: HTTPXMock
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await publish_organismes_use_case.execute(
+    await publish_organismes_usecase.execute(
         PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
     )
 
@@ -115,11 +115,11 @@ async def test_execute_serializes_minimal_organisme(
 
 @pytest.mark.asyncio
 async def test_execute_serializes_multiple_organismes(
-    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+    publish_organismes_usecase: PublishOrganismesUsecase, httpx_mock: HTTPXMock
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await publish_organismes_use_case.execute(
+    await publish_organismes_usecase.execute(
         PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME, FULL_ORGANISME])
     )
 
@@ -129,11 +129,11 @@ async def test_execute_serializes_multiple_organismes(
 
 @pytest.mark.asyncio
 async def test_execute_serializes_full_organisme(
-    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+    publish_organismes_usecase: PublishOrganismesUsecase, httpx_mock: HTTPXMock
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
-    await publish_organismes_use_case.execute(
+    await publish_organismes_usecase.execute(
         PublishOrganismesCommand(organismes=[FULL_ORGANISME])
     )
 
@@ -160,19 +160,19 @@ async def test_execute_serializes_full_organisme(
 
 @pytest.mark.asyncio
 async def test_execute_raises_on_http_error(
-    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+    publish_organismes_usecase: PublishOrganismesUsecase, httpx_mock: HTTPXMock
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=500)
 
     with pytest.raises(httpx.HTTPStatusError):
-        await publish_organismes_use_case.execute(
+        await publish_organismes_usecase.execute(
             PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
         )
 
 
 @pytest.mark.asyncio
 async def test_execute_raises_on_bad_request(
-    publish_organismes_use_case: PublishOrganismesUseCase, httpx_mock: HTTPXMock
+    publish_organismes_usecase: PublishOrganismesUsecase, httpx_mock: HTTPXMock
 ):
     httpx_mock.add_response(
         method="POST",
@@ -182,7 +182,7 @@ async def test_execute_raises_on_bad_request(
     )
 
     with pytest.raises(httpx.HTTPStatusError) as exc_info:
-        await publish_organismes_use_case.execute(
+        await publish_organismes_usecase.execute(
             PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
         )
 
@@ -191,7 +191,7 @@ async def test_execute_raises_on_bad_request(
 
 @pytest.mark.asyncio
 async def test_execute_raises_and_logs_error_when_response_contains_errors(
-    publish_organismes_use_case: PublishOrganismesUseCase,
+    publish_organismes_usecase: PublishOrganismesUsecase,
     httpx_mock: HTTPXMock,
     caplog,
 ):
@@ -207,7 +207,7 @@ async def test_execute_raises_and_logs_error_when_response_contains_errors(
     )
 
     with caplog.at_level("ERROR"), pytest.raises(ExternalApiError):
-        await publish_organismes_use_case.execute(
+        await publish_organismes_usecase.execute(
             PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
         )
 
@@ -216,7 +216,7 @@ async def test_execute_raises_and_logs_error_when_response_contains_errors(
 
 @pytest.mark.asyncio
 async def test_execute_does_not_log_when_response_has_no_errors(
-    publish_organismes_use_case: PublishOrganismesUseCase,
+    publish_organismes_usecase: PublishOrganismesUsecase,
     httpx_mock: HTTPXMock,
     caplog,
 ):
@@ -228,7 +228,7 @@ async def test_execute_does_not_log_when_response_has_no_errors(
     )
 
     with caplog.at_level("ERROR"):
-        await publish_organismes_use_case.execute(
+        await publish_organismes_usecase.execute(
             PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
         )
 

@@ -16,7 +16,7 @@ class PublishOrganismesCommand:
     organismes: list[Organisme]
 
 
-class PublishOrganismesUseCase(IAsyncUseCase[PublishOrganismesCommand, None]):
+class PublishOrganismesUsecase(IAsyncUseCase[PublishOrganismesCommand, None]):
     def __init__(self, publish_organismes_gateway: IPublishOrganismesGateway) -> None:
         self._gateway = publish_organismes_gateway
 
