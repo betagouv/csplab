@@ -4,11 +4,19 @@ from uuid import uuid4
 import pytest
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.errors.organisme_permission_errors import (
+from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementInconnu,
     AccesRecrutementRefuse,
+    OperationOrganismeRefusee,
 )
+from domain.identite.services.organisme_permission_service import (
+    _ROLES_RECRUTEMENT_REQUIS,
+    _ROLES_REQUIS,
+    _SANS_ROLE_RECRUTEMENT_REQUIS,
+    OrganismePermissionService,
+)
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.repositories.organisme_agent_repository_interface import (
     IOrganismeAgentRepository,
 )
@@ -18,13 +26,6 @@ from domain.recruteur.repositories.organisme_repository_interface import (
 from domain.recruteur.repositories.recrutement_agent_repository_interface import (
     IRecrutementAgentRepository,
 )
-from domain.recruteur.services.organisme_permission_service import (
-    _ROLES_RECRUTEMENT_REQUIS,
-    _ROLES_REQUIS,
-    _SANS_ROLE_RECRUTEMENT_REQUIS,
-    OrganismePermissionService,
-)
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -350,3 +351,109 @@ def test_toute_action_membre_est_classee() -> None:
     assert actions_membre <= (
         _ROLES_RECRUTEMENT_REQUIS.keys() | _SANS_ROLE_RECRUTEMENT_REQUIS
     )
+
+
+ACTIONS_SANS_ORGANISME = [
+    OrganismeAction.CREER_ORGANISME,
+    OrganismeAction.LISTER_ORGANISMES,
+]
+
+
+@pytest.mark.parametrize("action", ACTIONS_SANS_ORGANISME)
+class TestActionsSansOrganisme:
+    def test_staff_est_autorise_sans_appel_repository(
+        self, action: OrganismeAction
+    ) -> None:
+        service, repository, _ = _service(None)
+        organisme_recruteur_repository = Mock(spec=IOrganismeRecruteurRepository)
+        service = OrganismePermissionService(
+            organisme_recruteur_repository=organisme_recruteur_repository,
+            organisme_agent_repository=repository,
+            recrutement_agent_repository=Mock(spec=IRecrutementAgentRepository),
+        )
+
+        result = service.est_autorise(action=action, agent_id=uuid4(), est_staff=True)
+
+        assert result is None
+        organisme_recruteur_repository.get_by_id.assert_not_called()
+        repository.get_role.assert_not_called()
+
+    def test_non_staff_est_refuse_sans_appel_repository(
+        self, action: OrganismeAction
+    ) -> None:
+        service, repository, _ = _service(None)
+        organisme_recruteur_repository = Mock(spec=IOrganismeRecruteurRepository)
+        service = OrganismePermissionService(
+            organisme_recruteur_repository=organisme_recruteur_repository,
+            organisme_agent_repository=repository,
+            recrutement_agent_repository=Mock(spec=IRecrutementAgentRepository),
+        )
+
+        with pytest.raises(OperationOrganismeRefusee):
+            service.est_autorise(action=action, agent_id=uuid4(), est_staff=False)
+
+        organisme_recruteur_repository.get_by_id.assert_not_called()
+        repository.get_role.assert_not_called()
+
+
+class TestModifierOrganisme:
+    def test_staff_est_autorise(self) -> None:
+        service, repository, _ = _service(None)
+        organisme_id = uuid4()
+
+        result = service.est_autorise(
+            action=OrganismeAction.MODIFIER_ORGANISME,
+            organisme_id=organisme_id,
+            agent_id=uuid4(),
+            est_staff=True,
+        )
+
+        assert result is None
+        repository.get_role.assert_not_called()
+
+    def test_non_staff_est_refuse_apres_verification_existence(self) -> None:
+        organisme_id = uuid4()
+        organisme_recruteur_repository = Mock(spec=IOrganismeRecruteurRepository)
+        service, repository, _ = _service(
+            None, organisme_recruteur_repository=organisme_recruteur_repository
+        )
+
+        with pytest.raises(OperationOrganismeRefusee):
+            service.est_autorise(
+                action=OrganismeAction.MODIFIER_ORGANISME,
+                organisme_id=organisme_id,
+                agent_id=uuid4(),
+                est_staff=False,
+            )
+
+        organisme_recruteur_repository.get_by_id.assert_called_once_with(organisme_id)
+        repository.get_role.assert_not_called()
+
+    def test_organisme_inexistant_est_priorise_sur_le_statut_staff(self) -> None:
+        organisme_id = uuid4()
+        organisme_recruteur_repository = Mock(spec=IOrganismeRecruteurRepository)
+        organisme_recruteur_repository.get_by_id.side_effect = OrganismeNexistePas(
+            str(organisme_id)
+        )
+        service, _, _ = _service(
+            None, organisme_recruteur_repository=organisme_recruteur_repository
+        )
+
+        with pytest.raises(OrganismeNexistePas):
+            service.est_autorise(
+                action=OrganismeAction.MODIFIER_ORGANISME,
+                organisme_id=organisme_id,
+                agent_id=uuid4(),
+                est_staff=True,
+            )
+
+
+def test_organisme_id_none_avec_action_organisme_scopee_leve_value_error() -> None:
+    service, _, _ = _service(None)
+
+    with pytest.raises(ValueError, match="GET_ORGANISME"):
+        service.est_autorise(
+            action=OrganismeAction.GET_ORGANISME,
+            agent_id=uuid4(),
+            est_staff=True,
+        )

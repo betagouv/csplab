@@ -29,6 +29,7 @@ def test_create_organisme(identite_integration_container):
         localisation=None,
         siret=SIRET(code="19754687200015"),
         parent_id=None,
+        utilisateur_id=uuid4(),
         est_staff=True,
     )
 
@@ -50,6 +51,7 @@ def test_create_organisme_avec_siret(identite_integration_container):
         localisation=None,
         siret=SIRET(code="19754687200015"),
         parent_id=None,
+        utilisateur_id=uuid4(),
         est_staff=True,
     )
 

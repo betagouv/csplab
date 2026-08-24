@@ -1,10 +1,12 @@
 from uuid import UUID
 
-from domain.recruteur.errors.organisme_permission_errors import (
+from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementInconnu,
     AccesRecrutementRefuse,
+    OperationOrganismeRefusee,
 )
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.repositories.organisme_agent_repository_interface import (
     IOrganismeAgentRepository,
 )
@@ -14,10 +16,17 @@ from domain.recruteur.repositories.organisme_repository_interface import (
 from domain.recruteur.repositories.recrutement_agent_repository_interface import (
     IRecrutementAgentRepository,
 )
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
+)
+
+# Actions sans organisme existant : seul le statut staff autorise l'opération
+_ACTIONS_SANS_ORGANISME: frozenset[OrganismeAction] = frozenset(
+    {
+        OrganismeAction.CREER_ORGANISME,
+        OrganismeAction.LISTER_ORGANISMES,
+    }
 )
 
 # Actions pour lesquelles le statut staff dispense d'un rôle réel sur l'organisme
@@ -26,12 +35,18 @@ _AUTORISE_POUR_STAFF: frozenset[OrganismeAction] = frozenset(
         OrganismeAction.GET_ORGANISME,
         OrganismeAction.INITIALIZE_ORGANISME_STEPS,
         OrganismeAction.UPDATE_ORGANISME_STEPS,
+        OrganismeAction.CREER_ORGANISME,
+        OrganismeAction.LISTER_ORGANISMES,
+        OrganismeAction.MODIFIER_ORGANISME,
     }
 )
 
 # -------------------------------------
 # Authorisations niveau Organisme
 # -------------------------------------
+# CREER_ORGANISME / LISTER_ORGANISMES / MODIFIER_ORGANISME sont volontairement absents :
+# aucun rôle ne dispense encore d'accès à ces actions, seul le statut staff les
+# autorise.
 _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.GET_ORGANISME: frozenset({AgentOrganismeRole.RESPONSABLE}),
     OrganismeAction.INITIALIZE_ORGANISME_STEPS: frozenset(
@@ -105,16 +120,25 @@ class OrganismePermissionService:
         self,
         *,
         action: OrganismeAction,
-        organisme_id: UUID,
         agent_id: UUID,
         est_staff: bool,
+        organisme_id: UUID | None = None,
         recrutement_id: UUID | None = None,
     ) -> AgentOrganismeRole | None:
-        # todo : cette guard devrait etre au niveau du usecase
+        if organisme_id is None:
+            if action not in _ACTIONS_SANS_ORGANISME:
+                raise ValueError(f"{action} requiert un organisme_id")
+            if est_staff:
+                return None
+            raise OperationOrganismeRefusee()
+
         self._organisme_recruteur_repository.get_by_id(organisme_id)
 
         if est_staff and action in _AUTORISE_POUR_STAFF:
             return None
+
+        if action not in _ROLES_REQUIS:
+            raise OperationOrganismeRefusee()
 
         roles_requis = _ROLES_REQUIS[action]
         role = self._organisme_agent_repository.get_role(

@@ -67,8 +67,8 @@ from domain.identite.repositories.organisme_repository_interface import (
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
-from domain.identite.services.identite_permission_service import (
-    OrganismeCreationPermissionService,
+from domain.identite.services.organisme_permission_service import (
+    OrganismePermissionService,
 )
 from domain.ingestion.entities.document import DocumentType
 from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
@@ -83,11 +83,14 @@ from domain.ingestion.repositories.user_source_repository_interface import (
     IUserSourceRepository,
 )
 from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
+from domain.recruteur.repositories.organisme_agent_repository_interface import (
+    IOrganismeAgentRepository,
+)
 from domain.recruteur.repositories.organisme_repository_interface import (
     IOrganismeRecruteurRepository,
 )
-from domain.recruteur.services.organisme_permission_service import (
-    OrganismePermissionService,
+from domain.recruteur.repositories.recrutement_agent_repository_interface import (
+    IRecrutementAgentRepository,
 )
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
@@ -493,9 +496,14 @@ def create_organisme_usecase():
     organisme_repository = cast(
         IOrganismeRepository, create_interface_aware_mock(IOrganismeRepository)
     )
+    permission_service = OrganismePermissionService(
+        organisme_recruteur_repository=Mock(spec=IOrganismeRecruteurRepository),
+        organisme_agent_repository=Mock(spec=IOrganismeAgentRepository),
+        recrutement_agent_repository=Mock(spec=IRecrutementAgentRepository),
+    )
     return CreateOrganismeUsecase(
         organisme_repository=organisme_repository,
-        permission_service=OrganismeCreationPermissionService(),
+        permission_service=permission_service,
     )
 
 
