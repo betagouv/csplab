@@ -176,9 +176,9 @@ class Container(containers.DeclarativeContainer):
         )
     )
 
-    import_organismes_gipcdg_use_case: providers.Provider[ImportOrganismesUseCase] = (
+    import_organismes_gipcdg_use_case: providers.Provider[ImportOrganismesUsecase] = (
         providers.Factory(
-            ImportOrganismesUseCase,
+            ImportOrganismesUsecase,
             organisme_gateway=gipcdg_organisme_gateway,
             raw_organisme_repository=raw_organisme_repository,
         )

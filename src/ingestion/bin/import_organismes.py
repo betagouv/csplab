@@ -9,13 +9,14 @@ from infrastructure.di.container import create_container
 logging.basicConfig(level=logging.INFO)
 
 USE_CASES = {
-    "FINESS": lambda container: container.import_organismes_use_case(),
+    "FINESS": lambda container: container.import_organismes_usecase(),
     "GIPCDG": lambda container: container.import_organismes_gipcdg_use_case(),
 }
 
-async def _run() -> None:
+
+async def _run(referentiel: str) -> None:
     container = create_container()
-    await container.import_organismes_usecase().execute(ImportOrganismesCommand())
+    await USE_CASES[referentiel](container).execute(ImportOrganismesCommand())
 
 
 def main() -> None:
