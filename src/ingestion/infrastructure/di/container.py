@@ -7,16 +7,16 @@ from sqlalchemy import Engine
 from api.config import get_settings
 from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
 from application.tasks.process_webhook import save_raw_offer_webhook
-from application.use_cases.archive_offer import ArchiveOfferUseCase
-from application.use_cases.batch_archive_offers import BatchArchiveOffersUseCase
-from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
-from application.use_cases.clean_raw_organismes import CleanRawOrganismesUseCase
-from application.use_cases.import_offers import ImportOffersUseCase
-from application.use_cases.import_organismes import ImportOrganismesUseCase
-from application.use_cases.load_sources import LoadSourcesUseCase
-from application.use_cases.publish_offer import PublishOfferUseCase
-from application.use_cases.save_raw_offer import SaveRawOfferUseCase
-from application.use_cases.save_webhook import SaveWebhookUseCase
+from application.usecases.archive_offer import ArchiveOfferUsecase
+from application.usecases.batch_archive_offers import BatchArchiveOffersUsecase
+from application.usecases.clean_raw_offer import CleanRawOfferUsecase
+from application.usecases.clean_raw_organismes import CleanRawOrganismesUsecase
+from application.usecases.import_offers import ImportOffersUsecase
+from application.usecases.import_organismes import ImportOrganismesUsecase
+from application.usecases.load_sources import LoadSourcesUsecase
+from application.usecases.publish_offer import PublishOfferUsecase
+from application.usecases.save_raw_offer import SaveRawOfferUsecase
+from application.usecases.save_webhook import SaveWebhookUsecase
 from domain.gateways.archive_gateway import IArchiveGateway
 from domain.gateways.offers_by_source_gateway import IOffersBySourceGateway
 from domain.gateways.organisme_gateway import IOrganismeGateway
@@ -157,9 +157,9 @@ class Container(containers.DeclarativeContainer):
         FinessOrganismeGateway
     )
 
-    import_organismes_use_case: providers.Provider[ImportOrganismesUseCase] = (
+    import_organismes_usecase: providers.Provider[ImportOrganismesUsecase] = (
         providers.Factory(
-            ImportOrganismesUseCase,
+            ImportOrganismesUsecase,
             organisme_gateway=organisme_gateway,
             raw_organisme_repository=raw_organisme_repository,
         )
@@ -169,9 +169,9 @@ class Container(containers.DeclarativeContainer):
         OrganismesCleaner
     )
 
-    clean_raw_organismes_use_case: providers.Provider[CleanRawOrganismesUseCase] = (
+    clean_raw_organismes_usecase: providers.Provider[CleanRawOrganismesUsecase] = (
         providers.Factory(
-            CleanRawOrganismesUseCase,
+            CleanRawOrganismesUsecase,
             organismes_cleaner=organismes_cleaner,
             raw_organisme_repository=raw_organisme_repository,
         )
@@ -182,8 +182,8 @@ class Container(containers.DeclarativeContainer):
         engine=db_engine,
     )
 
-    save_webhook_use_case: providers.Provider[SaveWebhookUseCase] = providers.Factory(
-        SaveWebhookUseCase,
+    save_webhook_usecase: providers.Provider[SaveWebhookUsecase] = providers.Factory(
+        SaveWebhookUsecase,
         repository=webhook_repository,
     )
 
@@ -201,8 +201,8 @@ class Container(containers.DeclarativeContainer):
         api_key=config.web_api_key,
     )
 
-    archive_offer_use_case: providers.Provider[ArchiveOfferUseCase] = providers.Factory(
-        ArchiveOfferUseCase,
+    archive_offer_usecase: providers.Provider[ArchiveOfferUsecase] = providers.Factory(
+        ArchiveOfferUsecase,
         archive_gateway=archive_gateway,
         raw_offer_repository=raw_offer_repository,
     )
@@ -216,26 +216,26 @@ class Container(containers.DeclarativeContainer):
         )
     )
 
-    archive_offers_use_case: providers.Provider[BatchArchiveOffersUseCase] = (
+    archive_offers_usecase: providers.Provider[BatchArchiveOffersUsecase] = (
         providers.Factory(
-            BatchArchiveOffersUseCase,
+            BatchArchiveOffersUsecase,
             web_offers_gateway=offers_by_source_gateway,
             sources_repository=sources_repository,
             talentsoft_client_repository=talentsoft_client_repository,
-            archive_offer_use_case=archive_offer_use_case,
+            archive_offer_usecase=archive_offer_usecase,
         )
     )
 
-    load_sources_use_case = providers.Factory(
-        LoadSourcesUseCase,
+    load_sources_usecase = providers.Factory(
+        LoadSourcesUsecase,
         sources_gateway=sources_gateway,
         repository=sources_repository,
     )
 
     offers_cleaner = providers.Singleton(OffersCleaner)
 
-    clean_raw_offer_use_case = providers.Factory(
-        CleanRawOfferUseCase,
+    clean_raw_offer_usecase = providers.Factory(
+        CleanRawOfferUsecase,
         offers_cleaner=offers_cleaner,
     )
 
@@ -246,29 +246,27 @@ class Container(containers.DeclarativeContainer):
         api_key=config.web_api_key,
     )
 
-    publish_offer_use_case: providers.Provider[PublishOfferUseCase] = providers.Factory(
-        PublishOfferUseCase,
+    publish_offer_usecase: providers.Provider[PublishOfferUsecase] = providers.Factory(
+        PublishOfferUsecase,
         publish_offer_gateway=publish_offer_gateway,
     )
 
-    save_raw_offer_use_case: providers.Provider[SaveRawOfferUseCase] = (
-        providers.Factory(
-            SaveRawOfferUseCase,
-            raw_offer_repository=raw_offer_repository,
-        )
+    save_raw_offer_usecase: providers.Provider[SaveRawOfferUsecase] = providers.Factory(
+        SaveRawOfferUsecase,
+        raw_offer_repository=raw_offer_repository,
     )
 
     ingest_offer_pipeline: providers.Provider[IngestOfferPipeline] = providers.Factory(
         IngestOfferPipeline,
-        clean_raw_offer=clean_raw_offer_use_case,
+        clean_raw_offer=clean_raw_offer_usecase,
         raw_offer_repository=raw_offer_repository,
-        publish_offer=publish_offer_use_case,
+        publish_offer=publish_offer_usecase,
     )
 
     dispatch_save_raw_offer_webhook = providers.Object(_dispatch_save_raw_offer_webhook)
 
-    import_offers_use_case: providers.Provider[ImportOffersUseCase] = providers.Factory(
-        ImportOffersUseCase,
+    import_offers_usecase: providers.Provider[ImportOffersUsecase] = providers.Factory(
+        ImportOffersUsecase,
         sources_repository=sources_repository,
         talentsoft_client_repository=talentsoft_client_repository,
         webhook_repository=webhook_repository,

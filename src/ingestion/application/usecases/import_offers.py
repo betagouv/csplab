@@ -2,7 +2,7 @@ import logging
 from typing import Callable
 from uuid import UUID
 
-from application.use_cases._talentsoft_source import resolve_source_and_client
+from application.usecases._talentsoft_source import resolve_source_and_client
 from domain.entities.webhook import Webhook
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.repositories.webhook_repository import IWebhookRepository
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 _BATCH_SIZE = 1_000
 
 
-class ImportOffersUseCase:
+class ImportOffersUsecase:
     def __init__(
         self,
         sources_repository: ISourcesRepository,

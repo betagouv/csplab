@@ -49,8 +49,8 @@ def create_app():
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        use_case = container.load_sources_use_case()
-        await use_case.execute()
+        usecase = container.load_sources_usecase()
+        await usecase.execute()
 
         yield
 

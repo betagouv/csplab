@@ -7,7 +7,7 @@ from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.verse import Verse
 
-from application.use_cases.clean_raw_offer import CleanRawOfferUseCase
+from application.usecases.clean_raw_offer import CleanRawOfferUsecase
 from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
 from infrastructure.gateways.offers_cleaner import OffersCleaner
@@ -24,8 +24,8 @@ SOURCE_ID = "11111111-2222-3333-4444-555555555555"
 
 
 @pytest.fixture
-def use_case() -> CleanRawOfferUseCase:
-    return CleanRawOfferUseCase(offers_cleaner=OffersCleaner())
+def usecase() -> CleanRawOfferUsecase:
+    return CleanRawOfferUsecase(offers_cleaner=OffersCleaner())
 
 
 def _raw_offer(**kwargs) -> RawOffer:
@@ -37,18 +37,18 @@ def _raw_offer(**kwargs) -> RawOffer:
     )
 
 
-def test_execute_returns_offer_with_reference_and_source_id(use_case):
-    result = use_case.execute(_raw_offer())
+def test_execute_returns_offer_with_reference_and_source_id(usecase):
+    result = usecase.execute(_raw_offer())
 
     assert isinstance(result, Offer)
     assert result.reference == REFERENCE
     assert result.source_id == UUID(SOURCE_ID)
 
 
-def test_execute_maps_title_and_organization(use_case):
+def test_execute_maps_title_and_organization(usecase):
     raw = _raw_offer(title="DIRECTEUR GÉNÉRAL", organisationName="Mairie de Lyon")
 
-    result = use_case.execute(raw)
+    result = usecase.execute(raw)
 
     assert result.title == "DIRECTEUR GÉNÉRAL"
     assert result.organization == "Mairie de Lyon"
@@ -62,9 +62,9 @@ def test_execute_maps_title_and_organization(use_case):
         ("Versant_FPE", Verse.FPE),
     ],
 )
-def test_execute_maps_verse(use_case, salary_range_code, expected_verse):
+def test_execute_maps_verse(usecase, salary_range_code, expected_verse):
     salary_range = TalentsoftCodedObjectFactory.build(clientCode=salary_range_code)
-    result = use_case.execute(_raw_offer(salaryRange=salary_range))
+    result = usecase.execute(_raw_offer(salaryRange=salary_range))
 
     assert result.verse == expected_verse
 
@@ -79,13 +79,13 @@ def test_execute_maps_verse(use_case, salary_range_code, expected_verse):
         (None, None),
     ],
 )
-def test_execute_maps_contract_type(use_case, contract_code, expected):
+def test_execute_maps_contract_type(usecase, contract_code, expected):
     contract_type = (
         TalentsoftCodedObjectFactory.build(clientCode=contract_code)
         if contract_code
         else None
     )
-    result = use_case.execute(_raw_offer(contractType=contract_type))
+    result = usecase.execute(_raw_offer(contractType=contract_type))
 
     assert result.contract_type == expected
 
@@ -102,7 +102,7 @@ def test_execute_maps_contract_type(use_case, contract_code, expected):
         ("UNKNOWN", None),
     ],
 )
-def test_execute_maps_category(use_case, category_code, expected_category):
+def test_execute_maps_category(usecase, category_code, expected_category):
     raw = _raw_offer(
         customFields=TalentsoftCustomFieldsFactory.build(
             description=TalentsoftDescriptionCustomFieldsFactory.build(
@@ -113,12 +113,12 @@ def test_execute_maps_category(use_case, category_code, expected_category):
         )
     )
 
-    result = use_case.execute(raw)
+    result = usecase.execute(raw)
 
     assert result.category == expected_category
 
 
-def test_execute_maps_localisation(use_case):
+def test_execute_maps_localisation(usecase):
     raw = _raw_offer(
         geographicalLocation=[
             TalentsoftCodedObjectFactory.build(
@@ -137,7 +137,7 @@ def test_execute_maps_localisation(use_case):
         ],
     )
 
-    result = use_case.execute(raw)
+    result = usecase.execute(raw)
 
     assert result.localisation is not None
     assert result.localisation.area.value == "EU"
@@ -146,41 +146,41 @@ def test_execute_maps_localisation(use_case):
     assert result.localisation.department.code == "75"
 
 
-def test_execute_returns_none_localisation_when_missing(use_case):
+def test_execute_returns_none_localisation_when_missing(usecase):
     raw = _raw_offer(geographicalLocation=[], country=[], region=[], department=[])
 
-    result = use_case.execute(raw)
+    result = usecase.execute(raw)
 
     assert result.localisation is None
 
 
-def test_execute_raises_when_raw_offer_has_no_data(use_case):
+def test_execute_raises_when_raw_offer_has_no_data(usecase):
     raw = RawOffer(reference=REFERENCE, source_id=SOURCE_ID, data=None)
 
     with pytest.raises(ValueError, match="no data"):
-        use_case.execute(raw)
+        usecase.execute(raw)
 
 
-def test_execute_external_id_uses_salary_range_client_code_as_prefix(use_case):
+def test_execute_external_id_uses_salary_range_client_code_as_prefix(usecase):
     salary_range = TalentsoftCodedObjectFactory.build(clientCode="Versant_FPT")
-    result = use_case.execute(_raw_offer(salaryRange=salary_range))
+    result = usecase.execute(_raw_offer(salaryRange=salary_range))
 
     assert result.external_id == f"Versant_FPT-{REFERENCE}"
 
 
-def test_execute_sets_beginning_date_when_present(use_case):
+def test_execute_sets_beginning_date_when_present(usecase):
     raw = _raw_offer(beginningDate="2025-09-01T00:00:00Z")
 
-    result = use_case.execute(raw)
+    result = usecase.execute(raw)
 
     assert result.beginning_date == LimitDate(
         value=datetime.datetime(2025, 9, 1, 0, 0, tzinfo=datetime.timezone.utc)
     )
 
 
-def test_execute_sets_none_beginning_date_when_absent(use_case):
+def test_execute_sets_none_beginning_date_when_absent(usecase):
     raw = _raw_offer(beginningDate=None)
 
-    result = use_case.execute(raw)
+    result = usecase.execute(raw)
 
     assert result.beginning_date is None

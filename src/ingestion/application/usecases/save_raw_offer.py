@@ -9,7 +9,7 @@ from domain.repositories.raw_offer_repository import IRawOfferRepository
 logger = logging.getLogger(__name__)
 
 
-class SaveRawOfferUseCase:
+class SaveRawOfferUsecase:
     def __init__(
         self,
         offers_gateway: IOffersGateway,
