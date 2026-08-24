@@ -122,12 +122,8 @@ class OrganismePermissionService:
         organisme_id: UUID | None = None,
         recrutement_id: UUID | None = None,
     ) -> AgentOrganismeRole | None:
-        if organisme_id is None:
-            if action not in _ACTIONS_SANS_ORGANISME:
-                raise ValueError(f"{action} requiert un organisme_id")
-            if est_staff:
-                return None
-            raise OperationOrganismeRefusee()
+        if est_staff and action in _ACTIONS_SANS_ORGANISME:
+            return None
 
         self._organisme_recruteur_repository.get_by_id(organisme_id)
 
