@@ -84,14 +84,14 @@ export interface paths {
         };
         /** Liste des agents rattachés à un organisme */
         get: operations["recruteur_organismes_parametres_agents_list"];
-        put?: never;
+        /** Modifier ou revoquer un agent d'un organisme */
+        put: operations["recruteur_organismes_parametres_agents_update"];
         /** Rattacher un agent à un organisme */
         post: operations["recruteur_organismes_parametres_agents_create"];
         delete?: never;
         options?: never;
         head?: never;
-        /** Modifier ou revoquer un agent d'un organisme */
-        patch: operations["recruteur_organismes_parametres_agents_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/recruteur/organismes/{organisme_uuid}/parametres/etapes": {
@@ -635,16 +635,6 @@ export interface components {
         PatchedEditerNote: {
             message?: string;
         };
-        PatchedUpdateAgentOrganisme: {
-            /** Format: uuid */
-            agent_id?: string;
-            role?: components["schemas"]["RoleEnum"];
-            nom?: string;
-            prenom?: string;
-            poste?: string;
-            /** Format: date-time */
-            date_revocation?: string;
-        };
         RecrutementDetail: {
             /** Format: uuid */
             offer_id: string;
@@ -742,6 +732,16 @@ export interface components {
          * @enum {string}
          */
         TypeContratEnum: "TITULAIRE_CONTRACTUEL" | "CONTRACTUELS" | "TERRITORIAL";
+        UpdateAgentOrganisme: {
+            /** Format: uuid */
+            agent_id: string;
+            role?: components["schemas"]["RoleEnum"];
+            nom?: string;
+            prenom?: string;
+            poste?: string;
+            /** Format: date-time */
+            date_revocation?: string;
+        };
         UpdateEtapeRecrutement: {
             /** Format: uuid */
             etape_uuid?: string;
@@ -1216,7 +1216,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organismes_parametres_agents_create: {
+    recruteur_organismes_parametres_agents_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -1227,13 +1227,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SetAgentRoleOnOrganisme"];
-                "application/x-www-form-urlencoded": components["schemas"]["SetAgentRoleOnOrganisme"];
-                "multipart/form-data": components["schemas"]["SetAgentRoleOnOrganisme"];
+                "application/json": components["schemas"]["UpdateAgentOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["UpdateAgentOrganisme"];
+                "multipart/form-data": components["schemas"]["UpdateAgentOrganisme"];
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1283,7 +1283,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organismes_parametres_agents_partial_update: {
+    recruteur_organismes_parametres_agents_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -1292,15 +1292,15 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["PatchedUpdateAgentOrganisme"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedUpdateAgentOrganisme"];
-                "multipart/form-data": components["schemas"]["PatchedUpdateAgentOrganisme"];
+                "application/json": components["schemas"]["SetAgentRoleOnOrganisme"];
+                "application/x-www-form-urlencoded": components["schemas"]["SetAgentRoleOnOrganisme"];
+                "multipart/form-data": components["schemas"]["SetAgentRoleOnOrganisme"];
             };
         };
         responses: {
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };

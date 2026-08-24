@@ -65,7 +65,7 @@ _AGENTS_STATIQUES = [
             400: GenericErrorSerializer,
         },
     ),
-    patch=extend_schema(
+    put=extend_schema(
         summary="Modifier ou revoquer un agent d'un organisme",
         tags=["recruteur"],
         request=UpdateAgentOrganismeSerializer,
@@ -104,7 +104,7 @@ class OrganismeAgentsView(APIView):
         out_serializer = AgentOrganismeSerializer(agent)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
 
-    def patch(self, request: Request, organisme_uuid: UUID) -> Response:
+    def put(self, request: Request, organisme_uuid: UUID) -> Response:
         serializer = UpdateAgentOrganismeSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
