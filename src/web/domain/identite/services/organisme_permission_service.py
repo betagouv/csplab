@@ -44,9 +44,6 @@ _AUTORISE_POUR_STAFF: frozenset[OrganismeAction] = frozenset(
 # -------------------------------------
 # Authorisations niveau Organisme
 # -------------------------------------
-# CREER_ORGANISME / LISTER_ORGANISMES / MODIFIER_ORGANISME sont volontairement absents :
-# aucun rôle ne dispense encore d'accès à ces actions, seul le statut staff les
-# autorise.
 _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.GET_ORGANISME: frozenset({AgentOrganismeRole.RESPONSABLE}),
     OrganismeAction.INITIALIZE_ORGANISME_STEPS: frozenset(
