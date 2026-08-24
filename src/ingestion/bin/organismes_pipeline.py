@@ -3,6 +3,7 @@ import asyncio
 import logging
 
 from application.use_cases.import_organismes import ImportOrganismesCommand
+from application.use_cases.publish_organismes import PublishOrganismesCommand
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from infrastructure.di.container import create_container
 
@@ -23,7 +24,9 @@ async def _run() -> None:
     organismes = await container.clean_raw_organismes_use_case().execute(
         import_result.referentiel
     )
-    await container.publish_organismes_use_case().execute(organismes)
+    await container.publish_organismes_use_case().execute(
+        PublishOrganismesCommand(organismes=organismes)
+    )
 
 
 def main() -> None:

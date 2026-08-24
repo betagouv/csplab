@@ -6,7 +6,10 @@ from referentiel.entities.organisme import Organisme
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
-from application.use_cases.publish_organismes import PublishOrganismesUseCase
+from application.use_cases.publish_organismes import (
+    PublishOrganismesCommand,
+    PublishOrganismesUseCase,
+)
 from domain.gateways.publish_organismes_gateway import IPublishOrganismesGateway
 
 
@@ -36,7 +39,7 @@ def use_case(mock_gateway):
 async def test_execute_publishes_single_batch_below_batch_size(use_case, mock_gateway):
     organismes = [_organisme() for _ in range(50)]
 
-    await use_case.execute(organismes)
+    await use_case.execute(PublishOrganismesCommand(organismes=organismes))
 
     mock_gateway.publish.assert_awaited_once_with(organismes)
 
@@ -45,7 +48,7 @@ async def test_execute_publishes_single_batch_below_batch_size(use_case, mock_ga
 async def test_execute_splits_into_batches_of_100(use_case, mock_gateway):
     organismes = [_organisme() for _ in range(250)]
 
-    await use_case.execute(organismes)
+    await use_case.execute(PublishOrganismesCommand(organismes=organismes))
 
     assert mock_gateway.publish.await_count == 3
     calls = mock_gateway.publish.await_args_list
@@ -56,7 +59,7 @@ async def test_execute_splits_into_batches_of_100(use_case, mock_gateway):
 
 @pytest.mark.asyncio
 async def test_execute_does_nothing_when_no_organismes(use_case, mock_gateway):
-    await use_case.execute([])
+    await use_case.execute(PublishOrganismesCommand(organismes=[]))
 
     mock_gateway.publish.assert_not_awaited()
 
@@ -66,4 +69,4 @@ async def test_execute_propagates_gateway_error(use_case, mock_gateway):
     mock_gateway.publish.side_effect = RuntimeError("API down")
 
     with pytest.raises(RuntimeError, match="API down"):
-        await use_case.execute([_organisme()])
+        await use_case.execute(PublishOrganismesCommand(organismes=[_organisme()]))
