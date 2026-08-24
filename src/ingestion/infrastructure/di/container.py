@@ -15,6 +15,7 @@ from application.usecases.import_offers import ImportOffersUsecase
 from application.usecases.import_organismes import ImportOrganismesUsecase
 from application.usecases.load_sources import LoadSourcesUsecase
 from application.usecases.publish_offer import PublishOfferUsecase
+from application.usecases.publish_organismes import PublishOrganismesUsecase
 from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from application.usecases.save_webhook import SaveWebhookUsecase
 from domain.gateways.archive_gateway import IArchiveGateway
@@ -22,6 +23,7 @@ from domain.gateways.offers_by_source_gateway import IOffersBySourceGateway
 from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.gateways.organismes_cleaner import IOrganismesCleaner
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
+from domain.gateways.publish_organismes_gateway import IPublishOrganismesGateway
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
@@ -31,6 +33,7 @@ from domain.value_objects.credentials import Credentials
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from infrastructure.credentials_store import CredentialsStore
 from infrastructure.database import make_engine
+from infrastructure.external_gateways.base_web_gateway import WebGatewayCredentials
 from infrastructure.external_gateways.finess_organisme_gateway import (
     FinessOrganismeGateway,
 )
@@ -44,6 +47,9 @@ from infrastructure.external_gateways.web_offers_by_source_gateway import (
 )
 from infrastructure.external_gateways.web_publish_offer_gateway import (
     WebPublishOfferGateway,
+)
+from infrastructure.external_gateways.web_publish_organismes_gateway import (
+    WebPublishOrganismesGateway,
 )
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.gateways.offers_cleaner import OffersCleaner
@@ -84,38 +90,6 @@ def _make_db_engine(database_url: str | None) -> Engine:
     return make_engine(database_url)
 
 
-def _make_sources_gateway(
-    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> ISourcesGateway:
-    if not base_url or not api_key:
-        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
-    return WebSourcesGateway(client=client, base_url=base_url, api_key=api_key)
-
-
-def _make_archive_gateway(
-    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> IArchiveGateway:
-    if not base_url or not api_key:
-        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
-    return WebArchiveGateway(client=client, base_url=base_url, api_key=api_key)
-
-
-def _make_offers_by_source_gateway(
-    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> IOffersBySourceGateway:
-    if not base_url or not api_key:
-        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
-    return WebOffersBySourceGateway(client=client, base_url=base_url, api_key=api_key)
-
-
-def _make_publish_offer_gateway(
-    client: httpx.AsyncClient, base_url: str | None, api_key: str | None
-) -> IPublishOfferGateway:
-    if not base_url or not api_key:
-        raise ValueError("WEB_BASE_URL and WEB_API_KEY are required")
-    return WebPublishOfferGateway(client=client, base_url=base_url, api_key=api_key)
-
-
 class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(
         modules=["api.routes", "api.talentsoft", "infrastructure.di.container"]
@@ -124,6 +98,12 @@ class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
 
     http_client = providers.Factory(httpx.AsyncClient)
+
+    web_gateway_credentials = providers.Singleton(
+        WebGatewayCredentials,
+        base_url=config.web_base_url,
+        api_key=config.web_api_key,
+    )
 
     sources_repository: providers.Provider[ISourcesRepository] = providers.Singleton(
         SourcesRepository
@@ -177,6 +157,21 @@ class Container(containers.DeclarativeContainer):
         )
     )
 
+    publish_organismes_gateway: providers.Provider[IPublishOrganismesGateway] = (
+        providers.Factory(
+            WebPublishOrganismesGateway,
+            client=http_client,
+            credentials=web_gateway_credentials,
+        )
+    )
+
+    publish_organismes_usecase: providers.Provider[PublishOrganismesUsecase] = (
+        providers.Factory(
+            PublishOrganismesUsecase,
+            publish_organismes_gateway=publish_organismes_gateway,
+        )
+    )
+
     webhook_repository: providers.Provider[IWebhookRepository] = providers.Singleton(
         WebhookRepository,
         engine=db_engine,
@@ -188,17 +183,15 @@ class Container(containers.DeclarativeContainer):
     )
 
     sources_gateway: providers.Provider[ISourcesGateway] = providers.Factory(
-        _make_sources_gateway,
+        WebSourcesGateway,
         client=http_client,
-        base_url=config.web_base_url,
-        api_key=config.web_api_key,
+        credentials=web_gateway_credentials,
     )
 
     archive_gateway: providers.Provider[IArchiveGateway] = providers.Factory(
-        _make_archive_gateway,
+        WebArchiveGateway,
         client=http_client,
-        base_url=config.web_base_url,
-        api_key=config.web_api_key,
+        credentials=web_gateway_credentials,
     )
 
     archive_offer_usecase: providers.Provider[ArchiveOfferUsecase] = providers.Factory(
@@ -209,10 +202,9 @@ class Container(containers.DeclarativeContainer):
 
     offers_by_source_gateway: providers.Provider[IOffersBySourceGateway] = (
         providers.Factory(
-            _make_offers_by_source_gateway,
+            WebOffersBySourceGateway,
             client=http_client,
-            base_url=config.web_base_url,
-            api_key=config.web_api_key,
+            credentials=web_gateway_credentials,
         )
     )
 
@@ -240,10 +232,9 @@ class Container(containers.DeclarativeContainer):
     )
 
     publish_offer_gateway: providers.Provider[IPublishOfferGateway] = providers.Factory(
-        _make_publish_offer_gateway,
+        WebPublishOfferGateway,
         client=http_client,
-        base_url=config.web_base_url,
-        api_key=config.web_api_key,
+        credentials=web_gateway_credentials,
     )
 
     publish_offer_usecase: providers.Provider[PublishOfferUsecase] = providers.Factory(

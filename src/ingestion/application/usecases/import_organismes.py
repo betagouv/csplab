@@ -3,19 +3,22 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from ddd.async_usecase_interface import IAsyncUseCase
+from pydantic import BaseModel, ConfigDict
 
 from domain.entities.raw_organisme import RawOrganisme
 from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
+from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 
 logger = logging.getLogger(__name__)
 
 BATCH_SIZE = 500
 
 
-@dataclass(frozen=True)
-class ImportOrganismesCommand:
-    pass
+class ImportOrganismesCommand(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    referentiel: OrganismeReferentiel
 
 
 @dataclass(frozen=True)

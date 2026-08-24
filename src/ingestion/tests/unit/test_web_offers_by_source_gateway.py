@@ -2,6 +2,7 @@ import httpx
 import pytest
 from pytest_httpx import HTTPXMock
 
+from infrastructure.external_gateways.base_web_gateway import WebGatewayCredentials
 from infrastructure.external_gateways.web_offers_by_source_gateway import (
     WebOffersBySourceGateway,
 )
@@ -25,7 +26,8 @@ def _page(references: list[str], next_url: str | None) -> dict:
 @pytest.fixture
 def gateway() -> WebOffersBySourceGateway:
     return WebOffersBySourceGateway(
-        client=httpx.AsyncClient(), base_url=BASE_URL, api_key=API_KEY
+        client=httpx.AsyncClient(),
+        credentials=WebGatewayCredentials(base_url=BASE_URL, api_key=API_KEY),
     )
 
 
