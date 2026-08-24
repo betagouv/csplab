@@ -46,7 +46,7 @@ def load_documents_usecase(documents_ingestion_container):
     return documents_ingestion_container.load_documents_usecase()
 
 
-class TestIntegrationCorpsLoadDocumentsUseCase:
+class TestIntegrationCorpsLoadDocumentsUsecase:
     async def test_execute_returns_zero_when_no_documents(
         self, db, load_documents_usecase, test_app_config, httpx_mock
     ):

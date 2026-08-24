@@ -3,7 +3,7 @@ from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.gateways.publish_offer_input import PublishOfferInput
 
 
-class PublishOfferUseCase:
+class PublishOfferUsecase:
     def __init__(self, publish_offer_gateway: IPublishOfferGateway) -> None:
         self._gateway = publish_offer_gateway
 

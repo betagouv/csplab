@@ -26,7 +26,7 @@ class ImportOrganismesResult:
     total_deleted: int
 
 
-class ImportOrganismesUseCase(
+class ImportOrganismesUsecase(
     IAsyncUseCase[ImportOrganismesCommand, ImportOrganismesResult]
 ):
     def __init__(

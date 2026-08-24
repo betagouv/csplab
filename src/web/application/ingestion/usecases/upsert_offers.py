@@ -17,7 +17,7 @@ from domain.ingestion.repositories.user_source_repository_interface import (
 )
 
 
-class UpsertOffersUseCase(IUseCase[UpsertOffersInput, IUpsertResult]):
+class UpsertOffersUsecase(IUseCase[UpsertOffersInput, IUpsertResult]):
     def __init__(
         self,
         offers_repository: IIngestionOffersRepository,
@@ -31,9 +31,9 @@ class UpsertOffersUseCase(IUseCase[UpsertOffersInput, IUpsertResult]):
         self.utilisateur_repository = utilisateur_repository
 
     def execute(self, input_data: UpsertOffersInput) -> IUpsertResult:
-        if input_data.utilisateur_entity_id is not None:
-            utilisateur = self.utilisateur_repository.get_by_entity_id(
-                input_data.utilisateur_entity_id
+        if input_data.utilisateur_username is not None:
+            utilisateur = self.utilisateur_repository.get_by_username(
+                input_data.utilisateur_username
             )
             source_ids = {input_data.source_id}
             allowed = self.user_source_repository.get_allowed_source_ids(

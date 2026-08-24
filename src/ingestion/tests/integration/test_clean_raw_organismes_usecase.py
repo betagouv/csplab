@@ -4,9 +4,9 @@ import pytest
 from referentiel.entities.organisme import Organisme
 from sqlmodel import Session, select
 
-from application.use_cases.clean_raw_organismes import (
+from application.usecases.clean_raw_organismes import (
     BATCH_SIZE,
-    CleanRawOrganismesUseCase,
+    CleanRawOrganismesUsecase,
 )
 from domain.entities.raw_organisme import RawOrganisme
 from domain.gateways.organismes_cleaner import IOrganismesCleaner
@@ -76,19 +76,19 @@ def repository_spy(raw_organisme_repository) -> MagicMock:
 
 
 @pytest.fixture
-def use_case(cleaner, repository_spy) -> CleanRawOrganismesUseCase:
-    return CleanRawOrganismesUseCase(
+def usecase(cleaner, repository_spy) -> CleanRawOrganismesUsecase:
+    return CleanRawOrganismesUsecase(
         organismes_cleaner=cleaner, raw_organisme_repository=repository_spy
     )
 
 
 @pytest.mark.asyncio
 async def test_single_partial_batch_stops_after_one_fetch(
-    use_case, repository_spy, raw_organisme_repository, db_engine
+    usecase, repository_spy, raw_organisme_repository, db_engine
 ):
     await raw_organisme_repository.upsert_batch(_raw_organismes(3))
 
-    result = await use_case.execute(REFERENTIEL)
+    result = await usecase.execute(REFERENTIEL)
 
     assert repository_spy.find_uncleaned.call_count == 1
     assert len(result) == 3
@@ -98,11 +98,11 @@ async def test_single_partial_batch_stops_after_one_fetch(
 
 @pytest.mark.asyncio
 async def test_fetches_again_when_batch_is_full(
-    use_case, repository_spy, raw_organisme_repository, db_engine
+    usecase, repository_spy, raw_organisme_repository, db_engine
 ):
     await raw_organisme_repository.upsert_batch(_raw_organismes(BATCH_SIZE))
 
-    result = await use_case.execute(REFERENTIEL)
+    result = await usecase.execute(REFERENTIEL)
 
     assert repository_spy.find_uncleaned.call_count == 2
     assert len(result) == BATCH_SIZE
@@ -112,12 +112,12 @@ async def test_fetches_again_when_batch_is_full(
 
 @pytest.mark.asyncio
 async def test_marks_all_fetched_ids_as_cleaned(
-    use_case, raw_organisme_repository, db_engine
+    usecase, raw_organisme_repository, db_engine
 ):
     raw_batch = _raw_organismes(2)
     await raw_organisme_repository.upsert_batch(raw_batch)
 
-    await use_case.execute(REFERENTIEL)
+    await usecase.execute(REFERENTIEL)
 
     saved = _fetch_all(db_engine)
     assert {row.id for row in saved} == {raw.id for raw in raw_batch}
@@ -126,21 +126,21 @@ async def test_marks_all_fetched_ids_as_cleaned(
 
 @pytest.mark.asyncio
 async def test_filtered_out_organismes_are_not_returned_but_marked_cleaned(
-    use_case, raw_organisme_repository, db_engine
+    usecase, raw_organisme_repository, db_engine
 ):
     await raw_organisme_repository.upsert_batch(
         _raw_organismes(2, categorie=DISALLOWED_CATEGORIE)
     )
 
-    result = await use_case.execute(REFERENTIEL)
+    result = await usecase.execute(REFERENTIEL)
 
     assert result == []
     assert all(row.cleaned_at is not None for row in _fetch_all(db_engine))
 
 
 @pytest.mark.asyncio
-async def test_no_uncleaned_organismes_does_not_mark_cleaned(use_case, repository_spy):
-    result = await use_case.execute(REFERENTIEL)
+async def test_no_uncleaned_organismes_does_not_mark_cleaned(usecase, repository_spy):
+    result = await usecase.execute(REFERENTIEL)
 
     assert result == []
     repository_spy.mark_as_cleaned_batch.assert_not_called()
@@ -161,11 +161,11 @@ async def test_cleaner_error_is_skipped_but_still_marked_cleaned(
         return real_cleaner.clean(raw_organisme)
 
     mock_cleaner.clean.side_effect = _clean_side_effect
-    use_case = CleanRawOrganismesUseCase(
+    usecase = CleanRawOrganismesUsecase(
         organismes_cleaner=mock_cleaner, raw_organisme_repository=repository_spy
     )
 
-    result = await use_case.execute(REFERENTIEL)
+    result = await usecase.execute(REFERENTIEL)
 
     assert len(result) == 1
     assert all(row.cleaned_at is not None for row in _fetch_all(db_engine))

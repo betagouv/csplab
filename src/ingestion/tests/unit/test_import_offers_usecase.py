@@ -61,7 +61,7 @@ async def test_raises_when_source_not_found(container, mock_sources_repo):
     mock_sources_repo.get_by_source_id.return_value = None
 
     with pytest.raises(ValueError, match=str(SOURCE_UUID)):
-        await container.import_offers_use_case().execute(source_id=SOURCE_UUID)
+        await container.import_offers_usecase().execute(source_id=SOURCE_UUID)
 
 
 @pytest.mark.asyncio
@@ -73,7 +73,7 @@ async def test_raises_when_talentsoft_client_not_found(
     mock_talentsoft_repo.get.return_value = None
 
     with pytest.raises(ValueError, match=str(SOURCE_UUID)):
-        await container.import_offers_use_case().execute(source_id=SOURCE_UUID)
+        await container.import_offers_usecase().execute(source_id=SOURCE_UUID)
 
     mock_talentsoft_repo.get.assert_called_once_with(CLIENT_ID_FRONT)
 
@@ -87,7 +87,7 @@ async def test_single_page_inserts_webhooks_and_dispatches(
     mock_sources_repo.get_by_source_id.return_value = source
     mock_talentsoft_repo.get.return_value = _make_client([(offers, False)])
 
-    await container.import_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.import_offers_usecase().execute(source_id=SOURCE_UUID)
 
     assert mock_webhook_repo.insert.call_count == 3
     assert mock_dispatch.call_count == 3
@@ -102,7 +102,7 @@ async def test_webhooks_have_cree_event_type_and_correct_fields(
     mock_sources_repo.get_by_source_id.return_value = source
     mock_talentsoft_repo.get.return_value = _make_client([(offers, False)])
 
-    await container.import_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.import_offers_usecase().execute(source_id=SOURCE_UUID)
 
     inserted = [call.args[0] for call in mock_webhook_repo.insert.call_args_list]
     references = {o.reference for o in offers}
@@ -125,7 +125,7 @@ async def test_dispatch_receives_webhook_id(
     mock_sources_repo.get_by_source_id.return_value = source
     mock_talentsoft_repo.get.return_value = _make_client([(offers, False)])
 
-    await container.import_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.import_offers_usecase().execute(source_id=SOURCE_UUID)
 
     inserted_webhook = mock_webhook_repo.insert.call_args.args[0]
     mock_dispatch.assert_called_once_with(str(inserted_webhook.id))
@@ -142,7 +142,7 @@ async def test_multiple_pages_processes_all_offers(
     client = _make_client([(first_page, True), (second_page, False)])
     mock_talentsoft_repo.get.return_value = client
 
-    await container.import_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.import_offers_usecase().execute(source_id=SOURCE_UUID)
 
     assert mock_webhook_repo.insert.call_count == 3
     assert mock_dispatch.call_count == 3
@@ -159,7 +159,7 @@ async def test_pagination_increments_page_number(
     client = _make_client([(offers, True), ([], False)])
     mock_talentsoft_repo.get.return_value = client
 
-    await container.import_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.import_offers_usecase().execute(source_id=SOURCE_UUID)
 
     first_call = client.get_all.call_args_list[0]
     second_call = client.get_all.call_args_list[1]
@@ -175,7 +175,7 @@ async def test_empty_page_does_not_insert_or_dispatch(
     mock_sources_repo.get_by_source_id.return_value = source
     mock_talentsoft_repo.get.return_value = _make_client([([], False)])
 
-    await container.import_offers_use_case().execute(source_id=SOURCE_UUID)
+    await container.import_offers_usecase().execute(source_id=SOURCE_UUID)
 
     mock_webhook_repo.insert.assert_not_called()
     mock_dispatch.assert_not_called()

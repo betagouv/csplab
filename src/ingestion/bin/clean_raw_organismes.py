@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 async def _run(referentiel: str) -> None:
     container = create_container()
-    await container.clean_raw_organismes_use_case().execute(referentiel)
+    await container.clean_raw_organismes_usecase().execute(referentiel)
 
 
 def main() -> None:

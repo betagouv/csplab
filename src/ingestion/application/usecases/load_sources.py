@@ -6,7 +6,7 @@ from domain.repositories.sources_repository import ISourcesRepository
 logger = logging.getLogger(__name__)
 
 
-class LoadSourcesUseCase:
+class LoadSourcesUsecase:
     def __init__(
         self,
         sources_gateway: ISourcesGateway,

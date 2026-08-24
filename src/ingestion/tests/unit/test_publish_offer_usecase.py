@@ -6,7 +6,7 @@ import pytest
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.verse import Verse
 
-from application.use_cases.publish_offer import PublishOfferUseCase
+from application.usecases.publish_offer import PublishOfferUsecase
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.gateways.publish_offer_input import PublishOfferInput
@@ -40,13 +40,13 @@ def mock_gateway():
 
 
 @pytest.fixture
-def use_case(mock_gateway):
-    return PublishOfferUseCase(publish_offer_gateway=mock_gateway)
+def usecase(mock_gateway):
+    return PublishOfferUsecase(publish_offer_gateway=mock_gateway)
 
 
 @pytest.mark.asyncio
-async def test_execute_calls_gateway_publish(use_case, mock_gateway):
-    await use_case.execute(OFFER)
+async def test_execute_calls_gateway_publish(usecase, mock_gateway):
+    await usecase.execute(OFFER)
 
     mock_gateway.publish.assert_awaited_once_with(
         PublishOfferInput(source_id=OFFER.source_id, offer=OFFER)
@@ -54,8 +54,8 @@ async def test_execute_calls_gateway_publish(use_case, mock_gateway):
 
 
 @pytest.mark.asyncio
-async def test_execute_propagates_gateway_error(use_case, mock_gateway):
+async def test_execute_propagates_gateway_error(usecase, mock_gateway):
     mock_gateway.publish.side_effect = RuntimeError("API down")
 
     with pytest.raises(RuntimeError, match="API down"):
-        await use_case.execute(OFFER)
+        await usecase.execute(OFFER)

@@ -7,6 +7,8 @@
         <title>ATS - CSPLab</title>
         {% if debug %}
             <script type="module" src="{% vite_dev_asset '@vite/client' %}"></script>
+            <script type="module"
+                    src="{% vite_dev_asset '@vite-plugin-checker-runtime-entry' %}"></script>
             <script type="module" src="{% vite_dev_asset 'src/app/main.ts' %}"></script>
         {% else %}
             {% vite_css 'src/app/main.ts' %}

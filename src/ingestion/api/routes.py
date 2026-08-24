@@ -15,7 +15,7 @@ from application.tasks.process_webhook import (
     archive_offer_webhook,
     save_raw_offer_webhook,
 )
-from application.use_cases.save_webhook import SaveWebhookUseCase
+from application.usecases.save_webhook import SaveWebhookUsecase
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.value_objects.webhook_event import WebhookActionType, WebhookEvent
 from infrastructure.di.container import Container
@@ -67,8 +67,8 @@ async def talentsoft_webhook(
     request: Request,
     client_id: str = Query(...),
     repository: ISourcesRepository = Depends(Provide[Container.sources_repository]),
-    save_webhook_use_case: SaveWebhookUseCase = Depends(
-        Provide[Container.save_webhook_use_case]
+    save_webhook_usecase: SaveWebhookUsecase = Depends(
+        Provide[Container.save_webhook_usecase]
     ),
 ):
     body = await request.body()
@@ -87,7 +87,7 @@ async def talentsoft_webhook(
     source = cast(Source, repository.get_by_client_id_back(client_id))
 
     try:
-        webhook = await save_webhook_use_case.execute(
+        webhook = await save_webhook_usecase.execute(
             event=event,
             source=source,
             payload=json.loads(body),

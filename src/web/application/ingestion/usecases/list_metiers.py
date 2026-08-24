@@ -7,7 +7,7 @@ from referentiel.repositories.metier_repository_interface import IMetierReposito
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
 
 
-class ListMetiersUseCase(IUseCase[GetFilteredMetiersInput, IPage[Metier]]):
+class ListMetiersUsecase(IUseCase[GetFilteredMetiersInput, IPage[Metier]]):
     def __init__(
         self,
         metiers_repository: IMetierRepository,

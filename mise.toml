@@ -2,7 +2,7 @@
 
 [tools]
 node = "24"        # engines.node (src/web/package.json)
-pnpm = "11.1.3"    # packageManager (src/web/package.json)
+pnpm = "11.23"    # packageManager (src/web/package.json)
 
 # ── Frontend (node seul, aucun service back requis) ──────────────────────────
 [tasks.sb]

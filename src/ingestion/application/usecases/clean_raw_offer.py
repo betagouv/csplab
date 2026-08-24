@@ -3,7 +3,7 @@ from domain.entities.raw_offer import RawOffer
 from domain.gateways.offers_cleaner import IOffersCleaner
 
 
-class CleanRawOfferUseCase:
+class CleanRawOfferUsecase:
     def __init__(self, offers_cleaner: IOffersCleaner) -> None:
         self._offers_cleaner = offers_cleaner
 

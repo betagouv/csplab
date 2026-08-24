@@ -32,8 +32,10 @@ class LoginView(auth_views.LoginView):
         # Auditing must never break the login flow (e.g. a non-UUID username on
         # a legacy/superuser account), so failures are swallowed and logged.
         try:
+            details_usecase = self.container.get_utilisateur_details_usecase()
+            utilisateur = details_usecase.execute(user.username)
             usecase = self.container.log_utilisateur_connexion_usecase()
-            usecase.execute(LogUtilisateurConnexionInput(utilisateur=user.to_entity()))
+            usecase.execute(LogUtilisateurConnexionInput(utilisateur=utilisateur))
         except Exception as e:
             self.logger.error("Failed to audit login: %s", str(e))
 
@@ -63,9 +65,9 @@ class UtilisateurDetailsView(APIView):
 
     def get(self, request):
         try:
-            entity_id = request.user.username
+            username = request.user.username
             usecase = self.container.get_utilisateur_details_usecase()
-            utilisateur = usecase.execute(entity_id)
+            utilisateur = usecase.execute(username)
             return Response(UtilisateurSerializer(utilisateur).data)
         except UtilisateurNexistePas:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)

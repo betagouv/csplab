@@ -3,8 +3,8 @@ import argparse
 import asyncio
 import logging
 
-from application.use_cases.import_organismes import ImportOrganismesCommand
-from infrastructure.di.container import Container, create_container
+from application.usecases.import_organismes import ImportOrganismesCommand
+from infrastructure.di.container import create_container
 
 logging.basicConfig(level=logging.INFO)
 
@@ -13,11 +13,9 @@ USE_CASES = {
     "GIPCDG": lambda container: container.import_organismes_gipcdg_use_case(),
 }
 
-
-async def _run(referentiel: str) -> None:
-    container: Container = create_container()
-    use_case = USE_CASES[referentiel](container)
-    await use_case.execute(ImportOrganismesCommand())
+async def _run() -> None:
+    container = create_container()
+    await container.import_organismes_usecase().execute(ImportOrganismesCommand())
 
 
 def main() -> None:

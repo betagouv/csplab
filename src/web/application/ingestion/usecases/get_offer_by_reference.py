@@ -7,7 +7,7 @@ from application.ingestion.interfaces.get_offer_by_reference_input import (
 )
 
 
-class GetOfferByReferenceUseCase(IUseCase[GetOfferByReferenceInput, Offer]):
+class GetOfferByReferenceUsecase(IUseCase[GetOfferByReferenceInput, Offer]):
     def __init__(
         self,
         offers_repository: IOffersRepository,

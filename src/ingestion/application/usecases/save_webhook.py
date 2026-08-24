@@ -8,7 +8,7 @@ from domain.value_objects.webhook_event import WebhookEvent
 from domain.value_objects.webhook_type import WebhookType
 
 
-class SaveWebhookUseCase:
+class SaveWebhookUsecase:
     def __init__(self, repository: IWebhookRepository) -> None:
         self._repository = repository
 

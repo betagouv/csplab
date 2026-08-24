@@ -5,7 +5,7 @@ import pytest
 from faker import Faker
 from pytest_httpx import HTTPXMock
 
-from application.use_cases.save_raw_offer import SaveRawOfferUseCase
+from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from domain.entities.raw_offer import RawOffer
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.talentsoft_client import (
@@ -49,8 +49,8 @@ def mock_repository():
 
 
 @pytest.fixture
-def use_case(talentsoft_front_client, mock_repository) -> SaveRawOfferUseCase:
-    return SaveRawOfferUseCase(
+def usecase(talentsoft_front_client, mock_repository) -> SaveRawOfferUsecase:
+    return SaveRawOfferUsecase(
         offers_gateway=talentsoft_front_client,
         raw_offer_repository=mock_repository,
     )
@@ -58,7 +58,7 @@ def use_case(talentsoft_front_client, mock_repository) -> SaveRawOfferUseCase:
 
 @pytest.mark.asyncio
 async def test_execute_fetches_offer_and_upserts_raw_offer(
-    use_case, mock_repository, httpx_mock: HTTPXMock
+    usecase, mock_repository, httpx_mock: HTTPXMock
 ):
     offer_data = detail_offer_response(reference=REFERENCE)
     mock_talentsoft_token_response(httpx_mock)
@@ -68,7 +68,7 @@ async def test_execute_fetches_offer_and_upserts_raw_offer(
         json=offer_data,
     )
 
-    await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
+    await usecase.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
     mock_repository.upsert.assert_called_once()
     saved: RawOffer = mock_repository.upsert.call_args[0][0]
@@ -82,7 +82,7 @@ async def test_execute_fetches_offer_and_upserts_raw_offer(
 
 @pytest.mark.asyncio
 async def test_execute_upserts_error_msg_and_reraises_on_api_failure(
-    use_case, mock_repository, httpx_mock: HTTPXMock
+    usecase, mock_repository, httpx_mock: HTTPXMock
 ):
     mock_talentsoft_token_response(httpx_mock)
     # The client has max_retries=2, so it will attempt 3 GET requests total.
@@ -94,7 +94,7 @@ async def test_execute_upserts_error_msg_and_reraises_on_api_failure(
         )
 
     with pytest.raises(ExternalApiError):
-        await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
+        await usecase.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
     mock_repository.upsert.assert_called_once()
     saved: RawOffer = mock_repository.upsert.call_args[0][0]
@@ -107,7 +107,7 @@ async def test_execute_upserts_error_msg_and_reraises_on_api_failure(
 
 @pytest.mark.asyncio
 async def test_token_is_reused_across_executions(
-    use_case, mock_repository, httpx_mock: HTTPXMock
+    usecase, mock_repository, httpx_mock: HTTPXMock
 ):
     reference_2 = fake.bothify("####-????-###", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     mock_talentsoft_token_response(httpx_mock)
@@ -122,8 +122,8 @@ async def test_token_is_reused_across_executions(
         json=detail_offer_response(reference=reference_2),
     )
 
-    await use_case.execute(reference=REFERENCE, source_id=SOURCE_ID)
-    await use_case.execute(reference=reference_2, source_id=SOURCE_ID)
+    await usecase.execute(reference=REFERENCE, source_id=SOURCE_ID)
+    await usecase.execute(reference=reference_2, source_id=SOURCE_ID)
 
     token_requests = [
         r for r in httpx_mock.get_requests() if str(r.url) == TALENTSOFT_TOKEN_URL
