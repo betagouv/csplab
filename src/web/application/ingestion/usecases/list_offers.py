@@ -7,7 +7,7 @@ from referentiel.repositories.offers_repository_interface import IOffersReposito
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 
 
-class ListOffersUseCase(IUseCase[GetFilteredOffersInput, IPage[Offer]]):
+class ListOffersUsecase(IUseCase[GetFilteredOffersInput, IPage[Offer]]):
     def __init__(
         self,
         offers_repository: IOffersRepository,

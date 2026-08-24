@@ -17,7 +17,7 @@ from domain.ingestion.repositories.user_source_repository_interface import (
 )
 
 
-class UpsertOffersUseCase(IUseCase[UpsertOffersInput, IUpsertResult]):
+class UpsertOffersUsecase(IUseCase[UpsertOffersInput, IUpsertResult]):
     def __init__(
         self,
         offers_repository: IIngestionOffersRepository,

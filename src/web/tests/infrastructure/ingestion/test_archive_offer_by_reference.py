@@ -55,7 +55,7 @@ def use_case(db, vector_repository):
     return container.archive_offer_by_reference_usecase()
 
 
-class TestArchiveOfferByReferenceUseCase:
+class TestArchiveOfferByReferenceUsecase:
     def test_archives_offer_by_reference(self, db, use_case, offers_repository):
         OfferFactory.create_model(reference=REFERENCE, source_id=SOURCE_ID)
         use_case.execute(

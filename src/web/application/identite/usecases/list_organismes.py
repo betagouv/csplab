@@ -18,7 +18,7 @@ class ListOrganismesCommand:
     user_id: UUID
 
 
-class ListOrganismeUsecase(IUseCase[ListOrganismesCommand, List[Organisme]]):
+class ListOrganismesUsecase(IUseCase[ListOrganismesCommand, List[Organisme]]):
     def __init__(
         self,
         organisme_repository: IOrganismeRepository,
