@@ -7,7 +7,7 @@ from domain.commons.services.stat_snapshot_writer_interface import IStatSnapshot
 from domain.commons.value_objects.stat_snapshot import StatSnapshot
 
 
-class CalculateDailyStatsUseCase:
+class CalculateDailyStatsUsecase:
     def __init__(
         self,
         offer_stats_query_service: IOfferStatsQueryService,

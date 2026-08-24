@@ -4,9 +4,9 @@ from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.identite.usecases.create_candidat import CreateCandidatUsecase
 from application.identite.usecases.create_organisme import CreateOrganismeUsecase
 from application.identite.usecases.get_utilisateur_details import (
-    GetUtilisateurDetailUsecase,
+    GetUtilisateurDetailsUsecase,
 )
-from application.identite.usecases.list_organismes import ListOrganismeUsecase
+from application.identite.usecases.list_organismes import ListOrganismesUsecase
 from application.identite.usecases.log_utilisateur_connexion import (
     LogUtilisateurConnexionUsecase,
 )
@@ -48,7 +48,7 @@ class IdentiteContainer(containers.DeclarativeContainer):
     postgres_organisme_repository = providers.Singleton(PostgresOrganismeRepository)
 
     get_utilisateur_details_usecase = providers.Factory(
-        GetUtilisateurDetailUsecase,
+        GetUtilisateurDetailsUsecase,
         utilisateur_repository=postgres_utilisateur_repository,
     )
 
@@ -79,7 +79,7 @@ class IdentiteContainer(containers.DeclarativeContainer):
     )
 
     list_organismes_usecase = providers.Factory(
-        ListOrganismeUsecase,
+        ListOrganismesUsecase,
         organisme_repository=postgres_organisme_repository,
         permission_service=organisme_creation_permission_service,
     )

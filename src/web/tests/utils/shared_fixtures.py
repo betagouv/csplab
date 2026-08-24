@@ -29,18 +29,18 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.commons.usecases.calculate_daily_stats import (
-    CalculateDailyStatsUseCase,
+    CalculateDailyStatsUsecase,
 )
 from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.identite.usecases.create_organisme import CreateOrganismeUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.get_offers_by_source import (
-    GetOffersBySourceUseCase,
+    GetOffersBySourceUsecase,
 )
-from application.ingestion.usecases.list_offers import ListOffersUseCase
-from application.ingestion.usecases.list_sources import ListSourcesUseCase
+from application.ingestion.usecases.list_offers import ListOffersUsecase
+from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
-from application.ingestion.usecases.upsert_offers import UpsertOffersUseCase
+from application.ingestion.usecases.upsert_offers import UpsertOffersUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from application.recruteur.usecases.get_organisme_recruteur import (
     GetOrganismeRecruteurUsecase,
@@ -395,7 +395,7 @@ def list_offers_usecase():
         IOffersRepository, create_interface_aware_mock(IOffersRepository)
     )
 
-    return ListOffersUseCase(
+    return ListOffersUsecase(
         offers_repository=offers_repo,
         logger=logger,
     )
@@ -415,7 +415,7 @@ def upsert_offers_usecase():
         IUtilisateurRepository, create_interface_aware_mock(IUtilisateurRepository)
     )
 
-    return UpsertOffersUseCase(
+    return UpsertOffersUsecase(
         offers_repository=offers_repo,
         logger=logger,
         user_source_repository=user_source_repo,
@@ -435,7 +435,7 @@ def get_offers_by_source_usecase():
         IUtilisateurRepository, create_interface_aware_mock(IUtilisateurRepository)
     )
 
-    return GetOffersBySourceUseCase(
+    return GetOffersBySourceUsecase(
         offers_repository=offers_repo,
         user_source_repository=user_source_repo,
         utilisateur_repository=utilisateur_repo,
@@ -448,7 +448,7 @@ def list_sources_usecase():
         ISourceRepository, create_interface_aware_mock(ISourceRepository)
     )
 
-    return ListSourcesUseCase(
+    return ListSourcesUsecase(
         source_repository=source_repo,
     )
 
@@ -533,7 +533,7 @@ def calculate_daily_stats_usecase():
         IStatSnapshotWriter,
         create_interface_aware_mock(IStatSnapshotWriter),
     )
-    return CalculateDailyStatsUseCase(
+    return CalculateDailyStatsUsecase(
         offer_stats_query_service=offer_stats_query_service,
         stat_snapshot_writer=stat_snapshot_writer,
     )

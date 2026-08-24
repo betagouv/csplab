@@ -17,7 +17,7 @@ from domain.ingestion.repositories.user_source_repository_interface import (
 )
 
 
-class GetOffersBySourceUseCase(IUseCase[GetOffersBySourceInput, IPage[Offer]]):
+class GetOffersBySourceUsecase(IUseCase[GetOffersBySourceInput, IPage[Offer]]):
     def __init__(
         self,
         offers_repository: IOffersRepository,

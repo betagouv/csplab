@@ -4,24 +4,24 @@ from dependency_injector import containers, providers
 from referentiel.types import IUpsertResult
 
 from application.commons.usecases.calculate_daily_stats import (
-    CalculateDailyStatsUseCase,
+    CalculateDailyStatsUsecase,
 )
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.usecases.archive_offer_by_reference import (
-    ArchiveOfferByReferenceUseCase,
+    ArchiveOfferByReferenceUsecase,
 )
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.get_offer_by_reference import (
-    GetOfferByReferenceUseCase,
+    GetOfferByReferenceUsecase,
 )
 from application.ingestion.usecases.get_offers_by_source import (
-    GetOffersBySourceUseCase,
+    GetOffersBySourceUsecase,
 )
-from application.ingestion.usecases.list_metiers import ListMetiersUseCase
-from application.ingestion.usecases.list_offers import ListOffersUseCase
-from application.ingestion.usecases.list_sources import ListSourcesUseCase
+from application.ingestion.usecases.list_metiers import ListMetiersUsecase
+from application.ingestion.usecases.list_offers import ListOffersUsecase
+from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
-from application.ingestion.usecases.upsert_offers import UpsertOffersUseCase
+from application.ingestion.usecases.upsert_offers import UpsertOffersUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from domain.ingestion.services.document_cleaner_interface import IDocumentCleaner
 from infrastructure.external_gateways import (
@@ -144,24 +144,24 @@ class IngestionContainer(containers.DeclarativeContainer):
     )
 
     list_offers_usecase = providers.Factory(
-        ListOffersUseCase,
+        ListOffersUsecase,
         offers_repository=offers_repository,
         logger=logger_service,
     )
 
     get_offer_by_reference_usecase = providers.Factory(
-        GetOfferByReferenceUseCase,
+        GetOfferByReferenceUsecase,
         offers_repository=offers_repository,
     )
 
     list_metiers_usecase = providers.Factory(
-        ListMetiersUseCase,
+        ListMetiersUsecase,
         metiers_repository=metiers_repository,
         logger=logger_service,
     )
 
     archive_offer_by_reference_usecase = providers.Factory(
-        ArchiveOfferByReferenceUseCase,
+        ArchiveOfferByReferenceUsecase,
         offers_repository=offers_repository,
         vector_repository=vector_repository,
         user_source_repository=user_source_repository,
@@ -169,7 +169,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     )
 
     upsert_offers_usecase = providers.Factory(
-        UpsertOffersUseCase,
+        UpsertOffersUsecase,
         offers_repository=offers_repository,
         logger=logger_service,
         user_source_repository=user_source_repository,
@@ -177,19 +177,19 @@ class IngestionContainer(containers.DeclarativeContainer):
     )
 
     list_sources_usecase = providers.Factory(
-        ListSourcesUseCase,
+        ListSourcesUsecase,
         source_repository=source_repository,
     )
 
     get_offers_by_source_usecase = providers.Factory(
-        GetOffersBySourceUseCase,
+        GetOffersBySourceUsecase,
         offers_repository=offers_repository,
         user_source_repository=user_source_repository,
         utilisateur_repository=utilisateur_repository,
     )
 
     calculate_daily_stats_usecase = providers.Factory(
-        CalculateDailyStatsUseCase,
+        CalculateDailyStatsUsecase,
         offer_stats_query_service=shared_container.offer_stats_query_service,
         stat_snapshot_writer=shared_container.stat_snapshot_writer,
     )

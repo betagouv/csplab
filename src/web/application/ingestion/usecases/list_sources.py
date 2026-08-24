@@ -5,7 +5,7 @@ from referentiel.entities.source import Source
 from domain.ingestion.repositories.source_repository_interface import ISourceRepository
 
 
-class ListSourcesUseCase:
+class ListSourcesUsecase:
     def __init__(self, source_repository: ISourceRepository):
         self.source_repository = source_repository
 

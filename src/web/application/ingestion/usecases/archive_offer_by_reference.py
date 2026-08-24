@@ -18,7 +18,7 @@ from domain.ingestion.repositories.user_source_repository_interface import (
 from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
 
 
-class ArchiveOfferByReferenceUseCase(IUseCase[ArchiveOfferByReferenceInput, None]):
+class ArchiveOfferByReferenceUsecase(IUseCase[ArchiveOfferByReferenceInput, None]):
     def __init__(
         self,
         offers_repository: IIngestionOffersRepository,

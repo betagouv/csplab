@@ -6,7 +6,7 @@ from domain.identite.repositories.utilisateur_repository_interface import (
 )
 
 
-class GetUtilisateurDetailUsecase:
+class GetUtilisateurDetailsUsecase:
     def __init__(self, utilisateur_repository: IUtilisateurRepository):
         self.utilisateur_repository = utilisateur_repository
 
