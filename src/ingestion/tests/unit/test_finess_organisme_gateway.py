@@ -28,9 +28,17 @@ def _gzipped_structures(pmej: list[dict]) -> bytes:
     return gzip.compress(json.dumps({"pmej": pmej}).encode())
 
 
-def _ege(numero_finess: str, **extra) -> dict:
+def _ege(
+    numero_finess: str, etat_objet: str = "A", ege_id: str = "50477", **extra
+) -> dict:
     return {
-        "informationsGeneralesEGE": {"numFinessEge": numero_finess, **extra},
+        "etatObjet": etat_objet,
+        "informationsGeneralesEGE": {
+            "numFinessEge": numero_finess,
+            "egeId": ege_id,
+            **extra,
+        },
+        "roleEge": [{"idEgePorteuse": ege_id}],
     }
 
 
@@ -110,6 +118,39 @@ class TestStreamOrganismes:
         results = list(gateway.stream_organismes(resource))
 
         assert [r.external_id for r in results] == ["123456789"]
+
+    def test_skips_ege_with_non_active_etat_objet(
+        self, gateway, httpx_mock: HTTPXMock
+    ):
+        content = _gzipped_structures(
+            [
+                {
+                    "ege": [
+                        _ege("123456789", etat_objet="I"),
+                        _ege("987654321"),
+                    ]
+                }
+            ]
+        )
+        httpx_mock.add_response(method="GET", url="https://x/daily", content=content)
+        resource = _resource("https://x/daily")
+
+        results = list(gateway.stream_organismes(resource))
+
+        assert [r.external_id for r in results] == ["987654321"]
+
+    def test_skips_ege_when_not_porteuse(self, gateway, httpx_mock: HTTPXMock):
+        non_porteuse = _ege("123456789", ege_id="50477")
+        non_porteuse["roleEge"] = [{"idEgePorteuse": "99999"}]
+        content = _gzipped_structures(
+            [{"ege": [non_porteuse, _ege("987654321")]}]
+        )
+        httpx_mock.add_response(method="GET", url="https://x/daily", content=content)
+        resource = _resource("https://x/daily")
+
+        results = list(gateway.stream_organismes(resource))
+
+        assert [r.external_id for r in results] == ["987654321"]
 
     def test_pmej_without_ege_yields_nothing(self, gateway, httpx_mock: HTTPXMock):
         content = _gzipped_structures([{}])
