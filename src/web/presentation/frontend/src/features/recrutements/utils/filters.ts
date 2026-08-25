@@ -1,6 +1,5 @@
 import type { RecrutementBase, TypeContrat } from '../types'
 import type { CspSelectOption } from '@/components/base/CspSelect/CspSelect.vue'
-import { normalizeSearchText } from '@/utils/search'
 import { TYPE_CONTRAT_LABELS } from '../format'
 
 export interface RecrutementsFilters extends Record<string, unknown> {
@@ -26,22 +25,14 @@ export function countActiveFilters(filters: RecrutementsFilters): number {
   return Object.values(filters).filter(value => value !== null).length
 }
 
-function searchableText(row: RecrutementBase): string[] {
+export function recrutementSearchableText(row: RecrutementBase): Array<string | null> {
   const recrute = 'recrute' in row ? (row as { recrute: string | null }).recrute : null
   return [
     row.intitule,
     row.reference_csp,
     ...row.responsables.map(r => r.nom),
     recrute,
-  ].filter((value): value is string => Boolean(value))
-}
-
-export function matchesSearch(row: RecrutementBase, search: string): boolean {
-  const term = normalizeSearchText(search.trim())
-  if (!term) {
-    return true
-  }
-  return searchableText(row).some(text => normalizeSearchText(text).includes(term))
+  ]
 }
 
 export const FILTER_ALL = 'all'

@@ -1,7 +1,7 @@
 import type { RecrutementsActifs, RecrutementsArchives } from './types'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
+import ElapsedDaysCell from '@/components/base/CspDataTable/cells/ElapsedDaysCell.vue'
 import CandidaturesCell from './components/cells/CandidaturesCell.vue'
-import ElapsedDaysCell from './components/cells/ElapsedDaysCell.vue'
 import OffreActionsCell from './components/cells/OffreActionsCell.vue'
 import OffreIntituleCell from './components/cells/OffreIntituleCell.vue'
 import { formatResponsablesLabel, formatTypeContratLabel } from './format'
