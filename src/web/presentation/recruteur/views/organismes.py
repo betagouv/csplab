@@ -23,7 +23,7 @@ from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
 )
-from presentation.recruteur.mappers import utilisateur_from_request
+from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     CreateOrganismeSerializer,
     OrganismeDetailSerializer,
@@ -60,13 +60,14 @@ class OrganismesView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = create_identite_container()
+        self.user_mapper = UtilisateurMapper()
 
     def get(self, request: Request) -> Response:
         try:
             usecase = self.container.list_organismes_usecase()
             organismes = usecase.execute(
                 ListOrganismesCommand(
-                    utilisateur=utilisateur_from_request(request),
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             ) or OrganismeFactory.create_entity_batch(
                 3,
@@ -108,7 +109,7 @@ class OrganismesView(APIView):
                 localisation=None,
                 siret=SIRET(code=serializer.validated_data["siret"]),
                 parent_id=None,
-                utilisateur=utilisateur_from_request(request),
+                utilisateur=self.user_mapper.to_domain(request),
             )
             usecase.execute(command)
             organisme = OrganismeFactory.create_entity(

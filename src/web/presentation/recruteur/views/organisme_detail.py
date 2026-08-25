@@ -41,7 +41,7 @@ from presentation.api.serializers import (
 )
 from presentation.recruteur.mappers import (
     EtapesMapper,
-    utilisateur_from_request,
+    UtilisateurMapper,
 )
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
@@ -70,6 +70,7 @@ class OrganismeDetailView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = create_identite_container()
+        self.user_mapper = UtilisateurMapper()
 
     def put(self, request: Request, organisme_uuid: UUID) -> Response:
         serializer = UpdateOrganismeSerializer(data=request.data)
@@ -84,7 +85,7 @@ class OrganismeDetailView(APIView):
                 name=data.get("nom"),
                 verse=Verse(data["versant"]) if data.get("versant") else None,
                 managed_ats=data.get("gestion_ats"),
-                utilisateur=utilisateur_from_request(request),
+                utilisateur=self.user_mapper.to_domain(request),
             )
             organisme = usecase.execute(command)
             organisme_dto = {
@@ -145,6 +146,7 @@ class EtapesRecrutementOrganismeView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
@@ -152,7 +154,7 @@ class EtapesRecrutementOrganismeView(APIView):
             organisme = usecase.execute(
                 GetOrganismeRecruteurQuery(
                     organisme_id=organisme_uuid,
-                    utilisateur=utilisateur_from_request(request),
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
             data = EtapesMapper().from_domain(organisme)
@@ -189,7 +191,7 @@ class EtapesRecrutementOrganismeView(APIView):
             organisme = usecase.execute(
                 UpdateOrganismeStepsCommand(
                     organisme_id=organisme_uuid,
-                    utilisateur=utilisateur_from_request(request),
+                    utilisateur=self.user_mapper.to_domain(request),
                     etapes=etapes,
                 )
             )
@@ -226,6 +228,7 @@ class InitEtapesRecrutementOrganismeView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def post(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
@@ -233,7 +236,7 @@ class InitEtapesRecrutementOrganismeView(APIView):
             organisme = usecase.execute(
                 InitializeOrganismeStepsCommand(
                     organisme_id=organisme_uuid,
-                    utilisateur=utilisateur_from_request(request),
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
             data = EtapesMapper().from_domain(organisme)

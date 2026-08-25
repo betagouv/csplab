@@ -16,7 +16,7 @@ from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
-from presentation.recruteur.mappers import utilisateur_from_request
+from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     RecrutementsActifsSerializer,
     RecrutementsArchivesSerializer,
@@ -45,6 +45,7 @@ class RecrutementsActifsView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
@@ -53,7 +54,7 @@ class RecrutementsActifsView(APIView):
                 ListerMesRecrutementsQuery(
                     organisme_id=organisme_uuid,
                     statut=StatutRecrutement.ACTIF,
-                    utilisateur=utilisateur_from_request(request),
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
 
@@ -97,6 +98,7 @@ class RecrutementsArchivesView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
@@ -105,7 +107,7 @@ class RecrutementsArchivesView(APIView):
                 ListerMesRecrutementsQuery(
                     organisme_id=organisme_uuid,
                     statut=StatutRecrutement.ARCHIVE,
-                    utilisateur=utilisateur_from_request(request),
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
 
