@@ -1,4 +1,4 @@
-import type { CreateOrganismePayload, OrganismeDetail, OrganismesList, UpdateOrganismePayload } from './types'
+import type { AgentOrganisme, CreateOrganismePayload, OrganismeDetail, OrganismesList, SetAgentRolePayload, UpdateAgentRolePayload, UpdateOrganismePayload } from './types'
 import { api } from '@/api/client'
 
 export async function getOrganismesList(): Promise<OrganismesList[]> {
@@ -16,6 +16,35 @@ export async function updateOrganisme(
   payload: UpdateOrganismePayload,
 ): Promise<OrganismeDetail> {
   const { data } = await api.PUT('/recruteur/organismes/{organisme_uuid}', {
+    params: { path: { organisme_uuid: organismeUuid } },
+    body: payload,
+  })
+  return data!
+}
+
+export async function getOrganismeAgents(organismeUuid: string): Promise<AgentOrganisme[]> {
+  const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/parametres/agents', {
+    params: { path: { organisme_uuid: organismeUuid } },
+  })
+  return data!
+}
+
+export async function setAgentRole(
+  organismeUuid: string,
+  payload: SetAgentRolePayload,
+): Promise<AgentOrganisme> {
+  const { data } = await api.POST('/recruteur/organismes/{organisme_uuid}/parametres/agents', {
+    params: { path: { organisme_uuid: organismeUuid } },
+    body: payload,
+  })
+  return data!
+}
+
+export async function updateAgentRole(
+  organismeUuid: string,
+  payload: UpdateAgentRolePayload,
+): Promise<AgentOrganisme> {
+  const { data } = await api.PUT('/recruteur/organismes/{organisme_uuid}/parametres/agents', {
     params: { path: { organisme_uuid: organismeUuid } },
     body: payload,
   })

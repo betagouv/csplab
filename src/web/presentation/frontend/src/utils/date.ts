@@ -16,6 +16,13 @@ function parse(iso: string): Date | null {
 
 const autoDay = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' })
 const alwaysDay = new Intl.RelativeTimeFormat('fr', { numeric: 'always' })
+
+export const shortDate = new Intl.DateTimeFormat('fr-FR', {
+  day: '2-digit',
+  month: '2-digit',
+  year: '2-digit',
+})
+
 const longDate = new Intl.DateTimeFormat('fr-FR', {
   day: '2-digit',
   month: 'long',
