@@ -52,10 +52,14 @@ class CleanRawOrganismesUsecase:
             if len(raw_batch) < BATCH_SIZE:
                 break
 
+        deduped_organismes = self._organismes_cleaner.dedupe_by_siret(organismes)
+
         logger.info(
-            "Cleaned %d raw organismes into %d organismes for referentiel %s",
+            "Cleaned %d raw organismes into %d organismes (%d after SIRET dedup) "
+            "for referentiel %s",
             total_raw,
             len(organismes),
+            len(deduped_organismes),
             referentiel,
         )
-        return organismes
+        return deduped_organismes

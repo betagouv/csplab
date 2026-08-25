@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 SIRET_LENGTH = 14
 LUHN_DIGIT_OVERFLOW_THRESHOLD = 9
@@ -22,6 +22,8 @@ def _is_luhn_valid(digits: str) -> bool:
 
 
 class SIRET(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     code: str
 
     @field_validator("code")

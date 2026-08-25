@@ -19,13 +19,19 @@ def _ege(
     cog_commune: str | None = "06088",
     coordonnee_x: str | None = "7.254944",
     coordonnee_y: str | None = "43.697073",
+    etat_objet: str = "A",
+    ege_id: str = "50477",
+    role_ege_porteuse: str | None = "50477",
 ) -> dict:
     return {
+        "etatObjet": etat_objet,
         "categorieentiteGeographiqueExercice": categorie,
         "informationsGeneralesEGE": {
             "nomEgeLong": nom,
             "siret": siret,
+            "egeId": ege_id,
         },
+        "roleEge": [{"idEgePorteuse": role_ege_porteuse}],
         "adresse": [
             {
                 "cogCommune": cog_commune,
@@ -40,11 +46,11 @@ def _ege(
     }
 
 
-def _raw_organisme(data: dict) -> RawOrganisme:
+def _raw_organisme(data: dict, external_id: str = "060786738") -> RawOrganisme:
     return RawOrganisme(
         referentiel="FINESS",
         millesime="2026-08-19",
-        external_id="060786738",
+        external_id=external_id,
         data=data,
     )
 
@@ -97,6 +103,18 @@ def test_filters_out_non_finess_referentiel(cleaner: OrganismesCleaner):
 
 def test_filters_out_disallowed_categorie(cleaner: OrganismesCleaner):
     raw_organisme = _raw_organisme(_ege(categorie="999"))
+
+    assert cleaner.clean(raw_organisme) is None
+
+
+def test_filters_out_non_active_etat_objet(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme(_ege(etat_objet="I"))
+
+    assert cleaner.clean(raw_organisme) is None
+
+
+def test_filters_out_when_not_porteuse(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme(_ege(ege_id="50477", role_ege_porteuse="99999"))
 
     assert cleaner.clean(raw_organisme) is None
 
@@ -180,3 +198,37 @@ def test_coordinates_are_converted_from_lambert93(cleaner: OrganismesCleaner):
     assert organisme.localisation is not None
     assert organisme.localisation.latitude == pytest.approx(43.697073, abs=1e-4)
     assert organisme.localisation.longitude == pytest.approx(7.254944, abs=1e-4)
+
+
+def test_dedupe_by_siret_keeps_smallest_external_id(cleaner: OrganismesCleaner):
+    smaller = cleaner.clean(
+        _raw_organisme(_ege(ege_id="1", role_ege_porteuse="1"), external_id="123456789")
+    )
+    bigger = cleaner.clean(
+        _raw_organisme(_ege(ege_id="2", role_ege_porteuse="2"), external_id="987654321")
+    )
+    assert smaller is not None
+    assert bigger is not None
+
+    result = cleaner.dedupe_by_siret([bigger, smaller])
+
+    assert result == [smaller]
+
+
+def test_dedupe_by_siret_keeps_distinct_sirets(cleaner: OrganismesCleaner):
+    other_siret = "35600000000048"
+    first = cleaner.clean(
+        _raw_organisme(_ege(ege_id="1", role_ege_porteuse="1"), external_id="123456789")
+    )
+    second = cleaner.clean(
+        _raw_organisme(
+            _ege(ege_id="2", role_ege_porteuse="2", siret=other_siret),
+            external_id="987654321",
+        )
+    )
+    assert first is not None
+    assert second is not None
+
+    result = cleaner.dedupe_by_siret([first, second])
+
+    assert {o.external_id for o in result} == {"123456789", "987654321"}

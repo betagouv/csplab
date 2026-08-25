@@ -16,18 +16,26 @@ from infrastructure.models.raw_organisme import RawOrganismeModel
 pytestmark = pytest.mark.usefixtures("clean_db")
 
 REFERENTIEL = "FINESS"
-SIRET_VALUE = "26060047300342"
 ALLOWED_CATEGORIE = "101"
 DISALLOWED_CATEGORIE = "999"
 
 
+def _siret_for(external_id: str) -> str:
+    # SIRETs starting with the La Poste SIREN skip the Luhn checksum,
+    # so distinct valid SIRETs can be derived from any external_id.
+    return f"356000000{int(external_id):05d}"
+
+
 def _ege(*, categorie: str = ALLOWED_CATEGORIE, external_id: str) -> dict:
     return {
+        "etatObjet": "A",
         "categorieentiteGeographiqueExercice": categorie,
         "informationsGeneralesEGE": {
             "nomEgeLong": f"ORGANISME {external_id}",
-            "siret": SIRET_VALUE,
+            "siret": _siret_for(external_id),
+            "egeId": external_id,
         },
+        "roleEge": [{"idEgePorteuse": external_id}],
         "adresse": [
             {
                 "cogCommune": "06088",
@@ -161,6 +169,7 @@ async def test_cleaner_error_is_skipped_but_still_marked_cleaned(
         return real_cleaner.clean(raw_organisme)
 
     mock_cleaner.clean.side_effect = _clean_side_effect
+    mock_cleaner.dedupe_by_siret.side_effect = real_cleaner.dedupe_by_siret
     usecase = CleanRawOrganismesUsecase(
         organismes_cleaner=mock_cleaner, raw_organisme_repository=repository_spy
     )

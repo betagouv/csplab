@@ -106,12 +106,6 @@ class FinessOrganismeGateway(IOrganismeGateway):
             numero_finess = infos.get("numFinessEge")
             if not numero_finess:
                 continue
-            if ege.get("etatObjet") != "A":
-                continue
-            ege_id = infos.get("egeId")
-            roles_ege = ege.get("roleEge") or []
-            if not any(role.get("idEgePorteuse") == ege_id for role in roles_ege):
-                continue
             yield OrganismeData(
                 referentiel=OrganismeReferentiel.FINESS,
                 external_id=numero_finess,
