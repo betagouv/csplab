@@ -1,6 +1,6 @@
 import type { CandidatureListe } from './types'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
-import ElapsedDaysCell from '@/features/recrutements/components/cells/ElapsedDaysCell.vue'
+import ElapsedDaysCell from '@/components/base/CspDataTable/cells/ElapsedDaysCell.vue'
 import EtapeRecrutementCell from './components/cells/EtapeRecrutementCell.vue'
 import { formatCandidatName } from './format'
 
