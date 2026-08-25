@@ -9,6 +9,6 @@ export const ORGANISMES_LIST_COLUMNS: CspColumnDef<OrganismesList>[] = [
   { id: 'gestionnaire', header: 'Gestionnaire', sortable: true, accessor: row => row.gestionnaire },
   { id: 'gestion_ats', header: 'Recrutements sur l\'outil', accessor: row => row.gestion_ats ? 'Oui' : 'Non' },
   { id: 'date_derniere_activite', header: 'Dernière activité', sortable: true, accessor: row => row.date_derniere_activite, cellComponent: ElapsedDaysCell },
-  { id: 'nombre_agents', header: 'Nombre d\'agents', accessor: row => row.nombre_agents ?? '-' },
-  { id: 'nombre_offres_publiees', header: 'Nombre de recrutements', accessor: row => row.nombre_offres_publiees ?? '-' },
+  { id: 'nombre_agents', header: 'Nombre d\'agents', accessor: row => row.nombre_agents },
+  { id: 'nombre_offres_publiees', header: 'Nombre de recrutements', accessor: row => row.nombre_offres_publiees },
 ]
