@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock, patch
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from django.urls import reverse
@@ -7,10 +7,21 @@ from faker import Faker
 from rest_framework import status
 
 from application.recruteur.dtos.etape_data import EtapeData
+from application.recruteur.errors.application_errors_recruteur import (
+    OrganismeRecrutementIncoherents,
+    OrganismeRecruteurSansEtapes,
+)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.recruteur.errors.recrutement_errors import (
+    RecrutementInexistant,
+    SupressionEtapeImpossible,
+)
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
+)
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
 )
 
 fake = Faker()
@@ -28,6 +39,8 @@ RECRUTEMENT_ETAPES_INIT_URL = reverse(
     "recruteur:organisme-recrutement-etapes-init",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
+
+ETAPE_UUID = "aaaaaaaa-0002-0002-0002-000000000002"
 
 
 @pytest.fixture
@@ -135,7 +148,7 @@ class TestRecrutementEtapeView:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
+        assert response.json() == {"error": OrganismeNexistePas("not found").message}
 
     def test_patch_returns_403_when_forbidden(self, container, authenticated_client):
         container.update_recrutement_etapes_usecase.return_value.execute.side_effect = (
@@ -174,7 +187,7 @@ class TestInitRecrutementEtapeView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_returns_201_with_default_pipeline(self, container, authenticated_client):
-        etapes = _etapes_stub()
+        etapes = EtapeRecrutementFactory.create_entity_batch()
         container.init_recrutement_etapes_usecase.return_value.execute.return_value = (
             etapes
         )
@@ -183,36 +196,69 @@ class TestInitRecrutementEtapeView:
 
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
-        assert len(data) == NB_ETAPES_STUB
-        assert data[1]["nom"] == "Recrutement"
-        assert data[1]["categorie"] == "ACCEPTE"
+        assert len(data) == len(etapes)
+        assert data[-1]["nom"] == "Recrutement"
+        assert data[-1]["categorie"] == "ACCEPTE"
 
-    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
+    @pytest.mark.parametrize(
+        ("exception", "expected_status", "expected_body"),
+        [
+            (
+                OrganismeRecruteurSansEtapes(UUID(ORGANISME_UUID)),
+                status.HTTP_400_BAD_REQUEST,
+                {"error": OrganismeRecruteurSansEtapes(UUID(ORGANISME_UUID)).message},
+            ),
+            (
+                OrganismeRecrutementIncoherents(
+                    UUID(ORGANISME_UUID), UUID(RECRUTEMENT_UUID)
+                ),
+                status.HTTP_400_BAD_REQUEST,
+                {
+                    "error": OrganismeRecrutementIncoherents(
+                        UUID(ORGANISME_UUID), UUID(RECRUTEMENT_UUID)
+                    ).message
+                },
+            ),
+            (
+                SupressionEtapeImpossible(UUID(ETAPE_UUID), 1),
+                status.HTTP_400_BAD_REQUEST,
+                {"error": SupressionEtapeImpossible(UUID(ETAPE_UUID), 1).message},
+            ),
+            (
+                AccesOrganismeRefuse(UUID(ORGANISME_UUID)),
+                status.HTTP_403_FORBIDDEN,
+                {"error": AccesOrganismeRefuse(UUID(ORGANISME_UUID)).message},
+            ),
+            (
+                OrganismeNexistePas(ORGANISME_UUID),
+                status.HTTP_404_NOT_FOUND,
+                {"error": OrganismeNexistePas(ORGANISME_UUID).message},
+            ),
+            (
+                RecrutementInexistant(UUID(RECRUTEMENT_UUID)),
+                status.HTTP_404_NOT_FOUND,
+                {"error": RecrutementInexistant(UUID(RECRUTEMENT_UUID)).message},
+            ),
+            (
+                Exception("unexpected"),
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"error": "Unexpected error"},
+            ),
+        ],
+    )
+    def test_returns_error_from_usecase(
+        self,
+        container,
+        authenticated_client,
+        exception,
+        expected_status,
+        expected_body,
+    ):
         container.init_recrutement_etapes_usecase.return_value.execute.side_effect = (
-            OrganismeNexistePas("not found")
+            exception
         )
 
         response = authenticated_client.post(RECRUTEMENT_ETAPES_INIT_URL)
 
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
-
-    def test_returns_403_when_forbidden(self, container, authenticated_client):
-        container.init_recrutement_etapes_usecase.return_value.execute.side_effect = (
-            AccesOrganismeRefuse(uuid4())
-        )
-
-        response = authenticated_client.post(RECRUTEMENT_ETAPES_INIT_URL)
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"detail": "Forbidden."}
-
-    def test_returns_500_on_unexpected_error(self, container, authenticated_client):
-        container.init_recrutement_etapes_usecase.return_value.execute.side_effect = (
-            Exception("unexpected")
-        )
-
-        response = authenticated_client.post(RECRUTEMENT_ETAPES_INIT_URL)
-
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.json() == {"error": "Unexpected error"}
+        assert response.status_code == expected_status
+        assert response.json() == expected_body

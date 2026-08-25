@@ -460,7 +460,7 @@ wheels = [
 
 [[package]]
 name = "ddd"
-version = "0.3.0"
+version = "0.3.1"
 source = { editable = "../../libs/ddd" }
 
 [package.metadata]
@@ -1455,7 +1455,7 @@ wheels = [
 
 [[package]]
 name = "referentiel"
-version = "0.2.1"
+version = "0.2.2"
 source = { editable = "../../libs/referentiel" }
 dependencies = [
     { name = "ddd" },
