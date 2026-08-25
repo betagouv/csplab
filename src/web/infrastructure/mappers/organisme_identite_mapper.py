@@ -40,6 +40,11 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
         )
 
     def from_domain(self, organisme: Organisme) -> OrganismeModel:
+        return self.apply_to_model(OrganismeModel(id=organisme.entity_id), organisme)
+
+    def apply_to_model(
+        self, model: OrganismeModel, organisme: Organisme
+    ) -> OrganismeModel:
         localisation_data = None
         if organisme.localisation:
             loc = organisme.localisation
@@ -49,20 +54,15 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
                 "region": loc.region.code,
                 "department": loc.department.code,
             }
-        return OrganismeModel(
-            id=organisme.entity_id,
-            nom=organisme.nom,
-            versant=organisme.versant.value,
-            siret=organisme.siret.code,
-            parent_id=organisme.parent_id,
-            localisation=localisation_data,
-            external_id=organisme.external_id,
-            referentiel=organisme.referentiel,
-            millesime=organisme.millesime,
-            gestion_ats=organisme.gestion_ats,
-            date_creation=organisme.date_creation,
-            date_derniere_activite=organisme.date_derniere_activite,
-            # TODO : refactor after ADR-009
-            created_at=organisme.date_creation,
-            updated_at=organisme.date_derniere_activite,
-        )
+        model.nom = organisme.nom
+        model.versant = organisme.versant.value
+        model.siret = organisme.siret.code
+        model.parent_id = organisme.parent_id
+        model.localisation = localisation_data
+        model.external_id = organisme.external_id
+        model.referentiel = organisme.referentiel
+        model.millesime = organisme.millesime
+        model.gestion_ats = organisme.gestion_ats
+        model.date_creation = organisme.date_creation
+        model.date_derniere_activite = organisme.date_derniere_activite
+        return model

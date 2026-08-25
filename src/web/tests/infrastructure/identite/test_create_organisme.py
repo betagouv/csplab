@@ -76,3 +76,105 @@ def test_raise_siret_already_exists(db, identite_integration_container):
 
     with pytest.raises(OrganismeSiretExisteDeja):
         identite_integration_container.create_organisme_usecase().execute(command)
+
+
+def test_get_organisme_by_id(identite_integration_container):
+    model = OrganismeFactory.create_model(nom="Ministère de la Justice")
+    repo = identite_integration_container.postgres_organisme_repository()
+
+    organisme = repo.get_by_id(model.id)
+
+    assert organisme.nom == "Ministère de la Justice"
+    assert organisme.entity_id == model.id
+
+
+def test_get_organisme_by_id_nexiste_pas(identite_integration_container):
+    repo = identite_integration_container.postgres_organisme_repository()
+
+    with pytest.raises(OrganismeNexistePas):
+        repo.get_by_id(uuid4())
+
+
+def test_get_by_referentiel_and_external_id(identite_integration_container):
+    model = OrganismeFactory.create_model(
+        nom="Ministère de la Justice", referentiel="FINESS", external_id="ext-123"
+    )
+    repo = identite_integration_container.postgres_organisme_repository()
+
+    organisme = repo.get_by_referentiel_and_external_id(
+        referentiel="FINESS", external_id="ext-123"
+    )
+
+    assert organisme is not None
+    assert organisme.entity_id == model.id
+    assert organisme.nom == "Ministère de la Justice"
+
+
+def test_get_by_referentiel_and_external_id_nexiste_pas(
+    identite_integration_container,
+):
+    repo = identite_integration_container.postgres_organisme_repository()
+
+    organisme = repo.get_by_referentiel_and_external_id(
+        referentiel="FINESS", external_id="unknown"
+    )
+
+    assert organisme is None
+
+
+def test_save_updates_existing_organisme(identite_integration_container):
+    model = OrganismeFactory.create_model(
+        nom="Ancien nom", referentiel="FINESS", external_id="ext-456"
+    )
+    repo = identite_integration_container.postgres_organisme_repository()
+    organisme = repo.get_by_id(model.id)
+
+    organisme.modifier(
+        nom="Nouveau nom",
+        versant=organisme.versant,
+        localisation=organisme.localisation,
+        siret=organisme.siret,
+        parent_id=organisme.parent_id,
+        external_id=organisme.external_id,
+        referentiel=organisme.referentiel,
+    )
+    repo.save(organisme)
+
+    updated = repo.get_by_id(model.id)
+    assert updated.nom == "Nouveau nom"
+
+
+def test_save_preserves_created_at_and_etapes(identite_integration_container):
+    etapes = [{"entity_id": str(uuid4()), "categorie": "AUTRE", "nom": "Tri CV"}]
+    model = OrganismeFactory.create_model(nom="Ancien nom")
+    model.etapes = etapes
+    model.save()
+    created_at_before = model.created_at
+    repo = identite_integration_container.postgres_organisme_repository()
+    organisme = repo.get_by_id(model.id)
+
+    organisme.modifier(
+        nom="Nouveau nom",
+        versant=organisme.versant,
+        localisation=organisme.localisation,
+        siret=organisme.siret,
+        parent_id=organisme.parent_id,
+        external_id=organisme.external_id,
+        referentiel=organisme.referentiel,
+    )
+    repo.save(organisme)
+
+    model.refresh_from_db()
+    assert model.nom == "Nouveau nom"
+    assert model.etapes == etapes
+    assert model.created_at == created_at_before
+
+
+def test_save_organisme_inexistant_leve_organisme_nexiste_pas(
+    identite_integration_container,
+):
+    organisme = OrganismeFactory.create_entity()
+    repo = identite_integration_container.postgres_organisme_repository()
+
+    with pytest.raises(OrganismeNexistePas):
+        repo.save(organisme)

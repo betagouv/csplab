@@ -21,6 +21,12 @@ def mock_offers_container():
 
 
 @pytest.fixture
+def mock_organismes_container():
+    with patch_ingestion_container("organismes") as container:
+        yield container
+
+
+@pytest.fixture
 def mock_sources_container():
     with patch_ingestion_container("sources") as container:
         yield container

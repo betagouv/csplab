@@ -4,7 +4,11 @@ from uuid import UUID
 
 from ddd.aggregate_root import AggregateRoot, factory, mutate
 
-from referentiel.events.organisme_events import OrganismeCree, OrganismeModifie
+from referentiel.events.organisme_events import (
+    OrganismeCree,
+    OrganismeModifie,
+    OrganismeRemplace,
+)
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
@@ -141,3 +145,31 @@ class Organisme(AggregateRoot):
         if gestion_ats is not None:
             self._gestion_ats = gestion_ats
         self._date_derniere_activite = datetime.now(tz=timezone.utc)
+
+    @mutate(OrganismeRemplace)
+    def remplacer(
+        self,
+        *,
+        nom: str,
+        versant: Verse,
+        localisation: Localisation | None,
+        siret: SIRET,
+        parent_id: UUID | None,
+        external_id: str | None = None,
+        referentiel: str | None = None,
+        millesime: str | None = None,
+        gestion_ats: bool | None = False,
+        date_creation: datetime | None = None,
+        date_derniere_activite: datetime | None = None,
+    ) -> None:
+        self._nom = nom
+        self._versant = versant
+        self._localisation = localisation
+        self._siret = siret
+        self._parent_id = parent_id
+        self._external_id = external_id
+        self._referentiel = referentiel
+        self._millesime = millesime
+        self._gestion_ats = gestion_ats
+        self._date_creation = date_creation
+        self._date_derniere_activite = date_derniere_activite

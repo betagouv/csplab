@@ -39,10 +39,23 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
             return None
         return self._mapper_identite.to_domain(model)
 
-    def save(self, organisme: Organisme) -> Organisme:
-        model = self._mapper_identite.from_domain(organisme)
+    def get_by_referentiel_and_external_id(
+        self, referentiel: str, external_id: str
+    ) -> Organisme | None:
+        model = OrganismeModel.objects.filter(
+            referentiel=referentiel, external_id=external_id
+        ).first()
+        if model is None:
+            return None
+        return self._mapper_identite.to_domain(model)
+
+    def save(self, organisme: Organisme) -> None:
+        try:
+            model = OrganismeModel.objects.get(id=organisme.entity_id)
+        except OrganismeModel.DoesNotExist as e:
+            raise OrganismeNexistePas(str(organisme.entity_id)) from e
+        self._mapper_identite.apply_to_model(model, organisme)
         model.save()
-        return organisme
 
     def get_all(self) -> List[Organisme]:
         return [

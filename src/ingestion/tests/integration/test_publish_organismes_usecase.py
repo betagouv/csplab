@@ -30,6 +30,9 @@ MINIMAL_ORGANISME = Organisme.build(
     versant=Verse.FPT,
     localisation=None,
     siret=SIRET(code="26060047300342"),
+    external_id="ext-minimal",
+    referentiel="FINESS",
+    millesime="2026-08-19",
 )
 
 FULL_ORGANISME = Organisme.build(
@@ -104,9 +107,9 @@ async def test_execute_serializes_minimal_organisme(
     assert organisme["versant"] == "FPT"
     assert organisme["siret"] == "26060047300342"
     assert organisme["parent_id"] is None
-    assert organisme["external_id"] is None
-    assert organisme["referentiel"] is None
-    assert organisme["millesime"] is None
+    assert organisme["external_id"] == "ext-minimal"
+    assert organisme["referentiel"] == "FINESS"
+    assert organisme["millesime"] == "2026-08-19"
     assert organisme["gestion_ats"] is False
     assert organisme["date_creation"] is None
     assert organisme["date_derniere_activite"] is None

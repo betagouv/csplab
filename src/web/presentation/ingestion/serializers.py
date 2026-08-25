@@ -798,3 +798,51 @@ class UpsertOffersResponseSerializer(serializers.Serializer):
     created = serializers.IntegerField()
     updated = serializers.IntegerField()
     errors = serializers.ListField(child=serializers.DictField())
+
+
+class OrganismeLocalisationInputSerializer(serializers.Serializer):
+    zone_geographique = serializers.ChoiceField(
+        choices=[(c.value, c.name) for c in GeographicalArea]
+    )
+    pays = serializers.CharField(max_length=3, min_length=3)
+    region = serializers.ChoiceField(
+        choices=sorted(Region.VALID_CODES, key=lambda x: x),
+        allow_blank=True,
+    )
+    departement = serializers.ChoiceField(
+        choices=sorted(Department.VALID_CODES, key=lambda x: x), allow_blank=True
+    )
+    latitude = serializers.FloatField(
+        allow_null=True, required=False, min_value=-90, max_value=90
+    )
+    longitude = serializers.FloatField(
+        allow_null=True, required=False, min_value=-180, max_value=180
+    )
+
+
+class OrganismeUpsertInputSerializer(serializers.Serializer):
+    nom = serializers.CharField(max_length=255)
+    versant = serializers.ChoiceField(choices=[v.value for v in Verse])
+    siret = serializers.CharField(max_length=14)
+    parent_id = serializers.UUIDField(allow_null=True)
+    external_id = serializers.CharField(allow_null=True, max_length=50)
+    referentiel = serializers.CharField(allow_null=True, max_length=50)
+    millesime = serializers.CharField(allow_null=True, max_length=25)
+    gestion_ats = serializers.BooleanField(required=False, allow_null=True)
+    date_creation = serializers.DateField(required=False, allow_null=True)
+    date_derniere_activite = serializers.DateField(required=False, allow_null=True)
+    localisation = OrganismeLocalisationInputSerializer(required=False, allow_null=True)
+
+
+class UpsertOrganismesRequestSerializer(serializers.Serializer):
+    organismes = serializers.ListField(
+        child=serializers.DictField(),
+        min_length=1,
+        max_length=100,
+    )
+
+
+class UpsertOrganismesResponseSerializer(serializers.Serializer):
+    created = serializers.IntegerField()
+    updated = serializers.IntegerField()
+    errors = serializers.ListField(child=serializers.DictField())
