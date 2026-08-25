@@ -1,5 +1,3 @@
-from uuid import uuid4
-
 import pytest
 
 from application.recruteur.usecases.get_organisme_recruteur import (
@@ -11,7 +9,8 @@ from application.recruteur.usecases.initialize_organisme_steps import (
 from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsCommand,
 )
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
@@ -28,7 +27,8 @@ def test_get_organisme_steps(get_organisme_recruteur_usecase):
 
     organisme = get_organisme_recruteur_usecase.execute(
         command=InitializeOrganismeStepsCommand(
-            organisme_id=organisme_before.entity_id, utilisateur_id=uuid4()
+            organisme_id=organisme_before.entity_id,
+            utilisateur=UtilisateurFactory.create_entity(),
         )
     )
 
@@ -45,7 +45,8 @@ def test_initialize_organisme_steps(initialize_organisme_steps_usecase):
 
     organisme = initialize_organisme_steps_usecase.execute(
         command=InitializeOrganismeStepsCommand(
-            organisme_id=organisme_before.entity_id, utilisateur_id=uuid4()
+            organisme_id=organisme_before.entity_id,
+            utilisateur=UtilisateurFactory.create_entity(),
         )
     )
 
@@ -58,13 +59,13 @@ def test_update_organsime_steps(update_organisme_steps_usecase):
     etapes = EtapeRecrutementFactory.create_entity_batch()
     organisme_before = OrganismeRecruteurFactory.create_entity(etapes=etapes)
     update_organisme_steps_usecase.organisme_recruteur_repository.save(organisme_before)
-    utilisateur_id = uuid4()
+    utilisateur = UtilisateurFactory.create_entity()
 
     nouvelles_etapes = EtapeRecrutementFactory.to_etape_data_list(etapes)
 
     organisme = update_organisme_steps_usecase.execute(
         command=UpdateOrganismeStepsCommand(
-            utilisateur_id=utilisateur_id,
+            utilisateur=utilisateur,
             organisme_id=organisme_before.entity_id,
             etapes=nouvelles_etapes,
         )
@@ -76,7 +77,7 @@ def test_update_organsime_steps(update_organisme_steps_usecase):
     assert organisme.etapes is not None
     assert len(organisme.etapes) == len(nouvelles_etapes)
     update_organisme_steps_usecase.audit_log_writer.drain_events.assert_called_once_with(
-        utilisateur_id=utilisateur_id, aggregate=organisme
+        utilisateur_id=utilisateur.entity_id, aggregate=organisme
     )
 
 
@@ -95,7 +96,8 @@ def test_get_organisme_steps_raises_when_not_responsable(
     with pytest.raises(AccesOrganismeRefuse):
         get_organisme_recruteur_usecase.execute(
             command=GetOrganismeRecruteurQuery(
-                organisme_id=organisme_before.entity_id, utilisateur_id=uuid4()
+                organisme_id=organisme_before.entity_id,
+                utilisateur=UtilisateurFactory.create_entity(),
             )
         )
 
@@ -115,7 +117,8 @@ def test_initialize_organisme_steps_raises_when_not_responsable(
     with pytest.raises(AccesOrganismeRefuse):
         initialize_organisme_steps_usecase.execute(
             command=InitializeOrganismeStepsCommand(
-                organisme_id=organisme_before.entity_id, utilisateur_id=uuid4()
+                organisme_id=organisme_before.entity_id,
+                utilisateur=UtilisateurFactory.create_entity(),
             )
         )
 
@@ -134,7 +137,7 @@ def test_update_organisme_steps_raises_when_not_responsable(
     with pytest.raises(AccesOrganismeRefuse):
         update_organisme_steps_usecase.execute(
             command=UpdateOrganismeStepsCommand(
-                utilisateur_id=uuid4(),
+                utilisateur=UtilisateurFactory.create_entity(),
                 organisme_id=organisme_before.entity_id,
                 etapes=EtapeRecrutementFactory.to_etape_data_list(etapes),
             )

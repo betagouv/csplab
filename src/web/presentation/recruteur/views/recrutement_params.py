@@ -18,7 +18,7 @@ from application.recruteur.usecases.update_recrutement_etapes import (
     UpdateRecrutementEtapesCommand,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.errors.organisme_permission_errors import (
+from domain.identite.errors.organisme_permission_errors import (
     OrganismePermissionError,
 )
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
@@ -26,6 +26,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 )
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
     UpdateEtapeRecrutementSerializer,
@@ -71,6 +72,7 @@ class RecrutementEtapeView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
@@ -81,8 +83,7 @@ class RecrutementEtapeView(APIView):
                 GetRecrutementEtapesQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
             serializer = EtapeRecrutementSerializer(
@@ -121,8 +122,7 @@ class RecrutementEtapeView(APIView):
                 UpdateRecrutementEtapesCommand(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=self.user_mapper.to_domain(request),
                     etapes=etapes,
                 )
             )
@@ -159,6 +159,7 @@ class InitRecrutementEtapeView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def post(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
@@ -169,8 +170,7 @@ class InitRecrutementEtapeView(APIView):
                 InitRecrutementEtapesCommand(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
             serializer = EtapeRecrutementSerializer(

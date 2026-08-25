@@ -4,11 +4,19 @@ from uuid import uuid4
 import pytest
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.errors.organisme_permission_errors import (
+from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementInconnu,
     AccesRecrutementRefuse,
+    OperationOrganismeRefusee,
 )
+from domain.identite.services.organisme_permission_service import (
+    _ROLES_RECRUTEMENT_REQUIS,
+    _ROLES_REQUIS,
+    _SANS_ROLE_RECRUTEMENT_REQUIS,
+    OrganismePermissionService,
+)
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.repositories.organisme_agent_repository_interface import (
     IOrganismeAgentRepository,
 )
@@ -18,17 +26,11 @@ from domain.recruteur.repositories.organisme_repository_interface import (
 from domain.recruteur.repositories.recrutement_agent_repository_interface import (
     IRecrutementAgentRepository,
 )
-from domain.recruteur.services.organisme_permission_service import (
-    _ROLES_RECRUTEMENT_REQUIS,
-    _ROLES_REQUIS,
-    _SANS_ROLE_RECRUTEMENT_REQUIS,
-    OrganismePermissionService,
-)
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
 RESPONSABLE_ACTIONS = [
     OrganismeAction.GET_ORGANISME,
@@ -72,8 +74,9 @@ class TestResponsableActions:
         result = service.est_autorise(
             action=action,
             organisme_id=organisme_id,
-            agent_id=agent_id,
-            est_staff=False,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=agent_id, is_staff=False
+            ),
         )
 
         assert result == AgentOrganismeRole.RESPONSABLE
@@ -85,7 +88,11 @@ class TestResponsableActions:
         service, repository, _ = _service(None)
 
         result = service.est_autorise(
-            action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=True
+            action=action,
+            organisme_id=uuid4(),
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=uuid4(), is_staff=True
+            ),
         )
 
         assert result is None
@@ -99,7 +106,11 @@ class TestResponsableActions:
 
         with pytest.raises(AccesOrganismeRefuse):
             service.est_autorise(
-                action=action, organisme_id=uuid4(), agent_id=uuid4(), est_staff=False
+                action=action,
+                organisme_id=uuid4(),
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=uuid4(), is_staff=False
+                ),
             )
 
 
@@ -113,8 +124,9 @@ class TestListerMesRecrutementRbac:
         result = service.est_autorise(
             action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
             organisme_id=uuid4(),
-            agent_id=uuid4(),
-            est_staff=False,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=uuid4(), is_staff=False
+            ),
         )
 
         assert result == role
@@ -127,8 +139,9 @@ class TestListerMesRecrutementRbac:
             service.est_autorise(
                 action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
                 organisme_id=uuid4(),
-                agent_id=uuid4(),
-                est_staff=est_staff,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=uuid4(), is_staff=est_staff
+                ),
             )
 
 
@@ -145,8 +158,9 @@ class TestVoirDetailRecrutementRbac:
         result = service.est_autorise(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=organisme_id,
-            agent_id=agent_id,
-            est_staff=False,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=agent_id, is_staff=False
+            ),
             recrutement_id=recrutement_id,
         )
 
@@ -163,8 +177,9 @@ class TestVoirDetailRecrutementRbac:
         result = service.est_autorise(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=uuid4(),
-            agent_id=uuid4(),
-            est_staff=False,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=uuid4(), is_staff=False
+            ),
             recrutement_id=uuid4(),
         )
 
@@ -178,8 +193,9 @@ class TestVoirDetailRecrutementRbac:
             service.est_autorise(
                 action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
                 organisme_id=uuid4(),
-                agent_id=uuid4(),
-                est_staff=False,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=uuid4(), is_staff=False
+                ),
                 recrutement_id=uuid4(),
             )
 
@@ -190,8 +206,9 @@ class TestVoirDetailRecrutementRbac:
             service.est_autorise(
                 action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
                 organisme_id=uuid4(),
-                agent_id=uuid4(),
-                est_staff=False,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=uuid4(), is_staff=False
+                ),
             )
 
     def test_staff_without_role_is_denied(self) -> None:
@@ -201,8 +218,9 @@ class TestVoirDetailRecrutementRbac:
             service.est_autorise(
                 action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
                 organisme_id=uuid4(),
-                agent_id=uuid4(),
-                est_staff=True,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=uuid4(), is_staff=True
+                ),
                 recrutement_id=uuid4(),
             )
 
@@ -226,8 +244,9 @@ class TestRecrutementEtapesRbac:
         result = service.est_autorise(
             action=action,
             organisme_id=uuid4(),
-            agent_id=uuid4(),
-            est_staff=False,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=uuid4(), is_staff=False
+            ),
             recrutement_id=uuid4(),
         )
 
@@ -245,8 +264,9 @@ class TestRecrutementEtapesRbac:
         result = service.est_autorise(
             action=action,
             organisme_id=organisme_id,
-            agent_id=agent_id,
-            est_staff=False,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=agent_id, is_staff=False
+            ),
             recrutement_id=recrutement_id,
         )
 
@@ -268,8 +288,9 @@ class TestRecrutementEtapesRbac:
             service.est_autorise(
                 action=action,
                 organisme_id=uuid4(),
-                agent_id=uuid4(),
-                est_staff=False,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=uuid4(), is_staff=False
+                ),
                 recrutement_id=uuid4(),
             )
 
@@ -280,8 +301,9 @@ class TestRecrutementEtapesRbac:
             service.est_autorise(
                 action=action,
                 organisme_id=uuid4(),
-                agent_id=uuid4(),
-                est_staff=False,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=uuid4(), is_staff=False
+                ),
             )
         recrutement_repository.get_role.assert_not_called()
 
@@ -294,8 +316,9 @@ class TestRecrutementEtapesRbac:
             service.est_autorise(
                 action=action,
                 organisme_id=uuid4(),
-                agent_id=uuid4(),
-                est_staff=True,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=uuid4(), is_staff=True
+                ),
                 recrutement_id=uuid4(),
             )
 
@@ -315,8 +338,9 @@ def test_raises_when_organisme_not_found() -> None:
         service.est_autorise(
             action=OrganismeAction.GET_ORGANISME,
             organisme_id=organisme_id,
-            agent_id=uuid4(),
-            est_staff=False,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=uuid4(), is_staff=False
+            ),
         )
 
 
@@ -334,8 +358,9 @@ def test_organisme_guard_runs_before_staff_bypass_and_role_check() -> None:
         service.est_autorise(
             action=OrganismeAction.GET_ORGANISME,
             organisme_id=organisme_id,
-            agent_id=uuid4(),
-            est_staff=True,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=uuid4(), is_staff=True
+            ),
         )
     repository.get_role.assert_not_called()
 
@@ -350,3 +375,84 @@ def test_toute_action_membre_est_classee() -> None:
     assert actions_membre <= (
         _ROLES_RECRUTEMENT_REQUIS.keys() | _SANS_ROLE_RECRUTEMENT_REQUIS
     )
+
+
+ACTIONS_SANS_ORGANISME = [
+    OrganismeAction.CREER_ORGANISME,
+    OrganismeAction.LISTER_ORGANISMES,
+]
+
+
+@pytest.mark.parametrize("action", ACTIONS_SANS_ORGANISME)
+def test_staff_est_autorise_sans_appel_repository(action: OrganismeAction) -> None:
+    service, repository, _ = _service(None)
+    organisme_recruteur_repository = Mock(spec=IOrganismeRecruteurRepository)
+    service = OrganismePermissionService(
+        organisme_recruteur_repository=organisme_recruteur_repository,
+        organisme_agent_repository=repository,
+        recrutement_agent_repository=Mock(spec=IRecrutementAgentRepository),
+    )
+
+    result = service.est_autorise(
+        action=action,
+        utilisateur=UtilisateurFactory.create_entity(entity_id=uuid4(), is_staff=True),
+    )
+
+    assert result is None
+    organisme_recruteur_repository.get_by_id.assert_not_called()
+    repository.get_role.assert_not_called()
+
+
+class TestModifierOrganisme:
+    def test_staff_est_autorise(self) -> None:
+        service, repository, _ = _service(None)
+        organisme_id = uuid4()
+
+        result = service.est_autorise(
+            action=OrganismeAction.MODIFIER_ORGANISME,
+            organisme_id=organisme_id,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=uuid4(), is_staff=True
+            ),
+        )
+
+        assert result is None
+        repository.get_role.assert_not_called()
+
+    def test_non_staff_est_refuse_apres_verification_existence(self) -> None:
+        organisme_id = uuid4()
+        organisme_recruteur_repository = Mock(spec=IOrganismeRecruteurRepository)
+        service, repository, _ = _service(
+            None, organisme_recruteur_repository=organisme_recruteur_repository
+        )
+
+        with pytest.raises(OperationOrganismeRefusee):
+            service.est_autorise(
+                action=OrganismeAction.MODIFIER_ORGANISME,
+                organisme_id=organisme_id,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=uuid4(), is_staff=False
+                ),
+            )
+
+        organisme_recruteur_repository.get_by_id.assert_called_once_with(organisme_id)
+        repository.get_role.assert_not_called()
+
+    def test_organisme_inexistant_est_priorise_sur_le_statut_staff(self) -> None:
+        organisme_id = uuid4()
+        organisme_recruteur_repository = Mock(spec=IOrganismeRecruteurRepository)
+        organisme_recruteur_repository.get_by_id.side_effect = OrganismeNexistePas(
+            str(organisme_id)
+        )
+        service, _, _ = _service(
+            None, organisme_recruteur_repository=organisme_recruteur_repository
+        )
+
+        with pytest.raises(OrganismeNexistePas):
+            service.est_autorise(
+                action=OrganismeAction.MODIFIER_ORGANISME,
+                organisme_id=organisme_id,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=uuid4(), is_staff=True
+                ),
+            )

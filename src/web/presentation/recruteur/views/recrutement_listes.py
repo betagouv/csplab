@@ -11,11 +11,12 @@ from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsQuery,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
+from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     RecrutementsActifsSerializer,
     RecrutementsArchivesSerializer,
@@ -44,6 +45,7 @@ class RecrutementsActifsView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
@@ -52,8 +54,7 @@ class RecrutementsActifsView(APIView):
                 ListerMesRecrutementsQuery(
                     organisme_id=organisme_uuid,
                     statut=StatutRecrutement.ACTIF,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
 
@@ -97,6 +98,7 @@ class RecrutementsArchivesView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
@@ -105,8 +107,7 @@ class RecrutementsArchivesView(APIView):
                 ListerMesRecrutementsQuery(
                     organisme_id=organisme_uuid,
                     statut=StatutRecrutement.ARCHIVE,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
 

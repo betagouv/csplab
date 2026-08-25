@@ -5,7 +5,10 @@ from domain.identite.value_objects.organisme_role import OrganismeRole
 from infrastructure.django_apps.users.models import UserModel
 
 
-class UtilisateurMapper(IFromDomainMapper, IToDomainMapper):
+class UtilisateurMapper(
+    IFromDomainMapper[Utilisateur, UserModel],
+    IToDomainMapper[UserModel, Utilisateur],
+):
     def to_domain(
         self, model: UserModel, organisme_roles: list[OrganismeRole] | None = None
     ) -> Utilisateur:
@@ -15,6 +18,7 @@ class UtilisateurMapper(IFromDomainMapper, IToDomainMapper):
             prenom=model.first_name,
             nom=model.last_name,
             is_superuser=model.is_superuser,
+            is_staff=model.is_staff,
             organisme_roles=organisme_roles or [],
         )
 
@@ -25,4 +29,5 @@ class UtilisateurMapper(IFromDomainMapper, IToDomainMapper):
             first_name=utilisateur.prenom,
             last_name=utilisateur.nom,
             is_superuser=utilisateur.is_superuser,
+            is_staff=utilisateur.is_staff,
         )

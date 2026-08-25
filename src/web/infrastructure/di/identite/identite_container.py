@@ -12,8 +12,8 @@ from application.identite.usecases.log_utilisateur_connexion import (
 )
 from application.identite.usecases.update_organisme import UpdateOrganismeUsecase
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.services.identite_permission_service import (
-    OrganismeCreationPermissionService,
+from domain.identite.services.organisme_permission_service import (
+    OrganismePermissionService,
 )
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
@@ -29,6 +29,15 @@ from infrastructure.repositories.identite.postgres_organisme_repository import (
 )
 from infrastructure.repositories.identite.postgres_utilisateur_repository import (
     PostgresUtilisateurRepository,
+)
+from infrastructure.repositories.recruteur.postgres_organisme_agent_repository import (
+    PostgresOrganismeAgentRepository,
+)
+from infrastructure.repositories.recruteur.postgres_organisme_repository import (
+    PostgresOrganismeRecruteurRepository,
+)
+from infrastructure.repositories.recruteur.postgres_recrutement_agent_repository import (  # noqa: E501
+    PostgresRecrutementAgentRepository,
 )
 
 
@@ -68,24 +77,37 @@ class IdentiteContainer(containers.DeclarativeContainer):
         LogUtilisateurConnexionUsecase, audit_log_writer=audit_log_writer
     )
 
-    organisme_creation_permission_service = providers.Factory(
-        OrganismeCreationPermissionService
+    postgres_organisme_recruteur_repository = providers.Singleton(
+        PostgresOrganismeRecruteurRepository
+    )
+    postgres_organisme_agent_repository = providers.Singleton(
+        PostgresOrganismeAgentRepository
+    )
+    postgres_recrutement_agent_repository = providers.Singleton(
+        PostgresRecrutementAgentRepository
+    )
+
+    organisme_permission_service = providers.Factory(
+        OrganismePermissionService,
+        organisme_recruteur_repository=postgres_organisme_recruteur_repository,
+        organisme_agent_repository=postgres_organisme_agent_repository,
+        recrutement_agent_repository=postgres_recrutement_agent_repository,
     )
 
     create_organisme_usecase = providers.Factory(
         CreateOrganismeUsecase,
         organisme_repository=postgres_organisme_repository,
-        permission_service=organisme_creation_permission_service,
+        permission_service=organisme_permission_service,
     )
 
     list_organismes_usecase = providers.Factory(
         ListOrganismesUsecase,
         organisme_repository=postgres_organisme_repository,
-        permission_service=organisme_creation_permission_service,
+        permission_service=organisme_permission_service,
     )
 
     update_organisme_usecase = providers.Factory(
         UpdateOrganismeUsecase,
         organisme_repository=postgres_organisme_repository,
-        permission_service=organisme_creation_permission_service,
+        permission_service=organisme_permission_service,
     )

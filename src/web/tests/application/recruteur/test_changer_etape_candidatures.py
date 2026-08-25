@@ -11,7 +11,10 @@ from application.recruteur.usecases.changer_etape_candidatures import (
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.recruteur.errors.organisme_permission_errors import AccesRecrutementRefuse
+from domain.identite.errors.organisme_permission_errors import AccesRecrutementRefuse
+from domain.identite.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
@@ -25,10 +28,8 @@ from domain.recruteur.repositories.candidature_recruteur_repository_interface im
 from domain.recruteur.repositories.recrutement_repository_interface import (
     IRecrutementRepository,
 )
-from domain.recruteur.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.candidature_recruteur_factory import (
     CandidatureRecruteurFactory,
 )
@@ -123,8 +124,7 @@ class TestChangerEtapeCandidaturesUsecase:
         command = ChangerEtapeCandidaturesCommand(
             organisme_id=recrutement.organisme_id,
             recrutement_id=recrutement.entity_id,
-            utilisateur_id=uuid4(),
-            est_staff=False,
+            utilisateur=UtilisateurFactory.create_entity(),
             etape_cible_id=recrutement.etapes[-1].entity_id,
             candidatures=[
                 candidature.entity_id for candidature in candidatures_recruteur
@@ -158,8 +158,7 @@ class TestChangerEtapeCandidaturesUsecase:
                 ChangerEtapeCandidaturesCommand(
                     organisme_id=uuid4(),
                     recrutement_id=recrutement_id,
-                    utilisateur_id=uuid4(),
-                    est_staff=False,
+                    utilisateur=UtilisateurFactory.create_entity(),
                     etape_cible_id=uuid4(),
                     candidatures=[c.entity_id for c in candidatures_recruteur],
                 )
@@ -180,8 +179,7 @@ class TestChangerEtapeCandidaturesUsecase:
                 ChangerEtapeCandidaturesCommand(
                     organisme_id=recrutement.organisme_id,
                     recrutement_id=recrutement.entity_id,
-                    utilisateur_id=uuid4(),
-                    est_staff=False,
+                    utilisateur=UtilisateurFactory.create_entity(),
                     etape_cible_id=recrutement.etapes[1].entity_id,
                     candidatures=[c.entity_id for c in candidatures_recruteur],
                 )
@@ -202,8 +200,7 @@ class TestChangerEtapeCandidaturesUsecase:
                 ChangerEtapeCandidaturesCommand(
                     organisme_id=organisme_id,
                     recrutement_id=recrutement.entity_id,
-                    utilisateur_id=uuid4(),
-                    est_staff=False,
+                    utilisateur=UtilisateurFactory.create_entity(),
                     etape_cible_id=recrutement.etapes[1].entity_id,
                     candidatures=[c.entity_id for c in candidatures_recruteur],
                 )
@@ -223,8 +220,7 @@ class TestChangerEtapeCandidaturesUsecase:
                 ChangerEtapeCandidaturesCommand(
                     organisme_id=recrutement.organisme_id,
                     recrutement_id=recrutement.entity_id,
-                    utilisateur_id=uuid4(),
-                    est_staff=False,
+                    utilisateur=UtilisateurFactory.create_entity(),
                     etape_cible_id=etape_cible_id,
                     candidatures=[c.entity_id for c in candidatures_recruteur],
                 )
@@ -245,8 +241,7 @@ class TestChangerEtapeCandidaturesUsecase:
             ChangerEtapeCandidaturesCommand(
                 organisme_id=recrutement.organisme_id,
                 recrutement_id=recrutement.entity_id,
-                utilisateur_id=uuid4(),
-                est_staff=False,
+                utilisateur=UtilisateurFactory.create_entity(),
                 etape_cible_id=recrutement.etapes[1].entity_id,
                 candidatures=[c.entity_id for c in candidatures],
             )

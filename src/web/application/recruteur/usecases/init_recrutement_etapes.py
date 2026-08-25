@@ -4,10 +4,10 @@ from ddd.usecase_interface import IUseCase
 
 from application.recruteur.dtos.etape_data import EtapeData, etapes_par_defaut
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
-from domain.recruteur.services.organisme_permission_service import (
+from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.organisme_action import OrganismeAction
 
 
 @dataclass(kw_only=True)
@@ -31,8 +31,7 @@ class InitRecrutementEtapesUsecase(
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.INIT_RECRUTEMENT_ETAPES,
             organisme_id=command.organisme_id,
-            agent_id=command.utilisateur_id,
             recrutement_id=command.recrutement_id,
-            est_staff=command.est_staff,
+            utilisateur=command.utilisateur,
         )
         return etapes_par_defaut()

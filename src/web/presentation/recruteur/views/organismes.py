@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from application.identite.usecases.create_organisme import CreateOrganismeCommand
+from application.identite.usecases.list_organismes import ListOrganismesCommand
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
@@ -22,6 +23,7 @@ from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
 )
+from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     CreateOrganismeSerializer,
     OrganismeDetailSerializer,
@@ -58,12 +60,15 @@ class OrganismesView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = create_identite_container()
+        self.user_mapper = UtilisateurMapper()
 
     def get(self, request: Request) -> Response:
         try:
             usecase = self.container.list_organismes_usecase()
             organismes = usecase.execute(
-                request.user.username
+                ListOrganismesCommand(
+                    utilisateur=self.user_mapper.to_domain(request),
+                )
             ) or OrganismeFactory.create_entity_batch(
                 3,
             )
@@ -104,7 +109,7 @@ class OrganismesView(APIView):
                 localisation=None,
                 siret=SIRET(code=serializer.validated_data["siret"]),
                 parent_id=None,
-                est_staff=request.user.is_staff,
+                utilisateur=self.user_mapper.to_domain(request),
             )
             usecase.execute(command)
             organisme = OrganismeFactory.create_entity(

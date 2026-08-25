@@ -7,12 +7,14 @@ from faker import Faker
 from rest_framework import status
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
+from domain.identite.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    OperationOrganismeRefusee,
+)
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.erreur_recrutement import (
     ConfigurationEtapesInvalide,
 )
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -205,7 +207,7 @@ class TestEtapesRecrutementOrganismeView:
         authenticated_client.get(ETAPES_URL)
 
         command = mock_usecase.execute.call_args.args[0]
-        assert command.est_staff is True
+        assert command.utilisateur.is_staff is True
 
 
 class TestInitEtapesRecrutementOrganismeView:
@@ -278,7 +280,7 @@ class TestInitEtapesRecrutementOrganismeView:
         authenticated_client.post(INIT_ETAPES_URL)
 
         command = mock_usecase.execute.call_args.args[0]
-        assert command.est_staff is True
+        assert command.utilisateur.is_staff is True
 
 
 class TestPutEtapesRecrutementOrganismeView:
@@ -425,4 +427,4 @@ class TestPutEtapesRecrutementOrganismeView:
         authenticated_client.put(ETAPES_URL, VALID_ETAPES_PAYLOAD, format="json")
 
         command = mock_usecase.execute.call_args.args[0]
-        assert command.est_staff is True
+        assert command.utilisateur.is_staff is True

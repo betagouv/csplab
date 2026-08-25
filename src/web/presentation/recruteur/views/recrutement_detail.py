@@ -20,7 +20,7 @@ from application.recruteur.usecases.get_recrutement_liste import (
     GetRecrutementListeQuery,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.errors.organisme_permission_errors import (
+from domain.identite.errors.organisme_permission_errors import (
     OrganismePermissionError,
 )
 from domain.recruteur.errors.recrutement_errors import (
@@ -31,6 +31,7 @@ from domain.recruteur.errors.recrutement_errors import (
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
+from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     ChangerEtapeCandidaturesSerializer,
@@ -57,6 +58,7 @@ class RecrutementDetailView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
@@ -67,8 +69,7 @@ class RecrutementDetailView(APIView):
                 GetRecrutementDetailQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
             if result is None:
@@ -106,6 +107,7 @@ class RecrutementKanbanView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
@@ -116,8 +118,7 @@ class RecrutementKanbanView(APIView):
                 GetRecrutementKanbanQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
             if result is None:
@@ -157,6 +158,7 @@ class RecrutementListeView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
@@ -167,8 +169,7 @@ class RecrutementListeView(APIView):
                 GetRecrutementListeQuery(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
             if result is None:
@@ -210,6 +211,7 @@ class RecrutementCandidaturesEtapeView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
+        self.user_mapper = UtilisateurMapper()
 
     def patch(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
@@ -227,8 +229,7 @@ class RecrutementCandidaturesEtapeView(APIView):
                     recrutement_id=recrutement_uuid,
                     etape_cible_id=data["etape_cible_uuid"],
                     candidatures=[c["candidature_uuid"] for c in data["candidatures"]],
-                    utilisateur_id=request.user.username,
-                    est_staff=request.user.is_staff,
+                    utilisateur=self.user_mapper.to_domain(request),
                 )
             )
             return Response(

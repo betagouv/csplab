@@ -7,11 +7,12 @@ from application.recruteur.usecases.get_recrutement_etapes import (
     GetRecrutementEtapesQuery,
     GetRecrutementEtapesUsecase,
 )
-from domain.recruteur.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.recruteur.services.organisme_permission_service import (
+from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.organisme_action import OrganismeAction
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
 
 @pytest.fixture(name="organisme_permission_service")
@@ -30,13 +31,13 @@ class TestGetRecrutementEtapesUsecase:
     def test_returns_default_pipeline(self, organisme_permission_service, usecase):
         organisme_id = uuid4()
         recrutement_id = uuid4()
-        utilisateur_id = uuid4()
+        utilisateur = UtilisateurFactory.create_entity()
 
         resultat = usecase.execute(
             GetRecrutementEtapesQuery(
                 organisme_id=organisme_id,
                 recrutement_id=recrutement_id,
-                utilisateur_id=utilisateur_id,
+                utilisateur=utilisateur,
             )
         )
 
@@ -51,9 +52,8 @@ class TestGetRecrutementEtapesUsecase:
         organisme_permission_service.est_autorise.assert_called_once_with(
             action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
             organisme_id=organisme_id,
-            agent_id=utilisateur_id,
+            utilisateur=utilisateur,
             recrutement_id=recrutement_id,
-            est_staff=False,
         )
 
     def test_raises_when_not_authorized(self, organisme_permission_service, usecase):
@@ -67,6 +67,6 @@ class TestGetRecrutementEtapesUsecase:
                 GetRecrutementEtapesQuery(
                     organisme_id=organisme_id,
                     recrutement_id=uuid4(),
-                    utilisateur_id=uuid4(),
+                    utilisateur=UtilisateurFactory.create_entity(),
                 )
             )

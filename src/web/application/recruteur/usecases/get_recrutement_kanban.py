@@ -9,10 +9,10 @@ from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
 )
-from domain.recruteur.services.organisme_permission_service import (
+from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.organisme_action import OrganismeAction
 
 
 @dataclass(kw_only=True)
@@ -37,9 +37,8 @@ class GetRecrutementKanbanUsecase(
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=query.organisme_id,
-            agent_id=query.utilisateur_id,
             recrutement_id=query.recrutement_id,
-            est_staff=query.est_staff,
+            utilisateur=query.utilisateur,
         )
 
         return self.recrutement_query_service.get_kanban_by_recrutement(

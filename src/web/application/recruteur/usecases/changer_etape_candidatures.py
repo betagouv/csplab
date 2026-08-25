@@ -7,6 +7,11 @@ from ddd.usecase_interface import IUseCase
 from referentiel.types import IBatchUpdate
 
 from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.identite.entities.utilisateurs import Utilisateur
+from domain.identite.services.organisme_permission_service import (
+    OrganismePermissionService,
+)
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.errors.recrutement_errors import RecrutementError
@@ -16,18 +21,13 @@ from domain.recruteur.repositories.candidature_recruteur_repository_interface im
 from domain.recruteur.repositories.recrutement_repository_interface import (
     IRecrutementRepository,
 )
-from domain.recruteur.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
-from domain.recruteur.value_objects.organisme_action import OrganismeAction
 
 
 @dataclass
 class ChangerEtapeCandidaturesCommand:
     organisme_id: UUID
     recrutement_id: UUID
-    utilisateur_id: UUID
-    est_staff: bool
+    utilisateur: Utilisateur
     etape_cible_id: UUID
     candidatures: List[UUID]
 
@@ -62,8 +62,7 @@ class ChangerEtapeCandidaturesUsecase(
         self.permission_service.est_autorise(
             action=OrganismeAction.CHANGER_ETAPE_CANDIDATURES,
             organisme_id=command.organisme_id,
-            agent_id=command.utilisateur_id,
-            est_staff=command.est_staff,
+            utilisateur=command.utilisateur,
             recrutement_id=command.recrutement_id,
         )
         return recrutement, candidatures_recruteur
@@ -87,7 +86,7 @@ class ChangerEtapeCandidaturesUsecase(
             )
 
             self.audit_log_writer.drain_events(
-                utilisateur_id=command.utilisateur_id, aggregate=recrutement
+                utilisateur_id=command.utilisateur.entity_id, aggregate=recrutement
             )
 
             return {
