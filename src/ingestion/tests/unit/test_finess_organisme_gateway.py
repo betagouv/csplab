@@ -119,9 +119,7 @@ class TestStreamOrganismes:
 
         assert [r.external_id for r in results] == ["123456789"]
 
-    def test_skips_ege_with_non_active_etat_objet(
-        self, gateway, httpx_mock: HTTPXMock
-    ):
+    def test_skips_ege_with_non_active_etat_objet(self, gateway, httpx_mock: HTTPXMock):
         content = _gzipped_structures(
             [
                 {
@@ -142,9 +140,7 @@ class TestStreamOrganismes:
     def test_skips_ege_when_not_porteuse(self, gateway, httpx_mock: HTTPXMock):
         non_porteuse = _ege("123456789", ege_id="50477")
         non_porteuse["roleEge"] = [{"idEgePorteuse": "99999"}]
-        content = _gzipped_structures(
-            [{"ege": [non_porteuse, _ege("987654321")]}]
-        )
+        content = _gzipped_structures([{"ege": [non_porteuse, _ege("987654321")]}])
         httpx_mock.add_response(method="GET", url="https://x/daily", content=content)
         resource = _resource("https://x/daily")
 
