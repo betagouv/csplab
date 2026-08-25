@@ -1,5 +1,3 @@
-# Tâches mise : surcouche d'ergonomie optionnelle pour le dev front par-dessus le Makefile
-
 [tools]
 node = "24"
 uv = "0.9"
@@ -7,16 +5,28 @@ uv = "0.9"
 # ── Frontend (node seul, aucun service back requis) ──────────────────────────
 [tasks.sb]
 description = "Storybook front"
-run = "make storybook"
+dir = "src/web/presentation/frontend"
+run = "pnpm run storybook"
+
+[tasks."sb:build"]
+description = "Build statique du Storybook"
+dir = "src/web/presentation/frontend"
+run = "pnpm run build-storybook"
 
 [tasks."front:dev"]
 description = "Vite HMR front"
-run = "make frontend-dev"
+dir = "src/web/presentation/frontend"
+run = "pnpm run dev"
 
 [tasks."front:lint"]
 description = "Lint du frontend (eslint)"
 dir = "src/web/presentation/frontend"
 run = "pnpm run lint"
+
+[tasks."front:lint:fix"]
+description = "Lint du frontend avec auto-correction"
+dir = "src/web/presentation/frontend"
+run = "pnpm run lint:fix"
 
 [tasks."front:typecheck"]
 description = "Typecheck du frontend (vue-tsc)"
@@ -39,6 +49,14 @@ run = "pnpm run build"
 description = "Front : lint + typecheck + tests en parallèle"
 depends = ["front:lint", "front:typecheck", "front:test"]
 
+[tasks."front:types"]
+description = "Régénère le schéma OpenAPI interne et les types TypeScript du front"
+dir = "src/web"
+run = [
+  "DJANGO_SETTINGS_MODULE=config.settings.schema_internal direnv exec . python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate",
+  "pnpm --filter csplab-frontend generate-types",
+]
+
 # ── Install & migrations ─────────────────────────────────────────────────────
 [tasks."install:py"]
 description = "Dépendances Python du back (uv : web + ddd + referentiel)"
@@ -46,7 +64,8 @@ run = "make build-web"
 
 [tasks."install:js"]
 description = "Dépendances frontend (pnpm)"
-run = "make frontend-install"
+dir = "src/web"
+run = "pnpm install"
 
 [tasks.install]
 description = "Installe les dépendances ATS (Python + frontend)"
