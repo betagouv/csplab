@@ -59,9 +59,9 @@ bin/manage seed_recruteur_datas
 Le service web inclut un frontend Vue.js pour l'ATS (Applicant Tracking System).
 
 ```bash
-make frontend-install   # Installer les dépendances
-make frontend-dev       # Lancer Vite dev server (HMR)
-make frontend-build     # Build production
+mise run install:js    # Installer les dépendances
+mise run front:dev     # Lancer Vite dev server (HMR)
+mise run front:build   # Build production
 ```
 
 Documentation : [docs/frontend_vue.md](../../docs/frontend_vue.md)
