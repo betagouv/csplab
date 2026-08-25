@@ -53,8 +53,10 @@ jobs:
         with:
           python-version-file: "./dev/.python-version"
       - name: Check PR title format
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          uv run cz check --message "${{ github.event.pull_request.title }}"
+          uv run cz check --message "$PR_TITLE"
 
   lint-format:
     needs: build-dev

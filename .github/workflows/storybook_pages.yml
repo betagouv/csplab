@@ -202,8 +202,10 @@ jobs:
           ref: gh-pages
       - name: Sanitize branch name
         id: branch
+        env:
+          BRANCH_REF: ${{ github.event.ref }}
         run: |
-          BRANCH_NAME="${{ github.event.ref }}"
+          BRANCH_NAME="$BRANCH_REF"
           SANITIZED=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-50)
           echo "name=$SANITIZED" >> $GITHUB_OUTPUT
       - name: Remove branch preview folder
