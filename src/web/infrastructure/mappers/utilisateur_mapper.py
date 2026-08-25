@@ -5,7 +5,10 @@ from domain.identite.value_objects.organisme_role import OrganismeRole
 from infrastructure.django_apps.users.models import UserModel
 
 
-class UtilisateurMapper(IFromDomainMapper, IToDomainMapper):
+class UtilisateurMapper(
+    IFromDomainMapper[Utilisateur, UserModel],
+    IToDomainMapper[UserModel, Utilisateur],
+):
     def to_domain(
         self, model: UserModel, organisme_roles: list[OrganismeRole] | None = None
     ) -> Utilisateur:

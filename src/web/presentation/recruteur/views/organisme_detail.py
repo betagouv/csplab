@@ -39,6 +39,7 @@ from presentation.api.serializers import (
 )
 from presentation.recruteur.mappers import (
     EtapesMapper,
+    UtilisateurMapper,
 )
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
@@ -67,6 +68,7 @@ class OrganismeDetailView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = create_identite_container()
+        self.user_mapper = UtilisateurMapper()
 
     def put(self, request: Request, organisme_uuid: UUID) -> Response:
         serializer = UpdateOrganismeSerializer(data=request.data)
@@ -81,7 +83,7 @@ class OrganismeDetailView(APIView):
                 name=data.get("nom"),
                 verse=Verse(data["versant"]) if data.get("versant") else None,
                 managed_ats=data.get("gestion_ats"),
-                is_staff=request.user.is_staff,
+                utilisateur=self.user_mapper.to_domain(request),
             )
             organisme = usecase.execute(command)
             organisme_dto = {
