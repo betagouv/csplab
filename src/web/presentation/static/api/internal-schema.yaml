@@ -298,6 +298,52 @@ paths:
                 $ref: '#/components/schemas/GenericError'
           description: ''
   /recruteur/organismes/{organisme_uuid}:
+    get:
+      operationId: recruteur_organismes_retrieve
+      summary: Récupérer un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganismeDetail'
+          description: ''
     put:
       operationId: recruteur_organismes_update
       summary: Modifier un organisme
