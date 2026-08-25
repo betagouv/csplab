@@ -2,6 +2,7 @@
 
 [tools]
 node = "24"
+uv = "0.9"
 
 # ── Frontend (node seul, aucun service back requis) ──────────────────────────
 [tasks.sb]
@@ -12,9 +13,31 @@ run = "make storybook"
 description = "Vite HMR front"
 run = "make frontend-dev"
 
-[tasks.check]
-description = "Front : lint + typecheck + tests"
-run = "make frontend-check"
+[tasks."front:lint"]
+description = "Lint du frontend (eslint)"
+dir = "src/web/presentation/frontend"
+run = "pnpm run lint"
+
+[tasks."front:typecheck"]
+description = "Typecheck du frontend (vue-tsc)"
+dir = "src/web/presentation/frontend"
+run = "pnpm run typecheck"
+
+[tasks."front:test"]
+description = "Tests du frontend (vitest)"
+dir = "src/web/presentation/frontend"
+run = "pnpm run test:run"
+
+[tasks."front:build"]
+description = "Build de prod du frontend, incrémental (skip si les sources n'ont pas changé)"
+dir = "src/web/presentation/frontend"
+sources = ["src/**/*", "package.json", "tsconfig*.json", "vite.config.*", "../../pnpm-lock.yaml"]
+outputs = ["../static/frontend/manifest.json"]
+run = "pnpm run build"
+
+[tasks."front:check"]
+description = "Front : lint + typecheck + tests en parallèle"
+depends = ["front:lint", "front:typecheck", "front:test"]
 
 # ── Install & migrations ─────────────────────────────────────────────────────
 [tasks."install:py"]
@@ -58,6 +81,17 @@ run = "make dev"
 description = "Applique les migrations Django"
 depends = ["services:ats"]
 run = "make migrate"
+
+[tasks."test:e2e"]
+description = "E2e ATS en vrai navigateur (rebuild le front seulement si nécessaire)"
+depends = ["front:build", "services:ats"]
+dir = "src/web"
+run = "direnv exec . pytest -m e2e --no-cov"
+
+[tasks."db:restore"]
+description = "Restaure la base web depuis un dump Scalingo (dernier dump de dumps/ par défaut)"
+confirm = "Écraser la base web locale ?"
+run = "make restore-web-db"
 
 [tasks."open:ats"]
 description = "Ouvre http://localhost:8000/ats/ quand le back répond"
