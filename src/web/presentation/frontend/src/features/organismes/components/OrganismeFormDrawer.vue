@@ -34,8 +34,11 @@ watch(open, (isOpen) => {
   siretError.value = null
 }, { immediate: true })
 
-watch(siret, () => {
+watch(siret, (value) => {
   siretError.value = null
+  const digits = value.replace(/\D/g, '')
+  if (digits !== value)
+    siret.value = digits
 })
 
 const VERSANT_OPTIONS = Object.entries(VERSANT_LABELS).map(
@@ -47,19 +50,19 @@ const GESTION_OPTIONS = [
   { value: 'non', label: 'Non' },
 ]
 
-const siretValid = computed(() =>
-  new RegExp(`^\\d{${SIRET_LENGTH}}$`).test(siret.value),
-)
-
 const canSubmit = computed(() =>
   nom.value.trim().length > 0
-  && siretValid.value
+  && siret.value.length > 0
   && versant.value !== '',
 )
 
 function handleSubmit(): void {
   if (!canSubmit.value || props.saving)
     return
+  if (siret.value.length !== SIRET_LENGTH) {
+    siretError.value = `Le SIRET doit comporter ${SIRET_LENGTH} chiffres.`
+    return
+  }
   if (!isSiretValid(siret.value)) {
     siretError.value = 'Ce SIRET n\'est pas valide, vérifiez votre saisie.'
     return

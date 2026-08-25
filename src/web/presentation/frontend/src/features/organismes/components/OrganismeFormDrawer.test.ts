@@ -36,7 +36,7 @@ describe('organismeFormDrawer', () => {
     expect(submitButton().disabled).toBe(true)
 
     await fill('input[name="nom"]', 'Nouvel organisme')
-    await fill('input[name="siret"]', '12345678901234')
+    await fill('input[name="siret"]', '123')
     expect(submitButton().disabled).toBe(true)
 
     await pickVersant('FPE')
@@ -44,13 +44,33 @@ describe('organismeFormDrawer', () => {
     wrapper.unmount()
   })
 
-  it('keeps submit disabled for a malformed siret without showing an error', async () => {
+  it('surfaces a length error on submit without emitting', async () => {
     const wrapper = mountDrawer()
     await nextTick()
     await fill('input[name="nom"]', 'Nouvel organisme')
     await fill('input[name="siret"]', '123')
     await pickVersant('FPE')
-    expect(submitButton().disabled).toBe(true)
+    submitButton().click()
+    await nextTick()
+
+    expect(wrapper.emitted('submit')).toBeUndefined()
+    expect(document.body.textContent).toContain('Le SIRET doit comporter 14 chiffres.')
+    wrapper.unmount()
+  })
+
+  it('strips non digit characters from a pasted siret', async () => {
+    const wrapper = mountDrawer()
+    await nextTick()
+    await fill('input[name="nom"]', 'Nouvel organisme')
+    await fill('input[name="siret"]', '110 046 018 00021')
+    await pickVersant('FPT')
+    await nextTick()
+    submitButton().click()
+    await nextTick()
+
+    const emitted = wrapper.emitted('submit')
+    expect(emitted).toHaveLength(1)
+    expect((emitted![0][0] as { siret: string }).siret).toBe('11004601800021')
     wrapper.unmount()
   })
 
