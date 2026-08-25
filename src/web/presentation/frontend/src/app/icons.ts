@@ -58,6 +58,7 @@ import riSpamFill from '@iconify-icons/ri/spam-fill'
 import riSunLine from '@iconify-icons/ri/sun-line'
 import riTableLine from '@iconify-icons/ri/table-line'
 import riUserLine from '@iconify-icons/ri/user-line'
+import riUserUnfollowLine from '@iconify-icons/ri/user-unfollow-line'
 import { addIcon } from '@iconify/vue'
 
 addIcon('ri:add-line', riAddLine)
@@ -109,6 +110,7 @@ addIcon('ri:mail-line', riMailLine)
 addIcon('ri:map-pin-2-line', riMapPin2Line)
 addIcon('ri:menu-line', riMenuLine)
 addIcon('ri:moon-line', riMoonLine)
+addIcon('ri:user-unfollow-line', riUserUnfollowLine)
 addIcon('ri:sidebar-fold-line', {
   width: 24,
   height: 24,

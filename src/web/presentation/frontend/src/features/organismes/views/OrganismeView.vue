@@ -11,6 +11,7 @@ import EtapesRecrutementList from '@/features/etapes-recrutement/components/Etap
 import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
 import { useCurrentOrganisme } from '@/stores/currentOrganisme'
 import { useCurrentUser } from '@/stores/currentUser'
+import OrganismeAgentsSection from '../components/OrganismeAgentsSection.vue'
 import { organismesListQuery } from '../queries'
 
 const route = useRoute()
@@ -47,10 +48,11 @@ const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
 ])
 
 const tabs = [
+  { value: 'membres', label: 'Membres' },
   { value: 'etapes', label: 'Étapes de recrutement' },
 ]
 
-const activeTab = ref('etapes')
+const activeTab = ref('membres')
 
 const metaItems = computed<CspMetaItem[]>(() =>
   organismeNom.value
@@ -76,6 +78,13 @@ const metaItems = computed<CspMetaItem[]>(() =>
     width="reading"
     :tabs="tabs"
   >
+    <template #tab-membres>
+      <OrganismeAgentsSection
+        v-if="organismeUuid"
+        :key="organismeUuid"
+        :organisme-uuid="organismeUuid"
+      />
+    </template>
     <template #tab-etapes>
       <EtapesRecrutementList
         v-if="organismeUuid"
