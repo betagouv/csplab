@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
@@ -34,7 +34,7 @@ class UpdateOrganismeStepsCommand:
 
 
 class UpdateOrganismeStepsUsecase(
-    IUseCase[UpdateOrganismeStepsCommand, OrganismeRecruteur]
+    IUsecase[UpdateOrganismeStepsCommand, OrganismeRecruteur]
 ):
     def __init__(
         self,

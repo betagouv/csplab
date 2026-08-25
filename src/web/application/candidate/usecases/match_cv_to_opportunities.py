@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple
 
 from asgiref.sync import async_to_sync
 from ddd.services.logger_interface import ILogger
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 from referentiel.entities.concours import Concours
 from referentiel.entities.metier import Metier
 from referentiel.entities.offer import Offer
@@ -25,7 +25,7 @@ from domain.ingestion.services.embedding_generator_interface import IEmbeddingGe
 
 
 class MatchCVToOpportunitiesUsecase(
-    IUseCase[CVMetadata, List[Tuple[Concours | Tuple[Offer, list[Metier]], float]]],
+    IUsecase[CVMetadata, List[Tuple[Concours | Tuple[Offer, list[Metier]], float]]],
 ):
     def __init__(
         self,

@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Union, cast
 from asgiref.sync import async_to_sync
 from ddd.entity import Entity
 from ddd.services.logger_interface import ILogger
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 from django.db import transaction
 from referentiel.entities.concours import Concours
 from referentiel.entities.corps import Corps
@@ -21,7 +21,7 @@ from domain.ingestion.services.embedding_generator_interface import IEmbeddingGe
 from domain.ingestion.services.text_extractor_interface import ITextExtractor
 
 
-class VectorizeDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
+class VectorizeDocumentsUsecase(IUsecase[DocumentType, Dict[str, Any]]):
     def __init__(
         self,
         vector_repository: IVectorRepository,

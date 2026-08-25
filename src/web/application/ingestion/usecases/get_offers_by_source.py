@@ -1,5 +1,5 @@
 from ddd.page_interface import IPage
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 from referentiel.entities.offer import Offer
 from referentiel.repositories.offers_repository_interface import IOffersRepository
 
@@ -17,7 +17,7 @@ from domain.ingestion.repositories.user_source_repository_interface import (
 )
 
 
-class GetOffersBySourceUsecase(IUseCase[GetOffersBySourceInput, IPage[Offer]]):
+class GetOffersBySourceUsecase(IUsecase[GetOffersBySourceInput, IPage[Offer]]):
     def __init__(
         self,
         offers_repository: IOffersRepository,

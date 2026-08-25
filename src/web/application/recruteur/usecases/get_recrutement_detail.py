@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from application.recruteur.dtos.recrutement_read_models import (
     RecrutementDetailReadModel,
@@ -21,7 +21,7 @@ class GetRecrutementDetailQuery(RecrutementRequest):
 
 
 class GetRecrutementDetailUsecase(
-    IUseCase[GetRecrutementDetailQuery, RecrutementDetailReadModel | None]
+    IUsecase[GetRecrutementDetailQuery, RecrutementDetailReadModel | None]
 ):
     def __init__(
         self,

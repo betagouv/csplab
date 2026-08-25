@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from application.recruteur.dtos.etape_data import EtapeData, etapes_par_defaut
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
@@ -18,7 +18,7 @@ class GetRecrutementEtapesQuery(RecrutementRequest):
 # TODO: ajouter
 # - recuperer le Recrutement via IRecrutementRepository et mapper ses etapes reelles
 #   (EtapeRecrutement) vers EtapeData, au lieu du pipeline statique ci-dessous
-class GetRecrutementEtapesUsecase(IUseCase[GetRecrutementEtapesQuery, list[EtapeData]]):
+class GetRecrutementEtapesUsecase(IUsecase[GetRecrutementEtapesQuery, list[EtapeData]]):
     def __init__(
         self,
         organisme_permission_service: OrganismePermissionService,

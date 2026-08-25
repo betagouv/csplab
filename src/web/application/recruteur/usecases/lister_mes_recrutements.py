@@ -3,7 +3,7 @@ from uuid import UUID
 
 from ddd.page_interface import IPage
 from ddd.services.logger_interface import ILogger
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
@@ -27,7 +27,7 @@ class ListerMesRecrutementsQuery:
 
 
 class ListerMesRecrutementsUsecase(
-    IUseCase[
+    IUsecase[
         ListerMesRecrutementsQuery,
         IPage[RecrutementActifsReadModel] | IPage[RecrutementArchivesReadModel],
     ]

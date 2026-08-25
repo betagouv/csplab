@@ -2,7 +2,7 @@ from typing import Any, Dict, List, cast
 
 from ddd.entity_interface import IEntity
 from ddd.services.logger_interface import ILogger
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 from referentiel.types import IUpsertResult
 
 from domain.ingestion.entities.document import DocumentType
@@ -15,7 +15,7 @@ from domain.ingestion.repositories.repository_factory_interface import (
 from domain.ingestion.services.document_cleaner_interface import IDocumentCleaner
 
 
-class CleanDocumentsUsecase(IUseCase[DocumentType, Dict[str, Any]]):
+class CleanDocumentsUsecase(IUsecase[DocumentType, Dict[str, Any]]):
     def __init__(
         self,
         document_repository: IDocumentRepository,

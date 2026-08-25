@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from ddd.async_usecase_interface import IAsyncUseCase
+from ddd.async_usecase_interface import IAsyncUsecase
 from pydantic import BaseModel, ConfigDict
 
 from domain.entities.raw_organisme import RawOrganisme
@@ -30,7 +30,7 @@ class ImportOrganismesResult:
 
 
 class ImportOrganismesUsecase(
-    IAsyncUseCase[ImportOrganismesCommand, ImportOrganismesResult]
+    IAsyncUsecase[ImportOrganismesCommand, ImportOrganismesResult]
 ):
     def __init__(
         self,

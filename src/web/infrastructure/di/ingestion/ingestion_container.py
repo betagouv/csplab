@@ -1,4 +1,4 @@
-from ddd.async_usecase_interface import IAsyncUseCase
+from ddd.async_usecase_interface import IAsyncUsecase
 from ddd.entity import Entity
 from dependency_injector import containers, providers
 from referentiel.types import IUpsertResult
@@ -118,7 +118,7 @@ class IngestionContainer(containers.DeclarativeContainer):
     )
 
     load_documents_usecase: providers.Provider[
-        IAsyncUseCase[LoadDocumentsInput, IUpsertResult]
+        IAsyncUsecase[LoadDocumentsInput, IUpsertResult]
     ] = providers.Factory(
         LoadDocumentsUsecase,
         strategy_factory=load_documents_strategy_factory,

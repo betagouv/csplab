@@ -1,4 +1,4 @@
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
@@ -18,7 +18,7 @@ from domain.ingestion.repositories.user_source_repository_interface import (
 from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
 
 
-class ArchiveOfferByReferenceUsecase(IUseCase[ArchiveOfferByReferenceInput, None]):
+class ArchiveOfferByReferenceUsecase(IUsecase[ArchiveOfferByReferenceInput, None]):
     def __init__(
         self,
         offers_repository: IIngestionOffersRepository,

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 from referentiel.entities.organisme import Organisme
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.siret import SIRET
@@ -27,7 +27,7 @@ class CreateOrganismeCommand:
     utilisateur: Utilisateur
 
 
-class CreateOrganismeUsecase(IUseCase[CreateOrganismeCommand, Organisme]):
+class CreateOrganismeUsecase(IUsecase[CreateOrganismeCommand, Organisme]):
     def __init__(
         self,
         organisme_repository: IOrganismeRepository,

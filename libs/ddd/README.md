@@ -10,7 +10,7 @@ Pure technical DDD scaffolding for the CSPLab monorepo.
 - `DomainEvent` / `DomainEventMetadata` — immutable domain event base classes
 - `Entity` — base dataclass with `entity_id: UUID`
 - `IRepository` - repositories protocols
-- `IUseCase` / `IAsyncUseCase` — use case protocols
+- `IUsecase` / `IAsyncUsecase` — use case protocols
 - `IFromDomainMapper` / `IToDomainMapper` — mapper protocols
 
 ## Dependency rules

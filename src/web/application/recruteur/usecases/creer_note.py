@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
@@ -20,7 +20,7 @@ class CreerNoteCommand:
     message: str
 
 
-class CreerNoteUsecase(IUseCase[CreerNoteCommand, Note]):
+class CreerNoteUsecase(IUsecase[CreerNoteCommand, Note]):
     def __init__(
         self,
         note_repository: INoteRepository,

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from ddd.page_interface import IPage
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from application.recruteur.dtos.recrutement_read_models import (
     CandidatureListeReadModel,
@@ -22,7 +22,7 @@ class GetRecrutementListeQuery(RecrutementRequest):
 
 
 class GetRecrutementListeUsecase(
-    IUseCase[GetRecrutementListeQuery, IPage[CandidatureListeReadModel] | None]
+    IUsecase[GetRecrutementListeQuery, IPage[CandidatureListeReadModel] | None]
 ):
     def __init__(
         self,

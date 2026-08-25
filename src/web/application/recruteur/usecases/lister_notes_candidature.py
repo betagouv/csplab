@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from application.recruteur.dtos.note_read_models import NoteReadModel
 from application.recruteur.services.note_query_service_interface import (
@@ -15,7 +15,7 @@ class ListerNotesCandidatureQuery:
 
 
 class ListerNotesCandidatureUsecase(
-    IUseCase[ListerNotesCandidatureQuery, list[NoteReadModel]]
+    IUsecase[ListerNotesCandidatureQuery, list[NoteReadModel]]
 ):
     def __init__(self, note_query_service: INoteQueryService):
         self.note_query_service = note_query_service
