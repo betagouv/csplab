@@ -3,10 +3,23 @@ import { useQuery } from '@pinia/colada'
 import { computed } from 'vue'
 import { getMe } from '@/api/utilisateur'
 
+export const CURRENT_USER_QUERY_KEY = ['currentUser'] as const
+
+let inflight: Promise<Utilisateur> | null = null
+
+// Single-flight shared between the colada query and router guards, so a guard
+// resolving before the app mounts does not trigger a duplicate /me request.
+export function fetchCurrentUser(): Promise<Utilisateur> {
+  inflight ??= getMe().finally(() => {
+    inflight = null
+  })
+  return inflight
+}
+
 export function useCurrentUser() {
   const query = useQuery<Utilisateur>({
-    key: ['currentUser'],
-    query: getMe,
+    key: CURRENT_USER_QUERY_KEY,
+    query: fetchCurrentUser,
     staleTime: Infinity,
   })
 

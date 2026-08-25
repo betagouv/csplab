@@ -23,7 +23,13 @@ const navGroups = computed(() => {
   return props.navigation
     .map(group => ({
       ...group,
-      items: group.items.filter(item => router.hasRoute(item.to)),
+      items: group.items.filter((item) => {
+        if (!router.hasRoute(item.to)) {
+          console.warn(`Route "${item.to}" does not exist. Please check your navigation configuration.`)
+          return false
+        }
+        return true
+      }),
     }))
     .filter(group => group.items.length > 0)
 })

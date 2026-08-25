@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { candidaturesRoutes } from '@/features/candidatures/routes'
 import { etapesRecrutementRoutes } from '@/features/etapes-recrutement/routes'
+import { organismesRoutes } from '@/features/organismes/routes'
 import { recrutementsRoutes } from '@/features/recrutements/routes'
 
 const appRoutes: RouteRecordRaw[] = [
@@ -8,11 +9,6 @@ const appRoutes: RouteRecordRaw[] = [
     path: '/',
     name: 'home',
     component: () => import('@/views/HomeView.vue'),
-  },
-  {
-    path: '/parametres',
-    name: 'parametres',
-    component: () => import('@/views/ParametresView.vue'),
   },
 ]
 
@@ -27,5 +23,6 @@ export const routes: RouteRecordRaw[] = [
   ...recrutementsRoutes,
   ...candidaturesRoutes,
   ...etapesRecrutementRoutes,
+  ...organismesRoutes,
   notFoundRoute,
 ]
