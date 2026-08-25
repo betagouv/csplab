@@ -1,8 +1,7 @@
 # Tâches mise : surcouche d'ergonomie optionnelle pour le dev front par-dessus le Makefile
 
 [tools]
-node = "24"        # engines.node (src/web/package.json)
-pnpm = "11.23"    # packageManager (src/web/package.json)
+node = "24"
 
 # ── Frontend (node seul, aucun service back requis) ──────────────────────────
 [tasks.sb]
