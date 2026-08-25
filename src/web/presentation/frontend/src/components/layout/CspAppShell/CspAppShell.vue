@@ -23,7 +23,13 @@ const navGroups = computed(() => {
   return props.navigation
     .map(group => ({
       ...group,
-      items: group.items.filter(item => router.hasRoute(item.to)),
+      items: group.items.filter((item) => {
+        if (!router.hasRoute(item.to)) {
+          console.warn(`Route "${item.to}" does not exist. Please check your navigation configuration.`)
+          return false
+        }
+        return true
+      }),
     }))
     .filter(group => group.items.length > 0)
 })
@@ -33,6 +39,7 @@ function isItemActive(routeName: string): boolean {
   if (path === '/') {
     return route.path === '/'
   }
+  console.log('route.path', route.path, 'path', path, 'startsWith', route.path.startsWith(`${path}/`))
   return route.path === path || route.path.startsWith(`${path}/`)
 }
 </script>
