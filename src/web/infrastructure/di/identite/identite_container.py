@@ -3,6 +3,7 @@ from dependency_injector import containers, providers
 from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.identite.usecases.create_candidat import CreateCandidatUsecase
 from application.identite.usecases.create_organisme import CreateOrganismeUsecase
+from application.identite.usecases.get_organisme import GetOrganismeUsecase
 from application.identite.usecases.get_utilisateur_details import (
     GetUtilisateurDetailsUsecase,
 )
@@ -111,6 +112,12 @@ class IdentiteContainer(containers.DeclarativeContainer):
     list_organismes_usecase = providers.Factory(
         ListOrganismesUsecase,
         organisme_query_service=postgres_organisme_query_service,
+        permission_service=organisme_permission_service,
+    )
+
+    get_organisme_usecase = providers.Factory(
+        GetOrganismeUsecase,
+        organisme_repository=postgres_organisme_repository,
         permission_service=organisme_permission_service,
     )
 

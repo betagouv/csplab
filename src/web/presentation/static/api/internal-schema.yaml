@@ -1951,10 +1951,12 @@ components:
           type: boolean
         date_derniere_activite:
           type: string
-          format: date-time
+          format: date
+          nullable: true
         date_creation:
           type: string
-          format: date-time
+          format: date
+          nullable: true
       required:
       - date_creation
       - date_derniere_activite
@@ -1999,10 +2001,12 @@ components:
           type: boolean
         date_derniere_activite:
           type: string
-          format: date-time
+          format: date
+          nullable: true
         date_creation:
           type: string
-          format: date-time
+          format: date
+          nullable: true
         nombre_agents:
           type: integer
         nombre_offres_publiees:

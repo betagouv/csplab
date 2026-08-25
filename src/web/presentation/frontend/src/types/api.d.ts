@@ -557,10 +557,10 @@ export interface components {
             siret: string;
             gestionnaire: string | null;
             gestion_ats: boolean;
-            /** Format: date-time */
-            date_derniere_activite: string;
-            /** Format: date-time */
-            date_creation: string;
+            /** Format: date */
+            date_derniere_activite: string | null;
+            /** Format: date */
+            date_creation: string | null;
         };
         OrganismeRole: {
             /** Format: uuid */
@@ -576,10 +576,10 @@ export interface components {
             siret: string;
             gestionnaire: string | null;
             gestion_ats: boolean;
-            /** Format: date-time */
-            date_derniere_activite: string;
-            /** Format: date-time */
-            date_creation: string;
+            /** Format: date */
+            date_derniere_activite: string | null;
+            /** Format: date */
+            date_creation: string | null;
             nombre_agents: number;
             nombre_offres_publiees: number;
         };
