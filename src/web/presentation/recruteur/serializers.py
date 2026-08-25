@@ -17,8 +17,8 @@ class OrganismeDetailSerializer(serializers.Serializer):
     siret = serializers.CharField(min_length=14, max_length=14)
     gestionnaire = serializers.CharField(allow_null=True)
     gestion_ats = serializers.BooleanField()
-    date_derniere_activite = serializers.DateTimeField()
-    date_creation = serializers.DateTimeField()
+    date_derniere_activite = serializers.DateField(allow_null=True)
+    date_creation = serializers.DateField(allow_null=True)
 
 
 class OrganismesListSerializer(OrganismeDetailSerializer):
