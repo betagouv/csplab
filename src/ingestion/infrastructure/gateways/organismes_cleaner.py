@@ -13,12 +13,16 @@ from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_organisme import RawOrganisme
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
+from infrastructure.gateways.lambert93 import lambert93_to_wgs84
 
 logger = logging.getLogger(__name__)
 
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 # From https://smt.esante.gouv.fr/fhir/CodeSystem/tre-r397-categorie-entite-geographique-exercice
 _CATEGORIES_CSV = _DATA_DIR / "categories_entite_geographique_exercice.csv"
+
+_MAX_LONGITUDE_DEGREES = 180
+_MAX_LATITUDE_DEGREES = 90
 
 
 def _load_allowed_categories(csv_path: Path) -> set[str]:
@@ -112,8 +116,14 @@ class OrganismesCleaner:
     ) -> tuple[Optional[float], Optional[float]]:
         coordinates = adresse.get("coordonneesGeographique") or {}
         try:
-            longitude = float(coordinates["coordonneeX"])
-            latitude = float(coordinates["coordonneeY"])
+            x = float(coordinates["coordonneeX"])
+            y = float(coordinates["coordonneeY"])
         except (KeyError, TypeError, ValueError):
             return None, None
-        return latitude, longitude
+
+        # FINESS sometimes publishes coordinates projected in Lambert-93
+        # (meters) instead of WGS84 decimal degrees.
+        if abs(x) > _MAX_LONGITUDE_DEGREES or abs(y) > _MAX_LATITUDE_DEGREES:
+            return lambert93_to_wgs84(x, y)
+
+        return y, x

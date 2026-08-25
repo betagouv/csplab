@@ -165,3 +165,18 @@ def test_coordinates_are_none_when_missing(cleaner: OrganismesCleaner):
     assert organisme.localisation is not None
     assert organisme.localisation.latitude is None
     assert organisme.localisation.longitude is None
+
+
+def test_coordinates_are_converted_from_lambert93(cleaner: OrganismesCleaner):
+    # Lambert-93 projection of Nice (43.697073, 7.254944), the WGS84 point
+    # used by the other tests in this file.
+    raw_organisme = _raw_organisme(
+        _ege(coordonnee_x="1042920.75", coordonnee_y="6297912.66")
+    )
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.localisation is not None
+    assert organisme.localisation.latitude == pytest.approx(43.697073, abs=1e-4)
+    assert organisme.localisation.longitude == pytest.approx(7.254944, abs=1e-4)
