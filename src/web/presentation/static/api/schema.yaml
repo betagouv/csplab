@@ -2773,7 +2773,11 @@ components:
           - $ref: '#/components/schemas/OrganismeLocalisationInput'
           nullable: true
       required:
+      - external_id
+      - millesime
       - nom
+      - parent_id
+      - referentiel
       - siret
       - versant
     OuvertAuxMilitairesEnum:
