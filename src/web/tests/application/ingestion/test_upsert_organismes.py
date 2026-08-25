@@ -18,8 +18,10 @@ def _organisme_data(**overrides) -> OrganismeUpsertData:
         "versant": Verse.FPT,
         "siret": SIRET(code="19754687200015"),
         "localisation": None,
+        "parent_id": None,
         "external_id": "ext-123",
         "referentiel": "FINESS",
+        "millesime": "2026-08-19",
     }
     defaults.update(overrides)
     return OrganismeUpsertData(**defaults)
@@ -68,19 +70,20 @@ def test_updates_existing_organisme_found_by_referentiel_and_external_id():
     assert isinstance(events[0], OrganismeRemplace)
 
 
-def test_does_not_lookup_when_referentiel_or_external_id_missing():
+def test_always_looks_up_by_referentiel_and_external_id():
     organisme_repository = MagicMock()
+    organisme_repository.get_by_referentiel_and_external_id.return_value = None
     usecase = _usecase(organisme_repository)
 
-    result = usecase.execute(
+    usecase.execute(
         UpsertOrganismesInput(
-            organismes=[_organisme_data(external_id=None, referentiel=None)]
+            organismes=[_organisme_data(external_id="ext-123", referentiel="FINESS")]
         )
     )
 
-    assert result == {"created": 1, "updated": 0, "errors": []}
-    organisme_repository.get_by_referentiel_and_external_id.assert_not_called()
-    organisme_repository.create.assert_called_once()
+    organisme_repository.get_by_referentiel_and_external_id.assert_called_once_with(
+        referentiel="FINESS", external_id="ext-123"
+    )
 
 
 def test_collects_error_for_failing_item_without_stopping_the_batch():

@@ -15,7 +15,7 @@ def _organisme_payload(**overrides) -> dict:
         "parent_id": None,
         "external_id": "ext-123",
         "referentiel": "FINESS",
-        "millesime": None,
+        "millesime": "2026-08-19",
     }
     payload.update(overrides)
     return payload

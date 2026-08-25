@@ -51,11 +51,9 @@ class UpsertOrganismesUsecase(IUseCase[UpsertOrganismesInput, IUpsertResult]):
 
     def _upsert_one(self, data: OrganismeUpsertData) -> bool:
         """Returns True if the organisme was updated, False if it was created."""
-        existing = None
-        if data.referentiel is not None and data.external_id is not None:
-            existing = self.organisme_repository.get_by_referentiel_and_external_id(
-                referentiel=data.referentiel, external_id=data.external_id
-            )
+        existing = self.organisme_repository.get_by_referentiel_and_external_id(
+            referentiel=data.referentiel, external_id=data.external_id
+        )
 
         if existing is None:
             organisme = Organisme.create(

@@ -13,10 +13,10 @@ class OrganismeUpsertData:
     versant: Verse
     siret: SIRET
     localisation: Localisation | None
-    parent_id: UUID | None = None
-    external_id: str | None = None
-    referentiel: str | None = None
-    millesime: str | None = None
+    parent_id: UUID | None
+    external_id: str
+    referentiel: str
+    millesime: str
     gestion_ats: bool | None = False
     date_creation: date | None = None
     date_derniere_activite: date | None = None

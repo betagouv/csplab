@@ -2747,15 +2747,12 @@ components:
           nullable: true
         external_id:
           type: string
-          nullable: true
           maxLength: 50
         referentiel:
           type: string
-          nullable: true
           maxLength: 50
         millesime:
           type: string
-          nullable: true
           maxLength: 25
         gestion_ats:
           type: boolean
