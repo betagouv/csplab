@@ -40,6 +40,7 @@ RESPONSABLE_ACTIONS = [
     OrganismeAction.UPDATE_ORGANISME_STEPS,
     OrganismeAction.LIST_ORGANISME_AGENTS,
     OrganismeAction.ATTACH_ORGANISME_AGENT,
+    OrganismeAction.UPDATE_ORGANISME_AGENT,
 ]
 STAFF_BYPASS_ACTIONS = [
     OrganismeAction.GET_ORGANISME,
@@ -47,6 +48,7 @@ STAFF_BYPASS_ACTIONS = [
     OrganismeAction.UPDATE_ORGANISME_STEPS,
     OrganismeAction.LIST_ORGANISME_AGENTS,
     OrganismeAction.ATTACH_ORGANISME_AGENT,
+    OrganismeAction.UPDATE_ORGANISME_AGENT,
 ]
 
 
