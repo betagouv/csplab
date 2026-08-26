@@ -18,6 +18,23 @@ def require_frontend_build() -> None:
             "Run `make frontend-build` first."
         )
 
+    frontend_src = Path(django_settings.BASE_DIR) / "presentation" / "frontend" / "src"
+    manifest_mtime = manifest.stat().st_mtime
+    stale_sources = [
+        path
+        for path in frontend_src.rglob("*")
+        if path.is_file() and path.stat().st_mtime > manifest_mtime
+    ]
+    if stale_sources:
+        newest = max(stale_sources, key=lambda path: path.stat().st_mtime)
+        pytest.fail(
+            "Frontend build is stale: "
+            f"{newest.relative_to(frontend_src)} was modified after the last "
+            "`make frontend-build`. The e2e tests serve the built SPA, so a stale "
+            "bundle can silently miss recent markup (e.g. a data-testid) without "
+            "any obviously related error. Rebuild it first."
+        )
+
 
 @pytest.fixture(autouse=True)
 def insecure_cookies(settings) -> None:
