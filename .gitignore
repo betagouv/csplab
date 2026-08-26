@@ -92,6 +92,9 @@ coverage/
 tests/cov.md
 cov.md
 
+# Playwright failure artifacts (traces, screenshots)
+src/web/test-results/
+
 # Docker Compose local overrides
 docker-compose.override.yml
 
