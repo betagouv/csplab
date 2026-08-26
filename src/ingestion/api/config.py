@@ -20,6 +20,12 @@ class Settings(BaseSettings):
     # credentials are only used to verify webhook signatures.
     talentsoft_credentials: list[TalentsoftCredential] = []
 
+    gipcdg_api_key: str | None = None
+    # https://emploi-territorial.fr/api
+    gipcdg_collectivites_api_url: HttpUrl = HttpUrl(
+        "https://emploi-territorial.fr/api/cdg/collectivites?etab=5&limit=1000"
+    )
+
     web_base_url: str | None = None
     web_api_key: str | None = None
 

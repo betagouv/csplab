@@ -37,6 +37,9 @@ from infrastructure.external_gateways.base_web_gateway import WebGatewayCredenti
 from infrastructure.external_gateways.finess_organisme_gateway import (
     FinessOrganismeGateway,
 )
+from infrastructure.external_gateways.gipcdg_organisme_gateway import (
+    GipcdgOrganismeGateway,
+)
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
@@ -141,6 +144,22 @@ class Container(containers.DeclarativeContainer):
         providers.Factory(
             ImportOrganismesUsecase,
             organisme_gateway=organisme_gateway,
+            raw_organisme_repository=raw_organisme_repository,
+        )
+    )
+
+    gipcdg_organisme_gateway: providers.Provider[IOrganismeGateway] = (
+        providers.Singleton(
+            GipcdgOrganismeGateway,
+            api_key=config.gipcdg_api_key,
+            collectivites_api_url=config.gipcdg_collectivites_api_url,
+        )
+    )
+
+    import_organismes_gipcdg_usecase: providers.Provider[ImportOrganismesUsecase] = (
+        providers.Factory(
+            ImportOrganismesUsecase,
+            organisme_gateway=gipcdg_organisme_gateway,
             raw_organisme_repository=raw_organisme_repository,
         )
     )
@@ -272,6 +291,10 @@ def create_container() -> Container:
     container.config.web_api_key.from_value(settings.web_api_key)
     container.config.database_url.from_value(settings.database_url)
     container.config.talentsoft_credentials.from_value(settings.talentsoft_credentials)
+    container.config.gipcdg_api_key.from_value(settings.gipcdg_api_key)
+    container.config.gipcdg_collectivites_api_url.from_value(
+        str(settings.gipcdg_collectivites_api_url)
+    )
 
     _logger = logging.getLogger(__name__)
     register_talentsoft_front_clients(

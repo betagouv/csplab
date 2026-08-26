@@ -2,6 +2,7 @@ import csv
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
@@ -127,22 +128,19 @@ def test_returns_none_when_no_data(cleaner: OrganismesCleaner):
     assert cleaner.clean(raw_organisme) is None
 
 
-def test_returns_none_when_missing_siret(cleaner: OrganismesCleaner):
-    raw_organisme = _raw_organisme(_ege(siret=None))
+@pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param(_ege(siret=None), id="missing_siret"),
+        pytest.param(_ege(siret="not-a-siret"), id="invalid_siret"),
+        pytest.param(_ege(nom=""), id="missing_nom"),
+    ],
+)
+def test_finess_raises_on_invalid_data(cleaner: OrganismesCleaner, data: dict):
+    raw_organisme = _raw_organisme(data)
 
-    assert cleaner.clean(raw_organisme) is None
-
-
-def test_returns_none_when_invalid_siret(cleaner: OrganismesCleaner):
-    raw_organisme = _raw_organisme(_ege(siret="not-a-siret"))
-
-    assert cleaner.clean(raw_organisme) is None
-
-
-def test_returns_none_when_missing_nom(cleaner: OrganismesCleaner):
-    raw_organisme = _raw_organisme(_ege(nom=""))
-
-    assert cleaner.clean(raw_organisme) is None
+    with pytest.raises(ValidationError):
+        cleaner.clean(raw_organisme)
 
 
 def test_localisation_is_none_when_no_address(cleaner: OrganismesCleaner):
@@ -232,3 +230,94 @@ def test_dedupe_by_siret_keeps_distinct_sirets(cleaner: OrganismesCleaner):
     result = cleaner.dedupe_by_siret([first, second])
 
     assert {o.external_id for o in result} == {"123456789", "987654321"}
+
+
+def _collectivite(
+    *,
+    libl_col: str | None = "COMMUNAUTE DE COMMUNES BRIANCONNAIS",
+    libc_col: str | None = "CC BRIANCONNAIS",
+    siret_col: str | None = "24050043900080",
+    cod_dep_col: str | None = "005",
+) -> dict:
+    return {
+        "id_col": 10631,
+        "libl_col": libl_col,
+        "libc_col": libc_col,
+        "siret_col": siret_col,
+        "cod_dep_col": cod_dep_col,
+    }
+
+
+def _raw_organisme_gipcdg(data: dict | None) -> RawOrganisme:
+    return RawOrganisme(
+        referentiel="GIPCDG",
+        millesime="2026-08-20",
+        external_id="10631",
+        data=data,
+    )
+
+
+def test_cleans_valid_gipcdg_raw_organisme(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_gipcdg(_collectivite())
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.nom == "COMMUNAUTE DE COMMUNES BRIANCONNAIS"
+    assert organisme.versant == Verse.FPT
+    assert organisme.siret == SIRET(code="24050043900080")
+    assert organisme.external_id == "10631"
+    assert organisme.referentiel == "GIPCDG"
+    assert organisme.millesime == "2026-08-20"
+    assert organisme.parent_id is None
+    assert organisme.localisation is not None
+    assert organisme.localisation.department.code == "05"
+    assert organisme.localisation.region.code == "93"
+    assert organisme.localisation.latitude is None
+    assert organisme.localisation.longitude is None
+
+
+def test_gipcdg_falls_back_to_libc_col_when_no_libl_col(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_gipcdg(_collectivite(libl_col=None))
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.nom == "CC BRIANCONNAIS"
+
+
+def test_gipcdg_returns_none_when_no_data(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_gipcdg(None)
+
+    assert cleaner.clean(raw_organisme) is None
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param(_collectivite(siret_col=None), id="missing_siret"),
+        pytest.param(_collectivite(siret_col="not-a-siret"), id="invalid_siret"),
+        pytest.param(_collectivite(libl_col=None, libc_col=""), id="missing_nom"),
+    ],
+)
+def test_gipcdg_raises_on_invalid_data(cleaner: OrganismesCleaner, data: dict | None):
+    raw_organisme = _raw_organisme_gipcdg(data)
+
+    with pytest.raises(ValidationError):
+        cleaner.clean(raw_organisme)
+
+
+@pytest.mark.parametrize(
+    "cod_dep_col",
+    [None, "999", "000", "ZZZ"],
+    ids=["missing", "unknown_department", "all_zeros", "invalid_code"],
+)
+def test_gipcdg_localisation_is_none(
+    cleaner: OrganismesCleaner, cod_dep_col: str | None
+):
+    raw_organisme = _raw_organisme_gipcdg(_collectivite(cod_dep_col=cod_dep_col))
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.localisation is None
