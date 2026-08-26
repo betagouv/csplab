@@ -144,6 +144,8 @@ class TestOrganismeAgentsView:
             AGENTS_URL,
             data={
                 "agent_id": agent_id,
+                # TODO: make role parametric in test when implementing usecase
+                "role": AgentOrganismeRole.MEMBRE.value,
                 "date_revocation": "2026-08-20T10:00:00Z",
             },
             format="json",
