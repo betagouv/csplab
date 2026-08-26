@@ -10,3 +10,7 @@ class IOrganismeAgentQueryService(Protocol):
     def list_by_organisme(
         self, *, organisme_id: UUID
     ) -> list[AgentOrganismeReadModel]: ...
+
+    def get_one(
+        self, *, organisme_id: UUID, agent_id: UUID
+    ) -> AgentOrganismeReadModel | None: ...

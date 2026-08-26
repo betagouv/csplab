@@ -16,6 +16,20 @@ class PostgresOrganismeAgentQueryService(IOrganismeAgentQueryService):
         ).select_related("agent__utilisateur")
         return [self._to_read_model(liaison) for liaison in liaisons]
 
+    def get_one(
+        self, *, organisme_id: UUID, agent_id: UUID
+    ) -> AgentOrganismeReadModel | None:
+        try:
+            liaison = OrganismeAgentModel.objects.select_related(
+                "agent__utilisateur"
+            ).get(
+                organisme_id=organisme_id,
+                agent_id=agent_id,  # type: ignore[misc]
+            )
+        except OrganismeAgentModel.DoesNotExist:
+            return None
+        return self._to_read_model(liaison)
+
     def _to_read_model(self, liaison: OrganismeAgentModel) -> AgentOrganismeReadModel:
         return AgentOrganismeReadModel(
             entity_id=liaison.agent_id,

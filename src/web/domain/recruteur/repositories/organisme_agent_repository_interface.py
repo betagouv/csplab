@@ -8,3 +8,7 @@ class IOrganismeAgentRepository(Protocol):
     def get_role(
         self, *, organisme_id: UUID, agent_id: UUID
     ) -> AgentOrganismeRole | None: ...
+
+    def attach(
+        self, *, organisme_id: UUID, agent_id: UUID, role: AgentOrganismeRole
+    ) -> None: ...
