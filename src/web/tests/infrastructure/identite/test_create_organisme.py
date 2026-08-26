@@ -95,33 +95,6 @@ def test_get_organisme_by_id_nexiste_pas(identite_integration_container):
         repo.get_by_id(uuid4())
 
 
-def test_get_by_referentiel_and_external_id(identite_integration_container):
-    model = OrganismeFactory.create_model(
-        nom="Ministère de la Justice", referentiel="FINESS", external_id="ext-123"
-    )
-    repo = identite_integration_container.postgres_organisme_repository()
-
-    organisme = repo.get_by_referentiel_and_external_id(
-        referentiel="FINESS", external_id="ext-123"
-    )
-
-    assert organisme is not None
-    assert organisme.entity_id == model.id
-    assert organisme.nom == "Ministère de la Justice"
-
-
-def test_get_by_referentiel_and_external_id_nexiste_pas(
-    identite_integration_container,
-):
-    repo = identite_integration_container.postgres_organisme_repository()
-
-    organisme = repo.get_by_referentiel_and_external_id(
-        referentiel="FINESS", external_id="unknown"
-    )
-
-    assert organisme is None
-
-
 def test_save_updates_existing_organisme(identite_integration_container):
     model = OrganismeFactory.create_model(
         nom="Ancien nom", referentiel="FINESS", external_id="ext-456"
@@ -178,3 +151,53 @@ def test_save_organisme_inexistant_leve_organisme_nexiste_pas(
 
     with pytest.raises(OrganismeNexistePas):
         repo.save(organisme)
+
+
+def test_get_ids_by_referentiel_and_external_id_batch(identite_integration_container):
+    model_a = OrganismeFactory.create_model(referentiel="FINESS", external_id="ext-a")
+    model_b = OrganismeFactory.create_model(referentiel="RNE", external_id="ext-b")
+    repo = identite_integration_container.postgres_organisme_repository()
+
+    ids = repo.get_ids_by_referentiel_and_external_id(
+        [("FINESS", "ext-a"), ("RNE", "ext-b"), ("RNE", "unknown")]
+    )
+
+    assert ids == {
+        ("FINESS", "ext-a"): model_a.id,
+        ("RNE", "ext-b"): model_b.id,
+    }
+
+
+def test_get_ids_by_referentiel_and_external_id_batch_vide(
+    identite_integration_container,
+):
+    repo = identite_integration_container.postgres_organisme_repository()
+
+    assert repo.get_ids_by_referentiel_and_external_id([]) == {}
+
+
+def test_upsert_batch_cree_et_met_a_jour(identite_integration_container):
+    existing = OrganismeFactory.create_model(
+        nom="Ancien nom", referentiel="FINESS", external_id="ext-existing"
+    )
+    repo = identite_integration_container.postgres_organisme_repository()
+
+    organisme_modifie = repo.get_by_id(existing.id)
+    organisme_modifie.modifier(
+        nom="Nouveau nom",
+        versant=organisme_modifie.versant,
+        localisation=organisme_modifie.localisation,
+        siret=organisme_modifie.siret,
+        parent_id=organisme_modifie.parent_id,
+        external_id=organisme_modifie.external_id,
+        referentiel=organisme_modifie.referentiel,
+    )
+    organisme_nouveau = OrganismeFactory.create_entity(
+        nom="Organisme neuf", referentiel="FINESS", external_id="ext-neuf"
+    )
+
+    result = repo.upsert_batch([organisme_modifie, organisme_nouveau])
+
+    assert result == {"created": 1, "updated": 1, "errors": []}
+    assert repo.get_by_id(existing.id).nom == "Nouveau nom"
+    assert repo.get_by_id(organisme_nouveau.entity_id).nom == "Organisme neuf"

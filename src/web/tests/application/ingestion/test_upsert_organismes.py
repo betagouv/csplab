@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock
+from uuid import uuid4
 
 from referentiel.events.organisme_events import OrganismeCree, OrganismeRemplace
 from referentiel.value_objects.siret import SIRET
@@ -9,7 +10,6 @@ from application.ingestion.interfaces.upsert_organismes_input import (
     UpsertOrganismesInput,
 )
 from application.ingestion.usecases.upsert_organismes import UpsertOrganismesUsecase
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 
 
 def _organisme_data(**overrides) -> OrganismeUpsertData:
@@ -36,25 +36,35 @@ def _usecase(organisme_repository=None) -> UpsertOrganismesUsecase:
 
 def test_creates_organisme_when_not_found():
     organisme_repository = MagicMock()
-    organisme_repository.get_by_referentiel_and_external_id.return_value = None
+    organisme_repository.get_ids_by_referentiel_and_external_id.return_value = {}
+    organisme_repository.upsert_batch.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+    }
     usecase = _usecase(organisme_repository)
 
     result = usecase.execute(UpsertOrganismesInput(organismes=[_organisme_data()]))
 
     assert result == {"created": 1, "updated": 0, "errors": []}
-    organisme_repository.create.assert_called_once()
-    created_organisme = organisme_repository.create.call_args[0][0]
-    events = created_organisme.collect_events()
+    organismes = organisme_repository.upsert_batch.call_args[0][0]
+    assert len(organismes) == 1
+    events = organismes[0].collect_events()
     assert len(events) == 1
     assert isinstance(events[0], OrganismeCree)
 
 
 def test_updates_existing_organisme_found_by_referentiel_and_external_id():
-    existing = OrganismeFactory.create_entity(
-        nom="Ancien nom", external_id="ext-123", referentiel="FINESS"
-    )
+    existing_id = uuid4()
     organisme_repository = MagicMock()
-    organisme_repository.get_by_referentiel_and_external_id.return_value = existing
+    organisme_repository.get_ids_by_referentiel_and_external_id.return_value = {
+        ("FINESS", "ext-123"): existing_id
+    }
+    organisme_repository.upsert_batch.return_value = {
+        "created": 0,
+        "updated": 1,
+        "errors": [],
+    }
     usecase = _usecase(organisme_repository)
 
     result = usecase.execute(
@@ -62,47 +72,51 @@ def test_updates_existing_organisme_found_by_referentiel_and_external_id():
     )
 
     assert result == {"created": 0, "updated": 1, "errors": []}
-    organisme_repository.create.assert_not_called()
-    organisme_repository.save.assert_called_once_with(existing)
-    assert existing.nom == "Nouveau nom"
-    events = existing.collect_events()
+    organismes = organisme_repository.upsert_batch.call_args[0][0]
+    assert len(organismes) == 1
+    assert organismes[0].entity_id == existing_id
+    assert organismes[0].nom == "Nouveau nom"
+    events = organismes[0].collect_events()
     assert len(events) == 1
     assert isinstance(events[0], OrganismeRemplace)
 
 
-def test_always_looks_up_by_referentiel_and_external_id():
+def test_looks_up_all_pairs_in_a_single_batch_call():
     organisme_repository = MagicMock()
-    organisme_repository.get_by_referentiel_and_external_id.return_value = None
+    organisme_repository.get_ids_by_referentiel_and_external_id.return_value = {}
+    organisme_repository.upsert_batch.return_value = {
+        "created": 2,
+        "updated": 0,
+        "errors": [],
+    }
     usecase = _usecase(organisme_repository)
 
     usecase.execute(
         UpsertOrganismesInput(
-            organismes=[_organisme_data(external_id="ext-123", referentiel="FINESS")]
-        )
-    )
-
-    organisme_repository.get_by_referentiel_and_external_id.assert_called_once_with(
-        referentiel="FINESS", external_id="ext-123"
-    )
-
-
-def test_collects_error_for_failing_item_without_stopping_the_batch():
-    organisme_repository = MagicMock()
-    organisme_repository.get_by_referentiel_and_external_id.return_value = None
-    organisme_repository.create.side_effect = [Exception("db error"), None]
-    usecase = _usecase(organisme_repository)
-
-    result = usecase.execute(
-        UpsertOrganismesInput(
             organismes=[
-                _organisme_data(external_id="ext-1"),
-                _organisme_data(external_id="ext-2"),
+                _organisme_data(external_id="ext-1", referentiel="FINESS"),
+                _organisme_data(external_id="ext-2", referentiel="RNE"),
             ]
         )
     )
 
-    assert result["created"] == 1
-    assert result["updated"] == 0
+    organisme_repository.get_ids_by_referentiel_and_external_id.assert_called_once_with(
+        [("FINESS", "ext-1"), ("RNE", "ext-2")]
+    )
+
+
+def test_returns_errors_from_the_batch_upsert():
+    organisme_repository = MagicMock()
+    organisme_repository.get_ids_by_referentiel_and_external_id.return_value = {}
+    organisme_repository.upsert_batch.return_value = {
+        "created": 0,
+        "updated": 0,
+        "errors": [{"entity_id": None, "error": "db error", "exception": None}],
+    }
+    usecase = _usecase(organisme_repository)
+
+    result = usecase.execute(UpsertOrganismesInput(organismes=[_organisme_data()]))
+
     assert result["errors"] == [
-        {"referentiel": "FINESS", "external_id": "ext-1", "error": "db error"}
+        {"entity_id": None, "error": "db error", "exception": None}
     ]

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUseCase
 from referentiel.entities.organisme import Organisme
@@ -22,68 +24,46 @@ class UpsertOrganismesUsecase(IUseCase[UpsertOrganismesInput, IUpsertResult]):
         self.logger = logger
 
     def execute(self, input_data: UpsertOrganismesInput) -> IUpsertResult:
-        created = 0
-        updated = 0
-        errors: list = []
+        pairs = [(data.referentiel, data.external_id) for data in input_data.organismes]
+        existing_ids = self.organisme_repository.get_ids_by_referentiel_and_external_id(
+            pairs
+        )
 
-        for data in input_data.organismes:
-            try:
-                if self._upsert_one(data):
-                    updated += 1
-                else:
-                    created += 1
-            except Exception as e:
-                errors.append(
-                    {
-                        "referentiel": data.referentiel,
-                        "external_id": data.external_id,
-                        "error": str(e),
-                    }
-                )
+        organismes = [
+            self._build_organisme(
+                data, existing_ids.get((data.referentiel, data.external_id))
+            )
+            for data in input_data.organismes
+        ]
 
+        result = self.organisme_repository.upsert_batch(organismes)
         self.logger.info(
             "UpsertOrganismes: created=%d updated=%d errors=%d",
-            created,
-            updated,
-            len(errors),
+            result["created"],
+            result["updated"],
+            len(result["errors"]),
         )
-        return {"created": created, "updated": updated, "errors": errors}
+        return result
 
-    def _upsert_one(self, data: OrganismeUpsertData) -> bool:
-        """Returns True if the organisme was updated, False if it was created."""
-        existing = self.organisme_repository.get_by_referentiel_and_external_id(
-            referentiel=data.referentiel, external_id=data.external_id
-        )
+    def _build_organisme(
+        self, data: OrganismeUpsertData, existing_id: UUID | None
+    ) -> Organisme:
+        fields = {
+            "nom": data.nom,
+            "versant": data.versant,
+            "localisation": data.localisation,
+            "siret": data.siret,
+            "parent_id": data.parent_id,
+            "external_id": data.external_id,
+            "referentiel": data.referentiel,
+            "millesime": data.millesime,
+            "gestion_ats": data.gestion_ats,
+            "date_creation": data.date_creation,
+            "date_derniere_activite": data.date_derniere_activite,
+        }
+        if existing_id is None:
+            return Organisme.create(**fields)
 
-        if existing is None:
-            organisme = Organisme.create(
-                nom=data.nom,
-                versant=data.versant,
-                localisation=data.localisation,
-                siret=data.siret,
-                parent_id=data.parent_id,
-                external_id=data.external_id,
-                referentiel=data.referentiel,
-                millesime=data.millesime,
-                gestion_ats=data.gestion_ats,
-                date_creation=data.date_creation,
-                date_derniere_activite=data.date_derniere_activite,
-            )
-            self.organisme_repository.create(organisme)
-            return False
-
-        existing.remplacer(
-            nom=data.nom,
-            versant=data.versant,
-            localisation=data.localisation,
-            siret=data.siret,
-            parent_id=data.parent_id,
-            external_id=data.external_id,
-            referentiel=data.referentiel,
-            millesime=data.millesime,
-            gestion_ats=data.gestion_ats,
-            date_creation=data.date_creation,
-            date_derniere_activite=data.date_derniere_activite,
-        )
-        self.organisme_repository.save(existing)
-        return True
+        organisme = Organisme.build(entity_id=existing_id, **fields)
+        organisme.remplacer(**fields)
+        return organisme
