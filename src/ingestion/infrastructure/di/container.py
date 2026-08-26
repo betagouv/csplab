@@ -165,13 +165,6 @@ class Container(containers.DeclarativeContainer):
         )
     )
 
-    def import_organismes_usecase_for(
-        self, referentiel: OrganismeReferentiel
-    ) -> ImportOrganismesUsecase:
-        if referentiel == OrganismeReferentiel.GIPCDG:
-            return self.import_organismes_gipcdg_usecase()
-        return self.import_organismes_usecase()
-
     organismes_cleaner: providers.Provider[IOrganismesCleaner] = providers.Singleton(
         OrganismesCleaner
     )
@@ -290,6 +283,14 @@ class Container(containers.DeclarativeContainer):
         webhook_repository=webhook_repository,
         dispatch_process_webhook=dispatch_save_raw_offer_webhook,
     )
+
+
+def import_organismes_usecase_for(
+    container: Container, referentiel: OrganismeReferentiel
+) -> ImportOrganismesUsecase:
+    if referentiel == OrganismeReferentiel.GIPCDG:
+        return container.import_organismes_gipcdg_usecase()
+    return container.import_organismes_usecase()
 
 
 def create_container() -> Container:

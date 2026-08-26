@@ -5,14 +5,18 @@ import logging
 
 from application.usecases.import_organismes import ImportOrganismesCommand
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
-from infrastructure.di.container import Container, create_container
+from infrastructure.di.container import (
+    Container,
+    create_container,
+    import_organismes_usecase_for,
+)
 
 logging.basicConfig(level=logging.INFO)
 
 
 async def _run(referentiel: OrganismeReferentiel) -> None:
     container: Container = create_container()
-    use_case = container.import_organismes_usecase_for(referentiel)
+    use_case = import_organismes_usecase_for(container, referentiel)
     await use_case.execute(ImportOrganismesCommand(referentiel=referentiel))
 
 
