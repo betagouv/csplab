@@ -40,16 +40,44 @@ class OrganismesCleaner:
             return None
         return self._clean_finess(raw_organisme)
 
+    def dedupe_by_siret(self, organismes: list[Organisme]) -> list[Organisme]:
+        best_by_siret: dict[SIRET, Organisme] = {}
+        for organisme in organismes:
+            current_best = best_by_siret.get(organisme.siret)
+            if current_best is None or self._external_id_key(
+                organisme
+            ) < self._external_id_key(current_best):
+                best_by_siret[organisme.siret] = organisme
+        return list(best_by_siret.values())
+
+    @staticmethod
+    def _is_active_porteuse(data: dict[str, Any], infos: dict[str, Any]) -> bool:
+        if data.get("etatObjet") != "A":
+            return False
+        ege_id = infos.get("egeId")
+        roles_ege = data.get("roleEge") or []
+        return any(role.get("idEgePorteuse") == ege_id for role in roles_ege)
+
+    @staticmethod
+    def _external_id_key(organisme: Organisme) -> tuple[int, int | str]:
+        external_id = organisme.external_id or ""
+        try:
+            return (0, int(external_id))
+        except ValueError:
+            return (1, external_id)
+
     def _clean_finess(self, raw_organisme: RawOrganisme) -> Optional[Organisme]:
         if not raw_organisme.data:
             return None
 
         data = raw_organisme.data
+        infos = data.get("informationsGeneralesEGE") or {}
+        if not self._is_active_porteuse(data, infos):
+            return None
+
         categorie = data.get("categorieentiteGeographiqueExercice")
         if categorie not in self._allowed_categories:
             return None
-
-        infos = data.get("informationsGeneralesEGE") or {}
 
         nom = self._map_nom(infos)
         if not nom:
