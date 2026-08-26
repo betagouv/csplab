@@ -1,6 +1,5 @@
 from uuid import UUID
 
-from django.utils.timezone import now
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -14,12 +13,18 @@ from application.recruteur.usecases.attach_organisme_agent import (
 from application.recruteur.usecases.list_organisme_agents import (
     ListOrganismeAgentsQuery,
 )
+from application.recruteur.usecases.update_organisme_agent import (
+    UpdateOrganismeAgentCommand,
+)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
 )
-from domain.recruteur.errors.organisme_agent_errors import AgentDejaRattache
+from domain.recruteur.errors.organisme_agent_errors import (
+    AgentDejaRattache,
+    AgentNonRattache,
+)
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
@@ -134,17 +139,25 @@ class OrganismeAgentsView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
-        agent = {
-            "entity_id": data["agent_id"],
-            "organisme_id": "00000000-0000-0000-0000-000000000000",
-            "nom": data.get("nom", ""),
-            "prenom": data.get("prenom", ""),
-            "email": "",
-            "poste": data.get("poste", ""),
-            "role": data.get("role", ""),
-            "date_derniere_activite": None,
-            "date_creation_compte": now(),
-            "date_revocation": data.get("date_revocation"),
-        }
-        out_serializer = AgentOrganismeSerializer(agent)
-        return Response(out_serializer.data, status=status.HTTP_200_OK)
+        try:
+            usecase = self.container.update_organisme_agent_usecase()
+            agent_organisme = usecase.execute(
+                UpdateOrganismeAgentCommand(
+                    organisme_id=organisme_uuid,
+                    agent_id=data["agent_id"],
+                    role=AgentOrganismeRole(data["role"]),
+                    utilisateur=UtilisateurMapper().to_domain(request),
+                )
+            )
+            return Response(AgentOrganismeSerializer(agent_organisme).data)
+        except (AccesOrganismeRefuse, OperationOrganismeRefusee):
+            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+        except (OrganismeNexistePas, AgentNonRattache):
+            return Response(
+                {"agent_id": "Not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception:
+            return Response(
+                GenericErrorSerializer({"error": "Unexpected error"}).data,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
