@@ -9,9 +9,7 @@ from infrastructure.external_gateways.gipcdg_organisme_gateway import (
     GipcdgOrganismeGateway,
 )
 
-COLLECTIVITES_API_URL = (
-    "https://emploi-territorial.fr/api/cdg/collectivites?etab=5&limit=1000"
-)
+COLLECTIVITES_API_URL = "https://emploi-territorial.fr/api/cdg/collectivites?limit=1000"
 
 
 @pytest.fixture
@@ -21,8 +19,8 @@ def gateway() -> GipcdgOrganismeGateway:
     )
 
 
-def _collectivite(id_col: int, **extra) -> dict:
-    return {"id_col": id_col, **extra}
+def _collectivite(id_col: int, rank: int, total: int, **extra) -> dict:
+    return {"id_col": id_col, "_rank": rank, "_total": total, **extra}
 
 
 class TestFindResource:
@@ -41,8 +39,8 @@ class TestStreamOrganismes:
     ):
         httpx_mock.add_response(
             method="GET",
-            url=COLLECTIVITES_API_URL,
-            json={"status": 200, "success": [_collectivite(1)]},
+            url=f"{COLLECTIVITES_API_URL}&offset=0",
+            json={"status": 200, "success": [_collectivite(1, 1, 1)]},
             match_headers={"X-API-Key": "secret-token"},
         )
 
@@ -53,10 +51,10 @@ class TestStreamOrganismes:
     ):
         httpx_mock.add_response(
             method="GET",
-            url=COLLECTIVITES_API_URL,
+            url=f"{COLLECTIVITES_API_URL}&offset=0",
             json={
                 "status": 200,
-                "success": [_collectivite(1), _collectivite(2)],
+                "success": [_collectivite(1, 1, 2), _collectivite(2, 2, 2)],
             },
         )
 
@@ -70,8 +68,11 @@ class TestStreamOrganismes:
     ):
         httpx_mock.add_response(
             method="GET",
-            url=COLLECTIVITES_API_URL,
-            json={"status": 200, "success": [{"libc_col": "no id"}, _collectivite(1)]},
+            url=f"{COLLECTIVITES_API_URL}&offset=0",
+            json={
+                "status": 200,
+                "success": [{"_rank": 1, "_total": 2}, _collectivite(1, 2, 2)],
+            },
         )
 
         results = list(gateway.stream_organismes(_resource()))
@@ -83,20 +84,57 @@ class TestStreamOrganismes:
     ):
         httpx_mock.add_response(
             method="GET",
-            url=COLLECTIVITES_API_URL,
-            json={"status": 200, "success": [_collectivite(1, libl_col="Mairie")]},
+            url=f"{COLLECTIVITES_API_URL}&offset=0",
+            json={
+                "status": 200,
+                "success": [_collectivite(1, 1, 1, libl_col="Mairie")],
+            },
         )
 
         results = list(gateway.stream_organismes(_resource()))
 
         assert results[0].data["libl_col"] == "Mairie"
 
+    def test_fetches_next_page_using_offset_until_rank_reaches_total(
+        self, gateway: GipcdgOrganismeGateway, httpx_mock: HTTPXMock
+    ):
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{COLLECTIVITES_API_URL}&offset=0",
+            json={
+                "status": 200,
+                "success": [_collectivite(1, 1, 3), _collectivite(2, 2, 3)],
+            },
+        )
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{COLLECTIVITES_API_URL}&offset=2",
+            json={"status": 200, "success": [_collectivite(3, 3, 3)]},
+        )
+
+        results = list(gateway.stream_organismes(_resource()))
+
+        assert [r.external_id for r in results] == ["1", "2", "3"]
+
+    def test_stops_when_page_is_empty(
+        self, gateway: GipcdgOrganismeGateway, httpx_mock: HTTPXMock
+    ):
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{COLLECTIVITES_API_URL}&offset=0",
+            json={"status": 200, "success": []},
+        )
+
+        results = list(gateway.stream_organismes(_resource()))
+
+        assert results == []
+
     def test_raises_when_status_is_not_200(
         self, gateway: GipcdgOrganismeGateway, httpx_mock: HTTPXMock
     ):
         httpx_mock.add_response(
             method="GET",
-            url=COLLECTIVITES_API_URL,
+            url=f"{COLLECTIVITES_API_URL}&offset=0",
             json={"status": 401, "status_message": "Invalid API Key"},
         )
 
@@ -107,7 +145,7 @@ class TestStreamOrganismes:
         self, gateway: GipcdgOrganismeGateway, httpx_mock: HTTPXMock
     ):
         httpx_mock.add_response(
-            method="GET", url=COLLECTIVITES_API_URL, status_code=500
+            method="GET", url=f"{COLLECTIVITES_API_URL}&offset=0", status_code=500
         )
 
         with pytest.raises(ExternalApiError, match="Erreur lors de la récupération"):

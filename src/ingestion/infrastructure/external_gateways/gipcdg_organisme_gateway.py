@@ -36,9 +36,34 @@ class GipcdgOrganismeGateway(IOrganismeGateway):
     def stream_organismes(
         self, resource: OrganismeImportResource
     ) -> Iterator[OrganismeData]:
+        offset = 0
+        while True:
+            collectivites = self._fetch_page(resource.url, offset)
+            if not collectivites:
+                return
+
+            for collectivite in collectivites:
+                external_id = collectivite.get("id_col")
+                if external_id is None:
+                    continue
+                yield OrganismeData(
+                    referentiel=REFERENTIEL_GIPCDG,
+                    external_id=str(external_id),
+                    data=collectivite,
+                )
+
+            last_rank = collectivites[-1].get("_rank")
+            total = collectivites[-1].get("_total")
+            if last_rank is None or total is None or last_rank >= total:
+                return
+
+            offset += len(collectivites)
+
+    def _fetch_page(self, url: str, offset: int) -> list[dict]:
+        request_url = httpx.URL(url).copy_merge_params({"offset": offset})
         try:
             response = httpx.get(
-                resource.url,
+                request_url,
                 headers={"X-API-Key": self.api_key, "Accept": "application/json"},
                 timeout=self.timeout,
             )
@@ -46,22 +71,14 @@ class GipcdgOrganismeGateway(IOrganismeGateway):
         except httpx.HTTPError as err:
             raise ExternalApiError(
                 "Erreur lors de la récupération des collectivités GIPCDG",
-                details={"url": resource.url, "error": str(err)},
+                details={"url": str(request_url), "error": str(err)},
             ) from err
 
         payload = response.json()
         if payload.get("status") != API_STATUS_OK:
             raise ExternalApiError(
                 "Réponse invalide de l'API GIPCDG",
-                details={"url": resource.url, "status": payload.get("status")},
+                details={"url": str(request_url), "status": payload.get("status")},
             )
 
-        for collectivite in payload.get("success") or []:
-            external_id = collectivite.get("id_col")
-            if external_id is None:
-                continue
-            yield OrganismeData(
-                referentiel=REFERENTIEL_GIPCDG,
-                external_id=str(external_id),
-                data=collectivite,
-            )
+        return payload.get("success") or []
