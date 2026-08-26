@@ -9,14 +9,19 @@ from infrastructure.di.container import create_container
 logging.basicConfig(level=logging.INFO)
 
 
-async def _run(referentiel: str) -> None:
+async def _run(referentiel: OrganismeReferentiel) -> None:
     container = create_container()
     await container.clean_raw_organismes_usecase().execute(referentiel)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--referentiel", default=OrganismeReferentiel.FINESS)
+    parser.add_argument(
+        "--referentiel",
+        default=OrganismeReferentiel.FINESS,
+        type=OrganismeReferentiel,
+        choices=list(OrganismeReferentiel),
+    )
     args = parser.parse_args()
     asyncio.run(_run(args.referentiel))
 

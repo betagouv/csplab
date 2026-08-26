@@ -2,28 +2,49 @@
 import asyncio
 import logging
 
+from referentiel.entities.organisme import Organisme
+
 from application.usecases.import_organismes import ImportOrganismesCommand
 from application.usecases.publish_organismes import PublishOrganismesCommand
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
-from infrastructure.di.container import create_container
+from infrastructure.di.container import Container, create_container
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+IMPORT_USE_CASES = {
+    OrganismeReferentiel.FINESS: lambda container: (
+        container.import_organismes_usecase()
+    ),
+    OrganismeReferentiel.GIPCDG: lambda container: (
+        container.import_organismes_gipcdg_usecase()
+    ),
+}
+
 
 async def _run() -> None:
-    container = create_container()
+    container: Container = create_container()
 
-    import_result = await container.import_organismes_usecase().execute(
-        ImportOrganismesCommand(referentiel=OrganismeReferentiel.FINESS)
-    )
-    if import_result.referentiel is None:
-        logger.info("No organismes imported, skipping clean and publish")
+    organismes: list[Organisme] = []
+    for referentiel in OrganismeReferentiel:
+        import_result = await IMPORT_USE_CASES[referentiel](container).execute(
+            ImportOrganismesCommand(referentiel=referentiel)
+        )
+        if import_result.referentiel is None:
+            logger.info(
+                "No organismes imported for referentiel %s, skipping clean",
+                referentiel,
+            )
+            continue
+
+        organismes += await container.clean_raw_organismes_usecase().execute(
+            import_result.referentiel
+        )
+
+    if not organismes:
+        logger.info("No organismes to publish, skipping publish")
         return
 
-    organismes = await container.clean_raw_organismes_usecase().execute(
-        import_result.referentiel
-    )
     await container.publish_organismes_usecase().execute(
         PublishOrganismesCommand(organismes=organismes)
     )
