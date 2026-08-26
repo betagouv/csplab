@@ -5,6 +5,7 @@ from domain.recruteur.errors.organisme_agent_errors import (
     AgentDejaRattache,
     AgentNonRattache,
 )
+from domain.recruteur.errors.organisme_agent_errors import AgentDejaRattache
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
