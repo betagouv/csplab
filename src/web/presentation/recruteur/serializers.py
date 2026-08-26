@@ -140,15 +140,15 @@ class CandidatureListeSerializer(serializers.Serializer):
 
 
 class AgentOrganismeSerializer(serializers.Serializer):
-    agent_id = serializers.UUIDField()
+    agent_id = serializers.UUIDField(source="entity_id")
     organisme_id = serializers.UUIDField()
     nom = serializers.CharField()
     prenom = serializers.CharField()
     email = serializers.EmailField()
     poste = serializers.CharField()
     role = serializers.CharField()
-    date_derniere_activite = serializers.DateTimeField(allow_null=True)
-    date_creation_compte = serializers.DateTimeField()
+    date_derniere_activite = serializers.DateTimeField(required=False, allow_null=True)
+    date_creation_compte = serializers.DateTimeField(required=False, allow_null=True)
     date_revocation = serializers.DateTimeField(required=False, allow_null=True)
 
 

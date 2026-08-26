@@ -305,9 +305,9 @@ export interface components {
             poste: string;
             role: string;
             /** Format: date-time */
-            date_derniere_activite: string | null;
+            date_derniere_activite?: string | null;
             /** Format: date-time */
-            date_creation_compte: string;
+            date_creation_compte?: string | null;
             /** Format: date-time */
             date_revocation?: string | null;
         };
