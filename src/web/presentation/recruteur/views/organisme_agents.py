@@ -16,6 +16,9 @@ from application.recruteur.usecases.list_organisme_agents import (
 from application.recruteur.usecases.update_organisme_agent import (
     UpdateOrganismeAgentCommand,
 )
+from application.recruteur.usecases.list_organisme_agents import (
+    ListOrganismeAgentsQuery,
+)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
