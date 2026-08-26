@@ -7,9 +7,9 @@ from pydantic.dataclasses import dataclass
 
 from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.value_objects.organisme import OrganismeData, OrganismeImportResource
+from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from infrastructure.exceptions.exceptions import ExternalApiError
 
-REFERENTIEL_GIPCDG = "GIPCDG"
 API_STATUS_OK = 200
 
 
@@ -47,7 +47,7 @@ class GipcdgOrganismeGateway(IOrganismeGateway):
                 if external_id is None:
                     continue
                 yield OrganismeData(
-                    referentiel=REFERENTIEL_GIPCDG,
+                    referentiel=OrganismeReferentiel.GIPCDG,
                     external_id=str(external_id),
                     data=collectivite,
                 )
