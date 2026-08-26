@@ -68,11 +68,23 @@ class OrganismesCleaner:
         best_by_siret: dict[SIRET, Organisme] = {}
         for organisme in organismes:
             current_best = best_by_siret.get(organisme.siret)
-            if current_best is None or self._external_id_key(
-                organisme
-            ) < self._external_id_key(current_best):
+            if current_best is None or self._is_better(organisme, current_best):
                 best_by_siret[organisme.siret] = organisme
         return list(best_by_siret.values())
+
+    @classmethod
+    def _is_better(cls, candidate: Organisme, current_best: Organisme) -> bool:
+        # Le plus récemment créé l'emporte ; à égalité (ou en l'absence de
+        # date_creation, ex. FINESS), le plus petit external_id l'emporte.
+        candidate_date = candidate.date_creation
+        best_date = current_best.date_creation
+        if candidate_date != best_date:
+            if best_date is None:
+                return True
+            if candidate_date is None:
+                return False
+            return candidate_date > best_date
+        return cls._external_id_key(candidate) < cls._external_id_key(current_best)
 
     @staticmethod
     def _is_active_porteuse(data: dict[str, Any], infos: dict[str, Any]) -> bool:
@@ -124,6 +136,11 @@ class OrganismesCleaner:
             return None
 
         data = raw_organisme.data
+        if data.get("is_attached"):
+            # Secteurs internes rattachés à une collectivité mère (même SIRET)
+            # via col_mere_id : ce ne sont pas des organismes distincts.
+            return None
+
         nom = Nom(value=data.get("libl_col") or data.get("libc_col") or "")
         siret = SIRET(code=data.get("siret_col", ""))
         localisation = self._map_localisation_gipcdg(data, raw_organisme.external_id)

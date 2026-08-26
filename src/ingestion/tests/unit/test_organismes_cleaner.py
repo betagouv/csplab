@@ -240,6 +240,7 @@ def _collectivite(
     siret_col: str | None = "24050043900080",
     cod_dep_col: str | None = "005",
     date_insert_col: str | None = "10/06/2014",
+    is_attached: bool = False,
 ) -> dict:
     return {
         "id_col": 10631,
@@ -248,14 +249,17 @@ def _collectivite(
         "siret_col": siret_col,
         "cod_dep_col": cod_dep_col,
         "date_insert_col": date_insert_col,
+        "is_attached": is_attached,
     }
 
 
-def _raw_organisme_gipcdg(data: dict | None) -> RawOrganisme:
+def _raw_organisme_gipcdg(
+    data: dict | None, external_id: str = "10631"
+) -> RawOrganisme:
     return RawOrganisme(
         referentiel="GIPCDG",
         millesime="2026-08-20",
-        external_id="10631",
+        external_id=external_id,
         data=data,
     )
 
@@ -314,6 +318,14 @@ def test_gipcdg_returns_none_when_no_data(cleaner: OrganismesCleaner):
     assert cleaner.clean(raw_organisme) is None
 
 
+def test_gipcdg_returns_none_when_attached_to_another_collectivite(
+    cleaner: OrganismesCleaner,
+):
+    raw_organisme = _raw_organisme_gipcdg(_collectivite(is_attached=True))
+
+    assert cleaner.clean(raw_organisme) is None
+
+
 @pytest.mark.parametrize(
     "data",
     [
@@ -343,3 +355,43 @@ def test_gipcdg_localisation_is_none(
 
     assert organisme is not None
     assert organisme.localisation is None
+
+
+def test_dedupe_by_siret_keeps_most_recently_created(cleaner: OrganismesCleaner):
+    older = cleaner.clean(
+        _raw_organisme_gipcdg(
+            _collectivite(date_insert_col="25/10/2010"), external_id="26529"
+        )
+    )
+    newer = cleaner.clean(
+        _raw_organisme_gipcdg(
+            _collectivite(date_insert_col="12/11/2021"), external_id="99819"
+        )
+    )
+    assert older is not None
+    assert newer is not None
+
+    result = cleaner.dedupe_by_siret([older, newer])
+
+    assert result == [newer]
+
+
+def test_dedupe_by_siret_falls_back_to_smallest_external_id_when_same_date(
+    cleaner: OrganismesCleaner,
+):
+    smaller = cleaner.clean(
+        _raw_organisme_gipcdg(
+            _collectivite(date_insert_col="12/11/2021"), external_id="99819"
+        )
+    )
+    bigger = cleaner.clean(
+        _raw_organisme_gipcdg(
+            _collectivite(date_insert_col="12/11/2021"), external_id="99945"
+        )
+    )
+    assert smaller is not None
+    assert bigger is not None
+
+    result = cleaner.dedupe_by_siret([bigger, smaller])
+
+    assert result == [smaller]
