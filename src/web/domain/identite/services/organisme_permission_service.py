@@ -41,6 +41,7 @@ _AUTORISE_POUR_STAFF: frozenset[OrganismeAction] = frozenset(
         OrganismeAction.LISTER_ORGANISMES,
         OrganismeAction.MODIFIER_ORGANISME,
         OrganismeAction.LIST_ORGANISME_AGENTS,
+        OrganismeAction.ATTACH_ORGANISME_AGENT,
     }
 )
 
@@ -72,6 +73,7 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
         {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
     ),
     OrganismeAction.LIST_ORGANISME_AGENTS: frozenset({AgentOrganismeRole.RESPONSABLE}),
+    OrganismeAction.ATTACH_ORGANISME_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),
 }
 
 # -------------------------------------
