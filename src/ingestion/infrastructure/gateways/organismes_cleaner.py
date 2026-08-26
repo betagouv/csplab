@@ -1,9 +1,10 @@
 import csv
+import json
 import logging
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Optional
-from uuid import uuid4
+from uuid import UUID, uuid4, uuid5
 
 from pydantic import BaseModel, ValidationError, field_validator
 from referentiel.entities.organisme import Organisme
@@ -25,12 +26,30 @@ _CATEGORIES_CSV = _DATA_DIR / "categories_entite_geographique_exercice.csv"
 _MAX_LONGITUDE_DEGREES = 180
 _MAX_LATITUDE_DEGREES = 90
 
+# Namespace utilisé pour dériver un entity_id stable à partir de l'external_id
+# DILA, afin que le parent_id reconstruit à l'import référence le même UUID
+# que celui utilisé pour construire l'organisme parent.
+_DILA_NAMESPACE = uuid5(UUID(int=0), "csplab.ingestion.dila.organisme")
+
+
+def _dila_entity_id(external_id: str) -> UUID:
+    return uuid5(_DILA_NAMESPACE, external_id)
+
 
 def _parse_date(value: Any) -> Optional[date]:
     if not value:
         return None
     try:
         return datetime.strptime(str(value), "%d/%m/%Y").date()
+    except ValueError:
+        return None
+
+
+def _parse_iso_date(value: Any) -> Optional[date]:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(str(value)[:10])
     except ValueError:
         return None
 
@@ -62,6 +81,8 @@ class OrganismesCleaner:
             return self._clean_finess(raw_organisme)
         if raw_organisme.referentiel == OrganismeReferentiel.GIPCDG:
             return self._clean_gipcdg(raw_organisme)
+        if raw_organisme.referentiel == OrganismeReferentiel.DILA:
+            return self._clean_dila(raw_organisme)
         return None
 
     def dedupe_by_siret(self, organismes: list[Organisme]) -> list[Organisme]:
@@ -157,6 +178,69 @@ class OrganismesCleaner:
             millesime=raw_organisme.millesime,
             date_creation=_parse_date(data.get("date_insert_col")),
         )
+
+    def _clean_dila(self, raw_organisme: RawOrganisme) -> Optional[Organisme]:
+        if not raw_organisme.data:
+            return None
+
+        data = raw_organisme.data
+        nom = Nom(value=data.get("nom") or "")
+        siret = SIRET(code=data.get("siret") or "")
+        localisation = self._map_localisation_dila(data, raw_organisme.external_id)
+
+        parent_external_id = data.get("parent_id") or None
+
+        return Organisme.build(
+            entity_id=_dila_entity_id(raw_organisme.external_id),
+            nom=nom.value,
+            versant=Verse.FPE,
+            siret=siret,
+            localisation=localisation,
+            parent_id=_dila_entity_id(parent_external_id)
+            if parent_external_id
+            else None,
+            external_id=raw_organisme.external_id,
+            referentiel=raw_organisme.referentiel,
+            millesime=raw_organisme.millesime,
+            date_creation=_parse_iso_date(data.get("date_creation_datetime")),
+        )
+
+    def _map_localisation_dila(
+        self, data: dict[str, Any], external_id: str
+    ) -> Optional[Localisation]:
+        localisation = None
+        code_insee_commune = data.get("code_insee_commune")
+        if code_insee_commune:
+            try:
+                department = Department.from_commune_code(code_insee_commune)
+                latitude, longitude = self._extract_coordinates_dila(data)
+                localisation = Localisation.from_department(
+                    department, latitude=latitude, longitude=longitude
+                )
+            except (ValidationError, ValueError):
+                logger.warning(
+                    "RawOrganisme %s has validation errors in localisation",
+                    external_id,
+                )
+        return localisation
+
+    @staticmethod
+    def _extract_coordinates_dila(
+        data: dict[str, Any],
+    ) -> tuple[Optional[float], Optional[float]]:
+        try:
+            adresses = json.loads(data.get("adresse") or "[]")
+        except (TypeError, ValueError):
+            return None, None
+
+        for adresse in adresses:
+            try:
+                longitude = float(adresse.get("longitude"))
+                latitude = float(adresse.get("latitude"))
+            except (TypeError, ValueError):
+                continue
+            return latitude, longitude
+        return None, None
 
     def _map_localisation(
         self, data: dict[str, Any], external_id: str

@@ -395,3 +395,151 @@ def test_dedupe_by_siret_falls_back_to_smallest_external_id_when_same_date(
     result = cleaner.dedupe_by_siret([bigger, smaller])
 
     assert result == [smaller]
+
+
+DILA_SIRET_VALUE = "26060047300342"
+
+
+def _dila_service(
+    *,
+    nom: str | None = "Ministère de l'Intérieur",
+    siret: str | None = DILA_SIRET_VALUE,
+    code_insee_commune: str | None = "75101",
+    adresse: str | None = '[{"longitude": "2.309103", "latitude": "48.852116"}]',
+    date_creation_datetime: str | None = "2008-06-30T00:00:00+00:00",
+    parent_id: str | None = "",
+) -> dict:
+    return {
+        "nom": nom,
+        "siret": siret,
+        "code_insee_commune": code_insee_commune,
+        "adresse": adresse,
+        "date_creation_datetime": date_creation_datetime,
+        "parent_id": parent_id,
+    }
+
+
+def _raw_organisme_dila(data: dict | None, external_id: str = "dila-1") -> RawOrganisme:
+    return RawOrganisme(
+        referentiel="DILA",
+        millesime="2026-08-26",
+        external_id=external_id,
+        data=data,
+    )
+
+
+def test_cleans_valid_dila_raw_organisme(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_dila(_dila_service())
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.nom == "Ministère de l'Intérieur"
+    assert organisme.versant == Verse.FPE
+    assert organisme.siret == SIRET(code=DILA_SIRET_VALUE)
+    assert organisme.external_id == "dila-1"
+    assert organisme.referentiel == "DILA"
+    assert organisme.millesime == "2026-08-26"
+    assert organisme.parent_id is None
+    assert organisme.localisation is not None
+    assert organisme.localisation.department.code == "75"
+    assert organisme.localisation.region.code == "11"
+    assert organisme.localisation.latitude == 48.852116
+    assert organisme.localisation.longitude == 2.309103
+    assert organisme.date_creation == date(2008, 6, 30)
+
+
+def test_dila_returns_none_when_no_data(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_dila(None)
+
+    assert cleaner.clean(raw_organisme) is None
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param(_dila_service(siret=None), id="missing_siret"),
+        pytest.param(_dila_service(siret="not-a-siret"), id="invalid_siret"),
+        pytest.param(_dila_service(nom=""), id="missing_nom"),
+    ],
+)
+def test_dila_raises_on_invalid_data(cleaner: OrganismesCleaner, data: dict):
+    raw_organisme = _raw_organisme_dila(data)
+
+    with pytest.raises(ValidationError):
+        cleaner.clean(raw_organisme)
+
+
+def test_dila_parent_id_is_derived_deterministically_from_parent_external_id(
+    cleaner: OrganismesCleaner,
+):
+    parent = cleaner.clean(
+        _raw_organisme_dila(_dila_service(), external_id="parent-id")
+    )
+    child = cleaner.clean(
+        _raw_organisme_dila(
+            _dila_service(parent_id="parent-id"), external_id="child-id"
+        )
+    )
+
+    assert parent is not None
+    assert child is not None
+    assert child.parent_id == parent.entity_id
+
+
+def test_dila_parent_id_is_none_when_no_parent(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_dila(_dila_service(parent_id=""))
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.parent_id is None
+
+
+def test_dila_entity_id_is_stable_across_cleans(cleaner: OrganismesCleaner):
+    first = cleaner.clean(_raw_organisme_dila(_dila_service(), external_id="dila-42"))
+    second = cleaner.clean(_raw_organisme_dila(_dila_service(), external_id="dila-42"))
+
+    assert first is not None
+    assert second is not None
+    assert first.entity_id == second.entity_id
+
+
+@pytest.mark.parametrize(
+    "code_insee_commune",
+    [None, "", "00042"],
+    ids=["missing", "empty", "invalid_commune_code"],
+)
+def test_dila_localisation_is_none(
+    cleaner: OrganismesCleaner, code_insee_commune: str | None
+):
+    raw_organisme = _raw_organisme_dila(
+        _dila_service(code_insee_commune=code_insee_commune)
+    )
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.localisation is None
+
+
+def test_dila_coordinates_are_none_when_no_adresse(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_dila(_dila_service(adresse=None))
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.localisation is not None
+    assert organisme.localisation.latitude is None
+    assert organisme.localisation.longitude is None
+
+
+def test_dila_date_creation_is_none_when_unparseable(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_dila(
+        _dila_service(date_creation_datetime="not-a-date")
+    )
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.date_creation is None

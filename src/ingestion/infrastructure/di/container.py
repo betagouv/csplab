@@ -35,6 +35,9 @@ from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from infrastructure.credentials_store import CredentialsStore
 from infrastructure.database import make_engine
 from infrastructure.external_gateways.base_web_gateway import WebGatewayCredentials
+from infrastructure.external_gateways.dila_organisme_gateway import (
+    DilaOrganismeGateway,
+)
 from infrastructure.external_gateways.finess_organisme_gateway import (
     FinessOrganismeGateway,
 )
@@ -165,6 +168,18 @@ class Container(containers.DeclarativeContainer):
         )
     )
 
+    dila_organisme_gateway: providers.Provider[IOrganismeGateway] = providers.Singleton(
+        DilaOrganismeGateway
+    )
+
+    import_organismes_dila_usecase: providers.Provider[ImportOrganismesUsecase] = (
+        providers.Factory(
+            ImportOrganismesUsecase,
+            organisme_gateway=dila_organisme_gateway,
+            raw_organisme_repository=raw_organisme_repository,
+        )
+    )
+
     organismes_cleaner: providers.Provider[IOrganismesCleaner] = providers.Singleton(
         OrganismesCleaner
     )
@@ -290,6 +305,8 @@ def import_organismes_usecase_for(
 ) -> ImportOrganismesUsecase:
     if referentiel == OrganismeReferentiel.GIPCDG:
         return container.import_organismes_gipcdg_usecase()
+    if referentiel == OrganismeReferentiel.DILA:
+        return container.import_organismes_dila_usecase()
     return container.import_organismes_usecase()
 
 
