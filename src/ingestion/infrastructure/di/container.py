@@ -30,6 +30,7 @@ from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.repositories.webhook_repository import IWebhookRepository
 from domain.value_objects.credentials import Credentials
+from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from infrastructure.credentials_store import CredentialsStore
 from infrastructure.database import make_engine
@@ -163,6 +164,13 @@ class Container(containers.DeclarativeContainer):
             raw_organisme_repository=raw_organisme_repository,
         )
     )
+
+    def import_organismes_usecase_for(
+        self, referentiel: OrganismeReferentiel
+    ) -> ImportOrganismesUsecase:
+        if referentiel == OrganismeReferentiel.GIPCDG:
+            return self.import_organismes_gipcdg_usecase()
+        return self.import_organismes_usecase()
 
     organismes_cleaner: providers.Provider[IOrganismesCleaner] = providers.Singleton(
         OrganismesCleaner

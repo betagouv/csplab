@@ -9,19 +9,10 @@ from infrastructure.di.container import Container, create_container
 
 logging.basicConfig(level=logging.INFO)
 
-USE_CASES = {
-    OrganismeReferentiel.FINESS: lambda container: (
-        container.import_organismes_usecase()
-    ),
-    OrganismeReferentiel.GIPCDG: lambda container: (
-        container.import_organismes_gipcdg_usecase()
-    ),
-}
-
 
 async def _run(referentiel: OrganismeReferentiel) -> None:
     container: Container = create_container()
-    use_case = USE_CASES[referentiel](container)
+    use_case = container.import_organismes_usecase_for(referentiel)
     await use_case.execute(ImportOrganismesCommand(referentiel=referentiel))
 
 

@@ -12,22 +12,14 @@ from infrastructure.di.container import Container, create_container
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-IMPORT_USE_CASES = {
-    OrganismeReferentiel.FINESS: lambda container: (
-        container.import_organismes_usecase()
-    ),
-    OrganismeReferentiel.GIPCDG: lambda container: (
-        container.import_organismes_gipcdg_usecase()
-    ),
-}
-
 
 async def _run() -> None:
     container: Container = create_container()
 
     organismes: list[Organisme] = []
     for referentiel in OrganismeReferentiel:
-        import_result = await IMPORT_USE_CASES[referentiel](container).execute(
+        use_case = container.import_organismes_usecase_for(referentiel)
+        import_result = await use_case.execute(
             ImportOrganismesCommand(referentiel=referentiel)
         )
         if import_result.referentiel is None:

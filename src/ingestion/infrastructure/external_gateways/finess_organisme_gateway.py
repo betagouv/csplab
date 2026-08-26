@@ -108,6 +108,6 @@ class FinessOrganismeGateway(IOrganismeGateway):
                 continue
             yield OrganismeData(
                 referentiel=OrganismeReferentiel.FINESS,
-                external_id=numero_finess,
+                external_id=str(numero_finess),
                 data=ege,
             )
