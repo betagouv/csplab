@@ -19,7 +19,7 @@ version = "0.1.0"
 message_template = "{{change_type}}({{scope}}{% if layer %}-{{layer}}{% endif %}) {{subject}}{% if body %}\n\n{{body}}{% endif %}{% if footer %}\n\n{{footer}}{% endif %}"
 example = "✨(candidate-infrastructure) add support for HTTP basic auth or ✨(candidate) add new feature"
 schema = "<emoji>(<scope>[-layer]) <subject>"
-schema_pattern = "^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💎|🎉|✅|🔒️|🚧|💚|⬇️|⬆️|👷|♻️|🔧|🏗️|🤸|🧩|🖼️)\\([a-z0-9:-]+\\) [a-zA-Z:-].{1,50}"
+schema_pattern = "^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💎|🎉|✅|🔒️|🚧|💚|⬇️|⬆️|👷|♻️|🔧|🏗️|🤸|🧩|🖼️)\\([a-z0-9:-]+\\) [A-zÀ-ú:-].{1,75}$"
 
 [[tool.commitizen.customize.questions]]
 type = "list"
