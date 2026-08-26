@@ -14,3 +14,4 @@ class OrganismeAction(Enum):
     CREER_ORGANISME = "creer_organisme"
     LISTER_ORGANISMES = "lister_organismes"
     MODIFIER_ORGANISME = "modifier_organisme"
+    LIST_ORGANISME_AGENTS = "list_organisme_agents"

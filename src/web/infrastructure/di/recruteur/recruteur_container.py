@@ -26,6 +26,9 @@ from application.recruteur.usecases.init_recrutement_etapes import (
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsUsecase,
 )
+from application.recruteur.usecases.list_organisme_agents import (
+    ListOrganismeAgentsUsecase,
+)
 from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsUsecase,
 )
@@ -65,6 +68,9 @@ from infrastructure.repositories.recruteur.postgres_note_query_service import (
 from infrastructure.repositories.recruteur.postgres_note_repository import (
     PostgresNoteRepository,
 )
+from infrastructure.repositories.recruteur.postgres_organisme_agent_query_service import (  # noqa: E501
+    PostgresOrganismeAgentQueryService,
+)
 from infrastructure.repositories.recruteur.postgres_organisme_agent_repository import (
     PostgresOrganismeAgentRepository,
 )
@@ -99,6 +105,9 @@ class RecruteurContainer(containers.DeclarativeContainer):
     )
     postgres_organisme_agent_repository = providers.Singleton(
         PostgresOrganismeAgentRepository
+    )
+    postgres_organisme_agent_query_service = providers.Singleton(
+        PostgresOrganismeAgentQueryService
     )
     postgres_recrutement_agent_repository = providers.Singleton(
         PostgresRecrutementAgentRepository
@@ -171,6 +180,11 @@ class RecruteurContainer(containers.DeclarativeContainer):
         organisme_permission_service=organisme_permission_service,
     )
 
+    list_organisme_agents_usecase = providers.Factory(
+        ListOrganismeAgentsUsecase,
+        organisme_agent_query_service=postgres_organisme_agent_query_service,
+        organisme_permission_service=organisme_permission_service,
+    )
     lister_mes_recrutements_usecase = providers.Factory(
         ListerMesRecrutementsUsecase,
         recrutement_query_service=postgres_recrutement_query_service,

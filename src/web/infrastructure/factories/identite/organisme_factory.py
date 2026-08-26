@@ -126,9 +126,13 @@ class OrganismeFactory:
     @staticmethod
     def create_model_with_agent(
         role: AgentOrganismeRole | None = None,
+        username: UUID | None = None,
+        intitule_poste: str | None = None,
         **organisme_kwargs,
     ) -> tuple[ProfilAgentModel, OrganismeModel]:
-        agent = AgentFactory.create_model()
+        agent = AgentFactory.create_model(
+            username=username, intitule_poste=intitule_poste
+        )
         if role is not None:
             organisme = OrganismeFactory.create_model(
                 agent_id=agent.utilisateur_id, role=role, **organisme_kwargs
@@ -136,3 +140,21 @@ class OrganismeFactory:
         else:
             organisme = OrganismeFactory.create_model(**organisme_kwargs)
         return agent, organisme
+
+    @staticmethod
+    def create_agent_in_organisme(
+        organisme_id: UUID,
+        role: AgentOrganismeRole | None = None,
+        username: UUID | None = None,
+        intitule_poste: str | None = None,
+    ) -> ProfilAgentModel:
+        agent = AgentFactory.create_model(
+            username=username, intitule_poste=intitule_poste
+        )
+        OrganismeAgentModel(
+            id=uuid4(),
+            organisme_id=organisme_id,
+            agent_id=agent.utilisateur_id,
+            role=(role or AgentOrganismeRole.MEMBRE).value,
+        ).save()
+        return agent

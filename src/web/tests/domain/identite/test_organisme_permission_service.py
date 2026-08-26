@@ -32,15 +32,19 @@ from domain.recruteur.value_objects.roles import (
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
+# TODO: add test for CHANGER_ETAPE_CANDIDATURES
+
 RESPONSABLE_ACTIONS = [
     OrganismeAction.GET_ORGANISME,
     OrganismeAction.INITIALIZE_ORGANISME_STEPS,
     OrganismeAction.UPDATE_ORGANISME_STEPS,
+    OrganismeAction.LIST_ORGANISME_AGENTS,
 ]
 STAFF_BYPASS_ACTIONS = [
     OrganismeAction.GET_ORGANISME,
     OrganismeAction.INITIALIZE_ORGANISME_STEPS,
     OrganismeAction.UPDATE_ORGANISME_STEPS,
+    OrganismeAction.LIST_ORGANISME_AGENTS,
 ]
 
 
