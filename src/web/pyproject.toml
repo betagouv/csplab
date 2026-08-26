@@ -95,6 +95,10 @@ omit = [
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 asyncio_mode = "auto"
+addopts = [
+    "--tracing=retain-on-failure",
+    "--screenshot=only-on-failure",
+]
 python_files = [
     "test_*.py",
     "tests.py",
