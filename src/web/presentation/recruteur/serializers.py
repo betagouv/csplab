@@ -162,7 +162,7 @@ class SetAgentRoleOnOrganismeSerializer(serializers.Serializer):
 class UpdateAgentOrganismeSerializer(serializers.Serializer):
     agent_id = serializers.UUIDField()
     role = serializers.ChoiceField(
-        choices=[(r.value, r.value) for r in AgentOrganismeRole], required=False
+        choices=[(r.value, r.value) for r in AgentOrganismeRole]
     )
     nom = serializers.CharField(required=False)
     prenom = serializers.CharField(required=False)

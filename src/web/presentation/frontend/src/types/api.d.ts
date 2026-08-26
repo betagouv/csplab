@@ -735,7 +735,7 @@ export interface components {
         UpdateAgentOrganisme: {
             /** Format: uuid */
             agent_id: string;
-            role?: components["schemas"]["RoleEnum"];
+            role: components["schemas"]["RoleEnum"];
             nom?: string;
             prenom?: string;
             poste?: string;
