@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from application.recruteur.dtos.etape_data import EtapeData
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
@@ -20,7 +20,7 @@ class UpdateRecrutementEtapesCommand(RecrutementRequest):
 # - recuperer/muter le Recrutement (necessite une methode @mutate sur l'agregat)
 # - sauvegarde + emission evenement + drain par auditlog
 class UpdateRecrutementEtapesUsecase(
-    IUseCase[UpdateRecrutementEtapesCommand, list[EtapeData]]
+    IUsecase[UpdateRecrutementEtapesCommand, list[EtapeData]]
 ):
     def __init__(
         self,

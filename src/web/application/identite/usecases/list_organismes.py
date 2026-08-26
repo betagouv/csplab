@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 from referentiel.entities.organisme import Organisme
 
 from domain.identite.entities.utilisateurs import Utilisateur
@@ -19,7 +19,7 @@ class ListOrganismesCommand:
     utilisateur: Utilisateur
 
 
-class ListOrganismesUsecase(IUseCase[ListOrganismesCommand, List[Organisme]]):
+class ListOrganismesUsecase(IUsecase[ListOrganismesCommand, List[Organisme]]):
     def __init__(
         self,
         organisme_repository: IOrganismeRepository,

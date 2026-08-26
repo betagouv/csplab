@@ -1,5 +1,5 @@
 from ddd.services.logger_interface import ILogger
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from application.candidate.commands.submit_application_command import (
     SubmitApplicationCommand,
@@ -19,7 +19,7 @@ from domain.recruteur.repositories.recrutement_repository_interface import (
 
 
 class SubmitApplicationUsecase(
-    IUseCase[SubmitApplicationCommand, Candidature],
+    IUsecase[SubmitApplicationCommand, Candidature],
 ):
     def __init__(
         self,

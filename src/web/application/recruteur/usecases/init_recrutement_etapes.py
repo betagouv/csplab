@@ -1,4 +1,4 @@
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from application.recruteur.errors.application_errors_recruteur import (
@@ -22,7 +22,7 @@ from domain.recruteur.repositories.recrutement_repository_interface import (
 
 
 class InitRecrutementEtapesUsecase(
-    IUseCase[RecrutementRequest, tuple[EtapeRecrutement, ...]]
+    IUsecase[RecrutementRequest, tuple[EtapeRecrutement, ...]]
 ):
     def __init__(
         self,

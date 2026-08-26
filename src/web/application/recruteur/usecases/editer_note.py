@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.entities.note import Note
@@ -16,7 +16,7 @@ class EditerNoteCommand:
     mis_a_jour_par_id: UUID
 
 
-class EditerNoteUsecase(IUseCase[EditerNoteCommand, Note]):
+class EditerNoteUsecase(IUsecase[EditerNoteCommand, Note]):
     def __init__(
         self,
         note_repository: INoteRepository,

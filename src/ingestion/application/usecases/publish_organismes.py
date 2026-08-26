@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 
-from ddd.async_usecase_interface import IAsyncUseCase
+from ddd.async_usecase_interface import IAsyncUsecase
 from referentiel.entities.organisme import Organisme
 
 from domain.gateways.publish_organismes_gateway import IPublishOrganismesGateway
@@ -16,7 +16,7 @@ class PublishOrganismesCommand:
     organismes: list[Organisme]
 
 
-class PublishOrganismesUsecase(IAsyncUseCase[PublishOrganismesCommand, None]):
+class PublishOrganismesUsecase(IAsyncUsecase[PublishOrganismesCommand, None]):
     def __init__(self, publish_organismes_gateway: IPublishOrganismesGateway) -> None:
         self._gateway = publish_organismes_gateway
 

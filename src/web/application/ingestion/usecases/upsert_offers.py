@@ -1,5 +1,5 @@
 from ddd.services.logger_interface import ILogger
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 from referentiel.types import IUpsertResult
 
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
@@ -17,7 +17,7 @@ from domain.ingestion.repositories.user_source_repository_interface import (
 )
 
 
-class UpsertOffersUsecase(IUseCase[UpsertOffersInput, IUpsertResult]):
+class UpsertOffersUsecase(IUsecase[UpsertOffersInput, IUpsertResult]):
     def __init__(
         self,
         offers_repository: IIngestionOffersRepository,

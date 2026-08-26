@@ -3,7 +3,7 @@ from typing import List
 from uuid import UUID
 
 from ddd.unit_of_work import IUnitOfWork
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 from referentiel.types import IBatchUpdate
 
 from domain.commons.services.audit_log_writer import AuditLogWriter
@@ -33,7 +33,7 @@ class ChangerEtapeCandidaturesCommand:
 
 
 class ChangerEtapeCandidaturesUsecase(
-    IUseCase[
+    IUsecase[
         ChangerEtapeCandidaturesCommand,
         IBatchUpdate[CandidatureRecruteur, RecrutementError],
     ]

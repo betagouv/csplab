@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.services.organisme_permission_service import (
@@ -21,7 +21,7 @@ class GetOrganismeRecruteurQuery:
 
 
 class GetOrganismeRecruteurUsecase(
-    IUseCase[GetOrganismeRecruteurQuery, OrganismeRecruteur]
+    IUsecase[GetOrganismeRecruteurQuery, OrganismeRecruteur]
 ):
     def __init__(
         self,

@@ -1,7 +1,7 @@
 from typing import cast
 
 from asgiref.sync import sync_to_async
-from ddd.async_usecase_interface import IAsyncUseCase
+from ddd.async_usecase_interface import IAsyncUsecase
 from ddd.services.logger_interface import ILogger
 from referentiel.types import IUpsertResult
 
@@ -13,7 +13,7 @@ from domain.ingestion.repositories.document_repository_interface import (
 from infrastructure.gateways.ingestion import load_documents_strategy_factory
 
 
-class LoadDocumentsUsecase(IAsyncUseCase[LoadDocumentsInput, IUpsertResult]):
+class LoadDocumentsUsecase(IAsyncUsecase[LoadDocumentsInput, IUpsertResult]):
     def __init__(
         self,
         strategy_factory: load_documents_strategy_factory.LoadDocumentsStrategyFactory,

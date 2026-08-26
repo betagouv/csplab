@@ -1,4 +1,4 @@
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 from referentiel.entities.offer import Offer
 from referentiel.repositories.offers_repository_interface import IOffersRepository
 
@@ -7,7 +7,7 @@ from application.ingestion.interfaces.get_offer_by_reference_input import (
 )
 
 
-class GetOfferByReferenceUsecase(IUseCase[GetOfferByReferenceInput, Offer]):
+class GetOfferByReferenceUsecase(IUsecase[GetOfferByReferenceInput, Offer]):
     def __init__(
         self,
         offers_repository: IOffersRepository,

@@ -5,5 +5,5 @@ InputType_contra = TypeVar("InputType_contra", contravariant=True)
 OutputType_co = TypeVar("OutputType_co", covariant=True)
 
 
-class IUseCase(Protocol, Generic[InputType_contra, OutputType_co]):
+class IUsecase(Protocol, Generic[InputType_contra, OutputType_co]):
     def execute(self, input_data: InputType_contra) -> OutputType_co: ...
