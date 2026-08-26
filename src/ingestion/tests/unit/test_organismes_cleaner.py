@@ -1,4 +1,5 @@
 import csv
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -238,6 +239,7 @@ def _collectivite(
     libc_col: str | None = "CC BRIANCONNAIS",
     siret_col: str | None = "24050043900080",
     cod_dep_col: str | None = "005",
+    date_insert_col: str | None = "10/06/2014",
 ) -> dict:
     return {
         "id_col": 10631,
@@ -245,6 +247,7 @@ def _collectivite(
         "libc_col": libc_col,
         "siret_col": siret_col,
         "cod_dep_col": cod_dep_col,
+        "date_insert_col": date_insert_col,
     }
 
 
@@ -275,6 +278,25 @@ def test_cleans_valid_gipcdg_raw_organisme(cleaner: OrganismesCleaner):
     assert organisme.localisation.region.code == "93"
     assert organisme.localisation.latitude is None
     assert organisme.localisation.longitude is None
+    assert organisme.date_creation == date(2014, 6, 10)
+
+
+@pytest.mark.parametrize(
+    "date_insert_col",
+    [None, "", "2014-06-10", "31/06/2014"],
+    ids=["missing", "empty", "iso_format", "invalid_date"],
+)
+def test_gipcdg_date_creation_is_none_when_unparseable(
+    cleaner: OrganismesCleaner, date_insert_col: str | None
+):
+    raw_organisme = _raw_organisme_gipcdg(
+        _collectivite(date_insert_col=date_insert_col)
+    )
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.date_creation is None
 
 
 def test_gipcdg_falls_back_to_libc_col_when_no_libl_col(cleaner: OrganismesCleaner):

@@ -1,5 +1,6 @@
 import csv
 import logging
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Optional
 from uuid import uuid4
@@ -23,6 +24,15 @@ _CATEGORIES_CSV = _DATA_DIR / "categories_entite_geographique_exercice.csv"
 
 _MAX_LONGITUDE_DEGREES = 180
 _MAX_LATITUDE_DEGREES = 90
+
+
+def _parse_date(value: Any) -> Optional[date]:
+    if not value:
+        return None
+    try:
+        return datetime.strptime(str(value), "%d/%m/%Y").date()
+    except ValueError:
+        return None
 
 
 def _load_allowed_categories(csv_path: Path) -> set[str]:
@@ -128,6 +138,7 @@ class OrganismesCleaner:
             external_id=raw_organisme.external_id,
             referentiel=raw_organisme.referentiel,
             millesime=raw_organisme.millesime,
+            date_creation=_parse_date(data.get("date_insert_col")),
         )
 
     def _map_localisation(
