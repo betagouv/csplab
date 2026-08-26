@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 
 from application.recruteur.dtos.agent_organisme_read_models import (
     AgentOrganismeReadModel,
@@ -23,7 +23,7 @@ class ListOrganismeAgentsQuery:
 
 
 class ListOrganismeAgentsUsecase(
-    IUseCase[ListOrganismeAgentsQuery, list[AgentOrganismeReadModel]]
+    IUsecase[ListOrganismeAgentsQuery, list[AgentOrganismeReadModel]]
 ):
     def __init__(
         self,

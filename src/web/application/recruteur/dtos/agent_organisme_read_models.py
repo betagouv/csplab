@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from uuid import UUID
 
 
@@ -11,3 +12,5 @@ class AgentOrganismeReadModel:
     email: str
     poste: str
     role: str
+    date_derniere_activite: datetime | None
+    date_creation_compte: datetime

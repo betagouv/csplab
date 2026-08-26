@@ -23,6 +23,8 @@ class PostgresOrganismeAgentQueryService(IOrganismeAgentQueryService):
                 email=liaison.agent.utilisateur.email,
                 poste=liaison.agent.intitule_poste,
                 role=liaison.role,
+                date_derniere_activite=liaison.agent.utilisateur.last_login,
+                date_creation_compte=liaison.agent.utilisateur.date_joined,
             )
             for liaison in liaisons
         ]

@@ -41,6 +41,8 @@ def test_list_by_organisme_returns_agents(db, service):
     assert agent_organisme.email == agent.utilisateur.email
     assert agent_organisme.poste == agent.intitule_poste
     assert agent_organisme.role == AgentOrganismeRole.RESPONSABLE.value
+    assert agent_organisme.date_derniere_activite == agent.utilisateur.last_login
+    assert agent_organisme.date_creation_compte == agent.utilisateur.date_joined
 
 
 def test_list_by_organisme_returns_empty_when_no_agent(db, service):

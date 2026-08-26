@@ -49,7 +49,9 @@ class TestOrganismeAgentsView:
             "poste": test_user.profil_agent.intitule_poste,
             "role": AgentOrganismeRole.RESPONSABLE.value,
             "date_derniere_activite": None,
-            "date_creation_compte": None,
+            "date_creation_compte": test_user.date_joined.isoformat().replace(
+                "+00:00", "Z"
+            ),
             "date_revocation": None,
         }
         assert (
