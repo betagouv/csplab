@@ -28,6 +28,7 @@ from domain.recruteur.errors.organisme_agent_errors import (
     AgentDejaRattache,
     AgentNonRattache,
 )
+from domain.recruteur.errors.organisme_agent_errors import AgentDejaRattache
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
