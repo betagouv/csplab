@@ -2,7 +2,10 @@ from uuid import UUID, uuid4
 
 from django.db import IntegrityError, transaction
 
-from domain.recruteur.errors.organisme_agent_errors import AgentDejaRattache
+from domain.recruteur.errors.organisme_agent_errors import (
+    AgentDejaRattache,
+    AgentNonRattache,
+)
 from domain.recruteur.repositories.organisme_agent_repository_interface import (
     IOrganismeAgentRepository,
 )
@@ -36,3 +39,13 @@ class PostgresOrganismeAgentRepository(IOrganismeAgentRepository):
                 )
         except IntegrityError as exc:
             raise AgentDejaRattache(organisme_id, agent_id) from exc
+
+    def update_role(
+        self, *, organisme_id: UUID, agent_id: UUID, role: AgentOrganismeRole
+    ) -> None:
+        updated = OrganismeAgentModel.objects.filter(
+            organisme_id=organisme_id,
+            agent_id=agent_id,  # type: ignore[misc]
+        ).update(role=role.value)
+        if updated == 0:
+            raise AgentNonRattache(organisme_id, agent_id)

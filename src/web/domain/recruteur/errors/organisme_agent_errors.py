@@ -14,3 +14,12 @@ class AgentDejaRattache(OrganismeAgentError):
         )
         self.organisme_id = organisme_id
         self.agent_id = agent_id
+
+
+class AgentNonRattache(OrganismeAgentError):
+    def __init__(self, organisme_id: UUID, agent_id: UUID):
+        super().__init__(
+            f"Agent {agent_id} is not attached to organisme {organisme_id}"
+        )
+        self.organisme_id = organisme_id
+        self.agent_id = agent_id
