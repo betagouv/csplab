@@ -283,7 +283,12 @@ class TestOrganismeAgentsView:
     def test_update_agent_requires_role(self, authenticated_client):
         response = authenticated_client.put(
             AGENTS_URL,
-            data={"agent_id": str(uuid4())},
+            data={
+                "agent_id": agent_id,
+                # TODO: make role parametric in test when implementing usecase
+                "role": AgentOrganismeRole.MEMBRE.value,
+                "date_revocation": "2026-08-20T10:00:00Z",
+            },
             format="json",
         )
 
