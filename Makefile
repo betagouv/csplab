@@ -546,8 +546,8 @@ test-referentiel: ## test referentiel package
 
 test-web: ## test web python sources
 	@echo 'test:web started…'
-	$(WEB_UV) pytest --numprocesses=logical --create-db -m "not accessibility and not e2e" --no-cov --exitfirst $(ARGS)
-	$(WEB_UV) pytest --numprocesses=logical -m "e2e" --no-cov --exitfirst $(ARGS)
+	$(WEB_UV) pytest --numprocesses=logical --create-db -m "not accessibility and not e2e" --no-cov $(ARGS)
+	$(WEB_UV) pytest --numprocesses=logical -m "e2e" --no-cov $(ARGS)
 .PHONY: test-web
 
 test-ocr: ## test ocr python sources
