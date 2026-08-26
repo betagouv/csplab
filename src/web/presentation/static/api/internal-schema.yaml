@@ -475,6 +475,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
     put:
       operationId: recruteur_organismes_parametres_agents_update
       summary: Modifier ou revoquer un agent d'un organisme
