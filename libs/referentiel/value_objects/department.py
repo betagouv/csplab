@@ -1,6 +1,6 @@
-from typing import ClassVar, Optional
+from typing import ClassVar
 
-from pydantic import BaseModel, ValidationError, field_validator
+from pydantic import BaseModel, field_validator
 
 COMMUNE_CODE_LENGTH = 2
 DOM_TOM_COMMUNE_CODE_LENGTH = 3
@@ -136,7 +136,7 @@ class Department(BaseModel):
         return self.NAMES.get(self.code, self.code)
 
     @classmethod
-    def from_department_code(cls, code: str) -> Optional["Department"]:
+    def from_department_code(cls, code: str) -> "Department":
         normalized = code.strip().lstrip("0")
         if not normalized:
             raise ValueError(f"Invalid department code: {code}")
@@ -148,13 +148,13 @@ class Department(BaseModel):
         return cls(code=formatted)
 
     @classmethod
-    def from_commune_code(cls, cog_commune: str) -> Optional["Department"]:
+    def from_commune_code(cls, cog_commune: str) -> "Department":
         if len(cog_commune) < COMMUNE_CODE_LENGTH:
-            raise ValidationError(cog_commune)
+            raise ValueError(f"Invalid commune code: {cog_commune}")
 
         if cog_commune[:COMMUNE_CODE_LENGTH] in ("97", "98"):
             if len(cog_commune) < DOM_TOM_COMMUNE_CODE_LENGTH:
-                raise ValidationError(cog_commune)
+                raise ValueError(f"Invalid commune code: {cog_commune}")
             code = cog_commune[:DOM_TOM_COMMUNE_CODE_LENGTH]
         else:
             code = cog_commune[:COMMUNE_CODE_LENGTH]

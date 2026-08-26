@@ -158,7 +158,7 @@ class OrganismesCleaner:
                     localisation = Localisation.from_department(
                         department, latitude=latitude, longitude=longitude
                     )
-        except ValidationError:
+        except (ValidationError, ValueError):
             logger.warning(
                 "RawOrganisme %s has validation errors in localisation", external_id
             )
