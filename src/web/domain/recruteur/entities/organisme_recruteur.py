@@ -83,9 +83,9 @@ class OrganismeRecruteur(AggregateRoot):
         step_by_id = {
             step.entity_id: (rank, step) for rank, step in enumerate(self._etapes)
         }
-        kept_ids = []
+        kept_ids = set()
         for new_rank, config in enumerate(etapes_data):
-            kept_ids.append(config.etape_uuid)
+            kept_ids.add(config.etape_uuid)
             if config.etape_uuid is None:
                 new_step = EtapeRecrutement.create(
                     nom=config.nom, categorie=config.categorie

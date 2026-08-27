@@ -10,11 +10,9 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
 class OrganismeRecruteurFactory:
     @staticmethod
     def create_entity(
-        etapes: tuple[
-            EtapeRecrutement, ...
-        ] = EtapeRecrutementFactory.create_entity_batch(),
+        etapes: tuple[EtapeRecrutement, ...] | None = None,
     ) -> OrganismeRecruteur:
         return OrganismeRecruteur.build(
             entity_id=uuid4(),
-            etapes=etapes,
+            etapes=etapes or EtapeRecrutementFactory.create_entity_batch(),
         )

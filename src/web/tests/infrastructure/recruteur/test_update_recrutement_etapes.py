@@ -4,9 +4,6 @@ from uuid import uuid4
 import pytest
 from django.db.models.deletion import ProtectedError
 
-from application.recruteur.dtos.recrutement_request import (
-    RecrutementRequest,
-)
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
 )
@@ -292,25 +289,49 @@ class TestUpdateRecrutementEtapes:
             offre_id=recrutement_model.offre_id,
             etape=etape_model,
         )
+        e0, e1, e2, _, e4, e5 = etapes
+        etapes_data = [
+            EtapeData(
+                etape_uuid=e0.entity_id,
+                nom="Candidatures reçues",
+                categorie=e0.categorie,
+            ),
+            EtapeData(
+                etape_uuid=None,
+                nom="Sourcing",
+                categorie=CategorieEtapeRecrutement.EN_COURS,  # added
+            ),
+            *[
+                EtapeData(
+                    etape_uuid=e.entity_id,
+                    nom=e.nom,
+                    categorie=e.categorie,
+                )
+                for e in [e2, e1, e4, e5]
+            ],
+        ]
 
         repository = recruteur_integration_container.postgres_recrutement_repository()
         repository.save = Mock(side_effect=ProtectedError("msg", []))
 
         # Bypass domain check to test rollback if db error
         with patch.object(EtapeRecrutement, "delete", return_value=None):
-            usecase = recruteur_integration_container.init_recrutement_etapes_usecase()
+            usecase = (
+                recruteur_integration_container.update_recrutement_etapes_usecase()
+            )
 
             ordre_etapes_avant = recrutement_model.ordre_etapes
             nb_etapes_avant = recrutement_model.etapes.count()
 
             with pytest.raises(ProtectedError):
                 usecase.execute(
-                    RecrutementRequest(
+                    UpdateRecrutementEtapesCommand(
                         organisme_id=recrutement_model.organisme_id,
                         recrutement_id=recrutement_model.offre_id,
                         utilisateur=UtilisateurFactory.create_entity(
                             entity_id=agent.utilisateur.username
                         ),
+                        etapes_data=etapes_data,
                     )
                 )
 
