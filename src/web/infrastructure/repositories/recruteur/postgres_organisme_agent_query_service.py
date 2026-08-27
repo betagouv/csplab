@@ -12,7 +12,7 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgent
 class PostgresOrganismeAgentQueryService(IOrganismeAgentQueryService):
     def list_by_organisme(self, *, organisme_id: UUID) -> list[AgentOrganismeReadModel]:
         liaisons = OrganismeAgentModel.objects.filter(
-            organisme_id=organisme_id
+            organisme_id=organisme_id, date_revocation__isnull=True
         ).select_related("agent__utilisateur")
         return [self._to_read_model(liaison) for liaison in liaisons]
 
@@ -41,4 +41,5 @@ class PostgresOrganismeAgentQueryService(IOrganismeAgentQueryService):
             role=liaison.role,
             date_derniere_activite=liaison.agent.utilisateur.last_login,
             date_creation_compte=liaison.agent.utilisateur.date_joined,
+            date_revocation=liaison.date_revocation,
         )

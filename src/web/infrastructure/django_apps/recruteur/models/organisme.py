@@ -52,6 +52,7 @@ class OrganismeAgentModel(BaseDatedModel):
         choices=[(r.value, r.value) for r in AgentOrganismeRole],
         default=AgentOrganismeRole.MEMBRE.value,
     )
+    date_revocation = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "organisme_agent"
