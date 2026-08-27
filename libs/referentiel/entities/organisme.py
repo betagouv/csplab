@@ -116,8 +116,10 @@ class Organisme(AggregateRoot):
         referentiel: str | None = None,
         millesime: str | None = None,
         gestion_ats: bool | None = False,
+        entity_id: UUID | None = None,
     ) -> "Organisme":
         return cls(
+            **({"entity_id": entity_id} if entity_id is not None else {}),
             _nom=nom,
             _versant=versant,
             _localisation=localisation,

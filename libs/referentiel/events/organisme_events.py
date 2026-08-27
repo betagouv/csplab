@@ -22,6 +22,7 @@ class _OrganismeEventPayload(DomainEvent):
     gestion_ats: bool | None = False
     date_creation: datetime | None = None
     date_derniere_activite: datetime | None = None
+    entity_id: UUID | None = None
 
 
 @dataclass(frozen=True)

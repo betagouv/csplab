@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from ddd.services.logger_interface import ILogger
-from ddd.usecase_interface import IUseCase
+from ddd.usecase_interface import IUsecase
 from referentiel.entities.organisme import Organisme
 from referentiel.types import IUpsertResult
 
@@ -14,7 +14,7 @@ from domain.identite.repositories.organisme_repository_interface import (
 )
 
 
-class UpsertOrganismesUsecase(IUseCase[UpsertOrganismesInput, IUpsertResult]):
+class UpsertOrganismesUsecase(IUsecase[UpsertOrganismesInput, IUpsertResult]):
     def __init__(
         self,
         organisme_repository: IOrganismeRepository,
@@ -62,7 +62,7 @@ class UpsertOrganismesUsecase(IUseCase[UpsertOrganismesInput, IUpsertResult]):
             "date_derniere_activite": data.date_derniere_activite,
         }
         if existing_id is None:
-            return Organisme.create(**fields)
+            return Organisme.create(entity_id=data.entity_id, **fields)
 
         organisme = Organisme.build(entity_id=existing_id, **fields)
         organisme.remplacer(**fields)

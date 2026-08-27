@@ -25,6 +25,26 @@ def test_organisme_create_emits_organisme_cree():
     assert organisme.referentiel == "FINESS"
 
 
+def test_organisme_create_uses_the_provided_entity_id():
+    entity_id = uuid4()
+
+    organisme = Organisme.create(
+        nom="Commune de Paris",
+        versant=Verse.FPT,
+        localisation=None,
+        siret=SIRET(code="19754687200015"),
+        parent_id=None,
+        external_id="ext-123",
+        referentiel="FINESS",
+        entity_id=entity_id,
+    )
+
+    assert organisme.entity_id == entity_id
+    events = organisme.collect_events()
+    assert len(events) == 1
+    assert isinstance(events[0], OrganismeCree)
+
+
 def test_organisme_remplacer_emits_organisme_remplace():
     organisme = Organisme.build(
         entity_id=uuid4(),

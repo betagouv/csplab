@@ -95,6 +95,7 @@ class OrganismeInputMapper(IToDomainMapper[dict, OrganismeUpsertData]):
 
     def to_domain(self, data: dict) -> OrganismeUpsertData:
         return OrganismeUpsertData(
+            entity_id=data.get("id"),
             nom=data["nom"],
             versant=Verse(data["versant"]),
             siret=SIRET(code=data["siret"]),

@@ -2733,6 +2733,10 @@ components:
     OrganismeUpsertInput:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          nullable: true
         nom:
           type: string
           maxLength: 255

@@ -54,6 +54,25 @@ def test_creates_organisme_when_not_found():
     assert isinstance(events[0], OrganismeCree)
 
 
+def test_creates_organisme_with_the_provided_entity_id_when_not_found():
+    entity_id = uuid4()
+    organisme_repository = MagicMock()
+    organisme_repository.get_ids_by_referentiel_and_external_id.return_value = {}
+    organisme_repository.upsert_batch.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+    }
+    usecase = _usecase(organisme_repository)
+
+    usecase.execute(
+        UpsertOrganismesInput(organismes=[_organisme_data(entity_id=entity_id)])
+    )
+
+    organismes = organisme_repository.upsert_batch.call_args[0][0]
+    assert organismes[0].entity_id == entity_id
+
+
 def test_updates_existing_organisme_found_by_referentiel_and_external_id():
     existing_id = uuid4()
     organisme_repository = MagicMock()

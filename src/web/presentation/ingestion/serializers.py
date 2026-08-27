@@ -821,6 +821,7 @@ class OrganismeLocalisationInputSerializer(serializers.Serializer):
 
 
 class OrganismeUpsertInputSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=False, allow_null=True)
     nom = serializers.CharField(max_length=255)
     versant = serializers.ChoiceField(choices=[v.value for v in Verse])
     siret = serializers.CharField(max_length=14)

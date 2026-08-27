@@ -20,6 +20,7 @@ class OrganismeUpsertData:
     gestion_ats: bool | None = False
     date_creation: date | None = None
     date_derniere_activite: date | None = None
+    entity_id: UUID | None = None
 
 
 @dataclass
