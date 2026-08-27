@@ -11,6 +11,7 @@ export interface CspColumnDef<TRow> {
   sortable?: boolean
   align?: CspTableAlign
   width?: string
+  wrapHeader?: boolean
   accessor?: (row: TRow) => CspTableCellValue
   cellComponent?: Component
 }
@@ -21,6 +22,7 @@ declare module '@tanstack/vue-table' {
     _value?: TValue
     align?: CspTableAlign
     width?: string
+    wrapHeader?: boolean
     label?: string
     cellComponent?: Component
   }
