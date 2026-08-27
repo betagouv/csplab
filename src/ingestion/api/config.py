@@ -1,13 +1,37 @@
 import os
 
 from pydantic import HttpUrl
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
+from api.scaleway_secret_source import ScalewaySecretSettingsSource
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=None)
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        # Real env vars (e.g. Scalingo in prod, CI overrides) win over
+        # everything; Scaleway Secret Manager is the source for the rest.
+        # No .env file: local dev must go through Scaleway or real env vars.
+        return (
+            init_settings,
+            env_settings,
+            ScalewaySecretSettingsSource(settings_cls),
+            file_secret_settings,
+        )
 
     sentry_dsn: HttpUrl | None = None
     sentry_profiles_sample_rate: float | None = 0.1
@@ -35,6 +59,18 @@ class TestSettings(Settings):
 
     sentry_profiles_sample_rate: float | None = 0.0
     sentry_traces_sample_rate: float | None = 0.0
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        # Never hit Scaleway in tests, regardless of a stray SCALEWAY_SECRET_ID.
+        return (init_settings, env_settings, dotenv_settings, file_secret_settings)
 
 
 def get_settings() -> Settings:
