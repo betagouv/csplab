@@ -10,6 +10,7 @@ from application.identite.usecases.log_utilisateur_connexion import (
 )
 from infrastructure.authentication.proconnect_client import END_SESSION_ENDPOINT
 from infrastructure.di.identite.identite_factory import create_identite_container
+from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 
 def build_proconnect_logout_url(request, id_token: str) -> str:
@@ -26,6 +27,7 @@ class ProconnectBackend(ModelBackend):
     def __init__(self):
         self.container = create_identite_container()
         self.logger = self.container.logger_service()
+        self._mapper = UtilisateurMapper()
 
     def authenticate(self, request, proconnect_claims=None, **kwargs):
         if not proconnect_claims or not proconnect_claims.get("email"):
@@ -44,6 +46,8 @@ class ProconnectBackend(ModelBackend):
         # presentation.identite.views.LoginView._audit_connexion.
         try:
             usecase = self.container.log_utilisateur_connexion_usecase()
-            usecase.execute(LogUtilisateurConnexionInput(utilisateur=user.to_entity()))
+            usecase.execute(
+                LogUtilisateurConnexionInput(utilisateur=self._mapper.to_domain(user))
+            )
         except Exception as e:
             self.logger.error("Failed to audit ProConnect login: %s", str(e))

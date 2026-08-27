@@ -4,6 +4,7 @@ import pytest
 
 from infrastructure.authentication.proconnect_backend import ProconnectBackend
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 
 @pytest.fixture(name="backend")
@@ -38,7 +39,7 @@ class TestProconnectBackend:
         backend._audit_connexion(user)
 
         audit_log_repository = backend.container.postgres_audit_log_repository()
-        entity = user.to_entity()
+        entity = UtilisateurMapper().to_domain(user)
         logs = audit_log_repository.get_logs_for_ressource(
             "Utilisateur", entity.entity_id
         )
