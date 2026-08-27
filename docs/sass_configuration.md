@@ -7,21 +7,21 @@ This project uses the npm `sass` package from the `src/web` workspace for compil
 Install web dependencies first:
 
 ```bash
-make frontend-install
+mise run install
 ```
 
-`make bootstrap` includes this step automatically.
+`mise run bootstrap` includes this step automatically.
 
 ## Usage
 
 Compile once:
 ```bash
-make sass-compile
+bin/sass compile
 ```
 
 Watch mode (auto-compile on save):
 ```bash
-make sass-watch
+bin/sass watch
 ```
 
 ## File Structure

@@ -37,13 +37,13 @@ src/web/presentation/
 
 ### Prerequisites
 
-- Node.js 22.x
-- pnpm (`brew install pnpm` or `npm install -g pnpm`)
+- [mise](https://mise.jdx.dev/getting-started.html) — provisions node and pnpm
+  at the pinned versions, nothing to install manually
 
 ### Installation
 
 ```bash
-mise run install:js
+mise run install
 ```
 
 ### Run the dev server
@@ -52,7 +52,7 @@ Two terminals required:
 
 ```bash
 # Terminal 1: Django
-make run-web
+mise run web:dev
 
 # Terminal 2: Vite (HMR)
 mise run front:dev

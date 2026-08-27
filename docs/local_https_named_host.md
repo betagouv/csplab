@@ -36,7 +36,7 @@ En utilisant [portless](https://www.npmjs.com/package/portless), on peut :
 
 2. Référencer des tâches dans un fichier `mise.local.toml` (gitignoré) qui surchargeront le `mise.local` versionné :
 - `front:portless` : Vite via portless, `WEB_VITE_DEV_ORIGIN` + `WEB_ATS_ORIGIN` sur les hôtes nommés ;
-- `back:portless` : `make run-web` avec la même origine ;
+- `back:portless` : `//src/web:dev` avec la même origine ;
 - `open:portless` : attend le back puis ouvre `https://csplab.localhost` ;
 - `dev` : override du `dev` versionné vers les trois ci-dessus.
 

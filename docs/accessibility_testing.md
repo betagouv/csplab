@@ -5,15 +5,15 @@ Automated accessibility tests using [pytest-playwright](https://playwright.dev/p
 ## Setup
 
 ```bash
-make playwright-install                                  # First time only
+mise run web:install:playwright           # First time only
 ```
 
 ## Usage
 
 ```bash
-make test-a11y                                           # Run a11y tests
-make test-a11y ARGS="--headed"                           # Run with visible browser
-make test-a11y ARGS="--slowmo 500"                       # Run with slow-motion
+mise run web:test:a11y                    # Run a11y tests
+mise run web:test:a11y -- --headed        # Run with visible browser
+mise run web:test:a11y -- --slowmo 500    # Run with slow-motion
 ```
 
 ## How it works
