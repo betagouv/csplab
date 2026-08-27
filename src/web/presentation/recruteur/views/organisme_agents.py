@@ -13,6 +13,9 @@ from application.recruteur.usecases.attach_organisme_agent import (
 from application.recruteur.usecases.list_organisme_agents import (
     ListOrganismeAgentsQuery,
 )
+from application.recruteur.usecases.revoke_organisme_agent import (
+    RevokeOrganismeAgentCommand,
+)
 from application.recruteur.usecases.update_organisme_agent import (
     UpdateOrganismeAgentCommand,
 )
@@ -144,15 +147,25 @@ class OrganismeAgentsView(APIView):
 
         data = serializer.validated_data
         try:
-            usecase = self.container.update_organisme_agent_usecase()
-            agent_organisme = usecase.execute(
-                UpdateOrganismeAgentCommand(
-                    organisme_id=organisme_uuid,
-                    agent_id=data["agent_id"],
-                    role=AgentOrganismeRole(data["role"]),
-                    utilisateur=UtilisateurMapper().to_domain(request),
+            if data.get("date_revocation"):
+                usecase = self.container.revoke_organisme_agent_usecase()
+                agent_organisme = usecase.execute(
+                    RevokeOrganismeAgentCommand(
+                        organisme_id=organisme_uuid,
+                        agent_id=data["agent_id"],
+                        utilisateur=UtilisateurMapper().to_domain(request),
+                    )
                 )
-            )
+            else:
+                usecase = self.container.update_organisme_agent_usecase()
+                agent_organisme = usecase.execute(
+                    UpdateOrganismeAgentCommand(
+                        organisme_id=organisme_uuid,
+                        agent_id=data["agent_id"],
+                        role=AgentOrganismeRole(data["role"]),
+                        utilisateur=UtilisateurMapper().to_domain(request),
+                    )
+                )
             return Response(AgentOrganismeSerializer(agent_organisme).data)
         except (AccesOrganismeRefuse, OperationOrganismeRefusee):
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
