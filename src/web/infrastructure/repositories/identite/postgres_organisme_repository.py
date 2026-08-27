@@ -27,9 +27,9 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
             raise OrganismeNexistePas(str(organisme_id)) from e
         return self._mapper_identite.to_domain(model)
 
-    def get_by_siret(self, siret: SIRET) -> Organisme:
+    def get_by_siret(self, siret: SIRET) -> Organisme | None:
         try:
-            model = OrganismeModel.objects.get(siret=siret.code)
-        except OrganismeModel.DoesNotExist as e:
-            raise OrganismeNexistePas(siret.code) from e
+            model = OrganismeModel.objects.get(siret=str(siret))
+        except OrganismeModel.DoesNotExist:
+            return None
         return self._mapper_identite.to_domain(model)

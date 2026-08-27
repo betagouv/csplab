@@ -98,6 +98,7 @@ class IdentiteContainer(containers.DeclarativeContainer):
         CreateOrganismeUsecase,
         organisme_repository=postgres_organisme_repository,
         permission_service=organisme_permission_service,
+        audit_log_writer=audit_log_writer,
     )
 
     list_organismes_usecase = providers.Factory(
