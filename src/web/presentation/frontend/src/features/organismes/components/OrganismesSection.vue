@@ -7,6 +7,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
+import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
@@ -87,21 +88,13 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
 <template>
   <section class="organismes-section">
     <div class="organismes-section__intro">
-      <div>
-        <h2 class="organismes-section__title">
-          Gestion des organismes
-        </h2>
-        <p class="organismes-section__description">
-          Les organismes permettent d'organiser les recrutements. Chaque organisme
-          dispose de ses propres utilisateurs, offres et paramètres.
-        </p>
-      </div>
-      <CspButton
-        label="Ajouter un organisme"
-        icon="ri:add-line"
-        is-icon-left
-        @click="creationOpen = true"
-      />
+      <h2 class="organismes-section__title">
+        Gestion des organismes
+      </h2>
+      <p class="organismes-section__description">
+        Les organismes permettent d'organiser les recrutements. Chaque organisme
+        dispose de ses propres utilisateurs, offres et paramètres.
+      </p>
     </div>
 
     <CspAsyncSection
@@ -118,20 +111,21 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
         />
       </template>
 
-      <div class="organismes-section__header">
-        <p class="organismes-section__count">
-          {{ countLabel }}
-        </p>
-        <div class="organismes-section__actions">
-          <CspInput
-            v-model="search"
-            type="search"
-            aria-label="Rechercher un organisme, un siret"
-            placeholder="Rechercher un organisme, un siret"
-            class="organismes-section__search"
-          />
-        </div>
-      </div>
+      <CspTableToolbar :count="countLabel">
+        <CspInput
+          v-model="search"
+          type="search"
+          aria-label="Rechercher un organisme, un siret"
+          placeholder="Rechercher un organisme, un siret"
+          class="organismes-section__search"
+        />
+        <CspButton
+          label="Ajouter un organisme"
+          icon="ri:add-line"
+          is-icon-left
+          @click="creationOpen = true"
+        />
+      </CspTableToolbar>
       <CspDataTable
         v-model:page="page"
         :rows="filtered"
@@ -156,11 +150,7 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
 
 <style scoped lang="scss">
 .organismes-section__intro {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--csp-space-6);
-  margin-bottom: var(--csp-space-6);
+  margin-bottom: var(--csp-space-5);
 }
 
 .organismes-section__title {
@@ -173,27 +163,7 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
   margin: 0;
   color: var(--text-mention-grey);
   font-size: 0.875rem;
-}
-
-.organismes-section__header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--csp-space-4);
-}
-
-.organismes-section__count {
-  margin: 0 0 var(--csp-space-4);
-  font-size: 0.9375rem;
-  color: var(--text-mention-grey);
-}
-
-.organismes-section__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.75rem;
-  margin-bottom: var(--csp-space-4);
+  max-width: 65ch;
 }
 
 .organismes-section__search {

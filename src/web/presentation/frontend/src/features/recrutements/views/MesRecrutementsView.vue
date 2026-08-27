@@ -13,6 +13,7 @@ import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
+import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
@@ -135,36 +136,35 @@ const archivesCountLabel = computed(() => {
       v-if="!recrutementsError"
       #tab-actifs
     >
-      <div class="mes-recrutement-view__toolbar">
-        <CspSkeleton
-          v-if="showActifsSkeleton"
-          class="mes-recrutement-view__count-skeleton"
-          width="12rem"
-          height="0.9375rem"
+      <CspTableToolbar :bordered="false">
+        <template #status>
+          <CspSkeleton
+            v-if="showActifsSkeleton"
+            width="12rem"
+            height="0.9375rem"
+          />
+          <p
+            v-else
+            class="mes-recrutement-view__count"
+          >
+            {{ actifsCountLabel }}
+          </p>
+        </template>
+        <CspInput
+          v-model="actifsFilters.search.value"
+          type="search"
+          aria-label="Rechercher un recrutement"
+          placeholder="Rechercher une offre, une référence,…"
+          class="mes-recrutement-view__search"
         />
-        <p
-          v-else
-          class="mes-recrutement-view__count"
-        >
-          {{ actifsCountLabel }}
-        </p>
-        <div class="mes-recrutement-view__actions">
-          <CspInput
-            v-model="actifsFilters.search.value"
-            type="search"
-            aria-label="Rechercher un recrutement"
-            placeholder="Rechercher une offre, une référence,…"
-            class="mes-recrutement-view__search"
-          />
-          <CspButton
-            :label="actifsFilters.activeFiltersCount.value ? `Filtres (${actifsFilters.activeFiltersCount.value})` : 'Filtres'"
-            variant="tertiary"
-            icon="ri:filter-line"
-            is-icon-left
-            @click="openActifsFilters"
-          />
-        </div>
-      </div>
+        <CspButton
+          :label="actifsFilters.activeFiltersCount.value ? `Filtres (${actifsFilters.activeFiltersCount.value})` : 'Filtres'"
+          variant="tertiary"
+          icon="ri:filter-line"
+          is-icon-left
+          @click="openActifsFilters"
+        />
+      </CspTableToolbar>
       <RecrutementsActifsFiltersDrawer
         v-model:open="actifsFiltersDrawer.isOpen.value"
         v-model:responsable="actifsFilters.draft.responsable"
@@ -210,36 +210,35 @@ const archivesCountLabel = computed(() => {
       v-if="!recrutementsError"
       #tab-archives
     >
-      <div class="mes-recrutement-view__toolbar">
-        <CspSkeleton
-          v-if="showArchivesSkeleton"
-          class="mes-recrutement-view__count-skeleton"
-          width="12rem"
-          height="0.9375rem"
+      <CspTableToolbar :bordered="false">
+        <template #status>
+          <CspSkeleton
+            v-if="showArchivesSkeleton"
+            width="12rem"
+            height="0.9375rem"
+          />
+          <p
+            v-else
+            class="mes-recrutement-view__count"
+          >
+            {{ archivesCountLabel }}
+          </p>
+        </template>
+        <CspInput
+          v-model="archivesFilters.search.value"
+          type="search"
+          aria-label="Rechercher un recrutement"
+          placeholder="Rechercher une offre, une référence,…"
+          class="mes-recrutement-view__search"
         />
-        <p
-          v-else
-          class="mes-recrutement-view__count"
-        >
-          {{ archivesCountLabel }}
-        </p>
-        <div class="mes-recrutement-view__actions">
-          <CspInput
-            v-model="archivesFilters.search.value"
-            type="search"
-            aria-label="Rechercher un recrutement"
-            placeholder="Rechercher une offre, une référence,…"
-            class="mes-recrutement-view__search"
-          />
-          <CspButton
-            :label="archivesFilters.activeFiltersCount.value ? `Filtres (${archivesFilters.activeFiltersCount.value})` : 'Filtres'"
-            variant="tertiary"
-            icon="ri:filter-line"
-            is-icon-left
-            @click="openArchivesFilters"
-          />
-        </div>
-      </div>
+        <CspButton
+          :label="archivesFilters.activeFiltersCount.value ? `Filtres (${archivesFilters.activeFiltersCount.value})` : 'Filtres'"
+          variant="tertiary"
+          icon="ri:filter-line"
+          is-icon-left
+          @click="openArchivesFilters"
+        />
+      </CspTableToolbar>
       <RecrutementsArchivesFiltersDrawer
         v-model:open="archivesFiltersDrawer.isOpen.value"
         v-model:responsable="archivesFilters.draft.responsable"
@@ -282,30 +281,10 @@ const archivesCountLabel = computed(() => {
   color: var(--text-mention-grey);
 }
 
-.mes-recrutement-view__toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: var(--csp-page-content-padding-block);
-}
-
 .mes-recrutement-view__count {
   margin: 0;
   font-size: 0.9375rem;
   color: var(--text-mention-grey);
-}
-
-.mes-recrutement-view__count-skeleton {
-  margin: 0.15rem 0;
-}
-
-.mes-recrutement-view__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.75rem;
 }
 
 .mes-recrutement-view__search {
