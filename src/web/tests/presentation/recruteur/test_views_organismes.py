@@ -126,12 +126,12 @@ class TestOrganismesView:
             "versant": fake.random_choices(
                 [Verse.FPE.value, Verse.FPT.value, Verse.FPH.value]
             ),
-            "gestion_ats": True,
+            "gestion_ats": organisme.gestion_ats,
         }
         response = authenticated_client.post(ORGANISME_URL, body)
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json()["organisme_uuid"] == str(organisme.entity_id)
-        assert response.json()["gestion_ats"]
+        assert response.json()["gestion_ats"] == organisme.gestion_ats
 
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
