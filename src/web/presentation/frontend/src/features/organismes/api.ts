@@ -6,6 +6,13 @@ export async function getOrganismesList(): Promise<OrganismesList[]> {
   return data!
 }
 
+export async function getOrganismeDetail(organismeUuid: string): Promise<OrganismeDetail> {
+  const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}', {
+    params: { path: { organisme_uuid: organismeUuid } },
+  })
+  return data!
+}
+
 export async function createOrganisme(payload: CreateOrganismePayload): Promise<OrganismeDetail> {
   const { data } = await api.POST('/recruteur/organismes', { body: payload })
   return data!
