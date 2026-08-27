@@ -43,7 +43,7 @@ src/web/presentation/
 ### Installation
 
 ```bash
-make frontend-install
+mise run install:js
 ```
 
 ### Run the dev server
@@ -55,7 +55,7 @@ Two terminals required:
 make run-web
 
 # Terminal 2: Vite (HMR)
-make frontend-dev
+mise run front:dev
 ```
 
 Open http://localhost:8000/ats/
@@ -81,7 +81,7 @@ port then drive the HMR client; Django's CSP follows the same variable.
 ## Production Build
 
 ```bash
-make frontend-build
+mise run front:build
 ```
 
 Outputs assets to `presentation/static/frontend/` with cache-busting (hashed filenames).
@@ -89,8 +89,8 @@ Outputs assets to `presentation/static/frontend/` with cache-busting (hashed fil
 ## Lint & TypeScript
 
 ```bash
-make frontend-lint      # Check
-make frontend-lint-fix  # Auto-fix
+mise run front:lint       # Check
+mise run front:lint:fix   # Auto-fix
 ```
 
 The build includes a TypeScript check (`vue-tsc --noEmit`).

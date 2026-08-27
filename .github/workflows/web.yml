@@ -92,7 +92,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           make lint-frontend-types WEB_INTERNAL_API_UV="cd src/web && DJANGO_SETTINGS_MODULE=config.settings.schema_internal uv run" || \
-            (echo "::error::Le schéma OpenAPI interne ou les types TypeScript ne sont pas synchronisés avec le schéma OpenAPI. Lancez 'make frontend-types' et committez." && exit 1)
+            (echo "::error::Le schéma OpenAPI interne ou les types TypeScript ne sont pas synchronisés avec le schéma OpenAPI. Lancez 'mise run front:types' et committez." && exit 1)
 
   test-web:
     needs: [check-changes, build-web]

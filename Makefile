@@ -191,52 +191,13 @@ sass-watch: ## watch and compile SCSS files on changes
 .PHONY: sass-watch
 
 ### FRONTEND (Vue/Vite)
-frontend-install: ## install frontend dependencies (pnpm)
+frontend-install:
 	$(WEB_PNPM) install
 .PHONY: frontend-install
 
-frontend-dev: ## run frontend dev server (Vite HMR)
-	$(WEB_PNPM) --filter $(FRONTEND_FILTER) dev
-.PHONY: frontend-dev
-
-frontend-build: ## build frontend for production
-	$(WEB_PNPM) --filter $(FRONTEND_FILTER) build
-.PHONY: frontend-build
-
-frontend-lint: ## lint frontend sources
+frontend-lint:
 	$(WEB_PNPM) --filter $(FRONTEND_FILTER) lint
 .PHONY: frontend-lint
-
-frontend-lint-fix: ## lint and fix frontend sources
-	$(WEB_PNPM) --filter $(FRONTEND_FILTER) lint:fix
-.PHONY: frontend-lint-fix
-
-frontend-test: ## run frontend tests (Vitest)
-	$(WEB_PNPM) --filter $(FRONTEND_FILTER) test:run
-.PHONY: frontend-test
-
-frontend-typecheck: ## run TypeScript type checking
-	$(WEB_PNPM) --filter $(FRONTEND_FILTER) typecheck
-.PHONY: frontend-typecheck
-
-frontend-check: ## run all frontend checks (lint + typecheck + tests)
-	make frontend-lint
-	make frontend-typecheck
-	make frontend-test
-.PHONY: frontend-check-all
-
-storybook: ## run Storybook dev server (port 6006)
-	$(WEB_PNPM) --filter $(FRONTEND_FILTER) storybook
-.PHONY: storybook
-
-storybook-build: ## build Storybook static output
-	$(WEB_PNPM) --filter $(FRONTEND_FILTER) build-storybook
-.PHONY: storybook-build
-
-frontend-types: ## generate TypeScript types from OpenAPI schema
-	$(WEB_INTERNAL_API_UV) python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate
-	$(WEB_PNPM) --filter $(FRONTEND_FILTER) generate-types
-.PHONY: frontend-types
 
 ### RUN
 run-notebook: ## run the notebook service
