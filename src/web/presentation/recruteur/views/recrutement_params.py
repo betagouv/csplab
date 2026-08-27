@@ -14,9 +14,6 @@ from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
     RecrutementEtapeIncoherents,
 )
-from application.recruteur.usecases.get_recrutement_etapes import (
-    GetRecrutementEtapesQuery,
-)
 from application.recruteur.usecases.update_recrutement_etapes import (
     UpdateRecrutementEtapesCommand,
 )
@@ -43,13 +40,6 @@ from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
     UpdateEtapeRecrutementSerializer,
 )
-
-
-def _fake_etapes_to_serializer_data(etapes: list) -> list[dict]:
-    return [
-        {"etape_uuid": e.etape_uuid, "nom": e.nom, "categorie": e.categorie.name}
-        for e in etapes
-    ]
 
 
 def _etapes_to_serializer_data(etapes: tuple[EtapeRecrutement, ...]) -> list[dict]:
@@ -99,20 +89,25 @@ class RecrutementEtapeView(APIView):
         try:
             usecase = self.container.get_recrutement_etapes_usecase()
             resultat = usecase.execute(
-                GetRecrutementEtapesQuery(
+                RecrutementRequest(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
                     utilisateur=self.user_mapper.to_domain(request),
                 )
             )
             serializer = EtapeRecrutementSerializer(
-                _fake_etapes_to_serializer_data(resultat), many=True
+                _etapes_to_serializer_data(resultat), many=True
             )
             return Response(serializer.data)
-        except OrganismePermissionError:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        except OrganismeNexistePas:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        except OrganismeRecrutementIncoherents as e:
+            error_serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        except OrganismePermissionError as e:
+            error_serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(error_serializer.data, status=status.HTTP_403_FORBIDDEN)
+        except (OrganismeNexistePas, RecrutementInexistant) as e:
+            error_serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(error_serializer.data, status=status.HTTP_404_NOT_FOUND)
         except Exception:
             error_serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
