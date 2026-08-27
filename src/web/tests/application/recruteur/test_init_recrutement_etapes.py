@@ -20,7 +20,7 @@ from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import SupressionEtapeImpossible
 from domain.recruteur.events.etape_events import EtapeAjoutee, EtapeSupprimee
 from domain.recruteur.events.recrutement_events import (
-    EtapesReinitialisees,
+    RecrutementEtapesReinitialisees,
 )
 from domain.recruteur.repositories.organisme_repository_interface import (
     IOrganismeRecruteurRepository,
@@ -137,7 +137,7 @@ class TestInitRecrutementEtapesUsecase:
         assert len(events) == 1 + len(organisme_recruteur.etapes) + len(
             recrutement.etapes
         )
-        assert any(isinstance(e, EtapesReinitialisees) for e in events)
+        assert any(isinstance(e, RecrutementEtapesReinitialisees) for e in events)
         assert any(isinstance(e, EtapeAjoutee) for e in events)
         assert any(isinstance(e, EtapeSupprimee) for e in events)
 

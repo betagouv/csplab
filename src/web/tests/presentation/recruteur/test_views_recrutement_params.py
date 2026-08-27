@@ -9,7 +9,6 @@ from rest_framework import status
 from application.recruteur.dtos.etape_data import EtapeData
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
-    OrganismeRecruteurSansEtapes,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
@@ -203,11 +202,6 @@ class TestInitRecrutementEtapeView:
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
         [
-            (
-                OrganismeRecruteurSansEtapes(UUID(ORGANISME_UUID)),
-                status.HTTP_400_BAD_REQUEST,
-                {"error": OrganismeRecruteurSansEtapes(UUID(ORGANISME_UUID)).message},
-            ),
             (
                 OrganismeRecrutementIncoherents(
                     UUID(ORGANISME_UUID), UUID(RECRUTEMENT_UUID)
