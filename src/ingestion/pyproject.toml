@@ -88,6 +88,9 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"bin/fetch_scaleway_secrets.py" = [
+    "T201", # print is the point: output is eval'd as shell by the caller
+]
 "api/*" = [
     "B008", # Function call in argument defaults (acceptable for FastAPI)
     "PLR0913", # Too many arguments (acceptable for FastAPI routes with injected dependencies)

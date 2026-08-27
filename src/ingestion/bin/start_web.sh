@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$(dirname "${BASH_SOURCE[0]}")/inject_scaleway_env.sh"
+
 # Start Flower in the background so the web process can proxy to it via localhost
 if [ -n "${FLOWER_PORT:-}" ] && [ -n "${FLOWER_BASIC_AUTH_USER:-}" ] && [ -n "${FLOWER_BASIC_AUTH_PASSWORD:-}" ]; then
     celery -A infrastructure.celery_app flower \
