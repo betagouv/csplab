@@ -20,11 +20,11 @@ export const ORGANISMES_LIST_COLUMNS: CspColumnDef<OrganismesList>[] = [
 ]
 
 export const ORGANISME_AGENTS_COLUMNS: CspColumnDef<AgentOrganisme>[] = [
-  { id: 'agent', header: 'Membre', sortable: true, accessor: row => formatAgentNameAlphabetical(row) },
-  { id: 'role', header: 'Rôle', accessor: row => formatAgentRole(row.role) },
+  { id: 'agent', header: 'Membre', sortable: true, width: '13rem', accessor: row => formatAgentNameAlphabetical(row) },
+  { id: 'role', header: 'Rôle', width: '8rem', accessor: row => formatAgentRole(row.role) },
   { id: 'poste', header: 'Poste', accessor: row => row.poste },
   { id: 'email', header: 'Courriel', accessor: row => row.email },
   { id: 'date_derniere_activite', header: 'Dernière activité', sortable: true, width: '9.5rem', wrapHeader: true, accessor: row => row.date_derniere_activite, cellComponent: ElapsedDaysCell },
-  { id: 'date_creation_compte', header: 'Création de compte', accessor: row => shortDate.format(new Date(row.date_creation_compte)) },
+  { id: 'date_creation_compte', header: 'Création de compte', width: '9.5rem', wrapHeader: true, accessor: row => shortDate.format(new Date(row.date_creation_compte)) },
   { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: AgentActionsCell },
 ]
