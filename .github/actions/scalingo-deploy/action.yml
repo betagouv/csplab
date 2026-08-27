@@ -1,89 +1,14 @@
 name: Deploy to Scalingo
-description: Sync env vars from Scaleway Secret Manager (optional) and force-push the repository to a deploy branch for Scalingo to deploy. Requires actions/checkout to have run first.
+description: Force-push the repository to a deploy branch for Scalingo to deploy. Requires actions/checkout to have run first.
 
 inputs:
   branch:
     description: Target branch to force-push to (e.g. main-ocr)
     required: true
-  scaleway-secret-path:
-    description: Scaleway Secret Manager path to sync as Scalingo env vars (e.g. /ingestion/prod). Leave empty to skip the sync.
-    required: false
-    default: ""
-  scalingo-app:
-    description: Scalingo app name to update env vars on (required if scaleway-secret-path is set)
-    required: false
-    default: ""
-  scalingo-api-token:
-    description: Scalingo API token (required if scaleway-secret-path is set)
-    required: false
-    default: ""
-  scw-access-key:
-    description: Scaleway access key (required if scaleway-secret-path is set)
-    required: false
-    default: ""
-  scw-secret-key:
-    description: Scaleway secret key (required if scaleway-secret-path is set)
-    required: false
-    default: ""
-  scw-default-project-id:
-    description: Scaleway default project ID (required if scaleway-secret-path is set)
-    required: false
-    default: ""
-  scw-default-region:
-    description: Scaleway default region (required if scaleway-secret-path is set)
-    required: false
-    default: ""
 
 runs:
   using: composite
   steps:
-    - name: Install Scaleway CLI
-      if: inputs.scaleway-secret-path != ''
-      shell: bash
-      run: curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
-
-    - name: Sync env vars from Scaleway Secret Manager to Scalingo
-      if: inputs.scaleway-secret-path != ''
-      shell: bash
-      env:
-        SCW_ACCESS_KEY: ${{ inputs.scw-access-key }}
-        SCW_SECRET_KEY: ${{ inputs.scw-secret-key }}
-        SCW_DEFAULT_PROJECT_ID: ${{ inputs.scw-default-project-id }}
-        SCW_DEFAULT_REGION: ${{ inputs.scw-default-region }}
-        SCALINGO_API_TOKEN: ${{ inputs.scalingo-api-token }}
-        SCALINGO_APP: ${{ inputs.scalingo-app }}
-        SECRET_PATH: ${{ inputs.scaleway-secret-path }}
-      run: |
-        set -euo pipefail
-
-        secret_ids=$(scw secret secret list path="${SECRET_PATH}" -o json | jq -r '.[].id')
-
-        variables="[]"
-        for id in $secret_ids; do
-          name=$(scw secret secret get "$id" -o json | jq -r '.name' | tr '[:lower:]' '[:upper:]')
-          value=$(scw secret version access "$id" revision=latest_enabled -o json | jq -r '.data' | base64 -d)
-          echo "::add-mask::${value}"
-          variables=$(jq -n --argjson vars "$variables" --arg name "$name" --arg value "$value" \
-            '$vars + [{"name": $name, "value": $value}]')
-        done
-
-        count=$(echo "$variables" | jq 'length')
-        if [ "$count" -eq 0 ]; then
-          echo "No secrets found under ${SECRET_PATH}, skipping Scalingo env sync."
-          exit 0
-        fi
-
-        scalingo_token=$(curl -sf -X POST https://auth.scalingo.com/v1/tokens/exchange \
-          -u ":${SCALINGO_API_TOKEN}" | jq -r '.token')
-        echo "::add-mask::${scalingo_token}"
-
-        curl -sf -X PUT "https://api.osc-fr1.scalingo.com/v1/apps/${SCALINGO_APP}/variables/bulk" \
-          -H "Authorization: Bearer ${scalingo_token}" \
-          -H "Content-Type: application/json" \
-          -d "{\"variables\": ${variables}}" > /dev/null
-
-        echo "Synced ${count} secret(s) from Scaleway (${SECRET_PATH}) to Scalingo app ${SCALINGO_APP}."
-
     - name: Push to deploy branch
       shell: bash
       run: git push origin HEAD:refs/heads/${{ inputs.branch }}

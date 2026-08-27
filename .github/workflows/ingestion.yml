@@ -117,10 +117,3 @@ jobs:
       - uses: ./.github/actions/scalingo-deploy
         with:
           branch: main-ingestion
-          scaleway-secret-path: /ingestion/prod
-          scalingo-app: csplab-ingestion
-          scalingo-api-token: ${{ secrets.SCALINGO_API_TOKEN }}
-          scw-access-key: ${{ secrets.SCW_ACCESS_KEY }}
-          scw-secret-key: ${{ secrets.SCW_SECRET_KEY }}
-          scw-default-project-id: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
-          scw-default-region: ${{ secrets.SCW_DEFAULT_REGION }}
