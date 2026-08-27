@@ -1,0 +1,22 @@
+[tasks.install]
+alias = "referentiel:install"
+description = "Install Python dependencies (uv sync)"
+sources = ["pyproject.toml", "uv.lock"]
+outputs = { auto = true }
+run = "uv sync --group dev"
+
+[tasks.test]
+alias = "referentiel:test"
+depends = ["install"]
+description = "Test the referentiel package"
+run = "uv run pytest --no-cov"
+
+[tasks.lint]
+alias = "referentiel:lint"
+description = "Lint Python (ruff check + format)"
+run = ["uv run ruff check .", "uv run ruff format --check ."]
+
+[tasks."lint:fix"]
+alias = "referentiel:lint:fix"
+description = "Lint with autofix (ruff)"
+run = ["uv run ruff check --fix .", "uv run ruff format ."]

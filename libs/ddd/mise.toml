@@ -1,0 +1,22 @@
+[tasks.install]
+alias = "ddd:install"
+description = "Install Python dependencies (uv sync)"
+sources = ["pyproject.toml", "uv.lock"]
+outputs = { auto = true }
+run = "uv sync --group dev --locked"
+
+[tasks.test]
+alias = "ddd:test"
+depends = ["install"]
+description = "Test the ddd package"
+run = "uv run pytest --no-cov"
+
+[tasks.lint]
+alias = "ddd:lint"
+description = "Lint Python (ruff check + format)"
+run = ["uv run ruff check .", "uv run ruff format --check ."]
+
+[tasks."lint:fix"]
+alias = "ddd:lint:fix"
+description = "Lint with autofix (ruff)"
+run = ["uv run ruff check --fix .", "uv run ruff format ."]

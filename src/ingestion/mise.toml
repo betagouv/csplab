@@ -1,0 +1,89 @@
+[env]
+_.file = "../../env.d/ingestion"
+_.python.venv = { path = ".venv" }
+
+[tasks.install]
+alias = "ingestion:install"
+description = "Install Python dependencies (uv sync)"
+sources = ["pyproject.toml", "uv.lock"]
+outputs = { auto = true }
+run = "uv sync --locked"
+
+[tasks.dev]
+alias = "ingestion:dev"
+description = "Ingestion API + celery worker + flower (uvicorn :8002)"
+depends = ["install", "//:services:postgres", "//:services:redis"]
+shell = "bash -c"
+run = """
+trap 'kill 0' EXIT
+uvicorn api.main:app --reload --port=8002 &
+bin/start_worker.sh &
+bin/start_flower.sh &
+wait
+"""
+
+[tasks."db:create"]
+alias = "ingestion:db:create"
+description = "Create the ingestion database and user"
+depends = ["//:services:postgres"]
+run = "set -a && . ../../env.d/postgresql && docker exec -i csp_postgresql psql -U $POSTGRES_USER < ../../infra/postgres/create-ingestion-db.sql"
+
+[tasks."db:create-test"]
+alias = "ingestion:db:create-test"
+description = "Create the ingestion_test database"
+depends = ["db:create"]
+run = "set -a && . ../../env.d/postgresql && docker exec -i csp_postgresql psql -U $POSTGRES_USER < ../../infra/postgres/create-ingestion-test-db.sql"
+
+[tasks.migrate]
+alias = "ingestion:migrate"
+description = "Apply alembic migrations"
+depends = ["db:create"]
+run = "uv run alembic upgrade head"
+
+[tasks.migration]
+alias = "ingestion:migration"
+description = "Generate an alembic migration (mise run :migration -- -m 'description')"
+run = "uv run alembic revision --autogenerate"
+
+[tasks.test]
+alias = "ingestion:test"
+description = "Ingestion tests (on the ingestion_test database)"
+depends = ["install", "db:create-test"]
+run = 'DATABASE_URL="${TEST_DATABASE_URL:-psql://ingestion:pass@localhost:5432/ingestion_test}" pytest'
+
+[tasks."test:cov"]
+alias = "ingestion:test:cov"
+description = "Ingestion tests with an HTML coverage report"
+depends = ["install", "db:create-test"]
+run = [
+  'DATABASE_URL="${TEST_DATABASE_URL:-psql://ingestion:pass@localhost:5432/ingestion_test}" pytest --cov=. --cov-report=html:tests/cov_html --cov-report=term-missing',
+  "open tests/cov_html/index.html",
+]
+
+[tasks.lint]
+alias = "ingestion:lint"
+description = "Ingestion lint: ruff + mypy + migrations in parallel"
+depends = ["lint:ruff", "lint:mypy", "lint:migrations"]
+
+[tasks."lint:ruff"]
+alias = "ingestion:lint:ruff"
+description = "Lint Python (ruff check + format)"
+depends = ["install"]
+run = ["ruff check .", "ruff format --check ."]
+
+[tasks."lint:mypy"]
+alias = "ingestion:lint:mypy"
+description = "Type-check Python (mypy)"
+depends = ["install"]
+run = "mypy ."
+
+[tasks."lint:migrations"]
+alias = "ingestion:lint:migrations"
+description = "Check alembic migrations are up to date"
+depends = ["db:create"]
+run = ["uv run alembic upgrade head", "uv run alembic check"]
+
+[tasks."lint:fix"]
+alias = "ingestion:lint:fix"
+description = "Ingestion lint with autofix (ruff)"
+run = ["ruff check --fix .", "ruff format ."]

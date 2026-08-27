@@ -1,0 +1,80 @@
+[tasks.dev]
+alias = "front:dev"
+description = "Vite dev server (HMR)"
+depends = [ "//src/web:install:js" ]
+run = "pnpm run dev"
+
+[tasks.lint]
+alias = "front:lint"
+description = "Lint the frontend (eslint)"
+depends = [ "//src/web:install:js" ]
+run = "pnpm run lint"
+
+[tasks."lint:fix"]
+alias = "front:lint:fix"
+description = "Lint the frontend with autofix"
+depends = [ "//src/web:install:js" ]
+run = "pnpm run lint:fix"
+
+[tasks.typecheck]
+alias = "front:typecheck"
+description = "Type-check the frontend (vue-tsc)"
+depends = [ "//src/web:install:js" ]
+run = "pnpm run typecheck"
+
+[tasks.test]
+alias = "front:test"
+description = "Frontend tests (vitest)"
+depends = [ "//src/web:install:js" ]
+run = "pnpm run test:run"
+
+[tasks.build]
+alias = "front:build"
+description = "Production frontend build, incremental (skipped when sources are unchanged)"
+depends = [ "//src/web:install:js" ]
+sources = [
+  "src/**/*",
+  "package.json",
+  "tsconfig*.json",
+  "vite.config.*",
+  "../../pnpm-lock.yaml"
+]
+outputs = [ "../static/frontend/manifest.json" ]
+run = "pnpm run build"
+
+[tasks.check]
+alias = "front:check"
+description = "Frontend: lint + typecheck + tests in parallel"
+depends = [
+  "lint",
+  "typecheck",
+  "test"
+]
+
+[tasks.types]
+alias = "front:types"
+description = "Regenerate the internal OpenAPI schema and the frontend TypeScript types"
+depends = [ "//src/web:schema" ]
+run = "pnpm run generate-types"
+
+[tasks.storybook]
+alias = [
+  "front:storybook",
+  "storybook"
+]
+description = "Frontend Storybook"
+run = "pnpm run storybook"
+
+[tasks."storybook:build"]
+alias = [
+  "front:storybook:build",
+  "storybook:build"
+]
+description = "Static Storybook build, incremental"
+sources = [
+  "src/**/*",
+  ".storybook/**/*",
+  "package.json"
+]
+outputs = [ "storybook-static/index.html" ]
+run = "pnpm run build-storybook"

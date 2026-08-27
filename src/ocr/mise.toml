@@ -1,0 +1,53 @@
+[env]
+_.file = "../../env.d/ocr"
+_.python.venv = { path = ".venv" }
+
+[tasks.install]
+alias = "ocr:install"
+description = "Install Python dependencies (uv sync)"
+sources = ["pyproject.toml", "uv.lock"]
+outputs = { auto = true }
+run = "uv sync --group dev --locked"
+
+[tasks.dev]
+alias = "ocr:dev"
+description = "OCR API (uvicorn :8001)"
+depends = ["install"]
+run = "uvicorn api.main:app --reload --port=8001"
+
+[tasks.test]
+alias = "ocr:test"
+description = "OCR tests"
+depends = ["install"]
+run = "pytest --no-cov"
+
+[tasks."test:cov"]
+alias = "ocr:test:cov"
+description = "OCR tests with an HTML coverage report"
+depends = ["install"]
+run = [
+  "pytest --cov=. --cov-report=html:tests/cov_html --cov-report=term-missing",
+  "open tests/cov_html/index.html",
+]
+
+[tasks.lint]
+alias = "ocr:lint"
+description = "OCR lint: ruff + mypy in parallel"
+depends = ["lint:ruff", "lint:mypy"]
+
+[tasks."lint:ruff"]
+alias = "ocr:lint:ruff"
+description = "Lint Python (ruff check + format)"
+depends = ["install"]
+run = ["ruff check .", "ruff format --check ."]
+
+[tasks."lint:mypy"]
+alias = "ocr:lint:mypy"
+description = "Type-check Python (mypy)"
+depends = ["install"]
+run = "mypy ."
+
+[tasks."lint:fix"]
+alias = "ocr:lint:fix"
+description = "OCR lint with autofix (ruff)"
+run = ["ruff check --fix .", "ruff format ."]
