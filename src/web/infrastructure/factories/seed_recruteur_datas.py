@@ -242,6 +242,14 @@ def seed_recruteur_datas(force: bool = False) -> dict:
             category=Category.A,
             publication_date=datetime(2025, 6, 1, tzinfo=UTC),
         ),
+        OfferFactory.create_model(
+            title="Chargé de mission",
+            reference="REF-2025-006",
+            external_id="SEED-ACTIF-007",
+            verse=Verse.FPE,
+            category=Category.A,
+            publication_date=datetime(2025, 6, 1, tzinfo=UTC),
+        ),
     ]
 
     # ------------------------------------------------------------------ #
@@ -302,6 +310,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         (offres_actives[3], claire_id, (david_id, AgentRecrutementRole.CONTRIBUTEUR)),
         (offres_actives[4], claire_id, None),
         (offres_actives[5], claire_id, None),
+        (offres_actives[6], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
         (offres_archivees[0], claire_id, None),
         (offres_archivees[1], claire_id, None),
         (offres_archivees[2], claire_id, None),
