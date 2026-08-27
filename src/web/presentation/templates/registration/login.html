@@ -84,18 +84,20 @@
                                      aria-live="assertive"></div>
                             </fieldset>
                         </form>
-                        <div class="fr-connect-group fr-mt-4w">
-                            <a href="{% url 'identite:proconnect_login' %}" class="fr-connect">
-                                <span class="fr-connect__login">S'identifier avec</span>
-                                <span class="fr-connect__brand">ProConnect</span>
-                            </a>
-                            <p>
-                                <a href="https://www.proconnect.gouv.fr/"
-                                   target="_blank"
-                                   rel="noopener"
-                                   title="Qu'est-ce que ProConnect ? - Ouvre une nouvelle fenêtre">Qu'est-ce que ProConnect ?</a>
-                            </p>
-                        </div>
+                        {% if PROCONNECT_LOGIN_ENABLED %}
+                            <div class="fr-connect-group fr-mt-4w">
+                                <a href="{% url 'identite:proconnect_login' %}" class="fr-connect">
+                                    <span class="fr-connect__login">S'identifier avec</span>
+                                    <span class="fr-connect__brand">ProConnect</span>
+                                </a>
+                                <p>
+                                    <a href="https://www.proconnect.gouv.fr/"
+                                       target="_blank"
+                                       rel="noopener"
+                                       title="Qu'est-ce que ProConnect ? - Ouvre une nouvelle fenêtre">Qu'est-ce que ProConnect ?</a>
+                                </p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 <p class="csplab-login__signup fr-text--sm fr-text-mention--grey fr-mt-4w">

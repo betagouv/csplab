@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpRequest, HttpResponse, HttpResponseBase
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBase
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views import View
@@ -54,6 +54,8 @@ class LoginView(auth_views.LoginView):
 
 class ProconnectLoginView(View):
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:
+        if not settings.PROCONNECT_LOGIN_ENABLED:
+            raise Http404
         redirect_uri = request.build_absolute_uri(
             reverse("identite:proconnect_callback")
         )
@@ -64,6 +66,8 @@ class ProconnectLoginView(View):
 
 class ProconnectCallbackView(View):
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:
+        if not settings.PROCONNECT_LOGIN_ENABLED:
+            raise Http404
         try:
             token = oauth.proconnect.authorize_access_token(request)
             claims = fetch_userinfo_claims(token)

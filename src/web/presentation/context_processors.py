@@ -15,6 +15,10 @@ def robots(request: HttpRequest) -> dict[str, object]:
     return {"ROBOTS_INDEXING": settings.ROBOTS_INDEXING}
 
 
+def proconnect(request: HttpRequest) -> dict[str, object]:
+    return {"PROCONNECT_LOGIN_ENABLED": settings.PROCONNECT_LOGIN_ENABLED}
+
+
 def skiplinks(request: HttpRequest) -> dict[str, Any]:
     return {
         "skiplinks": [

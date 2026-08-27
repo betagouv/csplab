@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 from authlib.integrations.base_client.errors import OAuthError
 from django.conf import settings
 from django.contrib.messages import get_messages
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
@@ -12,7 +13,21 @@ from infrastructure.authentication.proconnect_client import (
 )
 
 
+class TestProconnectLoginView:
+    @override_settings(PROCONNECT_LOGIN_ENABLED=False)
+    def test_get_returns_404_when_disabled(self, db, client):
+        response = client.get(reverse("identite:proconnect_login"))
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
 class TestProconnectCallbackView:
+    @override_settings(PROCONNECT_LOGIN_ENABLED=False)
+    def test_get_returns_404_when_disabled(self, db, client):
+        response = client.get(reverse("identite:proconnect_callback"))
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
     def test_callback_oauth_error_shows_error_message_and_redirects_to_login(
         self, db, client, monkeypatch
     ):

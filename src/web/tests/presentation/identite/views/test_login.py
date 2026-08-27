@@ -1,5 +1,6 @@
+from django.test import override_settings
 from django.urls import reverse
-from pytest_django.asserts import assertContains, assertTemplateUsed
+from pytest_django.asserts import assertContains, assertNotContains, assertTemplateUsed
 from rest_framework import status
 
 from infrastructure.factories.identite.utilisateur_factory import DEFAULT_PASSWORD
@@ -53,6 +54,13 @@ class TestLoginView:
 
         assertContains(response, "ProConnect")
         assertContains(response, reverse("identite:proconnect_login"))
+
+    @override_settings(PROCONNECT_LOGIN_ENABLED=False)
+    def test_get_login_page_hides_proconnect_button_when_disabled(self, db, client):
+        response = client.get(reverse("identite:login"))
+
+        assertNotContains(response, "ProConnect")
+        assertNotContains(response, reverse("identite:proconnect_login"))
 
     def test_post_with_correct_credentials_redirects_to_next_url(
         self, db, client, test_user
