@@ -51,28 +51,28 @@ _AUTORISE_POUR_STAFF: frozenset[OrganismeAction] = frozenset(
 # Authorisations niveau Organisme
 # -------------------------------------
 _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
-    OrganismeAction.GET_ORGANISME: frozenset({AgentOrganismeRole.RESPONSABLE}),
+    OrganismeAction.GET_ORGANISME: frozenset({AgentOrganismeRole.SUPERVISEUR}),
     OrganismeAction.INITIALIZE_ORGANISME_STEPS: frozenset(
-        {AgentOrganismeRole.RESPONSABLE}
+        {AgentOrganismeRole.SUPERVISEUR}
     ),
-    OrganismeAction.UPDATE_ORGANISME_STEPS: frozenset({AgentOrganismeRole.RESPONSABLE}),
+    OrganismeAction.UPDATE_ORGANISME_STEPS: frozenset({AgentOrganismeRole.SUPERVISEUR}),
     OrganismeAction.LISTER_MES_RECRUTEMENTS: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.MEMBRE}
     ),
     OrganismeAction.VOIR_DETAIL_RECRUTEMENT: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.MEMBRE}
     ),
     OrganismeAction.GET_RECRUTEMENT_ETAPES: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.MEMBRE}
     ),
     OrganismeAction.UPDATE_RECRUTEMENT_ETAPES: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.MEMBRE}
     ),
     OrganismeAction.INIT_RECRUTEMENT_ETAPES: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.MEMBRE}
     ),
     OrganismeAction.CHANGER_ETAPE_CANDIDATURES: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.MEMBRE}
     ),
     OrganismeAction.LIST_ORGANISME_AGENTS: frozenset({AgentOrganismeRole.RESPONSABLE}),
     OrganismeAction.ATTACH_ORGANISME_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),

@@ -78,7 +78,7 @@ class TestResponsableActions:
     def test_responsable_actions_allow_responsable(
         self, action: OrganismeAction
     ) -> None:
-        service, repository, _ = _service(AgentOrganismeRole.RESPONSABLE)
+        service, repository, _ = _service(AgentOrganismeRole.SUPERVISEUR)
         organisme_id, agent_id = uuid4(), uuid4()
 
         result = service.est_autorise(
@@ -89,7 +89,7 @@ class TestResponsableActions:
             ),
         )
 
-        assert result == AgentOrganismeRole.RESPONSABLE
+        assert result == AgentOrganismeRole.SUPERVISEUR
         repository.get_role.assert_called_once_with(
             organisme_id=organisme_id, agent_id=agent_id
         )
@@ -126,7 +126,7 @@ class TestResponsableActions:
 
 class TestListerMesRecrutementRbac:
     @pytest.mark.parametrize(
-        "role", [AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE]
+        "role", [AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.MEMBRE]
     )
     def test_allow_responsable_and_membre(self, role: AgentOrganismeRole) -> None:
         service, _, _ = _service(role)
@@ -181,7 +181,7 @@ class TestVoirDetailRecrutementRbac:
 
     def test_responsable_bypasses_recrutement_check(self) -> None:
         service, _, recrutement_repository = _service(
-            AgentOrganismeRole.RESPONSABLE, None
+            AgentOrganismeRole.SUPERVISEUR, None
         )
 
         result = service.est_autorise(
@@ -193,7 +193,7 @@ class TestVoirDetailRecrutementRbac:
             recrutement_id=uuid4(),
         )
 
-        assert result == AgentOrganismeRole.RESPONSABLE
+        assert result == AgentOrganismeRole.SUPERVISEUR
         recrutement_repository.get_role.assert_not_called()
 
     def test_membre_without_recrutement_role_is_denied(self) -> None:
@@ -248,7 +248,7 @@ class TestRecrutementEtapesRbac:
         self, action: OrganismeAction
     ) -> None:
         service, _, recrutement_repository = _service(
-            AgentOrganismeRole.RESPONSABLE, None
+            AgentOrganismeRole.SUPERVISEUR, None
         )
 
         result = service.est_autorise(
@@ -260,7 +260,7 @@ class TestRecrutementEtapesRbac:
             recrutement_id=uuid4(),
         )
 
-        assert result == AgentOrganismeRole.RESPONSABLE
+        assert result == AgentOrganismeRole.SUPERVISEUR
         recrutement_repository.get_role.assert_not_called()
 
     def test_membre_with_recrutement_responsable_is_allowed(
@@ -340,7 +340,7 @@ def test_raises_when_organisme_not_found() -> None:
         str(organisme_id)
     )
     service, _, _ = _service(
-        AgentOrganismeRole.RESPONSABLE,
+        AgentOrganismeRole.SUPERVISEUR,
         organisme_recruteur_repository=organisme_recruteur_repository,
     )
 

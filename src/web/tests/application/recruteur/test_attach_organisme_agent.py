@@ -36,7 +36,7 @@ def usecase_fixture(
 
 def test_responsable_attaches_bare_agent(db, usecase):
     responsable, organisme = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     bare_agent = AgentFactory.create_model()
 
@@ -71,14 +71,14 @@ def test_staff_bypasses_role_check(db, usecase):
         AttachOrganismeAgentCommand(
             organisme_id=organisme.id,
             agent_id=bare_agent.utilisateur_id,
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=UtilisateurFactory.create_entity(
                 entity_id=uuid4(), is_staff=True
             ),
         )
     )
 
-    assert agent_organisme.role == AgentOrganismeRole.RESPONSABLE.value
+    assert agent_organisme.role == AgentOrganismeRole.SUPERVISEUR.value
     assert OrganismeAgentModel.objects.filter(
         organisme_id=organisme.id, agent_id=bare_agent.utilisateur_id
     ).exists()
@@ -109,7 +109,7 @@ def test_membre_is_denied(db, usecase):
 
 def test_raises_when_agent_already_attached(db, usecase):
     responsable, organisme = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     autre_agent = OrganismeFactory.create_agent_in_organisme(
         organisme.id, role=AgentOrganismeRole.MEMBRE
@@ -120,7 +120,7 @@ def test_raises_when_agent_already_attached(db, usecase):
             AttachOrganismeAgentCommand(
                 organisme_id=organisme.id,
                 agent_id=autre_agent.utilisateur_id,
-                role=AgentOrganismeRole.RESPONSABLE,
+                role=AgentOrganismeRole.SUPERVISEUR,
                 utilisateur=UtilisateurFactory.create_entity(
                     entity_id=responsable.utilisateur_id, is_staff=False
                 ),

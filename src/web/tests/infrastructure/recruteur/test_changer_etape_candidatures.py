@@ -51,12 +51,12 @@ class TestChangerEtapeCandidaturesUsecase:
         ("role_organisme", "role_recrutement"),
         [
             pytest.param(
-                AgentOrganismeRole.RESPONSABLE,
+                AgentOrganismeRole.SUPERVISEUR,
                 AgentRecrutementRole.RESPONSABLE,
                 id="gestionnaire_responsable",
             ),
             pytest.param(
-                AgentOrganismeRole.RESPONSABLE,
+                AgentOrganismeRole.SUPERVISEUR,
                 AgentRecrutementRole.CONTRIBUTEUR,
                 id="gestionnaire_contributeur",
             ),
@@ -145,7 +145,7 @@ class TestChangerEtapeCandidaturesUsecase:
             id=uuid4(),
             organisme_id=recrutement.organisme_id,
             agent_id=agent_model.utilisateur_id,
-            role=AgentOrganismeRole.RESPONSABLE.value,
+            role=AgentOrganismeRole.SUPERVISEUR.value,
         ).save()
 
         with pytest.raises(CandidatureInexistante):

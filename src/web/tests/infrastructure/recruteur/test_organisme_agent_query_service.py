@@ -31,7 +31,7 @@ def service_fixture(
 
 def test_list_by_organisme_returns_agents(db, service):
     agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
 
     agents = service.list_by_organisme(organisme_id=organisme_model.id)
@@ -44,7 +44,7 @@ def test_list_by_organisme_returns_agents(db, service):
     assert agent_organisme.prenom == agent.utilisateur.first_name
     assert agent_organisme.email == agent.utilisateur.email
     assert agent_organisme.poste == agent.intitule_poste
-    assert agent_organisme.role == AgentOrganismeRole.RESPONSABLE.value
+    assert agent_organisme.role == AgentOrganismeRole.SUPERVISEUR.value
     assert agent_organisme.date_derniere_activite == agent.utilisateur.last_login
     assert agent_organisme.date_creation_compte == agent.utilisateur.date_joined
     assert agent_organisme.date_revocation is None
@@ -60,7 +60,7 @@ def test_list_by_organisme_returns_empty_when_no_agent(db, service):
 
 def test_list_by_organisme_excludes_revoked_agents(db, service):
     agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     OrganismeAgentModel.objects.filter(
         organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
@@ -73,7 +73,7 @@ def test_list_by_organisme_excludes_revoked_agents(db, service):
 
 def test_get_one_returns_agent(db, service):
     agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
 
     agent_organisme = service.get_one(
@@ -83,7 +83,7 @@ def test_get_one_returns_agent(db, service):
     assert agent_organisme is not None
     assert agent_organisme.organisme_id == organisme_model.id
     assert agent_organisme.entity_id == agent.utilisateur_id
-    assert agent_organisme.role == AgentOrganismeRole.RESPONSABLE.value
+    assert agent_organisme.role == AgentOrganismeRole.SUPERVISEUR.value
 
 
 def test_get_one_returns_none_when_no_liaison(db, service):
@@ -99,7 +99,7 @@ def test_get_one_returns_none_when_no_liaison(db, service):
 
 def test_get_one_returns_revoked_agent(db, service):
     agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     date_revocation = datetime.now(UTC)
     OrganismeAgentModel.objects.filter(

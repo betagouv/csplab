@@ -36,7 +36,7 @@ def usecase_fixture(
 
 def test_responsable_revokes_agent(db, usecase):
     responsable, organisme = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     autre_agent = OrganismeFactory.create_agent_in_organisme(
         organisme.id, role=AgentOrganismeRole.MEMBRE
@@ -108,7 +108,7 @@ def test_membre_is_denied(db, usecase):
 
 def test_raises_when_agent_not_attached(db, usecase):
     responsable, organisme = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     bare_agent = AgentFactory.create_model()
 
