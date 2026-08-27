@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime, timezone
 from uuid import UUID
 
 from ddd.aggregate_root import AggregateRoot, factory
@@ -21,8 +21,8 @@ class Organisme(AggregateRoot):
     _referentiel: str | None
     _millesime: str | None
     _gestion_ats: bool | None
-    _date_creation: date | None
-    _date_derniere_activite: date | None
+    _date_creation: datetime | None
+    _date_derniere_activite: datetime | None
 
     @classmethod
     def build(
@@ -36,9 +36,9 @@ class Organisme(AggregateRoot):
         external_id: str | None = None,
         referentiel: str | None = None,
         millesime: str | None = None,
+        date_creation: datetime | None = None,
+        date_derniere_activite: datetime | None = None,
         gestion_ats: bool | None = False,
-        date_creation: date | None = None,
-        date_derniere_activite: date | None = None,
     ) -> "Organisme":
         return cls(
             entity_id=entity_id,
@@ -92,11 +92,11 @@ class Organisme(AggregateRoot):
         return self._gestion_ats
 
     @property
-    def date_creation(self) -> date | None:
+    def date_creation(self) -> datetime | None:
         return self._date_creation
 
     @property
-    def date_derniere_activite(self) -> date | None:
+    def date_derniere_activite(self) -> datetime | None:
         return self._date_derniere_activite
 
     @classmethod
@@ -112,8 +112,6 @@ class Organisme(AggregateRoot):
         referentiel: str | None = None,
         millesime: str | None = None,
         gestion_ats: bool | None = False,
-        date_creation: date | None = None,
-        date_derniere_activite: date | None = None,
     ) -> "Organisme":
         return cls(
             _nom=nom,
@@ -125,6 +123,6 @@ class Organisme(AggregateRoot):
             _referentiel=referentiel,
             _millesime=millesime,
             _gestion_ats=gestion_ats,
-            _date_creation=date_creation,
-            _date_derniere_activite=date_derniere_activite,
+            _date_creation=datetime.now(tz=timezone.utc),
+            _date_derniere_activite=datetime.now(tz=timezone.utc),
         )

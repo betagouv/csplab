@@ -14,7 +14,7 @@ class OrganismeCree(DomainEvent):
     nom: str
     versant: Verse
     localisation: Localisation | None
-    siret: SIRET | None
+    siret: SIRET
     parent_id: UUID | None
     external_id: str | None = None
     referentiel: str | None = None

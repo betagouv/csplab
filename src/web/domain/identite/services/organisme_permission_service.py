@@ -126,7 +126,8 @@ class OrganismePermissionService:
         if utilisateur.is_staff and action in _ACTIONS_SANS_ORGANISME:
             return None
 
-        self._organisme_recruteur_repository.get_by_id(organisme_id)
+        if organisme_id:
+            self._organisme_recruteur_repository.get_by_id(organisme_id)
 
         if utilisateur.is_staff and action in _AUTORISE_POUR_STAFF:
             return None
