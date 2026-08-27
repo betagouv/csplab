@@ -71,7 +71,7 @@ class TestOrganismeAgentsView:
             AGENTS_URL,
             data={
                 "agent_id": agent_id,
-                "role": AgentOrganismeRole.RESPONSABLE.value,
+                "role": AgentOrganismeRole.SUPERVISEUR.value,
                 "poste": "Directeur des recrutements",
             },
             format="json",
@@ -80,7 +80,7 @@ class TestOrganismeAgentsView:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["agent_id"] == agent_id
-        assert data["role"] == AgentOrganismeRole.RESPONSABLE.value
+        assert data["role"] == AgentOrganismeRole.SUPERVISEUR.value
         assert data["poste"] == "Directeur des recrutements"
 
     def test_update_agent_invalid_role(self, authenticated_client):

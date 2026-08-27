@@ -33,7 +33,7 @@ def service_fixture() -> IRecrutementQueryService:
 @pytest.fixture(name="organisme_permission_service")
 def organisme_permission_service_fixture():
     service = MagicMock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentOrganismeRole.RESPONSABLE
+    service.est_autorise.return_value = AgentOrganismeRole.SUPERVISEUR
     return service
 
 

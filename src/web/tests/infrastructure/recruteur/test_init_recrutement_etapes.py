@@ -62,13 +62,13 @@ class TestInitRecrutementEtapes:
     @pytest.mark.parametrize(
         "kwargs",
         [
-            {"organisme_role": AgentOrganismeRole.RESPONSABLE},
+            {"organisme_role": AgentOrganismeRole.SUPERVISEUR},
             {
                 "organisme_role": AgentOrganismeRole.MEMBRE,
                 "agent_role": AgentRecrutementRole.RESPONSABLE,
             },
         ],
-        ids=["responsable_organisme", "responsable_recrutement"],
+        ids=["superviseur_organisme", "responsable_recrutement"],
     )
     def test_init_recrutement_etapes(self, db, recruteur_integration_container, kwargs):
         # parametres par defaut = une seule etape en cours

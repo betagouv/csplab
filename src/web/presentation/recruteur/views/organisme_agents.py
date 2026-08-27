@@ -26,7 +26,7 @@ _AGENTS_STATIQUES = [
         "prenom": "Jeanne",
         "email": "jeanne.dupont@example.gouv.fr",
         "poste": "Responsable recrutement",
-        "role": AgentOrganismeRole.RESPONSABLE.value,
+        "role": AgentOrganismeRole.SUPERVISEUR.value,
         "date_derniere_activite": "2026-08-18T09:12:00Z",
         "date_creation_compte": "2025-01-10T08:00:00Z",
         "date_revocation": None,

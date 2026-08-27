@@ -180,7 +180,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         id=uuid4(),
         organisme_id=_ORGANISME_UUID,
         agent_id=agents[0].utilisateur_id,
-        role=AgentOrganismeRole.RESPONSABLE.value,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
     ).save()
     for agent in agents[1:3]:
         OrganismeAgentModel(

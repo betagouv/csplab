@@ -39,7 +39,7 @@ def recruteur_integration_container_fixture(db):
 
 def test_get_organisme_steps(recruteur_integration_container):
     agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     usecase = recruteur_integration_container.get_organisme_recruteur_usecase()
 
@@ -58,7 +58,7 @@ def test_get_organisme_steps(recruteur_integration_container):
 
 def test_initialize_organisme_steps(recruteur_integration_container):
     agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     usecase = recruteur_integration_container.initialize_organisme_steps_usecase()
 
@@ -81,7 +81,7 @@ def test_update_organisme_steps(recruteur_integration_container):
     etapes = EtapeRecrutementFactory.create_entity_batch()
 
     agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        AgentOrganismeRole.RESPONSABLE, etapes=etapes
+        AgentOrganismeRole.SUPERVISEUR, etapes=etapes
     )
 
     nouvelles_etapes = EtapeRecrutementFactory.to_etape_data_list(etapes)
@@ -106,7 +106,7 @@ def test_update_organisme_steps(recruteur_integration_container):
 class TestGetOrganismeRecruteurRbac:
     @pytest.mark.parametrize(
         ("role", "est_staff"),
-        [(AgentOrganismeRole.RESPONSABLE, False), (None, True)],
+        [(AgentOrganismeRole.SUPERVISEUR, False), (None, True)],
         ids=["responsable", "staff"],
     )
     def test_role_grants_access(self, recruteur_integration_container, role, est_staff):
@@ -145,7 +145,7 @@ class TestGetOrganismeRecruteurRbac:
 class TestInitializeOrganismeStepsRbac:
     @pytest.mark.parametrize(
         ("role", "est_staff"),
-        [(AgentOrganismeRole.RESPONSABLE, False), (None, True)],
+        [(AgentOrganismeRole.SUPERVISEUR, False), (None, True)],
         ids=["responsable", "staff"],
     )
     def test_role_grants_access(self, recruteur_integration_container, role, est_staff):
@@ -196,7 +196,7 @@ class TestUpdateOrganismeStepsRbac:
 
     @pytest.mark.parametrize(
         ("role", "est_staff"),
-        [(AgentOrganismeRole.RESPONSABLE, False), (None, True)],
+        [(AgentOrganismeRole.SUPERVISEUR, False), (None, True)],
         ids=["responsable", "staff"],
     )
     def test_role_grants_access(self, recruteur_integration_container, role, est_staff):
