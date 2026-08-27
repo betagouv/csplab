@@ -81,7 +81,11 @@ async function handleRevocation(): Promise<void> {
     return
   const agent = revocationAgent.value
   try {
-    await updateAgent({ agent_id: agent.agent_id, date_revocation: new Date().toISOString() })
+    await updateAgent({
+      agent_id: agent.agent_id,
+      role: agent.role,
+      date_revocation: new Date().toISOString(),
+    })
     addToast({
       variant: 'success',
       title: 'Membre révoqué',
