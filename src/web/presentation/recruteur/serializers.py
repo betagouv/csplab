@@ -146,9 +146,11 @@ class AgentOrganismeSerializer(serializers.Serializer):
     prenom = serializers.CharField()
     email = serializers.EmailField()
     poste = serializers.CharField()
-    role = serializers.CharField()
-    date_derniere_activite = serializers.DateTimeField(required=False, allow_null=True)
-    date_creation_compte = serializers.DateTimeField(required=False, allow_null=True)
+    role = serializers.ChoiceField(
+        choices=[(r.value, r.value) for r in AgentOrganismeRole]
+    )
+    date_derniere_activite = serializers.DateTimeField(allow_null=True)
+    date_creation_compte = serializers.DateTimeField()
     date_revocation = serializers.DateTimeField(required=False, allow_null=True)
 
 

@@ -1337,7 +1337,7 @@ components:
         poste:
           type: string
         role:
-          type: string
+          $ref: '#/components/schemas/RoleEnum'
         date_derniere_activite:
           type: string
           format: date-time
@@ -1345,13 +1345,14 @@ components:
         date_creation_compte:
           type: string
           format: date-time
-          nullable: true
         date_revocation:
           type: string
           format: date-time
           nullable: true
       required:
       - agent_id
+      - date_creation_compte
+      - date_derniere_activite
       - email
       - nom
       - organisme_id
