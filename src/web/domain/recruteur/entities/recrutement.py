@@ -3,24 +3,29 @@ from datetime import datetime, timezone
 from typing import List
 from uuid import UUID
 
-from ddd.aggregate_root import AggregateRoot, mutate
+from ddd.aggregate_root import mutate
 from referentiel.types import IBatchUpdate
 
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
+from domain.recruteur.entities.organisme_recruteur import (
+    OrganismeRecruteur,
+)
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
 )
 from domain.recruteur.events.recrutement_events import (
     EtapeCandidaturesChangees,
-    EtapesReinitialisees,
+    RecrutementEtapesMisesAJour,
+    RecrutementEtapesReinitialisees,
 )
+from domain.recruteur.value_objects.etape_data import EtapeData
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 
 
 @dataclass(kw_only=True)
-class Recrutement(AggregateRoot):
+class Recrutement(OrganismeRecruteur):
     _offre_id: UUID
     _organisme_id: UUID
     _etapes: tuple[EtapeRecrutement, ...]
@@ -30,9 +35,8 @@ class Recrutement(AggregateRoot):
     _candidat_recrute_id: UUID | None = None
     _derniere_activite_le: datetime
 
-    # todo passer le schema processus de recrutement au moment du create
     @classmethod
-    def build(
+    def build(  # type: ignore[override]
         cls,
         offre_id: UUID,
         organisme_id: UUID,
@@ -84,7 +88,7 @@ class Recrutement(AggregateRoot):
         self._derniere_activite_le = datetime.now(tz=timezone.utc)
         return {"successes": successes, "failures": failures}
 
-    @mutate(EtapesReinitialisees)
+    @mutate(RecrutementEtapesReinitialisees)
     def reinitialiser_etapes(
         self,
         etapes_organisme: tuple[EtapeRecrutement, ...],
@@ -103,6 +107,14 @@ class Recrutement(AggregateRoot):
 
         self._etapes = tuple(new_steps)
         self._derniere_activite_le = datetime.now(tz=timezone.utc)
+
+    @mutate(RecrutementEtapesMisesAJour)
+    def mettre_a_jour_etapes(
+        self,
+        etapes_data: tuple[EtapeData, ...],
+    ):
+        super()._validate(etapes_data)
+        super()._apply(etapes_data)
 
     @property
     def offre_id(self) -> UUID:
