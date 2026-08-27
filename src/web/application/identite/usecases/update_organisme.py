@@ -33,13 +33,19 @@ class UpdateOrganismeUsecase(IUsecase[UpdateOrganismeCommand, Organisme]):
         self.organisme_repository = organisme_repository
         self.permission_service = permission_service
 
-    def execute(self, command: UpdateOrganismeCommand) -> Organisme:
+    def can_execute(self, command: UpdateOrganismeCommand) -> Organisme:
         self.permission_service.est_autorise(
             action=OrganismeAction.MODIFIER_ORGANISME,
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,
         )
         organisme = self.organisme_repository.get_by_id(command.organisme_id)
+        # todo domain
+        # organisme = self.organisme_repository.save(organisme)
+        return organisme
+
+    def execute(self, command: UpdateOrganismeCommand) -> Organisme:
+        organisme = self.can_execute(command=command)
         # todo domain
         # organisme = self.organisme_repository.save(organisme)
         return organisme

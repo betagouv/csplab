@@ -25,11 +25,15 @@ class EditerNoteUsecase(IUsecase[EditerNoteCommand, Note]):
         self.note_repository = note_repository
         self.audit_log_writer = audit_log_writer
 
-    def execute(self, command: EditerNoteCommand) -> Note:
+    def can_execute(self, command: EditerNoteCommand) -> Note:
         note = self.note_repository.get_by_id(command.note_id)
         # TODO : refactor with upcoming RBAC
         if note.publie_par_id != command.mis_a_jour_par_id:
             raise NoteIntrouvable(command.note_id)
+        return note
+
+    def execute(self, command: EditerNoteCommand) -> Note:
+        note = self.can_execute(command=command)
 
         note.modifier(message=command.message)
         self.note_repository.save(note)

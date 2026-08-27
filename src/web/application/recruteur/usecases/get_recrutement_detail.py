@@ -31,9 +31,7 @@ class GetRecrutementDetailUsecase(
         self.organisme_permission_service = organisme_permission_service
         self.recrutement_query_service = recrutement_query_service
 
-    def execute(
-        self, query: GetRecrutementDetailQuery
-    ) -> RecrutementDetailReadModel | None:
+    def can_execute(self, query: GetRecrutementDetailQuery) -> None:
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=query.organisme_id,
@@ -41,6 +39,10 @@ class GetRecrutementDetailUsecase(
             utilisateur=query.utilisateur,
         )
 
+    def execute(
+        self, query: GetRecrutementDetailQuery
+    ) -> RecrutementDetailReadModel | None:
+        self.can_execute(query)
         return self.recrutement_query_service.get_detail_by_recrutement(
             organisme_id=query.organisme_id, recrutement_id=query.recrutement_id
         )

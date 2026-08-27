@@ -31,10 +31,13 @@ class GetOrganismeRecruteurUsecase(
         self.organisme_recruteur_repository = organisme_recruteur_repository
         self.organisme_permission_service = organisme_permission_service
 
-    def execute(self, command: GetOrganismeRecruteurQuery) -> OrganismeRecruteur:
+    def can_execute(self, command: GetOrganismeRecruteurQuery) -> None:
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.GET_ORGANISME,
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,
         )
+
+    def execute(self, command: GetOrganismeRecruteurQuery) -> OrganismeRecruteur:
+        self.can_execute(command=command)
         return self.organisme_recruteur_repository.get_by_id(command.organisme_id)

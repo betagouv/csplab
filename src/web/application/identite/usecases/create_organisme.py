@@ -36,11 +36,14 @@ class CreateOrganismeUsecase(IUsecase[CreateOrganismeCommand, Organisme]):
         self.organisme_repository = organisme_repository
         self.permission_service = permission_service
 
-    def execute(self, input_data: CreateOrganismeCommand) -> Organisme:
+    def can_execute(self, input_data: CreateOrganismeCommand) -> None:
         self.permission_service.est_autorise(
             action=OrganismeAction.CREER_ORGANISME,
             utilisateur=input_data.utilisateur,
         )
+
+    def execute(self, input_data: CreateOrganismeCommand) -> Organisme:
+        self.can_execute(input_data=input_data)
         organisme = Organisme.create(
             nom=input_data.nom,
             versant=input_data.versant,

@@ -28,9 +28,12 @@ class ListOrganismesUsecase(IUsecase[ListOrganismesCommand, List[Organisme]]):
         self.organisme_repository = organisme_repository
         self.permission_service = permission_service
 
-    def execute(self, command: ListOrganismesCommand) -> List[Organisme]:
+    def can_execute(self, command: ListOrganismesCommand) -> None:
         self.permission_service.est_autorise(
             action=OrganismeAction.LISTER_ORGANISMES,
             utilisateur=command.utilisateur,
         )
+
+    def execute(self, command: ListOrganismesCommand) -> List[Organisme]:
+        self.can_execute(command=command)
         return self.organisme_repository.get_all()
