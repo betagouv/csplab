@@ -183,8 +183,7 @@ class TestInitializeOrganismeStepsRbac:
 
 
 class TestUpdateOrganismeStepsRbac:
-    def _command(self, organisme, agent, *, est_staff=False):
-        etapes = EtapeRecrutementFactory.create_entity_batch()
+    def _command(self, organisme, agent, *, etapes, est_staff=False):
         nouvelles_etapes = EtapeRecrutementFactory.to_etape_data_list(etapes)
         return UpdateOrganismeStepsCommand(
             utilisateur=UtilisateurFactory.create_entity(
@@ -200,10 +199,13 @@ class TestUpdateOrganismeStepsRbac:
         ids=["responsable", "staff"],
     )
     def test_role_grants_access(self, recruteur_integration_container, role, est_staff):
-        agent, organisme = OrganismeFactory.create_model_with_agent(role)
+        etapes = EtapeRecrutementFactory.create_entity_batch()
+        agent, organisme = OrganismeFactory.create_model_with_agent(role, etapes=etapes)
         usecase = recruteur_integration_container.update_organisme_steps_usecase()
 
-        result = usecase.execute(self._command(organisme, agent, est_staff=est_staff))
+        result = usecase.execute(
+            self._command(organisme, agent, etapes=etapes, est_staff=est_staff)
+        )
 
         assert result.etapes is not None
 
@@ -211,8 +213,9 @@ class TestUpdateOrganismeStepsRbac:
         "role", [AgentOrganismeRole.MEMBRE, None], ids=["membre", "non_membre"]
     )
     def test_role_refuse_access(self, recruteur_integration_container, role):
-        agent, organisme = OrganismeFactory.create_model_with_agent(role)
+        etapes = EtapeRecrutementFactory.create_entity_batch()
+        agent, organisme = OrganismeFactory.create_model_with_agent(role, etapes=etapes)
         usecase = recruteur_integration_container.update_organisme_steps_usecase()
 
         with pytest.raises(AccesOrganismeRefuse):
-            usecase.execute(self._command(organisme, agent))
+            usecase.execute(self._command(organisme, agent, etapes=etapes))

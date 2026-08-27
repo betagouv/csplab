@@ -13,7 +13,6 @@ from application.recruteur.dtos.recrutement_request import (
 )
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
-    OrganismeRecruteurSansEtapes,
 )
 from application.recruteur.usecases.get_recrutement_etapes import (
     GetRecrutementEtapesQuery,
@@ -124,7 +123,7 @@ class RecrutementEtapeView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         validated_etapes: list = serializer.validated_data  # type: ignore[assignment]
-        etapes = [
+        etapes_data = [
             EtapeData(
                 etape_uuid=etape.get("etape_uuid"),
                 nom=etape["nom"],
@@ -139,14 +138,14 @@ class RecrutementEtapeView(APIView):
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
                     utilisateur=self.user_mapper.to_domain(request),
-                    etapes=etapes,
+                    etapes=etapes_data,
                 )
             )
             out_serializer = EtapeRecrutementSerializer(
-                _fake_etapes_to_serializer_data(resultat), many=True
+                _etapes_to_serializer_data(resultat), many=True
             )
             return Response(out_serializer.data)
-        except (OrganismeRecruteurSansEtapes, OrganismeRecrutementIncoherents) as e:
+        except OrganismeRecrutementIncoherents as e:
             error_serializer = GenericErrorSerializer({"error": str(e)})
             return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
         except OrganismePermissionError:
@@ -198,7 +197,6 @@ class InitRecrutementEtapeView(APIView):
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except (
-            OrganismeRecruteurSansEtapes,
             OrganismeRecrutementIncoherents,
             SupressionEtapeImpossible,
         ) as e:

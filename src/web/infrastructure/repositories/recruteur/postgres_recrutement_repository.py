@@ -5,7 +5,7 @@ from django.db import transaction
 
 from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
-from domain.recruteur.events.etapes_events import EtapeAjoutee, EtapeSupprimee
+from domain.recruteur.events.etape_events import EtapeAjoutee, EtapeSupprimee
 from domain.recruteur.repositories.recrutement_repository_interface import (
     IRecrutementRepository,
 )

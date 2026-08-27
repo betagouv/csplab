@@ -2,11 +2,19 @@ from uuid import uuid4
 
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.organisme_recruteur import OrganismeRecruteur
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
+)
 
 
 class OrganismeRecruteurFactory:
     @staticmethod
     def create_entity(
-        etapes: tuple[EtapeRecrutement, ...] | None = None,
+        etapes: tuple[
+            EtapeRecrutement, ...
+        ] = EtapeRecrutementFactory.create_entity_batch(),
     ) -> OrganismeRecruteur:
-        return OrganismeRecruteur.build(entity_id=uuid4(), etapes=etapes)
+        return OrganismeRecruteur.build(
+            entity_id=uuid4(),
+            etapes=etapes,
+        )

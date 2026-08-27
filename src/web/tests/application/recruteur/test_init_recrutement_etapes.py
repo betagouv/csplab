@@ -6,7 +6,6 @@ import pytest
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
-    OrganismeRecruteurSansEtapes,
 )
 from application.recruteur.usecases.init_recrutement_etapes import (
     InitRecrutementEtapesUsecase,
@@ -19,6 +18,10 @@ from domain.identite.services.organisme_permission_service import (
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import SupressionEtapeImpossible
+from domain.recruteur.events.etape_events import EtapeAjoutee, EtapeSupprimee
+from domain.recruteur.events.recrutement_events import (
+    EtapesReinitialisees,
+)
 from domain.recruteur.repositories.organisme_repository_interface import (
     IOrganismeRecruteurRepository,
 )
@@ -134,6 +137,9 @@ class TestInitRecrutementEtapesUsecase:
         assert len(events) == 1 + len(organisme_recruteur.etapes) + len(
             recrutement.etapes
         )
+        assert any(isinstance(e, EtapesReinitialisees) for e in events)
+        assert any(isinstance(e, EtapeAjoutee) for e in events)
+        assert any(isinstance(e, EtapeSupprimee) for e in events)
 
     def test_raises_when_organisme_not_found(
         self, organisme_recruteur_repository, recrutement, usecase
@@ -148,21 +154,6 @@ class TestInitRecrutementEtapesUsecase:
             usecase.execute(
                 RecrutementRequest(
                     organisme_id=organisme_id,
-                    recrutement_id=recrutement.entity_id,
-                    utilisateur=UtilisateurFactory.create_entity(),
-                )
-            )
-
-    def test_raises_when_organisme_has_no_etapes(
-        self, organisme_recruteur_repository, recrutement, usecase
-    ):
-        organisme_no_etapes = OrganismeRecruteurFactory.create_entity()
-        organisme_recruteur_repository.get_by_id.return_value = organisme_no_etapes
-
-        with pytest.raises(OrganismeRecruteurSansEtapes):
-            usecase.execute(
-                RecrutementRequest(
-                    organisme_id=uuid4(),
                     recrutement_id=recrutement.entity_id,
                     utilisateur=UtilisateurFactory.create_entity(),
                 )

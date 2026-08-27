@@ -3,7 +3,6 @@ from ddd.usecase_interface import IUsecase
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
-    OrganismeRecruteurSansEtapes,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.services.organisme_permission_service import (
@@ -42,8 +41,6 @@ class InitRecrutementEtapesUsecase(
         organisme_recruteur = self.organisme_recruteur_repository.get_by_id(
             command.organisme_id
         )
-        if organisme_recruteur.etapes is None:
-            raise OrganismeRecruteurSansEtapes(command.organisme_id)
         recrutement = self.recrutement_repository.get_by_id(command.recrutement_id)
         if command.organisme_id != recrutement.organisme_id:
             raise OrganismeRecrutementIncoherents(

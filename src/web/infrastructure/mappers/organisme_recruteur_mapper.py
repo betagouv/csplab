@@ -12,7 +12,7 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 
 class OrganismeRecruteurMapper(IFromDomainMapper, IToDomainMapper):
     def to_domain(self, model: OrganismeModel) -> OrganismeRecruteur:
-        etapes: tuple[EtapeRecrutement, ...] | None = None
+        etapes: tuple[EtapeRecrutement, ...] = ()
         if model.etapes is not None:
             etapes = tuple(
                 EtapeRecrutement.build(
