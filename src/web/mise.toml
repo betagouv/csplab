@@ -104,7 +104,7 @@ run = [
 alias = "web:test"
 description = "Backend tests (e2e and accessibility excluded)"
 depends = ["install:py", "//:services:postgres"]
-run = "pytest --numprocesses=logical --create-db -m 'not accessibility and not e2e' --no-cov --exitfirst"
+run = "pytest --numprocesses=logical --create-db -m 'not accessibility and not e2e' --no-cov"
 
 [tasks."test:e2e"]
 alias = "web:test:e2e"
