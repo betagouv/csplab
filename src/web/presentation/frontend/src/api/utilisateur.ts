@@ -8,13 +8,18 @@ export async function getMe(): Promise<Utilisateur> {
   return data!
 }
 
-export async function logout(): Promise<void> {
-  await fetch('/utilisateur/deconnexion', {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {
-      'X-CSRFToken': readCsrfCookie(),
-    },
-  })
-  window.location.href = '/'
+export function logout(): void {
+  const form = document.createElement('form')
+  form.method = 'POST'
+  form.action = '/utilisateur/deconnexion'
+  form.hidden = true
+
+  const csrfToken = document.createElement('input')
+  csrfToken.type = 'hidden'
+  csrfToken.name = 'csrfmiddlewaretoken'
+  csrfToken.value = readCsrfCookie()
+  form.append(csrfToken)
+
+  document.body.append(form)
+  form.submit()
 }

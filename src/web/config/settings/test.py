@@ -32,6 +32,12 @@ INGRES_CLIENT_SECRET = "fake-client-secret"  # noqa S105
 ALBERT_API_BASE_URL = "https://fake-albert.example.com"
 ALBERT_API_KEY = "test-api-key"
 
+PROCONNECT_CLIENT_ID = "fake-client-id"
+PROCONNECT_CLIENT_SECRET = "fake-client-secret"  # noqa S105
+PROCONNECT_BASE_URL = "https://fake-proconnect.example.com"
+PROCONNECT_LOGIN_FLAG = True
+PROCONNECT_LOGIN_ENABLED = True
+
 INGESTION_API_KEY = "test-ingestion-api-key"
 
 SENTRY_DNS = "example.com"

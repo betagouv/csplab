@@ -1,6 +1,13 @@
+from authlib.integrations.base_client.errors import OAuthError
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBase
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.views import View
 from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -12,6 +19,11 @@ from application.identite.usecases.log_utilisateur_connexion import (
     LogUtilisateurConnexionInput,
 )
 from domain.identite.errors.identite_errors import UtilisateurNexistePas
+from infrastructure.authentication.proconnect_backend import build_proconnect_logout_url
+from infrastructure.authentication.proconnect_client import (
+    fetch_userinfo_claims,
+    oauth,
+)
 from infrastructure.di.identite.identite_factory import create_identite_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.identite.serializers import UtilisateurSerializer
@@ -38,6 +50,58 @@ class LoginView(auth_views.LoginView):
             usecase.execute(LogUtilisateurConnexionInput(utilisateur=utilisateur))
         except Exception as e:
             self.logger.error("Failed to audit login: %s", str(e))
+
+
+class ProconnectLoginView(View):
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:
+        if not settings.PROCONNECT_LOGIN_ENABLED:
+            raise Http404
+        redirect_uri = request.build_absolute_uri(
+            reverse("identite:proconnect_callback")
+        )
+        return oauth.proconnect.authorize_redirect(
+            request, redirect_uri, acr_values="eidas1"
+        )
+
+
+class ProconnectCallbackView(View):
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:
+        if not settings.PROCONNECT_LOGIN_ENABLED:
+            raise Http404
+        try:
+            token = oauth.proconnect.authorize_access_token(request)
+            claims = fetch_userinfo_claims(token)
+        except OAuthError:
+            return self._login_failure(request)
+
+        user = authenticate(request, proconnect_claims=claims)
+        if user is None:
+            return self._login_failure(request)
+
+        login(
+            request,
+            user,
+            backend="infrastructure.authentication.proconnect_backend.ProconnectBackend",
+        )
+        request.session["oidc_id_token"] = token.get("id_token")
+        return redirect(settings.LOGIN_REDIRECT_URL)
+
+    def _login_failure(self, request: HttpRequest) -> HttpResponseBase:
+        messages.error(
+            request,
+            "Aucun compte ProConnect associé à cette adresse e-mail. "
+            "Contactez votre administrateur.",
+        )
+        return redirect(settings.LOGIN_URL)
+
+
+class ProconnectLogoutView(View):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:
+        id_token = request.session.get("oidc_id_token")
+        logout(request)
+        if id_token:
+            return redirect(build_proconnect_logout_url(request, id_token))
+        return redirect(settings.LOGOUT_REDIRECT_URL)
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):

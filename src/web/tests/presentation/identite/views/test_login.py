@@ -1,5 +1,6 @@
+from django.test import override_settings
 from django.urls import reverse
-from pytest_django.asserts import assertContains, assertTemplateUsed
+from pytest_django.asserts import assertContains, assertNotContains, assertTemplateUsed
 from rest_framework import status
 
 from infrastructure.factories.identite.utilisateur_factory import DEFAULT_PASSWORD
@@ -32,7 +33,7 @@ class TestLoginView:
         errors_all = response.context["form"].errors["__all__"]
         assert "Saisissez un email et un mot de passe valides." in errors_all[0]
 
-    def test_post_with_correct_credentials_redirects_to_profile_view(
+    def test_post_with_correct_credentials_redirects_to_ats_base(
         self, db, client, test_user
     ):
         response = client.post(
@@ -44,9 +45,22 @@ class TestLoginView:
         )
 
         assert response.status_code == status.HTTP_302_FOUND
-        assert response.url == reverse("identite:profile")
+        assert response.url == reverse("ats:ats_base")
         assert "_auth_user_id" in client.session
         assert response.wsgi_request.user.is_authenticated is True
+
+    def test_get_login_page_renders_proconnect_button(self, db, client):
+        response = client.get(reverse("identite:login"))
+
+        assertContains(response, "ProConnect")
+        assertContains(response, reverse("identite:proconnect_login"))
+
+    @override_settings(PROCONNECT_LOGIN_ENABLED=False)
+    def test_get_login_page_hides_proconnect_button_when_disabled(self, db, client):
+        response = client.get(reverse("identite:login"))
+
+        assertNotContains(response, "ProConnect")
+        assertNotContains(response, reverse("identite:proconnect_login"))
 
     def test_post_with_correct_credentials_redirects_to_next_url(
         self, db, client, test_user
