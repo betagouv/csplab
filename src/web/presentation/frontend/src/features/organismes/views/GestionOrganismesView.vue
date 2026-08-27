@@ -15,7 +15,7 @@ const breadcrumb: CspBreadcrumbItem[] = [
     :breadcrumb="breadcrumb"
     title="Gestion des organismes"
   />
-  <CspPageContainer width="reading">
+  <CspPageContainer width="full">
     <OrganismesSection />
   </CspPageContainer>
 </template>
