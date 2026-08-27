@@ -103,3 +103,15 @@ class CandidatureFactory:
         return [
             CandidatureFactory.create_model(offre_id=offre_id) for _ in range(count)
         ]
+
+    @staticmethod
+    def create_models_with_etapes(
+        offre_id: UUID | None = None,
+        etapes: tuple[EtapeModel, ...] = (),
+    ) -> list[CandidatureModel]:
+        if offre_id is None:
+            offre_id = OfferFactory.create_model().id
+        return [
+            CandidatureFactory.create_model(offre_id=offre_id, etape=etape)
+            for etape in etapes
+        ]

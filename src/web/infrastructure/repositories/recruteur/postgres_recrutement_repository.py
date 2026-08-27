@@ -5,7 +5,12 @@ from django.db import transaction
 
 from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
-from domain.recruteur.events.etape_events import EtapeAjoutee, EtapeSupprimee
+from domain.recruteur.events.etape_events import (
+    EtapeAjoutee,
+    EtapeRenommee,
+    EtapeReordonnee,
+    EtapeSupprimee,
+)
 from domain.recruteur.repositories.recrutement_repository_interface import (
     IRecrutementRepository,
 )
@@ -51,7 +56,7 @@ class PostgresRecrutementRepository(IRecrutementRepository):
                 if e.entity_id
                 in {ev.aggregate_id for ev in events if isinstance(ev, EtapeAjoutee)}
             ]
-            if new_etapes:
+            if len(new_etapes) > 0:
                 EtapeModel.objects.bulk_create(
                     [
                         EtapeModel(
@@ -64,4 +69,27 @@ class PostgresRecrutementRepository(IRecrutementRepository):
                     ]
                 )
 
-            # todo batch_update will be done in update etapes usecase, nextPR
+            # batch update
+            updated_etapes = [
+                e
+                for e in recrutement.etapes
+                if e.entity_id
+                in {
+                    ev.aggregate_id
+                    for ev in events
+                    if isinstance(ev, EtapeRenommee) or isinstance(ev, EtapeReordonnee)
+                }
+            ]
+            if len(updated_etapes) > 0:
+                EtapeModel.objects.bulk_update(
+                    [
+                        EtapeModel(
+                            id=etape.entity_id,
+                            recrutement_id=recrutement.entity_id,
+                            categorie=etape.categorie.value,
+                            nom=etape.nom,
+                        )
+                        for etape in updated_etapes
+                    ],
+                    fields=["recrutement_id", "categorie", "nom"],
+                )
