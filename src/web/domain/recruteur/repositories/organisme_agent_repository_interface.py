@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
@@ -15,4 +16,8 @@ class IOrganismeAgentRepository(Protocol):
 
     def update_role(
         self, *, organisme_id: UUID, agent_id: UUID, role: AgentOrganismeRole
+    ) -> None: ...
+
+    def revoke(
+        self, *, organisme_id: UUID, agent_id: UUID, date_revocation: datetime
     ) -> None: ...

@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID, uuid4
 
 from django.db import IntegrityError, transaction
@@ -47,5 +48,15 @@ class PostgresOrganismeAgentRepository(IOrganismeAgentRepository):
             organisme_id=organisme_id,
             agent_id=agent_id,  # type: ignore[misc]
         ).update(role=role.value)
+        if updated == 0:
+            raise AgentNonRattache(organisme_id, agent_id)
+
+    def revoke(
+        self, *, organisme_id: UUID, agent_id: UUID, date_revocation: datetime
+    ) -> None:
+        updated = OrganismeAgentModel.objects.filter(
+            organisme_id=organisme_id,
+            agent_id=agent_id,  # type: ignore[misc]
+        ).update(date_revocation=date_revocation)
         if updated == 0:
             raise AgentNonRattache(organisme_id, agent_id)
