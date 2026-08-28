@@ -46,6 +46,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-mise
+      - name: Install web dependencies
+        run: mise run web:install
       - name: Lint with Ruff
         run: mise run web:lint:ruff
       - name: Lint with MyPy
@@ -101,6 +103,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-mise
+      - name: Install web dependencies
+        run: mise run web:install
       - name: Wait for Qdrant to be ready
         run: |
           echo "Waiting for Qdrant to be ready..."
