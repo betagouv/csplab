@@ -1,5 +1,6 @@
 # Task naming and layout: docs/mise.md. Personal overrides go to mise.local.toml.
 
+min_version = "2026.7.3"
 monorepo_root = true
 
 [monorepo]
