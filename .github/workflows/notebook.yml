@@ -9,6 +9,9 @@ on:
     #trigger this workflow if files have changed in notebook
     paths:
       - "src/notebook/**"
+      - "mise.toml"
+      - ".github/workflows/notebook.yml"
+      - ".github/actions/**"
 
 permissions:
   contents: read
@@ -16,19 +19,8 @@ permissions:
 jobs:
   build-notebook:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/notebook
     steps:
       - uses: actions/checkout@v5
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          version: "0.8.17"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: "./src/notebook/.python-version"
+      - uses: ./.github/actions/setup-mise
       - name: Install the project
-        run: uv sync --locked --all-extras --dev
+        run: mise run notebook:install

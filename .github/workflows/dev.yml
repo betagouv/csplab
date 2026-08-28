@@ -8,6 +8,9 @@ on:
     types: [ opened, synchronize, reopened, edited ]
     paths:
       - "dev/**"
+      - "mise.toml"
+      - ".github/workflows/dev.yml"
+      - ".github/actions/**"
 
 permissions:
   contents: read
@@ -15,19 +18,8 @@ permissions:
 jobs:
   build-dev:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./dev
     steps:
       - uses: actions/checkout@v5
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          version: "0.8.17"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: "./dev/.python-version"
+      - uses: ./.github/actions/setup-mise
       - name: Install dev tools
-        run: uv sync --locked --all-extras --dev
+        run: mise run dev:install
