@@ -1,0 +1,17 @@
+# Loaded over mise.toml (and the root mise.ci.toml) when MISE_ENV=ci: the
+# workflow provides Postgres as a service container with the "ingestion"
+# database already created, so db:create* are neutralised.
+
+[env]
+DATABASE_URL = "postgresql+psycopg2://postgres:pass@localhost:5432/ingestion"
+TEST_DATABASE_URL = "psql://postgres:pass@localhost:5432/ingestion"
+
+[tasks."db:create"]
+alias = "ingestion:db:create"
+description = "Create the ingestion database and user"
+run = "true"
+
+[tasks."db:create-test"]
+alias = "ingestion:db:create-test"
+description = "Create the ingestion_test database"
+run = "true"
