@@ -1,0 +1,22 @@
+# Loaded over mise.toml when MISE_ENV=ci: the workflow provides the services as
+# containers, so services:* are neutralised and the env replaces the env.d files.
+
+[env]
+WEB_SECRET_KEY = "the_secret_key"
+WEB_DATABASE_URL = "psql://postgres:pass@localhost:5432/web"
+WEB_QDRANT_URL = "http://localhost:6333"
+WEB_VECTOR_DB_TYPE = "QDRANT"
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+
+[tasks."docker:up"]
+hide = true
+run = "true"
+
+[tasks."services:postgres"]
+run = "true"
+
+[tasks."services:redis"]
+run = "true"
+
+[tasks."services:qdrant"]
+run = "true"
