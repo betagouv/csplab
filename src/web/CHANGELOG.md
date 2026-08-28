@@ -4,6 +4,70 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.16] - 2026-08-28
+
+### <!-- 0 --> Breaking Changes
+
+- ✨(recruteur-presentation) add create organisme view ([#1178](https://github.com/betagouv/csplab/pull/1178))
+- ✨(tooling) run every task natively with mise ([#1276](https://github.com/betagouv/csplab/pull/1276))
+
+### <!-- 1 --> Added
+
+- ✨(ats-presentation) wire etape candidature patch from frontend ([#1197](https://github.com/betagouv/csplab/pull/1197))
+- ⚡️(ci) cache Playwright browsers between runs ([#1202](https://github.com/betagouv/csplab/pull/1202))
+- ✨(ats-presentation) add a combobox base component ([#1198](https://github.com/betagouv/csplab/pull/1198))
+- ✨(ingestion) import et nettoyage d'établissements FINESS ([#1190](https://github.com/betagouv/csplab/pull/1190))
+- ✨(ingestion) complète le référentiel des catégories d'entité géographique ([#1209](https://github.com/betagouv/csplab/pull/1209))
+- ✨(identite) INTERFACE : ajouter la liste des organismes de rattachement d'un utilisateur agent ([#1213](https://github.com/betagouv/csplab/pull/1213))
+- ✨(recruteur) INTERFACE : obtenir la liste des agents d'un organisme ([#1216](https://github.com/betagouv/csplab/pull/1216))
+- ✨(recruteur) INTERFACE : ajouter un rôle pour un agent dans un organisme ([#1219](https://github.com/betagouv/csplab/pull/1219))
+- ✨(recruteur) INTERFACE : modïfier un agent dans un organisme ([#1222](https://github.com/betagouv/csplab/pull/1222))
+- ✨(recruteur) INTERFACE : révoquer un agent d'un organisme ([#1223](https://github.com/betagouv/csplab/pull/1223))
+- ✨(ingestion) publie les organismes nettoyés et CRON hebdomadaire ([#1212](https://github.com/betagouv/csplab/pull/1212))
+- ✨(ats-presentation) wire user current organisme ([#1225](https://github.com/betagouv/csplab/pull/1225))
+- ✅(ats-presentation) add e2e harness for the ats spa ([#1196](https://github.com/betagouv/csplab/pull/1196))
+- ✨(ats-presentation) add organismes admin list ([#1207](https://github.com/betagouv/csplab/pull/1207))
+- ✨(ats-presentation) add organisme creation from the admin list ([#1228](https://github.com/betagouv/csplab/pull/1228))
+- ✨(ats-presentation) allow editing an organisme from the admin list ([#1229](https://github.com/betagouv/csplab/pull/1229))
+- ✨(ats-presentation) add organisme detail page ([#1208](https://github.com/betagouv/csplab/pull/1208))
+- ✨(recruteur) init etapes recrutement ([#1204](https://github.com/betagouv/csplab/pull/1204))
+- ✨(ats-presentation) add the organismes member management tab ([#1254](https://github.com/betagouv/csplab/pull/1254))
+- 🐛(ingestion) ne garder qu'une seule structure FINESS par SIRET ([#1258](https://github.com/betagouv/csplab/pull/1258))
+- 🚧(identite) proconnect authent ([#1072](https://github.com/betagouv/csplab/pull/1072))
+
+### <!-- 2 --> Modified
+
+- ♻️(identite-infrastructure) convertit `username` en UUIDField ([#1200](https://github.com/betagouv/csplab/pull/1200))
+- ♻️(identite-infrastructure) simplifier la déclaration des clés étrangères sur Agent et Candidat ([#1201](https://github.com/betagouv/csplab/pull/1201))
+- ♻️(recruteur-presentation) add versant and counts in get_organismes ([#1221](https://github.com/betagouv/csplab/pull/1221))
+- ♻️(identite) renommage des variables et méthodes liées aux utilisateurs : `entity_id` devient `username` ([#1226](https://github.com/betagouv/csplab/pull/1226))
+- ✨(identite-usecase) alimenter les roles de l'agent dans le endpoint identite:users-detail avec les données du repo ([#1232](https://github.com/betagouv/csplab/pull/1232))
+- ♻️(recruteur-presentation) convert update_agent_role from PATH to PUT method ([#1234](https://github.com/betagouv/csplab/pull/1234))
+- 🎨(web) fix usecase classes name to apply to camel case rule : ListNotesUsecase becomes list_notes_usecase ([#1235](https://github.com/betagouv/csplab/pull/1235))
+- ♻️(ingestion) uniformise le nom des usecase (UseCase > Usecase) ([#1238](https://github.com/betagouv/csplab/pull/1238))
+- ♻️(identite) Intégrer la gestion des membres d'un organisme dans OrganismePermissionService (partie 1 : refacto) ([#1239](https://github.com/betagouv/csplab/pull/1239))
+- ♻️(tooling) Centralize Node.js and pnpm version definitions ([#1244](https://github.com/betagouv/csplab/pull/1244))
+- 🔧(tooling) do not exit on first failure when running the whole back test suite in parallelized mode ([#1261](https://github.com/betagouv/csplab/pull/1261))
+- 🎨(repo) correction de la casse des méthodes IUsecase et IAsyncUsecase ([#1243](https://github.com/betagouv/csplab/pull/1243))
+- 🔧(tooling) modify commitizen schema_pattern for subjects ([#1268](https://github.com/betagouv/csplab/pull/1268))
+- 🔧(tooling) add native mise tasks for front checks and e2e ([#1242](https://github.com/betagouv/csplab/pull/1242))
+- ♻️(ci) use mise in web ci workflow ([#1284](https://github.com/betagouv/csplab/pull/1284))
+- ♻️(ci) use mise in ingestion ci workflow ([#1285](https://github.com/betagouv/csplab/pull/1285))
+- ♻️(ci) use mise in ocr ci workflow ([#1287](https://github.com/betagouv/csplab/pull/1287))
+
+### <!-- 3 --> Removed
+
+- 🔥(ingestion) supprime l'import et l'archivage des offres via l'API Talentsoft ([#1217](https://github.com/betagouv/csplab/pull/1217))
+- 🔥(recruteur-presentation) delete endpoint get organisme recruteur details ([#1218](https://github.com/betagouv/csplab/pull/1218))
+
+### <!-- 4 --> Fixed
+
+- 🐛(ats-presentation) surface front-end errors in dev ([#1230](https://github.com/betagouv/csplab/pull/1230))
+- 🐛(ingestion) convert Lambert-93 coordinates from FINESS to WGS84 ([#1245](https://github.com/betagouv/csplab/pull/1245))
+- 🐛(ingestion) ne garder que les EGE FINESS actifs et porteurs ([#1252](https://github.com/betagouv/csplab/pull/1252))
+- 🔒️(ci) empêcher l'injection de script via titre de PR et nom de branche ([#1253](https://github.com/betagouv/csplab/pull/1253))
+- 🔧(tooling) add failure diagnostics for the e2e suite so the next flake in test_smoke.py will be diagnosable ([#1265](https://github.com/betagouv/csplab/pull/1265))
+
 ## [0.1.15] - 2026-08-18
 
 ### <!-- 1 --> Added
