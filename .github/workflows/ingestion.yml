@@ -23,6 +23,8 @@ jobs:
           filters: |
             relevant:
               - "src/ingestion/**"
+              - "mise.toml"
+              - "mise.ci.toml"
               - ".github/workflows/ingestion.yml"
               - ".github/actions/**"
 
@@ -32,9 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-uv-python
-        with:
-          service-path: src/ingestion
+      - uses: ./.github/actions/setup-mise
+      - name: Install ingestion dependencies
+        run: mise run ingestion:install
 
   lint-ingestion:
     needs: [check-changes, build-ingestion]
@@ -54,26 +56,17 @@ jobs:
           --health-retries 10
         ports:
           - 5432:5432
-    defaults:
-      run:
-        working-directory: ./src/ingestion
-    env:
-      DATABASE_URL: postgresql+psycopg2://postgres:pass@localhost:5432/ingestion
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-uv-python
-        with:
-          service-path: src/ingestion
+      - uses: ./.github/actions/setup-mise
+      - name: Install ingestion dependencies
+        run: mise run ingestion:install
       - name: Lint with Ruff
-        run: uv run ruff check .
-      - name: Lint format with Ruff
-        run: uv run ruff format --check .
+        run: mise run ingestion:lint:ruff
       - name: Lint with MyPy
-        run: uv run mypy .
+        run: mise run ingestion:lint:mypy
       - name: Check no migrations are missing
-        run: |
-          uv run alembic upgrade head
-          uv run alembic check
+        run: mise run ingestion:lint:migrations
 
   test-ingestion:
     needs: [check-changes, build-ingestion]
@@ -93,18 +86,13 @@ jobs:
           --health-retries 10
         ports:
           - 5432:5432
-    defaults:
-      run:
-        working-directory: ./src/ingestion
-    env:
-      DATABASE_URL: postgresql+psycopg2://postgres:pass@localhost:5432/ingestion
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-uv-python
-        with:
-          service-path: src/ingestion
+      - uses: ./.github/actions/setup-mise
+      - name: Install ingestion dependencies
+        run: mise run ingestion:install
       - name: Test with pytest
-        run: uv run pytest --cov=. --cov-report=term-missing --cov-fail-under=95
+        run: mise run ingestion:test -- --cov=. --cov-report=term-missing --cov-fail-under=95
 
   deploy-ingestion:
     needs: [check-changes, lint-ingestion, test-ingestion]

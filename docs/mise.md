@@ -90,6 +90,6 @@ alias = "mt"
 
 ## CI
 
-Le workflow `web.yml` sélectionne l'environnement `MISE_ENV=ci`, qui charge `mise.ci.toml` par-dessus `mise.toml`, qui remplace les tâches `services:*` par des no-ops, les services étant fournis par les containers du workflow.
+Les workflows `web.yml` et `ingestion.yml` sélectionnent l'environnement `MISE_ENV=ci`, qui charge `mise.ci.toml` par-dessus `mise.toml`, qui remplace les tâches `services:*` par des no-ops, les services étant fournis par les containers du workflow. `src/ingestion/mise.ci.toml` neutralise en plus ses tâches `db:create*` et pointe `DATABASE_URL`/`TEST_DATABASE_URL` vers le service Postgres du job.
 
-`MISE_ENV=ci mise run web:test` reproduit ce contexte en local.
+`MISE_ENV=ci mise run web:test` ou `MISE_ENV=ci mise run ingestion:test` reproduisent ce contexte en local.
