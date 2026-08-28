@@ -24,6 +24,8 @@ jobs:
             relevant:
               - "src/web/**"
               - "libs/**"
+              - "mise.toml"
+              - "mise.ci.toml"
               - ".github/workflows/web.yml"
               - ".github/actions/**"
 
@@ -31,67 +33,44 @@ jobs:
     needs: check-changes
     if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/web
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-uv-python
-        with:
-          service-path: src/web
-      - uses: ./.github/actions/setup-pnpm-node
-        with:
-          lock-file-path: src/web/pnpm-lock.yaml
-      - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup-mise
       - name: Build frontend
-        run: pnpm run build
+        run: mise run front:build
 
   lint-web:
     needs: [check-changes, build-web]
     if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/web
-    env:
-      WEB_SECRET_KEY: the_secret_key
-      WEB_DATABASE_URL: psql://web:pass@localhost:5432/web
-      DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-uv-python
-        with:
-          service-path: src/web
+      - uses: ./.github/actions/setup-mise
+      - name: Install web dependencies
+        run: mise run web:install
       - name: Lint with Ruff
-        run: uv run ruff check .
-      - name: Lint format with Ruff
-        run: uv run ruff format --check .
+        run: mise run web:lint:ruff
       - name: Lint with MyPy
-        run: uv run mypy .
+        run: mise run web:lint:mypy
       - name: Lint web templates with djlint
-        run: uv run djlint presentation/templates --check
-      - uses: ./.github/actions/setup-pnpm-node
-        with:
-          lock-file-path: src/web/pnpm-lock.yaml
-      - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
+        run: mise run web:lint:djlint
+      - name: Lint candidate JS
+        run: mise run web:lint:candidate-js
+      - name: Lint candidate styles
+        run: mise run web:lint:styles
       - name: Lint frontend
-        run: pnpm --filter csplab-frontend lint
+        run: mise run front:lint
       - name: TypeScript check
-        run: pnpm --filter csplab-frontend build
+        run: mise run front:typecheck
       - name: Test frontend with coverage
-        run: pnpm --filter csplab-frontend test:run --coverage
+        run: mise run front:test -- --coverage
       - name: Check no migrations are missing
-        working-directory: ${{ github.workspace }}
-        run: make lint-web-migrations WEB_UV="cd src/web && uv run"
+        run: mise run web:lint:migrations
       - name: Lint schema
-        working-directory: ${{ github.workspace }}
-        run: make lint-schema WEB_UV="cd src/web && uv run"
+        run: mise run web:lint:schema
       - name: Check internal schema and frontend types are up to date
-        working-directory: ${{ github.workspace }}
         run: |
-          make lint-frontend-types WEB_INTERNAL_API_UV="cd src/web && DJANGO_SETTINGS_MODULE=config.settings.schema_internal uv run" || \
+          mise run web:lint:types || \
             (echo "::error::Le schéma OpenAPI interne ou les types TypeScript ne sont pas synchronisés avec le schéma OpenAPI. Lancez 'mise run front:types' et committez." && exit 1)
 
   test-web:
@@ -121,20 +100,11 @@ jobs:
         image: redis
         ports:
           - 6379:6379
-    defaults:
-      run:
-        working-directory: ./src/web
-    env:
-      WEB_SECRET_KEY: the_secret_key
-      WEB_DATABASE_URL: psql://postgres:pass@localhost:5432/web
-      WEB_QDRANT_URL: http://localhost:6333
-      WEB_VECTOR_DB_TYPE: QDRANT
-      DJANGO_SETTINGS_MODULE: config.settings.test
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-uv-python
-        with:
-          service-path: src/web
+      - uses: ./.github/actions/setup-mise
+      - name: Install web dependencies
+        run: mise run web:install
       - name: Wait for Qdrant to be ready
         run: |
           echo "Waiting for Qdrant to be ready..."
@@ -147,15 +117,12 @@ jobs:
             sleep 2
           done
       - name: Setup Qdrant collections
-        run: |
-          echo "Creating production collection..."
-          uv run python config/setup-qdrant.py
-          echo "Creating test collection..."
-          uv run python config/setup-qdrant.py --collection-name fonction_publique_test
+        run: mise run web:qdrant:init
       - name: Test with pytest
-        run: uv run pytest -m "not accessibility and not e2e" .
+        run: mise run web:test
       - name: Get Playwright version
         id: playwright-version
+        working-directory: ./src/web
         run: echo "version=$(uv run playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -165,19 +132,14 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - name: Install Playwright browser
         if: steps.playwright-cache.outputs.cache-hit != 'true'
+        working-directory: ./src/web
         run: uv run playwright install --with-deps chromium
       - name: Install Playwright OS dependencies
         if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: ./src/web
         run: uv run playwright install-deps chromium
-      - uses: ./.github/actions/setup-pnpm-node
-        with:
-          lock-file-path: src/web/pnpm-lock.yaml
-      - name: Build frontend for e2e
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm run build
-      - name: Test Web suite with coverage
-        run: uv run pytest -m "e2e" .
+      - name: Test e2e
+        run: mise run web:test:e2e
 
   deploy-web:
     needs: [check-changes, lint-web, test-web]

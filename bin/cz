@@ -2,4 +2,4 @@
 
 set -eo pipefail
 
-cd dev && direnv exec . uv run cz "$@"
+cd "$(dirname "$0")/../dev" && uv run cz "$@"

@@ -1,0 +1,15 @@
+# Loaded over mise.toml when MISE_ENV=ci: the workflow provides the services as
+# containers, so services:* are neutralised. Each subproject carries its own env.
+
+[tasks."docker:up"]
+hide = true
+run = "true"
+
+[tasks."services:postgres"]
+run = "true"
+
+[tasks."services:redis"]
+run = "true"
+
+[tasks."services:qdrant"]
+run = "true"

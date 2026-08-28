@@ -1,0 +1,33 @@
+name: Set up mise
+description: Install mise with the ci environment, provision the repo toolchain (node + pnpm, uv) and cache the package stores. Requires actions/checkout to have run first.
+
+inputs:
+  mise-version:
+    description: mise version to install
+    default: "2026.8.14"
+
+runs:
+  using: composite
+  steps:
+    - name: Select the ci mise environment
+      shell: bash
+      run: echo "MISE_ENV=ci" >> "$GITHUB_ENV"
+    - name: Install mise and the toolchain
+      uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c
+      with:
+        version: ${{ inputs.mise-version }}
+        cache: true
+    - name: Cache the uv store
+      uses: actions/cache@v6
+      with:
+        path: |
+          ~/.cache/uv
+          ~/.local/share/uv/python
+        key: uv-store-${{ runner.os }}-${{ hashFiles('**/uv.lock', '**/.python-version') }}
+        restore-keys: uv-store-${{ runner.os }}-
+    - name: Cache the pnpm store
+      uses: actions/cache@v6
+      with:
+        path: ~/.local/share/pnpm/store
+        key: pnpm-store-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: pnpm-store-${{ runner.os }}-
