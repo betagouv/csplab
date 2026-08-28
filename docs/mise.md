@@ -1,8 +1,11 @@
 # Tâches mise
 
-Le Makefile a été remplacé par des tâches [mise](https://mise.jdx.dev/tasks/)
-(il n'en reste que les trois cibles que la CI appelle, en attendant qu'elle
-exécute les tâches mise elle-même).
+Le Makefile a été remplacé par des tâches [mise](https://mise.jdx.dev/tasks/),
+que la CI exécute aussi : le workflow `web.yml` sélectionne l'environnement
+`MISE_ENV=ci`, qui charge `mise.ci.toml` par-dessus `mise.toml` (même mécanique
+que `mise.local.toml`). Ce fichier porte l'env de la CI et remplace les tâches
+`services:*` par des no-ops, les services étant fournis par les containers du
+workflow. `MISE_ENV=ci mise run web:test` reproduit ce contexte en local.
 `mise install` installe les outils (node, uv). `mise run` seul affiche les
 commandes usuelles, `mise tasks --all` liste toutes les tâches.
 
