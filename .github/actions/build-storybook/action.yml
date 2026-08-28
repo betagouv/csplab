@@ -9,14 +9,8 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: ./.github/actions/setup-pnpm-node
-      with:
-        lock-file-path: src/web/pnpm-lock.yaml
-    - run: pnpm install --frozen-lockfile
+    - uses: ./.github/actions/setup-mise
+    - run: mise run front:storybook:build
       shell: bash
-      working-directory: ./src/web
-    - run: pnpm --filter csplab-frontend build-storybook
-      shell: bash
-      working-directory: ./src/web
       env:
         STORYBOOK_BASE_URL: ${{ inputs.base-url }}

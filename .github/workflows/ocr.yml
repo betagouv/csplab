@@ -23,6 +23,8 @@ jobs:
           filters: |
             relevant:
               - "src/ocr/**"
+              - "mise.toml"
+              - "mise.ci.toml"
               - ".github/workflows/ocr.yml"
               - ".github/actions/**"
 
@@ -32,53 +34,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-uv-python
-        with:
-          service-path: src/ocr
+      - uses: ./.github/actions/setup-mise
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y poppler-utils tesseract-ocr tesseract-ocr-fra
+      - name: Install ocr dependencies
+        run: mise run ocr:install
 
   lint-ocr:
     needs: [check-changes, build-ocr]
     if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/ocr
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-uv-python
-        with:
-          service-path: src/ocr
+      - uses: ./.github/actions/setup-mise
+      - name: Install ocr dependencies
+        run: mise run ocr:install
       - name: Lint with Ruff
-        run: uv run ruff check .
-      - name: Lint format with Ruff
-        run: uv run ruff format --check .
+        run: mise run ocr:lint:ruff
       - name: Lint with MyPy
-        run: uv run mypy .
+        run: mise run ocr:lint:mypy
 
   test-ocr:
     needs: [check-changes, build-ocr]
     if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/ocr
-    env:
-      API_KEY: test-api-key-for-development
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-uv-python
-        with:
-          service-path: src/ocr
+      - uses: ./.github/actions/setup-mise
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y poppler-utils tesseract-ocr tesseract-ocr-fra
+      - name: Install ocr dependencies
+        run: mise run ocr:install
       - name: Test with pytest
-        run: uv run pytest .
+        run: mise run ocr:test
 
   deploy-ocr:
     needs: [check-changes, lint-ocr, test-ocr]

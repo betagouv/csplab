@@ -90,6 +90,6 @@ alias = "mt"
 
 ## CI
 
-Les workflows `web.yml` et `ingestion.yml` sélectionnent l'environnement `MISE_ENV=ci`, qui charge `mise.ci.toml` par-dessus `mise.toml`, qui remplace les tâches `services:*` par des no-ops, les services étant fournis par les containers du workflow. `src/ingestion/mise.ci.toml` neutralise en plus ses tâches `db:create*` et pointe `DATABASE_URL`/`TEST_DATABASE_URL` vers le service Postgres du job.
+Tous les workflows sélectionnent l'environnement `MISE_ENV=ci` via l'action `setup-mise`, qui charge `mise.ci.toml` par-dessus `mise.toml`, qui remplace les tâches `services:*` par des no-ops, les services étant fournis par les containers du workflow. `src/ingestion/mise.ci.toml` neutralise en plus ses tâches `db:create*` et pointe `DATABASE_URL`/`TEST_DATABASE_URL` vers le service Postgres du job. `src/ocr/mise.ci.toml` fournit l'`API_KEY` et `src/web/mise.ci.toml` l'environnement Django, que `env.d/*` (non versionnés) portent en local.
 
-`MISE_ENV=ci mise run web:test` ou `MISE_ENV=ci mise run ingestion:test` reproduisent ce contexte en local.
+`MISE_ENV=ci mise run web:test`, `MISE_ENV=ci mise run ingestion:test` ou `MISE_ENV=ci mise run ocr:test` reproduisent ce contexte en local.

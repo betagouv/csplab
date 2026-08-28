@@ -63,6 +63,7 @@ alias = [
   "storybook"
 ]
 description = "Frontend Storybook"
+depends = [ "//src/web:install:js" ]
 run = "pnpm run storybook"
 
 [tasks."storybook:build"]
@@ -71,6 +72,7 @@ alias = [
   "storybook:build"
 ]
 description = "Static Storybook build, incremental"
+depends = [ "//src/web:install:js" ]
 sources = [
   "src/**/*",
   ".storybook/**/*",

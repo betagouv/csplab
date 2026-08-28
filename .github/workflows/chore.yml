@@ -14,69 +14,35 @@ permissions:
 jobs:
   build-dev:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./dev
     steps:
       - uses: actions/checkout@v5
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          version: "0.8.17"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: "./dev/.python-version"
+      - uses: ./.github/actions/setup-mise
       - name: Install dev tools
-        run: uv sync --locked --all-extras --dev
+        run: mise run dev:install
 
   PR-title-format:
     if: github.event_name == 'pull_request'
     needs: build-dev
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./dev
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          version: "0.8.17"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: "./dev/.python-version"
+      - uses: ./.github/actions/setup-mise
       - name: Check PR title format
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          uv run cz check --message "$PR_TITLE"
+        run: mise run dev:cz -- check --message "$PR_TITLE"
 
   lint-format:
     needs: build-dev
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./dev
     steps:
       - uses: actions/checkout@v5
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          version: "0.8.17"
-          enable-cache: true
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: "./dev/.python-version"
+      - uses: ./.github/actions/setup-mise
       - name: Run pre-commit
-        run: uv run --project dev pre-commit run --all-files
+        run: mise run dev:pre-commit
 
   fixup-commits:
     runs-on: ubuntu-latest
