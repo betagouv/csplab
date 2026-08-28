@@ -220,9 +220,12 @@ run = [
 
 [tasks."qdrant:init"]
 alias = "web:qdrant:init"
-description = "Create the qdrant collection when missing"
+description = "Create the qdrant collections when missing"
 depends = ["install:py", "//:services:qdrant"]
-run = "python config/setup-qdrant.py"
+run = [
+  "python config/setup-qdrant.py",
+  "python config/setup-qdrant.py --collection-name fonction_publique_test",
+]
 
 [tasks.superuser]
 alias = "web:superuser"
