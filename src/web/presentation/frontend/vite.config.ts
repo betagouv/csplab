@@ -4,19 +4,21 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
-import { defineConfig } from 'vite'
+import { defaultAllowedOrigins, defineConfig } from 'vite'
 import checker from 'vite-plugin-checker'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const devOrigin = process.env.WEB_VITE_DEV_ORIGIN ?? 'http://localhost:5173'
-const atsOrigin = process.env.WEB_ATS_ORIGIN ?? 'http://localhost:8000'
+const atsOrigin = process.env.WEB_ATS_ORIGIN
 const devUrl = new URL(devOrigin)
+
+const cors = { origin: atsOrigin ? [defaultAllowedOrigins, atsOrigin] : defaultAllowedOrigins }
 
 const server = devUrl.protocol === 'https:'
   ? {
       origin: devOrigin,
-      cors: { origin: atsOrigin },
+      cors,
       hmr: {
         protocol: 'wss',
         host: devUrl.hostname,
@@ -27,7 +29,7 @@ const server = devUrl.protocol === 'https:'
       port: Number(devUrl.port) || 5173,
       strictPort: true,
       origin: devOrigin,
-      cors: { origin: atsOrigin },
+      cors,
     }
 
 export default defineConfig(({ command }) => ({

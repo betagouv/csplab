@@ -1,0 +1,243 @@
+[env]
+_.file = "../../env.d/web"
+_.python.venv = { path = ".venv" }
+
+[tasks.install]
+alias = "web:install"
+description = "Install web dependencies (Python + JS)"
+depends = ["install:py", "install:js"]
+
+[tasks."install:py"]
+alias = "web:install:py"
+description = "Install Python dependencies (uv sync)"
+sources = ["pyproject.toml", "uv.lock"]
+outputs = { auto = true }
+run = "uv sync --group dev --locked"
+
+[tasks."install:js"]
+alias = "web:install:js"
+description = "Install the pnpm workspace JS dependencies (frontend + candidate)"
+sources = ["package.json", "pnpm-lock.yaml", "presentation/frontend/package.json"]
+outputs = { auto = true }
+run = "pnpm install"
+
+[tasks.dev]
+alias = "web:dev"
+description = "Django dev server"
+depends = ["install:py", "//:services:postgres"]
+run = "python manage.py runserver"
+
+[tasks."dev:cv"]
+alias = "web:dev:cv"
+description = "Candidate/CV dev: Django + sass watch (DSFR SCSS styles) + vector services"
+depends = ["install:py", "install:js", "qdrant:init", "//:services:postgres", "//:services:redis"]
+shell = "bash -c"
+run = """
+rm -rf static_collected
+trap 'kill 0' EXIT
+../../bin/sass watch &
+python manage.py runserver
+"""
+
+[tasks.huey]
+alias = "web:huey"
+description = "Huey task queue"
+depends = ["install:py", "//:services:postgres"]
+run = "python manage.py run_huey"
+
+[tasks.migrate]
+alias = "web:migrate"
+description = "Apply Django migrations"
+depends = ["install:py", "//:services:postgres"]
+run = "python manage.py migrate"
+
+[tasks.migration]
+alias = "web:migration"
+description = "Generate Django migrations (makemigrations)"
+depends = ["install:py", "//:services:postgres"]
+run = "python manage.py makemigrations"
+
+[tasks.manage]
+alias = "web:manage"
+description = "Arbitrary manage.py command (e.g. mise run :manage -- shell)"
+depends = ["install:py", "//:services:postgres"]
+run = "python manage.py"
+
+[tasks."db:restore"]
+alias = "web:db:restore"
+description = "Restore the web database from a Scalingo dump (latest in dumps/ by default)"
+confirm = { message = "Overwrite the local web database?", default = "no" }
+depends = ["//:services:postgres"]
+dir = "../.."
+run = "bin/restore-web-db"
+
+[tasks.seed]
+alias = "web:seed"
+description = "Seed the demo dataset (idempotent, -- --force to reseed)"
+depends = ["migrate"]
+run = "python manage.py seed_recruteur_datas"
+
+[tasks."db:reset"]
+alias = "web:db:reset"
+description = "Recreate an empty web database, then migrate and seed"
+confirm = { message = "Drop and recreate the local web database?", default = "no" }
+depends = ["//:services:postgres"]
+run = """
+set -a && . ../../env.d/postgresql
+docker exec csp_postgresql dropdb -U $POSTGRES_USER --if-exists $POSTGRES_DB
+docker exec csp_postgresql createdb -U $POSTGRES_USER $POSTGRES_DB
+mise run '//src/web:seed'
+"""
+
+[tasks.emulate-prod]
+alias = "web:emulate-prod"
+description = "Emulate production: frontend build + collectstatic + runserver :8001"
+depends = ["install:py", "install:js"]
+env = { DJANGO_SETTINGS_MODULE = "config.settings.base", WEB_ALLOWED_HOSTS = "localhost,127.0.0.1" }
+run = [
+  "pnpm --filter csplab-frontend exec vite build --mode production",
+  "python manage.py collectstatic --noinput --clear",
+  "python manage.py runserver 8001 --noreload",
+]
+
+[tasks.test]
+alias = "web:test"
+description = "Backend tests (e2e and accessibility excluded)"
+depends = ["install:py", "//:services:postgres"]
+run = "pytest --numprocesses=logical --create-db -m 'not accessibility and not e2e' --no-cov"
+
+[tasks."test:e2e"]
+alias = "web:test:e2e"
+description = "Playwright e2e tests (live_server + browser, rebuilds the frontend when needed)"
+depends = ["install:py", "//src/web/presentation/frontend:build", "//:services:postgres"]
+run = "pytest -m e2e --no-cov"
+
+[tasks."test:a11y"]
+alias = "web:test:a11y"
+description = "Accessibility tests (Playwright + axe)"
+depends = ["install:py", "//:services:postgres"]
+run = "pytest -m accessibility --create-db --no-cov"
+
+[tasks.lint]
+alias = "web:lint"
+description = "Web lint: ruff + mypy + djlint + migrations + candidate JS + styles, in parallel"
+depends = [
+  "lint:ruff",
+  "lint:mypy",
+  "lint:djlint",
+  "lint:migrations",
+  "lint:candidate-js",
+  "lint:styles",
+  "lint:schema",
+  "lint:types",
+]
+
+[tasks."lint:ruff"]
+alias = "web:lint:ruff"
+description = "Lint Python (ruff check + format)"
+depends = ["install:py"]
+run = ["ruff check .", "ruff format --check ."]
+
+[tasks."lint:mypy"]
+alias = "web:lint:mypy"
+description = "Type-check Python (mypy)"
+depends = ["install:py"]
+run = "mypy ."
+
+[tasks."lint:djlint"]
+alias = "web:lint:djlint"
+description = "Lint Django templates (djlint)"
+depends = ["install:py"]
+run = "djlint presentation/templates --check"
+
+[tasks."lint:migrations"]
+alias = "web:lint:migrations"
+description = "Check no Django migration is missing"
+depends = ["install:py"]
+run = "python manage.py makemigrations --check"
+
+[tasks."lint:candidate-js"]
+alias = "web:lint:candidate-js"
+description = "Lint the candidate app JS (eslint)"
+depends = ["install:js"]
+run = "pnpm run lint:candidate-js"
+
+[tasks."lint:styles"]
+alias = "web:lint:styles"
+description = "Lint the candidate app SCSS (stylelint)"
+depends = ["install:js"]
+run = "pnpm run lint:styles"
+
+[tasks."lint:fix"]
+alias = "web:lint:fix"
+description = "Web lint with autofix (ruff, djlint, candidate JS, styles)"
+run = [
+  "ruff check --fix .",
+  "ruff format .",
+  "djlint presentation/templates --reformat",
+  "pnpm run lint:candidate-js:fix || true",
+  "pnpm run lint:styles:fix",
+  "../../bin/sass compile",
+]
+
+[tasks.schema]
+alias = "web:schema"
+description = "Regenerate the internal OpenAPI schema"
+depends = ["install:py"]
+env = { DJANGO_SETTINGS_MODULE = "config.settings.schema_internal" }
+run = "python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate"
+
+[tasks."lint:schema"]
+alias = "web:lint:schema"
+description = "Check the public OpenAPI schema is up to date"
+depends = ["install:py"]
+run = [
+  "python manage.py spectacular --file presentation/static/api/schema.yaml --validate --fail-on-warn",
+  "git diff --exit-code presentation/static/api/schema.yaml",
+]
+
+[tasks."lint:types"]
+alias = "web:lint:types"
+description = "Check the internal schema and TypeScript types are up to date"
+depends = ["install:py", "install:js"]
+run = [
+  "DJANGO_SETTINGS_MODULE=config.settings.schema_internal python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate --fail-on-warn",
+  "git diff --exit-code presentation/static/api/internal-schema.yaml",
+  "pnpm --filter csplab-frontend generate-types",
+  "git diff --exit-code presentation/frontend/src/types/api.d.ts",
+]
+
+[tasks."test:cov"]
+alias = "web:test:cov"
+description = "Web tests with an HTML coverage report"
+depends = ["install:py", "//:services:postgres"]
+run = [
+  "mkdir -p tests/cov_html",
+  "pytest --cov=application --cov=domain --cov=infrastructure --cov=presentation --numprocesses=logical --create-db -m 'not accessibility and not e2e' --cov-append --exitfirst",
+  "pytest --cov=application --cov=domain --cov=infrastructure --cov=presentation --numprocesses=logical -m e2e --cov-append --cov-report=html:tests/cov_html --cov-report=term-missing --exitfirst",
+  "open tests/cov_html/index.html",
+]
+
+[tasks."qdrant:init"]
+alias = "web:qdrant:init"
+description = "Create the qdrant collection when missing"
+depends = ["install:py", "//:services:qdrant"]
+run = "python config/setup-qdrant.py"
+
+[tasks.superuser]
+alias = "web:superuser"
+description = "Create the Django superuser when missing"
+depends = ["migrate"]
+run = """
+if python manage.py shell -c "import sys; from django.contrib.auth import get_user_model; sys.exit(0 if get_user_model().objects.filter(is_superuser=True).exists() else 1)"; then
+  echo "Superuser already exists, nothing to do"
+else
+  DJANGO_SUPERUSER_USERNAME=$(uuidgen | tr '[:upper:]' '[:lower:]') python manage.py createsuperuser --noinput
+fi
+"""
+
+[tasks."install:playwright"]
+alias = "web:install:playwright"
+description = "Install the Playwright browser"
+depends = ["install:py"]
+run = "playwright install chromium"

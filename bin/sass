@@ -13,7 +13,7 @@ SOURCE_MAP="${SOURCE_MAP:-false}"
 
 # Check if Sass is installed in the web workspace
 if [ ! -x "$SASS_BIN" ]; then
-    echo "Error: Sass not found in src/web/node_modules. Run 'make frontend-install'." >&2
+    echo "Error: Sass not found in src/web/node_modules. Run 'mise run install'." >&2
     exit 1
 fi
 

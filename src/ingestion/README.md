@@ -7,13 +7,13 @@ This is the Ingestion service for CSPLab.
 ### Build it
 
 ```sh
-make build-ingestion
+mise ingestion:build
 ```
 
 ### Running it
 
 ```sh
-make run-ingestion
+mise ingestion:dev
 ```
 
 The service listen on http://127.0.0.1:8002

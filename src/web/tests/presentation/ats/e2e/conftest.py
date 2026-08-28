@@ -15,7 +15,7 @@ def require_frontend_build() -> None:
     if not manifest.exists():
         pytest.fail(
             "Frontend build missing: the ATS e2e tests serve the built SPA. "
-            "Run `make frontend-build` first."
+            "Run `mise front:build` first."
         )
 
 

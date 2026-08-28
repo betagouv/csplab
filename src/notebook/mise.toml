@@ -1,0 +1,46 @@
+[env]
+_.file = "../../env.d/notebook"
+_.python.venv = { path = ".venv" }
+
+[tasks.install]
+alias = "notebook:install"
+description = "Install Python dependencies and kernels (uv sync)"
+sources = ["pyproject.toml", "uv.lock"]
+outputs = { auto = true }
+run = "uv sync --locked"
+
+[tasks.dev]
+alias = "notebook:dev"
+description = "Jupyter lab (:8888)"
+depends = ["install"]
+run = "jupyter lab --ip=0.0.0.0 --port=8888 --no-browser"
+
+[tasks.lint]
+alias = "notebook:lint"
+description = "Notebook lint (ruff, warnings only)"
+depends = ["install"]
+run = ["ruff check . || true", "ruff format --check . || true"]
+
+[tasks."lint:fix"]
+alias = "notebook:lint:fix"
+description = "Notebook lint with autofix (warnings only)"
+depends = ["install"]
+run = ["ruff check --fix . || true", "ruff format . || true"]
+
+[tasks."jupytext:md"]
+alias = "notebook:jupytext:md"
+description = "Convert local .ipynb files to .md"
+run = "uv run jupytext --to md *.ipynb"
+
+[tasks."jupytext:ipynb"]
+alias = "notebook:jupytext:ipynb"
+description = "Convert .md files to .ipynb (only when .md files changed)"
+sources = ["*.md"]
+outputs = ["*.ipynb"]
+run = "uv run jupytext --to ipynb *.md"
+
+[tasks.publish]
+alias = "notebook:publish"
+description = "Export notebooks to docs/notebook/ (mise run :publish -- [notebook] [html|markdown])"
+dir = "../.."
+run = "bin/publish-notebooks"

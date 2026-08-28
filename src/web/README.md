@@ -38,7 +38,7 @@ données cohérent pour tester le module recruteur :
 
 
 ```sh
-bin/manage seed_recruteur_datas
+mise run web:seed
 ```
 
 La commande est **idempotente** : elle ne recrée pas les données si elles
@@ -51,7 +51,7 @@ bin/manage shell -c "
 from infrastructure.django_apps.users.models import UserModel
 UserModel.objects.filter(email='marie.dupont@transition-eco.gouv.fr').delete()
 "
-bin/manage seed_recruteur_datas
+mise run web:seed
 ```
 
 ### Frontend Vue.js (ATS)
@@ -59,7 +59,7 @@ bin/manage seed_recruteur_datas
 Le service web inclut un frontend Vue.js pour l'ATS (Applicant Tracking System).
 
 ```bash
-mise run install:js    # Installer les dépendances
+mise run install       # Installer les dépendances
 mise run front:dev     # Lancer Vite dev server (HMR)
 mise run front:build   # Build production
 ```

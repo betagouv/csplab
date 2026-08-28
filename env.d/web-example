@@ -3,7 +3,7 @@ PORT=8000
 # Django
 
 WEB_DEBUG=1
-WEB_ALLOWED_HOSTS=\*
+WEB_ALLOWED_HOSTS=*
 WEB_SECRET_KEY=the_secret_key_for_local_dev_only_1234
 WEB_ROBOTS_INDEXING=1
 

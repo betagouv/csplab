@@ -108,3 +108,5 @@ src/**/iframe_figures/
 
 storybook-static/
 dumps/*
+
+mise.local.toml

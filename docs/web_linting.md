@@ -22,11 +22,11 @@ There are two ESLint configs, and both are needed:
 ## Main commands
 
 ```bash
-make lint-web
-make lint
+mise run web:lint
+mise run lint
 ```
 
-`make lint-fix` also recompiles the committed Django app CSS after SCSS autofixes.
+`mise run lint:fix` also recompiles the committed Django app CSS after SCSS autofixes.
 
 ```bash
 cd src/web && pnpm run lint:styles:fix

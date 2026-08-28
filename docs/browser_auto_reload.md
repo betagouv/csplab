@@ -5,7 +5,7 @@ Uses **django-browser-reload** to automatically reload the browser during develo
 ## Usage
 
 ```bash
-make dev
+mise run web:dev:cv
 ```
 
 Starts Django server + Sass watch mode with auto-reload.
@@ -14,7 +14,7 @@ Starts Django server + Sass watch mode with auto-reload.
 
 - [config/settings/dev.py](../src/web/config/settings/dev.py) - Django settings
 - [config/urls.py](../src/web/config/urls.py) - `__reload__/` endpoint
-- [Makefile](../../Makefile) - `dev` target runs both processes
+- [src/web/mise.toml](../src/web/mise.toml) - the `dev:cv` task runs both processes
 
 ## Details
 

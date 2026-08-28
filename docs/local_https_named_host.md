@@ -9,12 +9,13 @@ le reverse-proxy (Caddy, Traefik, valet + portless…) reste propre à chaque ma
 
 1. **Origines** : `WEB_VITE_DEV_ORIGIN` (lue par Vite et Django) pointe vers
    l'hôte Vite public. Une origine `https://` bascule Vite en reverse-proxy
-   (HMR `wss`) et adapte la CSP dev. `WEB_ATS_ORIGIN` indique à Vite l'origine de
-   la page, sans quoi le CORS refuse le chargement des modules :
+   (HMR `wss`) et adapte la CSP dev. Le CORS de Vite accepte d'office les hôtes
+   locaux (`localhost`, `*.localhost`, `127.0.0.1`) ; pour servir la page depuis
+   un hôte hors de cette liste (ex. `csplab.test`), ajouter `WEB_ATS_ORIGIN`
+   avec l'origine de la page :
 
    ```
    WEB_VITE_DEV_ORIGIN=https://vite.csplab.localhost
-   WEB_ATS_ORIGIN=https://csplab.localhost
    ```
 
 2. **Router les hôtes** via le proxy :
@@ -35,8 +36,8 @@ En utilisant [portless](https://www.npmjs.com/package/portless), on peut :
 1. Configurer un alias via `portless alias csplab 8000`
 
 2. Référencer des tâches dans un fichier `mise.local.toml` (gitignoré) qui surchargeront le `mise.local` versionné :
-- `front:portless` : Vite via portless, `WEB_VITE_DEV_ORIGIN` + `WEB_ATS_ORIGIN` sur les hôtes nommés ;
-- `back:portless` : `make run-web` avec la même origine ;
+- `front:portless` : Vite via portless, `WEB_VITE_DEV_ORIGIN` sur l'hôte nommé ;
+- `back:portless` : `//src/web:dev` avec la même origine ;
 - `open:portless` : attend le back puis ouvre `https://csplab.localhost` ;
 - `dev` : override du `dev` versionné vers les trois ci-dessus.
 
