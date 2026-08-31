@@ -35,8 +35,8 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
             referentiel=model.referentiel,
             millesime=model.millesime,
             gestion_ats=model.gestion_ats,
-            date_creation=model.date_creation,
-            date_derniere_activite=model.date_derniere_activite,
+            date_creation=model.created_at,
+            date_derniere_activite=model.updated_at,
         )
 
     def from_domain(self, organisme: Organisme) -> OrganismeModel:
@@ -60,6 +60,6 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
             referentiel=organisme.referentiel,
             millesime=organisme.millesime,
             gestion_ats=organisme.gestion_ats,
-            date_creation=organisme.date_creation,
-            date_derniere_activite=organisme.date_derniere_activite,
+            created_at=organisme.date_creation,
+            updated_at=organisme.date_derniere_activite,
         )

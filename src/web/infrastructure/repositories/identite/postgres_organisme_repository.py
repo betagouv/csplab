@@ -33,3 +33,8 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
         except OrganismeModel.DoesNotExist:
             return None
         return self._mapper_identite.to_domain(model)
+
+    def save(self, organisme: Organisme) -> Organisme:
+        model = self._mapper_identite.from_domain(organisme)
+        model.save()
+        return organisme
