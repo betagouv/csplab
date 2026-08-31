@@ -160,3 +160,8 @@ class OrganismeFactory:
             role=(role or AgentOrganismeRole.MEMBRE).value,
         ).save()
         return agent
+    def create_model_batch(
+        count: int = 3,
+        **kwargs,
+    ) -> List[OrganismeModel]:
+        return [OrganismeFactory.create_model(**kwargs) for _ in range(count)]

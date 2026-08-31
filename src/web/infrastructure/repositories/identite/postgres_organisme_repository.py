@@ -1,3 +1,4 @@
+from typing import List
 from uuid import UUID
 
 from referentiel.entities.organisme import Organisme
@@ -42,3 +43,9 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
         model = self._mapper_identite.from_domain(organisme)
         model.save()
         return organisme
+
+    def get_all(self) -> List[Organisme]:
+        return [
+            self._mapper_identite.to_domain(model)
+            for model in OrganismeModel.objects.all()
+        ]
