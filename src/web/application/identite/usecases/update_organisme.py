@@ -5,6 +5,7 @@ from ddd.usecase_interface import IUsecase
 from referentiel.entities.organisme import Organisme
 from referentiel.value_objects.verse import Verse
 
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
@@ -29,17 +30,27 @@ class UpdateOrganismeUsecase(IUsecase[UpdateOrganismeCommand, Organisme]):
         self,
         organisme_repository: IOrganismeRepository,
         permission_service: OrganismePermissionService,
+        audit_log_writer: AuditLogWriter,
     ):
         self.organisme_repository = organisme_repository
         self.permission_service = permission_service
+        self.audit_log_writer = audit_log_writer
 
-    def execute(self, command: UpdateOrganismeCommand) -> Organisme:
+    def can_execute(self, command: UpdateOrganismeCommand) -> Organisme:
+        organisme = self.organisme_repository.get_by_id(command.organisme_id)
         self.permission_service.est_autorise(
             action=OrganismeAction.MODIFIER_ORGANISME,
-            organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,
         )
-        organisme = self.organisme_repository.get_by_id(command.organisme_id)
-        # todo domain
-        # organisme = self.organisme_repository.save(organisme)
+        return organisme
+
+    def execute(self, command: UpdateOrganismeCommand) -> Organisme:
+        organisme = self.can_execute(command)
+        organisme.modifier(
+            nom=command.name, versant=command.verse, gestion_ats=command.managed_ats
+        )
+        self.organisme_repository.save(organisme)
+        self.audit_log_writer.drain_events(
+            utilisateur_id=command.utilisateur.entity_id, aggregate=organisme
+        )
         return organisme
