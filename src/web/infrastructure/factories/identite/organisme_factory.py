@@ -78,10 +78,8 @@ class OrganismeFactory:
         )
 
     @staticmethod
-    def create_entity_batch(
-        count: int = 3,
-    ) -> List[Organisme]:
-        return [OrganismeFactory.create_entity() for _ in range(count)]
+    def create_entity_batch(count: int = 3, **kwargs) -> List[Organisme]:
+        return [OrganismeFactory.create_entity(**kwargs) for _ in range(count)]
 
     @staticmethod
     def create_model(
