@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -8,7 +9,12 @@ from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
-from application.identite.usecases.list_organismes import ListOrganismesCommand
+from application.identite.services.organisme_query_service_interface import (
+    OrganismeReadModel,
+)
+from application.identite.usecases.list_organismes import (
+    ListOrganismesCommand,
+)
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
@@ -55,9 +61,27 @@ class TestOrganismesView:
         authenticated_client,
     ):
         mock_usecase = MagicMock()
-        organismes = OrganismeFactory.create_entity_batch(3)
+        organismes = OrganismeFactory.create_entity_batch(
+            gestion_ats=True,
+            date_creation=datetime(2025, 10, 1),
+            date_derniere_activite=datetime.now(timezone.utc),
+        )
+        expected_result = [
+            OrganismeReadModel(
+                entity_id=organisme.entity_id,
+                name=organisme.nom,
+                siret=organisme.siret,
+                verse=organisme.versant,
+                managed_ats=organisme.gestion_ats,
+                creation_date=organisme.date_creation,
+                last_activity_date=organisme.date_derniere_activite,
+                number_agents=5,
+                number_published_offers=100,
+            )
+            for organisme in organismes
+        ]
 
-        mock_usecase.execute.return_value = organismes
+        mock_usecase.execute.return_value = expected_result
         container.list_organismes_usecase.return_value = mock_usecase
         response = authenticated_client.get(ORGANISME_URL)
 
@@ -68,9 +92,9 @@ class TestOrganismesView:
         assert response.json() == [
             {
                 "organisme_uuid": str(organisme.entity_id),
-                "nom": organisme.nom,
-                "versant": organisme.versant.value,
-                "siret": organisme.siret.code,
+                "nom": organisme.name,
+                "versant": organisme.verse.value,
+                "siret": str(organisme.siret),
                 "gestionnaire": None,
                 "gestion_ats": organisme.gestion_ats,
                 "date_creation": datetime_to_str(organisme.date_creation),
@@ -80,7 +104,7 @@ class TestOrganismesView:
                 "nombre_agents": 10,
                 "nombre_offres_publiees": 20,
             }
-            for organisme in organismes
+            for organisme in expected_result
         ]
 
     @pytest.mark.parametrize(

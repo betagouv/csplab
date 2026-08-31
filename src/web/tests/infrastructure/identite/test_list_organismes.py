@@ -55,8 +55,6 @@ def test_list_organismes_with_counts(db, identite_integration_container):
     _, organisme_with_agents = OrganismeFactory.create_model_with_agent(
         role=AgentOrganismeRole.MEMBRE,
     )
-    OrganismeFactory.create_model_with_agent(role=AgentOrganismeRole.MEMBRE)
-
     organisme_with_recruitments = OrganismeFactory.create_model()
     RecrutementFactory.create_model(organisme_id=organisme_with_recruitments.id)
     RecrutementFactory.create_model(organisme_id=organisme_with_recruitments.id)

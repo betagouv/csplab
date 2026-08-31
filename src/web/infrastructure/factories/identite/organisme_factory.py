@@ -160,6 +160,8 @@ class OrganismeFactory:
             role=(role or AgentOrganismeRole.MEMBRE).value,
         ).save()
         return agent
+
+    @staticmethod
     def create_model_batch(
         count: int = 3,
         **kwargs,

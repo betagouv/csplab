@@ -15,12 +15,14 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from infrastructure.di.identite.identite_factory import create_identite_container
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
 )
-from presentation.recruteur.mappers import UtilisateurMapper
+from presentation.recruteur.mappers import (
+    OrganismeMapper,
+    UtilisateurMapper,
+)
 from presentation.recruteur.serializers import (
     CreateOrganismeSerializer,
     OrganismeDetailSerializer,
@@ -60,26 +62,14 @@ class OrganismesView(APIView):
     def get(self, request: Request) -> Response:
         try:
             usecase = self.container.list_organismes_usecase()
-            organismes = usecase.execute(
+            organisme_read_models = usecase.execute(
                 ListOrganismesCommand(
                     utilisateur=self.user_mapper.to_domain(request),
                 )
-            ) or OrganismeFactory.create_entity_batch(
-                3,
             )
             organismes_dto = [
-                {
-                    "organisme_uuid": organisme.entity_id,
-                    "nom": organisme.nom,
-                    "versant": organisme.versant.value,
-                    "siret": organisme.siret.code,
-                    "gestion_ats": organisme.gestion_ats,
-                    "date_creation": organisme.date_creation,
-                    "date_derniere_activite": organisme.date_derniere_activite,
-                    "nombre_agents": 10,
-                    "nombre_offres_publiees": 20,
-                }
-                for organisme in organismes
+                OrganismeMapper().from_application(organisme)
+                for organisme in organisme_read_models
             ]
             return Response(OrganismesListSerializer(organismes_dto, many=True).data)
         except OperationOrganismeRefusee as e:
