@@ -22,3 +22,10 @@ class OrganismeCree(DomainEvent):
     gestion_ats: bool | None = False
     date_creation: date | None = None
     date_derniere_activite: date | None = None
+
+
+@dataclass(frozen=True)
+class OrganismeModifie(DomainEvent):
+    nom: str | None
+    versant: Verse | None
+    gestion_ats: bool | None
