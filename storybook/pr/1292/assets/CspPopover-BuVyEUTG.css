@@ -1,1 +1,0 @@
-.csp-popover{background-color:var(--background-overlap-grey);min-width:12rem;max-width:22rem;box-shadow:inset 0 0 0 1px var(--border-default-grey), var(--csp-shadow-lg);z-index:var(--csp-z-dropdown);outline:none;padding:1rem}.csp-popover:focus-visible{outline:2px solid var(--csp-focus-ring-color);outline-offset:2px}
