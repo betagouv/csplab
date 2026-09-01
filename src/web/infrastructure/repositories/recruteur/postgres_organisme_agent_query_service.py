@@ -14,17 +14,31 @@ class PostgresOrganismeAgentQueryService(IOrganismeAgentQueryService):
         liaisons = OrganismeAgentModel.objects.filter(
             organisme_id=organisme_id
         ).select_related("agent__utilisateur")
-        return [
-            AgentOrganismeReadModel(
-                entity_id=liaison.agent_id,
-                organisme_id=liaison.organisme_id,
-                nom=liaison.agent.utilisateur.last_name,
-                prenom=liaison.agent.utilisateur.first_name,
-                email=liaison.agent.utilisateur.email,
-                poste=liaison.agent.intitule_poste,
-                role=liaison.role,
-                date_derniere_activite=liaison.agent.utilisateur.last_login,
-                date_creation_compte=liaison.agent.utilisateur.date_joined,
+        return [self._to_read_model(liaison) for liaison in liaisons]
+
+    def get_one(
+        self, *, organisme_id: UUID, agent_id: UUID
+    ) -> AgentOrganismeReadModel | None:
+        try:
+            liaison = OrganismeAgentModel.objects.select_related(
+                "agent__utilisateur"
+            ).get(
+                organisme_id=organisme_id,
+                agent_id=agent_id,  # type: ignore[misc]
             )
-            for liaison in liaisons
-        ]
+        except OrganismeAgentModel.DoesNotExist:
+            return None
+        return self._to_read_model(liaison)
+
+    def _to_read_model(self, liaison: OrganismeAgentModel) -> AgentOrganismeReadModel:
+        return AgentOrganismeReadModel(
+            entity_id=liaison.agent_id,
+            organisme_id=liaison.organisme_id,
+            nom=liaison.agent.utilisateur.last_name,
+            prenom=liaison.agent.utilisateur.first_name,
+            email=liaison.agent.utilisateur.email,
+            poste=liaison.agent.intitule_poste,
+            role=liaison.role,
+            date_derniere_activite=liaison.agent.utilisateur.last_login,
+            date_creation_compte=liaison.agent.utilisateur.date_joined,
+        )

@@ -4,6 +4,8 @@ from django.urls import reverse
 from rest_framework import status
 
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
+from infrastructure.factories.identite.agent_factory import AgentFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 
 ORGANISME_UUID = str(uuid4())
@@ -65,19 +67,93 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_set_agent_role(self, authenticated_client):
-        agent_id = str(uuid4())
+    def test_attach_agent_persists_to_db(self, authenticated_client, test_user):
+        _, organisme = OrganismeFactory.create_model_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            username=test_user.username,
+        )
+        bare_agent = AgentFactory.create_model()
+        url = reverse(
+            "recruteur:organisme-parametres-agents",
+            kwargs={"organisme_uuid": str(organisme.id)},
+        )
 
         response = authenticated_client.post(
-            AGENTS_URL,
-            data={"agent_id": agent_id, "role": AgentOrganismeRole.MEMBRE.value},
+            url,
+            data={
+                "agent_id": str(bare_agent.utilisateur_id),
+                "role": AgentOrganismeRole.MEMBRE.value,
+            },
             format="json",
         )
 
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
-        assert data["agent_id"] == agent_id
+        assert data["agent_id"] == str(bare_agent.utilisateur_id)
+        assert data["organisme_id"] == str(organisme.id)
+        assert data["nom"] == bare_agent.utilisateur.last_name
+        assert data["prenom"] == bare_agent.utilisateur.first_name
+        assert data["email"] == bare_agent.utilisateur.email
+        assert data["poste"] == bare_agent.intitule_poste
         assert data["role"] == AgentOrganismeRole.MEMBRE.value
+        assert OrganismeAgentModel.objects.filter(
+            organisme_id=organisme.id,
+            agent_id=bare_agent.utilisateur_id,
+        ).exists()
+
+    def test_attach_agent_forbidden_for_membre(self, authenticated_client, test_user):
+        _, organisme = OrganismeFactory.create_model_with_agent(
+            role=AgentOrganismeRole.MEMBRE,
+            username=test_user.username,
+        )
+        bare_agent = AgentFactory.create_model()
+        url = reverse(
+            "recruteur:organisme-parametres-agents",
+            kwargs={"organisme_uuid": str(organisme.id)},
+        )
+
+        response = authenticated_client.post(
+            url,
+            data={
+                "agent_id": str(bare_agent.utilisateur_id),
+                "role": AgentOrganismeRole.MEMBRE.value,
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_attach_agent_already_attached_returns_conflict(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = OrganismeFactory.create_model_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            username=test_user.username,
+        )
+        autre_agent = OrganismeFactory.create_agent_in_organisme(
+            organisme.id, role=AgentOrganismeRole.MEMBRE
+        )
+        url = reverse(
+            "recruteur:organisme-parametres-agents",
+            kwargs={"organisme_uuid": str(organisme.id)},
+        )
+
+        response = authenticated_client.post(
+            url,
+            data={
+                "agent_id": str(autre_agent.utilisateur_id),
+                "role": AgentOrganismeRole.RESPONSABLE.value,
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_409_CONFLICT
+
+    def test_attach_agent_unknown_agent_create_agent_too(
+        self, authenticated_client, test_user
+    ):
+        # TODO: to be update when usecase updated too
+        pass
 
     def test_set_agent_role_invalid_role(self, authenticated_client):
         response = authenticated_client.post(

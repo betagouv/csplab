@@ -1340,6 +1340,14 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
             500: {
                 headers: {
                     [name: string]: unknown;

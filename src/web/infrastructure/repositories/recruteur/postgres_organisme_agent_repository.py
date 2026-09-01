@@ -1,5 +1,8 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
+from django.db import IntegrityError, transaction
+
+from domain.recruteur.errors.organisme_agent_errors import AgentDejaRattache
 from domain.recruteur.repositories.organisme_agent_repository_interface import (
     IOrganismeAgentRepository,
 )
@@ -19,3 +22,17 @@ class PostgresOrganismeAgentRepository(IOrganismeAgentRepository):
         except OrganismeAgentModel.DoesNotExist:
             return None
         return AgentOrganismeRole(liaison.role)
+
+    def attach(
+        self, *, organisme_id: UUID, agent_id: UUID, role: AgentOrganismeRole
+    ) -> None:
+        try:
+            with transaction.atomic():
+                OrganismeAgentModel.objects.create(
+                    id=uuid4(),
+                    organisme_id=organisme_id,
+                    agent_id=agent_id,  # type: ignore[misc]
+                    role=role.value,
+                )
+        except IntegrityError as exc:
+            raise AgentDejaRattache(organisme_id, agent_id) from exc

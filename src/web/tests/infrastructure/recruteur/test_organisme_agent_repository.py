@@ -1,8 +1,10 @@
 import pytest
 
 from config.app_config import AppConfig
+from domain.recruteur.errors.organisme_agent_errors import AgentDejaRattache
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.factories.identite.agent_factory import AgentFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.gateways.shared.logger import LoggerService
@@ -59,3 +61,32 @@ def test_get_role_returns_none_when_no_liaison(db, repository):
     )
 
     assert role is None
+
+
+def test_attach_persists_liaison(db, repository):
+    organisme_model = OrganismeFactory.create_model()
+    agent = AgentFactory.create_model()
+
+    repository.attach(
+        organisme_id=organisme_model.id,
+        agent_id=agent.utilisateur_id,
+        role=AgentOrganismeRole.MEMBRE,
+    )
+
+    liaison = OrganismeAgentModel.objects.get(
+        organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
+    )
+    assert liaison.role == AgentOrganismeRole.MEMBRE.value
+
+
+def test_attach_raises_when_already_attached(db, repository):
+    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.MEMBRE
+    )
+
+    with pytest.raises(AgentDejaRattache):
+        repository.attach(
+            organisme_id=organisme_model.id,
+            agent_id=agent.utilisateur_id,
+            role=AgentOrganismeRole.RESPONSABLE,
+        )
