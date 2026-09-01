@@ -6,7 +6,7 @@ import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 
 withDefaults(defineProps<{
   fill?: boolean
-  width?: 'reading' | 'wide' | 'full'
+  width?: 'reading' | 'wide' | 'large' | 'full'
   tabs?: CspTabItem<T>[]
 }>(), {
   fill: false,
@@ -23,6 +23,7 @@ const activeTab = defineModel<T>('activeTab')
       'csp-page-container--fill': fill,
       'csp-page-container--reading': width === 'reading',
       'csp-page-container--wide': width === 'wide',
+      'csp-page-container--large': width === 'large',
     }"
   >
     <CspTabs
@@ -104,6 +105,11 @@ const activeTab = defineModel<T>('activeTab')
 .csp-page-container--wide .csp-page-container__content,
 .csp-page-container--wide .csp-page-container__shared {
   max-width: var(--csp-page-container-wide-width);
+}
+
+.csp-page-container--large .csp-page-container__content,
+.csp-page-container--large .csp-page-container__shared {
+  max-width: var(--csp-page-container-large-width);
 }
 
 .csp-page-container--fill .csp-page-container__content--with-tabs {
