@@ -12,3 +12,10 @@ export const ROLE_LABELS = {
   responsable: 'Responsable',
   membre: 'Membre',
 } as const
+
+export const ORGANISME_TAB_LABELS = {
+  membres: 'Membres',
+  etapes: 'Étapes de recrutement',
+} as const
+
+export type OrganismeTabKey = keyof typeof ORGANISME_TAB_LABELS
