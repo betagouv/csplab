@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import type {
-  RecrutementKey,
-} from '../types'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
-import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
@@ -16,15 +12,17 @@ import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { useCurrentOrganisme } from '@/stores/currentOrganisme'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
-
 import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
+
 import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
+import { RECRUTEMENT_TAB_LABELS } from '../constants/recrutement'
 import { DEFAULT_RECRUTEMENT_TAB, RECRUTEMENTS_TAB_ROUTE_NAMES } from '../routes'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
@@ -36,10 +34,7 @@ const router = useRouter()
 
 const activeTab = useRouteTab(RECRUTEMENTS_TAB_ROUTE_NAMES, DEFAULT_RECRUTEMENT_TAB)
 
-const TABS: CspTabItem<RecrutementKey>[] = [
-  { value: 'actifs', label: 'Recrutements en cours' },
-  { value: 'archives', label: 'Offres archivées' },
-]
+const TABS = tabItems(RECRUTEMENT_TAB_LABELS)
 
 const { organismeUuid } = useCurrentOrganisme()
 

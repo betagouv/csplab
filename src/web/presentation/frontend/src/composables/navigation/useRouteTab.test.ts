@@ -1,3 +1,4 @@
+import type { MaybeRefOrGetter } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
@@ -19,9 +20,19 @@ const testRoutes: RouteRecordRaw[] = [
   { path: '/demo/archives', name: ROUTE_NAMES.archives, component: stub, meta: { tab: 'archives' } },
   { path: '/ailleurs', name: 'ailleurs', component: stub },
   { path: '/mal-declare', name: 'mal-declare', component: stub, meta: { tab: 'onglet-inconnu' } },
+  { path: '/fiche/:id', name: 'fiche-liste', component: stub, meta: { tab: 'liste' } },
+  { path: '/fiche/:id/archives', name: 'fiche-archives', component: stub, meta: { tab: 'archives' } },
 ]
 
-async function mountRouteTab(path: string) {
+const ROUTE_NAMES_FICHE: Record<Onglet, string> = {
+  liste: 'fiche-liste',
+  archives: 'fiche-archives',
+}
+
+async function mountRouteTab(
+  path: string,
+  routeNames: MaybeRefOrGetter<Record<Onglet, string>> = ROUTE_NAMES,
+) {
   const router = createRouter({ history: createMemoryHistory(), routes: testRoutes })
   await router.push(path)
 
@@ -29,7 +40,7 @@ async function mountRouteTab(path: string) {
 
   mount(defineComponent({
     setup() {
-      tab = useRouteTab(ROUTE_NAMES, 'liste')
+      tab = useRouteTab(routeNames, 'liste')
       return () => h('div')
     },
   }), {
@@ -72,5 +83,25 @@ describe('useRouteTab', () => {
   ])('falls back to the default tab when %s', async (_, path) => {
     const { tab } = await mountRouteTab(path)
     expect(tab.value).toBe('liste')
+  })
+
+  it('keeps the route params when switching tab', async () => {
+    const { tab, router } = await mountRouteTab('/fiche/42', ROUTE_NAMES_FICHE)
+
+    tab.value = 'archives'
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/fiche/42/archives'))
+  })
+
+  it('resolves the route names from a getter, re-read on each navigation', async () => {
+    const maps = { demo: ROUTE_NAMES, fiche: ROUTE_NAMES_FICHE }
+    let current: keyof typeof maps = 'fiche'
+    const { tab, router } = await mountRouteTab('/fiche/42', () => maps[current])
+
+    tab.value = 'archives'
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/fiche/42/archives'))
+
+    current = 'demo'
+    tab.value = 'liste'
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/demo'))
   })
 })
