@@ -64,6 +64,7 @@ import riShieldUserLine from '@iconify-icons/ri/shield-user-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
 import riSunLine from '@iconify-icons/ri/sun-line'
 import riTableLine from '@iconify-icons/ri/table-line'
+import riUserAddLine from '@iconify-icons/ri/user-add-line'
 import riUserLine from '@iconify-icons/ri/user-line'
 import riUserUnfollowLine from '@iconify-icons/ri/user-unfollow-line'
 import { addIcon } from '@iconify/vue'
@@ -132,5 +133,6 @@ addIcon('ri:shield-user-line', riShieldUserLine)
 addIcon('ri:spam-fill', riSpamFill)
 addIcon('ri:sun-line', riSunLine)
 addIcon('ri:table-line', riTableLine)
+addIcon('ri:user-add-line', riUserAddLine)
 addIcon('ri:user-line', riUserLine)
 addIcon('ri:user-unfollow-line', riUserUnfollowLine)

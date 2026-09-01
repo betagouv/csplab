@@ -1,6 +1,6 @@
-import type { UpdateAgentRolePayload } from '../types'
+import type { SetAgentRolePayload, UpdateAgentRolePayload } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
-import { updateAgentRole } from '../api'
+import { setAgentRole, updateAgentRole } from '../api'
 import { organismeAgentsQuery, ORGANISMES_QUERY_KEYS } from '../queries'
 
 export function useOrganismeAgents(organismeUuid: string) {
@@ -11,6 +11,11 @@ export function useOrganismeAgents(organismeUuid: string) {
     return queryCache.invalidateQueries({ key: ORGANISMES_QUERY_KEYS.root })
   }
 
+  const attachMutation = useMutation({
+    mutation: (payload: SetAgentRolePayload) => setAgentRole(organismeUuid, payload),
+    onSettled: invalidate,
+  })
+
   const updateMutation = useMutation({
     mutation: (payload: UpdateAgentRolePayload) => updateAgentRole(organismeUuid, payload),
     onSettled: invalidate,
@@ -20,6 +25,8 @@ export function useOrganismeAgents(organismeUuid: string) {
     agents: query.data,
     pending: query.isPending,
     error: query.error,
+    attachAgent: attachMutation.mutateAsync,
+    attachingAgent: attachMutation.isLoading,
     updateAgent: updateMutation.mutateAsync,
     updatingAgent: updateMutation.isLoading,
   }
