@@ -59,7 +59,7 @@ const tableColumns = computed(() =>
     columnHelper.accessor((row: TRow) => col.accessor?.(row) ?? '', {
       id: col.id,
       enableSorting: col.sortable ?? false,
-      meta: { align: col.align, width: col.width, label: col.header, cellComponent: col.cellComponent },
+      meta: { align: col.align, width: col.width, wrapHeader: col.wrapHeader, label: col.header, cellComponent: col.cellComponent },
     }),
   ),
 )
@@ -285,7 +285,7 @@ function onActivate(id: string): void {
               :key="header.id"
               scope="col"
               class="csp-table__th"
-              :class="alignClass(columnAlign(header.column), 'th')"
+              :class="[alignClass(columnAlign(header.column), 'th'), { 'csp-table__th--wrap': header.column.columnDef.meta?.wrapHeader }]"
               :aria-sort="header.column.getCanSort() ? ariaSort(header.column) : undefined"
               :style="columnWidth(header.column) ? { width: columnWidth(header.column) } : undefined"
             >
@@ -475,6 +475,10 @@ function onActivate(id: string): void {
 
 .csp-table__th--center {
   text-align: center;
+}
+
+.csp-table__th--wrap {
+  white-space: normal;
 }
 
 .csp-table__th--end {

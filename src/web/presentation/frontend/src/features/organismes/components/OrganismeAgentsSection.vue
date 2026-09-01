@@ -6,6 +6,7 @@ import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
+import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
@@ -125,10 +126,7 @@ async function handleRevocation(): Promise<void> {
         />
       </template>
 
-      <div class="organisme-agents-section__header">
-        <p class="organisme-agents-section__count">
-          {{ countLabel }}
-        </p>
+      <CspTableToolbar :count="countLabel">
         <CspInput
           v-model="search"
           type="search"
@@ -136,16 +134,30 @@ async function handleRevocation(): Promise<void> {
           placeholder="Rechercher un membre, un courriel"
           class="organisme-agents-section__search"
         />
-      </div>
+      </CspTableToolbar>
       <CspDataTable
         v-model:page="page"
         :rows="filtered"
         :columns="ORGANISME_AGENTS_COLUMNS"
         :row-key="row => row.agent_id"
         caption="Membres de l'organisme"
-        empty-label="Aucun membre"
         :page-size="PAGE_SIZE"
-      />
+      >
+        <template #empty>
+          <div class="organisme-agents-section__empty">
+            <template v-if="search">
+              <p class="organisme-agents-section__empty-title">
+                Aucun membre ne correspond à votre recherche.
+              </p>
+            </template>
+            <template v-else>
+              <p class="organisme-agents-section__empty-title">
+                Aucun membre pour l'instant.
+              </p>
+            </template>
+          </div>
+        </template>
+      </CspDataTable>
     </CspAsyncSection>
 
     <CspDialog
@@ -179,7 +191,7 @@ async function handleRevocation(): Promise<void> {
 
 <style scoped lang="scss">
 .organisme-agents-section__intro {
-  margin-bottom: var(--csp-space-6);
+  margin-bottom: var(--csp-space-5);
 }
 
 .organisme-agents-section__title {
@@ -192,24 +204,23 @@ async function handleRevocation(): Promise<void> {
   margin: 0;
   color: var(--text-mention-grey);
   font-size: 0.875rem;
-}
-
-.organisme-agents-section__header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--csp-space-4);
-}
-
-.organisme-agents-section__count {
-  margin: 0 0 var(--csp-space-4);
-  font-size: 0.9375rem;
-  color: var(--text-mention-grey);
+  max-width: 65ch;
 }
 
 .organisme-agents-section__search {
   min-width: 20rem;
-  margin-bottom: var(--csp-space-4);
+}
+
+.organisme-agents-section__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--csp-space-4);
+  padding: var(--csp-space-6) 0;
+}
+
+.organisme-agents-section__empty-title {
+  margin: 0;
 }
 
 .organisme-agents-section__dialog-actions {

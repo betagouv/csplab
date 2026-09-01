@@ -79,7 +79,6 @@ const metaItems = computed<CspMetaItem[]>(() =>
   </CspPageHeader>
   <CspPageContainer
     v-model:active-tab="activeTab"
-    width="reading"
     :tabs="tabs"
   >
     <template #tab-membres>

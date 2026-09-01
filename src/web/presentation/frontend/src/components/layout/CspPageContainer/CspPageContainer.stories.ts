@@ -21,11 +21,11 @@ const meta = {
   argTypes: {
     width: {
       control: { type: 'select' },
-      options: ['reading', 'wide', 'full'],
+      options: ['reading', 'wide', 'large', 'full'],
       description: 'Largeur du contenu.',
       table: {
         type: {
-          summary: '\'reading\' | \'wide\' | \'full\'',
+          summary: '\'reading\' | \'wide\' | \'large\' | \'full\'',
         },
         defaultValue: {
           summary: '\'wide\'',
@@ -46,7 +46,7 @@ export const Widths: Story = {
   render: (args: CspPageContainerProps) => ({
     components: { CspPageContainer },
     setup() {
-      const widths = ['reading', 'wide', 'full'] as const
+      const widths = ['reading', 'wide', 'large', 'full'] as const
       return { args, widths }
     },
     template: `
