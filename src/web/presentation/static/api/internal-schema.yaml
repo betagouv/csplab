@@ -1337,7 +1337,7 @@ components:
         poste:
           type: string
         role:
-          type: string
+          $ref: '#/components/schemas/RoleEnum'
         date_derniere_activite:
           type: string
           format: date-time
@@ -2296,6 +2296,7 @@ components:
           format: date-time
       required:
       - agent_id
+      - role
     UpdateEtapeRecrutement:
       type: object
       properties:

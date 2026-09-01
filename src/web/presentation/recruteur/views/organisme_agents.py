@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from django.utils.timezone import now
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -8,42 +8,22 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from application.recruteur.usecases.list_organisme_agents import (
+    ListOrganismeAgentsQuery,
+)
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.identite.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    OperationOrganismeRefusee,
+)
+from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     AgentOrganismeSerializer,
     SetAgentRoleOnOrganismeSerializer,
     UpdateAgentOrganismeSerializer,
 )
-
-# TODO : données statiques en attendant le branchement sur OrganismeAgentModel
-# (issue à venir)
-_AGENTS_STATIQUES = [
-    {
-        "agent_id": uuid4(),
-        "organisme_id": "00000000-0000-0000-0000-000000000000",
-        "nom": "Dupont",
-        "prenom": "Jeanne",
-        "email": "jeanne.dupont@example.gouv.fr",
-        "poste": "Responsable recrutement",
-        "role": AgentOrganismeRole.RESPONSABLE.value,
-        "date_derniere_activite": "2026-08-18T09:12:00Z",
-        "date_creation_compte": "2025-01-10T08:00:00Z",
-        "date_revocation": None,
-    },
-    {
-        "agent_id": uuid4(),
-        "organisme_id": "00000000-0000-0000-0000-000000000000",
-        "nom": "Martin",
-        "prenom": "Lucas",
-        "email": "lucas.martin@example.gouv.fr",
-        "poste": "Chargé de recrutement",
-        "role": AgentOrganismeRole.MEMBRE.value,
-        "date_derniere_activite": "2026-08-15T14:30:00Z",
-        "date_creation_compte": "2025-03-22T08:00:00Z",
-        "date_revocation": None,
-    },
-]
 
 
 @extend_schema_view(
@@ -79,9 +59,31 @@ _AGENTS_STATIQUES = [
 class OrganismeAgentsView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = recruteur_container()
+
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
-        serializer = AgentOrganismeSerializer(_AGENTS_STATIQUES, many=True)
-        return Response(serializer.data)
+        try:
+            usecase = self.container.list_organisme_agents_usecase()
+            agents = usecase.execute(
+                ListOrganismeAgentsQuery(
+                    organisme_id=organisme_uuid,
+                    utilisateur=UtilisateurMapper().to_domain(request),
+                )
+            )
+            return Response(AgentOrganismeSerializer(agents, many=True).data)
+        except (AccesOrganismeRefuse, OperationOrganismeRefusee):
+            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+        except OrganismeNexistePas:
+            return Response(
+                {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception:
+            return Response(
+                GenericErrorSerializer({"error": "Unexpected error"}).data,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def post(self, request: Request, organisme_uuid: UUID) -> Response:
         serializer = SetAgentRoleOnOrganismeSerializer(data=request.data)
@@ -90,7 +92,7 @@ class OrganismeAgentsView(APIView):
 
         data = serializer.validated_data
         agent = {
-            "agent_id": data["agent_id"],
+            "entity_id": data["agent_id"],
             "organisme_id": "00000000-0000-0000-0000-000000000000",
             "nom": "",
             "prenom": "",
@@ -111,7 +113,7 @@ class OrganismeAgentsView(APIView):
 
         data = serializer.validated_data
         agent = {
-            "agent_id": data["agent_id"],
+            "entity_id": data["agent_id"],
             "organisme_id": "00000000-0000-0000-0000-000000000000",
             "nom": data.get("nom", ""),
             "prenom": data.get("prenom", ""),

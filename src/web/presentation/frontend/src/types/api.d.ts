@@ -303,7 +303,7 @@ export interface components {
             /** Format: email */
             email: string;
             poste: string;
-            role: string;
+            role: components["schemas"]["RoleEnum"];
             /** Format: date-time */
             date_derniere_activite: string | null;
             /** Format: date-time */
@@ -735,7 +735,7 @@ export interface components {
         UpdateAgentOrganisme: {
             /** Format: uuid */
             agent_id: string;
-            role?: components["schemas"]["RoleEnum"];
+            role: components["schemas"]["RoleEnum"];
             nom?: string;
             prenom?: string;
             poste?: string;
