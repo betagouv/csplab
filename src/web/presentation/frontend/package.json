@@ -7,13 +7,15 @@
     "build": "vue-tsc --noEmit && vite build",
     "typecheck": "vue-tsc --noEmit",
     "preview": "vite preview",
-    "lint": "eslint .",
+    "lint": "eslint . && node scripts/build-icons.mjs --check",
     "lint:fix": "eslint . --fix",
     "test": "vitest",
     "test:run": "vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "generate-types": "openapi-typescript ../../presentation/static/api/internal-schema.yaml -o src/types/api.d.ts"
+    "generate-types": "openapi-typescript ../../presentation/static/api/internal-schema.yaml -o src/types/api.d.ts",
+    "icons": "node scripts/build-icons.mjs",
+    "icons:check": "node scripts/build-icons.mjs --check"
   },
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^2.0.2",
