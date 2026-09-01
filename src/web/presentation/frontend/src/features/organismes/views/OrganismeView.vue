@@ -2,17 +2,19 @@
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { CspMetaItem } from '@/components/base/CspMeta/types'
 import { useQuery } from '@pinia/colada'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
+import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
 import { useCurrentOrganisme } from '@/stores/currentOrganisme'
 import { useCurrentUser } from '@/stores/currentUser'
 import OrganismeAgentsSection from '../components/OrganismeAgentsSection.vue'
 import { organismesListQuery } from '../queries'
+import { MON_ORGANISME_TAB_ROUTE_NAMES, ORGANISME_TAB_ROUTE_NAMES } from '../routes'
 
 const route = useRoute()
 const { user } = useCurrentUser()
@@ -52,7 +54,10 @@ const tabs = [
   { value: 'etapes', label: 'Étapes de recrutement' },
 ]
 
-const activeTab = ref('membres')
+const activeTab = useRouteTab(
+  () => (route.params.organismeUuid ? ORGANISME_TAB_ROUTE_NAMES : MON_ORGANISME_TAB_ROUTE_NAMES),
+  'membres',
+)
 
 const metaItems = computed<CspMetaItem[]>(() =>
   organismeNom.value
