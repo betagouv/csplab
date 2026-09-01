@@ -7,6 +7,10 @@
 # starts. No-op unless SCALEWAY_ENV is set, so it is safe to source
 # everywhere, including plain CI runs that set real env vars by hand instead.
 if [ -n "${SCALEWAY_ENV:-}" ]; then
+    if [ "$SCALEWAY_ENV" = "prod" ] && [ -z "${SCALINGO_APPLICATION_ID:-}" ]; then
+        echo "SCALEWAY_ENV=prod is only allowed on Scalingo (SCALINGO_APPLICATION_ID not set)" >&2
+        exit 1
+    fi
     scaleway_env="$(python "$(dirname "${BASH_SOURCE[0]}")/fetch_scaleway_secrets.py")"
     eval "$scaleway_env"
 fi
