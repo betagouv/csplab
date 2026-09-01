@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
@@ -12,12 +12,14 @@ import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { recrutementsListLocation } from '@/features/recrutements/routes'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
 import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
 import { useCandidatures } from '../composables/useCandidatures'
 import { formatRecrutementMeta } from '../format'
+import { CANDIDATURES_TAB_ROUTE_NAMES } from '../routes'
 
 const route = useRoute()
 const router = useRouter()
@@ -101,7 +103,7 @@ const TABS: CspTabItem[] = [
   { value: 'candidatures', label: 'Candidatures' },
   { value: 'activites-et-taches', label: 'Activités et tâches' },
 ]
-const activeTab = ref<'candidatures' | 'activites-et-taches'>('candidatures')
+const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
 </script>
 
 <template>
