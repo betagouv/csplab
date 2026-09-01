@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-"""Print `export NAME=value` lines for every secret under SCALEWAY_SECRET_PATH.
+"""Print `export NAME=value` lines for every secret under /ingestion/{SCALEWAY_ENV}.
 
 Meant to be eval'd by a shell script before the app process starts (see
-inject_scaleway_env.sh), so production config lives in Scaleway Secret
-Manager instead of being set by hand in Scalingo's dashboard. Scaleway API
+inject_scaleway_env.sh), so config lives in Scaleway Secret Manager instead
+of being set by hand (dev, and prod's Scalingo dashboard alike). Scaleway API
 credentials (SCW_ACCESS_KEY, SCW_SECRET_KEY, SCW_DEFAULT_PROJECT_ID,
-SCW_DEFAULT_REGION) are still real Scalingo env vars, read the same way the
-`scw` CLI reads them.
+SCW_DEFAULT_REGION) are still real env vars, read the same way the `scw` CLI
+reads them.
 """
 
 from __future__ import annotations
@@ -20,9 +20,10 @@ from scaleway.secret.v1beta1 import SecretV1Beta1API
 
 
 def main() -> None:
-    secret_path = os.environ.get("SCALEWAY_SECRET_PATH")
-    if not secret_path:
+    env = os.environ.get("SCALEWAY_ENV")
+    if not env:
         return
+    secret_path = f"/ingestion/{env}"
 
     client = Client.from_env()
     api = SecretV1Beta1API(client)
