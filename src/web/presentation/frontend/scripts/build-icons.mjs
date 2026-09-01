@@ -1,6 +1,3 @@
-// Generates src/app/icons.generated.ts from the ri:* names used in src/.
-// Usage: node scripts/build-icons.mjs [--check]
-//   --check  exit 1 when the generated file is out of date instead of writing it
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { argv, exit } from 'node:process'

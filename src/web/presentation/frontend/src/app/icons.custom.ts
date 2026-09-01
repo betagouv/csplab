@@ -1,6 +1,5 @@
 import { addIcon } from '@iconify/vue'
 
-// Hand-authored icons missing from @iconify-icons/ri; build-icons.mjs skips them.
 addIcon('ri:progress-4-line', {
   width: 24,
   height: 24,
