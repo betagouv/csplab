@@ -1,8 +1,11 @@
+from datetime import UTC, datetime
+
 import pytest
 
 from config.app_config import AppConfig
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.factories.identite.agent_factory import AgentFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.gateways.shared.logger import LoggerService
@@ -44,10 +47,24 @@ def test_list_by_organisme_returns_agents(db, service):
     assert agent_organisme.role == AgentOrganismeRole.RESPONSABLE.value
     assert agent_organisme.date_derniere_activite == agent.utilisateur.last_login
     assert agent_organisme.date_creation_compte == agent.utilisateur.date_joined
+    assert agent_organisme.date_revocation is None
 
 
 def test_list_by_organisme_returns_empty_when_no_agent(db, service):
     organisme_model = OrganismeFactory.create_model()
+
+    agents = service.list_by_organisme(organisme_id=organisme_model.id)
+
+    assert agents == []
+
+
+def test_list_by_organisme_excludes_revoked_agents(db, service):
+    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.RESPONSABLE
+    )
+    OrganismeAgentModel.objects.filter(
+        organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
+    ).update(date_revocation=datetime.now(UTC))
 
     agents = service.list_by_organisme(organisme_id=organisme_model.id)
 
@@ -78,3 +95,20 @@ def test_get_one_returns_none_when_no_liaison(db, service):
     )
 
     assert agent_organisme is None
+
+
+def test_get_one_returns_revoked_agent(db, service):
+    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.RESPONSABLE
+    )
+    date_revocation = datetime.now(UTC)
+    OrganismeAgentModel.objects.filter(
+        organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
+    ).update(date_revocation=date_revocation)
+
+    agent_organisme = service.get_one(
+        organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
+    )
+
+    assert agent_organisme is not None
+    assert agent_organisme.date_revocation == date_revocation

@@ -38,6 +38,9 @@ from application.recruteur.usecases.lister_mes_recrutements import (
 from application.recruteur.usecases.lister_notes_candidature import (
     ListerNotesCandidatureUsecase,
 )
+from application.recruteur.usecases.revoke_organisme_agent import (
+    RevokeOrganismeAgentUsecase,
+)
 from application.recruteur.usecases.supprimer_note import SupprimerNoteUsecase
 from application.recruteur.usecases.update_organisme_agent import (
     UpdateOrganismeAgentUsecase,
@@ -200,6 +203,12 @@ class RecruteurContainer(containers.DeclarativeContainer):
     )
     update_organisme_agent_usecase = providers.Factory(
         UpdateOrganismeAgentUsecase,
+        organisme_agent_repository=postgres_organisme_agent_repository,
+        organisme_agent_query_service=postgres_organisme_agent_query_service,
+        organisme_permission_service=organisme_permission_service,
+    )
+    revoke_organisme_agent_usecase = providers.Factory(
+        RevokeOrganismeAgentUsecase,
         organisme_agent_repository=postgres_organisme_agent_repository,
         organisme_agent_query_service=postgres_organisme_agent_query_service,
         organisme_permission_service=organisme_permission_service,

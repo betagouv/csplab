@@ -14,3 +14,4 @@ class AgentOrganismeReadModel:
     role: str
     date_derniere_activite: datetime | None
     date_creation_compte: datetime
+    date_revocation: datetime | None = None

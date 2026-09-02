@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 import pytest
 
 from config.app_config import AppConfig
@@ -121,4 +123,34 @@ def test_update_role_raises_when_no_liaison(db, repository):
             organisme_id=organisme_model.id,
             agent_id=agent.utilisateur_id,
             role=AgentOrganismeRole.RESPONSABLE,
+        )
+
+
+def test_revoke_persists_date_revocation(db, repository):
+    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.MEMBRE
+    )
+    date_revocation = datetime.now(UTC)
+
+    repository.revoke(
+        organisme_id=organisme_model.id,
+        agent_id=agent.utilisateur_id,
+        date_revocation=date_revocation,
+    )
+
+    liaison = OrganismeAgentModel.objects.get(
+        organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
+    )
+    assert liaison.date_revocation == date_revocation
+
+
+def test_revoke_raises_when_no_liaison(db, repository):
+    organisme_model = OrganismeFactory.create_model()
+    agent = AgentFactory.create_model()
+
+    with pytest.raises(AgentNonRattache):
+        repository.revoke(
+            organisme_id=organisme_model.id,
+            agent_id=agent.utilisateur_id,
+            date_revocation=datetime.now(UTC),
         )
