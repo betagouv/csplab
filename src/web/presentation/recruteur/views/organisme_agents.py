@@ -19,9 +19,6 @@ from application.recruteur.usecases.revoke_organisme_agent import (
 from application.recruteur.usecases.update_organisme_agent import (
     UpdateOrganismeAgentCommand,
 )
-from application.recruteur.usecases.list_organisme_agents import (
-    ListOrganismeAgentsQuery,
-)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
@@ -31,7 +28,6 @@ from domain.recruteur.errors.organisme_agent_errors import (
     AgentDejaRattache,
     AgentNonRattache,
 )
-from domain.recruteur.errors.organisme_agent_errors import AgentDejaRattache
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
