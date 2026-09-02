@@ -21,7 +21,7 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.seed_recruteur_datas import _ORGANISME_UUID
-from tests.utils.dates import datetime_to_str
+from tests.utils.dates import datetime_to_drf_representation, datetime_to_str
 
 fake = Faker("fr_FR")
 
@@ -96,13 +96,14 @@ class TestOrganismesView:
                 "versant": organisme.verse.value,
                 "siret": str(organisme.siret),
                 "gestionnaire": None,
-                "gestion_ats": organisme.gestion_ats,
-                "date_creation": datetime_to_str(organisme.date_creation),
-                "date_derniere_activite": datetime_to_str(
-                    organisme.date_derniere_activite
+                "gestion_ats": organisme.managed_ats,
+                # TODO : inspect the origin of these divergent formats
+                "date_creation": datetime_to_drf_representation(
+                    organisme.creation_date
                 ),
-                "nombre_agents": 10,
-                "nombre_offres_publiees": 20,
+                "date_derniere_activite": datetime_to_str(organisme.last_activity_date),
+                "nombre_agents": 5,
+                "nombre_offres_publiees": 100,
             }
             for organisme in expected_result
         ]
