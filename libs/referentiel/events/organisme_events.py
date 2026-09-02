@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
 from uuid import UUID
 
 from ddd.domain_event import DomainEvent
@@ -20,8 +20,8 @@ class OrganismeCree(DomainEvent):
     referentiel: str | None = None
     millesime: str | None = None
     gestion_ats: bool | None = False
-    date_creation: date | None = None
-    date_derniere_activite: date | None = None
+    date_creation: datetime | None = None
+    date_derniere_activite: datetime | None = None
 
 
 @dataclass(frozen=True)

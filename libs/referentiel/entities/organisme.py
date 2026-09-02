@@ -140,3 +140,4 @@ class Organisme(AggregateRoot):
             self._versant = versant
         if gestion_ats is not None:
             self._gestion_ats = gestion_ats
+        self._date_derniere_activite = datetime.now(tz=timezone.utc)

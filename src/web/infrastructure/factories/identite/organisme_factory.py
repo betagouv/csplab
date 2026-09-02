@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import List
 from uuid import UUID, uuid4
 
@@ -59,6 +59,10 @@ class OrganismeFactory:
         date_creation: date | None = None,
         date_derniere_activite: date | None = None,
     ) -> Organisme:
+        if not date_creation:
+            date_creation = datetime.now(tz=timezone.utc)
+        if not date_derniere_activite:
+            date_derniere_activite = datetime.now(tz=timezone.utc)
         return Organisme.build(
             entity_id=entity_id or uuid4(),
             nom=nom,

@@ -18,6 +18,10 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
     def create(self, organisme: Organisme) -> Organisme:
         model = self._mapper_identite.from_domain(organisme)
         model.save()
+        if organisme.date_creation:
+            OrganismeModel.objects.filter(pk=model.pk).update(
+                created_at=organisme.date_creation
+            )
         return organisme
 
     def get_by_id(self, organisme_id: UUID) -> Organisme:  # type: ignore[override]

@@ -17,8 +17,8 @@ class OrganismeModel(BaseDatedModel):
     referentiel = models.CharField(max_length=50, null=True, blank=True)
     millesime = models.CharField(max_length=25, null=True, blank=True)
     gestion_ats = models.BooleanField(null=True, blank=True, default=False)
-    date_creation = models.DateField(null=True, blank=True)
-    date_derniere_activite = models.DateField(null=True, blank=True)
+    date_creation = models.DateTimeField(null=True, blank=True)
+    date_derniere_activite = models.DateTimeField(null=True, blank=True)
     parent_id = models.UUIDField(null=True, blank=True)
     localisation = models.JSONField(null=True, blank=True)
     etapes = models.JSONField(
