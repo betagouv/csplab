@@ -40,6 +40,7 @@ from presentation.api.serializers import (
 )
 from presentation.recruteur.mappers import (
     EtapesMapper,
+    OrganismeMapper,
     UtilisateurMapper,
 )
 from presentation.recruteur.serializers import (
@@ -87,21 +88,7 @@ class OrganismeDetailView(APIView):
                 utilisateur=self.user_mapper.to_domain(request),
             )
             organisme = usecase.execute(command)
-            organisme_dto = {
-                **data,
-                "organisme_uuid": str(organisme.entity_id),
-                "nom": data["nom"] if data.get("nom") is not None else organisme.nom,
-                "siret": organisme.siret.code,
-                "versant": data["versant"]
-                if data.get("versant") is not None
-                else organisme.versant,
-                "gestionnaire": None,
-                "gestion_ats": data["gestion_ats"]
-                if data.get("gestion_ats") is not None
-                else True,
-                "date_derniere_activite": "2026-01-15T10:00:00Z",
-                "date_creation": "2026-01-01T09:00:00Z",
-            }
+            organisme_dto = OrganismeMapper().from_domain(organisme)
             return Response(
                 OrganismeDetailSerializer(organisme_dto).data,
                 status=status.HTTP_200_OK,

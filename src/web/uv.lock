@@ -1369,7 +1369,7 @@ wheels = [
 
 [[package]]
 name = "referentiel"
-version = "0.2.6"
+version = "0.2.7"
 source = { editable = "../../libs/referentiel" }
 dependencies = [
     { name = "ddd" },

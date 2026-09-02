@@ -15,6 +15,7 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.seed_recruteur_datas import _ORGANISME_UUID
+from tests.utils.dates import datetime_to_str
 
 fake = Faker("fr_FR")
 
@@ -72,8 +73,10 @@ class TestOrganismesView:
                 "siret": organisme.siret.code,
                 "gestionnaire": None,
                 "gestion_ats": organisme.gestion_ats,
-                "date_creation": organisme.date_creation,
-                "date_derniere_activite": organisme.date_derniere_activite,
+                "date_creation": datetime_to_str(organisme.date_creation),
+                "date_derniere_activite": datetime_to_str(
+                    organisme.date_derniere_activite
+                ),
                 "nombre_agents": 10,
                 "nombre_offres_publiees": 20,
             }

@@ -62,4 +62,7 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
             gestion_ats=organisme.gestion_ats,
             date_creation=organisme.date_creation,
             date_derniere_activite=organisme.date_derniere_activite,
+            # TODO : refactor after ADR-009
+            created_at=organisme.date_creation,
+            updated_at=organisme.date_derniere_activite,
         )

@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from uuid import UUID
 
-from ddd.aggregate_root import AggregateRoot, factory
+from ddd.aggregate_root import AggregateRoot, factory, mutate
 
-from referentiel.events.organisme_events import OrganismeCree
+from referentiel.events.organisme_events import OrganismeCree, OrganismeModifie
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
@@ -126,3 +126,18 @@ class Organisme(AggregateRoot):
             _date_creation=datetime.now(tz=timezone.utc),
             _date_derniere_activite=datetime.now(tz=timezone.utc),
         )
+
+    @mutate(OrganismeModifie)
+    def modifier(
+        self,
+        nom: str | None,
+        versant: Verse | None,
+        gestion_ats: bool | None,
+    ) -> None:
+        if nom is not None:
+            self._nom = nom
+        if versant is not None:
+            self._versant = versant
+        if gestion_ats is not None:
+            self._gestion_ats = gestion_ats
+        self._date_derniere_activite = datetime.now(tz=timezone.utc)

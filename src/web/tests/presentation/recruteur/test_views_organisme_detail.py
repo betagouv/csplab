@@ -91,16 +91,15 @@ class TestOrganismeDetailView:
         organisme = OrganismeFactory.create_entity(entity_id=UUID(ORGANISME_UUID))
         mock_usecase.execute.return_value = organisme
         identite_container.update_organisme_usecase.return_value = mock_usecase
-        nouveau_nom = fake.name()
         body = {
-            "nom": nouveau_nom,
-            "gestion_ats": False,
+            "nom": organisme.nom,
+            "gestion_ats": organisme.gestion_ats,
             "versant": organisme.versant.value,
         }
         response = authenticated_client.put(ORGANISME_URL, body)
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["nom"] == nouveau_nom
-        assert response.json()["gestion_ats"] is False
+        assert response.json()["nom"] == organisme.nom
+        assert response.json()["gestion_ats"] == organisme.gestion_ats
 
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
