@@ -16,3 +16,4 @@ class OrganismeAction(Enum):
     MODIFIER_ORGANISME = "modifier_organisme"
     LIST_ORGANISME_AGENTS = "list_organisme_agents"
     ATTACH_ORGANISME_AGENT = "attach_organisme_agent"
+    UPDATE_ORGANISME_AGENT = "update_organisme_agent"

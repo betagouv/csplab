@@ -178,14 +178,25 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_update_agent(self, authenticated_client):
-        agent_id = str(uuid4())
+    def test_update_agent(self, authenticated_client, test_user):
+        _, organisme = OrganismeFactory.create_model_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            username=test_user.username,
+        )
+        autre_agent = OrganismeFactory.create_agent_in_organisme(
+            organisme.id, role=AgentOrganismeRole.MEMBRE, intitule_poste="Recruteur"
+        )
+        url = reverse(
+            "recruteur:organisme-parametres-agents",
+            kwargs={"organisme_uuid": str(organisme.id)},
+        )
 
         response = authenticated_client.put(
-            AGENTS_URL,
+            url,
             data={
-                "agent_id": agent_id,
+                "agent_id": str(autre_agent.utilisateur_id),
                 "role": AgentOrganismeRole.RESPONSABLE.value,
+                # ignored: role update only, not persisted by this usecase yet
                 "poste": "Directeur des recrutements",
             },
             format="json",
@@ -193,9 +204,63 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["agent_id"] == agent_id
+        assert data["agent_id"] == str(autre_agent.utilisateur_id)
         assert data["role"] == AgentOrganismeRole.RESPONSABLE.value
-        assert data["poste"] == "Directeur des recrutements"
+        assert data["poste"] == "Recruteur"
+        assert (
+            OrganismeAgentModel.objects.get(
+                organisme_id=organisme.id, agent_id=autre_agent.utilisateur_id
+            ).role
+            == AgentOrganismeRole.RESPONSABLE.value
+        )
+
+    def test_update_agent_forbidden_for_membre(self, authenticated_client, test_user):
+        _, organisme = OrganismeFactory.create_model_with_agent(
+            role=AgentOrganismeRole.MEMBRE,
+            username=test_user.username,
+        )
+        autre_agent = OrganismeFactory.create_agent_in_organisme(
+            organisme.id, role=AgentOrganismeRole.MEMBRE
+        )
+        url = reverse(
+            "recruteur:organisme-parametres-agents",
+            kwargs={"organisme_uuid": str(organisme.id)},
+        )
+
+        response = authenticated_client.put(
+            url,
+            data={
+                "agent_id": str(autre_agent.utilisateur_id),
+                "role": AgentOrganismeRole.RESPONSABLE.value,
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_agent_returns_404_when_not_attached(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = OrganismeFactory.create_model_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            username=test_user.username,
+        )
+        bare_agent = AgentFactory.create_model()
+        url = reverse(
+            "recruteur:organisme-parametres-agents",
+            kwargs={"organisme_uuid": str(organisme.id)},
+        )
+
+        response = authenticated_client.put(
+            url,
+            data={
+                "agent_id": str(bare_agent.utilisateur_id),
+                "role": AgentOrganismeRole.RESPONSABLE.value,
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_update_agent_invalid_role(self, authenticated_client):
         response = authenticated_client.put(
@@ -215,21 +280,11 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_revoke_agent_role_on_organisme(self, authenticated_client):
-        agent_id = str(uuid4())
-
+    def test_update_agent_requires_role(self, authenticated_client):
         response = authenticated_client.put(
             AGENTS_URL,
-            data={
-                "agent_id": agent_id,
-                # TODO: make role parametric in test when implementing usecase
-                "role": AgentOrganismeRole.MEMBRE.value,
-                "date_revocation": "2026-08-20T10:00:00Z",
-            },
+            data={"agent_id": str(uuid4())},
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["agent_id"] == agent_id
-        assert data["date_revocation"] == "2026-08-20T10:00:00Z"
+        assert response.status_code == status.HTTP_400_BAD_REQUEST

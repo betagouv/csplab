@@ -1,7 +1,10 @@
 import pytest
 
 from config.app_config import AppConfig
-from domain.recruteur.errors.organisme_agent_errors import AgentDejaRattache
+from domain.recruteur.errors.organisme_agent_errors import (
+    AgentDejaRattache,
+    AgentNonRattache,
+)
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
@@ -86,6 +89,35 @@ def test_attach_raises_when_already_attached(db, repository):
 
     with pytest.raises(AgentDejaRattache):
         repository.attach(
+            organisme_id=organisme_model.id,
+            agent_id=agent.utilisateur_id,
+            role=AgentOrganismeRole.RESPONSABLE,
+        )
+
+
+def test_update_role_persists_change(db, repository):
+    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.MEMBRE
+    )
+
+    repository.update_role(
+        organisme_id=organisme_model.id,
+        agent_id=agent.utilisateur_id,
+        role=AgentOrganismeRole.RESPONSABLE,
+    )
+
+    liaison = OrganismeAgentModel.objects.get(
+        organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
+    )
+    assert liaison.role == AgentOrganismeRole.RESPONSABLE.value
+
+
+def test_update_role_raises_when_no_liaison(db, repository):
+    organisme_model = OrganismeFactory.create_model()
+    agent = AgentFactory.create_model()
+
+    with pytest.raises(AgentNonRattache):
+        repository.update_role(
             organisme_id=organisme_model.id,
             agent_id=agent.utilisateur_id,
             role=AgentOrganismeRole.RESPONSABLE,

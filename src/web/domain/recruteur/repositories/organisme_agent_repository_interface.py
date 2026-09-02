@@ -12,3 +12,7 @@ class IOrganismeAgentRepository(Protocol):
     def attach(
         self, *, organisme_id: UUID, agent_id: UUID, role: AgentOrganismeRole
     ) -> None: ...
+
+    def update_role(
+        self, *, organisme_id: UUID, agent_id: UUID, role: AgentOrganismeRole
+    ) -> None: ...
