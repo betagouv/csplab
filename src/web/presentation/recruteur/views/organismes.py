@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from pydantic import ValidationError
 from referentiel.value_objects.siret import SIRET
@@ -18,7 +16,6 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
-from infrastructure.factories.seed_recruteur_datas import _ORGANISME_UUID
 from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
@@ -29,8 +26,6 @@ from presentation.recruteur.serializers import (
     OrganismeDetailSerializer,
     OrganismesListSerializer,
 )
-
-_FROZEN_TS = datetime.now(tz=timezone.utc)
 
 
 @extend_schema_view(
@@ -104,22 +99,20 @@ class OrganismesView(APIView):
         try:
             usecase = self.container.create_organisme_usecase()
             command = CreateOrganismeCommand(
-                nom=serializer.validated_data["nom"],
-                versant=Verse(serializer.validated_data["versant"]),
+                name=serializer.validated_data["nom"],
+                verse=Verse(serializer.validated_data["versant"]),
                 localisation=None,
                 siret=SIRET(code=serializer.validated_data["siret"]),
                 parent_id=None,
                 utilisateur=self.user_mapper.to_domain(request),
             )
-            usecase.execute(command)
-            organisme = OrganismeFactory.create_entity(
-                entity_id=_ORGANISME_UUID,
-                date_creation=_FROZEN_TS,
-                date_derniere_activite=_FROZEN_TS,
-            )
+            organisme = usecase.execute(command)
             organisme_dto = {
-                **serializer.validated_data,
                 "organisme_uuid": organisme.entity_id,
+                "nom": organisme.nom,
+                "versant": organisme.versant.value,
+                "siret": organisme.siret.code,
+                "gestion_ats": organisme.gestion_ats,
                 "date_creation": organisme.date_creation,
                 "date_derniere_activite": organisme.date_derniere_activite,
             }

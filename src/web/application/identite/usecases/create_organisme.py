@@ -7,7 +7,9 @@ from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
+from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
@@ -19,12 +21,13 @@ from domain.identite.value_objects.organisme_action import OrganismeAction
 
 @dataclass
 class CreateOrganismeCommand:
-    nom: str
-    versant: Verse
     localisation: Localisation | None
-    siret: SIRET | None
     parent_id: UUID | None
+    name: str
+    verse: Verse
+    siret: SIRET
     utilisateur: Utilisateur
+    managed_ats: bool = False
 
 
 class CreateOrganismeUsecase(IUsecase[CreateOrganismeCommand, Organisme]):
@@ -32,20 +35,32 @@ class CreateOrganismeUsecase(IUsecase[CreateOrganismeCommand, Organisme]):
         self,
         organisme_repository: IOrganismeRepository,
         permission_service: OrganismePermissionService,
+        audit_log_writer: AuditLogWriter,
     ):
         self.organisme_repository = organisme_repository
         self.permission_service = permission_service
+        self.audit_log_writer = audit_log_writer
 
-    def execute(self, input_data: CreateOrganismeCommand) -> Organisme:
+    def can_execute(self, command: CreateOrganismeCommand) -> None:
         self.permission_service.est_autorise(
             action=OrganismeAction.CREER_ORGANISME,
-            utilisateur=input_data.utilisateur,
+            utilisateur=command.utilisateur,
         )
+
+    def execute(self, command: CreateOrganismeCommand) -> Organisme:
+        self.can_execute(command)
+        organisme = self.organisme_repository.get_by_siret(siret=command.siret)
+        if organisme:
+            raise OrganismeSiretExisteDeja(siret_str=str(organisme.siret))
         organisme = Organisme.create(
-            nom=input_data.nom,
-            versant=input_data.versant,
-            localisation=input_data.localisation,
-            siret=input_data.siret,
-            parent_id=input_data.parent_id,
+            nom=command.name,
+            versant=command.verse,
+            localisation=command.localisation,
+            siret=command.siret,
+            parent_id=command.parent_id,
+            gestion_ats=command.managed_ats,
+        )
+        self.audit_log_writer.drain_events(
+            utilisateur_id=command.utilisateur.entity_id, aggregate=organisme
         )
         return self.organisme_repository.create(organisme)
