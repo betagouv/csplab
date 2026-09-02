@@ -25,7 +25,11 @@ run = "pnpm install"
 alias = "web:dev"
 description = "Django dev server"
 depends = ["install:py", "//:services:postgres"]
-run = "python manage.py runserver"
+shell = "bash -c"
+run = """
+source bin/inject_scaleway_env.sh
+python manage.py runserver
+"""
 
 [tasks."dev:cv"]
 alias = "web:dev:cv"
@@ -49,13 +53,15 @@ run = "python manage.py run_huey"
 alias = "web:migrate"
 description = "Apply Django migrations"
 depends = ["install:py", "//:services:postgres"]
-run = "python manage.py migrate"
+shell = "bash -c"
+run = "source bin/inject_scaleway_env.sh && python manage.py migrate"
 
 [tasks.migration]
 alias = "web:migration"
 description = "Generate Django migrations (makemigrations)"
 depends = ["install:py", "//:services:postgres"]
-run = "python manage.py makemigrations"
+shell = "bash -c"
+run = "source bin/inject_scaleway_env.sh && python manage.py makemigrations"
 
 [tasks.manage]
 alias = "web:manage"
@@ -154,7 +160,8 @@ run = "djlint presentation/templates --check"
 alias = "web:lint:migrations"
 description = "Check no Django migration is missing"
 depends = ["install:py"]
-run = "python manage.py makemigrations --check"
+shell = "bash -c"
+run = "source bin/inject_scaleway_env.sh && python manage.py makemigrations --check"
 
 [tasks."lint:candidate-js"]
 alias = "web:lint:candidate-js"
