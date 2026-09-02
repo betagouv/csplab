@@ -24,6 +24,9 @@ from infrastructure.repositories.identite.postgres_agent_repository import (
 from infrastructure.repositories.identite.postgres_candidat_repository import (
     PostgresCandidatRepository,
 )
+from infrastructure.repositories.identite.postgres_organisme_query_service import (
+    PostgresOrganismeQueryService,
+)
 from infrastructure.repositories.identite.postgres_organisme_repository import (
     PostgresOrganismeRepository,
 )
@@ -87,6 +90,10 @@ class IdentiteContainer(containers.DeclarativeContainer):
         PostgresRecrutementAgentRepository
     )
 
+    postgres_organisme_query_service = providers.Singleton(
+        PostgresOrganismeQueryService
+    )
+
     organisme_permission_service = providers.Factory(
         OrganismePermissionService,
         organisme_recruteur_repository=postgres_organisme_recruteur_repository,
@@ -103,7 +110,7 @@ class IdentiteContainer(containers.DeclarativeContainer):
 
     list_organismes_usecase = providers.Factory(
         ListOrganismesUsecase,
-        organisme_repository=postgres_organisme_repository,
+        organisme_query_service=postgres_organisme_query_service,
         permission_service=organisme_permission_service,
     )
 
