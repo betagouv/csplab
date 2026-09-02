@@ -7,7 +7,7 @@ from domain.value_objects.talentsoft_credential import TalentsoftCredential
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=None)
 
     sentry_dsn: HttpUrl | None = None
     sentry_profiles_sample_rate: float | None = 0.1

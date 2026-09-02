@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$(dirname "${BASH_SOURCE[0]}")/inject_scaleway_env.sh"
+
 # Run database migrations as a postdeploy step
 python -c "
 from api.config import get_settings

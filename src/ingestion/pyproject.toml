@@ -16,6 +16,7 @@ dependencies = [
     "psycopg2-binary>=2.9.0",
     "pydantic-settings>=2.13.1",
     "referentiel",
+    "scaleway>=2.11.0",
     "sentry-sdk>=2.54.0",
     "sqlmodel>=0.0.24",
     "uvicorn>=0.42.0",
@@ -87,6 +88,9 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"bin/fetch_scaleway_secrets.py" = [
+    "T201", # print is the point: output is eval'd as shell by the caller
+]
 "api/*" = [
     "B008", # Function call in argument defaults (acceptable for FastAPI)
     "PLR0913", # Too many arguments (acceptable for FastAPI routes with injected dependencies)
