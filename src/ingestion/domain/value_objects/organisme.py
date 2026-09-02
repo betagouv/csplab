@@ -1,6 +1,7 @@
-from dataclasses import dataclass
 from datetime import date
 from typing import Any
+
+from pydantic.dataclasses import dataclass
 
 
 @dataclass(frozen=True)

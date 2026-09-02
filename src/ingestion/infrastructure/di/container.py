@@ -30,12 +30,16 @@ from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.repositories.webhook_repository import IWebhookRepository
 from domain.value_objects.credentials import Credentials
+from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
 from infrastructure.credentials_store import CredentialsStore
 from infrastructure.database import make_engine
 from infrastructure.external_gateways.base_web_gateway import WebGatewayCredentials
 from infrastructure.external_gateways.finess_organisme_gateway import (
     FinessOrganismeGateway,
+)
+from infrastructure.external_gateways.gipcdg_organisme_gateway import (
+    GipcdgOrganismeGateway,
 )
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
@@ -141,6 +145,22 @@ class Container(containers.DeclarativeContainer):
         providers.Factory(
             ImportOrganismesUsecase,
             organisme_gateway=organisme_gateway,
+            raw_organisme_repository=raw_organisme_repository,
+        )
+    )
+
+    gipcdg_organisme_gateway: providers.Provider[IOrganismeGateway] = (
+        providers.Singleton(
+            GipcdgOrganismeGateway,
+            api_key=config.gipcdg_api_key,
+            collectivites_api_url=config.gipcdg_collectivites_api_url,
+        )
+    )
+
+    import_organismes_gipcdg_usecase: providers.Provider[ImportOrganismesUsecase] = (
+        providers.Factory(
+            ImportOrganismesUsecase,
+            organisme_gateway=gipcdg_organisme_gateway,
             raw_organisme_repository=raw_organisme_repository,
         )
     )
@@ -265,6 +285,14 @@ class Container(containers.DeclarativeContainer):
     )
 
 
+def import_organismes_usecase_for(
+    container: Container, referentiel: OrganismeReferentiel
+) -> ImportOrganismesUsecase:
+    if referentiel == OrganismeReferentiel.GIPCDG:
+        return container.import_organismes_gipcdg_usecase()
+    return container.import_organismes_usecase()
+
+
 def create_container() -> Container:
     settings = get_settings()
     container = Container()
@@ -272,6 +300,10 @@ def create_container() -> Container:
     container.config.web_api_key.from_value(settings.web_api_key)
     container.config.database_url.from_value(settings.database_url)
     container.config.talentsoft_credentials.from_value(settings.talentsoft_credentials)
+    container.config.gipcdg_api_key.from_value(settings.gipcdg_api_key)
+    container.config.gipcdg_collectivites_api_url.from_value(
+        str(settings.gipcdg_collectivites_api_url)
+    )
 
     _logger = logging.getLogger(__name__)
     register_talentsoft_front_clients(
