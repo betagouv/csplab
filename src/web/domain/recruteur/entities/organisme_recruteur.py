@@ -7,30 +7,31 @@ from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.organisme_recruteur_errors import (
     ConfigurationEtapesInvalide,
 )
-from domain.recruteur.events.organisme_events import (
+from domain.recruteur.events.organisme_recruteur_events import (
     OrganismeEtapesInitialises,
     OrganismeEtapesMisesAJour,
 )
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from domain.recruteur.value_objects.etape_data import EtapeData
 
 
 @dataclass(kw_only=True)
 class OrganismeRecruteur(AggregateRoot):
-    _etapes: tuple[EtapeRecrutement, ...] | None
+    _etapes: tuple[EtapeRecrutement, ...]
     # _formulaire_candidature
 
     @classmethod
     def build(
         cls,
         entity_id: UUID,
-        etapes: tuple[EtapeRecrutement, ...] | None,
+        etapes: tuple[EtapeRecrutement, ...],
     ) -> "OrganismeRecruteur":
         return cls(entity_id=entity_id, _etapes=etapes)
 
     @property
-    def etapes(self) -> tuple[EtapeRecrutement, ...] | None:
+    def etapes(self) -> tuple[EtapeRecrutement, ...]:
         return self._etapes
 
     @mutate(OrganismeEtapesInitialises)
@@ -38,14 +39,13 @@ class OrganismeRecruteur(AggregateRoot):
         self._etapes = self._generate_default()
 
     @mutate(OrganismeEtapesMisesAJour)
-    def mettre_a_jour_etapes(self, etapes: tuple[EtapeRecrutement, ...]) -> None:
+    def mettre_a_jour_etapes(self, etapes_data: tuple[EtapeData, ...]) -> None:
         # check business rules
-        self._validate(etapes)
-        # mutate
-        self._etapes = etapes
+        self._validate(etapes_data)
+        self._apply(etapes_data)
 
-    def _validate(self, etapes: tuple[EtapeRecrutement, ...]) -> None:
-        categories = [e.categorie for e in etapes]
+    def _validate(self, etapes_data: tuple[EtapeData, ...]) -> None:
+        categories = [e.categorie for e in etapes_data]
         # add that etapes as a whole is a set of schemas (schema = nom x categorie)
         if not categories or categories[0] != CategorieEtapeRecrutement.ENTREE:
             raise ConfigurationEtapesInvalide(
@@ -71,11 +71,47 @@ class OrganismeRecruteur(AggregateRoot):
             )
 
         # each schema (nom, categorie) must be unique
-        couples = {(e.nom, e.categorie) for e in etapes}
-        if len(couples) != len(etapes):
+        couples = {(e.nom, e.categorie) for e in etapes_data}
+        if len(couples) != len(etapes_data):
             raise ConfigurationEtapesInvalide(
                 "Chaque couple (nom, catégorie) doit être unique"
             )
+
+    def _apply(self, etapes_data: tuple[EtapeData, ...]) -> None:
+        # mutate
+        new_steps = []
+        step_by_id = {
+            step.entity_id: (rank, step) for rank, step in enumerate(self._etapes)
+        }
+        kept_ids = set()
+        for new_rank, config in enumerate(etapes_data):
+            kept_ids.add(config.etape_uuid)
+            if config.etape_uuid is None:
+                new_step = EtapeRecrutement.create(
+                    nom=config.nom, categorie=config.categorie
+                )
+                for event in new_step.collect_events():
+                    self.add_event(event)
+                new_steps.append(new_step)
+            else:
+                rank, existing_step = step_by_id[config.etape_uuid]
+                if config.nom != existing_step.nom:
+                    existing_step.renommer(nom=config.nom)
+                # rerank
+                if new_rank != rank:
+                    existing_step.modifier_rang(nouveau_rang=new_rank)
+                for event in existing_step.collect_events():
+                    self.add_event(event)
+                new_steps.append(existing_step)
+
+        # delete
+        delete = [etape for etape in self._etapes if etape.entity_id not in kept_ids]
+
+        for etape in delete:
+            etape.delete()
+            for event in etape.collect_events():
+                self.add_event(event)
+        self._etapes = tuple(new_steps)
 
     def _generate_default(self) -> tuple[EtapeRecrutement, ...]:
         return (

@@ -184,7 +184,7 @@ class TestInitRecrutementEtapes:
         repository = recruteur_integration_container.postgres_recrutement_repository()
         repository.save = Mock(side_effect=ProtectedError("msg", []))
 
-        # Bypasser domain check to test rollback if db error
+        # Bypass domain check to test rollback if db error
         with patch.object(EtapeRecrutement, "delete", return_value=None):
             usecase = recruteur_integration_container.init_recrutement_etapes_usecase()
 

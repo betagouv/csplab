@@ -9,10 +9,13 @@ from rest_framework import status
 from application.recruteur.dtos.etape_data import EtapeData
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
-    OrganismeRecruteurSansEtapes,
+    RecrutementEtapeIncoherents,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.recruteur.errors.organisme_recruteur_errors import (
+    ConfigurationEtapesInvalide,
+)
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
     SupressionEtapeImpossible,
@@ -23,6 +26,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
+from presentation.recruteur.views.recrutement_params import _etapes_to_serializer_data
 
 fake = Faker()
 
@@ -134,51 +138,106 @@ class TestRecrutementEtapeView:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_patch_returns_404_for_unknown_organisme(
-        self, container, authenticated_client
+    def test_returns_201_with_updated_pipeline(self, container, authenticated_client):
+        etapes = EtapeRecrutementFactory.create_entity_batch()
+        usecase = container.update_recrutement_etapes_usecase.return_value.execute
+        usecase.return_value = etapes
+
+        response = authenticated_client.patch(
+            RECRUTEMENT_ETAPES_URL,
+            data=_etapes_to_serializer_data(etapes=etapes),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert len(data) == len(etapes)
+        assert data[-1]["etape_uuid"] == str(etapes[-1].entity_id)
+        assert data[-1]["nom"] == "Recrutement"
+        assert data[-1]["categorie"] == "ACCEPTE"
+
+    @pytest.mark.parametrize(
+        ("exception", "expected_status", "expected_body"),
+        [
+            (
+                OrganismeRecrutementIncoherents(
+                    UUID(ORGANISME_UUID), UUID(RECRUTEMENT_UUID)
+                ),
+                status.HTTP_400_BAD_REQUEST,
+                {
+                    "error": OrganismeRecrutementIncoherents(
+                        UUID(ORGANISME_UUID), UUID(RECRUTEMENT_UUID)
+                    ).message
+                },
+            ),
+            (
+                RecrutementEtapeIncoherents(
+                    recrutement_id=UUID(ORGANISME_UUID), etape_id=UUID(ETAPE_UUID)
+                ),
+                status.HTTP_400_BAD_REQUEST,
+                {
+                    "error": f"L'étape {ETAPE_UUID} ne correspond pas au recrutement"
+                    f" {ORGANISME_UUID}"
+                },
+            ),
+            (
+                ConfigurationEtapesInvalide(
+                    "La première étape doit être de catégorie ENTREE"
+                ),
+                status.HTTP_400_BAD_REQUEST,
+                {
+                    "error": ConfigurationEtapesInvalide(
+                        "La première étape doit être de catégorie ENTREE"
+                    ).message
+                },
+            ),
+            (
+                SupressionEtapeImpossible(UUID(ETAPE_UUID), 1),
+                status.HTTP_400_BAD_REQUEST,
+                {"error": SupressionEtapeImpossible(UUID(ETAPE_UUID), 1).message},
+            ),
+            (
+                AccesOrganismeRefuse(UUID(ORGANISME_UUID)),
+                status.HTTP_403_FORBIDDEN,
+                {"error": AccesOrganismeRefuse(UUID(ORGANISME_UUID)).message},
+            ),
+            (
+                OrganismeNexistePas(ORGANISME_UUID),
+                status.HTTP_404_NOT_FOUND,
+                {"error": OrganismeNexistePas(ORGANISME_UUID).message},
+            ),
+            (
+                RecrutementInexistant(UUID(RECRUTEMENT_UUID)),
+                status.HTTP_404_NOT_FOUND,
+                {"error": RecrutementInexistant(UUID(RECRUTEMENT_UUID)).message},
+            ),
+            (
+                Exception("unexpected"),
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"error": "Unexpected error"},
+            ),
+        ],
+    )
+    def test_patch_returns_error_from_usecase(
+        self,
+        container,
+        authenticated_client,
+        exception,
+        expected_status,
+        expected_body,
     ):
         container.update_recrutement_etapes_usecase.return_value.execute.side_effect = (
-            OrganismeNexistePas("not found")
+            exception
         )
-
+        etapes = EtapeRecrutementFactory.create_entity_batch()
         response = authenticated_client.patch(
             RECRUTEMENT_ETAPES_URL,
-            data=[{"nom": "Réception", "categorie": "ENTREE"}],
+            data=_etapes_to_serializer_data(etapes=etapes),
             format="json",
         )
 
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"error": OrganismeNexistePas("not found").message}
-
-    def test_patch_returns_403_when_forbidden(self, container, authenticated_client):
-        container.update_recrutement_etapes_usecase.return_value.execute.side_effect = (
-            AccesOrganismeRefuse(uuid4())
-        )
-
-        response = authenticated_client.patch(
-            RECRUTEMENT_ETAPES_URL,
-            data=[{"nom": "Réception", "categorie": "ENTREE"}],
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"detail": "Forbidden."}
-
-    def test_patch_returns_500_on_unexpected_error(
-        self, container, authenticated_client
-    ):
-        container.update_recrutement_etapes_usecase.return_value.execute.side_effect = (
-            Exception("unexpected")
-        )
-
-        response = authenticated_client.patch(
-            RECRUTEMENT_ETAPES_URL,
-            data=[{"nom": "Réception", "categorie": "ENTREE"}],
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.json() == {"error": "Unexpected error"}
+        assert response.status_code == expected_status
+        assert response.json() == expected_body
 
 
 class TestInitRecrutementEtapeView:
@@ -203,11 +262,6 @@ class TestInitRecrutementEtapeView:
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
         [
-            (
-                OrganismeRecruteurSansEtapes(UUID(ORGANISME_UUID)),
-                status.HTTP_400_BAD_REQUEST,
-                {"error": OrganismeRecruteurSansEtapes(UUID(ORGANISME_UUID)).message},
-            ),
             (
                 OrganismeRecrutementIncoherents(
                     UUID(ORGANISME_UUID), UUID(RECRUTEMENT_UUID)

@@ -5,8 +5,10 @@ from uuid import UUID
 from ddd.aggregate_root import AggregateRoot, factory, mutate
 
 from domain.recruteur.errors.recrutement_errors import SupressionEtapeImpossible
-from domain.recruteur.events.etapes_events import (
+from domain.recruteur.events.etape_events import (
     EtapeAjoutee,
+    EtapeRenommee,
+    EtapeReordonnee,
     EtapeSupprimee,
 )
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
@@ -41,6 +43,13 @@ class EtapeRecrutement(AggregateRoot):
             _nom=nom,
             _candidatures=candidatures,
         )
+
+    @mutate(EtapeRenommee)
+    def renommer(self, nom: str) -> None:
+        self._nom = nom
+
+    @mutate(EtapeReordonnee)
+    def modifier_rang(self, nouveau_rang: int) -> None: ...
 
     @mutate(EtapeSupprimee)
     def delete(self) -> None:

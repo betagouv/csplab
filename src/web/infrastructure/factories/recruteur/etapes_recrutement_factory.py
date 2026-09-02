@@ -1,11 +1,11 @@
 from typing import List
 from uuid import UUID, uuid4
 
-from application.recruteur.usecases.update_organisme_steps import EtapeData
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from domain.recruteur.value_objects.etape_data import EtapeData
 
 
 class EtapeRecrutementFactory:

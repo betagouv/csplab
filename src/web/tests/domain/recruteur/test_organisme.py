@@ -1,16 +1,27 @@
+from typing import List
+from uuid import uuid4
+
 import pytest
 
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
+from domain.recruteur.entities.organisme_recruteur import OrganismeRecruteur
 from domain.recruteur.errors.organisme_recruteur_errors import (
     ConfigurationEtapesInvalide,
 )
-from domain.recruteur.events.organisme_events import (
+from domain.recruteur.events.etape_events import (
+    EtapeAjoutee,
+    EtapeRenommee,
+    EtapeReordonnee,
+    EtapeSupprimee,
+)
+from domain.recruteur.events.organisme_recruteur_events import (
     OrganismeEtapesInitialises,
     OrganismeEtapesMisesAJour,
 )
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from domain.recruteur.value_objects.etape_data import EtapeData
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
@@ -20,10 +31,42 @@ from infrastructure.factories.recruteur.organisme_factory import (
 
 NB_ETAPES_PAR_DEFAUT = 6
 NB_ETAPES_EN_COURS_PAR_DEFAUT = 3
+NUMBER_CHANGES = 5
 
 
-def test_organisme_default_steps() -> None:
-    organisme = OrganismeRecruteurFactory.create_entity()
+@pytest.fixture(name="etapes")
+def etapes_fixture():
+    return EtapeRecrutementFactory.create_entity_batch()
+
+
+@pytest.fixture(name="etapes_data")
+def etapes_data_fixture(etapes) -> List[EtapeData]:
+    # e3 deleted
+    e0, e1, e2, _, e4, e5 = etapes
+    return [
+        EtapeData(
+            etape_uuid=e0.entity_id,
+            nom="Candidatures reçues",
+            categorie=e0.categorie,
+        ),
+        EtapeData(
+            etape_uuid=None,
+            nom="Sourcing",
+            categorie=CategorieEtapeRecrutement.EN_COURS,  # added
+        ),
+        *[
+            EtapeData(
+                etape_uuid=e.entity_id,
+                nom=e.nom,
+                categorie=e.categorie,
+            )
+            for e in [e2, e1, e4, e5]
+        ],
+    ]
+
+
+def test_organisme_default_steps(etapes) -> None:
+    organisme = OrganismeRecruteur.build(entity_id=uuid4(), etapes=etapes)
     organisme.initialiser_etapes()
     events = organisme.collect_events()
     assert len(events) == 1
@@ -46,74 +89,52 @@ def test_organisme_default_steps() -> None:
     assert steps[0].nom == first_step.nom
 
 
-def test_organisme_update_steps() -> None:
-    organisme = OrganismeRecruteurFactory.create_entity(
-        etapes=EtapeRecrutementFactory.create_entity_batch()
-    )
-    nouvelles_etapes = (
-        EtapeRecrutement.create(
-            categorie=CategorieEtapeRecrutement.ENTREE,
-            nom="Candidatures reçues",
-        ),
-        EtapeRecrutement.create(
-            categorie=CategorieEtapeRecrutement.EN_COURS,
-            nom="Entretien RH",
-        ),
-        EtapeRecrutement.create(
-            categorie=CategorieEtapeRecrutement.REFUS,
-            nom="Refus",
-        ),
-        EtapeRecrutement.create(
-            categorie=CategorieEtapeRecrutement.ACCEPTE,
-            nom="Recrutement",
-        ),
-    )
+def test_organisme_update_steps(etapes_data, etapes) -> None:
+    organisme = OrganismeRecruteurFactory.create_entity(etapes=etapes)
 
-    organisme.mettre_a_jour_etapes(etapes=nouvelles_etapes)
+    organisme.mettre_a_jour_etapes(etapes_data=etapes_data)
 
     events = organisme.collect_events()
-    assert len(events) == 1
-    event = events[0]
-    assert isinstance(event, OrganismeEtapesMisesAJour)
-    assert event.etapes == nouvelles_etapes
-    assert organisme.etapes == nouvelles_etapes
+    assert len(events) == NUMBER_CHANGES
+    assert any(isinstance(e, OrganismeEtapesMisesAJour) for e in events)
+    assert any(isinstance(e, EtapeAjoutee) for e in events)
+    assert any(isinstance(e, EtapeSupprimee) for e in events)
+    assert any(isinstance(e, EtapeRenommee) for e in events)
+    assert any(isinstance(e, EtapeReordonnee) for e in events)
 
 
 @pytest.mark.parametrize(
-    "etapes_invalides",
+    "invalid",
     [
         pytest.param(
             (
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Présélection",
-                ),
-                EtapeRecrutementFactory.create_entity(
-                    categorie=CategorieEtapeRecrutement.REFUS,
-                    nom="Refus",
-                ),
-                EtapeRecrutementFactory.create_entity(
-                    categorie=CategorieEtapeRecrutement.ACCEPTE,
-                    nom="Recrutement",
                 ),
             ),
             id="no_entry",
         ),
         pytest.param(
             (
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.ENTREE,
                     nom="Réception des candidatures",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Entretien",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Avant-dernière EN_COURS au lieu de REFUS",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.ACCEPTE,
                     nom="Recrutement",
                 ),
@@ -122,15 +143,18 @@ def test_organisme_update_steps() -> None:
         ),
         pytest.param(
             (
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.ENTREE,
                     nom="Réception des candidatures",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.REFUS,
                     nom="Refus",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.ACCEPTE,
                     nom="Recrutement",
                 ),
@@ -139,23 +163,28 @@ def test_organisme_update_steps() -> None:
         ),
         pytest.param(
             (
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.ENTREE,
                     nom="Réception des candidatures",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Entretien",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.ENTREE,
                     nom="Doublon ENTREE au milieu",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.REFUS,
                     nom="Refus",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.ACCEPTE,
                     nom="Recrutement",
                 ),
@@ -164,19 +193,23 @@ def test_organisme_update_steps() -> None:
         ),
         pytest.param(
             (
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.ENTREE,
                     nom="Réception des candidatures",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Entretien",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.REFUS,
                     nom="Refus",
                 ),
-                EtapeRecrutementFactory.create_entity(
+                EtapeData(
+                    etape_uuid=uuid4(),
                     categorie=CategorieEtapeRecrutement.EN_COURS,
                     nom="Étape parasite en fin",
                 ),
@@ -186,11 +219,11 @@ def test_organisme_update_steps() -> None:
     ],
 )
 def test_organisme_update_steps_fails(
-    etapes_invalides: tuple[EtapeRecrutement, ...],
+    invalid: List[EtapeData],
 ) -> None:
     organisme = OrganismeRecruteurFactory.create_entity(
         etapes=EtapeRecrutementFactory.create_entity_batch()
     )
 
     with pytest.raises(ConfigurationEtapesInvalide):
-        organisme.mettre_a_jour_etapes(etapes=etapes_invalides)
+        organisme.mettre_a_jour_etapes(etapes_data=tuple(invalid))

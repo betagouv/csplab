@@ -18,7 +18,6 @@ from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
 from application.recruteur.usecases.update_organisme_steps import (
-    EtapeData,
     UpdateOrganismeStepsCommand,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -32,6 +31,7 @@ from domain.recruteur.errors.organisme_recruteur_errors import (
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from domain.recruteur.value_objects.etape_data import EtapeData
 from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import (
@@ -177,7 +177,7 @@ class EtapesRecrutementOrganismeView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         validated_etapes: list = serializer.validated_data  # type: ignore[assignment]
-        etapes = [
+        etapes_data = [
             EtapeData(
                 etape_uuid=etape.get("etape_uuid"),
                 nom=etape["nom"],
@@ -191,7 +191,7 @@ class EtapesRecrutementOrganismeView(APIView):
                 UpdateOrganismeStepsCommand(
                     organisme_id=organisme_uuid,
                     utilisateur=self.user_mapper.to_domain(request),
-                    etapes=etapes,
+                    etapes=etapes_data,
                 )
             )
             data = EtapesMapper().from_domain(organisme)

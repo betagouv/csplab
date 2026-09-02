@@ -14,4 +14,14 @@ class EtapeAjoutee(DomainEvent):
 
 
 @dataclass(frozen=True)
+class EtapeRenommee(DomainEvent):
+    nom: str
+
+
+@dataclass(frozen=True)
+class EtapeReordonnee(DomainEvent):
+    nouveau_rang: int
+
+
+@dataclass(frozen=True)
 class EtapeSupprimee(DomainEvent): ...
