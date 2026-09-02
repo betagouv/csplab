@@ -1,0 +1,65 @@
+name: Libs
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - "libs/**"
+              - "mise.toml"
+              - "mise.ci.toml"
+              - ".github/workflows/libs.yml"
+              - ".github/actions/**"
+
+  lint-libs:
+    needs: check-changes
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - lib: ddd
+            alias: ddd
+          - lib: referentiel
+            alias: referentiel
+          - lib: scaleway_secrets
+            alias: scaleway-secrets
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-mise
+      - name: Install ${{ matrix.lib }} dependencies
+        run: mise run ${{ matrix.alias }}:install
+      - name: Lint ${{ matrix.lib }}
+        run: mise run ${{ matrix.alias }}:lint
+
+  test-libs:
+    needs: check-changes
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lib: [ddd, referentiel]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-mise
+      - name: Install ${{ matrix.lib }} dependencies
+        run: mise run ${{ matrix.lib }}:install
+      - name: Test ${{ matrix.lib }}
+        run: mise run ${{ matrix.lib }}:test

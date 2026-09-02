@@ -11,6 +11,6 @@ if [ -n "${SCALEWAY_ENV:-}" ]; then
         echo "SCALEWAY_ENV=prod is only allowed on Scalingo (SCALINGO_APPLICATION_ID not set)" >&2
         exit 1
     fi
-    scaleway_env="$(python -m scaleway_secrets.fetch ingestion)"
+    scaleway_env="$(python -m scaleway_secrets.fetch ocr)"
     eval "$scaleway_env"
 fi

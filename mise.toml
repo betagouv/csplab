@@ -12,6 +12,7 @@ config_roots = [
   "src/notebook",
   "libs/ddd",
   "libs/referentiel",
+  "libs/scaleway_secrets",
   "dev",
 ]
 
