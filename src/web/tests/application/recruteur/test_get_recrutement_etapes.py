@@ -1,44 +1,107 @@
-from unittest.mock import MagicMock
+from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
 
+from application.recruteur.dtos.recrutement_request import RecrutementRequest
+from application.recruteur.errors.application_errors_recruteur import (
+    OrganismeRecrutementIncoherents,
+)
 from application.recruteur.usecases.get_recrutement_etapes import (
-    GetRecrutementEtapesQuery,
     GetRecrutementEtapesUsecase,
 )
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.recruteur.repositories.organisme_repository_interface import (
+    IOrganismeRecruteurRepository,
+)
+from domain.recruteur.repositories.recrutement_repository_interface import (
+    IRecrutementRepository,
+)
+from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
+)
+from infrastructure.factories.recruteur.organisme_factory import (
+    OrganismeRecruteurFactory,
+)
+from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 
 
-@pytest.fixture(name="organisme_permission_service")
-def organisme_permission_service_fixture():
-    return MagicMock(spec=OrganismePermissionService)
+@pytest.fixture(name="organisme_recruteur")
+def organisme_recruteur_fixture():
+    etapes = EtapeRecrutementFactory.create_entity_batch()
+    return OrganismeRecruteurFactory.create_entity(etapes)
+
+
+@pytest.fixture(name="recrutement")
+def recrutement_fixture(organisme_recruteur):
+    recrutement = RecrutementFactory.create_entity(
+        organisme_id=organisme_recruteur.entity_id
+    )
+    return recrutement
+
+
+@pytest.fixture(name="permission_service")
+def permission_service_fixture():
+    service = Mock(spec=OrganismePermissionService)
+    service.est_autorise.return_value = AgentRecrutementRole.RESPONSABLE
+    return service
+
+
+@pytest.fixture(name="recrutement_repository")
+def recrutement_repository_fixture(recrutement):
+    repo = Mock(spec=IRecrutementRepository)
+    repo.get_by_id.return_value = recrutement
+    return repo
+
+
+@pytest.fixture(name="organisme_recruteur_repository")
+def organisme_recruteur_repository_fixture(organisme_recruteur):
+    repo = Mock(spec=IOrganismeRecruteurRepository)
+    repo.get_by_id.return_value = organisme_recruteur
+    return repo
 
 
 @pytest.fixture(name="usecase")
-def usecase_fixture(organisme_permission_service):
+def usecase_fixture(
+    permission_service,
+    recrutement_repository,
+    organisme_recruteur_repository,
+):
     return GetRecrutementEtapesUsecase(
-        organisme_permission_service=organisme_permission_service,
+        permission_service=permission_service,
+        recrutement_repository=recrutement_repository,
+        organisme_recruteur_repository=organisme_recruteur_repository,
     )
 
 
 class TestGetRecrutementEtapesUsecase:
-    def test_returns_default_pipeline(self, organisme_permission_service, usecase):
-        organisme_id = uuid4()
-        recrutement_id = uuid4()
-        utilisateur = UtilisateurFactory.create_entity()
+    def test_returns_pipeline(
+        self, permission_service, organisme_recruteur, recrutement, usecase
+    ):
 
+        utilisateur = UtilisateurFactory.create_entity()
+        organisme_id = organisme_recruteur.entity_id
+        recrutement_id = recrutement.entity_id
         resultat = usecase.execute(
-            GetRecrutementEtapesQuery(
+            RecrutementRequest(
                 organisme_id=organisme_id,
                 recrutement_id=recrutement_id,
                 utilisateur=utilisateur,
             )
+        )
+
+        permission_service.est_autorise.assert_called_once_with(
+            action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
+            organisme_id=organisme_id,
+            utilisateur=utilisateur,
+            recrutement_id=recrutement_id,
         )
 
         assert [e.nom for e in resultat] == [
@@ -49,24 +112,52 @@ class TestGetRecrutementEtapesUsecase:
             "Refus",
             "Recrutement",
         ]
-        organisme_permission_service.est_autorise.assert_called_once_with(
-            action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
-            organisme_id=organisme_id,
-            utilisateur=utilisateur,
-            recrutement_id=recrutement_id,
+        events = recrutement.collect_events()
+
+        assert len(events) == 0
+
+    def test_raises_when_organisme_not_found(
+        self, organisme_recruteur_repository, recrutement, usecase
+    ):
+        organisme_id = uuid4()
+
+        organisme_recruteur_repository.get_by_id.side_effect = OrganismeNexistePas(
+            str(organisme_id)
         )
 
-    def test_raises_when_not_authorized(self, organisme_permission_service, usecase):
+        with pytest.raises(OrganismeNexistePas):
+            usecase.execute(
+                RecrutementRequest(
+                    organisme_id=organisme_id,
+                    recrutement_id=recrutement.entity_id,
+                    utilisateur=UtilisateurFactory.create_entity(),
+                )
+            )
+
+    def test_raises_when_organisme_recrutement_mismatch(self, recrutement, usecase):
         organisme_id = uuid4()
-        organisme_permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
-            organisme_id
+
+        with pytest.raises(OrganismeRecrutementIncoherents):
+            usecase.execute(
+                RecrutementRequest(
+                    organisme_id=organisme_id,
+                    recrutement_id=recrutement.entity_id,
+                    utilisateur=UtilisateurFactory.create_entity(),
+                )
+            )
+
+    def test_raises_when_not_authorized(
+        self, permission_service, organisme_recruteur, recrutement, usecase
+    ):
+        permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
+            organisme_recruteur.entity_id
         )
 
         with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(
-                GetRecrutementEtapesQuery(
-                    organisme_id=organisme_id,
-                    recrutement_id=uuid4(),
+                RecrutementRequest(
+                    organisme_id=organisme_recruteur.entity_id,
+                    recrutement_id=recrutement.entity_id,
                     utilisateur=UtilisateurFactory.create_entity(),
                 )
             )

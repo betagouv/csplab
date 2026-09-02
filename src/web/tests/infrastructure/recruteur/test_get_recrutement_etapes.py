@@ -1,14 +1,12 @@
-from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
 
-from application.recruteur.usecases.get_recrutement_etapes import (
-    GetRecrutementEtapesQuery,
+from application.recruteur.dtos.recrutement_request import (
+    RecrutementRequest,
 )
 from config.app_config import AppConfig
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementRefuse,
@@ -32,11 +30,9 @@ def recruteur_integration_container_fixture(db):
     logger_service = LoggerService()
     container.app_config.override(app_config)
     container.logger_service.override(logger_service)
-    container.audit_log_writer.override(MagicMock(spec=AuditLogWriter))
     return container
 
 
-# TODO : update this class after persistence is implemented
 class TestGetRecrutementEtapes:
     @pytest.mark.parametrize(
         "kwargs",
@@ -54,7 +50,7 @@ class TestGetRecrutementEtapes:
         usecase = recruteur_integration_container.get_recrutement_etapes_usecase()
 
         resultat = usecase.execute(
-            GetRecrutementEtapesQuery(
+            RecrutementRequest(
                 organisme_id=recrutement_model.organisme_id,
                 recrutement_id=recrutement_model.offre_id,
                 utilisateur=UtilisateurFactory.create_entity(
@@ -75,7 +71,7 @@ class TestGetRecrutementEtapes:
 
         with pytest.raises(AccesRecrutementRefuse):
             usecase.execute(
-                GetRecrutementEtapesQuery(
+                RecrutementRequest(
                     organisme_id=recrutement_model.organisme_id,
                     recrutement_id=recrutement_model.offre_id,
                     utilisateur=UtilisateurFactory.create_entity(
@@ -90,7 +86,7 @@ class TestGetRecrutementEtapes:
 
         with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(
-                GetRecrutementEtapesQuery(
+                RecrutementRequest(
                     organisme_id=recrutement_model.organisme_id,
                     recrutement_id=recrutement_model.offre_id,
                     utilisateur=UtilisateurFactory.create_entity(),
@@ -104,7 +100,7 @@ class TestGetRecrutementEtapes:
 
         with pytest.raises(OrganismeNexistePas):
             usecase.execute(
-                GetRecrutementEtapesQuery(
+                RecrutementRequest(
                     organisme_id=uuid4(),
                     recrutement_id=uuid4(),
                     utilisateur=UtilisateurFactory.create_entity(),
