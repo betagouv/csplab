@@ -116,6 +116,8 @@ class Organisme(AggregateRoot):
         referentiel: str | None = None,
         millesime: str | None = None,
         gestion_ats: bool | None = False,
+        date_creation: datetime | None = None,
+        date_derniere_activite: datetime | None = None,
         entity_id: UUID | None = None,
     ) -> "Organisme":
         return cls(
@@ -129,8 +131,8 @@ class Organisme(AggregateRoot):
             _referentiel=referentiel,
             _millesime=millesime,
             _gestion_ats=gestion_ats,
-            _date_creation=datetime.now(tz=timezone.utc),
-            _date_derniere_activite=datetime.now(tz=timezone.utc),
+            _date_creation=date_creation,
+            _date_derniere_activite=date_derniere_activite,
         )
 
     @mutate(OrganismeModifie)

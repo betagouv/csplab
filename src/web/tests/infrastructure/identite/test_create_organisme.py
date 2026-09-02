@@ -1,4 +1,5 @@
 from unittest.mock import Mock
+from uuid import uuid4
 
 import pytest
 from referentiel.value_objects.siret import SIRET
@@ -6,6 +7,7 @@ from referentiel.value_objects.verse import Verse
 
 from application.identite.usecases.create_organisme import CreateOrganismeCommand
 from config.app_config import AppConfig
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
@@ -102,7 +104,7 @@ def test_save_updates_existing_organisme(identite_integration_container):
     repo = identite_integration_container.postgres_organisme_repository()
     organisme = repo.get_by_id(model.id)
 
-    organisme.modifier(
+    organisme.remplacer(
         nom="Nouveau nom",
         versant=organisme.versant,
         localisation=organisme.localisation,
@@ -126,7 +128,7 @@ def test_save_preserves_created_at_and_etapes(identite_integration_container):
     repo = identite_integration_container.postgres_organisme_repository()
     organisme = repo.get_by_id(model.id)
 
-    organisme.modifier(
+    organisme.remplacer(
         nom="Nouveau nom",
         versant=organisme.versant,
         localisation=organisme.localisation,
@@ -183,7 +185,7 @@ def test_upsert_batch_cree_et_met_a_jour(identite_integration_container):
     repo = identite_integration_container.postgres_organisme_repository()
 
     organisme_modifie = repo.get_by_id(existing.id)
-    organisme_modifie.modifier(
+    organisme_modifie.remplacer(
         nom="Nouveau nom",
         versant=organisme_modifie.versant,
         localisation=organisme_modifie.localisation,
