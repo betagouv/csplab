@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$(dirname "${BASH_SOURCE[0]}")/inject_scaleway_env.sh"
+
 # Configuration Tesseract pour Scalingo
 export TESSDATA_PREFIX="/app/.apt/usr/share/tesseract-ocr/4.00/tessdata"
 TESSDATA_DIR="$TESSDATA_PREFIX"

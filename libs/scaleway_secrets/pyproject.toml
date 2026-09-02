@@ -1,0 +1,55 @@
+[project]
+name = "scaleway_secrets"
+version = "0.1.0"
+description = "Fetch a service's secrets from Scaleway Secret Manager as shell exports"
+readme = "README.md"
+requires-python = "~=3.12.0"
+dependencies = [
+    "scaleway>=2.11.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.1",
+    "ruff>=0.15.0",
+]
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["scaleway_secrets"]
+package-dir = {"scaleway_secrets" = "."}
+
+[tool.uv]
+package = true
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+
+[tool.ruff]
+target-version = "py312"
+exclude = [
+  ".venv",
+]
+
+[tool.ruff.lint]
+select = [
+    "B",
+    "E",
+    "F",
+    "I",
+    "ISC",
+    "W",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"fetch.py" = [
+    "T201", # print is the point: output is eval'd as shell by the caller
+]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true

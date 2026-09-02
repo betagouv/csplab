@@ -13,7 +13,11 @@ run = "uv sync --group dev --locked"
 alias = "ocr:dev"
 description = "OCR API (uvicorn :8001)"
 depends = ["install"]
-run = "uvicorn api.main:app --reload --port=8001"
+shell = "bash -c"
+run = """
+source bin/inject_scaleway_env.sh
+uvicorn api.main:app --reload --port=8001
+"""
 
 [tasks.test]
 alias = "ocr:test"

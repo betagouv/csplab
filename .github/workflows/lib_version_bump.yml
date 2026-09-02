@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        lib: [ddd, referentiel]
+        lib: [ddd, referentiel, scaleway_secrets]
     steps:
       - uses: actions/checkout@v6
         with:

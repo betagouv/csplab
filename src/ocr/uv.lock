@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -638,6 +638,7 @@ dependencies = [
     { name = "pypdf" },
     { name = "pytesseract" },
     { name = "python-multipart" },
+    { name = "scaleway-secrets" },
     { name = "sentry-sdk" },
     { name = "uvicorn" },
 ]
@@ -669,6 +670,7 @@ requires-dist = [
     { name = "pypdf", specifier = ">=4.0.0" },
     { name = "pytesseract", specifier = ">=0.3.10" },
     { name = "python-multipart", specifier = ">=0.0.6" },
+    { name = "scaleway-secrets", editable = "../../libs/scaleway_secrets" },
     { name = "sentry-sdk", specifier = ">=2.54.0" },
     { name = "uvicorn", specifier = ">=0.42.0" },
 ]
@@ -1130,6 +1132,49 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/78/9b/475b927cf27a5cbbda3c7bafb69ed6ff77e1d7923d5d85f17c2749d7ae32/ruff-0.16.3-py3-none-win32.whl", hash = "sha256:388cdf2166642bd9b13d52b5932d3170f34f8abed7e8d9a855f1d84b83645a0a", size = 10931415, upload-time = "2026-08-13T15:17:05.726Z" },
     { url = "https://files.pythonhosted.org/packages/b2/99/e2a2bfc4fbf0a1e8a916bc9ebe6fe6c58cc34c28e0ffc6ce281d572d1c2e/ruff-0.16.3-py3-none-win_amd64.whl", hash = "sha256:e80a7d69ca2a6d1c4d352ec91458cdca6e56c83cdbcabd93e4abe1e53591d948", size = 11445993, upload-time = "2026-08-13T15:17:08.353Z" },
     { url = "https://files.pythonhosted.org/packages/69/3e/4132e539aed78c148854d4997a2685b0ed4dc4e87110b59ce528564e184e/ruff-0.16.3-py3-none-win_arm64.whl", hash = "sha256:b8ca152da82c1acc1fa8d5874b15951935f0eef46f10e6954c83859011b6178a", size = 11399302, upload-time = "2026-08-13T15:17:10.908Z" },
+]
+
+[[package]]
+name = "scaleway"
+version = "2.11.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "scaleway-core" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/77/74/f43e1577ac3d819ce861018fd81729a31a00bdeb8717e993d00229121ee1/scaleway-2.11.0.tar.gz", hash = "sha256:f3a48253c44814c704edf2f3c7235eb2996085d54d2e08a459871358ec309dfb", size = 779782, upload-time = "2026-04-02T13:50:40.411Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dc/08/3d4f4aabc475fc8f616d66dc3e98eac792f233d2dc383a0ab3a56a75dd80/scaleway-2.11.0-py3-none-any.whl", hash = "sha256:8c4b3ca3f4ff74f0f8b89f630a528bd8850a13586a417290190d74e7a3aba002", size = 954634, upload-time = "2026-04-02T13:50:41.657Z" },
+]
+
+[[package]]
+name = "scaleway-core"
+version = "2.11.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+    { name = "pyyaml" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/a2/e8962b08519b03b5d7c80d2946ba4caf1ff2ab603165e2d31f7819a794d0/scaleway_core-2.11.0.tar.gz", hash = "sha256:b86bb472032e039b7aab3b115aee952c62e39e360ead9c49e9b58589b125e43a", size = 27208, upload-time = "2026-04-02T13:48:53.274Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/50/0e/78b11333185b5fbf5f6fc4b26afacb3740c0e748f6b4e0c01451ebeb972e/scaleway_core-2.11.0-py3-none-any.whl", hash = "sha256:a204e33641b07f39e21d4e7bfbd3be3ce125cde1b884975abf8aaa0ac62129af", size = 33423, upload-time = "2026-04-02T13:48:54.331Z" },
+]
+
+[[package]]
+name = "scaleway-secrets"
+version = "0.1.0"
+source = { editable = "../../libs/scaleway_secrets" }
+dependencies = [
+    { name = "scaleway" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "scaleway", specifier = ">=2.11.0" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "ruff", specifier = ">=0.15.0" },
 ]
 
 [[package]]

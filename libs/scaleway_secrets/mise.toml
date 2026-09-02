@@ -1,0 +1,18 @@
+[tasks.install]
+alias = "scaleway-secrets:install"
+description = "Install Python dependencies (uv sync)"
+sources = ["pyproject.toml", "uv.lock"]
+outputs = { auto = true }
+run = "uv sync --group dev --locked"
+
+[tasks.lint]
+alias = "scaleway-secrets:lint"
+description = "Lint Python (ruff check + format + mypy)"
+depends = ["install"]
+run = ["uv run ruff check .", "uv run ruff format --check .", "uv run mypy ."]
+
+[tasks."lint:fix"]
+alias = "scaleway-secrets:lint:fix"
+description = "Lint with autofix (ruff)"
+depends = ["install"]
+run = ["uv run ruff check --fix .", "uv run ruff format ."]

@@ -17,6 +17,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "python-multipart>=0.0.6",
     "pypdf>=4.0.0",
+    "scaleway_secrets",
 ]
 
 [dependency-groups]
@@ -43,6 +44,7 @@ url = "https://pypi.org/simple"
 
 [tool.uv.sources]
 ocr = { path = ".", editable = true }
+scaleway_secrets = { path = "../../libs/scaleway_secrets", editable = true }
 
 [tool.setuptools.packages.find]
 include = ["api*", "domain*", "application*", "infrastructure*"]
