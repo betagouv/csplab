@@ -7,29 +7,11 @@ Cls.choices/labels/values, str(member) == member.value) without the
 dependency.
 """
 
-import enum
-from enum import EnumType
-from enum import property as enum_property
+from enum import Enum, EnumType
 
 
 class ChoicesType(EnumType):
-    """Metaclass turning ``NAME = "value", "label"`` members into a choices enum."""
-
-    def __new__(metacls, classname, bases, classdict, **kwds):
-        labels = []
-        for key in classdict._member_names:
-            value = classdict[key]
-            if isinstance(value, (list, tuple)) and len(value) > 1:
-                *value, label = value
-                value = tuple(value)
-            else:
-                label = key.replace("_", " ").title()
-            labels.append(label)
-            dict.__setitem__(classdict, key, value)
-        cls = super().__new__(metacls, classname, bases, classdict, **kwds)
-        for member, label in zip(cls.__members__.values(), labels, strict=True):
-            member._label_ = label
-        return enum.unique(cls)
+    """Adds ``.choices`` / ``.labels`` / ``.values`` class-level properties."""
 
     @property
     def choices(cls):
@@ -37,23 +19,21 @@ class ChoicesType(EnumType):
 
     @property
     def labels(cls):
-        return [label for _, label in cls.choices]
+        return [member.label for member in cls]
 
     @property
     def values(cls):
-        return [value for value, _ in cls.choices]
+        return [member.value for member in cls]
 
 
-class TextChoices(str, enum.Enum, metaclass=ChoicesType):
+class TextChoices(str, Enum, metaclass=ChoicesType):
     """String enum exposing ``.label`` per member and ``.choices`` on the class."""
 
-    @staticmethod
-    def _generate_next_value_(name, start, count, last_values):
-        return name
-
-    @enum_property
-    def label(self):
-        return self._label_
+    def __new__(cls, value, label):
+        obj = str.__new__(cls, value)
+        obj._value_ = value
+        obj.label = label
+        return obj
 
     def __str__(self):
         return str(self.value)
