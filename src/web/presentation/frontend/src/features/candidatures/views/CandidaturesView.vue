@@ -8,6 +8,7 @@ import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
+import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
@@ -18,7 +19,7 @@ import { recrutementsListLocation } from '@/features/recrutements/routes'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
 import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
 import { useCandidatures } from '../composables/useCandidatures'
-import { CANDIDATURE_TAB_LABELS } from '../constants/candidature'
+import { CANDIDATURE_TAB_ICONS, CANDIDATURE_TAB_LABELS } from '../constants/candidature'
 import { formatRecrutementMeta } from '../format'
 import { CANDIDATURES_TAB_ROUTE_NAMES } from '../routes'
 
@@ -100,7 +101,7 @@ const headerMenuSections = [{
   }],
 }]
 
-const TABS = tabItems(CANDIDATURE_TAB_LABELS)
+const TABS = tabItems(CANDIDATURE_TAB_LABELS, CANDIDATURE_TAB_ICONS)
 const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
 </script>
 
@@ -153,29 +154,29 @@ const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
       />
 
       <template v-else>
-        <div class="candidatures-view__toolbar">
-          <CandidaturesViewSwitch
-            :recrutement-uuid="recrutementUuid"
-            :current="currentView"
+        <CspTableToolbar :bordered="false">
+          <template #status>
+            <CandidaturesViewSwitch
+              :recrutement-uuid="recrutementUuid"
+              :current="currentView"
+            />
+          </template>
+          <CspInput
+            v-model="search"
+            type="search"
+            aria-label="Rechercher un candidat"
+            placeholder="Rechercher un candidat…"
+            class="candidatures-view__search"
+            @keydown.enter="filters.flushSearch()"
           />
-          <div class="candidatures-view__actions">
-            <CspInput
-              v-model="search"
-              type="search"
-              aria-label="Rechercher un candidat"
-              placeholder="Rechercher un candidat…"
-              class="candidatures-view__search"
-              @keydown.enter="filters.flushSearch()"
-            />
-            <CspButton
-              :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
-              variant="tertiary"
-              icon="ri:filter-line"
-              is-icon-left
-              @click="openFilters"
-            />
-          </div>
-        </div>
+          <CspButton
+            :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
+            variant="tertiary"
+            icon="ri:filter-line"
+            is-icon-left
+            @click="openFilters"
+          />
+        </CspTableToolbar>
         <router-view />
         <CandidaturesFiltersDrawer
           v-model:open="isFiltersDrawerOpen"
@@ -196,22 +197,6 @@ const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
 </template>
 
 <style scoped lang="scss">
-.candidatures-view__toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: var(--csp-space-4);
-}
-
-.candidatures-view__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.75rem;
-}
-
 .candidatures-view__search {
   min-width: 20rem;
 }

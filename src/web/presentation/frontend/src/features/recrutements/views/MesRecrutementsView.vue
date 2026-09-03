@@ -23,7 +23,7 @@ import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchive
 
 import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
-import { RECRUTEMENT_TAB_LABELS } from '../constants/recrutement'
+import { RECRUTEMENT_TAB_ICONS, RECRUTEMENT_TAB_LABELS } from '../constants/recrutement'
 import { DEFAULT_RECRUTEMENT_TAB, RECRUTEMENTS_TAB_ROUTE_NAMES } from '../routes'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
@@ -35,7 +35,7 @@ const router = useRouter()
 
 const activeTab = useRouteTab(RECRUTEMENTS_TAB_ROUTE_NAMES, DEFAULT_RECRUTEMENT_TAB)
 
-const TABS = tabItems(RECRUTEMENT_TAB_LABELS)
+const TABS = tabItems(RECRUTEMENT_TAB_LABELS, RECRUTEMENT_TAB_ICONS)
 
 const { organismeUuid } = useCurrentOrganisme()
 
