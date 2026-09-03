@@ -920,8 +920,8 @@ class OrganismeUpsertInputSerializer(serializers.Serializer):
     referentiel = serializers.CharField(max_length=50)
     millesime = serializers.CharField(max_length=25)
     gestion_ats = serializers.BooleanField(required=False, allow_null=True)
-    date_creation = serializers.DateField(required=False, allow_null=True)
-    date_derniere_activite = serializers.DateField(required=False, allow_null=True)
+    date_creation = serializers.DateTimeField(required=False, allow_null=True)
+    date_derniere_activite = serializers.DateTimeField(required=False, allow_null=True)
     localisation = OrganismeLocalisationInputSerializer(required=False, allow_null=True)
 
 
