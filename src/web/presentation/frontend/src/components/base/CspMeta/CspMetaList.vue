@@ -12,6 +12,8 @@ const props = withDefaults(defineProps<{
   size: 'md',
 })
 
+const visibleItems = computed(() => props.items.filter(item => item.label))
+
 const classes = computed(() => [
   'csp-meta-list',
   `csp-meta-list--${props.layout}`,
@@ -21,11 +23,11 @@ const classes = computed(() => [
 
 <template>
   <ul
-    v-if="items.length"
+    v-if="visibleItems.length"
     :class="classes"
   >
     <li
-      v-for="(item, index) in items"
+      v-for="(item, index) in visibleItems"
       :key="`${item.label}-${index}`"
       class="csp-meta-list__item"
     >

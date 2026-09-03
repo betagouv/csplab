@@ -12,6 +12,7 @@ withDefaults(defineProps<CspMetaItem & {
 
 <template>
   <span
+    v-if="label"
     class="csp-meta"
     :class="[
       `csp-meta--${size}`,
