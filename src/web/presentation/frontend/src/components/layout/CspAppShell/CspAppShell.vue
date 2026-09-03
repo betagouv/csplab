@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { NavGroup } from './CspAppShell.types'
+import type { NavItem } from './CspAppShell.types'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
-import CspSidebarGroup from '@/components/layout/CspSidebar/CspSidebarGroup.vue'
 import CspSidebarItem from '@/components/layout/CspSidebar/CspSidebarItem.vue'
 import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarProvider from '@/components/layout/CspSidebar/CspSidebarProvider.vue'
@@ -12,26 +11,21 @@ import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
 import { useCurrentUser } from '@/stores/currentUser'
 
 const props = defineProps<{
-  navigation: NavGroup[]
+  navigation: NavItem[]
 }>()
 
 const route = useRoute()
 const router = useRouter()
 const { user, displayName } = useCurrentUser()
 
-const navGroups = computed(() => {
-  return props.navigation
-    .map(group => ({
-      ...group,
-      items: group.items.filter((item) => {
-        if (!router.hasRoute(item.to)) {
-          console.warn(`Route "${item.to}" does not exist. Please check your navigation configuration.`)
-          return false
-        }
-        return true
-      }),
-    }))
-    .filter(group => group.items.length > 0)
+const navItems = computed(() => {
+  return props.navigation.filter((item) => {
+    if (!router.hasRoute(item.to)) {
+      console.warn(`Route "${item.to}" does not exist. Please check your navigation configuration.`)
+      return false
+    }
+    return true
+  })
 })
 
 function isItemActive(routeName: string): boolean {
@@ -55,20 +49,14 @@ function isItemActive(routeName: string): boolean {
             <CspSidebarLogo />
           </template>
 
-          <CspSidebarGroup
-            v-for="group in navGroups"
-            :key="group.label"
-            :label="group.label"
-          >
-            <CspSidebarItem
-              v-for="item in group.items"
-              :key="item.to"
-              :icon="item.icon"
-              :label="item.label"
-              :to="{ name: item.to }"
-              :is-active="isItemActive(item.to)"
-            />
-          </CspSidebarGroup>
+          <CspSidebarItem
+            v-for="item in navItems"
+            :key="item.to"
+            :icon="item.icon"
+            :label="item.label"
+            :to="{ name: item.to }"
+            :is-active="isItemActive(item.to)"
+          />
 
           <template #footer>
             <CspSidebarUser :name="displayName" />

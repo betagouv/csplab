@@ -57,6 +57,7 @@ def test_returned_payload(mock_container, authenticated_client, test_user):
         "email": entity.email,
         "prenom": entity.prenom,
         "nom": entity.nom,
+        "is_staff": entity.is_staff,
         "organisme_roles": [
             {
                 "organisme_uuid": str(organisme_role.organisme_uuid),
@@ -80,6 +81,7 @@ def test_returned_payload_from_db(authenticated_client, test_user):
         "email": test_user.email,
         "prenom": test_user.first_name,
         "nom": test_user.last_name,
+        "is_staff": test_user.is_staff,
         "organisme_roles": [
             {
                 "organisme_uuid": str(organisme.id),
@@ -88,6 +90,16 @@ def test_returned_payload_from_db(authenticated_client, test_user):
             }
         ],
     }
+
+
+def test_returned_payload_for_staff_user(authenticated_client, test_user):
+    test_user.is_staff = True
+    test_user.save()
+
+    response = authenticated_client.get(URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["is_staff"] is True
 
 
 @pytest.mark.parametrize(

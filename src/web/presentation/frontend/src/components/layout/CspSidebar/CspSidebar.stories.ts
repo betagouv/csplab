@@ -61,17 +61,17 @@ const sidebarTemplate = `
             <CspSidebarLogo />
           </template>
 
-          <CspSidebarGroup label="Groupe A">
+          <CspSidebarGroup>
             <CspSidebarItem icon="ri:dashboard-line" label="Première entrée" :to="{ path: '/premiere' }" />
             <CspSidebarItem icon="ri:briefcase-line" label="Entrée active" :to="{ path: '/active' }" :is-active="true" />
           </CspSidebarGroup>
 
-          <CspSidebarGroup label="Groupe B">
+          <CspSidebarGroup>
             <CspSidebarItem icon="ri:group-line" label="Troisième entrée" :to="{ path: '/troisieme' }" />
             <CspSidebarItem icon="ri:layout-column-line" label="Quatrième entrée" :to="{ path: '/quatrieme' }" />
           </CspSidebarGroup>
 
-          <CspSidebarGroup label="Groupe C">
+          <CspSidebarGroup>
             <CspSidebarItem icon="ri:settings-3-line" label="Cinquième entrée" :to="{ path: '/cinquieme' }" />
           </CspSidebarGroup>
 
@@ -192,7 +192,7 @@ export const WithRouterLinks: Story = {
                 <CspSidebarLogo />
               </template>
 
-              <CspSidebarGroup label="Navigation">
+              <CspSidebarGroup>
                 <CspSidebarItem
                   v-for="item in items"
                   :key="item.to"

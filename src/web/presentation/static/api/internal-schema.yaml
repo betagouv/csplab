@@ -2385,12 +2385,15 @@ components:
           type: string
         nom:
           type: string
+        is_staff:
+          type: boolean
         organisme_roles:
           type: array
           items:
             $ref: '#/components/schemas/OrganismeRole'
       required:
       - email
+      - is_staff
       - nom
       - organisme_roles
       - prenom

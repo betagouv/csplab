@@ -36,6 +36,7 @@ const MOCK_USER: Utilisateur = {
   email: 'marie.dupont@example.gouv.fr',
   prenom: 'Marie',
   nom: 'Dupont',
+  is_staff: false,
   organisme_roles: [{ organisme_uuid: ORGANISME_UUID, nom: 'Mairie de Paris', role: 'AGENT' }],
 }
 const ETAPE_RECEPTION = 'cccccccc-0001-0001-0001-000000000001'

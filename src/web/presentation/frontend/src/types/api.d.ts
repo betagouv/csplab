@@ -759,6 +759,7 @@ export interface components {
             email: string;
             prenom: string;
             nom: string;
+            is_staff: boolean;
             organisme_roles: components["schemas"]["OrganismeRole"][];
         };
         /**

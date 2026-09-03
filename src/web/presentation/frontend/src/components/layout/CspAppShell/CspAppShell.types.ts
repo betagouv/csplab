@@ -4,8 +4,3 @@ export interface NavItem {
   /** Nom de route vue-router cible. */
   to: string
 }
-
-export interface NavGroup {
-  label: string
-  items: NavItem[]
-}
