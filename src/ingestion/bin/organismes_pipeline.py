@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import argparse
 import asyncio
 import logging
 
@@ -17,19 +18,34 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def _run() -> None:
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Importe et publie les organismes")
+    parser.add_argument(
+        "--referentiel",
+        type=OrganismeReferentiel,
+        choices=list(OrganismeReferentiel),
+        help="Référentiel à traiter (par défaut : tous les référentiels)",
+    )
+    return parser.parse_args()
+
+
+async def _run(referentiel: OrganismeReferentiel | None = None) -> None:
     container: Container = create_container()
 
+    referentiels = (
+        [referentiel] if referentiel is not None else list(OrganismeReferentiel)
+    )
+
     organismes: list[Organisme] = []
-    for referentiel in OrganismeReferentiel:
-        use_case = import_organismes_usecase_for(container, referentiel)
+    for current_referentiel in referentiels:
+        use_case = import_organismes_usecase_for(container, current_referentiel)
         import_result = await use_case.execute(
-            ImportOrganismesCommand(referentiel=referentiel)
+            ImportOrganismesCommand(referentiel=current_referentiel)
         )
         if import_result.referentiel is None:
             logger.info(
                 "No organismes imported for referentiel %s, skipping clean",
-                referentiel,
+                current_referentiel,
             )
             continue
 
@@ -47,7 +63,8 @@ async def _run() -> None:
 
 
 def main() -> None:
-    asyncio.run(_run())
+    args = _parse_args()
+    asyncio.run(_run(args.referentiel))
 
 
 if __name__ == "__main__":
