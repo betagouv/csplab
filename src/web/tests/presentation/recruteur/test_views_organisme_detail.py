@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
@@ -91,8 +91,8 @@ class TestOrganismeDetailView:
     def test_get_organisme(self, identite_container, authenticated_client):
         organisme = OrganismeFactory.create_entity(
             entity_id=UUID(ORGANISME_UUID),
-            date_creation=date(2026, 1, 1),
-            date_derniere_activite=date(2026, 1, 15),
+            date_creation=datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc),
+            date_derniere_activite=datetime(2026, 1, 15, 10, 0, tzinfo=timezone.utc),
         )
         mock_usecase = MagicMock()
         mock_usecase.execute.return_value = organisme
@@ -103,7 +103,7 @@ class TestOrganismeDetailView:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["organisme_uuid"] == ORGANISME_UUID
         assert response.json()["nom"] == organisme.nom
-        assert response.json()["date_creation"] == "2026-01-01"
+        assert response.json()["date_creation"] == "2026-01-01T09:00:00Z"
 
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
