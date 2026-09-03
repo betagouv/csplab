@@ -1,29 +1,14 @@
-import type { NavGroup } from '@/components/layout/CspAppShell/CspAppShell.types'
+import type { NavItem } from '@/components/layout/CspAppShell/CspAppShell.types'
 
-const AGENT_NAVIGATION: NavGroup[] = [
-  {
-    label: 'Pilotage',
-    items: [
-      { icon: 'ri:briefcase-line', label: 'Mes recrutements', to: 'mes-recrutements' },
-    ],
-  },
-  {
-    label: 'Paramètres',
-    items: [
-      { icon: 'ri:settings-3-line', label: 'Gestion des organismes', to: 'organismes' },
-    ],
-  },
+const AGENT_NAVIGATION: NavItem[] = [
+  { icon: 'ri:briefcase-line', label: 'Mes recrutements', to: 'mes-recrutements' },
+  { icon: 'ri:settings-3-line', label: 'Gestion des organismes', to: 'organismes' },
 ]
 
-const STAFF_NAVIGATION: NavGroup[] = [
-  {
-    label: 'Paramètres',
-    items: [
-      { icon: 'ri:settings-3-line', label: 'Gestion des organismes', to: 'organismes' },
-    ],
-  },
+const STAFF_NAVIGATION: NavItem[] = [
+  { icon: 'ri:settings-3-line', label: 'Gestion des organismes', to: 'organismes' },
 ]
 
-export function navigationFor(isStaff: boolean): NavGroup[] {
+export function navigationFor(isStaff: boolean): NavItem[] {
   return isStaff ? STAFF_NAVIGATION : AGENT_NAVIGATION
 }
