@@ -5,6 +5,7 @@
     "ms-python.mypy-type-checker",
     "monosans.djlint",
     "dbaeumer.vscode-eslint",
-    "Vue.volar"
+    "Vue.volar",
+    "hverlin.mise-vscode"
   ]
 }

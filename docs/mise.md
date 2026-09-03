@@ -2,7 +2,7 @@
 
 Ce projet utilise [mise](https://mise.jdx.dev/tasks/) pour lancer les tâches localement et dans la CI exécute aussi.
 
-`mise install` installe les outils (node, uv).
+`mise install` installe les outils (node, uv, scw).
 
 `mise run` seul affiche les commandes usuelles
 
@@ -47,6 +47,10 @@ Le `mise.toml` à la racine contient ce qui concerne le repo entier :
 Les opérations sur la base de dev sont dans le namespace web : `web:seed` charge le jeu de données de démo, `web:db:reset` recrée la base à vide puis migre et seed, `web:db:restore` la remplace par un dump Scalingo.
 
 Pour observer ou arrêter les conteneurs, utilisez `docker compose` directement (`ps`, `logs -f`, `stop`, `down`).
+
+## Outils
+
+Le `mise.toml` racine déclare les outils dans `[tools]` et `mise.lock` épingle pour chacun la version exacte, l'URL et la somme de contrôle, pour toutes les plateformes. `mise outdated` liste les mises à jour disponibles ; `mise up` les applique dans la plage déclarée (`mise up --bump` élargit la plage) et réécrit `mise.lock`, à committer avec le changement. `mise doctor` et `mise cfg` montrent l'état de l'installation et les fichiers de configuration chargés. `pnpm` vient des shims corepack de node ; un node installé avant le réglage `node.corepack` ne les a pas, `mise x -- corepack enable` les crée.
 
 ## Environnement
 
