@@ -28,12 +28,14 @@ uvicorn api.main:app --reload --port=8001
 alias = "ocr:test"
 description = "OCR tests"
 depends = ["install"]
+env = { _.file = "env.test" }
 run = "pytest --no-cov"
 
 [tasks."test:cov"]
 alias = "ocr:test:cov"
 description = "OCR tests with an HTML coverage report"
 depends = ["install"]
+env = { _.file = "env.test" }
 run = [
   "pytest --cov=. --cov-report=html:tests/cov_html --cov-report=term-missing",
   "open tests/cov_html/index.html",

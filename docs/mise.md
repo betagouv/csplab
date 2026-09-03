@@ -62,6 +62,8 @@ Prérequis, une fois par machine : `scw init` avec le projet et la région CSPLa
 
 `mise run secrets:check` vérifie l'accès et liste les noms des secrets de chaque service.
 
+Les tâches de test chargent `env.test` (valeurs factices, versionnées) et tournent sans accès à Scaleway. `mise.ci.toml` charge le même fichier.
+
 ## Détection de changements
 
 Certaines tâches comparent leurs fichiers d'entrée et de sortie et ne s'exécutent que si nécessaire : le build du frontend, le build Storybook, les `install` (relancés quand `uv.lock` ou `pnpm-lock.yaml` change) et la conversion jupytext. Les tâches `dev` et `test` dépendent de `install` : après un pull qui change un lockfile, les dépendances se mettent à jour toutes seules au prochain lancement.

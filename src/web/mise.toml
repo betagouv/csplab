@@ -115,18 +115,21 @@ run = [
 alias = "web:test"
 description = "Backend tests (e2e and accessibility excluded)"
 depends = ["install:py", "//:services:postgres"]
+env = { _.file = "env.test" }
 run = "pytest --numprocesses=logical --create-db -m 'not accessibility and not e2e' --no-cov"
 
 [tasks."test:e2e"]
 alias = "web:test:e2e"
 description = "Playwright e2e tests (live_server + browser, rebuilds the frontend when needed)"
 depends = ["install:py", "//src/web/presentation/frontend:build", "//:services:postgres"]
+env = { _.file = "env.test" }
 run = "pytest -m e2e --no-cov"
 
 [tasks."test:a11y"]
 alias = "web:test:a11y"
 description = "Accessibility tests (Playwright + axe)"
 depends = ["install:py", "//:services:postgres"]
+env = { _.file = "env.test" }
 run = "pytest -m accessibility --create-db --no-cov"
 
 [tasks.lint]
@@ -223,6 +226,7 @@ run = [
 alias = "web:test:cov"
 description = "Web tests with an HTML coverage report"
 depends = ["install:py", "//:services:postgres"]
+env = { _.file = "env.test" }
 run = [
   "mkdir -p tests/cov_html",
   "pytest --cov=application --cov=domain --cov=infrastructure --cov=presentation --numprocesses=logical --create-db -m 'not accessibility and not e2e' --cov-append --exitfirst",
