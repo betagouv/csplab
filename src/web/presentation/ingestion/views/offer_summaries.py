@@ -10,13 +10,27 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.pagination import TalentsoftPagination
 from presentation.ingestion.mappers import OfferSummaryOutputMapper
-from presentation.ingestion.serializers import OfferSummariesQuerySerializer
+from presentation.ingestion.serializers import (
+    FakeTsOfferSummarySerializer,
+    OfferSummariesQuerySerializer,
+)
 
 
-@extend_schema(exclude=True)
+@extend_schema(
+    summary="Liste des offres (format Talentsoft)",
+    description="Simule l'API Talentsoft `offersummaries`.",
+    tags=["fake-ts"],
+    parameters=[OfferSummariesQuerySerializer],
+    responses={
+        200: FakeTsOfferSummarySerializer(many=True),
+        400: GenericErrorSerializer,
+        500: GenericErrorSerializer,
+    },
+)
 class OfferSummariesView(APIView):
     authentication_classes = [JWTAuthentication]
     pagination_class = TalentsoftPagination
+    serializer_class = FakeTsOfferSummarySerializer
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -60,7 +74,9 @@ class OfferSummariesView(APIView):
             offers = paginator.paginate(page, request)
 
             return paginator.get_paginated_response(
-                [self.mapper.to_dict(offer) for offer in offers]
+                self.serializer_class(
+                    [self.mapper.to_dict(offer) for offer in offers], many=True
+                ).data
             )
         except DRFValidationError as e:
             serializer = GenericErrorSerializer({"error": str(e)})

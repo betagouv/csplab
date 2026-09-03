@@ -4,6 +4,1099 @@ info:
   version: 0.0.1
   description: API for CSPLab
 paths:
+  /api/fake-ts/offers/getoffer:
+    get:
+      operationId: fake_ts_offers_getoffer_retrieve
+      description: Simule l'API Talentsoft `offers/getoffer`.
+      summary: Détail d'une offre (format Talentsoft)
+      parameters:
+      - in: query
+        name: reference
+        schema:
+          type: string
+          minLength: 1
+        description: La référence de l'offre.
+        required: true
+      tags:
+      - fake-ts
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FakeTsOfferDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+  /api/fake-ts/offersummaries:
+    get:
+      operationId: fake_ts_offersummaries_list
+      description: Simule l'API Talentsoft `offersummaries`.
+      summary: Liste des offres (format Talentsoft)
+      parameters:
+      - in: query
+        name: area
+        schema:
+          type: array
+          items:
+            enum:
+            - AFRIQUE
+            - EUROPE
+            - ASIE
+            - AMERIQUE
+            - OCEANIE
+            - ANTARTIQUE
+            - MOYEN_ORIENT_AFRIQUE_DU_NORD
+            type: string
+            description: |-
+              * `AFRIQUE` - AF
+              * `EUROPE` - EU
+              * `ASIE` - AS
+              * `AMERIQUE` - AM
+              * `OCEANIE` - OC
+              * `ANTARTIQUE` - AN
+              * `MOYEN_ORIENT_AFRIQUE_DU_NORD` - MO
+      - in: query
+        name: category
+        schema:
+          type: array
+          items:
+            enum:
+            - APLUS
+            - A
+            - B
+            - C
+            type: string
+            description: |-
+              * `APLUS` - APLUS
+              * `A` - A
+              * `B` - B
+              * `C` - C
+      - in: query
+        name: contractType
+        schema:
+          type: array
+          items:
+            enum:
+            - TITULAIRE_CONTRACTUEL
+            - CONTRACTUELS
+            - TERRITORIAL
+            type: string
+            description: |-
+              * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+              * `CONTRACTUELS` - CONTRACTUELS
+              * `TERRITORIAL` - TERRITORIAL
+      - in: query
+        name: count
+        schema:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          default: 100
+      - in: query
+        name: country
+        schema:
+          type: array
+          items:
+            enum:
+            - ABW
+            - AFG
+            - AGO
+            - AIA
+            - ALA
+            - ALB
+            - AND
+            - ARE
+            - ARG
+            - ARM
+            - ASM
+            - ATA
+            - ATF
+            - ATG
+            - AUS
+            - AUT
+            - AZE
+            - BDI
+            - BEL
+            - BEN
+            - BES
+            - BFA
+            - BGD
+            - BGR
+            - BHR
+            - BHS
+            - BIH
+            - BLM
+            - BLR
+            - BLZ
+            - BMU
+            - BOL
+            - BRA
+            - BRB
+            - BRN
+            - BTN
+            - BVT
+            - BWA
+            - CAF
+            - CAN
+            - CCK
+            - CHE
+            - CHL
+            - CHN
+            - CIV
+            - CMR
+            - COD
+            - COG
+            - COK
+            - COL
+            - COM
+            - CPV
+            - CRI
+            - CUB
+            - CUW
+            - CXR
+            - CYM
+            - CYP
+            - CZE
+            - DEU
+            - DJI
+            - DMA
+            - DNK
+            - DOM
+            - DZA
+            - ECU
+            - EGY
+            - ERI
+            - ESH
+            - ESP
+            - EST
+            - ETH
+            - FIN
+            - FJI
+            - FLK
+            - FRA
+            - FRO
+            - FSM
+            - GAB
+            - GBR
+            - GEO
+            - GGY
+            - GHA
+            - GIB
+            - GIN
+            - GLP
+            - GMB
+            - GNB
+            - GNQ
+            - GRC
+            - GRD
+            - GRL
+            - GTM
+            - GUF
+            - GUM
+            - GUY
+            - HKG
+            - HMD
+            - HND
+            - HRV
+            - HTI
+            - HUN
+            - IDN
+            - IMN
+            - IND
+            - IOT
+            - IRL
+            - IRN
+            - IRQ
+            - ISL
+            - ISR
+            - ITA
+            - JAM
+            - JEY
+            - JOR
+            - JPN
+            - KAZ
+            - KEN
+            - KGZ
+            - KHM
+            - KIR
+            - KNA
+            - KOR
+            - KWT
+            - LAO
+            - LBN
+            - LBR
+            - LBY
+            - LCA
+            - LIE
+            - LKA
+            - LSO
+            - LTU
+            - LUX
+            - LVA
+            - MAC
+            - MAF
+            - MAR
+            - MCO
+            - MDA
+            - MDG
+            - MDV
+            - MEX
+            - MHL
+            - MKD
+            - MLI
+            - MLT
+            - MMR
+            - MNE
+            - MNG
+            - MNP
+            - MOZ
+            - MRT
+            - MSR
+            - MTQ
+            - MUS
+            - MWI
+            - MYS
+            - MYT
+            - NAM
+            - NCL
+            - NER
+            - NFK
+            - NGA
+            - NIC
+            - NIU
+            - NLD
+            - NOR
+            - NPL
+            - NRU
+            - NZL
+            - OMN
+            - PAK
+            - PAN
+            - PCN
+            - PER
+            - PHL
+            - PLW
+            - PNG
+            - POL
+            - PRI
+            - PRK
+            - PRT
+            - PRY
+            - PSE
+            - PYF
+            - QAT
+            - REU
+            - ROU
+            - RUS
+            - RWA
+            - SAU
+            - SDN
+            - SEN
+            - SGP
+            - SGS
+            - SHN
+            - SJM
+            - SLB
+            - SLE
+            - SLV
+            - SMR
+            - SOM
+            - SPM
+            - SRB
+            - SSD
+            - STP
+            - SUR
+            - SVK
+            - SVN
+            - SWE
+            - SWZ
+            - SXM
+            - SYC
+            - SYR
+            - TCA
+            - TCD
+            - TGO
+            - THA
+            - TJK
+            - TKL
+            - TKM
+            - TLS
+            - TON
+            - TTO
+            - TUN
+            - TUR
+            - TUV
+            - TWN
+            - TZA
+            - UGA
+            - UKR
+            - UMI
+            - URY
+            - USA
+            - UZB
+            - VAT
+            - VCT
+            - VEN
+            - VGB
+            - VIR
+            - VNM
+            - VUT
+            - WLF
+            - WSM
+            - YEM
+            - ZAF
+            - ZMB
+            - ZWE
+            type: string
+            description: |-
+              * `ABW` - Aruba
+              * `AFG` - Afghanistan
+              * `AGO` - Angola
+              * `AIA` - Anguilla
+              * `ALA` - Åland, Îles
+              * `ALB` - Albanie
+              * `AND` - Andorre
+              * `ARE` - Émirats arabes unis
+              * `ARG` - Argentine
+              * `ARM` - Arménie
+              * `ASM` - Samoa américaines
+              * `ATA` - Antarctique
+              * `ATF` - Terres australes françaises
+              * `ATG` - Antigua-et-Barbuda
+              * `AUS` - Australie
+              * `AUT` - Autriche
+              * `AZE` - Azerbaïdjan
+              * `BDI` - Burundi
+              * `BEL` - Belgique
+              * `BEN` - Bénin
+              * `BES` - Bonaire, Saint-Eustache et Saba
+              * `BFA` - Burkina Faso
+              * `BGD` - Bangladesh
+              * `BGR` - Bulgarie
+              * `BHR` - Bahreïn
+              * `BHS` - Bahamas
+              * `BIH` - Bosnie-Herzégovine
+              * `BLM` - Saint-Barthélemy
+              * `BLR` - Bélarus
+              * `BLZ` - Belize
+              * `BMU` - Bermudes
+              * `BOL` - Bolivie, état plurinational de
+              * `BRA` - Brésil
+              * `BRB` - Barbade
+              * `BRN` - Brunéi Darussalam
+              * `BTN` - Bhoutan
+              * `BVT` - Île Bouvet
+              * `BWA` - Botswana
+              * `CAF` - République centrafricaine
+              * `CAN` - Canada
+              * `CCK` - Cocos (Keeling), Îles
+              * `CHE` - Suisse
+              * `CHL` - Chili
+              * `CHN` - Chine
+              * `CIV` - Côte d'Ivoire
+              * `CMR` - Cameroun
+              * `COD` - République démocratique du Congo
+              * `COG` - République du Congo
+              * `COK` - Îles Cook
+              * `COL` - Colombie
+              * `COM` - Comores
+              * `CPV` - Cap-Vert
+              * `CRI` - Costa Rica
+              * `CUB` - Cuba
+              * `CUW` - Curaçao
+              * `CXR` - Christmas, Île
+              * `CYM` - Îles Caïmans
+              * `CYP` - Chypre
+              * `CZE` - Tchéquie
+              * `DEU` - Allemagne
+              * `DJI` - Djibouti
+              * `DMA` - Dominique
+              * `DNK` - Danemark
+              * `DOM` - République dominicaine
+              * `DZA` - Algérie
+              * `ECU` - Équateur
+              * `EGY` - Égypte
+              * `ERI` - Érythrée
+              * `ESH` - Sahara occidental
+              * `ESP` - Espagne
+              * `EST` - Estonie
+              * `ETH` - Éthiopie
+              * `FIN` - Finlande
+              * `FJI` - Fidji
+              * `FLK` - Malouines, Îles (Falkland)
+              * `FRA` - France
+              * `FRO` - Îles Féroé
+              * `FSM` - Micronésie, États fédérés de
+              * `GAB` - Gabon
+              * `GBR` - Royaume-Uni
+              * `GEO` - Géorgie
+              * `GGY` - Guernesey
+              * `GHA` - Ghana
+              * `GIB` - Gibraltar
+              * `GIN` - Guinée
+              * `GLP` - Guadeloupe
+              * `GMB` - Gambie
+              * `GNB` - Guinée-Bissau
+              * `GNQ` - Guinée Équatoriale
+              * `GRC` - Grèce
+              * `GRD` - Grenade
+              * `GRL` - Groënland
+              * `GTM` - Guatemala
+              * `GUF` - Guyane française
+              * `GUM` - Guam
+              * `GUY` - Guyana
+              * `HKG` - Hong Kong
+              * `HMD` - Îles Heard-et-MacDonald
+              * `HND` - Honduras
+              * `HRV` - Croatie
+              * `HTI` - Haïti
+              * `HUN` - Hongrie
+              * `IDN` - Indonésie
+              * `IMN` - Île de Man
+              * `IND` - Inde
+              * `IOT` - Territoire britannique de l'océan Indien
+              * `IRL` - Irlande
+              * `IRN` - Iran, République islamique d'
+              * `IRQ` - Irak
+              * `ISL` - Islande
+              * `ISR` - Israël
+              * `ITA` - Italie
+              * `JAM` - Jamaïque
+              * `JEY` - Jersey
+              * `JOR` - Jordanie
+              * `JPN` - Japon
+              * `KAZ` - Kazakhstan
+              * `KEN` - Kenya
+              * `KGZ` - Kirghizistan
+              * `KHM` - Cambodge
+              * `KIR` - Kiribati
+              * `KNA` - Saint-Christophe-et-Niévès
+              * `KOR` - Corée, République de
+              * `KWT` - Koweït
+              * `LAO` - Lao, République démocratique populaire
+              * `LBN` - Liban
+              * `LBR` - Libéria
+              * `LBY` - Libye
+              * `LCA` - Sainte-Lucie
+              * `LIE` - Liechtenstein
+              * `LKA` - Sri Lanka
+              * `LSO` - Lesotho
+              * `LTU` - Lituanie
+              * `LUX` - Luxembourg
+              * `LVA` - Lettonie
+              * `MAC` - Macau
+              * `MAF` - Saint-Martin (partie française)
+              * `MAR` - Maroc
+              * `MCO` - Monaco
+              * `MDA` - Moldova, République de
+              * `MDG` - Madagascar
+              * `MDV` - Maldives
+              * `MEX` - Mexique
+              * `MHL` - Îles Marshall
+              * `MKD` - Macédoine du Nord
+              * `MLI` - Mali
+              * `MLT` - Malte
+              * `MMR` - Birmanie
+              * `MNE` - Monténégro
+              * `MNG` - Mongolie
+              * `MNP` - Îles Mariannes du Nord
+              * `MOZ` - Mozambique
+              * `MRT` - Mauritanie
+              * `MSR` - Montserrat
+              * `MTQ` - Martinique
+              * `MUS` - Maurice
+              * `MWI` - Malawi
+              * `MYS` - Malaisie
+              * `MYT` - Mayotte
+              * `NAM` - Namibie
+              * `NCL` - Nouvelle-Calédonie
+              * `NER` - Niger
+              * `NFK` - Île Norfolk
+              * `NGA` - Nigeria
+              * `NIC` - Nicaragua
+              * `NIU` - Nioue
+              * `NLD` - Pays-Bas
+              * `NOR` - Norvège
+              * `NPL` - Népal
+              * `NRU` - Nauru
+              * `NZL` - Nouvelle-Zélande
+              * `OMN` - Oman
+              * `PAK` - Pakistan
+              * `PAN` - Panama
+              * `PCN` - Îles Pitcairn
+              * `PER` - Pérou
+              * `PHL` - Philippines
+              * `PLW` - Palaos
+              * `PNG` - Papouasie-Nouvelle-Guinée
+              * `POL` - Pologne
+              * `PRI` - Porto Rico
+              * `PRK` - Corée, République populaire démocratique de
+              * `PRT` - Portugal
+              * `PRY` - Paraguay
+              * `PSE` - Palestine, État de
+              * `PYF` - Polynésie française
+              * `QAT` - Qatar
+              * `REU` - Réunion, Île de la
+              * `ROU` - Roumanie
+              * `RUS` - Russie, Fédération de
+              * `RWA` - Rwanda
+              * `SAU` - Arabie saoudite
+              * `SDN` - Soudan
+              * `SEN` - Sénégal
+              * `SGP` - Singapour
+              * `SGS` - Géorgie du Sud et les îles Sandwich du Sud
+              * `SHN` - Sainte-Hélène, Ascension et Tristan da Cunha
+              * `SJM` - Svalbard et île Jan Mayen
+              * `SLB` - Salomon, Îles
+              * `SLE` - Sierra Leone
+              * `SLV` - Salvador
+              * `SMR` - Saint-Marin
+              * `SOM` - Somalie
+              * `SPM` - Saint-Pierre-et-Miquelon
+              * `SRB` - Serbie
+              * `SSD` - Soudan du Sud
+              * `STP` - Sao Tomé-et-Principe
+              * `SUR` - Surinam
+              * `SVK` - Slovaquie
+              * `SVN` - Slovénie
+              * `SWE` - Suède
+              * `SWZ` - Eswatini
+              * `SXM` - Saint-Martin (partie néerlandaise)
+              * `SYC` - Seychelles
+              * `SYR` - Syrienne, République arabe
+              * `TCA` - Îles Turques-et-Caïques
+              * `TCD` - Tchad
+              * `TGO` - Togo
+              * `THA` - Thaïlande
+              * `TJK` - Tadjikistan
+              * `TKL` - Tokelau
+              * `TKM` - Turkménistan
+              * `TLS` - Timor oriental
+              * `TON` - Tonga
+              * `TTO` - Trinité-et-Tobago
+              * `TUN` - Tunisie
+              * `TUR` - Turquie
+              * `TUV` - Tuvalu
+              * `TWN` - Taïwan, province de Chine
+              * `TZA` - Tanzanie, République unie de
+              * `UGA` - Ouganda
+              * `UKR` - Ukraine
+              * `UMI` - Îles mineures éloignées des États-Unis
+              * `URY` - Uruguay
+              * `USA` - États-Unis
+              * `UZB` - Ouzbékistan
+              * `VAT` - Saint-Siège (état de la cité du Vatican)
+              * `VCT` - Saint-Vincent-et-les-Grenadines
+              * `VEN` - Vénézuela, république bolivarienne du
+              * `VGB` - Îles Vierges britanniques
+              * `VIR` - Îles Vierges, États-Unis
+              * `VNM` - Viêt Nam
+              * `VUT` - Vanuatu
+              * `WLF` - Wallis et Futuna
+              * `WSM` - Samoa
+              * `YEM` - Yémen
+              * `ZAF` - Afrique du Sud
+              * `ZMB` - Zambie
+              * `ZWE` - Zimbabwe
+      - in: query
+        name: department
+        schema:
+          type: array
+          items:
+            enum:
+            - '01'
+            - '02'
+            - '03'
+            - '04'
+            - '05'
+            - '06'
+            - '07'
+            - 08
+            - 09
+            - '10'
+            - '11'
+            - '12'
+            - '13'
+            - '14'
+            - '15'
+            - '16'
+            - '17'
+            - '18'
+            - '19'
+            - '21'
+            - '22'
+            - '23'
+            - '24'
+            - '25'
+            - '26'
+            - '27'
+            - '28'
+            - '29'
+            - 2A
+            - 2B
+            - '30'
+            - '31'
+            - '32'
+            - '33'
+            - '34'
+            - '35'
+            - '36'
+            - '37'
+            - '38'
+            - '39'
+            - '40'
+            - '41'
+            - '42'
+            - '43'
+            - '44'
+            - '45'
+            - '46'
+            - '47'
+            - '48'
+            - '49'
+            - '50'
+            - '51'
+            - '52'
+            - '53'
+            - '54'
+            - '55'
+            - '56'
+            - '57'
+            - '58'
+            - '59'
+            - '60'
+            - '61'
+            - '62'
+            - '63'
+            - '64'
+            - '65'
+            - '66'
+            - '67'
+            - '68'
+            - '69'
+            - '70'
+            - '71'
+            - '72'
+            - '73'
+            - '74'
+            - '75'
+            - '76'
+            - '77'
+            - '78'
+            - '79'
+            - '80'
+            - '81'
+            - '82'
+            - '83'
+            - '84'
+            - '85'
+            - '86'
+            - '87'
+            - '88'
+            - '89'
+            - '90'
+            - '91'
+            - '92'
+            - '93'
+            - '94'
+            - '95'
+            - '971'
+            - '972'
+            - '973'
+            - '974'
+            - '975'
+            - '976'
+            - '986'
+            - '987'
+            - '988'
+            - SPM
+            - WLF
+            type: string
+            description: |-
+              * `01` - Ain
+              * `02` - Aisne
+              * `03` - Allier
+              * `04` - Alpes-de-Haute-Provence
+              * `05` - Hautes-Alpes
+              * `06` - Alpes-Maritimes
+              * `07` - Ardèche
+              * `08` - Ardennes
+              * `09` - Ariège
+              * `10` - Aube
+              * `11` - Aude
+              * `12` - Aveyron
+              * `13` - Bouches-du-Rhône
+              * `14` - Calvados
+              * `15` - Cantal
+              * `16` - Charente
+              * `17` - Charente-Maritime
+              * `18` - Cher
+              * `19` - Corrèze
+              * `21` - Côte-d'Or
+              * `22` - Côtes-d'Armor
+              * `23` - Creuse
+              * `24` - Dordogne
+              * `25` - Doubs
+              * `26` - Drôme
+              * `27` - Eure
+              * `28` - Eure-et-Loir
+              * `29` - Finistère
+              * `2A` - Corse-du-Sud
+              * `2B` - Haute-Corse
+              * `30` - Gard
+              * `31` - Haute-Garonne
+              * `32` - Gers
+              * `33` - Gironde
+              * `34` - Hérault
+              * `35` - Ille-et-Vilaine
+              * `36` - Indre
+              * `37` - Indre-et-Loire
+              * `38` - Isère
+              * `39` - Jura
+              * `40` - Landes
+              * `41` - Loir-et-Cher
+              * `42` - Loire
+              * `43` - Haute-Loire
+              * `44` - Loire-Atlantique
+              * `45` - Loiret
+              * `46` - Lot
+              * `47` - Lot-et-Garonne
+              * `48` - Lozère
+              * `49` - Maine-et-Loire
+              * `50` - Manche
+              * `51` - Marne
+              * `52` - Haute-Marne
+              * `53` - Mayenne
+              * `54` - Meurthe-et-Moselle
+              * `55` - Meuse
+              * `56` - Morbihan
+              * `57` - Moselle
+              * `58` - Nièvre
+              * `59` - Nord
+              * `60` - Oise
+              * `61` - Orne
+              * `62` - Pas-de-Calais
+              * `63` - Puy-de-Dôme
+              * `64` - Pyrénées-Atlantiques
+              * `65` - Hautes-Pyrénées
+              * `66` - Pyrénées-Orientales
+              * `67` - Bas-Rhin
+              * `68` - Haut-Rhin
+              * `69` - Rhône
+              * `70` - Haute-Saône
+              * `71` - Saône-et-Loire
+              * `72` - Sarthe
+              * `73` - Savoie
+              * `74` - Haute-Savoie
+              * `75` - Paris
+              * `76` - Seine-Maritime
+              * `77` - Seine-et-Marne
+              * `78` - Yvelines
+              * `79` - Deux-Sèvres
+              * `80` - Somme
+              * `81` - Tarn
+              * `82` - Tarn-et-Garonne
+              * `83` - Var
+              * `84` - Vaucluse
+              * `85` - Vendée
+              * `86` - Vienne
+              * `87` - Haute-Vienne
+              * `88` - Vosges
+              * `89` - Yonne
+              * `90` - Territoire de Belfort
+              * `91` - Essonne
+              * `92` - Hauts-de-Seine
+              * `93` - Seine-Saint-Denis
+              * `94` - Val-de-Marne
+              * `95` - Val-d'Oise
+              * `971` - Guadeloupe
+              * `972` - Martinique
+              * `973` - Guyane
+              * `974` - La Réunion
+              * `975` - Saint-Pierre-et-Miquelon
+              * `976` - Mayotte
+              * `986` - Wallis-et-Futuna
+              * `987` - Polynésie française
+              * `988` - Nouvelle-Calédonie
+              * `SPM` - SPM
+              * `WLF` - WLF
+      - in: query
+        name: domain
+        schema:
+          type: array
+          items:
+            enum:
+            - ACH
+            - AGR
+            - AMT
+            - ASP
+            - BAT
+            - COM
+            - CTL
+            - CUL
+            - DEF
+            - DIR
+            - DOC
+            - ENS
+            - ENV
+            - FIP
+            - GBF
+            - GRH
+            - INT
+            - JUR
+            - JUS
+            - LOG
+            - MED
+            - NUM
+            - RCH
+            - REN
+            - SAN
+            - SEC
+            - SOC
+            - TRA
+            - USA
+            type: string
+            description: |-
+              * `ACH` - Achat
+              * `AGR` - Agriculture
+              * `AMT` - Aménagement et développement durable du territoire
+              * `ASP` - Animation, jeunesse et sports
+              * `BAT` - Bâtiment
+              * `COM` - Communication
+              * `CTL` - Organisation, contrôle et évaluation
+              * `CUL` - Culture et Patrimoine
+              * `DEF` - Défense
+              * `DIR` - Direction et pilotage des politiques publiques
+              * `DOC` - Lecture publique et Documentation
+              * `ENS` - Enseignement et Formation
+              * `ENV` - Environnement
+              * `FIP` - Finances publiques
+              * `GBF` - Gestion budgétaire et financière
+              * `GRH` - Ressources humaines
+              * `INT` - International
+              * `JUR` - Affaires juridiques
+              * `JUS` - Justice
+              * `LOG` - Interventions techniques et logistiques
+              * `MED` - Médical et paramédical
+              * `NUM` - Numérique
+              * `RCH` - Recherche
+              * `REN` - Renseignement
+              * `SAN` - Prévention, conseil et pilotage en santé
+              * `SEC` - Sécurité
+              * `SOC` - Social, enfance et famille
+              * `TRA` - Transports
+              * `USA` - Relation à l'usager
+      - in: query
+        name: experienceLevel
+        schema:
+          type: array
+          items:
+            enum:
+            - DEBUTANT
+            - CONFIRME
+            - EXPERT
+            type: string
+            description: |-
+              * `DEBUTANT` - Débutant
+              * `CONFIRME` - Confirmé
+              * `EXPERT` - Expert
+      - in: query
+        name: keywords
+        schema:
+          type: string
+          minLength: 1
+        description: Recherche plein texte (en français) sur le titre, l'intitulé
+          long, la mission, le profil, l'organisme, l'employeur et les compléments
+          de l'offre.
+      - in: query
+        name: latitude
+        schema:
+          type: number
+          format: double
+          maximum: 90
+          minimum: -90
+        description: 'Filtre géographique : latitude du point en degrés décimaux (à
+          fournir avec `longitude` et `radius`).'
+      - in: query
+        name: locations
+        schema:
+          type: string
+          minLength: 1
+        description: Filtre géographique par identifiants du référentiel legacy du
+          client, séparés par une virgule (ex. `?locations=27,208,330`). Le type (pays,
+          région, département ou zone géographique) de chaque identifiant est détecté
+          automatiquement et vient compléter les filtres `country`, `region`, `department`
+          et `area`.
+      - in: query
+        name: longitude
+        schema:
+          type: number
+          format: double
+          maximum: 180
+          minimum: -180
+        description: 'Filtre géographique : longitude du point en degrés décimaux
+          (à fournir avec `latitude` et `radius`).'
+      - in: query
+        name: management
+        schema:
+          type: array
+          items:
+            enum:
+            - SANS
+            - AVEC
+            type: string
+            description: |-
+              * `SANS` - Sans management
+              * `AVEC` - Avec management
+      - in: query
+        name: organization
+        schema:
+          type: array
+          items:
+            type: string
+        description: Filtre sur l'organisme (nom exact). Répéter le paramètre pour
+          filtrer sur plusieurs organismes (ex. `?organization=Foo&organization=Bar`).
+          Ne pas séparer les valeurs par une virgule, le nom d'un organisme pouvant
+          en contenir une.
+      - in: query
+        name: publicationDate
+        schema:
+          type: integer
+          maximum: -1
+        description: 'Filtre sur la date de publication : nombre de jours négatif
+          pour ne retourner que les offres publiées au cours des N derniers jours
+          (ex. `-7` pour les offres publiées ces 7 derniers jours).'
+      - in: query
+        name: radius
+        schema:
+          type: integer
+          minimum: 1
+        description: 'Filtre géographique : rayon de recherche en kilomètres (à fournir
+          avec `latitude` et `longitude`).'
+      - in: query
+        name: region
+        schema:
+          type: array
+          items:
+            enum:
+            - '01'
+            - '02'
+            - '03'
+            - '04'
+            - '06'
+            - '11'
+            - '24'
+            - '27'
+            - '28'
+            - '32'
+            - '44'
+            - '52'
+            - '53'
+            - '75'
+            - '76'
+            - '84'
+            - '93'
+            - '94'
+            - DOM
+            - TOM
+            type: string
+            description: |-
+              * `01` - Guadeloupe
+              * `02` - Martinique
+              * `03` - Guyane
+              * `04` - La Réunion
+              * `06` - Mayotte
+              * `11` - Île-de-France
+              * `24` - Centre-Val de Loire
+              * `27` - Bourgogne-Franche-Comté
+              * `28` - Normandie
+              * `32` - Hauts-de-France
+              * `44` - Grand Est
+              * `52` - Pays de la Loire
+              * `53` - Bretagne
+              * `75` - Nouvelle-Aquitaine
+              * `76` - Occitanie
+              * `84` - Auvergne-Rhône-Alpes
+              * `93` - Provence-Alpes-Côte d'Azur
+              * `94` - Corse
+              * `DOM` - DOM
+              * `TOM` - TOM
+      - in: query
+        name: start
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - in: query
+        name: verse
+        schema:
+          type: array
+          items:
+            enum:
+            - FPT
+            - FPE
+            - FPH
+            type: string
+            description: |-
+              * `FPT` - FPT
+              * `FPE` - FPE
+              * `FPH` - FPH
+      - in: query
+        name: workingPlace
+        schema:
+          type: array
+          items:
+            enum:
+            - NON_DEFINI
+            - SUR_SITE
+            - TELETRAVAIL
+            type: string
+            description: |-
+              * `NON_DEFINI` - Non défini
+              * `SUR_SITE` - Sur site
+              * `TELETRAVAIL` - Télétravail
+      tags:
+      - fake-ts
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFakeTsOfferSummaryList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /api/token:
     post:
       operationId: token_create
@@ -2204,6 +3297,460 @@ components:
         * `DEBUTANT` - Débutant
         * `CONFIRME` - Confirmé
         * `EXPERT` - Expert
+    FakeTsCodedObject:
+      type: object
+      properties:
+        code:
+          type: string
+          nullable: true
+        clientCode:
+          type: string
+        label:
+          type: string
+        active:
+          type: boolean
+        parentCode:
+          type: string
+          nullable: true
+        type:
+          type: string
+        parentType:
+          type: string
+        hasChildren:
+          type: boolean
+      required:
+      - active
+      - clientCode
+      - code
+      - hasChildren
+      - label
+      - parentCode
+      - parentType
+      - type
+    FakeTsGeolocation:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+      required:
+      - latitude
+      - longitude
+    FakeTsLanguage:
+      type: object
+      properties:
+        languageName:
+          $ref: '#/components/schemas/FakeTsCodedObject'
+        languageLevel:
+          $ref: '#/components/schemas/FakeTsCodedObject'
+      required:
+      - languageLevel
+      - languageName
+    FakeTsOfferDetail:
+      type: object
+      properties:
+        reference:
+          type: string
+        isTopOffer:
+          type: boolean
+        title:
+          type: string
+        location:
+          type: string
+          nullable: true
+        modificationDate:
+          type: string
+        contractType:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        offerFamilyCategory:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        organisationName:
+          type: string
+        organisationDescription:
+          type: string
+          nullable: true
+        organisationLogoUrl:
+          type: string
+          nullable: true
+        contractDuration:
+          type: string
+          nullable: true
+        contractTypeCountry:
+          type: string
+          nullable: true
+        description1:
+          type: string
+        description2:
+          type: string
+        description1Formatted:
+          type: string
+          nullable: true
+        description2Formatted:
+          type: string
+          nullable: true
+        salaryRange:
+          type: string
+          nullable: true
+        geographicalLocation:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        country:
+          type: array
+          items:
+            $ref: '#/components/schemas/FakeTsCodedObject'
+        region:
+          type: array
+          items:
+            $ref: '#/components/schemas/FakeTsCodedObject'
+        department:
+          type: array
+          items:
+            $ref: '#/components/schemas/FakeTsCodedObject'
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+        professionalCategory:
+          type: string
+          nullable: true
+        _links:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        offerUrl:
+          type: string
+          nullable: true
+        _format:
+          type: string
+          nullable: true
+        _metadata:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        urlRedirectionEmployee:
+          type: string
+          nullable: true
+        urlRedirectionApplicant:
+          type: string
+          nullable: true
+        startPublicationDate:
+          type: string
+        beginningDate:
+          type: string
+          nullable: true
+        locations:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        applicationUrl:
+          type: string
+          nullable: true
+        endPublicationDate:
+          type: string
+          nullable: true
+        isAnonymousOrganisation:
+          type: boolean
+        organisation:
+          $ref: '#/components/schemas/FakeTsOrganisation'
+        operationalManager:
+          type: string
+          nullable: true
+        educationLevel:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        diploma:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        experienceLevel:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        languages:
+          type: array
+          items:
+            $ref: '#/components/schemas/FakeTsLanguage'
+        specialisations:
+          type: array
+          items:
+            $ref: '#/components/schemas/FakeTsCodedObject'
+        applicationQuestions:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        attachedFilesUrls:
+          type: array
+          items:
+            type: string
+        geolocation:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsGeolocation'
+          nullable: true
+        customFields:
+          type: string
+          nullable: true
+      required:
+      - _format
+      - _links
+      - _metadata
+      - applicationQuestions
+      - applicationUrl
+      - attachedFilesUrls
+      - beginningDate
+      - contractDuration
+      - contractType
+      - contractTypeCountry
+      - country
+      - customFields
+      - department
+      - description1
+      - description1Formatted
+      - description2
+      - description2Formatted
+      - diploma
+      - educationLevel
+      - endPublicationDate
+      - experienceLevel
+      - geographicalLocation
+      - geolocation
+      - isAnonymousOrganisation
+      - isTopOffer
+      - languages
+      - latitude
+      - location
+      - locations
+      - longitude
+      - modificationDate
+      - offerFamilyCategory
+      - offerUrl
+      - operationalManager
+      - organisation
+      - organisationDescription
+      - organisationLogoUrl
+      - organisationName
+      - professionalCategory
+      - reference
+      - region
+      - salaryRange
+      - specialisations
+      - startPublicationDate
+      - title
+      - urlRedirectionApplicant
+      - urlRedirectionEmployee
+    FakeTsOfferSummary:
+      type: object
+      properties:
+        reference:
+          type: string
+        isTopOffer:
+          type: boolean
+        title:
+          type: string
+        location:
+          type: string
+          nullable: true
+        modificationDate:
+          type: string
+        contractType:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        offerFamilyCategory:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        organisationName:
+          type: string
+        organisationDescription:
+          type: string
+          nullable: true
+        organisationLogoUrl:
+          type: string
+          nullable: true
+        contractDuration:
+          type: string
+          nullable: true
+        contractTypeCountry:
+          type: string
+          nullable: true
+        description1:
+          type: string
+        description2:
+          type: string
+        description1Formatted:
+          type: string
+          nullable: true
+        description2Formatted:
+          type: string
+          nullable: true
+        salaryRange:
+          type: string
+          nullable: true
+        geographicalLocation:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        country:
+          type: array
+          items:
+            $ref: '#/components/schemas/FakeTsCodedObject'
+        region:
+          type: array
+          items:
+            $ref: '#/components/schemas/FakeTsCodedObject'
+        department:
+          type: array
+          items:
+            $ref: '#/components/schemas/FakeTsCodedObject'
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+        professionalCategory:
+          type: string
+          nullable: true
+        _links:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        offerUrl:
+          type: string
+          nullable: true
+        _format:
+          type: string
+          nullable: true
+        _metadata:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        urlRedirectionEmployee:
+          type: string
+          nullable: true
+        urlRedirectionApplicant:
+          type: string
+          nullable: true
+        startPublicationDate:
+          type: string
+        beginningDate:
+          type: string
+          nullable: true
+        locations:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - _format
+      - _links
+      - _metadata
+      - beginningDate
+      - contractDuration
+      - contractType
+      - contractTypeCountry
+      - country
+      - department
+      - description1
+      - description1Formatted
+      - description2
+      - description2Formatted
+      - geographicalLocation
+      - isTopOffer
+      - latitude
+      - location
+      - locations
+      - longitude
+      - modificationDate
+      - offerFamilyCategory
+      - offerUrl
+      - organisationDescription
+      - organisationLogoUrl
+      - organisationName
+      - professionalCategory
+      - reference
+      - region
+      - salaryRange
+      - startPublicationDate
+      - title
+      - urlRedirectionApplicant
+      - urlRedirectionEmployee
+    FakeTsOrganisation:
+      type: object
+      properties:
+        entityCode:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        url:
+          type: string
+          nullable: true
+        phoneNumber:
+          type: string
+          nullable: true
+        postCode:
+          type: string
+          nullable: true
+        geolocation:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsGeolocation'
+          nullable: true
+        parentName:
+          type: string
+          nullable: true
+        logoUrl:
+          type: string
+          nullable: true
+        maxDelayForConsent:
+          type: string
+          nullable: true
+        retentionPeriod:
+          type: string
+          nullable: true
+        generalConditions:
+          type: string
+          nullable: true
+        personalDataConsent:
+          type: string
+          nullable: true
+      required:
+      - description
+      - entityCode
+      - generalConditions
+      - geolocation
+      - logoUrl
+      - maxDelayForConsent
+      - name
+      - parentName
+      - personalDataConsent
+      - phoneNumber
+      - postCode
+      - retentionPeriod
+      - url
     FormeContratEnum:
       enum:
       - CDD
@@ -2663,6 +4210,34 @@ components:
       description: |-
         * `NON` - Non
         * `OUI` - Oui
+    PaginatedFakeTsOfferSummaryList:
+      type: object
+      required:
+      - data
+      - _pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FakeTsOfferSummary'
+        _pagination:
+          type: object
+          properties:
+            start:
+              type: integer
+              example: 0
+            count:
+              type: integer
+              example: 1
+            total:
+              type: integer
+              example: 1
+            resultsPerPage:
+              type: integer
+              example: 100
+            hasMore:
+              type: boolean
+              example: false
     PaginatedListMetiersResponseList:
       type: object
       required:
@@ -3039,3 +4614,5 @@ tags:
   description: Offres d'emploi de la Fonction Publique
 - name: metiers
   description: Métiers du Référentiel des Métiers de la Fonction Publique
+- name: fake-ts
+  description: Endpoints de simulation au format Talentsoft

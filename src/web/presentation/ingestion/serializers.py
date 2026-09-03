@@ -525,6 +525,96 @@ class OfferDetailQuerySerializer(serializers.Serializer):
     )
 
 
+class FakeTsCodedObjectSerializer(serializers.Serializer):
+    code = serializers.CharField(allow_null=True)
+    clientCode = serializers.CharField()
+    label = serializers.CharField()
+    active = serializers.BooleanField()
+    parentCode = serializers.CharField(allow_null=True)
+    type = serializers.CharField()
+    parentType = serializers.CharField(allow_blank=True)
+    hasChildren = serializers.BooleanField()
+
+
+class FakeTsGeolocationSerializer(serializers.Serializer):
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
+
+
+class FakeTsOfferSummarySerializer(serializers.Serializer):
+    reference = serializers.CharField()
+    isTopOffer = serializers.BooleanField()
+    title = serializers.CharField()
+    location = serializers.CharField(allow_null=True)
+    modificationDate = serializers.CharField()
+    contractType = FakeTsCodedObjectSerializer(allow_null=True)
+    offerFamilyCategory = FakeTsCodedObjectSerializer(allow_null=True)
+    organisationName = serializers.CharField()
+    organisationDescription = serializers.CharField(allow_null=True)
+    organisationLogoUrl = serializers.CharField(allow_null=True)
+    contractDuration = serializers.CharField(allow_null=True)
+    contractTypeCountry = serializers.CharField(allow_null=True)
+    description1 = serializers.CharField()
+    description2 = serializers.CharField()
+    description1Formatted = serializers.CharField(allow_null=True)
+    description2Formatted = serializers.CharField(allow_null=True)
+    salaryRange = serializers.CharField(allow_null=True)
+    geographicalLocation = serializers.ListField(child=serializers.DictField())
+    country = FakeTsCodedObjectSerializer(many=True)
+    region = FakeTsCodedObjectSerializer(many=True)
+    department = FakeTsCodedObjectSerializer(many=True)
+    latitude = serializers.FloatField(allow_null=True)
+    longitude = serializers.FloatField(allow_null=True)
+    professionalCategory = serializers.CharField(allow_null=True)
+    _links = serializers.ListField(child=serializers.DictField(), label="_links")
+    offerUrl = serializers.CharField(allow_null=True)
+    _format = serializers.CharField(allow_null=True, label="_format")
+    _metadata = serializers.DictField(allow_null=True, label="_metadata")
+    urlRedirectionEmployee = serializers.CharField(allow_null=True)
+    urlRedirectionApplicant = serializers.CharField(allow_null=True)
+    startPublicationDate = serializers.CharField()
+    beginningDate = serializers.CharField(allow_null=True)
+    locations = serializers.ListField(child=serializers.DictField())
+
+
+class FakeTsOrganisationSerializer(serializers.Serializer):
+    entityCode = serializers.CharField()
+    name = serializers.CharField()
+    description = serializers.CharField(allow_null=True)
+    url = serializers.CharField(allow_null=True)
+    phoneNumber = serializers.CharField(allow_null=True)
+    postCode = serializers.CharField(allow_null=True)
+    geolocation = FakeTsGeolocationSerializer(allow_null=True)
+    parentName = serializers.CharField(allow_null=True)
+    logoUrl = serializers.CharField(allow_null=True)
+    maxDelayForConsent = serializers.CharField(allow_null=True)
+    retentionPeriod = serializers.CharField(allow_null=True)
+    generalConditions = serializers.CharField(allow_null=True)
+    personalDataConsent = serializers.CharField(allow_null=True)
+
+
+class FakeTsLanguageSerializer(serializers.Serializer):
+    languageName = FakeTsCodedObjectSerializer()
+    languageLevel = FakeTsCodedObjectSerializer()
+
+
+class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
+    applicationUrl = serializers.CharField(allow_null=True)
+    endPublicationDate = serializers.CharField(allow_null=True)
+    isAnonymousOrganisation = serializers.BooleanField()
+    organisation = FakeTsOrganisationSerializer()
+    operationalManager = serializers.CharField(allow_null=True)
+    educationLevel = FakeTsCodedObjectSerializer(allow_null=True)
+    diploma = FakeTsCodedObjectSerializer(allow_null=True)
+    experienceLevel = FakeTsCodedObjectSerializer(allow_null=True)
+    languages = FakeTsLanguageSerializer(many=True)
+    specialisations = FakeTsCodedObjectSerializer(many=True)
+    applicationQuestions = serializers.ListField(child=serializers.DictField())
+    attachedFilesUrls = serializers.ListField(child=serializers.CharField())
+    geolocation = FakeTsGeolocationSerializer(allow_null=True)
+    customFields = serializers.CharField(allow_null=True)
+
+
 class LocalisationInputSerializer(LocalisationSerializer):
     def validate(self, data):
         if data.get("pays") == "FRA" and not (

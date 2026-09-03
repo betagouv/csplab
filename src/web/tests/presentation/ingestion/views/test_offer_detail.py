@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 from django.urls import reverse
-from drf_spectacular.generators import SchemaGenerator
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from rest_framework import status
 
@@ -91,9 +90,3 @@ def test_returns_error_500(mock_offer_detail_container, authenticated_client):
     response = authenticated_client.get(URL, {"reference": "REF-1"})
 
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-def test_is_excluded_from_openapi_schema():
-    generator = SchemaGenerator()
-    schema = generator.get_schema(request=None, public=True)
-    assert "/api/fake-ts/offers/getoffer" not in schema["paths"]

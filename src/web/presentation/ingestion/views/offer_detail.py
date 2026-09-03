@@ -12,12 +12,27 @@ from application.ingestion.interfaces.get_offer_by_reference_input import (
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.ingestion.mappers import OfferDetailOutputMapper
-from presentation.ingestion.serializers import OfferDetailQuerySerializer
+from presentation.ingestion.serializers import (
+    FakeTsOfferDetailSerializer,
+    OfferDetailQuerySerializer,
+)
 
 
-@extend_schema(exclude=True)
+@extend_schema(
+    summary="Détail d'une offre (format Talentsoft)",
+    description="Simule l'API Talentsoft `offers/getoffer`.",
+    tags=["fake-ts"],
+    parameters=[OfferDetailQuerySerializer],
+    responses={
+        200: FakeTsOfferDetailSerializer,
+        400: GenericErrorSerializer,
+        404: GenericErrorSerializer,
+        500: GenericErrorSerializer,
+    },
+)
 class OfferDetailView(APIView):
     authentication_classes = [JWTAuthentication]
+    serializer_class = FakeTsOfferDetailSerializer
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -37,7 +52,7 @@ class OfferDetailView(APIView):
                 )
             )
 
-            return Response(self.mapper.to_dict(offer))
+            return Response(self.serializer_class(self.mapper.to_dict(offer)).data)
         except DRFValidationError as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(

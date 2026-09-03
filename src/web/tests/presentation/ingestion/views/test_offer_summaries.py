@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from django.urls import reverse
-from drf_spectacular.generators import SchemaGenerator
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
@@ -921,9 +920,3 @@ def test_returns_error_500(mock_offer_summaries_container, authenticated_client)
 
     response = authenticated_client.get(URL)
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-def test_is_excluded_from_openapi_schema():
-    generator = SchemaGenerator()
-    schema = generator.get_schema(request=None, public=True)
-    assert "/api/fake-ts/offersummaries" not in schema["paths"]
