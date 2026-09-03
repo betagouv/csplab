@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
 from uuid import UUID
 
 from referentiel.value_objects.localisation import Localisation
@@ -18,8 +18,8 @@ class OrganismeUpsertData:
     referentiel: str
     millesime: str
     gestion_ats: bool | None = False
-    date_creation: date | None = None
-    date_derniere_activite: date | None = None
+    date_creation: datetime | None = None
+    date_derniere_activite: datetime | None = None
     entity_id: UUID | None = None
 
 

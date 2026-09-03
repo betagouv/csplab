@@ -4310,11 +4310,11 @@ components:
           nullable: true
         date_creation:
           type: string
-          format: date
+          format: date-time
           nullable: true
         date_derniere_activite:
           type: string
-          format: date
+          format: date-time
           nullable: true
         localisation:
           allOf:
