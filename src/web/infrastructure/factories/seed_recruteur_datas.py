@@ -320,6 +320,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     marie_id = agents[0].utilisateur_id  # type: ignore[attr-defined]
     paul_id = agents[1].utilisateur_id  # type: ignore[attr-defined]
     claire_id = agents[2].utilisateur_id  # type: ignore[attr-defined]
+    david_id = agents[3].utilisateur_id  # type: ignore[attr-defined]
 
     recrutements_specs: list[
         tuple[OfferModel, UUID, tuple[UUID, AgentRecrutementRole] | None]
@@ -327,7 +328,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         (offres_actives[0], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
         (offres_actives[1], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
         (offres_actives[2], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
-        (offres_actives[3], claire_id, None),
+        (offres_actives[3], claire_id, (david_id, AgentRecrutementRole.CONTRIBUTEUR)),
         (offres_actives[4], claire_id, None),
         (offres_actives[5], claire_id, None),
         (offres_actives[6], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
