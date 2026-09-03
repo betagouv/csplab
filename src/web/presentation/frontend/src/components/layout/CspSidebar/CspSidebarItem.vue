@@ -32,6 +32,7 @@ const { isExpanded, isMobile } = useSidebar()
     :side-offset="12"
   >
     <Primitive
+      v-bind="$attrs"
       :as="to ? RouterLink : 'button'"
       :to="to"
       :type="to ? undefined : 'button'"
