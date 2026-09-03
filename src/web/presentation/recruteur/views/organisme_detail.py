@@ -8,6 +8,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.identite.usecases.get_organisme import (
+    GetOrganismeCommand,
+)
 from application.identite.usecases.update_organisme import (
     UpdateOrganismeCommand,
 )
@@ -50,17 +53,6 @@ from presentation.recruteur.serializers import (
     UpdateOrganismeSerializer,
 )
 
-# TODO : données statiques en attendant le branchement sur GetOrganismeUsecase
-_ORGANISME_STATIQUE = {
-    "nom": "Ministère de l'Économie, des Finances et de la Relance",
-    "versant": Verse.FPE.value,
-    "siret": "12345678901234",
-    "gestionnaire": None,
-    "gestion_ats": True,
-    "date_creation": "2026-01-01T09:00:00Z",
-    "date_derniere_activite": "2026-01-15T10:00:00Z",
-}
-
 
 @extend_schema_view(
     get=extend_schema(
@@ -92,10 +84,36 @@ class OrganismeDetailView(APIView):
         self.user_mapper = UtilisateurMapper()
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
-        serializer = OrganismeDetailSerializer(
-            {**_ORGANISME_STATIQUE, "organisme_uuid": organisme_uuid}
-        )
-        return Response(serializer.data)
+        try:
+            usecase = self.container.get_organisme_usecase()
+            organisme = usecase.execute(
+                GetOrganismeCommand(
+                    organisme_id=organisme_uuid,
+                    utilisateur=self.user_mapper.to_domain(request),
+                )
+            )
+            organisme_dto = {
+                "organisme_uuid": organisme.entity_id,
+                "nom": organisme.nom,
+                "versant": organisme.versant.value,
+                "siret": organisme.siret.code,
+                "gestionnaire": None,
+                "gestion_ats": organisme.gestion_ats,
+                "date_creation": organisme.date_creation,
+                "date_derniere_activite": organisme.date_derniere_activite,
+            }
+            return Response(OrganismeDetailSerializer(organisme_dto).data)
+        except OrganismeNexistePas as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
+        except (AccesOrganismeRefuse, OperationOrganismeRefusee) as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def put(self, request: Request, organisme_uuid: UUID) -> Response:
         serializer = UpdateOrganismeSerializer(data=request.data)

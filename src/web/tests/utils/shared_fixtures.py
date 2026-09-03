@@ -33,6 +33,7 @@ from application.commons.usecases.calculate_daily_stats import (
 )
 from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.identite.usecases.create_organisme import CreateOrganismeUsecase
+from application.identite.usecases.get_organisme import GetOrganismeUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.get_offers_by_source import (
     GetOffersBySourceUsecase,
@@ -504,6 +505,14 @@ def create_organisme_usecase():
     return CreateOrganismeUsecase(
         organisme_repository=organisme_repository,
         permission_service=permission_service,
+    )
+
+
+@pytest.fixture
+def get_organisme_usecase():
+    return GetOrganismeUsecase(
+        organisme_repository=Mock(spec=IOrganismeRepository),
+        permission_service=MagicMock(spec=OrganismePermissionService),
     )
 
 
