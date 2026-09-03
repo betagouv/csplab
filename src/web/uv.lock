@@ -1495,6 +1495,49 @@ wheels = [
 ]
 
 [[package]]
+name = "scaleway"
+version = "2.11.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "scaleway-core" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/77/74/f43e1577ac3d819ce861018fd81729a31a00bdeb8717e993d00229121ee1/scaleway-2.11.0.tar.gz", hash = "sha256:f3a48253c44814c704edf2f3c7235eb2996085d54d2e08a459871358ec309dfb", size = 779782, upload-time = "2026-04-02T13:50:40.411Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dc/08/3d4f4aabc475fc8f616d66dc3e98eac792f233d2dc383a0ab3a56a75dd80/scaleway-2.11.0-py3-none-any.whl", hash = "sha256:8c4b3ca3f4ff74f0f8b89f630a528bd8850a13586a417290190d74e7a3aba002", size = 954634, upload-time = "2026-04-02T13:50:41.657Z" },
+]
+
+[[package]]
+name = "scaleway-core"
+version = "2.11.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+    { name = "pyyaml" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/a2/e8962b08519b03b5d7c80d2946ba4caf1ff2ab603165e2d31f7819a794d0/scaleway_core-2.11.0.tar.gz", hash = "sha256:b86bb472032e039b7aab3b115aee952c62e39e360ead9c49e9b58589b125e43a", size = 27208, upload-time = "2026-04-02T13:48:53.274Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/50/0e/78b11333185b5fbf5f6fc4b26afacb3740c0e748f6b4e0c01451ebeb972e/scaleway_core-2.11.0-py3-none-any.whl", hash = "sha256:a204e33641b07f39e21d4e7bfbd3be3ce125cde1b884975abf8aaa0ac62129af", size = 33423, upload-time = "2026-04-02T13:48:54.331Z" },
+]
+
+[[package]]
+name = "scaleway-secrets"
+version = "0.1.0"
+source = { editable = "../../libs/scaleway_secrets" }
+dependencies = [
+    { name = "scaleway" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "scaleway", specifier = ">=2.11.0" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "ruff", specifier = ">=0.15.0" },
+]
+
+[[package]]
 name = "sentry-sdk"
 version = "2.68.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1678,6 +1721,7 @@ dependencies = [
     { name = "redis" },
     { name = "referentiel" },
     { name = "requests" },
+    { name = "scaleway-secrets" },
     { name = "sentry-sdk", extra = ["django"] },
     { name = "whitenoise" },
 ]
@@ -1739,6 +1783,7 @@ requires-dist = [
     { name = "redis", specifier = ">=7.4.0" },
     { name = "referentiel", editable = "../../libs/referentiel" },
     { name = "requests", specifier = ">=2.32.5,<2.33.0" },
+    { name = "scaleway-secrets", editable = "../../libs/scaleway_secrets" },
     { name = "sentry-sdk", extras = ["django"], specifier = ">=2.43.0,<3.0.0" },
     { name = "whitenoise", specifier = ">=6.11.0" },
 ]

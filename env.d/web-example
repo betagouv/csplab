@@ -1,36 +1,25 @@
+# In dev, secrets are fetched from Scaleway Secret Manager instead of being
+# set here, one secret per env value, named after the field (e.g.
+# "WEB_SECRET_KEY") under the "/web/{SCALEWAY_ENV}" directory (e.g.
+# "/web/dev"). Authenticate with `scw init` (or export SCW_ACCESS_KEY /
+# SCW_SECRET_KEY / SCW_DEFAULT_PROJECT_ID / SCW_DEFAULT_REGION yourself), then
+# set SCALEWAY_ENV to your environment, e.g. dev.
+SCALEWAY_ENV=dev
+
 PORT=8000
 
 # Django
 
 WEB_DEBUG=1
 WEB_ALLOWED_HOSTS=*
-WEB_SECRET_KEY=the_secret_key_for_local_dev_only_1234
-WEB_ROBOTS_INDEXING=1
 
-WEB_DEBUG_TOOLBAR=1
-
-# Vite dev server origin (port, HMR, CSP). Default http://localhost:5173.
-# Use an https:// origin to serve Vite behind a named host (HMR over wss).
-WEB_VITE_DEV_ORIGIN=http://localhost:5173
-
-# database
+# Database
 WEB_DATABASE_URL=psql://web:pass@localhost:5432/web
 
-#redis
+# Redis
 WEB_REDIS_URL=redis://localhost:6379/0
-# DB used for Django's cache (API throttling), distinct from the Huey queue DB above (0)
-# and from the ingestion service's Celery broker DB (1) on the same shared Redis instance
-WEB_REDIS_CACHE_DB=2
 
-# Third-party integrations
-
-WEB_SENTRY_DSN=
-WEB_INGRES_CLIENT_ID=
-WEB_INGRES_CLIENT_SECRET=
-WEB_PISTE_OAUTH_BASE_URL=https://sandbox-oauth.piste.gouv.fr
-WEB_INGRES_BASE_URL=https://sandbox-api.piste.gouv.fr/cisirh/ingres-nomenclatures/v2/nomenclatures
-
-# superuser
+# Superuser
 DJANGO_SUPERUSER_USERNAME=2f9fa140-4e05-4c9d-8dce-e4425356809f
 DJANGO_SUPERUSER_PASSWORD=admin
 DJANGO_SUPERUSER_EMAIL=admin@example.com
@@ -38,26 +27,6 @@ DJANGO_SUPERUSER_FIRST_NAME=bob
 DJANGO_SUPERUSER_LAST_NAME=wayne
 
 WEB_VECTOR_DB_TYPE=QDRANT
-WEB_QDRANT_URL=http://localhost:6333
-WEB_QDRANT_API_KEY=
 WEB_EMBEDDING_DIMENSION=1024
 
-WEB_ALBERT_API_BASE_URL=https://albert.api.etalab.gouv.fr
-WEB_ALBERT_API_KEY=
-WEB_ALBERT_MODEL=openweight-large
-
-WEB_OCR_API_KEY=verysecretkey
 WEB_OCR_BASE_URL=http://localhost:8001
-
-WEB_INGESTION_API_KEY=verysecretkey
-# Comma-separated list of allowed IP ranges in CIDR notation (empty = no restriction)
-# Example: WEB_INGESTION_API_KEY_ALLOWED_IP_RANGES=192.168.1.0/24,10.0.0.0/8
-WEB_INGESTION_API_KEY_ALLOWED_IP_RANGES=
-
-SEED_USER_PASSWORD=test-password-123
-
-# ProConnect (OIDC login for public-sector agents) - see https://partenaires.proconnect.gouv.fr/
-WEB_PROCONNECT_CLIENT_ID=
-WEB_PROCONNECT_CLIENT_SECRET=
-WEB_PROCONNECT_BASE_URL=
-WEB_PROCONNECT_LOGIN_FLAG=False
