@@ -87,16 +87,6 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
 
 <template>
   <section class="organismes-section">
-    <div class="organismes-section__intro">
-      <h2 class="organismes-section__title">
-        Gestion des organismes
-      </h2>
-      <p class="organismes-section__description">
-        Les organismes permettent d'organiser les recrutements. Chaque organisme
-        dispose de ses propres utilisateurs, offres et paramètres.
-      </p>
-    </div>
-
     <CspAsyncSection
       :pending="showSkeleton"
       :error="error"
@@ -150,23 +140,6 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
 </template>
 
 <style scoped lang="scss">
-.organismes-section__intro {
-  margin-bottom: var(--csp-space-5);
-}
-
-.organismes-section__title {
-  font-weight: 600;
-  margin: 0 0 var(--csp-space-2);
-  font-size: 1.125rem;
-}
-
-.organismes-section__description {
-  margin: 0;
-  color: var(--text-mention-grey);
-  font-size: 0.875rem;
-  max-width: 65ch;
-}
-
 .organismes-section__search {
   min-width: 20rem;
 }

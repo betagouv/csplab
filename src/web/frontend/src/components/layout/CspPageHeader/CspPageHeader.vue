@@ -8,6 +8,7 @@ import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 
 const props = defineProps<{
   title?: string
+  subtitle?: string
   breadcrumb?: CspBreadcrumbItem[]
   backLink?: { to: RouteLocationRaw, label: string }
   showTitleSkeleton?: boolean
@@ -73,7 +74,14 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
             <slot
               v-else
               name="subtitle"
-            />
+            >
+              <p
+                v-if="subtitle"
+                class="csp-page-header__subtitle-text"
+              >
+                {{ subtitle }}
+              </p>
+            </slot>
           </div>
         </div>
       </div>
@@ -129,7 +137,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 .csp-page-header__hgroup {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--csp-page-header-subtitle-gap);
 }
 
 .csp-page-header__back-link {
@@ -148,7 +156,12 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 }
 
 .csp-page-header__subtitle {
-  min-height: 1.5rem;
+  min-height: var(--csp-page-header-subtitle-height);
+}
+
+.csp-page-header__subtitle-text {
+  margin: 0;
+  color: var(--text-mention-grey);
 }
 
 .csp-page-header__actions {

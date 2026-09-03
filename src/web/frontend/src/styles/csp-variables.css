@@ -62,6 +62,8 @@
   --csp-page-header-title-height: 2.5rem;
   --csp-page-header-padding-bottom: 1.25rem;
   --csp-sidebar-padding-inline: 0.25rem;
+  --csp-page-header-subtitle-gap: 0.25rem;
+  --csp-page-header-subtitle-height: 1.5rem;
 }
 
 @media (min-width: 100rem) {
