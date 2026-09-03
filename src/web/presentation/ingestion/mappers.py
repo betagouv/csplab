@@ -13,7 +13,12 @@ from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
+
+from application.ingestion.interfaces.upsert_organismes_input import (
+    OrganismeUpsertData,
+)
 
 
 class LocalisationInputMapper(IToDomainMapper[dict, Localisation]):
@@ -81,6 +86,27 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             criteria=OfferCriteria.from_dict(data.get("criteres")),
             conditions=conditions,
             contacts=list(data["contacts"]) if data.get("contacts") else None,
+        )
+
+
+class OrganismeInputMapper(IToDomainMapper[dict, OrganismeUpsertData]):
+    def __init__(self) -> None:
+        self._localisation_mapper = LocalisationInputMapper()
+
+    def to_domain(self, data: dict) -> OrganismeUpsertData:
+        return OrganismeUpsertData(
+            entity_id=data.get("id"),
+            nom=data["nom"],
+            versant=Verse(data["versant"]),
+            siret=SIRET(code=data["siret"]),
+            localisation=self._localisation_mapper.to_domain(data.get("localisation")),
+            parent_id=data.get("parent_id"),
+            external_id=data["external_id"],
+            referentiel=data["referentiel"],
+            millesime=data["millesime"],
+            gestion_ats=data.get("gestion_ats"),
+            date_creation=data.get("date_creation"),
+            date_derniere_activite=data.get("date_derniere_activite"),
         )
 
 

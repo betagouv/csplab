@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -21,13 +21,13 @@ class OrganismeUpsertPayload(BaseModel):
     nom: str
     versant: str
     siret: str
-    parent_id: Optional[str] = None
-    external_id: Optional[str] = None
-    referentiel: Optional[str] = None
-    millesime: Optional[str] = None
+    parent_id: Optional[str]
+    external_id: str
+    referentiel: str
+    millesime: str
     gestion_ats: Optional[bool] = None
-    date_creation: Optional[date] = None
-    date_derniere_activite: Optional[date] = None
+    date_creation: Optional[datetime] = None
+    date_derniere_activite: Optional[datetime] = None
     localisation: Optional[LocalisationPayload] = None
 
     @classmethod

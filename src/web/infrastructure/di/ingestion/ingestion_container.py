@@ -22,6 +22,7 @@ from application.ingestion.usecases.list_offers import ListOffersUsecase
 from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.upsert_offers import UpsertOffersUsecase
+from application.ingestion.usecases.upsert_organismes import UpsertOrganismesUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from domain.ingestion.services.document_cleaner_interface import IDocumentCleaner
 from infrastructure.external_gateways import (
@@ -33,6 +34,9 @@ from infrastructure.gateways.ingestion import (
 )
 from infrastructure.gateways.ingestion.document_cleaner import DocumentCleaner
 from infrastructure.gateways.ingestion.text_extractor import TextExtractor
+from infrastructure.repositories.identite.postgres_organisme_repository import (
+    PostgresOrganismeRepository,
+)
 from infrastructure.repositories.identite.postgres_utilisateur_repository import (
     PostgresUtilisateurRepository,
 )
@@ -88,6 +92,10 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     utilisateur_repository = providers.Singleton(
         PostgresUtilisateurRepository,
+    )
+
+    organisme_repository = providers.Singleton(
+        PostgresOrganismeRepository,
     )
 
     repository_factory = providers.Singleton(
@@ -174,6 +182,12 @@ class IngestionContainer(containers.DeclarativeContainer):
         logger=logger_service,
         user_source_repository=user_source_repository,
         utilisateur_repository=utilisateur_repository,
+    )
+
+    upsert_organismes_usecase = providers.Factory(
+        UpsertOrganismesUsecase,
+        organisme_repository=organisme_repository,
+        logger=logger_service,
     )
 
     list_sources_usecase = providers.Factory(

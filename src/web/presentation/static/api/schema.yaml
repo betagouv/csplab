@@ -1778,6 +1778,47 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+  /api/v1/organismes/creer_modifier:
+    post:
+      operationId: v1_organismes_creer_modifier_create
+      description: Créer ou mettre à jour, entre 1 et 100 organismes à la fois, via
+        un payload JSON. L'upsert se base sur le couple (référentiel, external_id).
+      summary: Ajouter/mettre à jour des organismes
+      tags:
+      - organismes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertOrganismesRequest'
+        required: true
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpsertOrganismesResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
 components:
   schemas:
     ArchiveOffer401Error:
@@ -2655,6 +2696,91 @@ components:
       required:
       - nom
       - siret
+    OrganismeLocalisationInput:
+      type: object
+      properties:
+        zone_geographique:
+          $ref: '#/components/schemas/ZoneGeographiqueEnum'
+        pays:
+          type: string
+          maxLength: 3
+          minLength: 3
+        region:
+          oneOf:
+          - $ref: '#/components/schemas/RegionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        departement:
+          oneOf:
+          - $ref: '#/components/schemas/DepartementEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        latitude:
+          type: number
+          format: double
+          maximum: 90
+          minimum: -90
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          maximum: 180
+          minimum: -180
+          nullable: true
+      required:
+      - departement
+      - pays
+      - region
+      - zone_geographique
+    OrganismeUpsertInput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          nullable: true
+        nom:
+          type: string
+          maxLength: 255
+        versant:
+          $ref: '#/components/schemas/VersantEnum'
+        siret:
+          type: string
+          maxLength: 14
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        external_id:
+          type: string
+          maxLength: 50
+        referentiel:
+          type: string
+          maxLength: 50
+        millesime:
+          type: string
+          maxLength: 25
+        gestion_ats:
+          type: boolean
+          nullable: true
+        date_creation:
+          type: string
+          format: date
+          nullable: true
+        date_derniere_activite:
+          type: string
+          format: date
+          nullable: true
+        localisation:
+          allOf:
+          - $ref: '#/components/schemas/OrganismeLocalisationInput'
+          nullable: true
+      required:
+      - external_id
+      - millesime
+      - nom
+      - parent_id
+      - referentiel
+      - siret
+      - versant
     OuvertAuxMilitairesEnum:
       enum:
       - NON
@@ -2966,6 +3092,38 @@ components:
           items:
             $ref: '#/components/schemas/UpsertOfferError'
           description: Offres rejetées avec le détail de l'erreur
+      required:
+      - created
+      - errors
+      - updated
+    UpsertOrganismesRequest:
+      type: object
+      properties:
+        organismes:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganismeUpsertInput'
+          description: 'Liste d''organismes à créer ou mettre à jour (min: 1, max:
+            100)'
+          maxItems: 100
+          minItems: 1
+      required:
+      - organismes
+    UpsertOrganismesResponse:
+      type: object
+      properties:
+        created:
+          type: integer
+          description: Nombre d'organismes créés
+        updated:
+          type: integer
+          description: Nombre d'organismes mis à jour
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: Organismes rejetés avec le détail de l'erreur
       required:
       - created
       - errors

@@ -10,7 +10,7 @@ from referentiel.value_objects.verse import Verse
 
 
 @dataclass(frozen=True)
-class OrganismeCree(DomainEvent):
+class _OrganismeEventPayload(DomainEvent):
     nom: str
     versant: Verse
     localisation: Localisation | None
@@ -22,6 +22,12 @@ class OrganismeCree(DomainEvent):
     gestion_ats: bool | None = False
     date_creation: datetime | None = None
     date_derniere_activite: datetime | None = None
+    entity_id: UUID | None = None
+
+
+@dataclass(frozen=True)
+class OrganismeCree(_OrganismeEventPayload):
+    pass
 
 
 @dataclass(frozen=True)
@@ -29,3 +35,8 @@ class OrganismeModifie(DomainEvent):
     nom: str | None
     versant: Verse | None
     gestion_ats: bool | None
+
+
+@dataclass(frozen=True)
+class OrganismeRemplace(_OrganismeEventPayload):
+    pass

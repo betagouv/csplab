@@ -8,6 +8,7 @@ from presentation.ingestion.views.offers import (
     OffersListView,
     OffersUpsertView,
 )
+from presentation.ingestion.views.organismes import OrganismesUpsertView
 from presentation.ingestion.views.sources import SourcesListView
 
 app_name = "ingestion"
@@ -23,5 +24,10 @@ urlpatterns = [
     ),
     path("offres/archiver", ArchiveOffersView.as_view(), name="offers_archive"),
     path("offres/creer_modifier", OffersUpsertView.as_view(), name="offers_upsert"),
+    path(
+        "organismes/creer_modifier",
+        OrganismesUpsertView.as_view(),
+        name="organismes_upsert",
+    ),
     path("metiers", MetiersListView.as_view(), name="metiers_list"),
 ]

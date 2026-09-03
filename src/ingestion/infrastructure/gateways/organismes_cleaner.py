@@ -1,7 +1,7 @@
 import csv
 import json
 import logging
-from datetime import date, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 from uuid import UUID, uuid4, uuid5
@@ -36,20 +36,20 @@ def _dila_entity_id(external_id: str) -> UUID:
     return uuid5(_DILA_NAMESPACE, external_id)
 
 
-def _parse_date(value: Any) -> Optional[date]:
+def _parse_date(value: Any) -> Optional[datetime]:
     if not value:
         return None
     try:
-        return datetime.strptime(str(value), "%d/%m/%Y").date()
+        return datetime.strptime(str(value), "%d/%m/%Y").replace(tzinfo=timezone.utc)
     except ValueError:
         return None
 
 
-def _parse_iso_date(value: Any) -> Optional[date]:
+def _parse_iso_date(value: Any) -> Optional[datetime]:
     if not value:
         return None
     try:
-        return date.fromisoformat(str(value)[:10])
+        return datetime.fromisoformat(str(value)[:10]).replace(tzinfo=timezone.utc)
     except ValueError:
         return None
 
