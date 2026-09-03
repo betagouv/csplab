@@ -20,6 +20,7 @@ from application.recruteur.usecases.update_organisme_agent import (
     UpdateOrganismeAgentCommand,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
@@ -121,10 +122,11 @@ class OrganismeAgentsView(APIView):
             )
         except (AccesOrganismeRefuse, OperationOrganismeRefusee):
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        except OrganismeNexistePas:
-            return Response(
-                {"organisme_id": "Not found."}, status=status.HTTP_404_NOT_FOUND
+        except (OrganismeNexistePas, ProfilAgentNexistePas) as error:
+            field = (
+                "organisme_id" if isinstance(error, OrganismeNexistePas) else "agent_id"
             )
+            return Response({field: "Not found."}, status=status.HTTP_404_NOT_FOUND)
         except AgentDejaRattache:
             return Response(
                 {"agent_id": "Agent already attached to this organisme."},

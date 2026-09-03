@@ -13,6 +13,7 @@ from application.recruteur.services.organisme_agent_query_service_interface impo
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
+from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
 from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
@@ -56,8 +57,7 @@ class AttachOrganismeAgentUsecase(
             utilisateur=command.utilisateur,
         )
         if not self.agent_repository.exists(command.agent_id):
-            # TODO: create agent if not exists
-            pass
+            raise ProfilAgentNexistePas(command.agent_id)
 
         self.organisme_agent_repository.attach(
             organisme_id=command.organisme_id,
