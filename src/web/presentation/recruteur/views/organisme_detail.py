@@ -50,8 +50,27 @@ from presentation.recruteur.serializers import (
     UpdateOrganismeSerializer,
 )
 
+# TODO : données statiques en attendant le branchement sur GetOrganismeUsecase
+_ORGANISME_STATIQUE = {
+    "nom": "Ministère de l'Économie, des Finances et de la Relance",
+    "versant": Verse.FPE.value,
+    "siret": "12345678901234",
+    "gestionnaire": None,
+    "gestion_ats": True,
+    "date_creation": "2026-01-01T09:00:00Z",
+    "date_derniere_activite": "2026-01-15T10:00:00Z",
+}
+
 
 @extend_schema_view(
+    get=extend_schema(
+        summary="Récupérer un organisme",
+        tags=["recruteur"],
+        responses={
+            **generic_response_format,
+            200: OrganismeDetailSerializer,
+        },
+    ),
     put=extend_schema(
         summary="Modifier un organisme",
         tags=["recruteur"],
@@ -71,6 +90,12 @@ class OrganismeDetailView(APIView):
         super().__init__(**kwargs)
         self.container = create_identite_container()
         self.user_mapper = UtilisateurMapper()
+
+    def get(self, request: Request, organisme_uuid: UUID) -> Response:
+        serializer = OrganismeDetailSerializer(
+            {**_ORGANISME_STATIQUE, "organisme_uuid": organisme_uuid}
+        )
+        return Response(serializer.data)
 
     def put(self, request: Request, organisme_uuid: UUID) -> Response:
         serializer = UpdateOrganismeSerializer(data=request.data)

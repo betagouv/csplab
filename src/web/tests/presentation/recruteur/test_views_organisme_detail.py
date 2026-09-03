@@ -82,6 +82,17 @@ class TestOrganismeDetailView:
         response = api_client.put(ORGANISME_URL, {}, format="json")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+    def test_anonymous_get_is_unauthorized(self, api_client):
+        assert api_client.get(ORGANISME_URL).status_code == (
+            status.HTTP_401_UNAUTHORIZED
+        )
+
+    def test_get_organisme(self, authenticated_client):
+        response = authenticated_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["organisme_uuid"] == ORGANISME_UUID
+
     def test_put_update_organisme(
         self,
         identite_container,
