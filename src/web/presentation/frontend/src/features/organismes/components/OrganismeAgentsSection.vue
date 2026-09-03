@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import type { Role } from '../types'
+import { computed, ref, useTemplateRef, watch } from 'vue'
+import { HttpError, ValidationError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -16,6 +18,7 @@ import { useAgentActions } from '../composables/useAgentActions'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
 import { ROLE_LABELS } from '../constants/organisme'
 import { formatAgentName } from '../format'
+import AttachAgentDrawer from './AttachAgentDrawer.vue'
 
 const props = defineProps<{
   organismeUuid: string
@@ -23,7 +26,7 @@ const props = defineProps<{
 
 const PAGE_SIZE = 8
 
-const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
+const { agents, pending, error, attachAgent, attachingAgent, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
 const { roleChange, clearRoleChange, revocationAgent, clearRevocation } = useAgentActions()
 const { addToast } = useToast()
 
@@ -31,6 +34,35 @@ const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
 const revocationDialogOpen = ref(false)
+const attachDrawerOpen = ref(false)
+const attachDrawer = useTemplateRef('attachDrawer')
+
+async function handleAttach(payload: { agent_id: string, role: Role }) {
+  try {
+    const agent = await attachAgent(payload)
+    addToast({
+      variant: 'success',
+      title: 'Membre ajouté',
+      description: `${formatAgentName(agent)} a rejoint l'organisme.`,
+    })
+    attachDrawerOpen.value = false
+  }
+  catch (submitError) {
+    if (submitError instanceof ValidationError && submitError.fieldErrors.agent_id) {
+      attachDrawer.value?.setAgentIdError(submitError.fieldErrors.agent_id.join(' '))
+      return
+    }
+    if (submitError instanceof HttpError && submitError.status === 404) {
+      attachDrawer.value?.setAgentIdError('Aucun agent ne correspond à cet identifiant.')
+      return
+    }
+    if (submitError instanceof HttpError && submitError.status === 409) {
+      attachDrawer.value?.setAgentIdError('Cet agent est déjà rattaché à l\'organisme.')
+      return
+    }
+    addToast({ variant: 'error', title: 'L\'ajout du membre a échoué' })
+  }
+}
 
 const rows = computed(() => agents.value ?? [])
 
@@ -134,6 +166,12 @@ async function handleRevocation(): Promise<void> {
           placeholder="Rechercher un membre, un courriel"
           class="organisme-agents-section__search"
         />
+        <CspButton
+          label="Ajouter un membre"
+          icon="ri:user-add-line"
+          is-icon-left
+          @click="attachDrawerOpen = true"
+        />
       </CspTableToolbar>
       <CspDataTable
         v-model:page="page"
@@ -159,6 +197,13 @@ async function handleRevocation(): Promise<void> {
         </template>
       </CspDataTable>
     </CspAsyncSection>
+
+    <AttachAgentDrawer
+      ref="attachDrawer"
+      v-model:open="attachDrawerOpen"
+      :submitting="attachingAgent"
+      @attach="handleAttach"
+    />
 
     <CspDialog
       v-model:open="revocationDialogOpen"
