@@ -34,7 +34,7 @@ def usecase_fixture(
     return recruteur_integration_container.attach_organisme_agent_usecase()
 
 
-def test_responsable_attaches_bare_agent(db, usecase):
+def test_responsable_attaches_bare_agent(db, usecase, recruteur_integration_container):
     responsable, organisme = OrganismeFactory.create_model_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
@@ -62,6 +62,17 @@ def test_responsable_attaches_bare_agent(db, usecase):
         organisme_id=organisme.id, agent_id=bare_agent.utilisateur_id
     ).exists()
 
+    audit_log_repository = (
+        recruteur_integration_container.postgres_audit_log_repository()
+    )
+    logs = audit_log_repository.get_logs_for_ressource(
+        "AgentOrganisme", bare_agent.utilisateur_id
+    )
+    assert len(logs) == 1
+    assert logs[0].event_name == "AgentOrganismeRoleAttache"
+    assert logs[0].utilisateur_id == responsable.utilisateur_id
+    assert logs[0].ressource_id == bare_agent.utilisateur_id
+
 
 def test_staff_bypasses_role_check(db, usecase):
     organisme = OrganismeFactory.create_model()
@@ -84,7 +95,7 @@ def test_staff_bypasses_role_check(db, usecase):
     ).exists()
 
 
-def test_membre_is_denied(db, usecase):
+def test_membre_is_denied(db, usecase, recruteur_integration_container):
     membre, organisme = OrganismeFactory.create_model_with_agent(
         role=AgentOrganismeRole.MEMBRE
     )
@@ -105,6 +116,15 @@ def test_membre_is_denied(db, usecase):
     assert not OrganismeAgentModel.objects.filter(
         organisme_id=organisme.id, agent_id=bare_agent.utilisateur_id
     ).exists()
+    audit_log_repository = (
+        recruteur_integration_container.postgres_audit_log_repository()
+    )
+    assert (
+        audit_log_repository.get_logs_for_ressource(
+            "AgentOrganisme", bare_agent.utilisateur_id
+        )
+        == []
+    )
 
 
 def test_raises_when_agent_already_attached(db, usecase):

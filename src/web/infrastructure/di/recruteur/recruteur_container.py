@@ -200,18 +200,21 @@ class RecruteurContainer(containers.DeclarativeContainer):
         organisme_agent_query_service=postgres_organisme_agent_query_service,
         agent_repository=postgres_agent_repository,
         organisme_permission_service=organisme_permission_service,
+        audit_log_writer=audit_log_writer,
     )
     update_organisme_agent_usecase = providers.Factory(
         UpdateOrganismeAgentUsecase,
         organisme_agent_repository=postgres_organisme_agent_repository,
         organisme_agent_query_service=postgres_organisme_agent_query_service,
         organisme_permission_service=organisme_permission_service,
+        audit_log_writer=audit_log_writer,
     )
     revoke_organisme_agent_usecase = providers.Factory(
         RevokeOrganismeAgentUsecase,
         organisme_agent_repository=postgres_organisme_agent_repository,
         organisme_agent_query_service=postgres_organisme_agent_query_service,
         organisme_permission_service=organisme_permission_service,
+        audit_log_writer=audit_log_writer,
     )
     lister_mes_recrutements_usecase = providers.Factory(
         ListerMesRecrutementsUsecase,

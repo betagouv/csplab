@@ -34,7 +34,7 @@ def usecase_fixture(
     return recruteur_integration_container.revoke_organisme_agent_usecase()
 
 
-def test_responsable_revokes_agent(db, usecase):
+def test_responsable_revokes_agent(db, usecase, recruteur_integration_container):
     responsable, organisme = OrganismeFactory.create_model_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
@@ -59,6 +59,17 @@ def test_responsable_revokes_agent(db, usecase):
     )
     assert liaison.date_revocation is not None
 
+    audit_log_repository = (
+        recruteur_integration_container.postgres_audit_log_repository()
+    )
+    logs = audit_log_repository.get_logs_for_ressource(
+        "AgentOrganisme", autre_agent.utilisateur_id
+    )
+    assert len(logs) == 1
+    assert logs[0].event_name == "AgentOrganismeRoleRevoque"
+    assert logs[0].utilisateur_id == responsable.utilisateur_id
+    assert logs[0].ressource_id == autre_agent.utilisateur_id
+
 
 def test_staff_bypasses_role_check(db, usecase):
     _, organisme = OrganismeFactory.create_model_with_agent(
@@ -81,7 +92,7 @@ def test_staff_bypasses_role_check(db, usecase):
     assert agent_organisme.date_revocation is not None
 
 
-def test_membre_is_denied(db, usecase):
+def test_membre_is_denied(db, usecase, recruteur_integration_container):
     membre, organisme = OrganismeFactory.create_model_with_agent(
         role=AgentOrganismeRole.MEMBRE
     )
@@ -104,6 +115,15 @@ def test_membre_is_denied(db, usecase):
         organisme_id=organisme.id, agent_id=autre_agent.utilisateur_id
     )
     assert liaison.date_revocation is None
+    audit_log_repository = (
+        recruteur_integration_container.postgres_audit_log_repository()
+    )
+    assert (
+        audit_log_repository.get_logs_for_ressource(
+            "AgentOrganisme", autre_agent.utilisateur_id
+        )
+        == []
+    )
 
 
 def test_raises_when_agent_not_attached(db, usecase):
