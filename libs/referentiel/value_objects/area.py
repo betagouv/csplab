@@ -1,14 +1,11 @@
-from enum import Enum
+from referentiel.value_objects._choices import TextChoices
 
 
-class GeographicalArea(Enum):
-    AFRIQUE = "AF"
-    EUROPE = "EU"
-    ASIE = "AS"
-    AMERIQUE = "AM"
-    OCEANIE = "OC"
-    ANTARTIQUE = "AN"
-    MOYEN_ORIENT_AFRIQUE_DU_NORD = "MO"
-
-    def __str__(self):
-        return self.value
+class GeographicalArea(TextChoices):
+    AFRIQUE = "AF", "Afrique"
+    EUROPE = "EU", "Europe"
+    ASIE = "AS", "Asie"
+    AMERIQUE = "AM", "Amérique"
+    OCEANIE = "OC", "Océanie"
+    ANTARTIQUE = "AN", "Antarctique"
+    MOYEN_ORIENT_AFRIQUE_DU_NORD = "MO", "Moyen-Orient/Afrique du Nord"

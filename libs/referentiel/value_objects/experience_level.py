@@ -1,10 +1,7 @@
-from enum import Enum
+from referentiel.value_objects._choices import TextChoices
 
 
-class ExperienceLevel(Enum):
-    DEBUTANT = "Débutant"
-    CONFIRME = "Confirmé"
-    EXPERT = "Expert"
-
-    def __str__(self):
-        return self.value
+class ExperienceLevel(TextChoices):
+    DEBUTANT = "Débutant", "Débutant"
+    CONFIRME = "Confirmé", "Confirmé"
+    EXPERT = "Expert", "Expert"

@@ -1,20 +1,20 @@
-from enum import Enum
+from referentiel.value_objects._choices import TextChoices
 
 
-class ContractType(Enum):
-    TITULAIRE_CONTRACTUEL = "TITULAIRE_CONTRACTUEL"
-    CONTRACTUELS = "CONTRACTUELS"
-    TERRITORIAL = "TERRITORIAL"
+class ContractType(TextChoices):
+    TITULAIRE_CONTRACTUEL = (
+        "TITULAIRE_CONTRACTUEL",
+        "Emploi ouvert aux titulaires et aux contractuels",
+    )
+    CONTRACTUELS = "CONTRACTUELS", "Emploi ouvert uniquement aux contractuels"
+    TERRITORIAL = (
+        "TERRITORIAL",
+        "Emploi réservé aux fonctionnaires et lauréats d'un concours territorial",
+    )
 
-    def __str__(self):
-        return self.value
 
-
-class ContractKind(Enum):
-    CDD = "CDD"
-    CDI = "CDI"
-    PERMANENT = "Permanent"
-    VACATION = "Vacation"
-
-    def __str__(self):
-        return self.value
+class ContractKind(TextChoices):
+    CDD = "CDD", "CDD"
+    CDI = "CDI", "CDI"
+    PERMANENT = "Permanent", "Permanent"
+    VACATION = "Vacation", "Vacation"

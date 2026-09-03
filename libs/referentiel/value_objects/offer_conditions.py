@@ -1,43 +1,28 @@
-from enum import Enum
+from referentiel.value_objects._choices import TextChoices
 
 
-class Management(Enum):
-    SANS = "Sans management"
-    AVEC = "Avec management"
-
-    def __str__(self):
-        return self.value
+class Management(TextChoices):
+    SANS = "Sans management", "Sans management"
+    AVEC = "Avec management", "Avec management"
 
 
-class WorkingPlace(Enum):
-    NON_DEFINI = "Non défini"
-    SUR_SITE = "Sur site"
-    TELETRAVAIL = "Télétravail"
-
-    def __str__(self):
-        return self.value
+class WorkingPlace(TextChoices):
+    NON_DEFINI = "Non défini", "Non défini"
+    SUR_SITE = "Sur site", "Sur site"
+    TELETRAVAIL = "Télétravail", "Télétravail"
 
 
-class OpenToMilitary(Enum):
-    NON = "Non"
-    OUI = "Oui"
-
-    def __str__(self):
-        return self.value
+class OpenToMilitary(TextChoices):
+    NON = "Non", "Non"
+    OUI = "Oui", "Oui"
 
 
-class WorkingTime(Enum):
-    NON_DEFINI = "Non défini"
-    TEMPS_PLEIN = "Temps plein"
-    TEMPS_PARTIEL = "Temps incomplet"
-
-    def __str__(self):
-        return self.value
+class WorkingTime(TextChoices):
+    NON_DEFINI = "Non défini", "Non défini"
+    TEMPS_PLEIN = "Temps plein", "Temps plein"
+    TEMPS_PARTIEL = "Temps incomplet", "Temps incomplet"
 
 
-class JobVacancy(Enum):
-    OUI = "Poste vacant"
-    NON = "Poste susceptible d'être vacant"
-
-    def __str__(self):
-        return self.value
+class JobVacancy(TextChoices):
+    OUI = "Poste vacant", "Poste vacant"
+    NON = "Poste susceptible d'être vacant", "Poste susceptible d'être vacant"
