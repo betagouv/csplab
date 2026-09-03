@@ -18,7 +18,7 @@ import { recrutementsListLocation } from '@/features/recrutements/routes'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
 import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
 import { useCandidatures } from '../composables/useCandidatures'
-import { CANDIDATURE_TAB_LABELS } from '../constants/candidature'
+import { CANDIDATURE_TAB_ICONS, CANDIDATURE_TAB_LABELS } from '../constants/candidature'
 import { formatRecrutementMeta } from '../format'
 import { CANDIDATURES_TAB_ROUTE_NAMES } from '../routes'
 
@@ -100,7 +100,7 @@ const headerMenuSections = [{
   }],
 }]
 
-const TABS = tabItems(CANDIDATURE_TAB_LABELS)
+const TABS = tabItems(CANDIDATURE_TAB_LABELS, CANDIDATURE_TAB_ICONS)
 const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
 </script>
 

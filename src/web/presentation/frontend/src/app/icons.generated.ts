@@ -3,6 +3,7 @@
 import riAddLine from '@iconify-icons/ri/add-line'
 import riAlertFill from '@iconify-icons/ri/alert-fill'
 import riAlertLine from '@iconify-icons/ri/alert-line'
+import riArchiveLine from '@iconify-icons/ri/archive-line'
 import riArrowDownLine from '@iconify-icons/ri/arrow-down-line'
 import riArrowDownSLine from '@iconify-icons/ri/arrow-down-s-line'
 import riArrowLeftDoubleLine from '@iconify-icons/ri/arrow-left-double-line'
@@ -43,7 +44,9 @@ import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
 import riInformationLine from '@iconify-icons/ri/information-line'
 import riLayoutColumnLine from '@iconify-icons/ri/layout-column-line'
+import riLayoutGridLine from '@iconify-icons/ri/layout-grid-line'
 import riLightbulbLine from '@iconify-icons/ri/lightbulb-line'
+import riListCheck from '@iconify-icons/ri/list-check'
 import riListUnordered from '@iconify-icons/ri/list-unordered'
 import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
 import riMailLine from '@iconify-icons/ri/mail-line'
@@ -72,6 +75,7 @@ import { addIcon } from '@iconify/vue'
 addIcon('ri:add-line', riAddLine)
 addIcon('ri:alert-fill', riAlertFill)
 addIcon('ri:alert-line', riAlertLine)
+addIcon('ri:archive-line', riArchiveLine)
 addIcon('ri:arrow-down-line', riArrowDownLine)
 addIcon('ri:arrow-down-s-line', riArrowDownSLine)
 addIcon('ri:arrow-left-double-line', riArrowLeftDoubleLine)
@@ -112,7 +116,9 @@ addIcon('ri:inbox-2-line', riInbox2Line)
 addIcon('ri:information-fill', riInformationFill)
 addIcon('ri:information-line', riInformationLine)
 addIcon('ri:layout-column-line', riLayoutColumnLine)
+addIcon('ri:layout-grid-line', riLayoutGridLine)
 addIcon('ri:lightbulb-line', riLightbulbLine)
+addIcon('ri:list-check', riListCheck)
 addIcon('ri:list-unordered', riListUnordered)
 addIcon('ri:logout-box-r-line', riLogoutBoxRLine)
 addIcon('ri:mail-line', riMailLine)
