@@ -1,7 +1,7 @@
-from enum import Enum
+from django.db.models import TextChoices
 
 
-class DomaineFonctionnel(Enum):
+class DomaineFonctionnel(TextChoices):
     ACHAT = ("ACH", "Achat")
     AGRICULTURE = ("AGR", "Agriculture")
     AMENAGEMENT_DEVELOPPEMENT_DURABLE_TERRITOIRE = (
@@ -43,12 +43,3 @@ class DomaineFonctionnel(Enum):
     SOCIAL_ENFANCE_FAMILLE = ("SOC", "Social, enfance et famille")
     TRANSPORTS = ("TRA", "Transports")
     RELATION_USAGER = ("USA", "Relation à l'usager")
-
-    def __new__(cls, code: str, label: str):
-        obj = object.__new__(cls)
-        obj._value_ = code
-        obj.label = label
-        return obj
-
-    def __str__(self):
-        return self.value

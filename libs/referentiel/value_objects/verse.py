@@ -1,10 +1,7 @@
-from enum import Enum
+from django.db.models import TextChoices
 
 
-class Verse(Enum):
-    FPT = "FPT"
-    FPE = "FPE"
-    FPH = "FPH"
-
-    def __str__(self):
-        return self.value
+class Verse(TextChoices):
+    FPT = "FPT", "Fonction publique Territoriale"
+    FPE = "FPE", "Fonction publique de l'État"
+    FPH = "FPH", "Fonction publique Hospitalière"

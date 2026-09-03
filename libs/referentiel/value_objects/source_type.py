@@ -1,9 +1,6 @@
-from enum import Enum
+from django.db.models import TextChoices
 
 
-class SourceType(Enum):
-    TALENTSOFT = "talentsoft"
-    API = "api"
-
-    def __str__(self) -> str:
-        return self.value
+class SourceType(TextChoices):
+    TALENTSOFT = "talentsoft", "talentsoft"
+    API = "api", "api"

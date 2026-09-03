@@ -1,12 +1,9 @@
-from enum import Enum
+from django.db.models import TextChoices
 
 
-class Category(Enum):
-    APLUS = "APLUS"
-    A = "A"
-    B = "B"
-    C = "C"
-    HORS_CATEGORIE = "HORS_CATEGORIE"
-
-    def __str__(self):
-        return self.value
+class Category(TextChoices):
+    APLUS = "APLUS", "Catégorie A+"
+    A = "A", "Catégorie A (cadre)"
+    B = "B", "Catégorie B (profession intermédiaire)"
+    C = "C", "Catégorie C (employé)"
+    HORS_CATEGORIE = "HORS_CATEGORIE", "Hors catégorie"

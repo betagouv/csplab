@@ -1373,6 +1373,7 @@ version = "0.2.8"
 source = { editable = "../../libs/referentiel" }
 dependencies = [
     { name = "ddd" },
+    { name = "django" },
     { name = "pycountry" },
     { name = "pydantic" },
     { name = "pydantic-extra-types" },
@@ -1381,6 +1382,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "ddd", editable = "../../libs/ddd" },
+    { name = "django", specifier = ">=6.0.1,<7.0.0" },
     { name = "pycountry", specifier = ">=24.6.1" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pydantic-extra-types", specifier = ">=2.0.0" },

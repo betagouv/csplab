@@ -1,10 +1,7 @@
-from enum import Enum
+from django.db.models import TextChoices
 
 
-class TypeCompetence(Enum):
-    SAVOIR_FAIRE = "SAVOIR_FAIRE"
-    SAVOIR_ETRE = "SAVOIR_ETRE"
-    CONNAISSANCE = "CONNAISSANCE"
-
-    def __str__(self):
-        return self.value
+class TypeCompetence(TextChoices):
+    SAVOIR_FAIRE = "SAVOIR_FAIRE", "SAVOIR_FAIRE"
+    SAVOIR_ETRE = "SAVOIR_ETRE", "SAVOIR_ETRE"
+    CONNAISSANCE = "CONNAISSANCE", "CONNAISSANCE"

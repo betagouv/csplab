@@ -1,8 +1,5 @@
-from enum import Enum
+from django.db.models import TextChoices
 
 
-class JobFamilyReferential(Enum):
-    RMFPV2 = "RMFPv2"
-
-    def __str__(self):
-        return self.value
+class JobFamilyReferential(TextChoices):
+    RMFPV2 = "RMFPv2", "RMFPv2"
