@@ -71,7 +71,7 @@ def test_create_agent_checks_permission(permission_service, usecase):
     usecase.execute(input_data)
 
     permission_service.est_autorise.assert_called_once_with(
-        action=OrganismeAction.CREER_AGENT,
+        action=OrganismeAction.CREATE_AGENT,
         utilisateur=input_data.utilisateur,
         organisme_id=input_data.organisme_id,
     )

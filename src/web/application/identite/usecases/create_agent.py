@@ -40,7 +40,7 @@ class CreateAgentUsecase:
 
     def can_execute(self, input_data: CreateAgentInput) -> None:
         self.permission_service.est_autorise(
-            action=OrganismeAction.CREER_AGENT,
+            action=OrganismeAction.CREATE_AGENT,
             utilisateur=input_data.utilisateur,
             organisme_id=input_data.organisme_id,
         )
