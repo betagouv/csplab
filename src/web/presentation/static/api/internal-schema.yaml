@@ -1636,10 +1636,14 @@ components:
           type: string
         intitule_poste:
           type: string
+        organisme_id:
+          type: string
+          format: uuid
       required:
       - email
       - intitule_poste
       - nom
+      - organisme_id
       - prenom
     CreateOrganisme:
       type: object

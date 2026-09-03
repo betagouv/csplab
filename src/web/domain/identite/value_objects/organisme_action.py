@@ -18,3 +18,4 @@ class OrganismeAction(Enum):
     ATTACH_ORGANISME_AGENT = "attach_organisme_agent"
     UPDATE_ORGANISME_AGENT = "update_organisme_agent"
     REVOKE_ORGANISME_AGENT = "revoke_organisme_agent"
+    CREER_AGENT = "creer_agent"

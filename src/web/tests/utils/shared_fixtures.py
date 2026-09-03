@@ -486,9 +486,15 @@ def create_agent_usecase():
     utilisateur_repository = cast(
         IUtilisateurRepository, create_interface_aware_mock(IUtilisateurRepository)
     )
+    permission_service = OrganismePermissionService(
+        organisme_recruteur_repository=Mock(spec=IOrganismeRecruteurRepository),
+        organisme_agent_repository=Mock(spec=IOrganismeAgentRepository),
+        recrutement_agent_repository=Mock(spec=IRecrutementAgentRepository),
+    )
     return CreateAgentUsecase(
         agent_repository=agent_repository,
         utilisateur_repository=utilisateur_repository,
+        permission_service=permission_service,
     )
 
 

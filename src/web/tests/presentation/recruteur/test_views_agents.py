@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+from uuid import uuid4
 
 import pytest
 from django.urls import reverse
@@ -6,7 +7,12 @@ from faker import Faker
 from rest_framework import status
 
 from application.identite.usecases.create_agent import CreateAgentInput
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
+from domain.identite.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    OperationOrganismeRefusee,
+)
 from infrastructure.factories.identite.agent_factory import AgentFactory
 
 fake = Faker("fr_FR")
@@ -32,11 +38,13 @@ class TestAgentsView:
         agent = AgentFactory.create_entity()
         mock_usecase.execute.return_value = agent
         container.create_agent_usecase.return_value = mock_usecase
+        organisme_id = uuid4()
         body = {
             "email": agent.email,
             "prenom": agent.prenom,
             "nom": agent.nom,
             "intitule_poste": agent.intitule_poste,
+            "organisme_id": str(organisme_id),
         }
 
         response = authenticated_client.post(AGENTS_URL, body)
@@ -44,6 +52,8 @@ class TestAgentsView:
         (called_input,), _ = mock_usecase.execute.call_args
         assert isinstance(called_input, CreateAgentInput)
         assert called_input.email == agent.email
+        assert called_input.organisme_id == organisme_id
+        assert called_input.utilisateur is not None
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {
             "agent_id": str(agent.entity_id),
@@ -70,6 +80,21 @@ class TestAgentsView:
                 None,
             ),
             (
+                AccesOrganismeRefuse(uuid4()),
+                status.HTTP_403_FORBIDDEN,
+                None,
+            ),
+            (
+                OperationOrganismeRefusee(),
+                status.HTTP_403_FORBIDDEN,
+                None,
+            ),
+            (
+                OrganismeNexistePas(str(uuid4())),
+                status.HTTP_404_NOT_FOUND,
+                {"organisme_id": "Not found."},
+            ),
+            (
                 Exception("unexpected"),
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
                 {"error": "Unexpected error"},
@@ -92,6 +117,7 @@ class TestAgentsView:
             "prenom": fake.first_name(),
             "nom": fake.last_name(),
             "intitule_poste": fake.job(),
+            "organisme_id": str(uuid4()),
         }
 
         response = authenticated_client.post(AGENTS_URL, body)

@@ -144,6 +144,7 @@ class CreateAgentSerializer(serializers.Serializer):
     prenom = serializers.CharField()
     nom = serializers.CharField()
     intitule_poste = serializers.CharField()
+    organisme_id = serializers.UUIDField()
 
 
 class AgentSerializer(serializers.Serializer):
