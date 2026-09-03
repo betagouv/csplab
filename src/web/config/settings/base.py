@@ -386,6 +386,10 @@ SPECTACULAR_SETTINGS = {
             "name": "metiers",
             "description": "Métiers du Référentiel des Métiers de la Fonction Publique",
         },
+        {
+            "name": "fake-ts",
+            "description": "Endpoints de simulation au format Talentsoft",
+        },
     ],
 }
 

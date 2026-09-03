@@ -1,8 +1,9 @@
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
 from django.urls import reverse
-from drf_spectacular.generators import SchemaGenerator
+from pydantic import HttpUrl
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
@@ -10,6 +11,8 @@ from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
 from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.limit_date import LimitDate
+from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
@@ -17,6 +20,11 @@ from rest_framework import status
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from presentation.ingestion.serializers import (
+    FakeTsCodedObjectSerializer,
+    FakeTsOfferSummarySerializer,
+)
+from tests.utils.openapi_test_utils import assert_matches_openapi_schema
 
 URL = reverse("ingestion_fake_ts:offer_summaries")
 
@@ -125,6 +133,172 @@ def test_call_without_arg(mock_offer_summaries_container, authenticated_client):
     assert result["region"][0]["label"] == offer.localisation.region.name
     assert result["department"][0]["clientCode"] == offer.localisation.department.code
     assert result["department"][0]["label"] == offer.localisation.department.name
+
+
+def test_response_matches_openapi_schema(
+    mock_offer_summaries_container, authenticated_client
+):
+    offer = OfferFactory.create_entity(
+        contract_type=ContractType.TERRITORIAL,
+        category=Category.A,
+    )
+    _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
+
+    response = authenticated_client.get(URL)
+
+    assert_matches_openapi_schema(
+        response.json(), "/api/fake-ts/offersummaries", method="get"
+    )
+
+
+def test_response_has_no_undeclared_fields(
+    mock_offer_summaries_container, authenticated_client
+):
+    offer = OfferFactory.create_entity(
+        contract_type=ContractType.TERRITORIAL,
+        category=Category.A,
+    )
+    _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
+
+    response = authenticated_client.get(URL)
+    result = response.json()["data"][0]
+
+    assert set(result.keys()) == set(FakeTsOfferSummarySerializer().fields.keys())
+    assert set(result["contractType"].keys()) == set(
+        FakeTsCodedObjectSerializer().fields.keys()
+    )
+    assert set(result["offerFamilyCategory"].keys()) == set(
+        FakeTsCodedObjectSerializer().fields.keys()
+    )
+    assert set(result["country"][0].keys()) == set(
+        FakeTsCodedObjectSerializer().fields.keys()
+    )
+
+
+def test_response_matches_db_record_field_by_field(authenticated_client):
+    localisation = Localisation(
+        area=GeographicalArea.EUROPE,
+        country=Country("FRA"),
+        region=Region(code="11"),
+        department=Department(code="75"),
+        label="Paris",
+        latitude=48.8566,
+        longitude=2.3522,
+    )
+    OfferFactory.create_model(
+        reference="REF-E2E-SUMMARY-1",
+        title="Développeur Backend",
+        profile="Profil recherché",
+        mission="Mission du poste",
+        organization="Ministère Test",
+        category=Category.A,
+        contract_type=ContractType.TERRITORIAL,
+        offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
+        localisation=localisation,
+        publication_date=datetime(2024, 3, 1, 9, 0, tzinfo=UTC),
+        beginning_date=LimitDate(datetime(2024, 6, 1, tzinfo=UTC)),
+    )
+
+    response = authenticated_client.get(URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "data": [
+            {
+                "reference": "REF-E2E-SUMMARY-1",
+                "isTopOffer": False,
+                "title": "Développeur Backend",
+                "location": "Paris",
+                "modificationDate": "2024-03-01T09:00:00",
+                "contractType": {
+                    "code": None,
+                    "clientCode": "TERRITORIAL",
+                    "label": "TERRITORIAL",
+                    "active": True,
+                    "parentCode": None,
+                    "type": "contractType",
+                    "parentType": "",
+                    "hasChildren": False,
+                },
+                "offerFamilyCategory": {
+                    "code": None,
+                    "clientCode": "A",
+                    "label": "A",
+                    "active": True,
+                    "parentCode": None,
+                    "type": "offerFamilyCategory",
+                    "parentType": "",
+                    "hasChildren": False,
+                },
+                "organisationName": "Ministère Test",
+                "organisationDescription": None,
+                "organisationLogoUrl": None,
+                "contractDuration": None,
+                "contractTypeCountry": None,
+                "description1": "Mission du poste",
+                "description2": "Profil recherché",
+                "description1Formatted": None,
+                "description2Formatted": None,
+                "salaryRange": None,
+                "geographicalLocation": [],
+                "country": [
+                    {
+                        "code": None,
+                        "clientCode": "FRA",
+                        "label": "France",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "country",
+                        "parentType": "",
+                        "hasChildren": False,
+                    }
+                ],
+                "region": [
+                    {
+                        "code": None,
+                        "clientCode": "11",
+                        "label": "Île-de-France",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "region",
+                        "parentType": "",
+                        "hasChildren": False,
+                    }
+                ],
+                "department": [
+                    {
+                        "code": None,
+                        "clientCode": "75",
+                        "label": "Paris",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "department",
+                        "parentType": "",
+                        "hasChildren": False,
+                    }
+                ],
+                "latitude": 48.8566,
+                "longitude": 2.3522,
+                "professionalCategory": None,
+                "_links": [],
+                "offerUrl": "https://exemple.gouv.fr/offres/e2e-1",
+                "_format": None,
+                "_metadata": None,
+                "urlRedirectionEmployee": None,
+                "urlRedirectionApplicant": None,
+                "startPublicationDate": "2024-03-01T09:00:00",
+                "beginningDate": "2024-06-01T00:00:00",
+                "locations": [],
+            }
+        ],
+        "_pagination": {
+            "start": 0,
+            "count": 1,
+            "total": 1,
+            "resultsPerPage": 100,
+            "hasMore": False,
+        },
+    }
 
 
 @pytest.mark.parametrize(
@@ -921,9 +1095,3 @@ def test_returns_error_500(mock_offer_summaries_container, authenticated_client)
 
     response = authenticated_client.get(URL)
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-def test_is_excluded_from_openapi_schema():
-    generator = SchemaGenerator()
-    schema = generator.get_schema(request=None, public=True)
-    assert "/api/fake-ts/offersummaries" not in schema["paths"]
