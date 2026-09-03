@@ -8,6 +8,12 @@ from application.ingestion.interfaces.get_offer_by_reference_input import (
     GetOfferByReferenceInput,
 )
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from presentation.ingestion.serializers import (
+    FakeTsCodedObjectSerializer,
+    FakeTsOfferDetailSerializer,
+    FakeTsOrganisationSerializer,
+)
+from tests.utils.openapi_test_utils import assert_matches_openapi_schema
 
 URL = reverse("ingestion_fake_ts:offer_detail")
 
@@ -82,6 +88,37 @@ def test_returns_offer_detail(mock_offer_detail_container, authenticated_client)
     assert data["title"] == offer.title
     assert data["organisation"]["name"] == offer.organization
     assert data["isAnonymousOrganisation"] is False
+
+
+def test_response_matches_openapi_schema(
+    mock_offer_detail_container, authenticated_client
+):
+    offer = OfferFactory.create_entity()
+    _make_usecase(mock_offer_detail_container, offer=offer)
+
+    response = authenticated_client.get(URL, {"reference": offer.reference})
+
+    assert_matches_openapi_schema(
+        response.json(), "/api/fake-ts/offers/getoffer", method="get"
+    )
+
+
+def test_response_has_no_undeclared_fields(
+    mock_offer_detail_container, authenticated_client
+):
+    offer = OfferFactory.create_entity()
+    _make_usecase(mock_offer_detail_container, offer=offer)
+
+    response = authenticated_client.get(URL, {"reference": offer.reference})
+    data = response.json()
+
+    assert set(data.keys()) == set(FakeTsOfferDetailSerializer().fields.keys())
+    assert set(data["organisation"].keys()) == set(
+        FakeTsOrganisationSerializer().fields.keys()
+    )
+    assert set(data["offerFamilyCategory"].keys()) == set(
+        FakeTsCodedObjectSerializer().fields.keys()
+    )
 
 
 def test_returns_error_500(mock_offer_detail_container, authenticated_client):

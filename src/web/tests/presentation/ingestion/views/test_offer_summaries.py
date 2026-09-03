@@ -16,6 +16,11 @@ from rest_framework import status
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from presentation.ingestion.serializers import (
+    FakeTsCodedObjectSerializer,
+    FakeTsOfferSummarySerializer,
+)
+from tests.utils.openapi_test_utils import assert_matches_openapi_schema
 
 URL = reverse("ingestion_fake_ts:offer_summaries")
 
@@ -124,6 +129,46 @@ def test_call_without_arg(mock_offer_summaries_container, authenticated_client):
     assert result["region"][0]["label"] == offer.localisation.region.name
     assert result["department"][0]["clientCode"] == offer.localisation.department.code
     assert result["department"][0]["label"] == offer.localisation.department.name
+
+
+def test_response_matches_openapi_schema(
+    mock_offer_summaries_container, authenticated_client
+):
+    offer = OfferFactory.create_entity(
+        contract_type=ContractType.TERRITORIAL,
+        category=Category.A,
+    )
+    _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
+
+    response = authenticated_client.get(URL)
+
+    assert_matches_openapi_schema(
+        response.json(), "/api/fake-ts/offersummaries", method="get"
+    )
+
+
+def test_response_has_no_undeclared_fields(
+    mock_offer_summaries_container, authenticated_client
+):
+    offer = OfferFactory.create_entity(
+        contract_type=ContractType.TERRITORIAL,
+        category=Category.A,
+    )
+    _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
+
+    response = authenticated_client.get(URL)
+    result = response.json()["data"][0]
+
+    assert set(result.keys()) == set(FakeTsOfferSummarySerializer().fields.keys())
+    assert set(result["contractType"].keys()) == set(
+        FakeTsCodedObjectSerializer().fields.keys()
+    )
+    assert set(result["offerFamilyCategory"].keys()) == set(
+        FakeTsCodedObjectSerializer().fields.keys()
+    )
+    assert set(result["country"][0].keys()) == set(
+        FakeTsCodedObjectSerializer().fields.keys()
+    )
 
 
 @pytest.mark.parametrize(
