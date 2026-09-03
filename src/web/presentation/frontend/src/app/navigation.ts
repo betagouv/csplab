@@ -10,7 +10,6 @@ export const APP_NAVIGATION: NavGroup[] = [
   {
     label: 'Paramètres',
     items: [
-      { icon: 'ri:settings-3-line', label: 'Paramètres', to: 'mon-organisme' },
       { icon: 'ri:settings-3-line', label: 'Gestion des organismes', to: 'organismes' },
     ],
   },

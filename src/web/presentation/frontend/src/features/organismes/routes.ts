@@ -33,16 +33,4 @@ export const organismesRoutes: RouteRecordRaw[] = [
     component: () => import('./views/OrganismeView.vue'),
     meta: tabMeta('etapes'),
   },
-  {
-    path: '/mon-organisme',
-    name: MON_ORGANISME_TAB_ROUTE_NAMES.membres,
-    component: () => import('./views/OrganismeView.vue'),
-    meta: { ...tabMeta('membres'), requiresCurrentOrganisme: true },
-  },
-  {
-    path: '/mon-organisme/etapes',
-    name: MON_ORGANISME_TAB_ROUTE_NAMES.etapes,
-    component: () => import('./views/OrganismeView.vue'),
-    meta: { ...tabMeta('etapes'), requiresCurrentOrganisme: true },
-  },
 ]
