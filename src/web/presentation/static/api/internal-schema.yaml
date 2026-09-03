@@ -649,6 +649,66 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+  /recruteur/organismes/{organisme_uuid}/parametres/agents/recherche:
+    get:
+      operationId: recruteur_organismes_parametres_agents_recherche_retrieve
+      summary: Rechercher un agent par email exact
+      parameters:
+      - in: query
+        name: email
+        schema:
+          type: string
+          format: email
+          minLength: 1
+        required: true
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentRecherche'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/organismes/{organisme_uuid}/parametres/etapes:
     get:
       operationId: recruteur_organismes_parametres_etapes_list
@@ -1490,6 +1550,28 @@ components:
       - poste
       - prenom
       - role
+    AgentRecherche:
+      type: object
+      properties:
+        agent_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        prenom:
+          type: string
+        nom:
+          type: string
+        intitule_poste:
+          type: string
+          maxLength: 255
+      required:
+      - agent_id
+      - email
+      - intitule_poste
+      - nom
+      - prenom
     BlankEnum:
       enum:
       - ''
