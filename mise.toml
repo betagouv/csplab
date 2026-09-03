@@ -25,6 +25,7 @@ scaleway-cli = "2"
 [settings]
 # corepack shims let pnpm resolve its version from packageManager (single source of truth)
 node.corepack = true
+lockfile = true
 
 [tasks."secrets:check"]
 description = "Check the Scaleway access and list the secret names of every service"
