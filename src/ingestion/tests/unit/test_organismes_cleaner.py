@@ -1,5 +1,5 @@
 import csv
-from datetime import date
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -282,7 +282,7 @@ def test_cleans_valid_gipcdg_raw_organisme(cleaner: OrganismesCleaner):
     assert organisme.localisation.region.code == "93"
     assert organisme.localisation.latitude is None
     assert organisme.localisation.longitude is None
-    assert organisme.date_creation == date(2014, 6, 10)
+    assert organisme.date_creation == datetime(2014, 6, 10, tzinfo=timezone.utc)
 
 
 @pytest.mark.parametrize(

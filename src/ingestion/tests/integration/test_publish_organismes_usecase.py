@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 import httpx
@@ -53,8 +53,8 @@ FULL_ORGANISME = Organisme.build(
     referentiel="FINESS",
     millesime="2026-08-19",
     gestion_ats=True,
-    date_creation=date(2020, 1, 1),
-    date_derniere_activite=date(2026, 1, 1),
+    date_creation=datetime(2020, 1, 1, tzinfo=timezone.utc),
+    date_derniere_activite=datetime(2026, 1, 1, tzinfo=timezone.utc),
 )
 
 
@@ -149,8 +149,8 @@ async def test_execute_serializes_full_organisme(
     assert organisme["referentiel"] == "FINESS"
     assert organisme["millesime"] == "2026-08-19"
     assert organisme["gestion_ats"] is True
-    assert organisme["date_creation"] == "2020-01-01"
-    assert organisme["date_derniere_activite"] == "2026-01-01"
+    assert organisme["date_creation"] == "2020-01-01T00:00:00Z"
+    assert organisme["date_derniere_activite"] == "2026-01-01T00:00:00Z"
     assert organisme["localisation"] == {
         "zone_geographique": "EU",
         "pays": "FRA",

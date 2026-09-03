@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -26,8 +26,8 @@ class OrganismeUpsertPayload(BaseModel):
     referentiel: str
     millesime: str
     gestion_ats: Optional[bool] = None
-    date_creation: Optional[date] = None
-    date_derniere_activite: Optional[date] = None
+    date_creation: Optional[datetime] = None
+    date_derniere_activite: Optional[datetime] = None
     localisation: Optional[LocalisationPayload] = None
 
     @classmethod
