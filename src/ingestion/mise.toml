@@ -10,6 +10,11 @@ sources = ["pyproject.toml", "uv.lock"]
 outputs = { auto = true }
 run = "uv sync --locked"
 
+[tasks."secrets:check"]
+alias = "ingestion:secrets:check"
+description = "Check the Scaleway access and list the secret names of this service"
+run = "uv run -q --project ../../libs/scaleway_secrets python -m scaleway_secrets.fetch ingestion --names"
+
 [tasks.dev]
 alias = "ingestion:dev"
 description = "Ingestion API + celery worker + flower (uvicorn :8002)"

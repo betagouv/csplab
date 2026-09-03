@@ -9,3 +9,5 @@ Invoked as `python -m scaleway_secrets.fetch <service>` from each service's
 
 Credentials come from the `scw` config file (`scw init`, or `SCW_CONFIG_PATH`)
 when it exists, and from the `SCW_*` env vars, which take precedence.
+
+`--names` prints the secret names only, for diagnostics (`mise run secrets:check`).

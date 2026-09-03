@@ -21,7 +21,7 @@ from scaleway.secret.v1beta1 import SecretV1Beta1API
 from scaleway_core.profile import Profile
 
 
-def main(service: str) -> None:
+def main(service: str, names_only: bool = False) -> None:
     env = os.environ.get("SCALEWAY_ENV")
     if not env:
         return
@@ -35,6 +35,9 @@ def main(service: str) -> None:
 
     for secret in api.list_secrets_all(path=secret_path, scheduled_for_deletion=False):
         name = secret.name.upper()
+        if names_only:
+            print(name)
+            continue
         if os.environ.get(name):
             continue  # a real Scalingo env var was set by hand: it wins
         response = api.access_secret_version(
@@ -45,10 +48,12 @@ def main(service: str) -> None:
 
 
 def cli() -> None:
-    if len(sys.argv) != 2:
-        print("usage: python -m scaleway_secrets.fetch <service>", file=sys.stderr)
+    args = [arg for arg in sys.argv[1:] if arg != "--names"]
+    if len(args) != 1:
+        usage = "usage: python -m scaleway_secrets.fetch <service> [--names]"
+        print(usage, file=sys.stderr)
         raise SystemExit(1)
-    main(sys.argv[1])
+    main(args[0], names_only="--names" in sys.argv)
 
 
 if __name__ == "__main__":

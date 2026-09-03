@@ -22,6 +22,11 @@ sources = ["package.json", "pnpm-lock.yaml", "presentation/frontend/package.json
 outputs = { auto = true }
 run = "pnpm install"
 
+[tasks."secrets:check"]
+alias = "web:secrets:check"
+description = "Check the Scaleway access and list the secret names of this service"
+run = "uv run -q --project ../../libs/scaleway_secrets python -m scaleway_secrets.fetch web --names"
+
 [tasks.dev]
 alias = "web:dev"
 description = "Django dev server"
