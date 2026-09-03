@@ -31,13 +31,19 @@ class InitializeOrganismeStepsUsecase(
         self.organisme_recruteur_repository = organisme_recruteur_repository
         self.organisme_permission_service = organisme_permission_service
 
-    def execute(self, command: InitializeOrganismeStepsCommand) -> OrganismeRecruteur:
+    def can_execute(
+        self, command: InitializeOrganismeStepsCommand
+    ) -> OrganismeRecruteur:
+        organisme = self.organisme_recruteur_repository.get_by_id(command.organisme_id)
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.INITIALIZE_ORGANISME_STEPS,
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,
         )
-        organisme = self.organisme_recruteur_repository.get_by_id(command.organisme_id)
+        return organisme
+
+    def execute(self, command: InitializeOrganismeStepsCommand) -> OrganismeRecruteur:
+        organisme = self.can_execute(command=command)
         organisme.initialiser_etapes()
         self.organisme_recruteur_repository.save(organisme)
         return organisme

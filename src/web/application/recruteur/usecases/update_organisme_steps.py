@@ -37,15 +37,20 @@ class UpdateOrganismeStepsUsecase(
         self.audit_log_writer = audit_log_writer
         self.organisme_permission_service = organisme_permission_service
 
-    def execute(self, command: UpdateOrganismeStepsCommand) -> OrganismeRecruteur:
+    def can_execute(self, command: UpdateOrganismeStepsCommand) -> OrganismeRecruteur:
+        organisme_recruteur = self.organisme_recruteur_repository.get_by_id(
+            command.organisme_id
+        )
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.UPDATE_ORGANISME_STEPS,
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,
         )
-        organisme_recruteur = self.organisme_recruteur_repository.get_by_id(
-            command.organisme_id
-        )
+
+        return organisme_recruteur
+
+    def execute(self, command: UpdateOrganismeStepsCommand) -> OrganismeRecruteur:
+        organisme_recruteur = self.can_execute(command=command)
 
         organisme_recruteur.mettre_a_jour_etapes(etapes_data=tuple(command.etapes))
         self.organisme_recruteur_repository.save(organisme_recruteur)

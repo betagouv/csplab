@@ -52,7 +52,7 @@ def test_agent_with_role_has_organisme_roles(
     db, identite_integration_container, has_candidate_profile
 ):
     agent, organisme = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     if has_candidate_profile:
         CandidatFactory.create_model(username=agent.utilisateur.username)
@@ -65,7 +65,7 @@ def test_agent_with_role_has_organisme_roles(
         OrganismeRole(
             organisme_uuid=organisme.id,
             nom=organisme.nom,
-            role=AgentOrganismeRole.RESPONSABLE.value,
+            role=AgentOrganismeRole.SUPERVISEUR.value,
         )
     ]
 
@@ -77,7 +77,7 @@ def test_agent_with_multiple_roles(db, identite_integration_container):
     other_organisme = OrganismeFactory.create_model(
         nom=fake.word(),
         agent_id=agent.utilisateur_id,
-        role=AgentOrganismeRole.RESPONSABLE,
+        role=AgentOrganismeRole.SUPERVISEUR,
     )
     usecase = identite_integration_container.get_utilisateur_details_usecase()
 
@@ -92,6 +92,6 @@ def test_agent_with_multiple_roles(db, identite_integration_container):
         OrganismeRole(
             organisme_uuid=other_organisme.id,
             nom=other_organisme.nom,
-            role=AgentOrganismeRole.RESPONSABLE.value,
+            role=AgentOrganismeRole.SUPERVISEUR.value,
         ),
     ]

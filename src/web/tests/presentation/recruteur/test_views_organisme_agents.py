@@ -24,7 +24,7 @@ class TestOrganismeAgentsView:
 
     def test_list_agents_from_real_db(self, authenticated_client, test_user):
         _, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             username=test_user.username,
             intitule_poste="Chargée de recrutement",
         )
@@ -51,7 +51,7 @@ class TestOrganismeAgentsView:
             "prenom": test_user.first_name,
             "email": test_user.email,
             "poste": test_user.profil_agent.intitule_poste,
-            "role": AgentOrganismeRole.RESPONSABLE.value,
+            "role": AgentOrganismeRole.SUPERVISEUR.value,
             "date_derniere_activite": None,
             "date_creation_compte": test_user.date_joined.isoformat().replace(
                 "+00:00", "Z"
@@ -66,7 +66,7 @@ class TestOrganismeAgentsView:
 
     def test_list_agents_excludes_revoked_agent(self, authenticated_client, test_user):
         _, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             username=test_user.username,
         )
         autre_agent = OrganismeFactory.create_agent_in_organisme(
@@ -93,7 +93,7 @@ class TestOrganismeAgentsView:
 
     def test_attach_agent_persists_to_db(self, authenticated_client, test_user):
         _, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             username=test_user.username,
         )
         bare_agent = AgentFactory.create_model()
@@ -151,7 +151,7 @@ class TestOrganismeAgentsView:
         self, authenticated_client, test_user
     ):
         _, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             username=test_user.username,
         )
         autre_agent = OrganismeFactory.create_agent_in_organisme(
@@ -166,7 +166,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
-                "role": AgentOrganismeRole.RESPONSABLE.value,
+                "role": AgentOrganismeRole.SUPERVISEUR.value,
             },
             format="json",
         )
@@ -204,7 +204,7 @@ class TestOrganismeAgentsView:
 
     def test_update_agent(self, authenticated_client, test_user):
         _, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             username=test_user.username,
         )
         autre_agent = OrganismeFactory.create_agent_in_organisme(
@@ -219,7 +219,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
-                "role": AgentOrganismeRole.RESPONSABLE.value,
+                "role": AgentOrganismeRole.SUPERVISEUR.value,
                 # ignored: role update only, not persisted by this usecase yet
                 "poste": "Directeur des recrutements",
             },
@@ -229,13 +229,13 @@ class TestOrganismeAgentsView:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["agent_id"] == str(autre_agent.utilisateur_id)
-        assert data["role"] == AgentOrganismeRole.RESPONSABLE.value
+        assert data["role"] == AgentOrganismeRole.SUPERVISEUR.value
         assert data["poste"] == "Recruteur"
         assert (
             OrganismeAgentModel.objects.get(
                 organisme_id=organisme.id, agent_id=autre_agent.utilisateur_id
             ).role
-            == AgentOrganismeRole.RESPONSABLE.value
+            == AgentOrganismeRole.SUPERVISEUR.value
         )
 
     def test_update_agent_forbidden_for_membre(self, authenticated_client, test_user):
@@ -255,7 +255,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
-                "role": AgentOrganismeRole.RESPONSABLE.value,
+                "role": AgentOrganismeRole.SUPERVISEUR.value,
             },
             format="json",
         )
@@ -266,7 +266,7 @@ class TestOrganismeAgentsView:
         self, authenticated_client, test_user
     ):
         _, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             username=test_user.username,
         )
         bare_agent = AgentFactory.create_model()
@@ -279,7 +279,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(bare_agent.utilisateur_id),
-                "role": AgentOrganismeRole.RESPONSABLE.value,
+                "role": AgentOrganismeRole.SUPERVISEUR.value,
             },
             format="json",
         )
@@ -317,7 +317,7 @@ class TestOrganismeAgentsView:
         self, authenticated_client, test_user
     ):
         _, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             username=test_user.username,
         )
         autre_agent = OrganismeFactory.create_agent_in_organisme(
@@ -332,7 +332,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
-                "role": AgentOrganismeRole.RESPONSABLE.value,
+                "role": AgentOrganismeRole.SUPERVISEUR.value,
             },
             format="json",
         )
@@ -348,7 +348,7 @@ class TestOrganismeAgentsView:
 
     def test_revoke_agent(self, authenticated_client, test_user):
         _, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             username=test_user.username,
         )
         autre_agent = OrganismeFactory.create_agent_in_organisme(
@@ -407,7 +407,7 @@ class TestOrganismeAgentsView:
         self, authenticated_client, test_user
     ):
         _, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             username=test_user.username,
         )
         bare_agent = AgentFactory.create_model()

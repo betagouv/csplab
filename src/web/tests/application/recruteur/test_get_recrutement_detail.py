@@ -71,7 +71,7 @@ class TestGetRecrutementDetail:
     @pytest.mark.parametrize(
         "role",
         [
-            pytest.param(AgentOrganismeRole.RESPONSABLE, id="responsable"),
+            pytest.param(AgentOrganismeRole.SUPERVISEUR, id="superviseur"),
             pytest.param(AgentOrganismeRole.MEMBRE, id="membre"),
         ],
     )
@@ -115,7 +115,7 @@ class TestGetRecrutementDetail:
         usecase,
     ):
         organisme_permission_service.est_autorise.return_value = (
-            AgentOrganismeRole.RESPONSABLE
+            AgentOrganismeRole.SUPERVISEUR
         )
         recrutement_query_service.get_detail_by_recrutement.return_value = None
 

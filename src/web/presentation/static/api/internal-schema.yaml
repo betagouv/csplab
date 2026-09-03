@@ -2228,11 +2228,11 @@ components:
       - nom
     RoleEnum:
       enum:
-      - responsable
+      - superviseur
       - membre
       type: string
       description: |-
-        * `responsable` - responsable
+        * `superviseur` - superviseur
         * `membre` - membre
     SetAgentRoleOnOrganisme:
       type: object

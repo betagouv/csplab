@@ -32,9 +32,7 @@ class GetRecrutementListeUsecase(
         self.organisme_permission_service = organisme_permission_service
         self.recrutement_query_service = recrutement_query_service
 
-    def execute(
-        self, query: GetRecrutementListeQuery
-    ) -> IPage[CandidatureListeReadModel] | None:
+    def can_execute(self, query: GetRecrutementListeQuery) -> None:
         self.organisme_permission_service.est_autorise(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=query.organisme_id,
@@ -42,6 +40,10 @@ class GetRecrutementListeUsecase(
             utilisateur=query.utilisateur,
         )
 
+    def execute(
+        self, query: GetRecrutementListeQuery
+    ) -> IPage[CandidatureListeReadModel] | None:
+        self.can_execute(query)
         return self.recrutement_query_service.get_candidatures_by_recrutement(
             organisme_id=query.organisme_id, recrutement_id=query.recrutement_id
         )

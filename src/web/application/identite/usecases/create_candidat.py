@@ -31,7 +31,7 @@ class CreateCandidatUsecase:
         self.candidat_repository = candidat_repository
         self.utilisateur_repository = utilisateur_repository
 
-    def execute(self, input_data: CreateCandidatInput) -> Candidat:
+    def can_execute(self, input_data: CreateCandidatInput) -> Utilisateur:
         existing = self.candidat_repository.get_by_email(input_data.email)
         if existing is not None:
             raise ProfilCandidatExisteDeja(input_data.email)
@@ -46,6 +46,10 @@ class CreateCandidatUsecase:
                     nom=input_data.nom,
                 )
             )
+        return utilisateur
+
+    def execute(self, input_data: CreateCandidatInput) -> Candidat:
+        utilisateur = self.can_execute(input_data)
 
         candidat = Candidat.create(
             email=input_data.email,

@@ -29,7 +29,7 @@ class CreateAgentUsecase:
         self.agent_repository = agent_repository
         self.utilisateur_repository = utilisateur_repository
 
-    def execute(self, input_data: CreateAgentInput) -> Agent:
+    def can_execute(self, input_data: CreateAgentInput) -> Utilisateur:
         existing = self.agent_repository.get_by_email(input_data.email)
         if existing is not None:
             raise ProfilAgentExisteDeja(input_data.email)
@@ -44,7 +44,10 @@ class CreateAgentUsecase:
                     nom=input_data.nom,
                 )
             )
+        return utilisateur
 
+    def execute(self, input_data: CreateAgentInput) -> Agent:
+        utilisateur = self.can_execute(input_data)
         agent = Agent.create(
             email=input_data.email,
             prenom=input_data.prenom,

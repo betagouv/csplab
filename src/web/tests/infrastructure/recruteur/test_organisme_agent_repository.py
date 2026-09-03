@@ -35,14 +35,14 @@ def repository_fixture(
 
 def test_get_role_returns_responsable(db, repository):
     agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
 
     role = repository.get_role(
         organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
     )
 
-    assert role == AgentOrganismeRole.RESPONSABLE
+    assert role == AgentOrganismeRole.SUPERVISEUR
 
 
 def test_get_role_returns_membre(db, repository):
@@ -93,7 +93,7 @@ def test_attach_raises_when_already_attached(db, repository):
         repository.attach(
             organisme_id=organisme_model.id,
             agent_id=agent.utilisateur_id,
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
         )
 
 
@@ -105,13 +105,13 @@ def test_update_role_persists_change(db, repository):
     repository.update_role(
         organisme_id=organisme_model.id,
         agent_id=agent.utilisateur_id,
-        role=AgentOrganismeRole.RESPONSABLE,
+        role=AgentOrganismeRole.SUPERVISEUR,
     )
 
     liaison = OrganismeAgentModel.objects.get(
         organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
     )
-    assert liaison.role == AgentOrganismeRole.RESPONSABLE.value
+    assert liaison.role == AgentOrganismeRole.SUPERVISEUR.value
 
 
 def test_update_role_raises_when_no_liaison(db, repository):
@@ -122,7 +122,7 @@ def test_update_role_raises_when_no_liaison(db, repository):
         repository.update_role(
             organisme_id=organisme_model.id,
             agent_id=agent.utilisateur_id,
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
         )
 
 

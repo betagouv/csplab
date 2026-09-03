@@ -33,11 +33,13 @@ class CreerNoteUsecase(IUsecase[CreerNoteCommand, Note]):
         self.agent_repository = agent_repository
         self.audit_log_writer = audit_log_writer
 
-    def execute(self, command: CreerNoteCommand) -> Note:
+    def can_execute(self, command: CreerNoteCommand) -> None:
         self.candidature_repository.get_by_id(command.candidature_id)
         if not self.agent_repository.exists(command.publie_par_id):
             raise ProfilAgentNexistePas(command.publie_par_id)
 
+    def execute(self, command: CreerNoteCommand) -> Note:
+        self.can_execute(command=command)
         note = Note.create(
             candidature_id=command.candidature_id,
             publie_par_id=command.publie_par_id,

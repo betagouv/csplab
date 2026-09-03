@@ -42,6 +42,16 @@ class ListerMesRecrutementsUsecase(
         self.recrutement_query_service = recrutement_query_service
         self.organisme_permission_service = organisme_permission_service
 
+    def can_execute(
+        self, query: ListerMesRecrutementsQuery
+    ) -> AgentOrganismeRole | None:
+
+        return self.organisme_permission_service.est_autorise(
+            action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
+            organisme_id=query.organisme_id,
+            utilisateur=query.utilisateur,
+        )
+
     def execute(
         self, query: ListerMesRecrutementsQuery
     ) -> IPage[RecrutementActifsReadModel] | IPage[RecrutementArchivesReadModel]:
@@ -49,15 +59,11 @@ class ListerMesRecrutementsUsecase(
             f"List mes recrutements pour l'organisme_id={query.organisme_id}",
         )
 
-        role = self.organisme_permission_service.est_autorise(
-            action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
-            organisme_id=query.organisme_id,
-            utilisateur=query.utilisateur,
-        )
+        role = self.can_execute(query)
 
         agent_id_filtre = (
             None
-            if role == AgentOrganismeRole.RESPONSABLE
+            if role == AgentOrganismeRole.SUPERVISEUR
             else query.utilisateur.entity_id
         )
 

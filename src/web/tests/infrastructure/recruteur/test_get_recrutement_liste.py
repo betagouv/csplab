@@ -41,7 +41,7 @@ class TestGetRecrutementListeRbac:
     @pytest.mark.parametrize(
         ("role", "assign_agent_to_recrutement"),
         [
-            pytest.param(AgentOrganismeRole.RESPONSABLE, False, id="responsable"),
+            pytest.param(AgentOrganismeRole.SUPERVISEUR, False, id="superviseur"),
             pytest.param(AgentOrganismeRole.MEMBRE, True, id="membre_assigned"),
         ],
     )
@@ -113,7 +113,7 @@ class TestGetRecrutementListeRbac:
 
     def test_returns_none_for_unknown_recrutement(self, usecase):
         agent, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
 
         result = usecase.execute(
@@ -130,7 +130,7 @@ class TestGetRecrutementListeRbac:
 
     def test_returns_none_when_recrutement_belongs_to_another_organisme(self, usecase):
         agent, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
         autre_organisme = OrganismeFactory.create_model()
         recrutement = RecrutementFactory.create_model(organisme_id=autre_organisme.id)

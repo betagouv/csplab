@@ -47,7 +47,7 @@ def usecase_fixture(recruteur_integration_container):
 class TestListerMesRecrutements:
     def _create_agent_responsable(self):
         agent, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
         return agent.utilisateur_id, organisme
 
@@ -213,7 +213,7 @@ class TestListerMesRecrutementsRbac:
 
     def test_responsable_organisme(self, usecase, statut):
         agent, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
         (
             recrutement_in_org,
