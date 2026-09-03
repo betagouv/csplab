@@ -169,7 +169,8 @@ class Container(containers.DeclarativeContainer):
     )
 
     dila_organisme_gateway: providers.Provider[IOrganismeGateway] = providers.Singleton(
-        DilaOrganismeGateway
+        DilaOrganismeGateway,
+        export_url=config.dila_export_url,
     )
 
     import_organismes_dila_usecase: providers.Provider[ImportOrganismesUsecase] = (
@@ -321,6 +322,7 @@ def create_container() -> Container:
     container.config.gipcdg_collectivites_api_url.from_value(
         str(settings.gipcdg_collectivites_api_url)
     )
+    container.config.dila_export_url.from_value(str(settings.dila_export_url))
 
     _logger = logging.getLogger(__name__)
     register_talentsoft_front_clients(

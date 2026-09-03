@@ -11,21 +11,17 @@ from domain.value_objects.organisme import OrganismeData, OrganismeImportResourc
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from infrastructure.exceptions.exceptions import ExternalApiError
 
-# https://api-lannuaire.service-public.fr/api/explore/v2.1/console
-DILA_EXPORT_URL = (
-    "https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/"
-    "api-lannuaire-administration/exports/csv"
-)
 # Catégorie DILA correspondant aux services de l'État (versant FPE).
 CATEGORIE_FPE = "SI"
 
 
 class DilaOrganismeGateway(IOrganismeGateway):
-    def __init__(self, timeout: int = 120):
+    def __init__(self, export_url: str, timeout: int = 120):
+        self.export_url = export_url
         self.timeout = timeout
 
     def find_resource(self) -> OrganismeImportResource:
-        return OrganismeImportResource(url=DILA_EXPORT_URL, millesime=date.today())
+        return OrganismeImportResource(url=self.export_url, millesime=date.today())
 
     def stream_organismes(
         self, resource: OrganismeImportResource

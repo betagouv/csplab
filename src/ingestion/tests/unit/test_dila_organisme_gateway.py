@@ -7,16 +7,20 @@ from pytest_httpx import HTTPXMock
 from domain.value_objects.organisme import OrganismeImportResource
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dila_organisme_gateway import (
-    DILA_EXPORT_URL,
     DilaOrganismeGateway,
 )
 
 CSV_HEADER = "id;nom;categorie;hierarchie"
 
+DILA_EXPORT_URL = (
+    "https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/"
+    "api-lannuaire-administration/exports/csv"
+)
+
 
 @pytest.fixture
 def gateway() -> DilaOrganismeGateway:
-    return DilaOrganismeGateway()
+    return DilaOrganismeGateway(export_url=DILA_EXPORT_URL)
 
 
 def _csv_row(*values: str) -> str:

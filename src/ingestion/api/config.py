@@ -26,6 +26,12 @@ class Settings(BaseSettings):
         "https://emploi-territorial.fr/api/cdg/collectivites?limit=1000"
     )
 
+    # https://api-lannuaire.service-public.fr/api/explore/v2.1/console
+    dila_export_url: HttpUrl = HttpUrl(
+        "https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/"
+        "api-lannuaire-administration/exports/csv"
+    )
+
     web_base_url: str | None = None
     web_api_key: str | None = None
 
