@@ -8,6 +8,7 @@ from application.recruteur.usecases.attach_organisme_agent import (
 )
 from config.app_config import AppConfig
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.errors.organisme_agent_errors import AgentDejaRattache
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
@@ -149,8 +150,21 @@ def test_raises_when_agent_already_attached(db, usecase):
 
 
 def test_raises_when_agent_does_not_exist(db, usecase):
-    # TODO: implement test when usecase also updated
-    pass
+    responsable, organisme = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.RESPONSABLE
+    )
+
+    with pytest.raises(ProfilAgentNexistePas):
+        usecase.execute(
+            AttachOrganismeAgentCommand(
+                organisme_id=organisme.id,
+                agent_id=uuid4(),
+                role=AgentOrganismeRole.MEMBRE,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=responsable.utilisateur_id, is_staff=False
+                ),
+            )
+        )
 
 
 def test_raises_when_organisme_does_not_exist(db, usecase):
