@@ -138,7 +138,7 @@ function makeRouter() {
 
 async function mountCandidatures(
   onSetup?: () => void,
-  path = `/mes-recrutements/${RECRUTEMENT_UUID}`,
+  path = `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`,
 ) {
   const router = makeRouter()
   await router.push(path)
@@ -453,7 +453,7 @@ describe('useCandidatures', () => {
     it('applies filters to the live liste data', async () => {
       const { context } = await mountCandidatures(
         undefined,
-        `/mes-recrutements/${RECRUTEMENT_UUID}/liste`,
+        `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/liste`,
       )
 
       await vi.waitFor(() => expect(context.pendingListe.value).toBe(false))
@@ -468,7 +468,7 @@ describe('useCandidatures', () => {
   describe('shared instance', () => {
     it('shares the same state across components', async () => {
       const router = makeRouter()
-      await router.push(`/mes-recrutements/${RECRUTEMENT_UUID}`)
+      await router.push(`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`)
 
       const contexts: ReturnType<typeof useCandidatures>[] = []
 
@@ -528,7 +528,7 @@ describe('useCandidatures', () => {
       context.filters.apply()
       expect(context.filters.activeFiltersCount.value).toBe(1)
 
-      await router.push('/mes-recrutements/aaaaaaaa-0001-0001-0001-000000000002')
+      await router.push(`/organismes/${ORGANISME_UUID}/recrutements/aaaaaaaa-0001-0001-0001-000000000002`)
 
       await vi.waitFor(() => {
         expect(context.filters.search.value).toBe('')

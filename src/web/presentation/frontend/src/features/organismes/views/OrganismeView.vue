@@ -14,7 +14,7 @@ import NotFoundView from '@/views/NotFoundView.vue'
 import OrganismeAgentsSection from '../components/OrganismeAgentsSection.vue'
 import { useOrganismeDetail } from '../composables/useOrganismeDetail'
 import { ORGANISME_TAB_LABELS } from '../constants/organisme'
-import { MON_ORGANISME_TAB_ROUTE_NAMES, ORGANISME_TAB_ROUTE_NAMES } from '../routes'
+import { ORGANISME_TAB_ROUTE_NAMES } from '../routes'
 
 const route = useRoute()
 
@@ -30,10 +30,7 @@ const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
 
 const tabs = tabItems(ORGANISME_TAB_LABELS)
 
-const activeTab = useRouteTab(
-  () => (route.params.organismeUuid ? ORGANISME_TAB_ROUTE_NAMES : MON_ORGANISME_TAB_ROUTE_NAMES),
-  'membres',
-)
+const activeTab = useRouteTab(ORGANISME_TAB_ROUTE_NAMES, 'membres')
 
 const metaItems = computed<CspMetaItem[]>(() =>
   organisme.value

@@ -2,45 +2,72 @@ import { describe, expect, it } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { routes } from './index'
 
+const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
 
 function resolve(path: string) {
   return createRouter({ history: createMemoryHistory(), routes }).resolve(path)
 }
 
-describe('recrutements tab routes', () => {
-  it('maps /mes-recrutements to the actifs tab', () => {
-    const route = resolve('/mes-recrutements')
-    expect(route.name).toBe('mes-recrutements')
-    expect(route.meta.tab).toBe('actifs')
+describe('organisme scoped routes', () => {
+  it.each([
+    ['/organismes', 'organismes'],
+    [`/organismes/${ORGANISME_UUID}`, 'organisme'],
+    [`/organismes/${ORGANISME_UUID}/etapes`, 'organisme-etapes'],
+    [`/organismes/${ORGANISME_UUID}/recrutements`, 'recrutements'],
+    [`/organismes/${ORGANISME_UUID}/recrutements/archives`, 'recrutements-archives'],
+    [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`, 'recrutement-candidatures-kanban'],
+    [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/liste`, 'recrutement-candidatures'],
+    [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/activites`, 'recrutement-activites'],
+    [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/etapes-recrutement`, 'recrutement-etapes-recrutement'],
+  ])('%s resolves to %s', (path, name) => {
+    expect(resolve(path).name).toBe(name)
   })
 
-  it('maps /mes-recrutements/archives to the archives tab', () => {
-    const route = resolve('/mes-recrutements/archives')
-    expect(route.name).toBe('mes-recrutements-archives')
-    expect(route.meta.tab).toBe('archives')
+  it('keeps the tab meta on the recrutements list', () => {
+    expect(resolve(`/organismes/${ORGANISME_UUID}/recrutements`).meta.tab).toBe('actifs')
+    expect(resolve(`/organismes/${ORGANISME_UUID}/recrutements/archives`).meta.tab)
+      .toBe('archives')
   })
 
-  it('prefers the archives tab over the recrutement detail route', () => {
-    expect(resolve('/mes-recrutements/archives').name).not.toBe('recrutement-candidatures-kanban')
+  it('exposes both uuids on a recrutement page', () => {
+    expect(resolve(`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`).params)
+      .toEqual({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID })
+  })
+
+  it.each([
+    '/organismes/pas-un-uuid',
+    '/organismes/pas-un-uuid/recrutements',
+    `/organismes/${ORGANISME_UUID}/recrutements/archivees`,
+    `/organismes/${ORGANISME_UUID}/recrutements/42`,
+  ])('%s falls through to not-found', (path) => {
+    expect(resolve(path).name).toBe('not-found')
   })
 })
 
-describe('recrutement detail routes', () => {
-  it('matches a uuid segment', () => {
-    const route = resolve(`/mes-recrutements/${RECRUTEMENT_UUID}`)
-    expect(route.name).toBe('recrutement-candidatures-kanban')
-    expect(route.params.recrutementUuid).toBe(RECRUTEMENT_UUID)
+describe('tab switching keeps the route params', () => {
+  it.each([
+    'recrutement-activites',
+    'recrutement-candidatures',
+  ])('inherits both params when switching to %s', async (name) => {
+    const router = createRouter({ history: createMemoryHistory(), routes })
+    await router.push(`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`)
+
+    await router.push({ name })
+
+    expect(router.currentRoute.value.params).toEqual({
+      organismeUuid: ORGANISME_UUID,
+      recrutementUuid: RECRUTEMENT_UUID,
+    })
   })
 
-  it('matches the etapes route under a uuid segment', () => {
-    const route = resolve(`/mes-recrutements/${RECRUTEMENT_UUID}/etapes-recrutement`)
-    expect(route.name).toBe('recrutement-etapes-recrutement')
-  })
+  it('inherits the organisme when switching the recrutements tab', async () => {
+    const router = createRouter({ history: createMemoryHistory(), routes })
+    await router.push(`/organismes/${ORGANISME_UUID}/recrutements`)
 
-  it('falls through to not-found when the segment is not a uuid', () => {
-    expect(resolve('/mes-recrutements/archivees').name).toBe('not-found')
-    expect(resolve('/mes-recrutements/42').name).toBe('not-found')
+    await router.push({ name: 'recrutements-archives' })
+
+    expect(router.currentRoute.value.params).toEqual({ organismeUuid: ORGANISME_UUID })
   })
 })
 

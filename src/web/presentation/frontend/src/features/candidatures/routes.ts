@@ -1,7 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 import type { CandidatureTabKey } from './constants/candidature'
 import { tabMetaFor } from '@/composables/navigation/tabs'
-import { UUID_ROUTE_PARAM } from '@/router/params'
+import { ORGANISME_PATH_PREFIX, UUID_ROUTE_PARAM } from '@/router/params'
 import { CANDIDATURE_TAB_LABELS } from './constants/candidature'
 
 export const CANDIDATURES_TAB_ROUTE_NAMES = {
@@ -11,15 +11,17 @@ export const CANDIDATURES_TAB_ROUTE_NAMES = {
 
 const tabMeta = tabMetaFor(CANDIDATURE_TAB_LABELS)
 
+const RECRUTEMENT_PATH = `${ORGANISME_PATH_PREFIX}/recrutements/:recrutementUuid${UUID_ROUTE_PARAM}`
+
 export const candidaturesRoutes: RouteRecordRaw[] = [
   {
-    path: `/mes-recrutements/:recrutementUuid${UUID_ROUTE_PARAM}/activites`,
+    path: `${RECRUTEMENT_PATH}/activites`,
     name: CANDIDATURES_TAB_ROUTE_NAMES['activites-et-taches'],
     component: () => import('./views/CandidaturesView.vue'),
     meta: tabMeta('activites-et-taches'),
   },
   {
-    path: `/mes-recrutements/:recrutementUuid${UUID_ROUTE_PARAM}`,
+    path: RECRUTEMENT_PATH,
     component: () => import('./views/CandidaturesView.vue'),
     meta: tabMeta('candidatures'),
     children: [

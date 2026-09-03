@@ -7,6 +7,7 @@ import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmen
 export type CandidaturesViewName = 'liste' | 'kanban'
 
 const props = defineProps<{
+  organismeUuid: string
   recrutementUuid: string
   current: CandidaturesViewName
 }>()
@@ -30,7 +31,7 @@ const view = computed({
       return
     void router.push({
       name: ROUTE_BY_VIEW[value],
-      params: { recrutementUuid: props.recrutementUuid },
+      params: { organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid },
     })
   },
 })

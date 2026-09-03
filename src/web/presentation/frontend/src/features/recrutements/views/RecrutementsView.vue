@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -16,7 +16,6 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
-import { useCurrentOrganisme } from '@/stores/currentOrganisme'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
 import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
@@ -28,16 +27,16 @@ import { DEFAULT_RECRUTEMENT_TAB, RECRUTEMENTS_TAB_ROUTE_NAMES } from '../routes
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },
-  { label: 'Mes recrutements' },
+  { label: 'Recrutements' },
 ]
 
+const route = useRoute()
 const router = useRouter()
+const organismeUuid = computed(() => route.params.organismeUuid as string)
 
 const activeTab = useRouteTab(RECRUTEMENTS_TAB_ROUTE_NAMES, DEFAULT_RECRUTEMENT_TAB)
 
 const TABS = tabItems(RECRUTEMENT_TAB_LABELS, RECRUTEMENT_TAB_ICONS)
-
-const { organismeUuid } = useCurrentOrganisme()
 
 const {
   pendingActifs,
@@ -50,7 +49,10 @@ const showActifsSkeleton = useMinimumPending(pendingActifs, 300)
 const showArchivesSkeleton = useMinimumPending(pendingArchives, 300)
 
 function openOffre(recrutementUuid: string) {
-  void router.push({ name: 'recrutement-candidatures-kanban', params: { recrutementUuid } })
+  void router.push({
+    name: 'recrutement-candidatures-kanban',
+    params: { organismeUuid: organismeUuid.value, recrutementUuid },
+  })
 }
 
 const recrutementsActifsPage = ref(1)
@@ -105,12 +107,12 @@ const archivesCountLabel = computed(() => {
 
 <template>
   <CspPageHeader
-    title="Mes recrutements"
+    title="Recrutements"
     :breadcrumb="BREADCRUMB"
   >
     <template #subtitle>
       <p class="mes-recrutement-view__subtitle">
-        Retrouvez ici l’ensemble de vos recrutements en cours et archivés.
+        Retrouvez ici l’ensemble des recrutements en cours et archivés.
       </p>
     </template>
   </CspPageHeader>

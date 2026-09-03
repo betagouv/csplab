@@ -5,7 +5,6 @@ import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useToast } from '@/composables/ui/useToast'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
-import { useCurrentOrganisme } from '@/stores/currentOrganisme'
 import { patchEtapeCandidatures } from '../api'
 import { candidatureListeQuery, recrutementKanbanQuery } from '../queries'
 import { useCandidaturesFilters } from './useCandidaturesFilters'
@@ -28,7 +27,10 @@ export const useCandidatures = defineQuery(() => {
     return typeof param === 'string' && param !== '' ? param : null
   })
 
-  const { organismeUuid } = useCurrentOrganisme()
+  const organismeUuid = computed<string | null>(() => {
+    const param = route.params.organismeUuid
+    return typeof param === 'string' && param !== '' ? param : null
+  })
 
   const isKanbanRoute = computed(() => route.name === 'recrutement-candidatures-kanban')
   const isListeRoute = computed(() => route.name === 'recrutement-candidatures')
