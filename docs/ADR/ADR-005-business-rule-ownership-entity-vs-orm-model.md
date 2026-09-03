@@ -1,7 +1,9 @@
 # ADR-005: Responsabilité des règles métier — entité de domaine vs modèle ORM
 
 ## Status
-Accepted
+Superseded by ADR-009
+
+> ⚠️ **Remplacée par [ADR-009](./ADR-009-idiomatic-django-switch.md)**. Voir la section « Impact sur les ADR existantes » d'ADR-009.
 
 ## Context
 
@@ -23,6 +25,14 @@ Deux tentations à écarter :
 La question : **qui est responsable du contrôle des règles métier, et comment garantir que ce contrôle ne soit ni dupliqué, ni contournable ?**
 
 ## Decision
+
+> 🔗 **Décision inversée par ADR-009.** Le `Model` Django devient l'entité — plus de
+> couple entité/modèle ni de passage obligé par `from_entity()`. Les invariants
+> s'encodent désormais au mécanisme le plus fort disponible (contrainte DB > méthode de
+> modèle/manager > fonction pure > garde de service) — voir
+> [ADR-009 §2](./ADR-009-idiomatic-django-switch.md#2-le-model-django-est-lentité) et
+> [§3 « Doctrine des invariants »](./ADR-009-idiomatic-django-switch.md#3-doctrine-des-invariants--remplace-ladr-005).
+> Les sections 1 à 3 ci-dessous ne s'appliquent plus au nouveau code.
 
 ### 1. L'entité de domaine est l'unique propriétaire des règles métier
 
@@ -60,6 +70,10 @@ Si l'entité est invalide, l'exception est levée **avant** toute écriture : il
 **Règle d'écriture** : le code métier (repositories, use cases, admin) ne fait jamais `Model.objects.create(...)` ni `bulk_create([...])` avec des données métier brutes. Il construit des entités validées puis appelle `from_entity()`. Le `create()`/`bulk_create()` brut reste réservé aux données purement techniques sans invariant (logs, agrégations…).
 
 ### 4. L'admin Django fait partie de la couche de présentation
+
+> 🔗 Le recours au « container DI » dans le tableau ci-dessous est obsolète — la DI est
+> supprimée par [ADR-009 §6](./ADR-009-idiomatic-django-switch.md#6-suppression-de-linjection-de-dépendances) ;
+> vues et services importent directement leurs dépendances.
 
 L'admin n'est pas un outil neutre de manipulation de la base : c'est une **interface de présentation** et il doit respecter les frontières de couches au même titre qu'une vue DRF. Pour `Source` (et tout modèle portant des invariants métier), trois niveaux selon le besoin :
 

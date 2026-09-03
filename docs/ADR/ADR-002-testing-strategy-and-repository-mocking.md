@@ -1,7 +1,9 @@
 # ADR-002: Testing Strategy and Repository Mocking
 
 ## Status
-Accepted
+Accepted — Amended by ADR-009
+
+> ⚠️ **Amendée par [ADR-009](./ADR-009-idiomatic-django-switch.md)**. Voir la section « Impact sur les ADR existantes » d'ADR-009.
 
 ## Context
 
@@ -24,6 +26,11 @@ We adopt a three-tier testing strategy aligned with Clean Architecture principle
 - Leverage `create_interface_aware_mock()` utility that automatically generates mocks from domain interfaces
 - Eliminates maintenance overhead of hand-written in-memory repositories
 - Ensures mocks always respect interface contracts through introspection
+
+> 🔗 **Strategy abandoned.** No more repository `Protocol` to mock: use case tests
+> become service tests against a real database — see
+> [ADR-009 §2 "The Django Model is the entity"](./ADR-009-idiomatic-django-switch.md#2-le-model-django-est-lentité)
+> and the ["Impact" table](./ADR-009-idiomatic-django-switch.md#impact-sur-les-adr-existantes).
 
 **Test Data Strategy**:
 - Use factory classes exclusively for test data creation
@@ -49,8 +56,12 @@ We adopt a three-tier testing strategy aligned with Clean Architecture principle
 - Task queues and background jobs
 - User interface behavior and validation
 - Usecase are mocked here
+  _(obsolete: no more use case/DI to mock, direct call to the service — see ADR-009 §6)_
 
 ## Rationale
+
+> 🔗 See [ADR-009 §6 "Removal of dependency injection"](./ADR-009-idiomatic-django-switch.md#6-suppression-de-linjection-de-dépendances)
+> for what replaces the interface mocking described below.
 
 ### Clean Architecture Alignment
 This strategy respects Clean Architecture's dependency inversion principle:
@@ -59,6 +70,11 @@ This strategy respects Clean Architecture's dependency inversion principle:
 - **Presentation tests** ensure the outer layer properly. Usecases are mocked here.
 
 ### Interface-Aware Mock Generation
+
+> 🔗 **Obsolete.** `create_interface_aware_mock()` is removed by
+> [ADR-009 §2](./ADR-009-idiomatic-django-switch.md#2-le-model-django-est-lentité): without
+> a repository `Protocol`, there is no interface left to introspect.
+
 Traditional in-memory repositories require significant maintenance:
 - Manual implementation of each repository interface
 - Keeping mocks synchronized with interface changes

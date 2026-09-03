@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted
+Accepted — Amended by ADR-009
+
+> ⚠️ **Amendée par [ADR-009](./ADR-009-idiomatic-django-switch.md)**. Voir la section « Impact sur les ADR existantes » d'ADR-009.
 
 ## Context
 
@@ -63,6 +65,11 @@ Commande : CreerRecrutementUsecase → manipule l'aggregate Recrutement → IRec
 Requête  : ListerMesRecrutementsUsecase → interroge IRecrutementQueryService → RecrutementActifsReadModel
 ```
 
+> 🔗 **Implémentation remplacée.** Le principe lecture/écriture séparées reste, mais
+> `IRecrutementQueryService` + `RecrutementActifsReadModel` (dataclass) sont remplacés
+> par un `QuerySet` custom + `ModelSerializer` DRF — voir
+> [ADR-009 §4 « DRF est seul responsable de la sérialisation »](./ADR-009-idiomatic-django-switch.md#4-drf-est-seul-responsable-de-la-sérialisation--amende-ladr-006).
+
 ### L'Application Layer compose des DTOs pour la UI
 
 Conformément à Vaughn Vernon (*Implementing Domain-Driven Design*, Chapter 14), l'Application Layer a pour rôle de composer des données issues de différents modèles en un format cohérent pour la UI :
@@ -105,6 +112,10 @@ Il ne contient donc pas les données nécessaires à la vue (titre de l'offre, n
 2. **Charger les données manquantes dans la présentation** → N+1 queries et fuite de responsabilité
 
 ### Mapping vers la vue
+
+> 🔗 Ce mapper dédié est obsolète si la sérialisation passe directement par un
+> `ModelSerializer` sur le `QuerySet` — cf.
+> [ADR-009 §4](./ADR-009-idiomatic-django-switch.md#4-drf-est-seul-responsable-de-la-sérialisation--amende-ladr-006).
 
 La couche présentation applique une dernière transformation via des mappers dédiés (ex. `RecrutementsActifsMapper`) pour convertir les Read Models typés en dictionnaires compatibles avec les serializers DRF. Ce mapping est une **simple traduction de format**, pas une récupération de données supplémentaires.
 
@@ -187,7 +198,14 @@ Sans lui, le typage serait perdu (`list[dict]`) ou la présentation devrait impo
 
 ## Notes
 
-Cette décision ne concerne que les **queries** (lectures). Les **commandes** (écritures) continuent d'utiliser les aggregates du domaine via les repositories (`IRecrutementRepository`). Le pattern est cohérent avec les ADR précédentes :
+Cette décision ne concerne que les **queries** (lectures). Les **commandes** (écritures) continuent d'utiliser les aggregates du domaine via les repositories (`IRecrutementRepository`).
+
+> 🔗 **Obsolète.** ADR-003 et ADR-005, citées ci-dessous comme fondement, sont
+> superseded par ADR-009 : il n'y a plus d'aggregate ni de repository pour les
+> commandes non plus, cf.
+> [tableau « Impact »](./ADR-009-idiomatic-django-switch.md#impact-sur-les-adr-existantes).
+
+Le pattern est cohérent avec les ADR précédentes :
 
 - **ADR-003** (aggregate root pattern) : définit comment les aggregates protègent les invariants en écriture
 - **ADR-004** (foreign keys & error mapping) : traite des contraintes d'intégrité entre bounded contexts
