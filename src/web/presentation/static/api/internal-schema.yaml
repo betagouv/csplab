@@ -3,6 +3,64 @@ info:
   title: CSPLab Internal API
   version: 0.0.1
 paths:
+  /recruteur/agents:
+    post:
+      operationId: recruteur_agents_create
+      summary: Créer un profil agent
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgent'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateAgent'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateAgent'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
   /recruteur/candidatures/{candidature_uuid}/notes:
     get:
       operationId: recruteur_candidatures_notes_list
@@ -1370,6 +1428,27 @@ paths:
           description: ''
 components:
   schemas:
+    Agent:
+      type: object
+      properties:
+        agent_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        prenom:
+          type: string
+        nom:
+          type: string
+        intitule_poste:
+          type: string
+      required:
+      - agent_id
+      - email
+      - intitule_poste
+      - nom
+      - prenom
     AgentOrganisme:
       type: object
       properties:
@@ -1545,6 +1624,23 @@ components:
       required:
       - echecs
       - reussites
+    CreateAgent:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        prenom:
+          type: string
+        nom:
+          type: string
+        intitule_poste:
+          type: string
+      required:
+      - email
+      - intitule_poste
+      - nom
+      - prenom
     CreateOrganisme:
       type: object
       properties:

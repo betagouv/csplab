@@ -135,6 +135,26 @@ class CandidatureListeSerializer(serializers.Serializer):
 
 
 # ---------------------------------------------------------------------------
+# Serializers pour la création d'un profil agent
+# ---------------------------------------------------------------------------
+
+
+class CreateAgentSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    prenom = serializers.CharField()
+    nom = serializers.CharField()
+    intitule_poste = serializers.CharField()
+
+
+class AgentSerializer(serializers.Serializer):
+    agent_id = serializers.UUIDField(source="entity_id")
+    email = serializers.EmailField()
+    prenom = serializers.CharField()
+    nom = serializers.CharField()
+    intitule_poste = serializers.CharField()
+
+
+# ---------------------------------------------------------------------------
 # Serializers pour les agents rattachés à un organisme
 # ---------------------------------------------------------------------------
 
