@@ -1,5 +1,6 @@
 import type { NavItem } from '@/components/layout/CspAppShell/CspAppShell.types'
 import { CANDIDATURES_TAB_ROUTE_NAMES } from '@/features/candidatures/routes'
+import { ORGANISME_TAB_ROUTE_NAMES } from '@/features/organismes/routes'
 import { RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/features/recrutements/routes'
 
 const ORGANISMES_ITEM: NavItem = {
@@ -24,6 +25,16 @@ function recrutementsItem(organismeUuid: string): NavItem {
   }
 }
 
+function parametresItem(organismeUuid: string): NavItem {
+  return {
+    icon: 'ri:government-line',
+    label: 'Paramètres de l\'organisme',
+    to: ORGANISME_TAB_ROUTE_NAMES.membres,
+    params: { organismeUuid },
+    match: Object.values(ORGANISME_TAB_ROUTE_NAMES),
+  }
+}
+
 export function isNavItemActive(item: NavItem, matchedRouteNames: string[]): boolean {
   const names = item.match ?? [item.to]
   return matchedRouteNames.some(name => names.includes(name))
@@ -32,8 +43,9 @@ export function isNavItemActive(item: NavItem, matchedRouteNames: string[]): boo
 export function navigationFor(options: {
   isStaff: boolean
   organismeUuid: string | null
+  canManageOrganisme: boolean
 }): NavItem[] {
-  const { isStaff, organismeUuid } = options
+  const { isStaff, organismeUuid, canManageOrganisme } = options
 
   const items: NavItem[] = []
 
@@ -43,6 +55,10 @@ export function navigationFor(options: {
 
   if (organismeUuid) {
     items.push(recrutementsItem(organismeUuid))
+
+    if (canManageOrganisme) {
+      items.push(parametresItem(organismeUuid))
+    }
   }
 
   return items

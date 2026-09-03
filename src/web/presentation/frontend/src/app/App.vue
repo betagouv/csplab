@@ -7,12 +7,15 @@ import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import CspAppShell from '@/components/layout/CspAppShell/CspAppShell.vue'
 import { useCurrentUser } from '@/stores/currentUser'
+import { useRouteOrganisme } from '@/stores/routeOrganisme'
 
 const { user } = useCurrentUser()
+const { organismeUuid, canManageOrganisme } = useRouteOrganisme()
 
 const navigation = computed(() => navigationFor({
   isStaff: user.value?.is_staff ?? false,
-  organismeUuid: user.value?.organisme_roles?.[0]?.organisme_uuid ?? null,
+  organismeUuid: organismeUuid.value,
+  canManageOrganisme: canManageOrganisme.value,
 }))
 </script>
 
