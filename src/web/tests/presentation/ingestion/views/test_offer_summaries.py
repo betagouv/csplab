@@ -1,7 +1,9 @@
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
 from django.urls import reverse
+from pydantic import HttpUrl
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
@@ -9,6 +11,8 @@ from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
 from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.limit_date import LimitDate
+from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
@@ -169,6 +173,136 @@ def test_response_has_no_undeclared_fields(
     assert set(result["country"][0].keys()) == set(
         FakeTsCodedObjectSerializer().fields.keys()
     )
+
+
+def test_response_matches_db_record_field_by_field(authenticated_client):
+    """End-to-end: writes a real offer to the database (no mocked container)
+    and checks the serialized response field by field, to catch bugs the
+    mocked-usecase tests above cannot see (e.g. a wrong repository/mapper
+    mapping between the DB row and the domain entity)."""
+    localisation = Localisation(
+        area=GeographicalArea.EUROPE,
+        country=Country("FRA"),
+        region=Region(code="11"),
+        department=Department(code="75"),
+        label="Paris",
+        latitude=48.8566,
+        longitude=2.3522,
+    )
+    OfferFactory.create_model(
+        reference="REF-E2E-SUMMARY-1",
+        title="Développeur Backend",
+        profile="Profil recherché",
+        mission="Mission du poste",
+        organization="Ministère Test",
+        category=Category.A,
+        contract_type=ContractType.TERRITORIAL,
+        offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
+        localisation=localisation,
+        publication_date=datetime(2024, 3, 1, 9, 0, tzinfo=UTC),
+        beginning_date=LimitDate(datetime(2024, 6, 1, tzinfo=UTC)),
+    )
+
+    response = authenticated_client.get(URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "data": [
+            {
+                "reference": "REF-E2E-SUMMARY-1",
+                "isTopOffer": False,
+                "title": "Développeur Backend",
+                "location": "Paris",
+                "modificationDate": "2024-03-01T09:00:00",
+                "contractType": {
+                    "code": None,
+                    "clientCode": "TERRITORIAL",
+                    "label": "TERRITORIAL",
+                    "active": True,
+                    "parentCode": None,
+                    "type": "contractType",
+                    "parentType": "",
+                    "hasChildren": False,
+                },
+                "offerFamilyCategory": {
+                    "code": None,
+                    "clientCode": "A",
+                    "label": "A",
+                    "active": True,
+                    "parentCode": None,
+                    "type": "offerFamilyCategory",
+                    "parentType": "",
+                    "hasChildren": False,
+                },
+                "organisationName": "Ministère Test",
+                "organisationDescription": None,
+                "organisationLogoUrl": None,
+                "contractDuration": None,
+                "contractTypeCountry": None,
+                "description1": "Mission du poste",
+                "description2": "Profil recherché",
+                "description1Formatted": None,
+                "description2Formatted": None,
+                "salaryRange": None,
+                "geographicalLocation": [],
+                "country": [
+                    {
+                        "code": None,
+                        "clientCode": "FRA",
+                        "label": "France",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "country",
+                        "parentType": "",
+                        "hasChildren": False,
+                    }
+                ],
+                "region": [
+                    {
+                        "code": None,
+                        "clientCode": "11",
+                        "label": "Île-de-France",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "region",
+                        "parentType": "",
+                        "hasChildren": False,
+                    }
+                ],
+                "department": [
+                    {
+                        "code": None,
+                        "clientCode": "75",
+                        "label": "Paris",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "department",
+                        "parentType": "",
+                        "hasChildren": False,
+                    }
+                ],
+                "latitude": 48.8566,
+                "longitude": 2.3522,
+                "professionalCategory": None,
+                "_links": [],
+                "offerUrl": "https://exemple.gouv.fr/offres/e2e-1",
+                "_format": None,
+                "_metadata": None,
+                "urlRedirectionEmployee": None,
+                "urlRedirectionApplicant": None,
+                "startPublicationDate": "2024-03-01T09:00:00",
+                "beginningDate": "2024-06-01T00:00:00",
+                "locations": [],
+            }
+        ],
+        "_pagination": {
+            "start": 0,
+            "count": 1,
+            "total": 1,
+            "resultsPerPage": 100,
+            "hasMore": False,
+        },
+    }
 
 
 @pytest.mark.parametrize(
