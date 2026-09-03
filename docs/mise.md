@@ -50,7 +50,7 @@ Pour observer ou arrêter les conteneurs, utilisez `docker compose` directement 
 
 ## Environnement
 
-Le `mise.toml` de chaque sous-projet charge son fichier `env.d/*` et active son `.venv` (section `[env]`). Une tâche s'exécute donc avec le bon environnement quel que soit le dossier courant, sans direnv. Les `.envrc` restent utilisables pour avoir cet environnement dans un shell interactif.
+Le `mise.toml` de chaque sous-projet charge son fichier `env.d/*` et active son `.venv` (section `[env]`). Une tâche s'exécute donc avec le bon environnement quel que soit le dossier courant, sans direnv. Les `.envrc` restent utilisables pour avoir cet environnement dans un shell interactif, et `mise en src/web` ouvre un sous-shell avec l'environnement complet du service, secrets compris.
 
 En dev, les pages ATS chargent leurs assets depuis le serveur Vite, pas depuis le build : `mise run dev` lance les deux (Django + Vite HMR) ; `web:dev` et `front:dev` restent disponibles séparément. Le build n'est utilisé que quand `debug` est désactivé, notamment par les tests e2e, qui le régénèrent en dépendance.
 
