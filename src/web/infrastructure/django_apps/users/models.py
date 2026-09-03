@@ -70,6 +70,11 @@ class ProfilCandidatModel(models.Model):
         return self.utilisateur.email
 
 
+class ProfilAgentQuerySet(models.QuerySet):
+    def par_email(self, email: str) -> "ProfilAgentQuerySet":
+        return self.select_related("utilisateur").filter(utilisateur__email=email)
+
+
 class ProfilAgentModel(models.Model):
     utilisateur = models.OneToOneField(
         UserModel,
@@ -80,6 +85,8 @@ class ProfilAgentModel(models.Model):
     intitule_poste = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = ProfilAgentQuerySet.as_manager()
 
     class Meta:
         verbose_name = "Profil Agent"
