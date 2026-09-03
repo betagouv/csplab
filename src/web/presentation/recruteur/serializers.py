@@ -7,6 +7,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.users.models import ProfilAgentModel
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
 
 
@@ -191,6 +192,21 @@ class UpdateAgentOrganismeSerializer(serializers.Serializer):
     prenom = serializers.CharField(required=False)
     poste = serializers.CharField(required=False)
     date_revocation = serializers.DateTimeField(required=False)
+
+
+class RechercheAgentQuerySerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class AgentRechercheSerializer(serializers.ModelSerializer):
+    agent_id = serializers.UUIDField(source="utilisateur.username")
+    email = serializers.EmailField(source="utilisateur.email")
+    prenom = serializers.CharField(source="utilisateur.first_name")
+    nom = serializers.CharField(source="utilisateur.last_name")
+
+    class Meta:
+        model = ProfilAgentModel
+        fields = ["agent_id", "email", "prenom", "nom", "intitule_poste"]
 
 
 # ---------------------------------------------------------------------------
