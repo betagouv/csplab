@@ -1,12 +1,14 @@
 
 # ADR-001: Testing Strategy
 
-**Status:** Accepted
+**Status:** Accepted — Amended by ADR-009
 **Date:** 2026.03.12
 **Deciders:** Élodie R, Lucas P, Vincent P
 **Tags:** testing
 
 ---
+
+> ⚠️ **Amendée par [ADR-009](./ADR-009-idiomatic-django-switch.md)**. Voir la section « Impact sur les ADR existantes » d'ADR-009.
 
 ## Context
 
@@ -59,6 +61,9 @@ without over-engineering lower-risk areas.
   errors already covered), with **pytest**
 - Main end-to-end user stories (those executed by ~80% of users) are tested with
   **Playwright**
+
+> 🔗 The “repository/use case” breakdown above is replaced by three levels (pure functions / service+DB / view+DB)
+> see [ADR-009](./ADR-009-idiomatic-django-switch.md#impact-sur-les-adr-existantes), “Impact on Existing ADRs” table.
 
 **Non-blocking tests** — these run but do not gate merges:
 - Accessibility and keyboard navigation tests are run at the start of each sprint
@@ -142,8 +147,10 @@ without blocking daily delivery.
 ## Implementation Notes
 
 - [ ] Add tests to check that in-memory repository respect interfaces
+      _(obsolete: no more in-memory repository or interface, see ADR-009 §2)_
 - [ ] Audit existing use case tests and strip out any assertions that duplicate
       repository-level coverage
+      _(obsolete: use case → service, repository → QuerySet, see ADR-009 §1 and §2)_
 - [ ] Identify the top 80% user stories and ensure each has a Playwright e2e test
 - [ ] Set up accessibility and keyboard navigation tests in Playwright; mark them
       as non-blocking in CI configuration

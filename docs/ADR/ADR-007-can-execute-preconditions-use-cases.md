@@ -1,11 +1,13 @@
 # ADR-007 : `can_execute` — préconditions de coordination des use cases
 
-**Status:** Proposal
+**Status:** Proposal — Amended by ADR-009
 **Date:** 2026.08.18
 **Deciders:** Élodie R
 **Tags:** ddd, application, architecture
 
 ---
+
+> ⚠️ **Amendée par [ADR-009](./ADR-009-idiomatic-django-switch.md)**. Voir la section « Impact sur les ADR existantes » d'ADR-009.
 
 ## Context
 
@@ -30,6 +32,7 @@ devienne une **béquille** qui compense un invariant métier non garanti à la s
 Le use case expose une méthode unique `can_execute(command)` qui, dans l'ordre :
 
 1. charge les agrégats (via les repositories),
+   _(obsolète : accès direct via `QuerySet`, cf. [ADR-009 §1](./ADR-009-idiomatic-django-switch.md#1-le-queryset-est-le-contrat-entre-les-couches))_
 2. vérifie la **cohérence de coordination** (multi-agrégats et fail-fast),
 3. vérifie les **droits / permissions**,
 4. **lève** une erreur si une vérification échoue,
@@ -53,6 +56,11 @@ Un invariant (ex. « un organisme ATS a des étapes ») est posé **à la créat
 domaine (ADR-003 / ADR-005), déclenché par son use case dédié
 (`InitializeOrganismeStepsUsecase`). Si un `etapes is None` subsiste en aval, c'est un
 **fail-fast de cohérence applicative** (état corrompu / bug), pas une règle métier.
+
+> 🔗 Les renvois à ADR-003/ADR-005 ci-dessus et ci-dessous pointent des ADR superseded —
+> voir désormais [ADR-009 §3 « Doctrine des invariants »](./ADR-009-idiomatic-django-switch.md#3-doctrine-des-invariants--remplace-ladr-005).
+> Le principe (`can_execute` en tête de service, sans lien à `IUsecase`) reste valide,
+> cf. [tableau « Impact »](./ADR-009-idiomatic-django-switch.md#impact-sur-les-adr-existantes).
 
 ---
 

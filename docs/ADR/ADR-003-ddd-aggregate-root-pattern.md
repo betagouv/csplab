@@ -1,11 +1,13 @@
 # ADR-003: DDD Aggregate Root Pattern
 
-**Status:** Accepted
+**Status:** Superseded by ADR-009
 **Date:** 2026.05.28
 **Deciders:** Élodie R
 **Tags:** ddd, domain, architecture
 
 ---
+
+> ⚠️ **Remplacée par [ADR-009](./ADR-009-idiomatic-django-switch.md)**. Voir la section « Impact sur les ADR existantes » d'ADR-009.
 
 ## Context
 
@@ -54,6 +56,12 @@ Option C requires an event store — out of scope for MVP.
   still be accessed from outside
 
 ---
+
+> 🔗 **Pattern replaced.** The Django `Model` becomes the entity (no more separate
+> `AggregateRoot`), and traceability goes through an explicit call rather than domain
+> events — see [ADR-009 §2](./ADR-009-idiomatic-django-switch.md#2-le-model-django-est-lentité)
+> and [§5 "Traceability goes through an explicit call"](./ADR-009-idiomatic-django-switch.md#5-la-traçabilité-passe-par-un-appel-explicite--amende-ladr-003).
+> The rules below (Rules 1 to 7) no longer apply to new code.
 
 ## Guidelines
 
@@ -194,6 +202,9 @@ it verifies the event type, constructs the instance, and calls `add_event` autom
 ---
 
 ## Domain Building Blocks
+
+> 🔗 These files are within the removal scope of `libs/ddd` — see
+> [ADR-009, Migration section](./ADR-009-idiomatic-django-switch.md#migration).
 
 | File                           | Description                                                          |
 | ------------------------------ | -------------------------------------------------------------------- |
