@@ -3,9 +3,9 @@
 Meant to be eval'd by a shell script before a service's process starts (see
 each service's bin/inject_scaleway_env.sh), so config lives in Scaleway
 Secret Manager instead of being set by hand (dev, and prod's Scalingo
-dashboard alike). Scaleway API credentials (SCW_ACCESS_KEY, SCW_SECRET_KEY,
-SCW_DEFAULT_PROJECT_ID, SCW_DEFAULT_REGION) are still real env vars, read the
-same way the `scw` CLI reads them.
+dashboard alike). Scaleway API credentials come from the `scw` CLI config
+file (`scw init`) or from the SCW_ACCESS_KEY, SCW_SECRET_KEY,
+SCW_DEFAULT_PROJECT_ID and SCW_DEFAULT_REGION env vars, which take precedence.
 """
 
 from __future__ import annotations
@@ -14,9 +14,11 @@ import base64
 import os
 import shlex
 import sys
+from pathlib import Path
 
 from scaleway import Client
 from scaleway.secret.v1beta1 import SecretV1Beta1API
+from scaleway_core.profile import Profile
 
 
 def main(service: str) -> None:
@@ -25,7 +27,10 @@ def main(service: str) -> None:
         return
     secret_path = f"/{service}/{env}"
 
-    client = Client.from_env()
+    config_file = Path(Profile.get_default_config_file_path())
+    client = (
+        Client.from_config_file_and_env() if config_file.exists() else Client.from_env()
+    )
     api = SecretV1Beta1API(client)
 
     for secret in api.list_secrets_all(path=secret_path, scheduled_for_deletion=False):
