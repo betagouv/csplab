@@ -74,10 +74,10 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.CHANGER_ETAPE_CANDIDATURES: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.MEMBRE}
     ),
-    OrganismeAction.LIST_ORGANISME_AGENTS: frozenset({AgentOrganismeRole.RESPONSABLE}),
-    OrganismeAction.ATTACH_ORGANISME_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),
-    OrganismeAction.UPDATE_ORGANISME_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),
-    OrganismeAction.REVOKE_ORGANISME_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),
+    OrganismeAction.LIST_ORGANISME_AGENTS: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.ATTACH_ORGANISME_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.UPDATE_ORGANISME_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.REVOKE_ORGANISME_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
 }
 
 # -------------------------------------
