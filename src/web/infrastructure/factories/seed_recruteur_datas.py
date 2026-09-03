@@ -32,6 +32,7 @@ from infrastructure.factories.candidate.candidature_factory import CandidatureFa
 from infrastructure.factories.identite.agent_factory import AgentFactory
 from infrastructure.factories.identite.candidat_factory import CandidatFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
@@ -64,6 +65,12 @@ _AGENTS_SPECS = [
     },
 ]
 
+_ADMIN_SPEC = {
+    "prenom": "Isabelle",
+    "nom": "Girard",
+    "email": "isabelle.girard.gouv.fr@yopmail.com",
+}
+
 _CANDIDATS_SPECS = [
     {"prenom": "Alice", "nom": "Martin", "email": "alice.martin@candidat.fr"},
     {"prenom": "Thomas", "nom": "Petit", "email": "thomas.petit@candidat.fr"},
@@ -75,7 +82,9 @@ _CANDIDATS_SPECS = [
     {"prenom": "Nathan", "nom": "Morel", "email": "nathan.morel@candidat.fr"},
 ]
 
-_ALL_SEED_EMAILS = [s["email"] for s in _AGENTS_SPECS + _CANDIDATS_SPECS]
+_ALL_SEED_EMAILS = [
+    s["email"] for s in _AGENTS_SPECS + _CANDIDATS_SPECS + [_ADMIN_SPEC]
+]
 
 _SEED_OFFER_EXTERNAL_IDS = [
     "SEED-ACTIF-001",
@@ -129,7 +138,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         _delete_seed_data()
 
     # ------------------------------------------------------------------ #
-    # 1. Organisme recruteur                                             #
+    # Organisme recruteur                                                #
     # ------------------------------------------------------------------ #
     organisme = OrganismeFactory.create_model(
         entity_id=_ORGANISME_UUID,
@@ -151,7 +160,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     )
 
     # ------------------------------------------------------------------ #
-    # 2. Métiers                                                         #
+    # Métiers                                                            #
     # ------------------------------------------------------------------ #
     MetierFactory.create_model(
         libelle="Chargé de mission numérique",
@@ -165,7 +174,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     )
 
     # ------------------------------------------------------------------ #
-    # 3. Agents / recruteurs                                               #
+    # Agents / recruteurs                                                #
     # ------------------------------------------------------------------ #
     # Mot de passe généré à chaque seed (visible dans les logs de déploiement)
     seed_password = os.environ.get("SEED_USER_PASSWORD") or secrets.token_urlsafe(16)
@@ -179,19 +188,30 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     OrganismeAgentModel(
         id=uuid4(),
         organisme_id=_ORGANISME_UUID,
-        agent_id=agents[0].utilisateur_id,
+        agent_id=agents[0].utilisateur_id,  # type: ignore[attr-defined]
         role=AgentOrganismeRole.RESPONSABLE.value,
     ).save()
     for agent in agents[1:3]:
         OrganismeAgentModel(
             id=uuid4(),
             organisme_id=_ORGANISME_UUID,
-            agent_id=agent.utilisateur_id,
+            agent_id=agent.utilisateur_id,  # type: ignore[attr-defined]
             role=AgentOrganismeRole.MEMBRE.value,
         ).save()
 
     # ------------------------------------------------------------------ #
-    # 4. Offres actives (6)                                                #
+    # Administrateur (staff, hors organisme)                             #
+    # ------------------------------------------------------------------ #
+    admin = UtilisateurFactory.create_model(
+        password=seed_password,
+        is_staff=True,
+        prenom=_ADMIN_SPEC["prenom"],
+        nom=_ADMIN_SPEC["nom"],
+        email=_ADMIN_SPEC["email"],
+    )
+
+    # ------------------------------------------------------------------ #
+    # Offres actives (6)                                                 #
     # ------------------------------------------------------------------ #
     offres_actives = [
         OfferFactory.create_model(
@@ -253,7 +273,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     ]
 
     # ------------------------------------------------------------------ #
-    # 5. Offres archivées (3)                                              #
+    # Offres archivées (3)                                               #
     # ------------------------------------------------------------------ #
     offres_archivees = [
         OfferFactory.create_model(
@@ -286,7 +306,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     ]
 
     # ------------------------------------------------------------------ #
-    # 6. Candidats (8)                                                     #
+    # Candidats (8)                                                      #
     # ------------------------------------------------------------------ #
     candidats = [
         CandidatFactory.create_model(password=seed_password, username=None, **spec)
@@ -294,12 +314,12 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     ]
 
     # ------------------------------------------------------------------ #
-    # 7. Recrutements (1 par offre active et archivée) : étapes + responsables #
+    # Recrutements (1 / offre active et archivée): étapes + responsables #
     # ------------------------------------------------------------------ #
-    marie_id = agents[0].utilisateur_id
-    paul_id = agents[1].utilisateur_id
-    claire_id = agents[2].utilisateur_id
-    david_id = agents[3].utilisateur_id
+    marie_id = agents[0].utilisateur_id  # type: ignore[attr-defined]
+    paul_id = agents[1].utilisateur_id  # type: ignore[attr-defined]
+    claire_id = agents[2].utilisateur_id  # type: ignore[attr-defined]
+    david_id = agents[3].utilisateur_id  # type: ignore[attr-defined]
 
     recrutements_specs: list[
         tuple[OfferModel, UUID, tuple[UUID, AgentRecrutementRole] | None]
@@ -335,7 +355,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         recrutements.append(recrutement)
 
     # ------------------------------------------------------------------ #
-    # 8. Candidatures                                                      #
+    # Candidatures                                                       #
     # ------------------------------------------------------------------ #
     candidatures_specs = [
         (candidats[0], offres_actives[0], StatutCandidature.SOUMISE),
@@ -366,4 +386,5 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         "nb_agents": len(agents),
         "nb_recrutements": len(recrutements),
         "seed_password": seed_password,
+        "admin_email": admin.email,
     }
