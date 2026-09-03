@@ -1,5 +1,6 @@
 from django.urls import path
 
+from presentation.recruteur.views.agents import AgentsView
 from presentation.recruteur.views.notes import (
     CandidatureNoteDetailView,
     CandidatureNotesView,
@@ -33,6 +34,11 @@ from presentation.recruteur.views.recrutement_params import (
 app_name = "recruteur"
 
 urlpatterns = [
+    path(
+        "agents",
+        AgentsView.as_view(),
+        name="agents",
+    ),
     path(
         "organismes",
         OrganismesView.as_view(),

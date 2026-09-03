@@ -65,12 +65,6 @@ class IdentiteContainer(containers.DeclarativeContainer):
         utilisateur_repository=postgres_utilisateur_repository,
     )
 
-    create_agent_usecase = providers.Factory(
-        CreateAgentUsecase,
-        agent_repository=postgres_agent_repository,
-        utilisateur_repository=postgres_utilisateur_repository,
-    )
-
     create_candidat_usecase = providers.Factory(
         CreateCandidatUsecase,
         candidat_repository=postgres_candidat_repository,
@@ -100,6 +94,13 @@ class IdentiteContainer(containers.DeclarativeContainer):
         organisme_recruteur_repository=postgres_organisme_recruteur_repository,
         organisme_agent_repository=postgres_organisme_agent_repository,
         recrutement_agent_repository=postgres_recrutement_agent_repository,
+    )
+
+    create_agent_usecase = providers.Factory(
+        CreateAgentUsecase,
+        agent_repository=postgres_agent_repository,
+        utilisateur_repository=postgres_utilisateur_repository,
+        permission_service=organisme_permission_service,
     )
 
     create_organisme_usecase = providers.Factory(

@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/recruteur/agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Créer un profil agent */
+        post: operations["recruteur_agents_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/recruteur/candidatures/{candidature_uuid}/notes": {
         parameters: {
             query?: never;
@@ -294,6 +311,15 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Agent: {
+            /** Format: uuid */
+            agent_id: string;
+            /** Format: email */
+            email: string;
+            prenom: string;
+            nom: string;
+            intitule_poste: string;
+        };
         AgentOrganisme: {
             /** Format: uuid */
             agent_id: string;
@@ -373,6 +399,15 @@ export interface components {
         ChangerEtapeResultat: {
             reussites: string[];
             echecs: components["schemas"]["CandidatureEchec"][];
+        };
+        CreateAgent: {
+            /** Format: email */
+            email: string;
+            prenom: string;
+            nom: string;
+            intitule_poste: string;
+            /** Format: uuid */
+            organisme_id: string;
         };
         CreateOrganisme: {
             nom: string;
@@ -789,6 +824,71 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    recruteur_agents_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAgent"];
+                "application/x-www-form-urlencoded": components["schemas"]["CreateAgent"];
+                "multipart/form-data": components["schemas"]["CreateAgent"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Agent"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
     recruteur_candidatures_notes_list: {
         parameters: {
             query?: never;
