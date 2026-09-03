@@ -1,4 +1,4 @@
-from django.db.models import TextChoices
+from referentiel.value_objects._choices import TextChoices
 
 
 class GeographicalArea(TextChoices):
