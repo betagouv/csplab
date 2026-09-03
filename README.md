@@ -26,7 +26,6 @@ Le monorepo est organisé en services :
 
 ### Optionnel
 
-- [Direnv](https://direnv.net/) : charge l'environnement d'un service dans le shell interactif ; les tâches mise n'en dépendent plus
 - [commitizen](https://commitizen-tools.github.io/commitizen/)
 
 ## Installation de l'environnement de dev
