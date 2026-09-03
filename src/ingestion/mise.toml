@@ -1,6 +1,7 @@
 [env]
 _.file = "../../env.d/ingestion"
 _.python.venv = { path = ".venv" }
+_.source = { path = "bin/inject_scaleway_env.sh", tools = true }
 
 [tasks.install]
 alias = "ingestion:install"
@@ -15,7 +16,6 @@ description = "Ingestion API + celery worker + flower (uvicorn :8002)"
 depends = ["install", "//:services:postgres", "//:services:redis"]
 shell = "bash -c"
 run = """
-source bin/inject_scaleway_env.sh
 trap 'kill 0' EXIT
 uvicorn api.main:app --reload --port=8002 &
 bin/start_worker.sh &
@@ -40,13 +40,13 @@ alias = "ingestion:migrate"
 description = "Apply alembic migrations"
 depends = ["db:create"]
 shell = "bash -c"
-run = "source bin/inject_scaleway_env.sh && uv run alembic upgrade head"
+run = "uv run alembic upgrade head"
 
 [tasks.migration]
 alias = "ingestion:migration"
 description = "Generate an alembic migration (mise run :migration -- -m 'description')"
 shell = "bash -c"
-run = "source bin/inject_scaleway_env.sh && uv run alembic revision --autogenerate"
+run = "uv run alembic revision --autogenerate"
 
 [tasks.test]
 alias = "ingestion:test"
@@ -85,7 +85,7 @@ alias = "ingestion:lint:migrations"
 description = "Check alembic migrations are up to date"
 depends = ["db:create"]
 shell = "bash -c"
-run = "source bin/inject_scaleway_env.sh && uv run alembic upgrade head && uv run alembic check"
+run = "uv run alembic upgrade head && uv run alembic check"
 
 [tasks."lint:fix"]
 alias = "ingestion:lint:fix"

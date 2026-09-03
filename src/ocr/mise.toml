@@ -1,6 +1,7 @@
 [env]
 _.file = "../../env.d/ocr"
 _.python.venv = { path = ".venv" }
+_.source = { path = "bin/inject_scaleway_env.sh", tools = true }
 
 [tasks.install]
 alias = "ocr:install"
@@ -15,7 +16,6 @@ description = "OCR API (uvicorn :8001)"
 depends = ["install"]
 shell = "bash -c"
 run = """
-source bin/inject_scaleway_env.sh
 uvicorn api.main:app --reload --port=8001
 """
 

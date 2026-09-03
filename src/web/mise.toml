@@ -1,6 +1,7 @@
 [env]
 _.file = "../../env.d/web"
 _.python.venv = { path = ".venv" }
+_.source = { path = "bin/inject_scaleway_env.sh", tools = true }
 
 [tasks.install]
 alias = "web:install"
@@ -27,7 +28,6 @@ description = "Django dev server"
 depends = ["install:py", "//:services:postgres"]
 shell = "bash -c"
 run = """
-source bin/inject_scaleway_env.sh
 python manage.py runserver
 """
 
@@ -54,14 +54,14 @@ alias = "web:migrate"
 description = "Apply Django migrations"
 depends = ["install:py", "//:services:postgres"]
 shell = "bash -c"
-run = "source bin/inject_scaleway_env.sh && python manage.py migrate"
+run = "python manage.py migrate"
 
 [tasks.migration]
 alias = "web:migration"
 description = "Generate Django migrations (makemigrations)"
 depends = ["install:py", "//:services:postgres"]
 shell = "bash -c"
-run = "source bin/inject_scaleway_env.sh && python manage.py makemigrations"
+run = "python manage.py makemigrations"
 
 [tasks.manage]
 alias = "web:manage"
@@ -161,7 +161,7 @@ alias = "web:lint:migrations"
 description = "Check no Django migration is missing"
 depends = ["install:py"]
 shell = "bash -c"
-run = "source bin/inject_scaleway_env.sh && python manage.py makemigrations --check"
+run = "python manage.py makemigrations --check"
 
 [tasks."lint:candidate-js"]
 alias = "web:lint:candidate-js"
