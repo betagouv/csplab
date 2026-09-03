@@ -6,6 +6,7 @@ import { isNavItemActive } from '@/app/navigation'
 import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
 import CspSidebarItem from '@/components/layout/CspSidebar/CspSidebarItem.vue'
 import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
+import CspSidebarOrganisme from '@/components/layout/CspSidebar/CspSidebarOrganisme.vue'
 import CspSidebarProvider from '@/components/layout/CspSidebar/CspSidebarProvider.vue'
 import CspSidebarTrigger from '@/components/layout/CspSidebar/CspSidebarTrigger.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
@@ -48,6 +49,8 @@ function isItemActive(item: NavItem): boolean {
           <template #logo>
             <CspSidebarLogo />
           </template>
+
+          <CspSidebarOrganisme />
 
           <CspSidebarItem
             v-for="item in navItems"
