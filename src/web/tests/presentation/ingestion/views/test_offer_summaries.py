@@ -176,10 +176,6 @@ def test_response_has_no_undeclared_fields(
 
 
 def test_response_matches_db_record_field_by_field(authenticated_client):
-    """End-to-end: writes a real offer to the database (no mocked container)
-    and checks the serialized response field by field, to catch bugs the
-    mocked-usecase tests above cannot see (e.g. a wrong repository/mapper
-    mapping between the DB row and the domain entity)."""
     localisation = Localisation(
         area=GeographicalArea.EUROPE,
         country=Country("FRA"),
