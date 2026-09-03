@@ -54,6 +54,14 @@ Le `mise.toml` de chaque sous-projet charge son fichier `env.d/*` et active son 
 
 En dev, les pages ATS chargent leurs assets depuis le serveur Vite, pas depuis le build : `mise run dev` lance les deux (Django + Vite HMR) ; `web:dev` et `front:dev` restent disponibles séparément. Le build n'est utilisé que quand `debug` est désactivé, notamment par les tests e2e, qui le régénèrent en dépendance.
 
+## Secrets
+
+Chaque service lit ses secrets dans Scaleway Secret Manager, sous `/{service}/{SCALEWAY_ENV}` (`/web/dev`, `/ingestion/dev`, `/ocr/dev`). La directive `_.source` de la section `[env]` les charge quand mise calcule l'environnement du service : toutes ses tâches et le shell activé en disposent. Le calcul a lieu à l'entrée dans le dossier et à chaque changement de configuration.
+
+Prérequis, une fois par machine : `scw init` avec le projet et la région CSPLab. Les identifiants sont stockés dans `~/.config/scw/config.yaml`. Les variables `SCW_*`, si elles sont définies, ont priorité : c'est le mode utilisé sur Scalingo. Sans `SCALEWAY_ENV`, le chargement est ignoré et la CI fournit ses valeurs dans `mise.ci.toml`.
+
+`mise run secrets:check` vérifie l'accès et liste les noms des secrets de chaque service.
+
 ## Détection de changements
 
 Certaines tâches comparent leurs fichiers d'entrée et de sortie et ne s'exécutent que si nécessaire : le build du frontend, le build Storybook, les `install` (relancés quand `uv.lock` ou `pnpm-lock.yaml` change) et la conversion jupytext. Les tâches `dev` et `test` dépendent de `install` : après un pull qui change un lockfile, les dépendances se mettent à jour toutes seules au prochain lancement.
