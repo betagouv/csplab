@@ -9,8 +9,18 @@
 if [ -n "${SCALEWAY_ENV:-}" ]; then
     if [ "$SCALEWAY_ENV" = "prod" ] && [ -z "${SCALINGO_APPLICATION_ID:-}" ]; then
         echo "SCALEWAY_ENV=prod is only allowed on Scalingo (SCALINGO_APPLICATION_ID not set)" >&2
-        exit 1
+        return 1
     fi
-    scaleway_env="$(python -m scaleway_secrets.fetch ingestion)"
+    lib_dir="$(dirname "${BASH_SOURCE[0]}")/../../../libs/scaleway_secrets"
+    if command -v uv >/dev/null 2>&1; then
+        fetch=(uv run -q --project "$lib_dir" python -m scaleway_secrets.fetch ingestion)
+    else
+        fetch=(python -m scaleway_secrets.fetch ingestion)
+    fi
+    if [ "$SCALEWAY_ENV" = "prod" ]; then
+        scaleway_env="$("${fetch[@]}")" || return 1
+    else
+        scaleway_env="$("${fetch[@]}" 2>/dev/null)" || return 1
+    fi
     eval "$scaleway_env"
 fi

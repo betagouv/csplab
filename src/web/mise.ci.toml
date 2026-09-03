@@ -1,9 +1,6 @@
 # Loaded over mise.toml when MISE_ENV=ci: env.d/web isn't checked out in CI,
-# so provide what the settings module and the test database need.
+# so provide the test values and the database the workflow's service exposes.
 
 [env]
-WEB_SECRET_KEY = "the_secret_key"
+_.file = "env.test"
 WEB_DATABASE_URL = "psql://postgres:pass@localhost:5432/web"
-WEB_QDRANT_URL = "http://localhost:6333"
-WEB_VECTOR_DB_TYPE = "QDRANT"
-DJANGO_SETTINGS_MODULE = "config.settings.test"

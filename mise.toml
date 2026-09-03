@@ -2,6 +2,7 @@
 
 min_version = "2026.8.14"
 monorepo_root = true
+redactions = ["*SECRET*", "*_KEY", "*PASSWORD*", "*TOKEN*", "*CREDENTIALS*", "DATABASE_URL", "*_DATABASE_URL"]
 
 [monorepo]
 config_roots = [
@@ -23,6 +24,10 @@ uv = "0.9"
 [settings]
 # corepack shims let pnpm resolve its version from packageManager (single source of truth)
 node.corepack = true
+
+[tasks."secrets:check"]
+description = "Check the Scaleway access and list the secret names of every service"
+depends = ["//src/web:secrets:check", "//src/ingestion:secrets:check", "//src/ocr:secrets:check"]
 
 [tasks.default]
 description = "Show the everyday commands"

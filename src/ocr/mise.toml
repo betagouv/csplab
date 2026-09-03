@@ -1,6 +1,7 @@
 [env]
 _.file = "../../env.d/ocr"
 _.python.venv = { path = ".venv" }
+_.source = { path = "bin/inject_scaleway_env.sh", tools = true }
 
 [tasks.install]
 alias = "ocr:install"
@@ -9,13 +10,17 @@ sources = ["pyproject.toml", "uv.lock"]
 outputs = { auto = true }
 run = "uv sync --group dev --locked"
 
+[tasks."secrets:check"]
+alias = "ocr:secrets:check"
+description = "Check the Scaleway access and list the secret names of this service"
+run = "uv run -q --project ../../libs/scaleway_secrets python -m scaleway_secrets.fetch ocr --names"
+
 [tasks.dev]
 alias = "ocr:dev"
 description = "OCR API (uvicorn :8001)"
 depends = ["install"]
 shell = "bash -c"
 run = """
-source bin/inject_scaleway_env.sh
 uvicorn api.main:app --reload --port=8001
 """
 
@@ -23,12 +28,14 @@ uvicorn api.main:app --reload --port=8001
 alias = "ocr:test"
 description = "OCR tests"
 depends = ["install"]
+env = { _.file = "env.test" }
 run = "pytest --no-cov"
 
 [tasks."test:cov"]
 alias = "ocr:test:cov"
 description = "OCR tests with an HTML coverage report"
 depends = ["install"]
+env = { _.file = "env.test" }
 run = [
   "pytest --cov=. --cov-report=html:tests/cov_html --cov-report=term-missing",
   "open tests/cov_html/index.html",

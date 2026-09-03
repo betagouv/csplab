@@ -20,6 +20,7 @@ Le monorepo est organisé en services :
 
 - [mise](https://mise.jdx.dev/getting-started.html) : lanceur de tâches du repo ([docs/mise.md](docs/mise.md)), il installe et épingle lui-même les outils (node, pnpm, uv).
 - Docker + Docker Compose (Colima, Docker Desktop, OrbStack…)
+- [scw](https://www.scaleway.com/en/docs/scaleway-cli/quickstart/) : les secrets des services sont lus dans Scaleway Secret Manager. `scw init` enregistre une [clé d'API](https://www.scaleway.com/en/docs/iam/how-to/create-api-keys/) et le projet CSPLab (identifiants fournis par l'équipe) dans `~/.config/scw/config.yaml`.
 - [poppler](https://poppler.freedesktop.org/) : requis pour le service OCR en local (géré automatiquement en production via l'`Aptfile`)
 - [tesseract](https://tesseract-ocr.github.io/tessdoc/Installation.html) avec le pack de langue française (`tesseract-lang` sur macOS, `tesseract-ocr-fra` sur Linux) — requis pour le service OCR en local (géré automatiquement en production via l'`Aptfile`)
 
@@ -42,7 +43,7 @@ Pour repartir de zéro sur une machine existante (fichiers d'env réinitialisés
 
 ### Configuration
 
-Après l'installation, complétez si besoin les fichiers `env.d/*` avec vos vraies valeurs (clés API, etc.).
+Les fichiers `env.d/*`, créés depuis les exemples, portent la configuration locale (ports, bases Docker, `SCALEWAY_ENV=dev`). Les secrets viennent de Scaleway Secret Manager et sont injectés par mise à chaque tâche : `mise run secrets:check` vérifie l'accès et liste ce qui est disponible. Détail dans [docs/mise.md](docs/mise.md), section Secrets.
 
 Pour personnaliser Docker Compose (ex : changer les ports), voir [docs/docker_compose_override.md](docs/docker_compose_override.md).
 

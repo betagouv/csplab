@@ -1,5 +1,5 @@
 # Loaded over mise.toml when MISE_ENV=ci: env.d/ocr isn't checked out in CI,
-# so provide the API key the settings module needs at import time.
+# so provide the test values the settings module needs at import time.
 
 [env]
-API_KEY = "test-api-key-for-development"
+_.file = "env.test"

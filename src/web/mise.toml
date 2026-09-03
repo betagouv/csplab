@@ -1,6 +1,7 @@
 [env]
 _.file = "../../env.d/web"
 _.python.venv = { path = ".venv" }
+_.source = { path = "bin/inject_scaleway_env.sh", tools = true }
 
 [tasks.install]
 alias = "web:install"
@@ -21,13 +22,17 @@ sources = ["package.json", "pnpm-lock.yaml", "presentation/frontend/package.json
 outputs = { auto = true }
 run = "pnpm install"
 
+[tasks."secrets:check"]
+alias = "web:secrets:check"
+description = "Check the Scaleway access and list the secret names of this service"
+run = "uv run -q --project ../../libs/scaleway_secrets python -m scaleway_secrets.fetch web --names"
+
 [tasks.dev]
 alias = "web:dev"
 description = "Django dev server"
 depends = ["install:py", "//:services:postgres"]
 shell = "bash -c"
 run = """
-source bin/inject_scaleway_env.sh
 python manage.py runserver
 """
 
@@ -54,14 +59,14 @@ alias = "web:migrate"
 description = "Apply Django migrations"
 depends = ["install:py", "//:services:postgres"]
 shell = "bash -c"
-run = "source bin/inject_scaleway_env.sh && python manage.py migrate"
+run = "python manage.py migrate"
 
 [tasks.migration]
 alias = "web:migration"
 description = "Generate Django migrations (makemigrations)"
 depends = ["install:py", "//:services:postgres"]
 shell = "bash -c"
-run = "source bin/inject_scaleway_env.sh && python manage.py makemigrations"
+run = "python manage.py makemigrations"
 
 [tasks.manage]
 alias = "web:manage"
@@ -110,18 +115,21 @@ run = [
 alias = "web:test"
 description = "Backend tests (e2e and accessibility excluded)"
 depends = ["install:py", "//:services:postgres"]
+env = { _.file = "env.test" }
 run = "pytest --numprocesses=logical --create-db -m 'not accessibility and not e2e' --no-cov"
 
 [tasks."test:e2e"]
 alias = "web:test:e2e"
 description = "Playwright e2e tests (live_server + browser, rebuilds the frontend when needed)"
 depends = ["install:py", "//src/web/presentation/frontend:build", "//:services:postgres"]
+env = { _.file = "env.test" }
 run = "pytest -m e2e --no-cov"
 
 [tasks."test:a11y"]
 alias = "web:test:a11y"
 description = "Accessibility tests (Playwright + axe)"
 depends = ["install:py", "//:services:postgres"]
+env = { _.file = "env.test" }
 run = "pytest -m accessibility --create-db --no-cov"
 
 [tasks.lint]
@@ -161,7 +169,7 @@ alias = "web:lint:migrations"
 description = "Check no Django migration is missing"
 depends = ["install:py"]
 shell = "bash -c"
-run = "source bin/inject_scaleway_env.sh && python manage.py makemigrations --check"
+run = "python manage.py makemigrations --check"
 
 [tasks."lint:candidate-js"]
 alias = "web:lint:candidate-js"
@@ -218,6 +226,7 @@ run = [
 alias = "web:test:cov"
 description = "Web tests with an HTML coverage report"
 depends = ["install:py", "//:services:postgres"]
+env = { _.file = "env.test" }
 run = [
   "mkdir -p tests/cov_html",
   "pytest --cov=application --cov=domain --cov=infrastructure --cov=presentation --numprocesses=logical --create-db -m 'not accessibility and not e2e' --cov-append --exitfirst",

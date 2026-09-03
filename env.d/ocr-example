@@ -1,7 +1,6 @@
 # In dev, secrets are fetched from Scaleway Secret Manager instead of being
 # set here, one secret per env value, named after the field (e.g. "api_key")
-# under the "/ocr/{SCALEWAY_ENV}" directory (e.g. "/ocr/dev"). Authenticate
-# with `scw init` (or export SCW_ACCESS_KEY / SCW_SECRET_KEY /
-# SCW_DEFAULT_PROJECT_ID / SCW_DEFAULT_REGION yourself), then set
-# SCALEWAY_ENV to your environment, e.g. dev.
+# under the "/ocr/{SCALEWAY_ENV}" directory (e.g. "/ocr/dev").
+# Run `scw init` once per machine, then set SCALEWAY_ENV to your environment.
+# Check with `mise run secrets:check`.
 SCALEWAY_ENV=dev
