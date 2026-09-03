@@ -58,7 +58,7 @@ En dev, les pages ATS chargent leurs assets depuis le serveur Vite, pas depuis l
 
 Chaque service lit ses secrets dans Scaleway Secret Manager, sous `/{service}/{SCALEWAY_ENV}` (`/web/dev`, `/ingestion/dev`, `/ocr/dev`). La directive `_.source` de la section `[env]` les charge quand mise calcule l'environnement du service : toutes ses tâches et le shell activé en disposent. Le calcul a lieu à l'entrée dans le dossier et à chaque changement de configuration.
 
-Prérequis, une fois par machine : `scw init` avec le projet et la région CSPLab. Les identifiants sont stockés dans `~/.config/scw/config.yaml`. Les variables `SCW_*`, si elles sont définies, ont priorité : c'est le mode utilisé sur Scalingo. Sans `SCALEWAY_ENV`, le chargement est ignoré et la CI fournit ses valeurs dans `mise.ci.toml`.
+Prérequis, une fois par machine : `scw init` avec le projet et la région CSPLab (`mise install` fournit la commande `scw`). Les identifiants sont stockés dans `~/.config/scw/config.yaml`. Les variables `SCW_*`, si elles sont définies, ont priorité : c'est le mode utilisé sur Scalingo. Sans `SCALEWAY_ENV`, le chargement est ignoré et la CI fournit ses valeurs dans `mise.ci.toml`.
 
 `mise run secrets:check` vérifie l'accès et liste les noms des secrets de chaque service.
 

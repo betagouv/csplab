@@ -20,6 +20,7 @@ config_roots = [
 [tools]
 node = "24"
 uv = "0.9"
+scaleway-cli = "2"
 
 [settings]
 # corepack shims let pnpm resolve its version from packageManager (single source of truth)

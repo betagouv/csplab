@@ -20,7 +20,7 @@ Le monorepo est organisé en services :
 
 - [mise](https://mise.jdx.dev/getting-started.html) : lanceur de tâches du repo ([docs/mise.md](docs/mise.md)), il installe et épingle lui-même les outils (node, pnpm, uv).
 - Docker + Docker Compose (Colima, Docker Desktop, OrbStack…)
-- [scw](https://www.scaleway.com/en/docs/scaleway-cli/quickstart/) : les secrets des services sont lus dans Scaleway Secret Manager. `scw init` enregistre une [clé d'API](https://www.scaleway.com/en/docs/iam/how-to/create-api-keys/) et le projet CSPLab (identifiants fournis par l'équipe) dans `~/.config/scw/config.yaml`.
+- [scw](https://www.scaleway.com/en/docs/scaleway-cli/quickstart/), installé par mise : les secrets des services sont lus dans Scaleway Secret Manager. `scw init` enregistre une [clé d'API](https://www.scaleway.com/en/docs/iam/how-to/create-api-keys/) et le projet CSPLab (identifiants fournis par l'équipe) dans `~/.config/scw/config.yaml`.
 - [poppler](https://poppler.freedesktop.org/) : requis pour le service OCR en local (géré automatiquement en production via l'`Aptfile`)
 - [tesseract](https://tesseract-ocr.github.io/tessdoc/Installation.html) avec le pack de langue française (`tesseract-lang` sur macOS, `tesseract-ocr-fra` sur Linux) — requis pour le service OCR en local (géré automatiquement en production via l'`Aptfile`)
 
