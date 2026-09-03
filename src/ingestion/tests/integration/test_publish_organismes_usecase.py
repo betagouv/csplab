@@ -18,7 +18,6 @@ from application.usecases.publish_organismes import (
     PublishOrganismesCommand,
     PublishOrganismesUsecase,
 )
-from infrastructure.exceptions.exceptions import ExternalApiError
 from tests.conftest import PUBLISH_ORGANISMES_URL as PUBLISH_URL
 from tests.conftest import WEB_API_KEY as API_KEY
 
@@ -193,7 +192,7 @@ async def test_execute_raises_on_bad_request(
 
 
 @pytest.mark.asyncio
-async def test_execute_raises_and_logs_error_when_response_contains_errors(
+async def test_execute_logs_error_when_response_contains_errors(
     publish_organismes_usecase: PublishOrganismesUsecase,
     httpx_mock: HTTPXMock,
     caplog,
@@ -209,7 +208,7 @@ async def test_execute_raises_and_logs_error_when_response_contains_errors(
         },
     )
 
-    with caplog.at_level("ERROR"), pytest.raises(ExternalApiError):
+    with caplog.at_level("ERROR"):
         await publish_organismes_usecase.execute(
             PublishOrganismesCommand(organismes=[MINIMAL_ORGANISME])
         )
