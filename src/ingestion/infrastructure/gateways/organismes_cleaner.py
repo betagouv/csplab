@@ -45,11 +45,11 @@ def _parse_date(value: Any) -> Optional[datetime]:
         return None
 
 
-def _parse_iso_date(value: Any) -> Optional[date]:
+def _parse_iso_date(value: Any) -> Optional[datetime]:
     if not value:
         return None
     try:
-        return date.fromisoformat(str(value)[:10])
+        return datetime.fromisoformat(str(value)[:10]).replace(tzinfo=timezone.utc)
     except ValueError:
         return None
 

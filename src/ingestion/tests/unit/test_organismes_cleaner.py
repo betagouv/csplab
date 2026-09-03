@@ -446,7 +446,7 @@ def test_cleans_valid_dila_raw_organisme(cleaner: OrganismesCleaner):
     assert organisme.localisation.region.code == "11"
     assert organisme.localisation.latitude == 48.852116
     assert organisme.localisation.longitude == 2.309103
-    assert organisme.date_creation == date(2008, 6, 30)
+    assert organisme.date_creation == datetime(2008, 6, 30, tzinfo=timezone.utc)
 
 
 def test_dila_returns_none_when_no_data(cleaner: OrganismesCleaner):
