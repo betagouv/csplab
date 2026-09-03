@@ -16,6 +16,7 @@ function makeUser(organismeRoles: Utilisateur['organisme_roles']): Utilisateur {
     email: 'marie.dupont@example.gouv.fr',
     prenom: 'Marie',
     nom: 'Dupont',
+    is_staff: false,
     organisme_roles: organismeRoles,
   }
 }
