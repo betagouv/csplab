@@ -41,6 +41,26 @@ class PostgresOrganismeAgentRepository(IOrganismeAgentRepository):
         except IntegrityError as exc:
             raise AgentDejaRattache(organisme_id, agent_id) from exc
 
+    def is_revoked(self, *, organisme_id: UUID, agent_id: UUID) -> bool | None:
+        try:
+            liaison = OrganismeAgentModel.objects.get(
+                organisme_id=organisme_id,
+                agent_id=agent_id,  # type: ignore[misc]
+            )
+        except OrganismeAgentModel.DoesNotExist:
+            return None
+        return liaison.date_revocation is not None
+
+    def reattach(
+        self, *, organisme_id: UUID, agent_id: UUID, role: AgentOrganismeRole
+    ) -> None:
+        updated = OrganismeAgentModel.objects.filter(
+            organisme_id=organisme_id,
+            agent_id=agent_id,  # type: ignore[misc]
+        ).update(role=role.value, date_revocation=None)
+        if updated == 0:
+            raise AgentNonRattache(organisme_id, agent_id)
+
     def update_role(
         self, *, organisme_id: UUID, agent_id: UUID, role: AgentOrganismeRole
     ) -> None:

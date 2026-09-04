@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -147,6 +148,48 @@ def test_raises_when_agent_already_attached(db, usecase):
                 ),
             )
         )
+
+
+def test_responsable_reattaches_previously_revoked_agent(
+    db, usecase, recruteur_integration_container
+):
+    responsable, organisme = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.RESPONSABLE
+    )
+    revoked_agent = OrganismeFactory.create_agent_in_organisme(
+        organisme.id, role=AgentOrganismeRole.MEMBRE
+    )
+    OrganismeAgentModel.objects.filter(
+        organisme_id=organisme.id, agent_id=revoked_agent.utilisateur_id
+    ).update(date_revocation=datetime.now(UTC))
+
+    agent_organisme = usecase.execute(
+        AttachOrganismeAgentCommand(
+            organisme_id=organisme.id,
+            agent_id=revoked_agent.utilisateur_id,
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=responsable.utilisateur_id, is_staff=False
+            ),
+        )
+    )
+
+    assert agent_organisme.role == AgentOrganismeRole.RESPONSABLE.value
+    assert agent_organisme.date_revocation is None
+    liaison = OrganismeAgentModel.objects.get(
+        organisme_id=organisme.id, agent_id=revoked_agent.utilisateur_id
+    )
+    assert liaison.role == AgentOrganismeRole.RESPONSABLE.value
+    assert liaison.date_revocation is None
+
+    audit_log_repository = (
+        recruteur_integration_container.postgres_audit_log_repository()
+    )
+    logs = audit_log_repository.get_logs_for_ressource(
+        "AgentOrganisme", revoked_agent.utilisateur_id
+    )
+    assert len(logs) == 1
+    assert logs[0].event_name == "AgentOrganismeRoleAttache"
 
 
 def test_raises_when_agent_does_not_exist(db, usecase):

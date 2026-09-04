@@ -59,11 +59,21 @@ class AttachOrganismeAgentUsecase(
         if not self.agent_repository.exists(command.agent_id):
             raise ProfilAgentNexistePas(command.agent_id)
 
-        self.organisme_agent_repository.attach(
-            organisme_id=command.organisme_id,
-            agent_id=command.agent_id,
-            role=command.role,
+        agent_is_revoked = self.organisme_agent_repository.is_revoked(
+            organisme_id=command.organisme_id, agent_id=command.agent_id
         )
+        if agent_is_revoked:
+            self.organisme_agent_repository.reattach(
+                organisme_id=command.organisme_id,
+                agent_id=command.agent_id,
+                role=command.role,
+            )
+        else:
+            self.organisme_agent_repository.attach(
+                organisme_id=command.organisme_id,
+                agent_id=command.agent_id,
+                role=command.role,
+            )
         self.audit_log_writer.log_action(
             utilisateur_id=command.utilisateur.entity_id,
             entity=Entity(entity_id=command.agent_id),
