@@ -33,6 +33,49 @@ def postprocess_add_rate_limit_headers(result, **kwargs):
     return result
 
 
+_TOO_MANY_REQUESTS_RESPONSE = {
+    "description": "Nombre maximal d'appels autorisés dépassé.",
+    "content": {
+        "application/json": {
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "type": "string",
+                        "example": (
+                            "Request was throttled. Expected available in 42 seconds."
+                        ),
+                    },
+                },
+            },
+        },
+    },
+    "headers": {
+        "Retry-After": {
+            "schema": {"type": "integer"},
+            "description": "Nombre de secondes à attendre avant de pouvoir réessayer.",
+        },
+        **{name: dict(spec) for name, spec in _RATE_LIMIT_HEADERS.items()},
+    },
+}
+
+
+def postprocess_add_too_many_requests_response(result, **kwargs):
+    """Document the `429` response returned once an endpoint's rate limit is hit.
+
+    Every endpoint goes through DRF's DEFAULT_THROTTLE_CLASSES (see
+    REST_FRAMEWORK settings), which can raise a 429 regardless of what the
+    view itself declares, so drf-spectacular cannot pick it up automatically.
+    """
+    for path in result.get("paths", {}).values():
+        for operation in path.values():
+            responses = operation.get("responses")
+            if responses is None:
+                continue
+            responses.setdefault("429", dict(_TOO_MANY_REQUESTS_RESPONSE))
+    return result
+
+
 def preprocess_public_only(endpoints, **kwargs):
     selected_endpoints = []
     for path, path_regex, method, callback in endpoints:

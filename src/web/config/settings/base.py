@@ -378,6 +378,7 @@ SPECTACULAR_SETTINGS = {
     "POSTPROCESSING_HOOKS": [
         "drf_spectacular.hooks.postprocess_schema_enums",
         "presentation.api.openapi_hooks.postprocess_add_rate_limit_headers",
+        "presentation.api.openapi_hooks.postprocess_add_too_many_requests_response",
     ],
     "TAGS": [
         {"name": "token", "description": "Gestion de l'authentification"},

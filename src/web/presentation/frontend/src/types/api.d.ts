@@ -935,6 +935,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -988,6 +1008,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -1079,6 +1119,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -1146,6 +1206,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -1222,6 +1302,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -1303,6 +1403,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -1406,6 +1526,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -1487,6 +1627,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -1592,6 +1752,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -1673,6 +1853,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -1776,6 +1976,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -1895,6 +2115,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -1994,6 +2234,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -2075,6 +2335,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -2180,6 +2460,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -2261,6 +2561,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -2365,6 +2685,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -2467,6 +2807,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -2549,6 +2909,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -2641,6 +3021,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -2723,6 +3123,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -2829,6 +3249,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -2913,6 +3353,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -2995,6 +3455,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {
@@ -3100,6 +3580,26 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
             500: {
                 headers: {
                     /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
@@ -3165,6 +3665,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
                 };
             };
             500: {

@@ -102,6 +102,34 @@ paths:
                 type: integer
               description: Timestamp Unix (secondes) auquel la fenêtre courante se
                 réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/fake-ts/offersummaries:
     get:
       operationId: fake_ts_offersummaries_list
@@ -1195,6 +1223,34 @@ paths:
                 type: integer
               description: Timestamp Unix (secondes) auquel la fenêtre courante se
                 réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/token:
     post:
       operationId: token_create
@@ -1236,6 +1292,34 @@ paths:
                 type: integer
               description: Timestamp Unix (secondes) auquel la fenêtre courante se
                 réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/token/refresh:
     post:
       operationId: token_refresh_create
@@ -1264,6 +1348,34 @@ paths:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
           headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
               schema:
                 type: integer
@@ -1499,6 +1611,34 @@ paths:
                 type: integer
               description: Timestamp Unix (secondes) auquel la fenêtre courante se
                 réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/metiers:
     get:
       operationId: v1_metiers_list
@@ -1691,6 +1831,34 @@ paths:
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
           headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
               schema:
                 type: integer
@@ -2931,6 +3099,34 @@ paths:
                 type: integer
               description: Timestamp Unix (secondes) auquel la fenêtre courante se
                 réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/offres/archiver:
     post:
       operationId: v1_offres_archiver_create
@@ -3099,6 +3295,34 @@ paths:
                 type: integer
               description: Timestamp Unix (secondes) auquel la fenêtre courante se
                 réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/offres/creer_modifier:
     post:
       operationId: v1_offres_creer_modifier_create
@@ -3233,6 +3457,34 @@ paths:
                 type: integer
               description: Timestamp Unix (secondes) auquel la fenêtre courante se
                 réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/offres/sources/{source_id}:
     get:
       operationId: v1_offres_sources_list
@@ -3347,6 +3599,34 @@ paths:
                 type: integer
               description: Timestamp Unix (secondes) auquel la fenêtre courante se
                 réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/organismes/creer_modifier:
     post:
       operationId: v1_organismes_creer_modifier_create
@@ -3431,6 +3711,34 @@ paths:
                 $ref: '#/components/schemas/GenericError'
           description: ''
           headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
               schema:
                 type: integer
