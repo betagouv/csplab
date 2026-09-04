@@ -112,6 +112,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/recruteur/organismes/{organisme_uuid}/parametres/agents/recherche": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rechercher un agent par email exact */
+        get: operations["recruteur_organismes_parametres_agents_recherche_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/recruteur/organismes/{organisme_uuid}/parametres/etapes": {
         parameters: {
             query?: never;
@@ -337,6 +354,15 @@ export interface components {
             date_creation_compte: string;
             /** Format: date-time */
             date_revocation?: string | null;
+        };
+        AgentRecherche: {
+            /** Format: uuid */
+            agent_id: string;
+            /** Format: email */
+            email: string;
+            prenom: string;
+            nom: string;
+            intitule_poste: string;
         };
         /** @enum {unknown} */
         BlankEnum: "";
@@ -1496,6 +1522,69 @@ export interface operations {
                 };
             };
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_parametres_agents_recherche_retrieve: {
+        parameters: {
+            query: {
+                email: string;
+            };
+            header?: never;
+            path: {
+                organisme_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentRecherche"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

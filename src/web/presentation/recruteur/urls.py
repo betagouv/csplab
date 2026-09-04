@@ -1,5 +1,6 @@
 from django.urls import path
 
+from presentation.recruteur.views.agent_search import AgentRechercheView
 from presentation.recruteur.views.agents import AgentsView
 from presentation.recruteur.views.notes import (
     CandidatureNoteDetailView,
@@ -63,6 +64,11 @@ urlpatterns = [
         "organismes/<uuid:organisme_uuid>/parametres/agents",
         OrganismeAgentsView.as_view(),
         name="organisme-parametres-agents",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/parametres/agents/recherche",
+        AgentRechercheView.as_view(),
+        name="organisme-parametres-agents-recherche",
     ),
     path(
         "organismes/<uuid:organisme_uuid>/recrutements-actifs",
