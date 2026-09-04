@@ -48,6 +48,7 @@ class TestAdminOTPRequired:
             {
                 "username": user.email,
                 "password": DEFAULT_PASSWORD,
+                "otp_device": device.persistent_id,
                 "otp_token": token,
                 "next": "/admin/",
             },
