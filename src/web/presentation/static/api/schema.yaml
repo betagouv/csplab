@@ -28,24 +28,80 @@ paths:
               schema:
                 $ref: '#/components/schemas/FakeTsOfferDetail'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '404':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/fake-ts/offersummaries:
     get:
       operationId: fake_ts_offersummaries_list
@@ -1085,18 +1141,60 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedFakeTsOfferSummaryList'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/token:
     post:
       operationId: token_create
@@ -1124,6 +1222,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenObtainPair'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/token/refresh:
     post:
       operationId: token_refresh_create
@@ -1151,6 +1263,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/concours/upload:
     post:
       operationId: v1_concours_upload_create
@@ -1251,6 +1377,20 @@ paths:
                   description: Toutes les lignes correspondent à des enregistrements
                     existants
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
@@ -1287,6 +1427,20 @@ paths:
                   description: Le fichier ne peut pas être parsé,vérifiez le séparateur
                     (`;`) et l'encodage (UTF-8).
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
@@ -1305,6 +1459,20 @@ paths:
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
@@ -1317,6 +1485,20 @@ paths:
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/metiers:
     get:
       operationId: v1_metiers_list
@@ -1424,6 +1606,20 @@ paths:
                   description: Les métiers possédant ce code domaine fonctionnel sont
                     retournés paginés
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
@@ -1436,6 +1632,20 @@ paths:
                   summary: Données invalides
                   description: Les données passées dans le payload sont incorrectes
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
@@ -1454,6 +1664,20 @@ paths:
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
@@ -1466,6 +1690,20 @@ paths:
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/offres:
     get:
       operationId: v1_offres_list
@@ -2601,12 +2839,40 @@ paths:
                   description: Les offres d'emploi avec une date d'archivage sont
                     retournées paginées
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
@@ -2625,6 +2891,20 @@ paths:
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
@@ -2637,6 +2917,20 @@ paths:
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/offres/archiver:
     post:
       operationId: v1_offres_archiver_create
@@ -2686,6 +2980,20 @@ paths:
                   summary: Offre archivée avec succès
                   description: L'offre correspondant à la référence a été archivée.
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
@@ -2699,6 +3007,20 @@ paths:
                   summary: Champ obligatoire manquant
                   description: Le champ `reference` ou `source_id` est absent du corps.
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
@@ -2717,12 +3039,40 @@ paths:
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '403':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArchiveOfferForbidden'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '404':
           content:
             application/json:
@@ -2735,6 +3085,20 @@ paths:
                   summary: Offre introuvable
                   description: Aucune offre ne correspond à la référence fournie.
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/offres/creer_modifier:
     post:
       operationId: v1_offres_creer_modifier_create
@@ -2775,30 +3139,100 @@ paths:
               schema:
                 $ref: '#/components/schemas/UpsertOffersResponse'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '403':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UpsertOffersForbidden'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/offres/sources/{source_id}:
     get:
       operationId: v1_offres_sources_list
@@ -2859,18 +3293,60 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedOfferDetailResponseList'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/OffersBySource401Error'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/organismes/creer_modifier:
     post:
       operationId: v1_organismes_creer_modifier_create
@@ -2894,24 +3370,80 @@ paths:
               schema:
                 $ref: '#/components/schemas/UpsertOrganismesResponse'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
 components:
   schemas:
     ArchiveOffer401Error:
