@@ -3,6 +3,8 @@ from typing import Any
 
 import jsonschema
 from drf_spectacular.generators import SchemaGenerator
+from referencing import Registry, Resource
+from referencing.jsonschema import DRAFT202012
 
 
 def _resolve_nullable(node: Any) -> Any:
@@ -27,6 +29,16 @@ def _generated_schema() -> dict:
     return _resolve_nullable(schema)
 
 
+@lru_cache
+def _schema_resolver() -> Any:
+    """Resolver used to follow the OpenAPI schema's internal `$ref`s (e.g. to
+    `#/components/schemas/...`) when validating a response fragment on its own."""
+    schema = _generated_schema()
+    resource = Resource.from_contents(schema, default_specification=DRAFT202012)
+    registry = Registry().with_resource("", resource)
+    return registry.resolver()
+
+
 def assert_matches_openapi_schema(
     data: Any, path: str, method: str = "get", status_code: str = "200"
 ) -> None:
@@ -41,5 +53,7 @@ def assert_matches_openapi_schema(
     response_schema = schema["paths"][path][method.lower()]["responses"][
         str(status_code)
     ]["content"]["application/json"]["schema"]
-    resolver = jsonschema.RefResolver.from_schema(schema)
-    jsonschema.validate(instance=data, schema=response_schema, resolver=resolver)
+    validator = jsonschema.Draft202012Validator(
+        response_schema, _resolver=_schema_resolver()
+    )
+    validator.validate(data)
