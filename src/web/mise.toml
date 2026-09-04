@@ -18,7 +18,7 @@ run = "uv sync --group dev --locked"
 [tasks."install:js"]
 alias = "web:install:js"
 description = "Install the pnpm workspace JS dependencies (frontend + candidate)"
-sources = ["package.json", "pnpm-lock.yaml", "presentation/frontend/package.json"]
+sources = ["package.json", "pnpm-lock.yaml", "frontend/package.json"]
 outputs = { auto = true }
 run = "pnpm install"
 
@@ -123,7 +123,7 @@ run = "pytest --numprocesses=logical --create-db -m 'not accessibility and not e
 [tasks."test:e2e"]
 alias = "web:test:e2e"
 description = "Playwright e2e tests (live_server + browser, rebuilds the frontend when needed)"
-depends = ["install:py", "//src/web/presentation/frontend:build", "//:services:postgres"]
+depends = ["install:py", "//src/web/frontend:build", "//:services:postgres"]
 env = { _.file = "env.test" }
 run = "pytest -m e2e --no-cov"
 
@@ -221,7 +221,7 @@ run = [
   "DJANGO_SETTINGS_MODULE=config.settings.schema_internal python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate --fail-on-warn",
   "git diff --exit-code presentation/static/api/internal-schema.yaml",
   "pnpm --filter csplab-frontend generate-types",
-  "git diff --exit-code presentation/frontend/src/types/api.d.ts",
+  "git diff --exit-code frontend/src/types/api.d.ts",
 ]
 
 [tasks."test:cov"]

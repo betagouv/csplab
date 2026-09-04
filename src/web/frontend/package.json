@@ -13,7 +13,7 @@
     "test:run": "vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "generate-types": "openapi-typescript ../../presentation/static/api/internal-schema.yaml -o src/types/api.d.ts",
+    "generate-types": "openapi-typescript ../presentation/static/api/internal-schema.yaml -o src/types/api.d.ts",
     "icons": "node scripts/build-icons.mjs",
     "icons:check": "node scripts/build-icons.mjs --check"
   },

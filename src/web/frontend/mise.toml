@@ -37,9 +37,9 @@ sources = [
   "package.json",
   "tsconfig*.json",
   "vite.config.*",
-  "../../pnpm-lock.yaml"
+  "../pnpm-lock.yaml"
 ]
-outputs = [ "../static/frontend/manifest.json" ]
+outputs = [ "../presentation/static/frontend/manifest.json" ]
 run = "pnpm run build"
 
 [tasks.check]

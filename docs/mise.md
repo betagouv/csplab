@@ -29,7 +29,7 @@ mise run '//src/web:test'      # depuis n'importe où
 mise run '//...:test'          # la même tâche dans tous les sous-projets
 ```
 
-Chaque tâche de sous-projet a aussi un alias plus court, sans quotes : le nom du projet suivi du nom de la tâche. `web:dev`, `web:manage`, `front:build`, `ocr:test`, `ingestion:migrate`, `ddd:lint`, etc. Le frontend (`src/web/presentation/frontend`) a le préfixe `front`. Un alias se résout depuis la racine ou depuis le dossier du projet qui le définit ; depuis un autre sous-projet, utilisez le chemin complet (`mise run '//src/ocr:test'`), qui fonctionne partout.
+Chaque tâche de sous-projet a aussi un alias plus court, sans quotes : le nom du projet suivi du nom de la tâche. `web:dev`, `web:manage`, `front:build`, `ocr:test`, `ingestion:migrate`, `ddd:lint`, etc. Le frontend (`src/web/frontend`) a le préfixe `front`. Un alias se résout depuis la racine ou depuis le dossier du projet qui le définit ; depuis un autre sous-projet, utilisez le chemin complet (`mise run '//src/ocr:test'`), qui fonctionne partout.
 
 ```
 mise run web:dev

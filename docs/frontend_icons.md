@@ -15,7 +15,7 @@ Whenever you add or remove a `ri:` name in a component. CI fails when the regist
 of sync with the codebase.
 
 ```bash
-pnpm icons          # from src/web/presentation/frontend
+pnpm icons          # from src/web/frontend
 ```
 
 `pnpm lint` runs the same script with `--check`: it regenerates nothing and exits 1 when

@@ -4,14 +4,14 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "src/web/presentation/frontend/**"
+      - "src/web/frontend/**"
       - ".github/workflows/storybook_pages.yml"
       - ".github/actions/**"
   pull_request:
     branches: ["main"]
     types: [opened, synchronize, reopened, labeled, closed]
     paths:
-      - "src/web/presentation/frontend/**"
+      - "src/web/frontend/**"
       - ".github/workflows/storybook_pages.yml"
       - ".github/actions/**"
   delete:
@@ -90,7 +90,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
-          folder: src/web/presentation/frontend/storybook-static
+          folder: src/web/frontend/storybook-static
           target-folder: storybook/main
           force: false
           commit-message: "🚀(storybook) deploy main book from ${{ steps.sha.outputs.short }}"
@@ -117,7 +117,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
-          folder: src/web/presentation/frontend/storybook-static
+          folder: src/web/frontend/storybook-static
           target-folder: storybook/branch/${{ steps.branch.outputs.name }}
           force: false
           commit-message: "🚀(storybook) deploy branch preview '${{ steps.branch.outputs.name }}' from ${{ steps.branch.outputs.short_sha }}"
@@ -147,7 +147,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
-          folder: src/web/presentation/frontend/storybook-static
+          folder: src/web/frontend/storybook-static
           target-folder: storybook/pr/${{ github.event.number }}
           force: false
           commit-message: "🚀(storybook) deploy PR #${{ github.event.number }} preview from ${{ steps.sha.outputs.short }}"
