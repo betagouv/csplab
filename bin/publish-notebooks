@@ -28,13 +28,13 @@ mkdir -p docs/notebook
 
 if [[ -n "$NOTEBOOK" ]]; then
   echo "📄 Exporting ${NOTEBOOK} as ${FORMAT}…"
-  cd src/notebook && direnv exec . jupyter nbconvert \
+  cd src/notebook && mise exec -- jupyter nbconvert \
     --to "${FORMAT}" \
     --output-dir "../../docs/notebook" \
     "../../${NOTEBOOK}"
 else
   echo "📄 Exporting all notebooks as ${FORMAT}…"
-  cd src/notebook && direnv exec . jupyter nbconvert \
+  cd src/notebook && mise exec -- jupyter nbconvert \
     --to "${FORMAT}" \
     --output-dir "../../docs/notebook" \
     *.ipynb
