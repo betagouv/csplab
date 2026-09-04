@@ -22,11 +22,10 @@ const organismeUuid = computed(() => route.params.organismeUuid as string)
 
 const { organisme, notFound } = useOrganismeDetail(organismeUuid)
 
-const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
+const breadcrumb: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },
-  { label: 'Gestion des organismes', to: { name: 'organismes' } },
-  ...(organisme.value ? [{ label: organisme.value.nom }] : []),
-])
+  { label: 'Paramètres de l\'organisme' },
+]
 
 const tabs = tabItems(ORGANISME_TAB_LABELS)
 
@@ -45,7 +44,6 @@ const metaItems = computed<CspMetaItem[]>(() =>
     <CspPageHeader
       title="Paramètres de l'organisme"
       :breadcrumb="breadcrumb"
-      :back-link="{ to: { name: 'organismes' }, label: 'Retour à la gestion des organismes' }"
     >
       <template #subtitle>
         <CspMetaList :items="metaItems" />
