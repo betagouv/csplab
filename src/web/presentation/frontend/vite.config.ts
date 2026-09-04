@@ -15,8 +15,14 @@ const devUrl = new URL(devOrigin)
 
 const cors = { origin: atsOrigin ? [defaultAllowedOrigins, atsOrigin] : defaultAllowedOrigins }
 
+const listenHost = process.env.HOST
+const listenPort = Number(process.env.PORT) || undefined
+
 const server = devUrl.protocol === 'https:'
   ? {
+      host: listenHost,
+      port: listenPort,
+      strictPort: Boolean(listenPort),
       origin: devOrigin,
       cors,
       hmr: {
@@ -26,7 +32,8 @@ const server = devUrl.protocol === 'https:'
       },
     }
   : {
-      port: Number(devUrl.port) || 5173,
+      host: listenHost,
+      port: listenPort ?? (Number(devUrl.port) || 5173),
       strictPort: true,
       origin: devOrigin,
       cors,
