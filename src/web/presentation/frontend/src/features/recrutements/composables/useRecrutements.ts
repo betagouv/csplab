@@ -5,27 +5,17 @@ import { computed, reactive, toValue } from 'vue'
 import { recrutementsActifsQuery, recrutementsArchivesQuery } from '../queries'
 
 export function useRecrutements(
-  organismeUuid: MaybeRefOrGetter<string | null>,
+  organismeUuid: MaybeRefOrGetter<string>,
   activeKey: MaybeRefOrGetter<RecrutementKey>,
 ) {
   const actifs = useQuery(() => ({
-    ...recrutementsActifsQuery({
-      organismeUuid: toValue(organismeUuid) ?? '',
-    }),
-    enabled: (
-      toValue(activeKey) === 'actifs'
-      && toValue(organismeUuid) !== null
-    ),
+    ...recrutementsActifsQuery({ organismeUuid: toValue(organismeUuid) }),
+    enabled: toValue(activeKey) === 'actifs',
   }))
 
   const archives = useQuery(() => ({
-    ...recrutementsArchivesQuery({
-      organismeUuid: toValue(organismeUuid) ?? '',
-    }),
-    enabled: (
-      toValue(activeKey) === 'archives'
-      && toValue(organismeUuid) !== null
-    ),
+    ...recrutementsArchivesQuery({ organismeUuid: toValue(organismeUuid) }),
+    enabled: toValue(activeKey) === 'archives',
   }))
 
   const active = computed(() => (toValue(activeKey) === 'actifs' ? actifs : archives))

@@ -76,4 +76,19 @@ describe('useRecrutements', () => {
     expect(error.value).toBeInstanceOf(Error)
     expect(data.actifs).toEqual([])
   })
+
+  it('reports pending only for the active tab', async () => {
+    vi.mocked(getRecrutementsActifs).mockImplementation(() => new Promise(() => {}))
+    const activeKey = ref<RecrutementKey>('actifs')
+
+    const { pendingActifs, pendingArchives } = mountUseRecrutements(activeKey)
+
+    await vi.waitFor(() => expect(pendingActifs.value).toBe(true))
+    expect(pendingArchives.value).toBe(false)
+
+    activeKey.value = 'archives'
+
+    await vi.waitFor(() => expect(pendingActifs.value).toBe(false))
+    await vi.waitFor(() => expect(pendingArchives.value).toBe(false))
+  })
 })
