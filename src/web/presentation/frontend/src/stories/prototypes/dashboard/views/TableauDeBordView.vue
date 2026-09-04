@@ -26,8 +26,6 @@ function accord(count: number, singulier: string, pluriel: string): string {
   return count > 1 ? pluriel : singulier
 }
 
-const nouveauxCVTotal = computed(() => props.recrutements.reduce((acc, r) => acc + r.nouveauxCV, 0))
-const candidaturesTotal = computed(() => props.recrutements.reduce((acc, r) => acc + r.candidaturesTotal, 0))
 const candidaturesEnAttenteTotal = computed(() => props.recrutements.reduce((acc, r) => acc + r.candidaturesEnAttente, 0))
 const entretiensAPreparerTotal = computed(() => props.recrutements.reduce((acc, r) => acc + r.entretiensAPreparer, 0))
 
@@ -35,9 +33,14 @@ const tachesActives = computed(() => props.taches.filter(t => !t.fait))
 const tachesEnRetardTotal = computed(() => tachesActives.value.filter(t => t.echeanceStatut === 'retard').length)
 const tachesAujourdhuiTotal = computed(() => tachesActives.value.filter(t => t.echeanceStatut === 'aujourdhui').length)
 
-const nouveauxCVLabel = computed(() =>
-  accord(nouveauxCVTotal.value, 'nouveau CV à traiter', 'nouveaux CV à traiter'),
-)
+// Priorité 1 : jamais de total agrégé au niveau organisme sans rattachement — le
+// recrutement reste l'unité de lecture, donc chaque nouveau CV est affiché avec
+// le recrutement auquel il appartient, jamais comme un chiffre isolé.
+const recrutementsAvecNouveauxCV = computed(() => {
+  return [...props.recrutements]
+    .filter(r => r.nouveauxCV > 0)
+    .sort((a, b) => b.nouveauxCV - a.nouveauxCV)
+})
 
 interface RowATraiter {
   key: string
@@ -88,9 +91,16 @@ const secondaryRows = computed<RowATraiter[]>(() => {
   return rows
 })
 
+// Trié différemment du bloc Nouveaux CV ci-dessus (candidatures en attente et
+// entretiens en premier) pour ne pas afficher deux fois la même liste : ce
+// bloc met en avant ce qui mérite attention au-delà des nouveaux CV.
 const recrutementsASurveiller = computed(() => {
   return [...props.recrutements]
-    .sort((a, b) => (b.nouveauxCV - a.nouveauxCV) || (b.candidaturesEnAttente - a.candidaturesEnAttente))
+    .sort((a, b) =>
+      (b.candidaturesEnAttente - a.candidaturesEnAttente)
+      || (b.entretiensAPreparer - a.entretiensAPreparer)
+      || (b.nouveauxCV - a.nouveauxCV),
+    )
     .slice(0, 3)
 })
 
@@ -133,27 +143,55 @@ const tachesGroupes = computed(() => {
         À traiter
       </h2>
 
-      <button
-        type="button"
-        class="tdb__nouveaux-cv"
-        :class="{ 'tdb__nouveaux-cv--calme': nouveauxCVTotal === 0 }"
-        @click="emit('navigate', 'recrutements')"
+      <div
+        class="tdb__nouveaux-cv-zone"
+        :class="{ 'tdb__nouveaux-cv-zone--calme': recrutementsAvecNouveauxCV.length === 0 }"
       >
-        <span class="tdb__nouveaux-cv-main">
-          <span class="tdb__nouveaux-cv-number">{{ nouveauxCVTotal }}</span>
-          <span class="tdb__nouveaux-cv-label">{{ nouveauxCVLabel }}</span>
-        </span>
-        <span class="tdb__nouveaux-cv-side">
-          <span class="tdb__nouveaux-cv-total">{{ candidaturesTotal }} candidatures au total</span>
-          <span class="tdb__nouveaux-cv-cta">
-            Voir les candidatures
-            <CspIcon
-              name="ri:arrow-right-line"
-              :size="16"
-            />
-          </span>
-        </span>
-      </button>
+        <h3 class="tdb__nouveaux-cv-title">
+          Nouveaux CV
+        </h3>
+
+        <ul
+          v-if="recrutementsAvecNouveauxCV.length > 0"
+          class="tdb__nouveaux-cv-list"
+        >
+          <li
+            v-for="recrutement in recrutementsAvecNouveauxCV"
+            :key="recrutement.id"
+          >
+            <button
+              type="button"
+              class="tdb__nouveaux-cv-row"
+              @click="emit('openRecrutement', recrutement.id)"
+            >
+              <span class="tdb__nouveaux-cv-count">{{ recrutement.nouveauxCV }}</span>
+              <span class="tdb__nouveaux-cv-info">
+                <span class="tdb__nouveaux-cv-poste">{{ recrutement.intitule }}</span>
+                <span class="tdb__nouveaux-cv-meta">
+                  Réf. RenoiRH {{ recrutement.referenceRenoiRH }} · {{ recrutement.service }}
+                </span>
+              </span>
+              <span class="tdb__nouveaux-cv-row-total">
+                {{ recrutement.candidaturesTotal }} candidatures au total
+              </span>
+              <CspIcon
+                name="ri:arrow-right-s-line"
+                :size="16"
+              />
+            </button>
+          </li>
+        </ul>
+        <p
+          v-else
+          class="tdb__nouveaux-cv-empty"
+        >
+          <CspIcon
+            name="ri:checkbox-circle-line"
+            :size="16"
+          />
+          Aucun nouveau CV à traiter.
+        </p>
+      </div>
 
       <ul
         v-if="secondaryRows.length > 0"
@@ -306,18 +344,46 @@ const tachesGroupes = computed(() => {
   overflow: hidden;
 }
 
-.tdb__nouveaux-cv {
+.tdb__nouveaux-cv-zone {
+  padding: 1.5rem 2rem 0.5rem;
+  background: var(--background-alt-blue-france);
+
+  &--calme {
+    background: var(--background-alt-grey);
+  }
+}
+
+.tdb__nouveaux-cv-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-title-grey);
+}
+
+.tdb__nouveaux-cv-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tdb__nouveaux-cv-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 0.25rem 1rem;
   width: 100%;
-  padding: 1.75rem 2rem;
-  background: var(--background-alt-blue-france);
+  padding: 1rem 0;
+  background: none;
   border: none;
+  border-top: 1px solid var(--border-default-grey);
   cursor: pointer;
   text-align: left;
+
+  li:first-child > & {
+    border-top: none;
+  }
 
   &:hover {
     background: var(--background-alt-blue-france-hover);
@@ -327,59 +393,52 @@ const tachesGroupes = computed(() => {
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: -2px;
   }
-
-  &--calme {
-    background: var(--background-alt-grey);
-
-    &:hover {
-      background: var(--background-alt-grey-hover);
-    }
-
-    .tdb__nouveaux-cv-number {
-      color: var(--text-title-grey);
-    }
-  }
 }
 
-.tdb__nouveaux-cv-main {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-}
-
-.tdb__nouveaux-cv-number {
-  font-size: 3rem;
+.tdb__nouveaux-cv-count {
+  flex-shrink: 0;
+  min-width: 2.25rem;
+  font-size: 1.75rem;
   font-weight: 700;
   line-height: 1;
   color: var(--text-active-blue-france);
   font-variant-numeric: tabular-nums;
 }
 
-.tdb__nouveaux-cv-label {
-  font-size: 1.125rem;
-  font-weight: 500;
+.tdb__nouveaux-cv-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+  min-width: 12rem;
+}
+
+.tdb__nouveaux-cv-poste {
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--text-title-grey);
 }
 
-.tdb__nouveaux-cv-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.5rem;
-}
-
-.tdb__nouveaux-cv-total {
-  font-size: 0.875rem;
+.tdb__nouveaux-cv-meta {
+  font-size: 0.75rem;
   color: var(--text-mention-grey);
 }
 
-.tdb__nouveaux-cv-cta {
-  display: inline-flex;
+.tdb__nouveaux-cv-row-total {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  color: var(--text-mention-grey);
+  white-space: nowrap;
+}
+
+.tdb__nouveaux-cv-empty {
+  display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
+  margin: 0;
+  padding-bottom: 1rem;
+  color: var(--text-mention-grey);
   font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--text-action-high-blue-france);
 }
 
 .tdb__rows {
