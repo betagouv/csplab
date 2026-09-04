@@ -20,17 +20,20 @@ src/web/
 │   │   ├── utils/                    # Pure helpers
 │   │   ├── constants/                # Global constants
 │   │   └── styles/                   # Global CSS
-│   ├── vite.config.ts
-│   ├── tsconfig.json
-│   └── package.json
+│   ├── .storybook/
+│   └── tsconfig.json
 │
-└── presentation/
-    ├── ats/                          # Django bounded context
-    │   ├── views.py                  # base() view serving the AppShell
-    │   ├── urls.py                   # Routes /ats/*
-    │   └── templatetags/vite_tags.py # Django tags for Vite assets
-    ├── templates/ats/base.html       # Django AppShell template
-    └── static/frontend/              # Build output (gitignored)
+├── presentation/
+│   ├── ats/                          # Django bounded context
+│   │   ├── views.py                  # base() view serving the AppShell
+│   │   ├── urls.py                   # Routes /ats/*
+│   │   └── templatetags/vite_tags.py # Django tags for Vite assets
+│   ├── templates/ats/base.html       # Django AppShell template
+│   └── static/frontend/              # Build output (gitignored)
+│
+├── package.json                      # csplab-web: SPA + candidate assets
+├── vite.config.ts                    # root: 'frontend'
+└── eslint.config.mjs
 ```
 
 ## Local Development
@@ -104,25 +107,14 @@ Deployment uses the **multi-buildpack** setup:
 
 Config files:
 - `src/web/.buildpacks`: buildpack list
-- `src/web/package.json`: `build` script for Scalingo
-- `src/web/pnpm-workspace.yaml`: workspace config
+- `src/web/package.json`: dependencies and scripts of the SPA and of the candidate assets, `build` script for Scalingo
+- `src/web/pnpm-workspace.yaml`: pnpm settings (approved build scripts)
 
 The frontend build runs before `collectstatic`, so assets are included in Django static files.
 
-## pnpm Workspaces
+## JavaScript package
 
-The project uses pnpm workspaces for dependencies:
-
-```
-src/web/
-├── package.json          # Workspace root (Scalingo config)
-├── pnpm-workspace.yaml   # Workspace config
-├── pnpm-lock.yaml        # Single lockfile
-└── frontend/
-    └── package.json      # Workspace (Vue/Vite deps)
-```
-
-All pnpm commands run from `src/web/` with `--filter csplab-frontend`.
+`src/web` is a single pnpm package, `csplab-web`, shared by the SPA (`frontend/`) and the candidate assets (`presentation/`): one `node_modules`, one lockfile, one ESLint config. Vite runs with `root: 'frontend'`, so pnpm commands run from `src/web/` and the frontend tasks of `frontend/mise.toml` run from there too.
 
 **Security:** pnpm blocks postinstall scripts by default. To approve a build (e.g. esbuild): `pnpm approve-builds <package>`.
 
