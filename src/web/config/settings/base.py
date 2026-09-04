@@ -375,6 +375,11 @@ SPECTACULAR_SETTINGS = {
         "drf_spectacular.hooks.preprocess_exclude_path_format",
         "presentation.api.openapi_hooks.preprocess_public_only",
     ],
+    "POSTPROCESSING_HOOKS": [
+        "drf_spectacular.hooks.postprocess_schema_enums",
+        "presentation.api.openapi_hooks.postprocess_add_rate_limit_headers",
+        "presentation.api.openapi_hooks.postprocess_add_too_many_requests_response",
+    ],
     "TAGS": [
         {"name": "token", "description": "Gestion de l'authentification"},
         {
