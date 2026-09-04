@@ -47,6 +47,18 @@ STORAGES = {
 SENTRY_DNS = "example.com"
 
 # Allow logging into the admin with a plain superuser, without a TOTP device.
+# If TOTP device has to be used in dev, set it up in shell
+# ```
+# from django_otp.oath import totp
+# from django_otp.plugins.otp_totp.models import TOTPDevice
+# user=UserModel.objects.get(email=<ADMIN-EMAIL>)
+# device, _ = TOTPDevice.objects.get_or_create(
+#        user=user, name="default", defaults={"confirmed": True}
+# )
+# device.confirmed = True
+# device.save()
+# ```
+# then get your key running `totp(device.bin_key)`
 ADMIN_OTP_REQUIRED = False
 
 HUEY["immediate"] = True  # noqa: F405
