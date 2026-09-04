@@ -1,11 +1,11 @@
 from functools import lru_cache
 from typing import Any
 
-import jsonschema
 from drf_spectacular.generators import SchemaGenerator
+from jsonschema.validators import _LATEST_VERSION
 from referencing import Registry, Resource
 from referencing._core import Resolver
-from referencing.jsonschema import DRAFT202012
+from referencing.jsonschema import specification_with
 
 
 def _resolve_nullable(node: Any) -> Any:
@@ -33,7 +33,10 @@ def _generated_schema() -> dict:
 @lru_cache
 def _schema_resolver() -> Resolver:
     schema = _generated_schema()
-    resource = Resource.from_contents(schema, default_specification=DRAFT202012)
+    latest_specification = specification_with(_LATEST_VERSION.META_SCHEMA["$id"])
+    resource = Resource.from_contents(
+        schema, default_specification=latest_specification
+    )
     registry = Registry().with_resource("", resource)
     return registry.resolver()
 
@@ -52,7 +55,5 @@ def assert_matches_openapi_schema(
     response_schema = schema["paths"][path][method.lower()]["responses"][
         str(status_code)
     ]["content"]["application/json"]["schema"]
-    validator = jsonschema.Draft202012Validator(
-        response_schema, _resolver=_schema_resolver()
-    )
+    validator = _LATEST_VERSION(response_schema, _resolver=_schema_resolver())
     validator.validate(data)
