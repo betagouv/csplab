@@ -39,7 +39,11 @@ class AgentRechercheView(APIView):
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         query = RechercheAgentQuerySerializer(data=request.query_params)
         if not query.is_valid():
-            return Response(query.errors, status=status.HTTP_400_BAD_REQUEST)
+            message = next(iter(query.errors.values()))[0]
+            return Response(
+                GenericErrorSerializer({"error": str(message)}).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             agent = search_agent_by_email(
@@ -48,14 +52,26 @@ class AgentRechercheView(APIView):
                 utilisateur=UtilisateurMapper().to_domain(request),
                 email=query.validated_data["email"],
             )
-        except (AccesOrganismeRefuse, OperationOrganismeRefusee):
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        except OrganismeNexistePas:
+        except (AccesOrganismeRefuse, OperationOrganismeRefusee) as e:
             return Response(
-                {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                GenericErrorSerializer({"error": str(e)}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        except OrganismeNexistePas as e:
+            return Response(
+                GenericErrorSerializer({"error": str(e)}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception:
+            return Response(
+                GenericErrorSerializer({"error": "Unexpected error"}).data,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         if agent is None:
-            return Response({"email": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                GenericErrorSerializer({"error": "Agent introuvable."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         return Response(AgentRechercheSerializer(agent).data)

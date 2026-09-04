@@ -58,18 +58,19 @@ class TestAgentRechercheView:
         response = authenticated_client.get(url, {"email": "inconnu@example.com"})
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"email": "Not found."}
+        assert response.json() == {"error": "Agent introuvable."}
 
     def test_unknown_organisme_returns_404(self, authenticated_client):
+        organisme_uuid = str(uuid4())
         url = reverse(
             "recruteur:organisme-parametres-agents-recherche",
-            kwargs={"organisme_uuid": str(uuid4())},
+            kwargs={"organisme_uuid": organisme_uuid},
         )
 
         response = authenticated_client.get(url, {"email": "agent@example.com"})
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"organisme_uuid": "Not found."}
+        assert response.json() == {"error": f"Organisme introuvable : {organisme_uuid}"}
 
     def test_membre_is_forbidden(self, authenticated_client, test_user):
         _, organisme = OrganismeFactory.create_model_with_agent(
