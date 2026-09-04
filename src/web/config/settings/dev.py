@@ -66,6 +66,9 @@ HUEY["consumer"]["periodic"] = False  # noqa: F405
 AUTH_PASSWORD_VALIDATORS = []
 REST_FRAMEWORK["DEFAULT_PERMISSION_CLASSES"] = []  # noqa: F405
 
+# a local TLS proxy (valet, portless, caddy) reaches runserver in plain http
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 # CSP overrides for Vite dev server
 _vite_origin = VITE_DEV_ORIGIN  # noqa: F405
 _vite_ws_origin = _vite_origin.replace("https://", "wss://").replace("http://", "ws://")

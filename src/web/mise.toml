@@ -29,11 +29,11 @@ run = "uv run -q --project ../../libs/scaleway_secrets python -m scaleway_secret
 
 [tasks.dev]
 alias = "web:dev"
-description = "Django dev server"
+description = "Django dev server (HOST and PORT override the 127.0.0.1:8000 default)"
 depends = ["install:py", "//:services:postgres"]
 shell = "bash -c"
 run = """
-python manage.py runserver
+python manage.py runserver "${HOST:-127.0.0.1}:${PORT:-8000}"
 """
 
 [tasks."dev:cv"]
