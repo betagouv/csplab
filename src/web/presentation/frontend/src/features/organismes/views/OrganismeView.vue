@@ -10,6 +10,7 @@ import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
+import ForbiddenView from '@/views/ForbiddenView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import OrganismeAgentsSection from '../components/OrganismeAgentsSection.vue'
 import { useOrganismeDetail } from '../composables/useOrganismeDetail'
@@ -20,7 +21,7 @@ const route = useRoute()
 
 const organismeUuid = computed(() => route.params.organismeUuid as string)
 
-const { organisme, notFound } = useOrganismeDetail(organismeUuid)
+const { organisme, notFound, forbidden } = useOrganismeDetail(organismeUuid)
 
 const breadcrumb: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },
@@ -40,6 +41,7 @@ const metaItems = computed<CspMetaItem[]>(() =>
 
 <template>
   <NotFoundView v-if="notFound" />
+  <ForbiddenView v-else-if="forbidden" />
   <template v-else>
     <CspPageHeader
       title="Paramètres de l'organisme"

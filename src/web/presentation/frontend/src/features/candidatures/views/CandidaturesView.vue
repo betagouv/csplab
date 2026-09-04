@@ -2,6 +2,7 @@
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { isHttpStatus } from '@/api/errors'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
@@ -16,6 +17,7 @@ import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { recrutementsListLocation } from '@/features/recrutements/routes'
+import ForbiddenView from '@/views/ForbiddenView.vue'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
 import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
 import { useCandidatures } from '../composables/useCandidatures'
@@ -81,6 +83,8 @@ const metaItems = computed(() =>
   recrutementDetail.value ? formatRecrutementMeta(recrutementDetail.value) : [],
 )
 
+const forbidden = computed(() => isHttpStatus(error.value, 403))
+
 const loadFailed = computed(() => !pendingDetail.value && Boolean(error.value))
 
 const isNotFound = computed(() =>
@@ -107,95 +111,98 @@ const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
 </script>
 
 <template>
-  <CspPageHeader
-    :breadcrumb="breadcrumb"
-    :title="title"
-    :back-link="{ to: recrutementsListLink, label: 'Retour aux recrutements' }"
-    :show-title-skeleton="showTitleSkeleton"
-    :show-subtitle-skeleton="showSubtitleSkeleton"
-  >
-    <template #actions>
-      <CspDropdownMenu
-        :sections="headerMenuSections"
-        side="bottom"
-        align="end"
-      >
-        <template #trigger>
-          <CspButton
-            icon="ri:more-fill"
-            variant="tertiary"
-            size="sm"
-            aria-label="Actions sur l’offre"
-          />
-        </template>
-      </CspDropdownMenu>
-    </template>
-    <template #subtitle>
-      <CspMetaList :items="metaItems" />
-    </template>
-  </CspPageHeader>
-  <CspPageContainer
-    v-model:active-tab="activeTab"
-    fill
-    width="full"
-    class="candidatures-view"
-    :tabs="TABS"
-  >
-    <template #tab-candidatures>
-      <CspErrorState
-        v-if="loadFailed"
-        title="Une erreur est survenue lors du chargement du recrutement."
-      />
-
-      <CspEmptyState
-        v-else-if="isNotFound"
-        icon="ri:search-line"
-        title="Recrutement introuvable"
-        description="Ce recrutement n'existe pas ou n'est plus accessible."
-      />
-
-      <template v-else>
-        <CspTableToolbar :bordered="false">
-          <template #status>
-            <CandidaturesViewSwitch
-              :organisme-uuid="organismeUuid"
-              :recrutement-uuid="recrutementUuid"
-              :current="currentView"
+  <ForbiddenView v-if="forbidden" />
+  <template v-else>
+    <CspPageHeader
+      :breadcrumb="breadcrumb"
+      :title="title"
+      :back-link="{ to: recrutementsListLink, label: 'Retour aux recrutements' }"
+      :show-title-skeleton="showTitleSkeleton"
+      :show-subtitle-skeleton="showSubtitleSkeleton"
+    >
+      <template #actions>
+        <CspDropdownMenu
+          :sections="headerMenuSections"
+          side="bottom"
+          align="end"
+        >
+          <template #trigger>
+            <CspButton
+              icon="ri:more-fill"
+              variant="tertiary"
+              size="sm"
+              aria-label="Actions sur l’offre"
             />
           </template>
-          <CspInput
-            v-model="search"
-            type="search"
-            aria-label="Rechercher un candidat"
-            placeholder="Rechercher un candidat…"
-            class="candidatures-view__search"
-            @keydown.enter="filters.flushSearch()"
-          />
-          <CspButton
-            :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
-            variant="tertiary"
-            icon="ri:filter-line"
-            is-icon-left
-            @click="openFilters"
-          />
-        </CspTableToolbar>
-        <router-view />
-        <CandidaturesFiltersDrawer
-          v-model:open="isFiltersDrawerOpen"
-          v-model:etapes="filtersDraft.etapes"
-          :etape-options="etapeOptions"
-          :can-reset="canResetFilters"
-          @apply="applyFilters"
-          @reset="filters.reset"
-        />
+        </CspDropdownMenu>
       </template>
-    </template>
-    <template #tab-activites-et-taches>
-      <div class="candidatures-view__placeholder">
-        Activités et tâches (à venir)
-      </div>
-    </template>
-  </CspPageContainer>
+      <template #subtitle>
+        <CspMetaList :items="metaItems" />
+      </template>
+    </CspPageHeader>
+    <CspPageContainer
+      v-model:active-tab="activeTab"
+      fill
+      width="full"
+      class="candidatures-view"
+      :tabs="TABS"
+    >
+      <template #tab-candidatures>
+        <CspErrorState
+          v-if="loadFailed"
+          title="Une erreur est survenue lors du chargement du recrutement."
+        />
+
+        <CspEmptyState
+          v-else-if="isNotFound"
+          icon="ri:search-line"
+          title="Recrutement introuvable"
+          description="Ce recrutement n'existe pas ou n'est plus accessible."
+        />
+
+        <template v-else>
+          <CspTableToolbar :bordered="false">
+            <template #status>
+              <CandidaturesViewSwitch
+                :organisme-uuid="organismeUuid"
+                :recrutement-uuid="recrutementUuid"
+                :current="currentView"
+              />
+            </template>
+            <CspInput
+              v-model="search"
+              type="search"
+              aria-label="Rechercher un candidat"
+              placeholder="Rechercher un candidat…"
+              class="candidatures-view__search"
+              @keydown.enter="filters.flushSearch()"
+            />
+            <CspButton
+              :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
+              variant="tertiary"
+              icon="ri:filter-line"
+              is-icon-left
+              @click="openFilters"
+            />
+          </CspTableToolbar>
+          <router-view />
+          <CandidaturesFiltersDrawer
+            v-model:open="isFiltersDrawerOpen"
+            v-model:etapes="filtersDraft.etapes"
+            :etape-options="etapeOptions"
+            :can-reset="canResetFilters"
+            @apply="applyFilters"
+            @reset="filters.reset"
+          />
+        </template>
+      </template>
+      <template #tab-activites-et-taches>
+        <div class="candidatures-view__placeholder">
+          Activités et tâches (à venir)
+        </div>
+      </template>
+    </CspPageContainer>
+  </template>
 </template>
 
 <style scoped lang="scss">
