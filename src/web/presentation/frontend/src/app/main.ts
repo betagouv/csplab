@@ -4,7 +4,6 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { routes } from '@/router'
-import { registerNavigationGuards } from '@/router/guards'
 import App from './App.vue'
 import '@/app/icons'
 import '@/styles/index.css'
@@ -17,7 +16,6 @@ const router = createRouter({
 const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
-registerNavigationGuards(router, pinia)
 app.use(PiniaColada, {
   queryOptions: {
     staleTime: 5 * 60 * 1000,

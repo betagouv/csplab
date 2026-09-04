@@ -28,6 +28,10 @@ export class ValidationError extends HttpError {
   }
 }
 
+export function isHttpStatus(error: unknown, status: number): boolean {
+  return error instanceof HttpError && error.status === status
+}
+
 const META_KEYS = new Set(['detail', 'status', 'message', 'type'])
 
 export function parseFieldErrors(payload: unknown): Record<string, string[]> {
