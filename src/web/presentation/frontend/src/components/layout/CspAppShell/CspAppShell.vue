@@ -2,6 +2,7 @@
 import type { NavItem } from './CspAppShell.types'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { isNavItemActive } from '@/app/navigation'
 import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
 import CspSidebarItem from '@/components/layout/CspSidebar/CspSidebarItem.vue'
 import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
@@ -28,12 +29,11 @@ const navItems = computed(() => {
   })
 })
 
-function isItemActive(routeName: string): boolean {
-  const { path } = router.resolve({ name: routeName })
-  if (path === '/') {
-    return route.path === '/'
-  }
-  return route.path === path || route.path.startsWith(`${path}/`)
+function isItemActive(item: NavItem): boolean {
+  const matchedNames = route.matched
+    .map(record => record.name)
+    .filter((name): name is string => typeof name === 'string')
+  return isNavItemActive(item, matchedNames)
 }
 </script>
 
@@ -54,8 +54,8 @@ function isItemActive(routeName: string): boolean {
             :key="item.to"
             :icon="item.icon"
             :label="item.label"
-            :to="{ name: item.to }"
-            :is-active="isItemActive(item.to)"
+            :to="{ name: item.to, params: item.params }"
+            :is-active="isItemActive(item)"
           />
 
           <template #footer>

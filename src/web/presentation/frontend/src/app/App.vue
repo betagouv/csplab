@@ -9,7 +9,11 @@ import CspAppShell from '@/components/layout/CspAppShell/CspAppShell.vue'
 import { useCurrentUser } from '@/stores/currentUser'
 
 const { user } = useCurrentUser()
-const navigation = computed(() => navigationFor(user.value?.is_staff ?? false))
+
+const navigation = computed(() => navigationFor({
+  isStaff: user.value?.is_staff ?? false,
+  organismeUuid: user.value?.organisme_roles?.[0]?.organisme_uuid ?? null,
+}))
 </script>
 
 <template>

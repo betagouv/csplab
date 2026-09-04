@@ -26,6 +26,7 @@ import { CANDIDATURES_TAB_ROUTE_NAMES } from '../routes'
 const route = useRoute()
 const router = useRouter()
 const recrutementUuid = route.params.recrutementUuid as string
+const organismeUuid = route.params.organismeUuid as string
 
 const {
   recrutementDetail,
@@ -66,13 +67,13 @@ function applyFilters() {
   closeFiltersDrawer()
 }
 
-const recrutementsListLink = computed(() => recrutementsListLocation(recrutementDetail.value?.archive))
+const recrutementsListLink = computed(() => recrutementsListLocation(organismeUuid, recrutementDetail.value?.archive))
 
 const title = computed(() => intitule.value ?? 'Candidatures')
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
   { label: 'Accueil', to: { name: 'home' } },
-  { label: 'Mes recrutements', to: recrutementsListLink.value },
+  { label: 'Recrutements', to: recrutementsListLink.value },
   ...(intitule.value ? [{ label: intitule.value }] : []),
 ])
 
@@ -96,7 +97,7 @@ const headerMenuSections = [{
     icon: 'ri:table-line',
     onSelect: () => router.push({
       name: 'recrutement-etapes-recrutement',
-      params: { recrutementUuid },
+      params: { organismeUuid, recrutementUuid },
     }),
   }],
 }]
@@ -109,7 +110,7 @@ const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
   <CspPageHeader
     :breadcrumb="breadcrumb"
     :title="title"
-    :back-link="{ to: recrutementsListLink, label: 'Retour à mes recrutements' }"
+    :back-link="{ to: recrutementsListLink, label: 'Retour aux recrutements' }"
     :show-title-skeleton="showTitleSkeleton"
     :show-subtitle-skeleton="showSubtitleSkeleton"
   >
@@ -157,6 +158,7 @@ const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
         <CspTableToolbar :bordered="false">
           <template #status>
             <CandidaturesViewSwitch
+              :organisme-uuid="organismeUuid"
               :recrutement-uuid="recrutementUuid"
               :current="currentView"
             />

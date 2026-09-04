@@ -7,47 +7,41 @@ import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContai
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
 import { recrutementsListLocation } from '@/features/recrutements/routes'
-import { useCurrentOrganisme } from '@/stores/currentOrganisme'
 import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
 
 const route = useRoute()
 const recrutementUuid = route.params.recrutementUuid as string
+const organismeUuid = route.params.organismeUuid as string
 
 const queryCache = useQueryCache()
 
-const { organismeUuid } = useCurrentOrganisme()
-
 const { data: recrutementDetail } = useQuery(() => ({
   ...recrutementDetailQuery({
-    organismeUuid: organismeUuid.value ?? '',
+    organismeUuid,
     recrutementUuid,
   }),
-  enabled: organismeUuid.value !== null,
 }))
 
 const intitule = computed<string | null>(() => {
   if (recrutementDetail.value?.intitule) {
     return recrutementDetail.value.intitule
   }
-  if (!organismeUuid.value || !recrutementUuid) {
-    return null
-  }
-  return peekRecrutementIntitule(queryCache, organismeUuid.value, recrutementUuid)
+  return peekRecrutementIntitule(queryCache, organismeUuid, recrutementUuid)
 })
 
 const recrutementsListLink = computed(() =>
-  recrutementsListLocation(recrutementDetail.value?.archive),
+  recrutementsListLocation(organismeUuid, recrutementDetail.value?.archive),
 )
 
 const candidaturesRoute = computed(() => ({
   name: 'recrutement-candidatures-kanban',
-  params: { recrutementUuid },
+  params: { organismeUuid, recrutementUuid },
 }))
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
   { label: 'Accueil', to: { name: 'home' } },
-  { label: 'Mes recrutements', to: recrutementsListLink.value },
+  { label: 'Recrutements', to: recrutementsListLink.value },
   ...(intitule.value ? [{ label: intitule.value, to: candidaturesRoute.value }] : []),
   { label: 'Étapes de recrutement' },
 ])
@@ -61,7 +55,6 @@ const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
   />
   <CspPageContainer width="reading">
     <EtapesRecrutementList
-      v-if="organismeUuid"
       :params="{ type: 'offre', organismeUuid, recrutementUuid }"
       :texts="ETAPES_TEXTS_OFFRE"
     />
