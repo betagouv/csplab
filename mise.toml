@@ -20,10 +20,13 @@ config_roots = [
 [tools]
 node = "24"
 uv = "0.9"
+scaleway-cli = "2"
 
 [settings]
 # corepack shims let pnpm resolve its version from packageManager (single source of truth)
 node.corepack = true
+lockfile = true
+task.source_freshness_hash_contents = true
 
 [tasks."secrets:check"]
 description = "Check the Scaleway access and list the secret names of every service"
@@ -109,19 +112,15 @@ depends = ["services:postgres", "services:redis", "services:qdrant"]
 [tasks.setup]
 description = "Create missing env files from the examples (never overwrites)"
 run = """
-for f in web ocr notebook ingestion; do cp -n src/$f/.envrc.sample src/$f/.envrc || true; done
 for f in web ocr notebook ingestion postgresql redis; do cp -n env.d/$f-example env.d/$f || true; done
-for f in web ocr notebook ingestion; do (cd src/$f && direnv allow) || true; done
 echo "Env files in place (existing files untouched)."
 """
 
 [tasks."setup:force"]
 description = "Reset env files from the examples (overwrites)"
-confirm = { message = "Overwrite your env.d/* and .envrc files with the examples?", default = "no" }
+confirm = { message = "Overwrite your env.d/* files with the examples?", default = "no" }
 run = """
-for f in web ocr notebook ingestion; do cp src/$f/.envrc.sample src/$f/.envrc; done
 for f in web ocr notebook ingestion postgresql redis; do cp env.d/$f-example env.d/$f; done
-for f in web ocr notebook ingestion; do (cd src/$f && direnv allow) || true; done
 echo "Env files reset from the examples."
 """
 
@@ -154,7 +153,7 @@ run = "mise run bootstrap"
 
 [tasks."onboard:reset"]
 description = "Reset a dev machine: env files from the examples, docker volumes wiped, then full bootstrap"
-confirm = { message = "Reset env.d/* and .envrc AND remove docker volumes (local databases lost), then reinstall everything?", default = "no" }
+confirm = { message = "Reset env.d/* AND remove docker volumes (local databases lost), then reinstall everything?", default = "no" }
 # single confirm here: the inner destructive tasks are pre-confirmed via MISE_YES
 run = [
   "MISE_YES=1 mise run setup:force",

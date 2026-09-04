@@ -1,2 +1,0 @@
-dotenv ../../env.d/ingestion
-source .venv/bin/activate

@@ -13,3 +13,6 @@ run = "true"
 
 [tasks."services:qdrant"]
 run = "true"
+
+[settings]
+disable_tools = ["scaleway-cli"]

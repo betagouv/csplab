@@ -47,11 +47,7 @@ existent déjà.
 Pour réinitialiser et re-seeder :
 
 ```sh
-bin/manage shell -c "
-from infrastructure.django_apps.users.models import UserModel
-UserModel.objects.filter(email='marie.dupont@transition-eco.gouv.fr').delete()
-"
-mise run web:seed
+mise run web:seed -- --force
 ```
 
 ### Frontend Vue.js (ATS)

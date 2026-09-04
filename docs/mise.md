@@ -2,7 +2,7 @@
 
 Ce projet utilise [mise](https://mise.jdx.dev/tasks/) pour lancer les tâches localement et dans la CI exécute aussi.
 
-`mise install` installe les outils (node, uv).
+`mise install` installe les outils (node, uv, scw).
 
 `mise run` seul affiche les commandes usuelles
 
@@ -48,9 +48,13 @@ Les opérations sur la base de dev sont dans le namespace web : `web:seed` charg
 
 Pour observer ou arrêter les conteneurs, utilisez `docker compose` directement (`ps`, `logs -f`, `stop`, `down`).
 
+## Outils
+
+Le `mise.toml` racine déclare les outils dans `[tools]` et `mise.lock` épingle pour chacun la version exacte, l'URL et la somme de contrôle, pour toutes les plateformes. `mise outdated` liste les mises à jour disponibles ; `mise up` les applique dans la plage déclarée (`mise up --bump` élargit la plage) et réécrit `mise.lock`, à committer avec le changement. `mise doctor` et `mise cfg` montrent l'état de l'installation et les fichiers de configuration chargés. `pnpm` vient des shims corepack de node ; un node installé avant le réglage `node.corepack` ne les a pas, `mise x -- corepack enable` les crée.
+
 ## Environnement
 
-Le `mise.toml` de chaque sous-projet charge son fichier `env.d/*` et active son `.venv` (section `[env]`). Une tâche s'exécute donc avec le bon environnement quel que soit le dossier courant, sans direnv. Les `.envrc` restent utilisables pour avoir cet environnement dans un shell interactif.
+Le `mise.toml` de chaque sous-projet charge son fichier `env.d/*` et active son `.venv` (section `[env]`). Une tâche s'exécute donc avec le bon environnement quel que soit le dossier courant. Dans un shell interactif, `mise activate` charge cet environnement à chaque changement de dossier, et `mise en src/web` ouvre un sous-shell avec l'environnement complet du service, secrets compris. `bin/manage` lance `manage.py` dans cet environnement via `mise exec`, et `mise run web:manage -- shell` fait de même après avoir démarré postgres.
 
 En dev, les pages ATS chargent leurs assets depuis le serveur Vite, pas depuis le build : `mise run dev` lance les deux (Django + Vite HMR) ; `web:dev` et `front:dev` restent disponibles séparément. Le build n'est utilisé que quand `debug` est désactivé, notamment par les tests e2e, qui le régénèrent en dépendance.
 
@@ -58,7 +62,7 @@ En dev, les pages ATS chargent leurs assets depuis le serveur Vite, pas depuis l
 
 Chaque service lit ses secrets dans Scaleway Secret Manager, sous `/{service}/{SCALEWAY_ENV}` (`/web/dev`, `/ingestion/dev`, `/ocr/dev`). La directive `_.source` de la section `[env]` les charge quand mise calcule l'environnement du service : toutes ses tâches et le shell activé en disposent. Le calcul a lieu à l'entrée dans le dossier et à chaque changement de configuration.
 
-Prérequis, une fois par machine : `scw init` avec le projet et la région CSPLab. Les identifiants sont stockés dans `~/.config/scw/config.yaml`. Les variables `SCW_*`, si elles sont définies, ont priorité : c'est le mode utilisé sur Scalingo. Sans `SCALEWAY_ENV`, le chargement est ignoré et la CI fournit ses valeurs dans `mise.ci.toml`.
+Prérequis, une fois par machine : `scw init` avec le projet et la région CSPLab (`mise install` fournit la commande `scw`). Les identifiants sont stockés dans `~/.config/scw/config.yaml`. Les variables `SCW_*`, si elles sont définies, ont priorité : c'est le mode utilisé sur Scalingo. Sans `SCALEWAY_ENV`, le chargement est ignoré et la CI fournit ses valeurs dans `mise.ci.toml`.
 
 `mise run secrets:check` vérifie l'accès et liste les noms des secrets de chaque service.
 

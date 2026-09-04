@@ -1,2 +1,0 @@
-dotenv ../../env.d/web
-source .venv/bin/activate
