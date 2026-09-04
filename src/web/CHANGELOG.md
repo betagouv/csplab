@@ -4,7 +4,64 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.16] - 2026-08-28
+## [0.1.17] - 2026-09-04
+
+### <!-- 0 --> Breaking Changes
+
+- ✨(ingestion) fetch secrets from Scaleway Secret Manager ([#1280](https://github.com/betagouv/csplab/pull/1280))
+- ✨(ocr) fetch secrets from Scaleway Secret Manager ([#1301](https://github.com/betagouv/csplab/pull/1301))
+- ✨(web) fetch secrets from Scaleway Secret Manager ([#1302](https://github.com/betagouv/csplab/pull/1302))
+- ♻️(web) move the frontend to src/web/frontend ([#1344](https://github.com/betagouv/csplab/pull/1344))
+- ♻️(web) merge the frontend package into csplab-web ([#1346](https://github.com/betagouv/csplab/pull/1346))
+
+### <!-- 1 --> Added
+
+- ✨(recruteur) Ajout du usecase d'ajout d'un membre dans un organisme ([#1264](https://github.com/betagouv/csplab/pull/1264))
+- ✨(recruteur) Ajout du usecase de mise à jour du rôle d'un membre dans un organisme ([#1269](https://github.com/betagouv/csplab/pull/1269))
+- ✨(recruteur) Ajout du usecase de revocation du rôle d'un membre dans un organisme ([#1273](https://github.com/betagouv/csplab/pull/1273))
+- ✨(recruteur) update step config in recruitment ([#1259](https://github.com/betagouv/csplab/pull/1259))
+- ✨(identite) create organisme ([#1283](https://github.com/betagouv/csplab/pull/1283))
+- ✨(recruteur) get recruitment steps ([#1274](https://github.com/betagouv/csplab/pull/1274))
+- ✨(ingestion) ajoute le référentiel GIPCDG pour l'import des organismes ([#1224](https://github.com/betagouv/csplab/pull/1224))
+- ✨(recruteur) update organisme ([#1290](https://github.com/betagouv/csplab/pull/1290))
+- ✨(recruteur) get organismes list ([#1291](https://github.com/betagouv/csplab/pull/1291))
+- ✨(ingestion) importe les organismes de la DILA pour le versant FPE ([#1262](https://github.com/betagouv/csplab/pull/1262))
+- ✨(web-ingestion) add organismes/creer_modifier upsert endpoint ([#1249](https://github.com/betagouv/csplab/pull/1249))
+- ✨(recruteur) implement interface organisme detail ([#1255](https://github.com/betagouv/csplab/pull/1255))
+- ⚡️(recruteur) add AuditLogWriter log action calls to the organisme member attach/update/revoke usecases ([#1309](https://github.com/betagouv/csplab/pull/1309))
+- ✨(ingestion) expose les endpoints fake-ts dans le schéma OpenAPI et Redoc ([#1306](https://github.com/betagouv/csplab/pull/1306))
+- ✨(recruteur) implement usecase organisme detail  ([#1256](https://github.com/betagouv/csplab/pull/1256))
+- ✨(ats-presentation) wire organisme detail endpoint ([#1279](https://github.com/betagouv/csplab/pull/1279))
+- ♻️(ingestion) utilise datetime pour date_creation et date_derniere_activite des organismes ([#1311](https://github.com/betagouv/csplab/pull/1311))
+- ✨(ingestion) cibler un référentiel pour le pipeline organismes et ajoute un bin ([#1310](https://github.com/betagouv/csplab/pull/1310))
+- ✨(ats-presentation) add a member to an organisme ([#1316](https://github.com/betagouv/csplab/pull/1316))
+- ✨(infrastructure) update seeds ([#1315](https://github.com/betagouv/csplab/pull/1315))
+- ✨(presentation) navigation by roles ([#1321](https://github.com/betagouv/csplab/pull/1321))
+- ✨(recruteur) endpoint de creation d'un agent ([#1318](https://github.com/betagouv/csplab/pull/1318))
+- ✨(recruteur) endpoint de recherche d'un agent à partir de son email ([#1322](https://github.com/betagouv/csplab/pull/1322))
+- 📝(docs) propose moving the frontend out of the presentation layer (ADR 010) ([#1341](https://github.com/betagouv/csplab/pull/1341))
+- ✨(presentation) switch organisme ([#1339](https://github.com/betagouv/csplab/pull/1339))
+
+### <!-- 2 --> Modified
+
+- ✨(ats-presentation) improve tab management and behaviour ([#1293](https://github.com/betagouv/csplab/pull/1293))
+- ♻️(ats-presentation) setup automatic icon registry ([#1294](https://github.com/betagouv/csplab/pull/1294))
+- 💎(ats-presentation) improve table based pages styling ([#1292](https://github.com/betagouv/csplab/pull/1292))
+- 🎨(recruteur) raise error loudly when agent_id not found ([#1312](https://github.com/betagouv/csplab/pull/1312))
+- ♻️(tooling) inject scaleway secrets from the mise env ([#1317](https://github.com/betagouv/csplab/pull/1317))
+- ♻️(referentiel) convertir les enums en TextChoices Django like ([#1314](https://github.com/betagouv/csplab/pull/1314))
+- 💎(ats-presentation) tab icons, toolbar and segmented control on the candidatures views ([#1331](https://github.com/betagouv/csplab/pull/1331))
+- 🔧(tooling) mise config and drop direnv ([#1332](https://github.com/betagouv/csplab/pull/1332))
+- 🐛(web-test) fix jsonschema RefResolver deprecation ([#1342](https://github.com/betagouv/csplab/pull/1342))
+- ✨(recruteur) reattach revoked agent to an organisme ([#1343](https://github.com/betagouv/csplab/pull/1343))
+- ✨(presentation) Refactor routing to be organisme-scoped ([#1338](https://github.com/betagouv/csplab/pull/1338))
+- 🔧(tooling) let a dev proxy set hosts and ports ([#1354](https://github.com/betagouv/csplab/pull/1354))
+
+### <!-- 4 --> Fixed
+
+- 🐛(ingestion) fix test_schema_path_visibility ([#1355](https://github.com/betagouv/csplab/pull/1355))
+
+## [0.1.16] - 2026-09-01
 
 ### <!-- 0 --> Breaking Changes
 
@@ -34,6 +91,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(ats-presentation) add the organismes member management tab ([#1254](https://github.com/betagouv/csplab/pull/1254))
 - 🐛(ingestion) ne garder qu'une seule structure FINESS par SIRET ([#1258](https://github.com/betagouv/csplab/pull/1258))
 - 🚧(identite) proconnect authent ([#1072](https://github.com/betagouv/csplab/pull/1072))
+- ✨(recruteur) Ajout du usecase de liste des agents d'un organisme ([#1240](https://github.com/betagouv/csplab/pull/1240))
 
 ### <!-- 2 --> Modified
 
