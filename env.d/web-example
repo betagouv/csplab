@@ -5,7 +5,6 @@
 # Check with `mise run secrets:check`.
 SCALEWAY_ENV=dev
 
-PORT=8000
 
 # Django
 
