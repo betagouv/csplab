@@ -41,10 +41,11 @@ const server = devUrl.protocol === 'https:'
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/static/frontend/' : '/',
-  plugins: [vue(), tailwindcss(), checker({ vueTsc: true, enableBuild: false })],
+  root: 'frontend',
+  plugins: [vue(), tailwindcss(), checker({ vueTsc: { tsconfigPath: 'frontend/tsconfig.json' }, enableBuild: false })],
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src'),
+      '@': resolve(__dirname, 'frontend/src'),
     },
   },
   build: {
@@ -52,7 +53,7 @@ export default defineConfig(({ command }) => ({
     emptyOutDir: true,
     manifest: 'manifest.json',
     rollupOptions: {
-      input: resolve(__dirname, 'src/app/main.ts'),
+      input: resolve(__dirname, 'frontend/src/app/main.ts'),
     },
   },
   server,

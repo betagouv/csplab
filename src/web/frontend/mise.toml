@@ -1,3 +1,6 @@
+[task_config]
+dir = ".."
+
 [tasks.dev]
 alias = "front:dev"
 description = "Vite dev server (HMR)"
@@ -33,13 +36,13 @@ alias = "front:build"
 description = "Production frontend build, incremental (skipped when sources are unchanged)"
 depends = [ "//src/web:install:js" ]
 sources = [
-  "src/**/*",
+  "frontend/src/**/*",
+  "frontend/tsconfig*.json",
   "package.json",
-  "tsconfig*.json",
   "vite.config.*",
-  "../pnpm-lock.yaml"
+  "pnpm-lock.yaml"
 ]
-outputs = [ "../presentation/static/frontend/manifest.json" ]
+outputs = [ "presentation/static/frontend/manifest.json" ]
 run = "pnpm run build"
 
 [tasks.check]
@@ -74,9 +77,9 @@ alias = [
 description = "Static Storybook build, incremental"
 depends = [ "//src/web:install:js" ]
 sources = [
-  "src/**/*",
-  ".storybook/**/*",
+  "frontend/src/**/*",
+  "frontend/.storybook/**/*",
   "package.json"
 ]
-outputs = [ "storybook-static/index.html" ]
+outputs = [ "frontend/storybook-static/index.html" ]
 run = "pnpm run build-storybook"
