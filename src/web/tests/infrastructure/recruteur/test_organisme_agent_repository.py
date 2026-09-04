@@ -97,6 +97,84 @@ def test_attach_raises_when_already_attached(db, repository):
         )
 
 
+def test_is_revoked_returns_none_when_no_liaison(db, repository):
+    organisme_model = OrganismeFactory.create_model()
+    agent = AgentFactory.create_model()
+
+    assert (
+        repository.is_revoked(
+            organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
+        )
+        is None
+    )
+
+
+def test_is_revoked_returns_false_when_active(db, repository):
+    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.MEMBRE
+    )
+
+    assert (
+        repository.is_revoked(
+            organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
+        )
+        is False
+    )
+
+
+def test_is_revoked_returns_true_when_revoked(db, repository):
+    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.MEMBRE
+    )
+    repository.revoke(
+        organisme_id=organisme_model.id,
+        agent_id=agent.utilisateur_id,
+        date_revocation=datetime.now(UTC),
+    )
+
+    assert (
+        repository.is_revoked(
+            organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
+        )
+        is True
+    )
+
+
+def test_reattach_persists_role_and_clears_date_revocation(db, repository):
+    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+        role=AgentOrganismeRole.MEMBRE
+    )
+    repository.revoke(
+        organisme_id=organisme_model.id,
+        agent_id=agent.utilisateur_id,
+        date_revocation=datetime.now(UTC),
+    )
+
+    repository.reattach(
+        organisme_id=organisme_model.id,
+        agent_id=agent.utilisateur_id,
+        role=AgentOrganismeRole.RESPONSABLE,
+    )
+
+    liaison = OrganismeAgentModel.objects.get(
+        organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
+    )
+    assert liaison.role == AgentOrganismeRole.RESPONSABLE.value
+    assert liaison.date_revocation is None
+
+
+def test_reattach_raises_when_no_liaison(db, repository):
+    organisme_model = OrganismeFactory.create_model()
+    agent = AgentFactory.create_model()
+
+    with pytest.raises(AgentNonRattache):
+        repository.reattach(
+            organisme_id=organisme_model.id,
+            agent_id=agent.utilisateur_id,
+            role=AgentOrganismeRole.RESPONSABLE,
+        )
+
+
 def test_update_role_persists_change(db, repository):
     agent, organisme_model = OrganismeFactory.create_model_with_agent(
         role=AgentOrganismeRole.MEMBRE
