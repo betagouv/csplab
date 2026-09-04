@@ -4,6 +4,7 @@ from typing import Any
 import jsonschema
 from drf_spectacular.generators import SchemaGenerator
 from referencing import Registry, Resource
+from referencing._core import Resolver
 from referencing.jsonschema import DRAFT202012
 
 
@@ -30,9 +31,7 @@ def _generated_schema() -> dict:
 
 
 @lru_cache
-def _schema_resolver() -> Any:
-    """Resolver used to follow the OpenAPI schema's internal `$ref`s (e.g. to
-    `#/components/schemas/...`) when validating a response fragment on its own."""
+def _schema_resolver() -> Resolver:
     schema = _generated_schema()
     resource = Resource.from_contents(schema, default_specification=DRAFT202012)
     registry = Registry().with_resource("", resource)
