@@ -2,4 +2,4 @@
 
 set -eo pipefail
 
-cd src/web && direnv exec . python manage.py "$@"
+exec mise exec -C "$(dirname "$0")/../src/web" -- python manage.py "$@"

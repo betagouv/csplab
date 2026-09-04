@@ -54,7 +54,7 @@ Le `mise.toml` racine déclare les outils dans `[tools]` et `mise.lock` épingle
 
 ## Environnement
 
-Le `mise.toml` de chaque sous-projet charge son fichier `env.d/*` et active son `.venv` (section `[env]`). Une tâche s'exécute donc avec le bon environnement quel que soit le dossier courant. Dans un shell interactif, `mise activate` charge cet environnement à chaque changement de dossier, et `mise en src/web` ouvre un sous-shell avec l'environnement complet du service, secrets compris.
+Le `mise.toml` de chaque sous-projet charge son fichier `env.d/*` et active son `.venv` (section `[env]`). Une tâche s'exécute donc avec le bon environnement quel que soit le dossier courant. Dans un shell interactif, `mise activate` charge cet environnement à chaque changement de dossier, et `mise en src/web` ouvre un sous-shell avec l'environnement complet du service, secrets compris. `bin/manage` lance `manage.py` dans cet environnement via `mise exec`, et `mise run web:manage -- shell` fait de même après avoir démarré postgres.
 
 En dev, les pages ATS chargent leurs assets depuis le serveur Vite, pas depuis le build : `mise run dev` lance les deux (Django + Vite HMR) ; `web:dev` et `front:dev` restent disponibles séparément. Le build n'est utilisé que quand `debug` est désactivé, notamment par les tests e2e, qui le régénèrent en dépendance.
 

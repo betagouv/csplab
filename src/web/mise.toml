@@ -72,6 +72,8 @@ run = "python manage.py makemigrations"
 alias = "web:manage"
 description = "Arbitrary manage.py command (e.g. mise run :manage -- shell)"
 depends = ["install:py", "//:services:postgres"]
+# interactive commands (shell, dbshell) need the terminal's stdin
+raw = true
 run = "python manage.py"
 
 [tasks."db:restore"]
