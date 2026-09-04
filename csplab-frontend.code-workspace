@@ -6,7 +6,7 @@
     },
     {
       "name": "Frontend",
-      "path": "./src/web/presentation/frontend"
+      "path": "./src/web/frontend"
     }
   ]
 }

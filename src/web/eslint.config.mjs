@@ -7,7 +7,7 @@ export default antfu({
   ignores: [
     '.venv/',
     'node_modules/',
-    'presentation/frontend/',
+    'frontend/',
     'presentation/static/css/**',
     'presentation/static/js/**',
   ],

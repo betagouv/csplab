@@ -7,7 +7,7 @@ redactions = ["*SECRET*", "*_KEY", "*PASSWORD*", "*TOKEN*", "*CREDENTIALS*", "DA
 [monorepo]
 config_roots = [
   "src/web",
-  "src/web/presentation/frontend",
+  "src/web/frontend",
   "src/ocr",
   "src/ingestion",
   "src/notebook",
@@ -83,7 +83,7 @@ depends = ["lint", "test"]
 
 [tasks.dev]
 description = "ATS dev stack: Django + Vite HMR"
-depends = ["//src/web:dev", "//src/web/presentation/frontend:dev"]
+depends = ["//src/web:dev", "//src/web/frontend:dev"]
 
 [tasks."docker:up"]
 description = "Check the docker daemon is reachable"

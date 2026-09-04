@@ -11,7 +11,7 @@ The web app uses different tools depending on the source type:
 
 There are two ESLint configs, and both are needed:
 
-- [src/web/presentation/frontend/eslint.config.js](src/web/presentation/frontend/eslint.config.js) for the Vite frontend
+- [src/web/frontend/eslint.config.js](src/web/frontend/eslint.config.js) for the Vite frontend
 - [src/web/eslint.config.mjs](src/web/eslint.config.mjs) for Django app SCSS and candidate app JS
 
 ## In the editor
@@ -31,5 +31,5 @@ mise run lint
 ```bash
 cd src/web && pnpm run lint:styles:fix
 cd src/web && pnpm run lint:candidate-js:fix
-cd src/web/presentation/frontend && pnpm exec eslint "src/styles/**/*.{css,scss}" --fix
+cd src/web/frontend && pnpm exec eslint "src/styles/**/*.{css,scss}" --fix
 ```

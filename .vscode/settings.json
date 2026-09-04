@@ -63,13 +63,13 @@
   "emmet.includeLanguages": {
     "django-html": "html"
   },
-  "typescript.tsdk": "src/web/presentation/frontend/node_modules/typescript/lib",
+  "typescript.tsdk": "src/web/frontend/node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "eslint.format.enable": true,
   "eslint.useFlatConfig": true,
   "eslint.workingDirectories": [
     {
-      "directory": "./src/web/presentation/frontend",
+      "directory": "./src/web/frontend",
       "changeProcessCWD": true
     },
     {

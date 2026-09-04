@@ -1,4 +1,4 @@
 /node_modules
 /tests
-/presentation/frontend/src
-/presentation/frontend/.storybook
+/frontend/src
+/frontend/.storybook

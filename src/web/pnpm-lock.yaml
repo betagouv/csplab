@@ -21,7 +21,7 @@ importers:
         specifier: ^1.102.0
         version: 1.102.0
 
-  presentation/frontend:
+  frontend:
     dependencies:
       '@atlaskit/pragmatic-drag-and-drop':
         specifier: ^2.0.2

@@ -5,32 +5,32 @@
 The frontend is a Vue.js SPA embedded in a Django template (**AppShell** architecture). Vue code is decoupled from Django business logic.
 
 ```
-src/web/presentation/
-├── ats/                          # Django bounded context
-│   ├── views.py                  # base() view serving the AppShell
-│   ├── urls.py                   # Routes /ats/*
-│   └── templatetags/vite_tags.py # Django tags for Vite assets
-│
-├── frontend/                     # Vue/Vite source code
+src/web/
+├── frontend/                         # Vue/Vite source code
 │   ├── src/
-│   │   ├── app/                  # Bootstrap & app config (main.ts, App.vue, navigation.ts)
-│   │   ├── router/              # App-level routes + feature routes aggregation
-│   │   ├── views/              # App-level pages without business logic (Home, Parametres, ...)
-│   │   ├── features/            # Business modules (recrutements, etapes-recrutement, ...)
-│   │   ├── components/          # Design system (base/, layout/)
-│   │   ├── composables/         # Technical hooks (async/, ui/, dnd/)
-│   │   ├── stores/             # Global Pinia stores
-│   │   ├── api/                # HTTP client + cross-cutting API modules
-│   │   ├── types/             # Global TypeScript types
-│   │   ├── utils/            # Pure helpers
-│   │   ├── constants/       # Global constants
-│   │   └── styles/         # Global CSS
+│   │   ├── app/                      # Bootstrap & app config (main.ts, App.vue, navigation.ts)
+│   │   ├── router/                   # App-level routes + feature routes aggregation
+│   │   ├── views/                    # App-level pages without business logic (Home, Parametres, ...)
+│   │   ├── features/                 # Business modules (recrutements, etapes-recrutement, ...)
+│   │   ├── components/               # Design system (base/, layout/)
+│   │   ├── composables/              # Technical hooks (async/, ui/, dnd/)
+│   │   ├── stores/                   # Global Pinia stores
+│   │   ├── api/                      # HTTP client + cross-cutting API modules
+│   │   ├── types/                    # Global TypeScript types
+│   │   ├── utils/                    # Pure helpers
+│   │   ├── constants/                # Global constants
+│   │   └── styles/                   # Global CSS
 │   ├── vite.config.ts
 │   ├── tsconfig.json
 │   └── package.json
 │
-├── templates/ats/base.html       # Django AppShell template
-└── static/frontend/              # Build output (gitignored)
+└── presentation/
+    ├── ats/                          # Django bounded context
+    │   ├── views.py                  # base() view serving the AppShell
+    │   ├── urls.py                   # Routes /ats/*
+    │   └── templatetags/vite_tags.py # Django tags for Vite assets
+    ├── templates/ats/base.html       # Django AppShell template
+    └── static/frontend/              # Build output (gitignored)
 ```
 
 ## Local Development
@@ -118,7 +118,7 @@ src/web/
 ├── package.json          # Workspace root (Scalingo config)
 ├── pnpm-workspace.yaml   # Workspace config
 ├── pnpm-lock.yaml        # Single lockfile
-└── presentation/frontend/
+└── frontend/
     └── package.json      # Workspace (Vue/Vite deps)
 ```
 

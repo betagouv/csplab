@@ -1,5 +1,5 @@
 packages:
-  - presentation/frontend
+  - frontend
 allowBuilds:
   '@parcel/watcher': true
   esbuild: true

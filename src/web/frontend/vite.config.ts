@@ -48,7 +48,7 @@ export default defineConfig(({ command }) => ({
     },
   },
   build: {
-    outDir: '../static/frontend',
+    outDir: '../presentation/static/frontend',
     emptyOutDir: true,
     manifest: 'manifest.json',
     rollupOptions: {
