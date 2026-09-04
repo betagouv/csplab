@@ -10,9 +10,12 @@ const config: StorybookConfig = {
   framework: {
     name: '@storybook/vue3-vite',
     options: {
+      builder: {
+        viteConfigPath: 'vite.config.ts',
+      },
       docgen: {
         plugin: 'vue-component-meta',
-        tsconfig: 'tsconfig.json',
+        tsconfig: 'frontend/tsconfig.json',
       },
     },
   },

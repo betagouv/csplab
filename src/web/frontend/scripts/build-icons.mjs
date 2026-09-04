@@ -1,9 +1,10 @@
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { createRequire } from 'node:module'
+import { dirname, join } from 'node:path'
 import { argv, exit } from 'node:process'
 
 const SRC = new URL('../src', import.meta.url).pathname
-const RI_DIR = new URL('../node_modules/@iconify-icons/ri', import.meta.url).pathname
+const RI_DIR = dirname(createRequire(import.meta.url).resolve('@iconify-icons/ri/package.json'))
 const CUSTOM = join(SRC, 'app/icons.custom.ts')
 const TARGET = join(SRC, 'app/icons.generated.ts')
 const ICON_PATTERN = /\bri:[a-z0-9]+(?:-[a-z0-9]+)*\b/g

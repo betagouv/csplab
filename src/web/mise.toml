@@ -17,8 +17,8 @@ run = "uv sync --group dev --locked"
 
 [tasks."install:js"]
 alias = "web:install:js"
-description = "Install the pnpm workspace JS dependencies (frontend + candidate)"
-sources = ["package.json", "pnpm-lock.yaml", "frontend/package.json"]
+description = "Install the JS dependencies (frontend + candidate)"
+sources = ["package.json", "pnpm-lock.yaml"]
 outputs = { auto = true }
 run = "pnpm install"
 
@@ -108,7 +108,7 @@ description = "Emulate production: frontend build + collectstatic + runserver :8
 depends = ["install:py", "install:js"]
 env = { DJANGO_SETTINGS_MODULE = "config.settings.base", WEB_ALLOWED_HOSTS = "localhost,127.0.0.1" }
 run = [
-  "pnpm --filter csplab-frontend exec vite build --mode production",
+  "vite build --mode production",
   "python manage.py collectstatic --noinput --clear",
   "python manage.py runserver 8001 --noreload",
 ]
@@ -220,7 +220,7 @@ depends = ["install:py", "install:js"]
 run = [
   "DJANGO_SETTINGS_MODULE=config.settings.schema_internal python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate --fail-on-warn",
   "git diff --exit-code presentation/static/api/internal-schema.yaml",
-  "pnpm --filter csplab-frontend generate-types",
+  "pnpm run generate-types",
   "git diff --exit-code frontend/src/types/api.d.ts",
 ]
 
