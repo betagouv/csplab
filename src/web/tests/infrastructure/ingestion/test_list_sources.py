@@ -1,6 +1,8 @@
 from referentiel.value_objects.source_type import SourceType
 
-from infrastructure.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.ingestion.source_django_factory import (
+    SourceDjangoFactory,
+)
 
 
 def test_returns_empty_list_when_no_sources(ingestion_container):
@@ -10,8 +12,8 @@ def test_returns_empty_list_when_no_sources(ingestion_container):
 
 
 def test_returns_all_sources(ingestion_container):
-    SourceFactory.create_model()
-    SourceFactory.create_model()
+    SourceDjangoFactory()
+    SourceDjangoFactory()
 
     result = ingestion_container.list_sources_usecase().execute()
 
@@ -19,7 +21,7 @@ def test_returns_all_sources(ingestion_container):
 
 
 def test_returns_correct_source_entity_fields(ingestion_container):
-    model = SourceFactory.create_model(
+    model = SourceDjangoFactory(
         type=SourceType.TALENTSOFT,
         client_id_front="my_front_id",
         client_id_back="my_back_id",

@@ -21,7 +21,9 @@ from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
-from infrastructure.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.ingestion.source_django_factory import (
+    SourceDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.offer_mapper import OfferMapper
@@ -566,7 +568,7 @@ class TestGetByReference:
 
 class TestGetBySourceId:
     def test_returns_only_non_archived_offers_for_source(self, db, repository):
-        source_id = SourceFactory.create_model().source_id
+        source_id = SourceDjangoFactory().source_id
         active_offer = OfferFactory.create_model(source_id=source_id)
         OfferFactory.create_model(source_id=source_id, archived_at=NOW)
         OfferFactory.create_model()  # other source
@@ -657,7 +659,7 @@ def test_mark_as_pending(db, repository):
 
 
 def test_multiple_offers_success(db, repository):
-    source = SourceFactory.create_model()
+    source = SourceDjangoFactory()
     offers = OfferFactory.create_model_batch(2, source_id=source.id)
     entities = [_mapper.to_domain(offer) for offer in offers]
     entities.append(OfferFactory.create_entity(source_id=source.id))
