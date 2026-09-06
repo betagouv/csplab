@@ -16,7 +16,9 @@ from domain.identite.exceptions.candidat_errors import CandidatInexistant
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.factories.identite.candidat_factory import CandidatFactory
+from infrastructure.factories.identite.candidat_django_factory import (
+    CandidatDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
@@ -62,7 +64,7 @@ def test_app_config(candidate_container):
 @time_machine.travel(_FROZEN_TS, tick=False)
 def test_submit_candidature_success(db, candidate_container):
     offre = OfferDjangoFactory()
-    candidate = CandidatFactory.create_model()
+    candidate = CandidatDjangoFactory()
 
     RecrutementFactory.create_model(offre_id=offre.id)
 
@@ -94,7 +96,7 @@ def test_candidate_does_not_exist(db, candidate_container):
 
 def test_recrutement_does_not_exist(db, candidate_container):
     offre_id = fake.uuid4(cast_to=None)
-    candidate = CandidatFactory.create_model()
+    candidate = CandidatDjangoFactory()
     candidate_id = candidate.to_entity().entity_id
 
     command = SubmitApplicationCommand(
@@ -136,7 +138,7 @@ def test_save_raises_candidature_deja_soumise_on_duplicate(
 ):
     offre = OfferDjangoFactory()
     recrutement = RecrutementFactory.create_model(offre_id=offre.id)
-    candidate = CandidatFactory.create_model()
+    candidate = CandidatDjangoFactory()
 
     # First save: creates the candidature successfully
     candidature1 = Candidature.build(
@@ -166,7 +168,7 @@ def test_save_raises_candidature_deja_soumise_on_duplicate(
 
 def test_submit_candidature_twice(db, candidate_container):
     offre = OfferDjangoFactory()
-    candidate = CandidatFactory.create_model()
+    candidate = CandidatDjangoFactory()
 
     RecrutementFactory.create_model(offre_id=offre.id)
 

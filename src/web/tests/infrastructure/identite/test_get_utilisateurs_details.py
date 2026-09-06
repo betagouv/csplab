@@ -6,8 +6,12 @@ from domain.identite.errors.identite_errors import UtilisateurNexistePas
 from domain.identite.value_objects.organisme_role import OrganismeRole
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.identite.identite_container import IdentiteContainer
-from infrastructure.factories.identite.agent_factory import AgentFactory
-from infrastructure.factories.identite.candidat_factory import CandidatFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
+from infrastructure.factories.identite.candidat_django_factory import (
+    CandidatDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -33,7 +37,7 @@ def test_get_unknown_uuid(db, identite_integration_container):
 
 @pytest.mark.parametrize(
     "create_user_profile",
-    [CandidatFactory.create_model, AgentFactory.create_model],
+    [CandidatDjangoFactory, AgentDjangoFactory],
     ids=["candidat", "agent_without_role"],
 )
 def test_user_without_organisme_role_has_no_organisme_roles(
@@ -55,7 +59,7 @@ def test_agent_with_role_has_organisme_roles(
         role=AgentOrganismeRole.RESPONSABLE
     )
     if has_candidate_profile:
-        CandidatFactory.create_model(username=agent.utilisateur.username)
+        CandidatDjangoFactory(utilisateur=agent.utilisateur)
 
     usecase = identite_integration_container.get_utilisateur_details_usecase()
 
