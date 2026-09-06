@@ -21,7 +21,9 @@ from infrastructure.factories.referentiel.concours_django_factory import (
 from infrastructure.factories.referentiel.metier_django_factory import (
     MetierDjangoFactory,
 )
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.metier_mapper import MetierMapper
 from infrastructure.mappers.offer_mapper import OfferMapper
@@ -103,7 +105,7 @@ def test_execute_with_valid_cv_returns_opportunities(
     mock_embedding_response(httpx_mock, test_app_config)
 
     concours = ConcoursDjangoFactory.create_batch(2)
-    offers = OfferFactory.create_model_batch(3)
+    offers = OfferDjangoFactory.create_batch(3)
     metiers = MetierDjangoFactory.create_batch(3)
 
     limit = len(offers) + len(concours) - 1
@@ -177,7 +179,7 @@ def test_vectorize_qdrant_search_empty_filters(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create test data like in the working test
-    offers = OfferFactory.create_model_batch(3)
+    offers = OfferDjangoFactory.create_batch(3)
 
     # Setup CV metadata in real DB
     cv_repo = candidate_container.postgres_cv_metadata_repository()
@@ -220,9 +222,9 @@ def test_vectorize_qdrant_search_list_filters(
     mock_embedding_response(httpx_mock, test_app_config)
 
     offers = [
-        OfferFactory.create_model(verse=Verse.FPE),
-        OfferFactory.create_model(verse=Verse.FPH),
-        OfferFactory.create_model(verse=Verse.FPT),
+        OfferDjangoFactory(verse=Verse.FPE),
+        OfferDjangoFactory(verse=Verse.FPH),
+        OfferDjangoFactory(verse=Verse.FPT),
     ]
 
     concours = [

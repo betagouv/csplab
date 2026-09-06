@@ -18,7 +18,9 @@ from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.factories.identite.candidat_factory import CandidatFactory
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.utils.shared_fixtures import (
     create_shared_qdrant_repository,
@@ -59,7 +61,7 @@ def test_app_config(candidate_container):
 
 @time_machine.travel(_FROZEN_TS, tick=False)
 def test_submit_candidature_success(db, candidate_container):
-    offre = OfferFactory.create_model()
+    offre = OfferDjangoFactory()
     candidate = CandidatFactory.create_model()
 
     RecrutementFactory.create_model(offre_id=offre.id)
@@ -77,7 +79,7 @@ def test_submit_candidature_success(db, candidate_container):
 
 
 def test_candidate_does_not_exist(db, candidate_container):
-    offre = OfferFactory.create_model()
+    offre = OfferDjangoFactory()
     candidate_id = fake.uuid4(cast_to=None)
 
     command = SubmitApplicationCommand(
@@ -112,7 +114,7 @@ def test_recrutement_does_not_exist(db, candidate_container):
 def test_save_raises_candidat_inexistant_on_fk_violation(
     transactional_db, candidate_container
 ):
-    offre = OfferFactory.create_model()
+    offre = OfferDjangoFactory()
     recrutement = RecrutementFactory.create_model(offre_id=offre.id)
 
     # Now try to save with an unknown candidat_id via candidate repo
@@ -132,7 +134,7 @@ def test_save_raises_candidat_inexistant_on_fk_violation(
 def test_save_raises_candidature_deja_soumise_on_duplicate(
     transactional_db, candidate_container
 ):
-    offre = OfferFactory.create_model()
+    offre = OfferDjangoFactory()
     recrutement = RecrutementFactory.create_model(offre_id=offre.id)
     candidate = CandidatFactory.create_model()
 
@@ -163,7 +165,7 @@ def test_save_raises_candidature_deja_soumise_on_duplicate(
 
 
 def test_submit_candidature_twice(db, candidate_container):
-    offre = OfferFactory.create_model()
+    offre = OfferDjangoFactory()
     candidate = CandidatFactory.create_model()
 
     RecrutementFactory.create_model(offre_id=offre.id)

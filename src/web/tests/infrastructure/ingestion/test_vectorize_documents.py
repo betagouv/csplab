@@ -17,10 +17,18 @@ from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.factories.referentiel.concours_factory import ConcoursFactory
-from infrastructure.factories.referentiel.corps_factory import CorpsFactory
-from infrastructure.factories.referentiel.metier_factory import MetierFactory
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.concours_django_factory import (
+    ConcoursDjangoFactory,
+)
+from infrastructure.factories.referentiel.corps_django_factory import (
+    CorpsDjangoFactory,
+)
+from infrastructure.factories.referentiel.metier_django_factory import (
+    MetierDjangoFactory,
+)
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.shared_fixtures import create_shared_qdrant_repository
@@ -32,10 +40,10 @@ THREE_DOCUMENTS = 3
 
 
 factories_mapper = {
-    DocumentType.CORPS: CorpsFactory(),
-    DocumentType.CONCOURS: ConcoursFactory(),
-    DocumentType.OFFERS: OfferFactory(),
-    DocumentType.METIERS: MetierFactory(),
+    DocumentType.CORPS: CorpsDjangoFactory,
+    DocumentType.CONCOURS: ConcoursDjangoFactory,
+    DocumentType.OFFERS: OfferDjangoFactory,
+    DocumentType.METIERS: MetierDjangoFactory,
 }
 
 
@@ -108,7 +116,7 @@ def offer_setup_fixture(vectorize_integration_container):
     document_type = DocumentType.OFFERS
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     repository = usecase.repository_factory.get_repository(document_type)
-    factories_mapper[document_type].create_model()
+    factories_mapper[document_type]()
     return usecase, repository, document_type
 
 
@@ -134,7 +142,7 @@ def test_vectorize_entity_integration(
 
     container = vectorize_integration_container
     usecase = container.vectorize_documents_usecase()
-    documents = factories_mapper[document_type].create_model_batch(2)
+    documents = factories_mapper[document_type].create_batch(2)
 
     result = usecase.execute(document_type)
 
@@ -174,7 +182,7 @@ def test_vectorize_limit(
     mock_embedding_response(httpx_mock, test_app_config)
 
     limit = 2
-    OfferFactory.create_model_batch(limit + 1)
+    OfferDjangoFactory.create_batch(limit + 1)
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     result = usecase.execute(DocumentType.OFFERS, limit=limit)
 
@@ -255,7 +263,7 @@ def test_vectorize_qdrant_unsupported_similarity_metric(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
-    OfferFactory.create_model()
+    OfferDjangoFactory()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     usecase.execute(DocumentType.OFFERS)
 
@@ -280,7 +288,7 @@ def test_vectorize_qdrant_search_unexpected_response(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
-    OfferFactory.create_model()
+    OfferDjangoFactory()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     usecase.execute(DocumentType.OFFERS)
 
@@ -314,7 +322,7 @@ def test_vectorize_qdrant_search_general_error(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create and vectorize a document first
-    OfferFactory.create_model()
+    OfferDjangoFactory()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     usecase.execute(DocumentType.OFFERS)
 
@@ -340,7 +348,7 @@ def test_vectorize_qdrant_upsert_error(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create a document to vectorize
-    OfferFactory.create_model()
+    OfferDjangoFactory()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
 
     # Test Exception from Qdrant upsert (lignes 143-145)
@@ -367,7 +375,7 @@ def test_vectorize_qdrant_search_no_filters(
 ):
     mock_embedding_response(httpx_mock, test_app_config)
 
-    OfferFactory.create_model()
+    OfferDjangoFactory()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     usecase.execute(DocumentType.OFFERS)
 
@@ -383,7 +391,7 @@ def test_vectorize_qdrant_search_no_filters(
 
 def test_vectorize_albert_empty_text_error(db, vectorize_integration_container):
 
-    OfferFactory.create_model()
+    OfferDjangoFactory()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
 
     with patch.object(
@@ -408,7 +416,7 @@ def test_vectorize_albert_invalid_response_error(
     invalid_response = {"invalid": "structure"}  # Missing required fields
     mock_embedding_response(httpx_mock, test_app_config, invalid_response)
 
-    OfferFactory.create_model()
+    OfferDjangoFactory()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     result = usecase.execute(DocumentType.OFFERS)
 
@@ -430,7 +438,7 @@ def test_vectorize_albert_http_error(
     # Mock Albert API with HTTP 500 error
     mock_embedding_response(httpx_mock, test_app_config, status_code=500)
 
-    OfferFactory.create_model()
+    OfferDjangoFactory()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     result = usecase.execute(DocumentType.OFFERS)
 
@@ -449,7 +457,7 @@ def test_vectorize_albert_empty_data_error(
     empty_data_response = MockApiResponseFactory.create_embedding_response_empty_data()
     mock_embedding_response(httpx_mock, test_app_config, empty_data_response)
 
-    OfferFactory.create_model()
+    OfferDjangoFactory()
     usecase = vectorize_integration_container.vectorize_documents_usecase()
     result = usecase.execute(DocumentType.OFFERS)
 

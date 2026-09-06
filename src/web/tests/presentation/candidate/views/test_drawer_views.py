@@ -8,11 +8,13 @@ from pytest_django.asserts import assertContains, assertTemplateUsed
 from infrastructure.factories.referentiel.concours_django_factory import (
     ConcoursDjangoFactory,
 )
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 
 
 def _create_offer():
-    return OfferFactory.create_model(
+    return OfferDjangoFactory(
         title="Test Offer Title",
         profile="Test profile description",
         mission="Test mission description",

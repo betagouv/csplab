@@ -15,6 +15,9 @@ from referentiel.value_objects.verse import Verse
 
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.mappers.offer_mapper import OfferMapper
 
@@ -24,16 +27,14 @@ fake = Faker()
 
 
 def test_upsert_offers_result(ingestion_container):
-    offer = OfferFactory.create_model(
+    offer = OfferDjangoFactory(
         verse=Verse.FPE,
         category=Category.B,
         contract_type=ContractType.CONTRACTUELS,
-        localisation=Localisation(
-            area=GeographicalArea("AS"),
-            country=Country("GUF"),
-            region=Region(code="03"),
-            department=Department(code="973"),
-        ),
+        area="AS",
+        country="GUF",
+        region="03",
+        department="973",
     )
     existing_offer = _mapper.to_domain(offer)
     updated_fields = {
@@ -75,7 +76,7 @@ def test_upsert_offers_result(ingestion_container):
 def test_upsert_offers_unarchives_offer_and_makes_it_eligible_for_reindexing(
     ingestion_container,
 ):
-    archived_offer = OfferFactory.create_model(
+    archived_offer = OfferDjangoFactory(
         archived_at=datetime.now(),
         processed_at=datetime.now() - relativedelta(days=1),
         updated_at=datetime.now() - relativedelta(days=1),
