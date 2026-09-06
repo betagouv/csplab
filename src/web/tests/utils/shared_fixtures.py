@@ -95,7 +95,9 @@ from domain.recruteur.repositories.recrutement_agent_repository_interface import
 )
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.gateways.candidate.query_builder import QueryBuilder
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
@@ -127,7 +129,7 @@ def api_client_fixture(db):
 
 @pytest.fixture(name="test_user")
 def test_user_fixture(db):
-    return UtilisateurFactory.create_model()
+    return UtilisateurDjangoFactory()
 
 
 @pytest.fixture(name="authenticated_client")

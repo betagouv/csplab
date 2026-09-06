@@ -6,7 +6,9 @@ from config.app_config import AppConfig
 from domain.identite.errors.candidat_errors import ProfilCandidatExisteDeja
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.factories.identite.candidat_factory import CandidatFactory
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 fake = Faker()
@@ -41,7 +43,7 @@ def test_create_candidat(identite_integration_container):
 
 
 def test_create_candidat_with_existing_user(identite_integration_container):
-    existing_user = UtilisateurFactory.create_model(email=fake.email())
+    existing_user = UtilisateurDjangoFactory(email=fake.email())
     input_data = CreateCandidatInput(
         email=existing_user.email,
         prenom=fake.first_name(),

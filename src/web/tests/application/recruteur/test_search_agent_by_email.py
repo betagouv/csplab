@@ -8,7 +8,9 @@ from domain.identite.errors.organisme_permission_errors import AccesOrganismeRef
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.factories.identite.agent_factory import AgentFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 
@@ -59,7 +61,7 @@ def test_membre_is_denied(db):
 def test_staff_without_role_is_authorized(db):
     _, organisme = OrganismeFactory.create_model_with_agent()
     autre_agent = AgentFactory.create_model()
-    staff = UtilisateurFactory.create_model(is_staff=True)
+    staff = UtilisateurDjangoFactory(is_staff=True)
 
     result = search_agent_by_email(
         organisme_id=organisme.id,
@@ -72,7 +74,7 @@ def test_staff_without_role_is_authorized(db):
 
 
 def test_unknown_organisme_raises(db):
-    utilisateur = UtilisateurMapper().to_domain(UtilisateurFactory.create_model())
+    utilisateur = UtilisateurMapper().to_domain(UtilisateurDjangoFactory())
 
     with pytest.raises(OrganismeNexistePas):
         search_agent_by_email(

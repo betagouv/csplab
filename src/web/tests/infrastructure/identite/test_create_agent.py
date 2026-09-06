@@ -7,6 +7,9 @@ from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.factories.identite.agent_factory import AgentFactory
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -49,7 +52,7 @@ def test_create_agent(identite_integration_container, organisme_id):
 
 
 def test_create_agent_with_existing_user(identite_integration_container, organisme_id):
-    existing_user = UtilisateurFactory.create_model(email=fake.email())
+    existing_user = UtilisateurDjangoFactory(email=fake.email())
     input_data = CreateAgentInput(
         email=existing_user.email,
         prenom=fake.first_name(),
