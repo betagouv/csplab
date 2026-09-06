@@ -9,7 +9,9 @@ from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.factories.ingestion.document_factory import DocumentFactory
-from infrastructure.factories.referentiel.concours_factory import ConcoursFactory
+from infrastructure.factories.referentiel.concours_django_factory import (
+    ConcoursDjangoFactory,
+)
 from infrastructure.factories.referentiel.corps_factory import CorpsFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -168,7 +170,7 @@ def test_upsert_batch_database_error(db, clean_documents_integration_container):
     corps.name = None  # no QA
     result_corps = corps_repository.upsert_batch([corps])
 
-    concours = ConcoursFactory.create_model()
+    concours = ConcoursDjangoFactory()
     concours.nor_original = None  # no QA
     result_concours = concours_repository.upsert_batch([concours])
 

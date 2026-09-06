@@ -10,7 +10,9 @@ from referentiel.value_objects.category import Category
 from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.factories.candidate.cv_metadata_factory import CVMetadataFactory
-from infrastructure.factories.referentiel.concours_factory import ConcoursFactory
+from infrastructure.factories.referentiel.concours_django_factory import (
+    ConcoursDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.mappers.offer_mapper import OfferMapper
 
@@ -112,7 +114,7 @@ class TestResultsDrawer:
     def test_user_opens_concours_drawer_and_closes_it_with_close_button(
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
-        concours_model = ConcoursFactory.create_model(
+        concours_model = ConcoursDjangoFactory(
             corps="Corps e2e drawer", grade="Grade e2e drawer"
         )
         concours_entity = concours_model.to_entity()
