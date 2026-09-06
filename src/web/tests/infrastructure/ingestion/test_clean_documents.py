@@ -12,7 +12,9 @@ from infrastructure.factories.ingestion.document_factory import DocumentFactory
 from infrastructure.factories.referentiel.concours_django_factory import (
     ConcoursDjangoFactory,
 )
-from infrastructure.factories.referentiel.corps_factory import CorpsFactory
+from infrastructure.factories.referentiel.corps_django_factory import (
+    CorpsDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 # Test constants
@@ -166,7 +168,7 @@ def test_upsert_batch_database_error(db, clean_documents_integration_container):
         clean_documents_integration_container.shared_container.concours_repository()
     )
 
-    corps = CorpsFactory.create_model()
+    corps = CorpsDjangoFactory()
     corps.name = None  # no QA
     result_corps = corps_repository.upsert_batch([corps])
 
