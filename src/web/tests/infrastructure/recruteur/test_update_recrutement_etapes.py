@@ -39,7 +39,9 @@ from infrastructure.factories.identite.utilisateur_factory import UtilisateurFac
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
-from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 
@@ -80,12 +82,12 @@ class TestUpdateRecrutementEtapes:
             entity_id=agent.utilisateur.username
         )
 
-        recrutement_model = RecrutementFactory.create_model(
-            organisme_id=organisme.id,
-            agent_id=agent.utilisateur.username,
-            agent_role=kwargs.get("agent_role"),
+        agent_role = kwargs.get("agent_role")
+        recrutement_model = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
             etapes=etapes,
-            persist_etapes=True,
+            **({"agent_link__role": agent_role.value} if agent_role else {}),
         )
         e0, e1, e2, _, e4, e5 = recrutement_model.etapes.all()  # type: ignore[attr-defined]
 
@@ -140,7 +142,12 @@ class TestUpdateRecrutementEtapes:
         [AgentRecrutementRole.RECRUTEUR, AgentRecrutementRole.CONTRIBUTEUR],
     )
     def test_denied_agents(self, db, recruteur_integration_container, agent_role):
-        recrutement_model = RecrutementFactory.create_model(agent_role=agent_role)
+        agent, organisme = create_organisme_with_agent()
+        recrutement_model = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=agent_role.value,
+        )
         usecase = recruteur_integration_container.update_recrutement_etapes_usecase()
 
         with pytest.raises(AccesRecrutementRefuse):
@@ -156,7 +163,7 @@ class TestUpdateRecrutementEtapes:
             )
 
     def test_agents_without_role(self, db, recruteur_integration_container):
-        recrutement_model = RecrutementFactory.create_model()
+        recrutement_model = RecrutementDjangoFactory()
         usecase = recruteur_integration_container.update_recrutement_etapes_usecase()
 
         with pytest.raises(AccesOrganismeRefuse):
@@ -193,12 +200,11 @@ class TestUpdateRecrutementEtapes:
         utilisateur = UtilisateurFactory.create_entity(
             entity_id=agent.utilisateur.username
         )
-        recrutement_model = RecrutementFactory.create_model(
-            organisme_id=organisme.id,
-            agent_id=agent.utilisateur.username,
-            agent_role=AgentRecrutementRole.RESPONSABLE,
+        recrutement_model = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
             etapes=etapes,
-            persist_etapes=True,
         )
         usecase = recruteur_integration_container.update_recrutement_etapes_usecase()
         with pytest.raises(OrganismeRecrutementIncoherents):
@@ -220,12 +226,11 @@ class TestUpdateRecrutementEtapes:
             entity_id=agent.utilisateur.username
         )
 
-        recrutement_model = RecrutementFactory.create_model(
-            organisme_id=organisme.id,
-            agent_id=agent.utilisateur.username,
-            agent_role=AgentRecrutementRole.RESPONSABLE,
+        recrutement_model = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
             etapes=etapes,
-            persist_etapes=True,
         )
 
         CandidatureFactory.create_models_with_etapes(
@@ -276,12 +281,11 @@ class TestUpdateRecrutementEtapes:
         agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.MEMBRE, etapes=etapes
         )
-        recrutement_model = RecrutementFactory.create_model(
-            organisme_id=organisme.id,
-            agent_id=agent.utilisateur.username,
-            agent_role=AgentRecrutementRole.RESPONSABLE,
+        recrutement_model = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
             etapes=etapes,
-            persist_etapes=True,
         )
         etape_model = EtapeModel.objects.get(id=etapes[0].entity_id)
         CandidatureFactory.create_model(

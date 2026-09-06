@@ -27,7 +27,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
-from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 
@@ -84,8 +86,10 @@ class TestChangerEtapeCandidaturesUsecase:
     ):
         agent, organisme = create_organisme_with_agent(role=role_organisme)
         agent_id = agent.utilisateur_id
-        recrutement = RecrutementFactory.create_model(
-            organisme_id=organisme.id, agent_id=agent_id, agent_role=role_recrutement
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=role_recrutement.value,
         )
         candidatures = CandidatureFactory.create_models(
             count=3,
@@ -113,10 +117,10 @@ class TestChangerEtapeCandidaturesUsecase:
     ):
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
         agent_id = agent.utilisateur_id
-        recrutement = RecrutementFactory.create_model(
-            organisme_id=organisme.id,
-            agent_id=agent_id,
-            agent_role=AgentRecrutementRole.CONTRIBUTEUR,
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.CONTRIBUTEUR.value,
         )
         candidatures = CandidatureFactory.create_models(
             count=3,
@@ -137,7 +141,7 @@ class TestChangerEtapeCandidaturesUsecase:
     def test_candidature_inexistante(self, recrutement_mapper, usecase):
         agent_model = AgentDjangoFactory()
 
-        recrutement_model = RecrutementFactory.create_model()
+        recrutement_model = RecrutementDjangoFactory()
         recrutement = recrutement_mapper.to_domain(recrutement_model)
         etape_cible_id = recrutement.etapes[-1].entity_id
 

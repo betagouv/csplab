@@ -31,7 +31,9 @@ from infrastructure.factories.identite.utilisateur_factory import UtilisateurFac
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
-from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
@@ -56,7 +58,7 @@ class TestListerMesRecrutements:
         agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE
         )
-        return agent.utilisateur_id, organisme
+        return agent, organisme
 
     def _lister_recrutements(self, usecase, organisme, agent_id, statut):
         return usecase.execute(
@@ -68,16 +70,17 @@ class TestListerMesRecrutements:
         )
 
     def test_lister_actifs(self, usecase):
-        agent_id, organisme = self._create_agent_responsable()
-        recrutement_actif = RecrutementFactory.create_model(
-            organisme_id=organisme.id,
-            agent_id=agent_id,
+        agent, organisme = self._create_agent_responsable()
+        agent_id = agent.utilisateur_id
+        recrutement_actif = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
             etapes=EtapeRecrutementFactory.create_entity_batch(),
         )
-        RecrutementFactory.create_model(
+        RecrutementDjangoFactory(
             offre_archivee=True,
-            organisme_id=organisme.id,
-            agent_id=agent_id,
+            organisme=organisme,
+            agent_link__agent=agent,
         )
         etape_entree = EtapeModel.objects.filter(
             recrutement_id=recrutement_actif.offre_id,
@@ -109,11 +112,12 @@ class TestListerMesRecrutements:
         assert items[0].candidatures.en_cours == 1
 
     def test_lister_archives(self, usecase):
-        agent_id, organisme = self._create_agent_responsable()
-        RecrutementFactory.create_model(organisme_id=organisme.id)
-        recrutement_archive = RecrutementFactory.create_model(
+        agent, organisme = self._create_agent_responsable()
+        agent_id = agent.utilisateur_id
+        RecrutementDjangoFactory(organisme=organisme)
+        recrutement_archive = RecrutementDjangoFactory(
             offre_archivee=True,
-            organisme_id=organisme.id,
+            organisme=organisme,
         )
         etape_accepte = EtapeModel.objects.filter(
             recrutement_id=recrutement_archive.offre_id,
@@ -138,12 +142,13 @@ class TestListerMesRecrutements:
     def test_lister_actifs_sans_candidature_derniere_activite_repli_sur_publication(
         self, usecase
     ):
-        agent_id, organisme = self._create_agent_responsable()
+        agent, organisme = self._create_agent_responsable()
+        agent_id = agent.utilisateur_id
         offre = OfferDjangoFactory(publication_date=datetime(2024, 3, 1, tzinfo=UTC))
-        recrutement_actif = RecrutementFactory.create_model(
-            offre_id=offre.id,
-            organisme_id=organisme.id,
-            agent_id=agent_id,
+        recrutement_actif = RecrutementDjangoFactory(
+            offre=offre,
+            organisme=organisme,
+            agent_link__agent=agent,
             etapes=EtapeRecrutementFactory.create_entity_batch(),
         )
 
@@ -158,11 +163,12 @@ class TestListerMesRecrutements:
         assert items[0].derniere_activite == offre.publication_date
 
     def test_lister_archives_sans_candidature_acceptee(self, usecase):
-        agent_id, organisme = self._create_agent_responsable()
-        recrutement_archive = RecrutementFactory.create_model(
+        agent, organisme = self._create_agent_responsable()
+        agent_id = agent.utilisateur_id
+        recrutement_archive = RecrutementDjangoFactory(
             offre_archivee=True,
-            organisme_id=organisme.id,
-            agent_id=agent_id,
+            organisme=organisme,
+            agent_link__agent=agent,
         )
 
         result = self._lister_recrutements(
@@ -181,22 +187,22 @@ class TestListerMesRecrutementsRbac:
     def _create_recrutements(self, agent, organisme, statut):
         offre_archivee = statut == StatutRecrutement.ARCHIVE
 
-        recrutement_in_org = RecrutementFactory.create_model(
-            offre_archivee=offre_archivee, organisme_id=organisme.id
+        recrutement_in_org = RecrutementDjangoFactory(
+            offre_archivee=offre_archivee, organisme=organisme
         )
-        recrutement_in_org_with_role = RecrutementFactory.create_model(
+        recrutement_in_org_with_role = RecrutementDjangoFactory(
             offre_archivee=offre_archivee,
-            organisme_id=organisme.id,
-            agent_id=agent.utilisateur_id,
-            agent_role=AgentRecrutementRole.CONTRIBUTEUR,
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.CONTRIBUTEUR.value,
         )
-        recrutement_in_other_org = RecrutementFactory.create_model(
+        recrutement_in_other_org = RecrutementDjangoFactory(
             offre_archivee=offre_archivee
         )
-        recrutement_in_other_org_with_role = RecrutementFactory.create_model(
+        recrutement_in_other_org_with_role = RecrutementDjangoFactory(
             offre_archivee=offre_archivee,
-            agent_id=agent.utilisateur_id,
-            agent_role=AgentRecrutementRole.CONTRIBUTEUR,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.CONTRIBUTEUR.value,
         )
         return (
             recrutement_in_org,

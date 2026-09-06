@@ -17,7 +17,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
-from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 
@@ -59,8 +61,8 @@ def test_list_organismes_with_counts(db, identite_integration_container):
         role=AgentOrganismeRole.MEMBRE,
     )
     organisme_with_recruitments = OrganismeDjangoFactory()
-    RecrutementFactory.create_model(organisme_id=organisme_with_recruitments.id)
-    RecrutementFactory.create_model(organisme_id=organisme_with_recruitments.id)
+    RecrutementDjangoFactory(organisme=organisme_with_recruitments)
+    RecrutementDjangoFactory(organisme=organisme_with_recruitments)
 
     command = ListOrganismesCommand(
         utilisateur=UtilisateurFactory.create_entity(is_staff=True),

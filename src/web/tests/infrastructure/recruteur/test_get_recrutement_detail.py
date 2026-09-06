@@ -20,7 +20,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
-from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 
@@ -53,9 +55,10 @@ class TestGetRecrutementDetail:
         self, usecase, role, assign_agent_to_recrutement, offre_archivee
     ):
         agent, organisme = create_organisme_with_agent(role=role)
-        agent_id = agent.utilisateur_id if assign_agent_to_recrutement else None
-        recrutement = RecrutementFactory.create_model(
-            organisme_id=organisme.id, agent_id=agent_id, offre_archivee=offre_archivee
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            offre_archivee=offre_archivee,
+            **({"agent_link__agent": agent} if assign_agent_to_recrutement else {}),
         )
 
         result = usecase.execute(
@@ -78,7 +81,7 @@ class TestGetRecrutementDetail:
 
     def test_forbidden_when_membre_not_assigned_to_recrutement(self, usecase):
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
-        recrutement = RecrutementFactory.create_model(organisme_id=organisme.id)
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
 
         with pytest.raises(AccesRecrutementRefuse):
             usecase.execute(
@@ -129,7 +132,7 @@ class TestGetRecrutementDetail:
             role=AgentOrganismeRole.RESPONSABLE
         )
         autre_organisme = OrganismeDjangoFactory()
-        recrutement = RecrutementFactory.create_model(organisme_id=autre_organisme.id)
+        recrutement = RecrutementDjangoFactory(organisme=autre_organisme)
 
         result = usecase.execute(
             GetRecrutementDetailQuery(
