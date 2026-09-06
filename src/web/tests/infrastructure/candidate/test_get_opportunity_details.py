@@ -8,7 +8,9 @@ from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
-from infrastructure.factories.referentiel.metier_factory import MetierFactory
+from infrastructure.factories.referentiel.metier_django_factory import (
+    MetierDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.utils.shared_fixtures import (
@@ -56,7 +58,7 @@ def test_execute_get_offer_details(db, candidate_container):
     offers_repo = candidate_container.shared_container.offers_repository()
     offers_repo.upsert_batch([offer])
 
-    MetierFactory.create_model(offer_family_code="ERJUR011")
+    MetierDjangoFactory(offer_family_code="ERJUR011")
 
     usecase = candidate_container.get_opportunity_details_usecase()
     result_offer, result_metiers = usecase.execute(

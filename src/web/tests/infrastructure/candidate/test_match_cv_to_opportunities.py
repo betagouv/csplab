@@ -16,7 +16,9 @@ from infrastructure.factories.ingestion.vectorized_document_factory import (
     VectorizedDocumentFactory,
 )
 from infrastructure.factories.referentiel.concours_factory import ConcoursFactory
-from infrastructure.factories.referentiel.metier_factory import MetierFactory
+from infrastructure.factories.referentiel.metier_django_factory import (
+    MetierDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.metier_mapper import MetierMapper
@@ -100,7 +102,7 @@ def test_execute_with_valid_cv_returns_opportunities(
 
     concours = ConcoursFactory.create_model_batch(2)
     offers = OfferFactory.create_model_batch(3)
-    metiers = MetierFactory.create_model_batch(3)
+    metiers = MetierDjangoFactory.create_batch(3)
 
     limit = len(offers) + len(concours) - 1
 
