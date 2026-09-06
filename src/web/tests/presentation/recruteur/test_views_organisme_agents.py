@@ -7,7 +7,9 @@ from rest_framework import status
 
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 
 ORGANISME_UUID = str(uuid4())
@@ -96,7 +98,7 @@ class TestOrganismeAgentsView:
             role=AgentOrganismeRole.RESPONSABLE,
             username=test_user.username,
         )
-        bare_agent = AgentFactory.create_model()
+        bare_agent = AgentDjangoFactory()
         url = reverse(
             "recruteur:organisme-parametres-agents",
             kwargs={"organisme_uuid": str(organisme.id)},
@@ -130,7 +132,7 @@ class TestOrganismeAgentsView:
             role=AgentOrganismeRole.MEMBRE,
             username=test_user.username,
         )
-        bare_agent = AgentFactory.create_model()
+        bare_agent = AgentDjangoFactory()
         url = reverse(
             "recruteur:organisme-parametres-agents",
             kwargs={"organisme_uuid": str(organisme.id)},
@@ -269,7 +271,7 @@ class TestOrganismeAgentsView:
             role=AgentOrganismeRole.RESPONSABLE,
             username=test_user.username,
         )
-        bare_agent = AgentFactory.create_model()
+        bare_agent = AgentDjangoFactory()
         url = reverse(
             "recruteur:organisme-parametres-agents",
             kwargs={"organisme_uuid": str(organisme.id)},
@@ -410,7 +412,7 @@ class TestOrganismeAgentsView:
             role=AgentOrganismeRole.RESPONSABLE,
             username=test_user.username,
         )
-        bare_agent = AgentFactory.create_model()
+        bare_agent = AgentDjangoFactory()
         url = reverse(
             "recruteur:organisme-parametres-agents",
             kwargs={"organisme_uuid": str(organisme.id)},

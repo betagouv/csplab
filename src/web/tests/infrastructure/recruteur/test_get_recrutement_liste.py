@@ -17,7 +17,9 @@ from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
@@ -97,7 +99,7 @@ class TestGetRecrutementListeRbac:
 
     @pytest.mark.parametrize("est_staff", [False, True])
     def test_forbidden_when_agent_has_no_organisme_role(self, usecase, est_staff):
-        agent = AgentFactory.create_model()
+        agent = AgentDjangoFactory()
         organisme = OrganismeFactory.create_model()
 
         with pytest.raises(AccesOrganismeRefuse):

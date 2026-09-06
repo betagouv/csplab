@@ -18,7 +18,9 @@ from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
 from domain.recruteur.repositories.note_repository_interface import INoteRepository
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.recruteur.note_factory import NoteFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -39,7 +41,7 @@ def recruteur_integration_container_fixture(db):
 class TestCreerNote:
     def test_creer_note(self, db, recruteur_integration_container):
         message = fake.sentence()
-        profil_agent = AgentFactory.create_model()
+        profil_agent = AgentDjangoFactory()
         candidature = CandidatureFactory.create_model()
         usecase = recruteur_integration_container.creer_note_usecase()
 
@@ -58,7 +60,7 @@ class TestCreerNote:
     def test_creer_note_raises_candidature_introuvable(
         self, db, recruteur_integration_container
     ):
-        profil_agent = AgentFactory.create_model()
+        profil_agent = AgentDjangoFactory()
         usecase = recruteur_integration_container.creer_note_usecase()
 
         with pytest.raises(CandidatureInexistante):
@@ -88,7 +90,7 @@ class TestCreerNote:
     def test_creer_note_receives_repository_unhandled_error(
         self, db, recruteur_integration_container
     ):
-        profil_agent = AgentFactory.create_model()
+        profil_agent = AgentDjangoFactory()
         candidature = CandidatureFactory.create_model()
         note_repository = MagicMock(spec=INoteRepository)
         note_repository.create = MagicMock(side_effect=Exception("db error"))

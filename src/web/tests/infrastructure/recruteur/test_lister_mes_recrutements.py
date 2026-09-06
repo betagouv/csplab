@@ -20,7 +20,9 @@ from domain.recruteur.value_objects.statut_recrutement import (
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
@@ -254,7 +256,7 @@ class TestListerMesRecrutementsRbac:
             assert recrutement not in results._qs
 
     def test_non_membre_organisme(self, usecase, statut):
-        agent = AgentFactory.create_model()
+        agent = AgentDjangoFactory()
         organisme = OrganismeFactory.create_model()
         self._create_recrutements(agent, organisme, statut)
 

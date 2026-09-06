@@ -15,7 +15,9 @@ from domain.recruteur.errors.organisme_agent_errors import AgentDejaRattache
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.gateways.shared.logger import LoggerService
@@ -40,7 +42,7 @@ def test_responsable_attaches_bare_agent(db, usecase, recruteur_integration_cont
     responsable, organisme = OrganismeFactory.create_model_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
-    bare_agent = AgentFactory.create_model()
+    bare_agent = AgentDjangoFactory()
 
     agent_organisme = usecase.execute(
         AttachOrganismeAgentCommand(
@@ -78,7 +80,7 @@ def test_responsable_attaches_bare_agent(db, usecase, recruteur_integration_cont
 
 def test_staff_bypasses_role_check(db, usecase):
     organisme = OrganismeFactory.create_model()
-    bare_agent = AgentFactory.create_model()
+    bare_agent = AgentDjangoFactory()
 
     agent_organisme = usecase.execute(
         AttachOrganismeAgentCommand(
@@ -101,7 +103,7 @@ def test_membre_is_denied(db, usecase, recruteur_integration_container):
     membre, organisme = OrganismeFactory.create_model_with_agent(
         role=AgentOrganismeRole.MEMBRE
     )
-    bare_agent = AgentFactory.create_model()
+    bare_agent = AgentDjangoFactory()
 
     with pytest.raises(AccesOrganismeRefuse):
         usecase.execute(
@@ -211,7 +213,7 @@ def test_raises_when_agent_does_not_exist(db, usecase):
 
 
 def test_raises_when_organisme_does_not_exist(db, usecase):
-    bare_agent = AgentFactory.create_model()
+    bare_agent = AgentDjangoFactory()
 
     with pytest.raises(OrganismeNexistePas):
         usecase.execute(

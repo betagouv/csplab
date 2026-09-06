@@ -6,7 +6,9 @@ from faker import Faker
 
 from config.app_config import AppConfig
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.recruteur.note_factory import NoteFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.recruteur.postgres_note_query_service import (
@@ -30,7 +32,7 @@ def service_fixture(recruteur_integration_container) -> PostgresNoteQueryService
 
 
 def test_get_by_candidature_service_returns_ordered_notes(service):
-    agent = AgentFactory.create_model()
+    agent = AgentDjangoFactory()
     note = NoteFactory.create_model(publie_par_id=agent.utilisateur_id)
     note_recent = NoteFactory.create_model(
         candidature_id=note.candidature_id, publie_par_id=agent.utilisateur_id

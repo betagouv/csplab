@@ -20,7 +20,9 @@ from infrastructure.exceptions.exceptions import InfrastructureError
 from infrastructure.factories.candidate.candidature_factory import (
     CandidatureFactory,
 )
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
@@ -133,7 +135,7 @@ class TestChangerEtapeCandidaturesUsecase:
             usecase.execute(command)
 
     def test_candidature_inexistante(self, recrutement_mapper, usecase):
-        agent_model = AgentFactory.create_model()
+        agent_model = AgentDjangoFactory()
 
         recrutement_model = RecrutementFactory.create_model()
         recrutement = recrutement_mapper.to_domain(recrutement_model)

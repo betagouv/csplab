@@ -4,7 +4,9 @@ from django.urls import reverse
 from rest_framework import status
 
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 
 ORGANISME_UUID = str(uuid4())
@@ -26,7 +28,7 @@ class TestAgentRechercheView:
             role=AgentOrganismeRole.RESPONSABLE,
             username=test_user.username,
         )
-        autre_agent = AgentFactory.create_model()
+        autre_agent = AgentDjangoFactory()
         url = reverse(
             "recruteur:organisme-parametres-agents-recherche",
             kwargs={"organisme_uuid": str(organisme.id)},
