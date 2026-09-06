@@ -9,7 +9,9 @@ from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
@@ -17,7 +19,7 @@ from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 
 def test_responsable_finds_agent_by_email(db):
-    responsable, organisme = OrganismeFactory.create_model_with_agent(
+    responsable, organisme = create_organisme_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
     autre_agent = AgentDjangoFactory()
@@ -33,7 +35,7 @@ def test_responsable_finds_agent_by_email(db):
 
 
 def test_responsable_gets_none_for_unknown_email(db):
-    responsable, organisme = OrganismeFactory.create_model_with_agent(
+    responsable, organisme = create_organisme_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
 
@@ -47,9 +49,7 @@ def test_responsable_gets_none_for_unknown_email(db):
 
 
 def test_membre_is_denied(db):
-    membre, organisme = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.MEMBRE
-    )
+    membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
     autre_agent = AgentDjangoFactory()
 
     with pytest.raises(AccesOrganismeRefuse):
@@ -61,7 +61,7 @@ def test_membre_is_denied(db):
 
 
 def test_staff_without_role_is_authorized(db):
-    _, organisme = OrganismeFactory.create_model_with_agent()
+    _, organisme = create_organisme_with_agent()
     autre_agent = AgentDjangoFactory()
     staff = UtilisateurDjangoFactory(is_staff=True)
 

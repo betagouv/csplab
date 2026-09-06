@@ -15,7 +15,10 @@ from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+    create_organisme_with_agent,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from infrastructure.gateways.shared.logger import LoggerService
@@ -49,7 +52,7 @@ class TestGetRecrutementDetail:
     def test_authorized(
         self, usecase, role, assign_agent_to_recrutement, offre_archivee
     ):
-        agent, organisme = OrganismeFactory.create_model_with_agent(role=role)
+        agent, organisme = create_organisme_with_agent(role=role)
         agent_id = agent.utilisateur_id if assign_agent_to_recrutement else None
         recrutement = RecrutementFactory.create_model(
             organisme_id=organisme.id, agent_id=agent_id, offre_archivee=offre_archivee
@@ -74,9 +77,7 @@ class TestGetRecrutementDetail:
         assert result.etapes[-1].categorie == "ACCEPTE"
 
     def test_forbidden_when_membre_not_assigned_to_recrutement(self, usecase):
-        agent, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.MEMBRE
-        )
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
         recrutement = RecrutementFactory.create_model(organisme_id=organisme.id)
 
         with pytest.raises(AccesRecrutementRefuse):
@@ -93,7 +94,7 @@ class TestGetRecrutementDetail:
     @pytest.mark.parametrize("est_staff", [False, True])
     def test_forbidden_when_agent_has_no_organisme_role(self, usecase, est_staff):
         agent = AgentDjangoFactory()
-        organisme = OrganismeFactory.create_model()
+        organisme = OrganismeDjangoFactory()
 
         with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(
@@ -107,7 +108,7 @@ class TestGetRecrutementDetail:
             )
 
     def test_returns_none_for_unknown_recrutement(self, usecase):
-        agent, organisme = OrganismeFactory.create_model_with_agent(
+        agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE
         )
 
@@ -124,10 +125,10 @@ class TestGetRecrutementDetail:
         assert result is None
 
     def test_returns_none_when_recrutement_belongs_to_another_organisme(self, usecase):
-        agent, organisme = OrganismeFactory.create_model_with_agent(
+        agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE
         )
-        autre_organisme = OrganismeFactory.create_model()
+        autre_organisme = OrganismeDjangoFactory()
         recrutement = RecrutementFactory.create_model(organisme_id=autre_organisme.id)
 
         result = usecase.execute(

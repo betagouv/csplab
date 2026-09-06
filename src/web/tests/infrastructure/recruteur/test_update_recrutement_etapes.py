@@ -31,7 +31,10 @@ from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+    create_organisme_with_agent,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
@@ -70,7 +73,7 @@ class TestUpdateRecrutementEtapes:
         self, db, recruteur_integration_container, kwargs
     ):
         etapes = EtapeRecrutementFactory.create_entity_batch()
-        agent, organisme = OrganismeFactory.create_model_with_agent(
+        agent, organisme = create_organisme_with_agent(
             role=kwargs.get("organisme_role")
         )
         utilisateur = UtilisateurFactory.create_entity(
@@ -184,11 +187,9 @@ class TestUpdateRecrutementEtapes:
     def test_raises_when_organisme_recrutement_mismatch(
         self, db, recruteur_integration_container
     ):
-        other_organisme = OrganismeFactory.create_model(entity_id=uuid4())
+        other_organisme = OrganismeDjangoFactory(id=uuid4())
         etapes = EtapeRecrutementFactory.create_entity_batch()
-        agent, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.MEMBRE
-        )
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
         utilisateur = UtilisateurFactory.create_entity(
             entity_id=agent.utilisateur.username
         )
@@ -214,9 +215,7 @@ class TestUpdateRecrutementEtapes:
         self, db, recruteur_integration_container
     ):
         etapes = EtapeRecrutementFactory.create_entity_batch()
-        agent, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.MEMBRE
-        )
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
         utilisateur = UtilisateurFactory.create_entity(
             entity_id=agent.utilisateur.username
         )
@@ -274,7 +273,7 @@ class TestUpdateRecrutementEtapes:
         recruteur_integration_container,
     ):
         etapes = EtapeRecrutementFactory.create_entity_batch()
-        agent, organisme = OrganismeFactory.create_model_with_agent(
+        agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.MEMBRE, etapes=etapes
         )
         recrutement_model = RecrutementFactory.create_model(

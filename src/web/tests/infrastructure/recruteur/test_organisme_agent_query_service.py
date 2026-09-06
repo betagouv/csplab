@@ -9,7 +9,10 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgent
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+    create_organisme_with_agent,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.recruteur.postgres_organisme_agent_query_service import (  # noqa: E501
     PostgresOrganismeAgentQueryService,
@@ -32,7 +35,7 @@ def service_fixture(
 
 
 def test_list_by_organisme_returns_agents(db, service):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+    agent, organisme_model = create_organisme_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
 
@@ -53,7 +56,7 @@ def test_list_by_organisme_returns_agents(db, service):
 
 
 def test_list_by_organisme_returns_empty_when_no_agent(db, service):
-    organisme_model = OrganismeFactory.create_model()
+    organisme_model = OrganismeDjangoFactory()
 
     agents = service.list_by_organisme(organisme_id=organisme_model.id)
 
@@ -61,7 +64,7 @@ def test_list_by_organisme_returns_empty_when_no_agent(db, service):
 
 
 def test_list_by_organisme_excludes_revoked_agents(db, service):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+    agent, organisme_model = create_organisme_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
     OrganismeAgentModel.objects.filter(
@@ -74,7 +77,7 @@ def test_list_by_organisme_excludes_revoked_agents(db, service):
 
 
 def test_get_one_returns_agent(db, service):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+    agent, organisme_model = create_organisme_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
 
@@ -89,7 +92,7 @@ def test_get_one_returns_agent(db, service):
 
 
 def test_get_one_returns_none_when_no_liaison(db, service):
-    organisme_model = OrganismeFactory.create_model()
+    organisme_model = OrganismeDjangoFactory()
     agent = AgentDjangoFactory()
 
     agent_organisme = service.get_one(
@@ -100,7 +103,7 @@ def test_get_one_returns_none_when_no_liaison(db, service):
 
 
 def test_get_one_returns_revoked_agent(db, service):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+    agent, organisme_model = create_organisme_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
     date_revocation = datetime.now(UTC)

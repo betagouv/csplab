@@ -16,7 +16,9 @@ from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
@@ -38,7 +40,7 @@ def recruteur_integration_container_fixture(db):
 
 
 def test_get_organisme_steps(recruteur_integration_container):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+    agent, organisme_model = create_organisme_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
     usecase = recruteur_integration_container.get_organisme_recruteur_usecase()
@@ -57,7 +59,7 @@ def test_get_organisme_steps(recruteur_integration_container):
 
 
 def test_initialize_organisme_steps(recruteur_integration_container):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+    agent, organisme_model = create_organisme_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
     usecase = recruteur_integration_container.initialize_organisme_steps_usecase()
@@ -80,7 +82,7 @@ def test_initialize_organisme_steps(recruteur_integration_container):
 def test_update_organisme_steps(recruteur_integration_container):
     etapes = EtapeRecrutementFactory.create_entity_batch()
 
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+    agent, organisme_model = create_organisme_with_agent(
         AgentOrganismeRole.RESPONSABLE, etapes=etapes
     )
 
@@ -110,7 +112,7 @@ class TestGetOrganismeRecruteurRbac:
         ids=["responsable", "staff"],
     )
     def test_role_grants_access(self, recruteur_integration_container, role, est_staff):
-        agent, organisme = OrganismeFactory.create_model_with_agent(role)
+        agent, organisme = create_organisme_with_agent(role)
         usecase = recruteur_integration_container.get_organisme_recruteur_usecase()
 
         result = usecase.execute(
@@ -128,7 +130,7 @@ class TestGetOrganismeRecruteurRbac:
         "role", [AgentOrganismeRole.MEMBRE, None], ids=["membre", "non_membre"]
     )
     def test_role_refuse_access(self, recruteur_integration_container, role):
-        agent, organisme = OrganismeFactory.create_model_with_agent(role)
+        agent, organisme = create_organisme_with_agent(role)
         usecase = recruteur_integration_container.get_organisme_recruteur_usecase()
 
         with pytest.raises(AccesOrganismeRefuse):
@@ -149,7 +151,7 @@ class TestInitializeOrganismeStepsRbac:
         ids=["responsable", "staff"],
     )
     def test_role_grants_access(self, recruteur_integration_container, role, est_staff):
-        agent, organisme = OrganismeFactory.create_model_with_agent(role)
+        agent, organisme = create_organisme_with_agent(role)
         usecase = recruteur_integration_container.initialize_organisme_steps_usecase()
 
         result = usecase.execute(
@@ -168,7 +170,7 @@ class TestInitializeOrganismeStepsRbac:
         "role", [AgentOrganismeRole.MEMBRE, None], ids=["membre", "non_membre"]
     )
     def test_role_refuse_access(self, recruteur_integration_container, role):
-        agent, organisme = OrganismeFactory.create_model_with_agent(role)
+        agent, organisme = create_organisme_with_agent(role)
         usecase = recruteur_integration_container.initialize_organisme_steps_usecase()
 
         with pytest.raises(AccesOrganismeRefuse):
@@ -200,7 +202,7 @@ class TestUpdateOrganismeStepsRbac:
     )
     def test_role_grants_access(self, recruteur_integration_container, role, est_staff):
         etapes = EtapeRecrutementFactory.create_entity_batch()
-        agent, organisme = OrganismeFactory.create_model_with_agent(role, etapes=etapes)
+        agent, organisme = create_organisme_with_agent(role, etapes=etapes)
         usecase = recruteur_integration_container.update_organisme_steps_usecase()
 
         result = usecase.execute(
@@ -214,7 +216,7 @@ class TestUpdateOrganismeStepsRbac:
     )
     def test_role_refuse_access(self, recruteur_integration_container, role):
         etapes = EtapeRecrutementFactory.create_entity_batch()
-        agent, organisme = OrganismeFactory.create_model_with_agent(role, etapes=etapes)
+        agent, organisme = create_organisme_with_agent(role, etapes=etapes)
         usecase = recruteur_integration_container.update_organisme_steps_usecase()
 
         with pytest.raises(AccesOrganismeRefuse):

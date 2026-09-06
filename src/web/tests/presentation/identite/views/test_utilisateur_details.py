@@ -11,7 +11,10 @@ from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
+    OrganismeDjangoFactory,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
 URL = reverse("identite:user-details")
@@ -71,9 +74,10 @@ def test_returned_payload(mock_container, authenticated_client, test_user):
 
 
 def test_returned_payload_from_db(authenticated_client, test_user):
-    AgentDjangoFactory(utilisateur=test_user)
-    organisme = OrganismeFactory.create_model(
-        agent_id=test_user.username, role=AgentOrganismeRole.MEMBRE
+    agent = AgentDjangoFactory(utilisateur=test_user)
+    organisme = OrganismeDjangoFactory()
+    OrganismeAgentDjangoFactory(
+        organisme=organisme, agent=agent, role=AgentOrganismeRole.MEMBRE.value
     )
 
     response = authenticated_client.get(URL)

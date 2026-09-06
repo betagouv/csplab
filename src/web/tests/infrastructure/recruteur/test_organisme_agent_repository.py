@@ -13,7 +13,10 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgent
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+    create_organisme_with_agent,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.recruteur.postgres_organisme_agent_repository import (
     PostgresOrganismeAgentRepository,
@@ -36,7 +39,7 @@ def repository_fixture(
 
 
 def test_get_role_returns_responsable(db, repository):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+    agent, organisme_model = create_organisme_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
 
@@ -48,9 +51,7 @@ def test_get_role_returns_responsable(db, repository):
 
 
 def test_get_role_returns_membre(db, repository):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.MEMBRE
-    )
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
 
     role = repository.get_role(
         organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
@@ -60,7 +61,7 @@ def test_get_role_returns_membre(db, repository):
 
 
 def test_get_role_returns_none_when_no_liaison(db, repository):
-    organisme_model = OrganismeFactory.create_model()
+    organisme_model = OrganismeDjangoFactory()
     agent = AgentDjangoFactory()
 
     role = repository.get_role(
@@ -71,7 +72,7 @@ def test_get_role_returns_none_when_no_liaison(db, repository):
 
 
 def test_attach_persists_liaison(db, repository):
-    organisme_model = OrganismeFactory.create_model()
+    organisme_model = OrganismeDjangoFactory()
     agent = AgentDjangoFactory()
 
     repository.attach(
@@ -87,9 +88,7 @@ def test_attach_persists_liaison(db, repository):
 
 
 def test_attach_raises_when_already_attached(db, repository):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.MEMBRE
-    )
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
 
     with pytest.raises(AgentDejaRattache):
         repository.attach(
@@ -100,7 +99,7 @@ def test_attach_raises_when_already_attached(db, repository):
 
 
 def test_is_revoked_returns_none_when_no_liaison(db, repository):
-    organisme_model = OrganismeFactory.create_model()
+    organisme_model = OrganismeDjangoFactory()
     agent = AgentDjangoFactory()
 
     assert (
@@ -112,9 +111,7 @@ def test_is_revoked_returns_none_when_no_liaison(db, repository):
 
 
 def test_is_revoked_returns_false_when_active(db, repository):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.MEMBRE
-    )
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
 
     assert (
         repository.is_revoked(
@@ -125,9 +122,7 @@ def test_is_revoked_returns_false_when_active(db, repository):
 
 
 def test_is_revoked_returns_true_when_revoked(db, repository):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.MEMBRE
-    )
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
     repository.revoke(
         organisme_id=organisme_model.id,
         agent_id=agent.utilisateur_id,
@@ -143,9 +138,7 @@ def test_is_revoked_returns_true_when_revoked(db, repository):
 
 
 def test_reattach_persists_role_and_clears_date_revocation(db, repository):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.MEMBRE
-    )
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
     repository.revoke(
         organisme_id=organisme_model.id,
         agent_id=agent.utilisateur_id,
@@ -166,7 +159,7 @@ def test_reattach_persists_role_and_clears_date_revocation(db, repository):
 
 
 def test_reattach_raises_when_no_liaison(db, repository):
-    organisme_model = OrganismeFactory.create_model()
+    organisme_model = OrganismeDjangoFactory()
     agent = AgentDjangoFactory()
 
     with pytest.raises(AgentNonRattache):
@@ -178,9 +171,7 @@ def test_reattach_raises_when_no_liaison(db, repository):
 
 
 def test_update_role_persists_change(db, repository):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.MEMBRE
-    )
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
 
     repository.update_role(
         organisme_id=organisme_model.id,
@@ -195,7 +186,7 @@ def test_update_role_persists_change(db, repository):
 
 
 def test_update_role_raises_when_no_liaison(db, repository):
-    organisme_model = OrganismeFactory.create_model()
+    organisme_model = OrganismeDjangoFactory()
     agent = AgentDjangoFactory()
 
     with pytest.raises(AgentNonRattache):
@@ -207,9 +198,7 @@ def test_update_role_raises_when_no_liaison(db, repository):
 
 
 def test_revoke_persists_date_revocation(db, repository):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.MEMBRE
-    )
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
     date_revocation = datetime.now(UTC)
 
     repository.revoke(
@@ -225,7 +214,7 @@ def test_revoke_persists_date_revocation(db, repository):
 
 
 def test_revoke_raises_when_no_liaison(db, repository):
-    organisme_model = OrganismeFactory.create_model()
+    organisme_model = OrganismeDjangoFactory()
     agent = AgentDjangoFactory()
 
     with pytest.raises(AgentNonRattache):

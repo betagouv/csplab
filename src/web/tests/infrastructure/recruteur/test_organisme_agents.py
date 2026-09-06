@@ -7,7 +7,9 @@ from config.app_config import AppConfig
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
@@ -23,7 +25,7 @@ def recruteur_integration_container_fixture(db) -> RecruteurContainer:
 def test_list_organisme_agents_returns_agents_for_responsable(
     db, recruteur_integration_container
 ):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
+    agent, organisme_model = create_organisme_with_agent(
         role=AgentOrganismeRole.RESPONSABLE
     )
     utilisateur = UtilisateurMapper().to_domain(agent.utilisateur)
@@ -47,9 +49,7 @@ def test_list_organisme_agents_returns_agents_for_responsable(
 
 
 def test_list_organisme_agents_raises_when_membre(db, recruteur_integration_container):
-    agent, organisme_model = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.MEMBRE
-    )
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
     utilisateur = UtilisateurMapper().to_domain(agent.utilisateur)
     usecase = recruteur_integration_container.list_organisme_agents_usecase()
 

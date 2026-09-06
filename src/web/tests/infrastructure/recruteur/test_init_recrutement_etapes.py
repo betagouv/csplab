@@ -22,7 +22,9 @@ from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
@@ -45,7 +47,7 @@ def recruteur_integration_container_fixture(db):
 @pytest.fixture
 def setup_base(db):
     etapes = EtapeRecrutementFactory.create_entity_batch()
-    agent, organisme = OrganismeFactory.create_model_with_agent(
+    agent, organisme = create_organisme_with_agent(
         role=AgentOrganismeRole.MEMBRE, etapes=etapes
     )
     recrutement_model = RecrutementFactory.create_model(
@@ -75,7 +77,7 @@ class TestInitRecrutementEtapes:
         en_cours = EtapeRecrutementFactory.create_entity()
         etapes = EtapeRecrutementFactory.create_entity_batch(en_cours=(en_cours,))
 
-        agent, organisme = OrganismeFactory.create_model_with_agent(
+        agent, organisme = create_organisme_with_agent(
             role=kwargs.get("organisme_role"), etapes=etapes
         )
         utilisateur = UtilisateurFactory.create_entity(
@@ -109,7 +111,7 @@ class TestInitRecrutementEtapes:
     )
     def test_denied_agents(self, db, recruteur_integration_container, agent_role):
         etapes = EtapeRecrutementFactory.create_entity_batch()
-        agent, organisme = OrganismeFactory.create_model_with_agent(
+        agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.MEMBRE, etapes=etapes
         )
         utilisateur = UtilisateurFactory.create_entity(

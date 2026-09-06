@@ -12,7 +12,11 @@ from infrastructure.factories.identite.agent_django_factory import (
 from infrastructure.factories.identite.candidat_django_factory import (
     CandidatDjangoFactory,
 )
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
+    OrganismeDjangoFactory,
+    create_organisme_with_agent,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 fake = Faker()
@@ -55,9 +59,7 @@ def test_user_without_organisme_role_has_no_organisme_roles(
 def test_agent_with_role_has_organisme_roles(
     db, identite_integration_container, has_candidate_profile
 ):
-    agent, organisme = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
-    )
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.RESPONSABLE)
     if has_candidate_profile:
         CandidatDjangoFactory(utilisateur=agent.utilisateur)
 
@@ -75,13 +77,14 @@ def test_agent_with_role_has_organisme_roles(
 
 
 def test_agent_with_multiple_roles(db, identite_integration_container):
-    agent, organisme = OrganismeFactory.create_model_with_agent(
+    agent, organisme = create_organisme_with_agent(
         nom=fake.word(), role=AgentOrganismeRole.MEMBRE
     )
-    other_organisme = OrganismeFactory.create_model(
-        nom=fake.word(),
-        agent_id=agent.utilisateur_id,
-        role=AgentOrganismeRole.RESPONSABLE,
+    other_organisme = OrganismeDjangoFactory(nom=fake.word())
+    OrganismeAgentDjangoFactory(
+        organisme=other_organisme,
+        agent=agent,
+        role=AgentOrganismeRole.RESPONSABLE.value,
     )
     usecase = identite_integration_container.get_utilisateur_details_usecase()
 

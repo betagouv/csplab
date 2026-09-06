@@ -8,7 +8,9 @@ from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
@@ -32,7 +34,7 @@ def identite_integration_container_fixture(db):
 
 @pytest.fixture(name="organisme_id")
 def organisme_id_fixture(db):
-    return OrganismeFactory.create_model().id
+    return OrganismeDjangoFactory().id
 
 
 def test_create_agent(identite_integration_container, organisme_id):

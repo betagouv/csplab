@@ -23,7 +23,10 @@ from infrastructure.factories.candidate.candidature_factory import CandidatureFa
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+    create_organisme_with_agent,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
@@ -50,7 +53,7 @@ def usecase_fixture(recruteur_integration_container):
 
 class TestListerMesRecrutements:
     def _create_agent_responsable(self):
-        agent, organisme = OrganismeFactory.create_model_with_agent(
+        agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE
         )
         return agent.utilisateur_id, organisme
@@ -214,7 +217,7 @@ class TestListerMesRecrutementsRbac:
         )
 
     def test_responsable_organisme(self, usecase, statut):
-        agent, organisme = OrganismeFactory.create_model_with_agent(
+        agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE
         )
         (
@@ -235,9 +238,7 @@ class TestListerMesRecrutementsRbac:
             assert recrutement not in results._qs
 
     def test_membre_organisme(self, usecase, statut):
-        agent, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.MEMBRE
-        )
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
         (
             recrutement_in_org,
             recrutement_in_org_with_role,
@@ -257,7 +258,7 @@ class TestListerMesRecrutementsRbac:
 
     def test_non_membre_organisme(self, usecase, statut):
         agent = AgentDjangoFactory()
-        organisme = OrganismeFactory.create_model()
+        organisme = OrganismeDjangoFactory()
         self._create_recrutements(agent, organisme, statut)
 
         with pytest.raises(AccesOrganismeRefuse):

@@ -10,7 +10,10 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgent
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
+    create_organisme_with_agent,
+)
 
 ORGANISME_UUID = str(uuid4())
 
@@ -25,14 +28,16 @@ class TestOrganismeAgentsView:
         assert api_client.get(AGENTS_URL).status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_list_agents_from_real_db(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
             intitule_poste="Chargée de recrutement",
         )
-        autre_agent = OrganismeFactory.create_agent_in_organisme(
-            organisme.id, role=AgentOrganismeRole.MEMBRE, intitule_poste="Recruteur"
-        )
+        autre_agent = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.MEMBRE.value,
+            agent__intitule_poste="Recruteur",
+        ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
             kwargs={"organisme_uuid": str(organisme.id)},
@@ -67,13 +72,14 @@ class TestOrganismeAgentsView:
         assert data[str(autre_agent.utilisateur_id)]["poste"] == "Recruteur"
 
     def test_list_agents_excludes_revoked_agent(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
-        autre_agent = OrganismeFactory.create_agent_in_organisme(
-            organisme.id, role=AgentOrganismeRole.MEMBRE
-        )
+        autre_agent = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.MEMBRE.value,
+        ).agent
         OrganismeAgentModel.objects.filter(
             organisme_id=organisme.id, agent_id=autre_agent.utilisateur_id
         ).update(date_revocation=timezone.now())
@@ -94,9 +100,9 @@ class TestOrganismeAgentsView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_attach_agent_persists_to_db(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
         bare_agent = AgentDjangoFactory()
         url = reverse(
@@ -128,9 +134,9 @@ class TestOrganismeAgentsView:
         ).exists()
 
     def test_attach_agent_forbidden_for_membre(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.MEMBRE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
         bare_agent = AgentDjangoFactory()
         url = reverse(
@@ -152,13 +158,14 @@ class TestOrganismeAgentsView:
     def test_attach_agent_already_attached_returns_conflict(
         self, authenticated_client, test_user
     ):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
-        autre_agent = OrganismeFactory.create_agent_in_organisme(
-            organisme.id, role=AgentOrganismeRole.MEMBRE
-        )
+        autre_agent = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.MEMBRE.value,
+        ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
             kwargs={"organisme_uuid": str(organisme.id)},
@@ -205,13 +212,15 @@ class TestOrganismeAgentsView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_update_agent(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
-        autre_agent = OrganismeFactory.create_agent_in_organisme(
-            organisme.id, role=AgentOrganismeRole.MEMBRE, intitule_poste="Recruteur"
-        )
+        autre_agent = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.MEMBRE.value,
+            agent__intitule_poste="Recruteur",
+        ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
             kwargs={"organisme_uuid": str(organisme.id)},
@@ -241,13 +250,14 @@ class TestOrganismeAgentsView:
         )
 
     def test_update_agent_forbidden_for_membre(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.MEMBRE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
-        autre_agent = OrganismeFactory.create_agent_in_organisme(
-            organisme.id, role=AgentOrganismeRole.MEMBRE
-        )
+        autre_agent = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.MEMBRE.value,
+        ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
             kwargs={"organisme_uuid": str(organisme.id)},
@@ -267,9 +277,9 @@ class TestOrganismeAgentsView:
     def test_update_agent_returns_404_when_not_attached(
         self, authenticated_client, test_user
     ):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
         bare_agent = AgentDjangoFactory()
         url = reverse(
@@ -318,13 +328,14 @@ class TestOrganismeAgentsView:
     def test_update_agent_without_revoque_flag_does_not_set_date_revocation(
         self, authenticated_client, test_user
     ):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
-        autre_agent = OrganismeFactory.create_agent_in_organisme(
-            organisme.id, role=AgentOrganismeRole.MEMBRE
-        )
+        autre_agent = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.MEMBRE.value,
+        ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
             kwargs={"organisme_uuid": str(organisme.id)},
@@ -349,13 +360,14 @@ class TestOrganismeAgentsView:
         )
 
     def test_revoke_agent(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
-        autre_agent = OrganismeFactory.create_agent_in_organisme(
-            organisme.id, role=AgentOrganismeRole.MEMBRE
-        )
+        autre_agent = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.MEMBRE.value,
+        ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
             kwargs={"organisme_uuid": str(organisme.id)},
@@ -381,13 +393,14 @@ class TestOrganismeAgentsView:
         )
 
     def test_revoke_agent_forbidden_for_membre(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.MEMBRE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
-        autre_agent = OrganismeFactory.create_agent_in_organisme(
-            organisme.id, role=AgentOrganismeRole.MEMBRE
-        )
+        autre_agent = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.MEMBRE.value,
+        ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
             kwargs={"organisme_uuid": str(organisme.id)},
@@ -408,9 +421,9 @@ class TestOrganismeAgentsView:
     def test_revoke_agent_returns_404_when_not_attached(
         self, authenticated_client, test_user
     ):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
         bare_agent = AgentDjangoFactory()
         url = reverse(
