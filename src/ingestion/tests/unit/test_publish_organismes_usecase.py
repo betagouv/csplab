@@ -11,15 +11,18 @@ from application.usecases.publish_organismes import (
     PublishOrganismesUsecase,
 )
 from domain.gateways.publish_organismes_gateway import IPublishOrganismesGateway
+from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
 
 
-def _organisme() -> Organisme:
+def _organisme(external_id: str = "ext-1", referentiel: str = "FINESS") -> Organisme:
     return Organisme.build(
         entity_id=uuid4(),
         nom="Mairie de Test",
         versant=Verse.FPT,
         localisation=None,
         siret=SIRET(code="26060047300342"),
+        external_id=external_id,
+        referentiel=referentiel,
     )
 
 
@@ -31,8 +34,18 @@ def mock_gateway():
 
 
 @pytest.fixture
-def usecase(mock_gateway):
-    return PublishOrganismesUsecase(publish_organismes_gateway=mock_gateway)
+def mock_raw_organisme_repository():
+    repository = MagicMock(spec=IRawOrganismeRepository)
+    repository.mark_as_upserted_batch = AsyncMock()
+    return repository
+
+
+@pytest.fixture
+def usecase(mock_gateway, mock_raw_organisme_repository):
+    return PublishOrganismesUsecase(
+        publish_organismes_gateway=mock_gateway,
+        raw_organisme_repository=mock_raw_organisme_repository,
+    )
 
 
 @pytest.mark.asyncio
@@ -70,3 +83,28 @@ async def test_execute_propagates_gateway_error(usecase, mock_gateway):
 
     with pytest.raises(RuntimeError, match="API down"):
         await usecase.execute(PublishOrganismesCommand(organismes=[_organisme()]))
+
+
+@pytest.mark.asyncio
+async def test_execute_marks_raw_organismes_as_upserted(
+    usecase, mock_raw_organisme_repository
+):
+    organisme = _organisme(external_id="ext-1", referentiel="FINESS")
+
+    await usecase.execute(PublishOrganismesCommand(organismes=[organisme]))
+
+    mock_raw_organisme_repository.mark_as_upserted_batch.assert_awaited_once()
+    args = mock_raw_organisme_repository.mark_as_upserted_batch.await_args.args
+    assert args[0] == [("FINESS", "ext-1")]
+
+
+@pytest.mark.asyncio
+async def test_execute_does_not_mark_upserted_when_publish_fails(
+    usecase, mock_gateway, mock_raw_organisme_repository
+):
+    mock_gateway.publish.side_effect = RuntimeError("API down")
+
+    with pytest.raises(RuntimeError):
+        await usecase.execute(PublishOrganismesCommand(organismes=[_organisme()]))
+
+    mock_raw_organisme_repository.mark_as_upserted_batch.assert_not_awaited()

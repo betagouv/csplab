@@ -258,10 +258,22 @@ def archive_offer_usecase(mock_raw_offer_repository: MagicMock) -> ArchiveOfferU
 
 
 @pytest.fixture
-def publish_organismes_usecase() -> PublishOrganismesUsecase:
+def mock_raw_organisme_repository() -> MagicMock:
+    mock_repo = MagicMock()
+    mock_repo.mark_as_upserted_batch = AsyncMock()
+    return mock_repo
+
+
+@pytest.fixture
+def publish_organismes_usecase(
+    mock_raw_organisme_repository: MagicMock,
+) -> PublishOrganismesUsecase:
     container = Container()
     container.config.from_dict(
         {"web_base_url": WEB_BASE_URL, "web_api_key": WEB_API_KEY, "database_url": None}
+    )
+    container.raw_organisme_repository.override(
+        providers.Object(mock_raw_organisme_repository)
     )
     usecase = container.publish_organismes_usecase()
     assert usecase is not None

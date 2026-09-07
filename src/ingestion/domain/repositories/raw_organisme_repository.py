@@ -16,3 +16,6 @@ class IRawOrganismeRepository(Protocol):
     async def mark_as_cleaned_batch(
         self, ids: list[UUID], cleaned_at: datetime
     ) -> None: ...
+    async def mark_as_upserted_batch(
+        self, referentiel_external_ids: list[tuple[str, str]], upsert_at: datetime
+    ) -> None: ...
