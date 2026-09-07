@@ -56,13 +56,13 @@ def agent_fixture(db):
 
 
 @pytest.fixture(name="agent_id")
-def agent_id_fixture(db) -> UUID:
-    return AgentDjangoFactory.create().utilisateur_id
+def agent_id_fixture(agent) -> UUID:
+    return agent.utilisateur_id
 
 
 @pytest.fixture(name="existing_note_model")
 def existing_note_model_fixture(candidature, agent) -> NoteModel:
-    return NoteDjangoFactory(candidature=candidature, publie_par=agent)
+    return NoteDjangoFactory.create(candidature=candidature, publie_par=agent)
 
 
 @pytest.fixture(name="note_save_raises_db_error")
