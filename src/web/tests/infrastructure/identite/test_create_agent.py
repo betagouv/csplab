@@ -5,8 +5,15 @@ from application.identite.usecases.create_agent import CreateAgentInput
 from config.app_config import AppConfig
 from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
 from infrastructure.di.identite.identite_container import IdentiteContainer
-from infrastructure.factories.identite.agent_factory import AgentFactory
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -27,7 +34,7 @@ def identite_integration_container_fixture(db):
 
 @pytest.fixture(name="organisme_id")
 def organisme_id_fixture(db):
-    return OrganismeFactory.create_model().id
+    return OrganismeDjangoFactory().id
 
 
 def test_create_agent(identite_integration_container, organisme_id):
@@ -49,7 +56,7 @@ def test_create_agent(identite_integration_container, organisme_id):
 
 
 def test_create_agent_with_existing_user(identite_integration_container, organisme_id):
-    existing_user = UtilisateurFactory.create_model(email=fake.email())
+    existing_user = UtilisateurDjangoFactory(email=fake.email())
     input_data = CreateAgentInput(
         email=existing_user.email,
         prenom=fake.first_name(),
@@ -65,7 +72,7 @@ def test_create_agent_with_existing_user(identite_integration_container, organis
 
 
 def test_cannot_create_agent_twice(identite_integration_container, organisme_id):
-    existing_agent = AgentFactory.create_model()
+    existing_agent = AgentDjangoFactory()
     input_data = CreateAgentInput(
         email=existing_agent.utilisateur.email,
         prenom=fake.first_name(),

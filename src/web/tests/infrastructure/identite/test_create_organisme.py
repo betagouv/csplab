@@ -14,6 +14,9 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from infrastructure.di.identite.identite_container import IdentiteContainer
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.gateways.shared.logger import LoggerService
@@ -66,7 +69,7 @@ def test_create_organisme_refuse_non_staff(db, identite_integration_container):
 
 
 def test_raise_siret_already_exists(db, identite_integration_container):
-    organisme = OrganismeFactory.create_model()
+    organisme = OrganismeDjangoFactory()
     command = CreateOrganismeCommand(
         name=organisme.nom,
         verse=organisme.versant,
@@ -81,7 +84,7 @@ def test_raise_siret_already_exists(db, identite_integration_container):
 
 
 def test_get_organisme_by_id(identite_integration_container):
-    model = OrganismeFactory.create_model(nom="Ministère de la Justice")
+    model = OrganismeDjangoFactory(nom="Ministère de la Justice")
     repo = identite_integration_container.postgres_organisme_repository()
 
     organisme = repo.get_by_id(model.id)
@@ -98,7 +101,7 @@ def test_get_organisme_by_id_nexiste_pas(identite_integration_container):
 
 
 def test_save_updates_existing_organisme(identite_integration_container):
-    model = OrganismeFactory.create_model(
+    model = OrganismeDjangoFactory(
         nom="Ancien nom", referentiel="FINESS", external_id="ext-456"
     )
     repo = identite_integration_container.postgres_organisme_repository()
@@ -121,7 +124,7 @@ def test_save_updates_existing_organisme(identite_integration_container):
 
 def test_save_preserves_created_at_and_etapes(identite_integration_container):
     etapes = [{"entity_id": str(uuid4()), "categorie": "AUTRE", "nom": "Tri CV"}]
-    model = OrganismeFactory.create_model(nom="Ancien nom")
+    model = OrganismeDjangoFactory(nom="Ancien nom")
     model.etapes = etapes
     model.save()
     created_at_before = model.created_at
@@ -156,8 +159,8 @@ def test_save_organisme_inexistant_leve_organisme_nexiste_pas(
 
 
 def test_get_ids_by_referentiel_and_external_id_batch(identite_integration_container):
-    model_a = OrganismeFactory.create_model(referentiel="FINESS", external_id="ext-a")
-    model_b = OrganismeFactory.create_model(referentiel="RNE", external_id="ext-b")
+    model_a = OrganismeDjangoFactory(referentiel="FINESS", external_id="ext-a")
+    model_b = OrganismeDjangoFactory(referentiel="RNE", external_id="ext-b")
     repo = identite_integration_container.postgres_organisme_repository()
 
     ids = repo.get_ids_by_referentiel_and_external_id(
@@ -179,7 +182,7 @@ def test_get_ids_by_referentiel_and_external_id_batch_vide(
 
 
 def test_upsert_batch_cree_et_met_a_jour(identite_integration_container):
-    existing = OrganismeFactory.create_model(
+    existing = OrganismeDjangoFactory(
         nom="Ancien nom", referentiel="FINESS", external_id="ext-existing"
     )
     repo = identite_integration_container.postgres_organisme_repository()

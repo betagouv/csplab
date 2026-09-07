@@ -6,9 +6,17 @@ from domain.identite.errors.identite_errors import UtilisateurNexistePas
 from domain.identite.value_objects.organisme_role import OrganismeRole
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.identite.identite_container import IdentiteContainer
-from infrastructure.factories.identite.agent_factory import AgentFactory
-from infrastructure.factories.identite.candidat_factory import CandidatFactory
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
+from infrastructure.factories.identite.candidat_django_factory import (
+    CandidatDjangoFactory,
+)
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
+    OrganismeDjangoFactory,
+    create_organisme_with_agent,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 fake = Faker()
@@ -33,7 +41,7 @@ def test_get_unknown_uuid(db, identite_integration_container):
 
 @pytest.mark.parametrize(
     "create_user_profile",
-    [CandidatFactory.create_model, AgentFactory.create_model],
+    [CandidatDjangoFactory, AgentDjangoFactory],
     ids=["candidat", "agent_without_role"],
 )
 def test_user_without_organisme_role_has_no_organisme_roles(
@@ -51,11 +59,9 @@ def test_user_without_organisme_role_has_no_organisme_roles(
 def test_agent_with_role_has_organisme_roles(
     db, identite_integration_container, has_candidate_profile
 ):
-    agent, organisme = OrganismeFactory.create_model_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
-    )
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.RESPONSABLE)
     if has_candidate_profile:
-        CandidatFactory.create_model(username=agent.utilisateur.username)
+        CandidatDjangoFactory(utilisateur=agent.utilisateur)
 
     usecase = identite_integration_container.get_utilisateur_details_usecase()
 
@@ -71,13 +77,14 @@ def test_agent_with_role_has_organisme_roles(
 
 
 def test_agent_with_multiple_roles(db, identite_integration_container):
-    agent, organisme = OrganismeFactory.create_model_with_agent(
+    agent, organisme = create_organisme_with_agent(
         nom=fake.word(), role=AgentOrganismeRole.MEMBRE
     )
-    other_organisme = OrganismeFactory.create_model(
-        nom=fake.word(),
-        agent_id=agent.utilisateur_id,
-        role=AgentOrganismeRole.RESPONSABLE,
+    other_organisme = OrganismeDjangoFactory(nom=fake.word())
+    OrganismeAgentDjangoFactory(
+        organisme=other_organisme,
+        agent=agent,
+        role=AgentOrganismeRole.RESPONSABLE.value,
     )
     usecase = identite_integration_container.get_utilisateur_details_usecase()
 

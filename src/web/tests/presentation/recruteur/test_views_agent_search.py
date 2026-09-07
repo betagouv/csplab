@@ -4,8 +4,12 @@ from django.urls import reverse
 from rest_framework import status
 
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
-from infrastructure.factories.identite.agent_factory import AgentFactory
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
 
 ORGANISME_UUID = str(uuid4())
 
@@ -22,11 +26,11 @@ class TestAgentRechercheView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_responsable_finds_agent_by_email(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
-        autre_agent = AgentFactory.create_model()
+        autre_agent = AgentDjangoFactory()
         url = reverse(
             "recruteur:organisme-parametres-agents-recherche",
             kwargs={"organisme_uuid": str(organisme.id)},
@@ -46,9 +50,9 @@ class TestAgentRechercheView:
         }
 
     def test_unknown_email_returns_404(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
         url = reverse(
             "recruteur:organisme-parametres-agents-recherche",
@@ -73,9 +77,9 @@ class TestAgentRechercheView:
         assert response.json() == {"error": f"Organisme introuvable : {organisme_uuid}"}
 
     def test_membre_is_forbidden(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.MEMBRE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
         url = reverse(
             "recruteur:organisme-parametres-agents-recherche",
@@ -87,9 +91,9 @@ class TestAgentRechercheView:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_missing_email_returns_400(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
         url = reverse(
             "recruteur:organisme-parametres-agents-recherche",
@@ -101,9 +105,9 @@ class TestAgentRechercheView:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_invalid_email_returns_400(self, authenticated_client, test_user):
-        _, organisme = OrganismeFactory.create_model_with_agent(
+        _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
-            username=test_user.username,
+            utilisateur=test_user,
         )
         url = reverse(
             "recruteur:organisme-parametres-agents-recherche",

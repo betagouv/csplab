@@ -12,14 +12,16 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from infrastructure.di.identite.identite_container import IdentiteContainer
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
 
 @pytest.fixture(name="organisme")
 def organisme_fixture():
-    return OrganismeFactory.create_model()
+    return OrganismeDjangoFactory()
 
 
 @pytest.fixture(name="identite_integration_container")

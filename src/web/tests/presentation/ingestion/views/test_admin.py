@@ -9,10 +9,10 @@ from django_otp.oath import totp
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 import config.urls  # noqa: F401  # imported for its side effect: runs the OTPAdminSite swap
-from infrastructure.factories.identite.utilisateur_factory import (
-    DEFAULT_PASSWORD,
-    UtilisateurFactory,
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
 )
+from infrastructure.factories.identite.utilisateur_factory import DEFAULT_PASSWORD
 
 
 class TestAdminOTPRequired:
@@ -23,10 +23,7 @@ class TestAdminOTPRequired:
     def test_admin_shows_totp_input_for_staff_without_otp_device(
         self, db, client: Client
     ):
-        user = UtilisateurFactory.create_model()
-        user.is_staff = True
-        user.is_superuser = True
-        user.save()
+        user = UtilisateurDjangoFactory(is_staff=True, is_superuser=True)
 
         client.login(username=user.email, password=DEFAULT_PASSWORD)
         response = client.get("/admin/", follow=True)
@@ -35,10 +32,7 @@ class TestAdminOTPRequired:
         assert b'id="id_otp_token"' in response.content
 
     def test_admin_grants_access_with_valid_totp_token(self, db, client: Client):
-        user = UtilisateurFactory.create_model()
-        user.is_staff = True
-        user.is_superuser = True
-        user.save()
+        user = UtilisateurDjangoFactory(is_staff=True, is_superuser=True)
 
         device = TOTPDevice.objects.create(user=user, confirmed=True)
         token = totp(device.bin_key)

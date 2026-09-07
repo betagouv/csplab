@@ -1,7 +1,9 @@
 import pytest
 
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from infrastructure.repositories.recruteur.postgres_recrutement_agent_repository import (  # noqa: E501
     PostgresRecrutementAgentRepository,
@@ -14,7 +16,7 @@ def repository_fixture():
 
 
 def test_get_role_returns_assigned_role(db, repository):
-    agent = AgentFactory.create_model()
+    agent = AgentDjangoFactory()
     agent_id = agent.utilisateur_id
     recrutement = RecrutementFactory.create_model(
         agent_id=agent_id,
@@ -27,7 +29,7 @@ def test_get_role_returns_assigned_role(db, repository):
 
 
 def test_get_role_returns_none_when_no_liaison(db, repository):
-    agent = AgentFactory.create_model()
+    agent = AgentDjangoFactory()
     recrutement = RecrutementFactory.create_model()
 
     role = repository.get_role(

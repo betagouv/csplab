@@ -20,8 +20,13 @@ from domain.recruteur.value_objects.statut_recrutement import (
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
-from infrastructure.factories.identite.agent_factory import AgentFactory
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+    create_organisme_with_agent,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
@@ -48,7 +53,7 @@ def usecase_fixture(recruteur_integration_container):
 
 class TestListerMesRecrutements:
     def _create_agent_responsable(self):
-        agent, organisme = OrganismeFactory.create_model_with_agent(
+        agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE
         )
         return agent.utilisateur_id, organisme
@@ -212,7 +217,7 @@ class TestListerMesRecrutementsRbac:
         )
 
     def test_responsable_organisme(self, usecase, statut):
-        agent, organisme = OrganismeFactory.create_model_with_agent(
+        agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE
         )
         (
@@ -233,9 +238,7 @@ class TestListerMesRecrutementsRbac:
             assert recrutement not in results._qs
 
     def test_membre_organisme(self, usecase, statut):
-        agent, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.MEMBRE
-        )
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
         (
             recrutement_in_org,
             recrutement_in_org_with_role,
@@ -254,8 +257,8 @@ class TestListerMesRecrutementsRbac:
             assert recrutement not in results._qs
 
     def test_non_membre_organisme(self, usecase, statut):
-        agent = AgentFactory.create_model()
-        organisme = OrganismeFactory.create_model()
+        agent = AgentDjangoFactory()
+        organisme = OrganismeDjangoFactory()
         self._create_recrutements(agent, organisme, statut)
 
         with pytest.raises(AccesOrganismeRefuse):

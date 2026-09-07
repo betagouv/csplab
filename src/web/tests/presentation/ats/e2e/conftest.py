@@ -6,7 +6,9 @@ from django.test import Client
 from playwright.sync_api import BrowserContext, Page
 
 from infrastructure.django_apps.users.models import UserModel
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -28,7 +30,7 @@ def insecure_cookies(settings) -> None:
 
 @pytest.fixture
 def agent_user(db) -> UserModel:
-    return AgentFactory.create_model().utilisateur
+    return AgentDjangoFactory.create().utilisateur
 
 
 @pytest.fixture

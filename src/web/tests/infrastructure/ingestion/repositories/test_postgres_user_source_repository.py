@@ -1,6 +1,8 @@
 import pytest
 
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
@@ -14,7 +16,7 @@ def repository_fixture(ingestion_container):
 
 @pytest.fixture(name="utilisateur_with_source")
 def utilisateur_with_source_fixture():
-    user_model = UtilisateurFactory.create_model()
+    user_model = UtilisateurDjangoFactory()
     source = SourceDjangoFactory()
     user_model.sources.add(source)
     return UtilisateurMapper().to_domain(user_model), source
@@ -22,7 +24,7 @@ def utilisateur_with_source_fixture():
 
 @pytest.fixture(name="utilisateur_without_source")
 def utilisateur_without_source_fixture():
-    user_model = UtilisateurFactory.create_model()
+    user_model = UtilisateurDjangoFactory()
     return UtilisateurMapper().to_domain(user_model)
 
 

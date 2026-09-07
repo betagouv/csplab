@@ -12,7 +12,10 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.identite.identite_container import IdentiteContainer
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+    create_organisme_with_agent,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from infrastructure.gateways.shared.logger import LoggerService
@@ -20,7 +23,7 @@ from infrastructure.gateways.shared.logger import LoggerService
 
 @pytest.fixture(name="organismes")
 def organismes_list_fixture():
-    return OrganismeFactory.create_model_batch()
+    return OrganismeDjangoFactory.create_batch(3)
 
 
 @pytest.fixture(name="identite_integration_container")
@@ -52,10 +55,10 @@ def test_list_organismes(db, organismes, identite_integration_container):
 
 
 def test_list_organismes_with_counts(db, identite_integration_container):
-    _, organisme_with_agents = OrganismeFactory.create_model_with_agent(
+    _, organisme_with_agents = create_organisme_with_agent(
         role=AgentOrganismeRole.MEMBRE,
     )
-    organisme_with_recruitments = OrganismeFactory.create_model()
+    organisme_with_recruitments = OrganismeDjangoFactory()
     RecrutementFactory.create_model(organisme_id=organisme_with_recruitments.id)
     RecrutementFactory.create_model(organisme_id=organisme_with_recruitments.id)
 

@@ -20,8 +20,12 @@ from infrastructure.exceptions.exceptions import InfrastructureError
 from infrastructure.factories.candidate.candidature_factory import (
     CandidatureFactory,
 )
-from infrastructure.factories.identite.agent_factory import AgentFactory
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from infrastructure.gateways.shared.logger import LoggerService
@@ -78,7 +82,7 @@ class TestChangerEtapeCandidaturesUsecase:
         role_organisme,
         role_recrutement,
     ):
-        agent, organisme = OrganismeFactory.create_model_with_agent(role=role_organisme)
+        agent, organisme = create_organisme_with_agent(role=role_organisme)
         agent_id = agent.utilisateur_id
         recrutement = RecrutementFactory.create_model(
             organisme_id=organisme.id, agent_id=agent_id, agent_role=role_recrutement
@@ -107,9 +111,7 @@ class TestChangerEtapeCandidaturesUsecase:
         self,
         usecase,
     ):
-        agent, organisme = OrganismeFactory.create_model_with_agent(
-            role=AgentOrganismeRole.MEMBRE
-        )
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
         agent_id = agent.utilisateur_id
         recrutement = RecrutementFactory.create_model(
             organisme_id=organisme.id,
@@ -133,7 +135,7 @@ class TestChangerEtapeCandidaturesUsecase:
             usecase.execute(command)
 
     def test_candidature_inexistante(self, recrutement_mapper, usecase):
-        agent_model = AgentFactory.create_model()
+        agent_model = AgentDjangoFactory()
 
         recrutement_model = RecrutementFactory.create_model()
         recrutement = recrutement_mapper.to_domain(recrutement_model)

@@ -11,7 +11,9 @@ from domain.recruteur.errors.note_errors import NoteIntrouvable
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.recruteur.note_factory import NoteFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.note_mapper import NoteMapper
@@ -42,7 +44,7 @@ def candidature_id_fixture(db) -> UUID:
 
 @pytest.fixture(name="agent_id")
 def agent_id_fixture(db) -> UUID:
-    return AgentFactory.create_model().utilisateur_id
+    return AgentDjangoFactory.create().utilisateur_id
 
 
 @pytest.fixture(name="existing_note_model")
