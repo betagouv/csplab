@@ -184,14 +184,24 @@ class SetAgentRoleOnOrganismeSerializer(serializers.Serializer):
 
 
 class UpdateAgentOrganismeSerializer(serializers.Serializer):
+    CHAMPS_MODIFIABLES = ("role", "nom", "prenom", "poste", "date_revocation")
+
     agent_id = serializers.UUIDField()
     role = serializers.ChoiceField(
-        choices=[(r.value, r.value) for r in AgentOrganismeRole]
+        choices=[(r.value, r.value) for r in AgentOrganismeRole],
+        required=False,
     )
     nom = serializers.CharField(required=False)
     prenom = serializers.CharField(required=False)
     poste = serializers.CharField(required=False)
     date_revocation = serializers.DateTimeField(required=False)
+
+    def validate(self, attrs):
+        if not any(attrs.get(champ) for champ in self.CHAMPS_MODIFIABLES):
+            raise serializers.ValidationError(
+                "Renseignez au moins un champ à modifier."
+            )
+        return attrs
 
 
 class RechercheAgentQuerySerializer(serializers.Serializer):
