@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import Engine, delete, or_, update
+from sqlalchemy import Engine, delete, or_, tuple_, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlmodel import Session, col, select
 
@@ -91,5 +91,30 @@ class RawOrganismeRepository(IRawOrganismeRepository):
                 update(RawOrganismeModel)
                 .where(col(RawOrganismeModel.id).in_(ids))
                 .values(cleaned_at=cleaned_at)
+            )
+            session.commit()
+
+    async def mark_as_upserted_batch(
+        self, referentiel_external_ids: list[tuple[str, str]], upsert_at: datetime
+    ) -> None:
+        if not referentiel_external_ids:
+            return
+        await asyncio.to_thread(
+            self._mark_as_upserted_batch_sync, referentiel_external_ids, upsert_at
+        )
+
+    def _mark_as_upserted_batch_sync(
+        self, referentiel_external_ids: list[tuple[str, str]], upsert_at: datetime
+    ) -> None:
+        with Session(self._engine) as session:
+            session.execute(
+                update(RawOrganismeModel)
+                .where(
+                    tuple_(
+                        col(RawOrganismeModel.referentiel),
+                        col(RawOrganismeModel.external_id),
+                    ).in_(referentiel_external_ids)
+                )
+                .values(upsert_at=upsert_at)
             )
             session.commit()

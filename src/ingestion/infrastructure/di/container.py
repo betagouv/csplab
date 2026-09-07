@@ -205,6 +205,7 @@ class Container(containers.DeclarativeContainer):
         providers.Factory(
             PublishOrganismesUsecase,
             publish_organismes_gateway=publish_organismes_gateway,
+            raw_organisme_repository=raw_organisme_repository,
         )
     )
 

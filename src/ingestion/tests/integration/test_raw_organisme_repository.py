@@ -355,3 +355,38 @@ async def test_mark_as_cleaned_batch_with_empty_ids_is_noop(
 
     saved = _fetch(db_engine, REFERENTIEL, EXTERNAL_ID)
     assert saved.cleaned_at is None
+
+
+@pytest.mark.asyncio
+async def test_mark_as_upserted_batch_sets_upsert_at(
+    raw_organisme_repository, db_engine
+):
+    organisme = RawOrganisme(
+        referentiel=REFERENTIEL, millesime="2026-08-19", external_id=EXTERNAL_ID
+    )
+    await raw_organisme_repository.upsert_batch([organisme])
+    upsert_at = datetime.now(tz=timezone.utc)
+
+    await raw_organisme_repository.mark_as_upserted_batch(
+        [(REFERENTIEL, EXTERNAL_ID)], upsert_at
+    )
+
+    saved = _fetch(db_engine, REFERENTIEL, EXTERNAL_ID)
+    assert saved.upsert_at is not None
+
+
+@pytest.mark.asyncio
+async def test_mark_as_upserted_batch_with_empty_list_is_noop(
+    raw_organisme_repository, db_engine
+):
+    organisme = RawOrganisme(
+        referentiel=REFERENTIEL, millesime="2026-08-19", external_id=EXTERNAL_ID
+    )
+    await raw_organisme_repository.upsert_batch([organisme])
+
+    await raw_organisme_repository.mark_as_upserted_batch(
+        [], datetime.now(tz=timezone.utc)
+    )
+
+    saved = _fetch(db_engine, REFERENTIEL, EXTERNAL_ID)
+    assert saved.upsert_at is None
