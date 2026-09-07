@@ -46,6 +46,33 @@ _SEED_SENTINEL_EMAIL = "marie.dupont.gouv.fr@yopmail.com"
 _ORGANISME_SIRET = "21050023700354"
 _ORGANISME_UUID = UUID("00000000-0000-0000-0000-000000000000")
 
+# Organismes supplémentaires : le second sert à éprouver la bascule d'organisme,
+# le troisième reste sans recrutement pour éprouver l'état vide.
+_BRIANCON_UUID = UUID("00000000-0000-0000-0000-000000000001")
+_CHU_UUID = UUID("00000000-0000-0000-0000-000000000002")
+
+_ORGANISMES_SECONDAIRES_SPECS = [
+    {
+        "entity_id": _BRIANCON_UUID,
+        "nom": "Commune de Briançon",
+        "versant": Verse.FPT,
+        "siret": "21050056100019",
+    },
+    {
+        "entity_id": _CHU_UUID,
+        "nom": "CHU de Bordeaux",
+        "versant": Verse.FPH,
+        "siret": "26330001500017",
+    },
+]
+
+_ALL_SEED_ORGANISME_UUIDS = [_ORGANISME_UUID] + [
+    spec["entity_id"] for spec in _ORGANISMES_SECONDAIRES_SPECS
+]
+_ALL_SEED_ORGANISME_SIRETS = [_ORGANISME_SIRET] + [
+    spec["siret"] for spec in _ORGANISMES_SECONDAIRES_SPECS
+]
+
 _AGENTS_SPECS = [
     {"prenom": "Marie", "nom": "Dupont", "email": _SEED_SENTINEL_EMAIL},
     {
@@ -62,6 +89,11 @@ _AGENTS_SPECS = [
         "prenom": "David",
         "nom": "Roux",
         "email": "david.roux.gouv.fr@yopmail.com",
+    },
+    {
+        "prenom": "Marc",
+        "nom": "Pelletier",
+        "email": "marc.pelletier.gouv.fr@yopmail.com",
     },
 ]
 
@@ -94,6 +126,8 @@ _SEED_OFFER_EXTERNAL_IDS = [
     "SEED-ACTIF-005",
     "SEED-ACTIF-006",
     "SEED-ACTIF-007",
+    "SEED-B-ACTIF-001",
+    "SEED-B-ACTIF-002",
     "SEED-ARCHIVE-001",
     "SEED-ARCHIVE-002",
     "SEED-ARCHIVE-003",
@@ -120,7 +154,9 @@ def _delete_seed_data() -> None:
             "username", flat=True
         )
     )
-    OrganismeAgentModel.objects.filter(organisme_id=_ORGANISME_UUID).delete()
+    OrganismeAgentModel.objects.filter(
+        organisme_id__in=_ALL_SEED_ORGANISME_UUIDS
+    ).delete()
     ProfilAgentModel.objects.filter(utilisateur_id__in=seed_usernames).delete()
     ProfilCandidatModel.objects.filter(utilisateur_id__in=seed_usernames).delete()
     UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).delete()
@@ -129,7 +165,7 @@ def _delete_seed_data() -> None:
     MetierModel.objects.filter(
         offer_family_code__in=_SEED_METIER_OFFER_FAMILY_CODES
     ).delete()
-    OrganismeModel.objects.filter(siret=_ORGANISME_SIRET).delete()
+    OrganismeModel.objects.filter(siret__in=_ALL_SEED_ORGANISME_SIRETS).delete()
 
 
 def seed_recruteur_datas(force: bool = False) -> dict:
@@ -160,6 +196,24 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         ]
     )
 
+    for spec in _ORGANISMES_SECONDAIRES_SPECS:
+        OrganismeFactory.create_model(
+            entity_id=spec["entity_id"],
+            nom=spec["nom"],
+            versant=spec["versant"],
+            siret=SIRET(code=spec["siret"]),
+        )
+        OrganismeModel.objects.filter(id=spec["entity_id"]).update(
+            etapes=[
+                {
+                    "entity_id": str(e.entity_id),
+                    "categorie": e.categorie.value,
+                    "nom": e.nom,
+                }
+                for e in EtapeRecrutementFactory.create_entity_batch()
+            ]
+        )
+
     # ------------------------------------------------------------------ #
     # Métiers                                                            #
     # ------------------------------------------------------------------ #
@@ -184,20 +238,23 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         for spec in _AGENTS_SPECS
     ]
 
-    # Marie (agents[0]) est responsable de l'organisme, Paul et Claire en sont
-    # membres ; David (agents[3]) reste hors de l'organisme pour tester le refus.
-    OrganismeAgentModel(
-        id=uuid4(),
-        organisme_id=_ORGANISME_UUID,
-        agent_id=agents[0].utilisateur_id,  # type: ignore[attr-defined]
-        role=AgentOrganismeRole.RESPONSABLE.value,
-    ).save()
-    for agent in agents[1:3]:
+    # Marie est responsable du premier organisme, Paul et Claire en sont membres.
+    # Marc est membre du premier et responsable du second : c'est lui qui permet
+    # d'éprouver la bascule d'organisme et l'apparition des pages de paramètres.
+    # David ne l'est d'aucun, pour éprouver la navigation vide et le refus d'accès.
+    _ATTACHEMENTS = [
+        (_ORGANISME_UUID, 0, AgentOrganismeRole.RESPONSABLE),
+        (_ORGANISME_UUID, 1, AgentOrganismeRole.MEMBRE),
+        (_ORGANISME_UUID, 2, AgentOrganismeRole.MEMBRE),
+        (_ORGANISME_UUID, 4, AgentOrganismeRole.MEMBRE),
+        (_BRIANCON_UUID, 4, AgentOrganismeRole.RESPONSABLE),
+    ]
+    for organisme_uuid, agent_index, role in _ATTACHEMENTS:
         OrganismeAgentModel(
             id=uuid4(),
-            organisme_id=_ORGANISME_UUID,
-            agent_id=agent.utilisateur_id,  # type: ignore[attr-defined]
-            role=AgentOrganismeRole.MEMBRE.value,
+            organisme_id=organisme_uuid,
+            agent_id=agents[agent_index].utilisateur_id,  # type: ignore[attr-defined]
+            role=role.value,
         ).save()
 
     # ------------------------------------------------------------------ #
@@ -307,6 +364,28 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     ]
 
     # ------------------------------------------------------------------ #
+    # Offres du second organisme                                         #
+    # ------------------------------------------------------------------ #
+    offres_briancon = [
+        OfferFactory.create_model(
+            title="Agent technique polyvalent",
+            reference="REF-2025-B01",
+            external_id="SEED-B-ACTIF-001",
+            verse=Verse.FPT,
+            category=Category.C,
+            publication_date=datetime(2025, 5, 12, tzinfo=UTC),
+        ),
+        OfferFactory.create_model(
+            title="Responsable des services techniques",
+            reference="REF-2025-B02",
+            external_id="SEED-B-ACTIF-002",
+            verse=Verse.FPT,
+            category=Category.B,
+            publication_date=datetime(2025, 5, 20, tzinfo=UTC),
+        ),
+    ]
+
+    # ------------------------------------------------------------------ #
     # Candidats (8)                                                      #
     # ------------------------------------------------------------------ #
     candidats = [
@@ -320,28 +399,55 @@ def seed_recruteur_datas(force: bool = False) -> dict:
     marie_id = agents[0].utilisateur_id  # type: ignore[attr-defined]
     paul_id = agents[1].utilisateur_id  # type: ignore[attr-defined]
     claire_id = agents[2].utilisateur_id  # type: ignore[attr-defined]
-    david_id = agents[3].utilisateur_id  # type: ignore[attr-defined]
+    marc_id = agents[4].utilisateur_id  # type: ignore[attr-defined]
 
     recrutements_specs: list[
-        tuple[OfferModel, UUID, tuple[UUID, AgentRecrutementRole] | None]
+        tuple[UUID, OfferModel, UUID, tuple[UUID, AgentRecrutementRole] | None]
     ] = [
-        (offres_actives[0], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
-        (offres_actives[1], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
-        (offres_actives[2], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
-        (offres_actives[3], claire_id, (david_id, AgentRecrutementRole.CONTRIBUTEUR)),
-        (offres_actives[4], claire_id, None),
-        (offres_actives[5], claire_id, None),
-        (offres_actives[6], marie_id, (paul_id, AgentRecrutementRole.RECRUTEUR)),
-        (offres_archivees[0], claire_id, None),
-        (offres_archivees[1], claire_id, None),
-        (offres_archivees[2], claire_id, None),
+        (
+            _ORGANISME_UUID,
+            offres_actives[0],
+            marie_id,
+            (paul_id, AgentRecrutementRole.RECRUTEUR),
+        ),
+        (
+            _ORGANISME_UUID,
+            offres_actives[1],
+            marie_id,
+            (paul_id, AgentRecrutementRole.RECRUTEUR),
+        ),
+        (
+            _ORGANISME_UUID,
+            offres_actives[2],
+            marie_id,
+            (paul_id, AgentRecrutementRole.RECRUTEUR),
+        ),
+        (
+            _ORGANISME_UUID,
+            offres_actives[3],
+            claire_id,
+            (paul_id, AgentRecrutementRole.CONTRIBUTEUR),
+        ),
+        (_ORGANISME_UUID, offres_actives[4], claire_id, None),
+        (_ORGANISME_UUID, offres_actives[5], claire_id, None),
+        (
+            _ORGANISME_UUID,
+            offres_actives[6],
+            marie_id,
+            (paul_id, AgentRecrutementRole.RECRUTEUR),
+        ),
+        (_ORGANISME_UUID, offres_archivees[0], claire_id, None),
+        (_ORGANISME_UUID, offres_archivees[1], claire_id, None),
+        (_ORGANISME_UUID, offres_archivees[2], claire_id, None),
+        (_BRIANCON_UUID, offres_briancon[0], marc_id, None),
+        (_BRIANCON_UUID, offres_briancon[1], marc_id, None),
     ]
 
     recrutements = []
-    for offre, responsable_id, extra_agent in recrutements_specs:
+    for organisme_uuid, offre, responsable_id, extra_agent in recrutements_specs:
         recrutement = RecrutementFactory.create_model(
             offre_id=offre.id,
-            organisme_id=_ORGANISME_UUID,
+            organisme_id=organisme_uuid,
             agent_id=responsable_id,
             agent_role=AgentRecrutementRole.RESPONSABLE,
         )
