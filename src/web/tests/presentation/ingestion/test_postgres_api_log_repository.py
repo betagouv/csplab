@@ -7,7 +7,9 @@ from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
 from infrastructure.factories.api_log_factory import ApiLogFactory
 from infrastructure.factories.datetime_utils import date_to_aware_datetime
-from infrastructure.factories.ingestion.api_log_model_factory import ApiLogModelFactory
+from infrastructure.factories.ingestion.api_log_django_factory import (
+    ApiLogDjangoFactory,
+)
 
 TODAY = date(2026, 6, 10)
 YESTERDAY = date(2026, 6, 9)
@@ -42,13 +44,13 @@ class TestGetCountsByDate:
         assert repository.get_counts_by_date(YESTERDAY) == []
 
     def test_returns_correct_aggregation(self, db, repository):
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="GET",
             token_type="jwt",  # noqa: S106
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="GET",
             token_type="jwt",  # noqa: S106
@@ -68,13 +70,13 @@ class TestGetCountsByDate:
         ]
 
     def test_groups_by_method(self, db, repository):
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             method="GET",
             path="/api/v1/offres/",
             token_type=None,
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             method="POST",
             path="/api/v1/offres/",
             token_type=None,
@@ -89,13 +91,13 @@ class TestGetCountsByDate:
             assert row.count == 1
 
     def test_groups_by_path(self, db, repository):
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             method="GET",
             path="/api/v1/offres/",
             token_type=None,
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             method="GET",
             path="/api/v1/metiers/",
             token_type=None,
@@ -108,19 +110,19 @@ class TestGetCountsByDate:
         assert paths == {"/api/v1/offres/", "/api/v1/metiers/"}
 
     def test_groups_by_token_type(self, db, repository):
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             method="GET",
             path="/api/v1/offres/",
             token_type="jwt",  # noqa: S106
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             method="GET",
             path="/api/v1/offres/",
             token_type="api_key",  # noqa: S106
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             method="GET",
             path="/api/v1/offres/",
             token_type=None,
@@ -133,13 +135,13 @@ class TestGetCountsByDate:
         assert token_types == {"jwt", "api_key", None}
 
     def test_ignores_other_dates(self, db, repository):
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             method="GET",
             path="/api/v1/offres/",
             token_type=None,
             timestamp=date_to_aware_datetime(TODAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             method="GET",
             path="/api/v1/offres/",
             token_type=None,
@@ -154,7 +156,7 @@ class TestGetCountsByDate:
 
 class TestDeleteBefore:
     def test_deletes_rows_older_than_cutoff(self, db, repository):
-        ApiLogModelFactory.create_model(timestamp=date_to_aware_datetime(YESTERDAY))
+        ApiLogDjangoFactory(timestamp=date_to_aware_datetime(YESTERDAY))
 
         deleted = repository.delete_before(TODAY)
 
@@ -162,7 +164,7 @@ class TestDeleteBefore:
         assert ApiLogModel.objects.count() == 0
 
     def test_keeps_rows_on_cutoff_date(self, db, repository):
-        ApiLogModelFactory.create_model(timestamp=date_to_aware_datetime(TODAY))
+        ApiLogDjangoFactory(timestamp=date_to_aware_datetime(TODAY))
 
         deleted = repository.delete_before(TODAY)
 
@@ -170,7 +172,7 @@ class TestDeleteBefore:
         assert ApiLogModel.objects.count() == 1
 
     def test_keeps_rows_after_cutoff_date(self, db, repository):
-        ApiLogModelFactory.create_model(timestamp=date_to_aware_datetime(TODAY))
+        ApiLogDjangoFactory(timestamp=date_to_aware_datetime(TODAY))
 
         deleted = repository.delete_before(YESTERDAY)
 
@@ -183,8 +185,8 @@ class TestDeleteBefore:
         assert deleted == 0
 
     def test_deletes_only_old_rows(self, db, repository):
-        ApiLogModelFactory.create_model(timestamp=date_to_aware_datetime(YESTERDAY))
-        ApiLogModelFactory.create_model(timestamp=date_to_aware_datetime(TODAY))
+        ApiLogDjangoFactory(timestamp=date_to_aware_datetime(YESTERDAY))
+        ApiLogDjangoFactory(timestamp=date_to_aware_datetime(TODAY))
 
         deleted = repository.delete_before(TODAY)
 

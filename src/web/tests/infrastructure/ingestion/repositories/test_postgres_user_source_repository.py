@@ -1,7 +1,9 @@
 import pytest
 
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
-from infrastructure.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.ingestion.source_django_factory import (
+    SourceDjangoFactory,
+)
 from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 
@@ -13,7 +15,7 @@ def repository_fixture(ingestion_container):
 @pytest.fixture(name="utilisateur_with_source")
 def utilisateur_with_source_fixture():
     user_model = UtilisateurFactory.create_model()
-    source = SourceFactory.create_model()
+    source = SourceDjangoFactory()
     user_model.sources.add(source)
     return UtilisateurMapper().to_domain(user_model), source
 
@@ -27,7 +29,7 @@ def utilisateur_without_source_fixture():
 def test_returns_empty_set_when_user_has_no_sources(
     repository, utilisateur_without_source
 ):
-    source = SourceFactory.create_model()
+    source = SourceDjangoFactory()
 
     result = repository.get_allowed_source_ids(
         utilisateur_without_source, {source.source_id}
@@ -46,7 +48,7 @@ def test_returns_allowed_source_ids_for_user(repository, utilisateur_with_source
 
 def test_filters_out_sources_not_belonging_to_user(repository, utilisateur_with_source):
     utilisateur, source = utilisateur_with_source
-    other_source = SourceFactory.create_model()
+    other_source = SourceDjangoFactory()
 
     result = repository.get_allowed_source_ids(
         utilisateur, {source.source_id, other_source.source_id}

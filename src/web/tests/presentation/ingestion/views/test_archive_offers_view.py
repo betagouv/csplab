@@ -13,7 +13,9 @@ from application.ingestion.interfaces.archive_offer_by_reference_input import (
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
-from infrastructure.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.ingestion.source_django_factory import (
+    SourceDjangoFactory,
+)
 
 API_KEY = "test-ingestion-api-key"
 REFERENCE = "12345"
@@ -35,7 +37,7 @@ def mock_container(mock_offers_container, use_case):
 
 @pytest.fixture
 def source():
-    return SourceFactory.create_model(source_id=SOURCE_ID)
+    return SourceDjangoFactory(source_id=SOURCE_ID)
 
 
 @pytest.fixture

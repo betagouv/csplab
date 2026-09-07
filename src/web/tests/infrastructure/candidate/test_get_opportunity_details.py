@@ -5,7 +5,9 @@ from config.app_config import AppConfig
 from domain.candidate.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.ingestion.source_django_factory import (
+    SourceDjangoFactory,
+)
 from infrastructure.factories.referentiel.metier_factory import MetierFactory
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
@@ -46,7 +48,7 @@ def test_app_config(candidate_container):
 
 
 def test_execute_get_offer_details(db, candidate_container):
-    source = SourceFactory.create_model()
+    source = SourceDjangoFactory()
     offer = OfferFactory.create_entity(
         family_code="ERJUR011", source_id=source.source_id
     )

@@ -12,7 +12,9 @@ from application.ingestion.interfaces.get_offers_by_source_input import (
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
-from infrastructure.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.ingestion.source_django_factory import (
+    SourceDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 SOURCE_ID = UUID("12345678-1234-4234-b234-123456789abc")
@@ -32,7 +34,7 @@ def mock_container(mock_offers_container, use_case):
 
 @pytest.fixture
 def source():
-    return SourceFactory.create_model(source_id=SOURCE_ID)
+    return SourceDjangoFactory(source_id=SOURCE_ID)
 
 
 @pytest.fixture

@@ -29,7 +29,9 @@ from infrastructure.factories.ingestion.offer_payload_factory import (
     PayloadOfferFactory,
     fake_datetime,
 )
-from infrastructure.factories.ingestion.source_factory import SourceFactory
+from infrastructure.factories.ingestion.source_django_factory import (
+    SourceDjangoFactory,
+)
 
 fake = Faker("fr_FR")
 
@@ -218,7 +220,7 @@ def mock_container(mock_offers_container, use_case):
 
 @pytest.fixture
 def source():
-    return SourceFactory.create_model(source_id=UUID(SOURCE_UUID))
+    return SourceDjangoFactory(source_id=UUID(SOURCE_UUID))
 
 
 @pytest.fixture

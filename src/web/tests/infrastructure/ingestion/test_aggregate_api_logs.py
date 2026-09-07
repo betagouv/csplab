@@ -7,7 +7,9 @@ from infrastructure.django_apps.ingestion.models.api_log_daily_aggregation impor
     ApiLogDailyAggregationModel,
 )
 from infrastructure.factories.datetime_utils import date_to_aware_datetime
-from infrastructure.factories.ingestion.api_log_model_factory import ApiLogModelFactory
+from infrastructure.factories.ingestion.api_log_django_factory import (
+    ApiLogDjangoFactory,
+)
 from presentation.ingestion.tasks import aggregate_api_logs
 
 TODAY = date(2026, 6, 10)
@@ -39,13 +41,13 @@ def clean_aggregations(db):
 
 class TestAggregateApiLogsTask:
     def test_produces_correct_row(self, db):
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="GET",
             token_type="jwt",  # noqa: S106
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="GET",
             token_type="jwt",  # noqa: S106
@@ -57,19 +59,19 @@ class TestAggregateApiLogsTask:
         assert _rows() == [_row("GET", "/api/v1/offres/", "jwt", 2)]
 
     def test_creates_one_row_per_combination(self, db):
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="GET",
             token_type="jwt",  # noqa: S106
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="POST",
             token_type="jwt",  # noqa: S106
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/metiers/",
             method="GET",
             token_type="api_key",  # noqa: S106
@@ -84,19 +86,19 @@ class TestAggregateApiLogsTask:
         assert _row("GET", "/api/v1/metiers/", "api_key", 1) in rows
 
     def test_groups_by_token_type(self, db):
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="GET",
             token_type="jwt",  # noqa: S106
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="GET",
             token_type="api_key",  # noqa: S106
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="GET",
             token_type=None,
@@ -111,13 +113,13 @@ class TestAggregateApiLogsTask:
         assert _row("GET", "/api/v1/offres/", None, 1) in rows
 
     def test_ignores_other_dates(self, db):
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="GET",
             token_type="jwt",  # noqa: S106
             timestamp=date_to_aware_datetime(TODAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="GET",
             token_type="jwt",  # noqa: S106
@@ -134,13 +136,13 @@ class TestAggregateApiLogsTask:
         assert _rows() == []
 
     def test_groups_by_path(self, db):
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/offres/",
             method="GET",
             token_type="jwt",  # noqa: S106
             timestamp=date_to_aware_datetime(YESTERDAY),
         )
-        ApiLogModelFactory.create_model(
+        ApiLogDjangoFactory(
             path="/api/v1/metiers/",
             method="GET",
             token_type="jwt",  # noqa: S106
