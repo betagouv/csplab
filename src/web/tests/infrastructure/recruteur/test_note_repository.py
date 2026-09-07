@@ -44,7 +44,7 @@ def candidature_id_fixture(db) -> UUID:
 
 @pytest.fixture(name="agent_id")
 def agent_id_fixture(db) -> UUID:
-    return AgentDjangoFactory().utilisateur_id
+    return AgentDjangoFactory.create().utilisateur_id
 
 
 @pytest.fixture(name="existing_note_model")

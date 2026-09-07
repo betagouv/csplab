@@ -30,7 +30,7 @@ def insecure_cookies(settings) -> None:
 
 @pytest.fixture
 def agent_user(db) -> UserModel:
-    return AgentDjangoFactory().utilisateur
+    return AgentDjangoFactory.create().utilisateur
 
 
 @pytest.fixture
