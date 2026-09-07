@@ -7,6 +7,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.services.update_organisme_agent import (
+    update_organisme_agent,
+)
 from application.recruteur.usecases.attach_organisme_agent import (
     AttachOrganismeAgentCommand,
 )
@@ -15,9 +18,6 @@ from application.recruteur.usecases.list_organisme_agents import (
 )
 from application.recruteur.usecases.revoke_organisme_agent import (
     RevokeOrganismeAgentCommand,
-)
-from application.recruteur.usecases.update_organisme_agent import (
-    UpdateOrganismeAgentCommand,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
@@ -155,14 +155,15 @@ class OrganismeAgentsView(APIView):
                     )
                 )
             else:
-                usecase = self.container.update_organisme_agent_usecase()
-                agent_organisme = usecase.execute(
-                    UpdateOrganismeAgentCommand(
-                        organisme_id=organisme_uuid,
-                        agent_id=data["agent_id"],
-                        role=AgentOrganismeRole(data["role"]),
-                        utilisateur=UtilisateurMapper().to_domain(request),
-                    )
+                role = data.get("role")
+                agent_organisme = update_organisme_agent(
+                    organisme_id=organisme_uuid,
+                    agent_id=data["agent_id"],
+                    utilisateur=UtilisateurMapper().to_domain(request),
+                    role=AgentOrganismeRole(role) if role else None,
+                    prenom=data.get("prenom"),
+                    nom=data.get("nom"),
+                    poste=data.get("poste"),
                 )
             return Response(AgentOrganismeSerializer(agent_organisme).data)
         except (AccesOrganismeRefuse, OperationOrganismeRefusee):

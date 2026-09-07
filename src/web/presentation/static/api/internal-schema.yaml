@@ -5176,7 +5176,6 @@ components:
           format: date-time
       required:
       - agent_id
-      - role
     UpdateEtapeRecrutement:
       type: object
       properties:

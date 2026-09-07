@@ -231,7 +231,8 @@ class TestOrganismeAgentsView:
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
                 "role": AgentOrganismeRole.RESPONSABLE.value,
-                # ignored: role update only, not persisted by this usecase yet
+                "prenom": "Camille",
+                "nom": "Martin",
                 "poste": "Directeur des recrutements",
             },
             format="json",
@@ -241,13 +242,70 @@ class TestOrganismeAgentsView:
         data = response.json()
         assert data["agent_id"] == str(autre_agent.utilisateur_id)
         assert data["role"] == AgentOrganismeRole.RESPONSABLE.value
-        assert data["poste"] == "Recruteur"
+        assert data["prenom"] == "Camille"
+        assert data["nom"] == "Martin"
+        assert data["poste"] == "Directeur des recrutements"
         assert (
             OrganismeAgentModel.objects.get(
                 organisme_id=organisme.id, agent_id=autre_agent.utilisateur_id
             ).role
             == AgentOrganismeRole.RESPONSABLE.value
         )
+        autre_agent.refresh_from_db()
+        assert autre_agent.intitule_poste == "Directeur des recrutements"
+        assert autre_agent.utilisateur.first_name == "Camille"
+        assert autre_agent.utilisateur.last_name == "Martin"
+
+    def test_update_agent_profil_without_role(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+        )
+        autre_agent = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.MEMBRE.value,
+            agent__intitule_poste="Recruteur",
+        ).agent
+        url = reverse(
+            "recruteur:organisme-parametres-agents",
+            kwargs={"organisme_uuid": str(organisme.id)},
+        )
+
+        response = authenticated_client.put(
+            url,
+            data={
+                "agent_id": str(autre_agent.utilisateur_id),
+                "poste": "Chargé de recrutement",
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["poste"] == "Chargé de recrutement"
+        assert data["role"] == AgentOrganismeRole.MEMBRE.value
+
+    def test_update_agent_rejects_blank_field(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+        )
+        autre_agent = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.MEMBRE.value,
+        ).agent
+        url = reverse(
+            "recruteur:organisme-parametres-agents",
+            kwargs={"organisme_uuid": str(organisme.id)},
+        )
+
+        response = authenticated_client.put(
+            url,
+            data={"agent_id": str(autre_agent.utilisateur_id), "nom": ""},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_update_agent_forbidden_for_membre(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
@@ -316,7 +374,7 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_update_agent_requires_role(self, authenticated_client):
+    def test_update_agent_requires_at_least_one_field(self, authenticated_client):
         response = authenticated_client.put(
             AGENTS_URL,
             data={"agent_id": str(uuid4())},
