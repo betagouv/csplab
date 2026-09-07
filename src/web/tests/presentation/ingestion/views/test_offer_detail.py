@@ -4,22 +4,19 @@ from unittest.mock import MagicMock
 from django.urls import reverse
 from pydantic import HttpUrl
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
-from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
-from referentiel.value_objects.country import Country
-from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
-from referentiel.value_objects.limit_date import LimitDate
-from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
-from referentiel.value_objects.region import Region
 from rest_framework import status
 
 from application.ingestion.interfaces.get_offer_by_reference_input import (
     GetOfferByReferenceInput,
+)
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
 )
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from presentation.ingestion.serializers import (
@@ -136,15 +133,6 @@ def test_response_has_no_undeclared_fields(
 
 
 def test_response_matches_db_record_field_by_field(authenticated_client):
-    localisation = Localisation(
-        area=GeographicalArea.EUROPE,
-        country=Country("FRA"),
-        region=Region(code="11"),
-        department=Department(code="75"),
-        label="Paris",
-        latitude=48.8566,
-        longitude=2.3522,
-    )
     criteria = OfferCriteria(
         diploma_level=Diploma(5),
         diploma="Master",
@@ -152,7 +140,7 @@ def test_response_matches_db_record_field_by_field(authenticated_client):
         specialisations=["informatique"],
         languages=[OfferLanguage(iso_code="en", level=LanguageLevel.B2)],
     )
-    offer_model = OfferFactory.create_model(
+    offer_model = OfferDjangoFactory(
         reference="REF-E2E-1",
         title="Développeur Backend",
         profile="Profil recherché",
@@ -161,10 +149,15 @@ def test_response_matches_db_record_field_by_field(authenticated_client):
         category=Category.A,
         contract_type=ContractType.TERRITORIAL,
         offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
-        localisation=localisation,
+        country="FRA",
+        region="11",
+        department="75",
+        location_label="Paris",
+        latitude=48.8566,
+        longitude=2.3522,
         publication_date=datetime(2024, 3, 1, 9, 0, tzinfo=UTC),
-        beginning_date=LimitDate(datetime(2024, 6, 1, tzinfo=UTC)),
-        criteria=criteria,
+        beginning_date=datetime(2024, 6, 1, tzinfo=UTC),
+        criteria=criteria.to_dict(),
     )
 
     response = authenticated_client.get(URL, {"reference": offer_model.reference})

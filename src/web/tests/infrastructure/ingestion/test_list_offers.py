@@ -2,35 +2,33 @@ from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
-from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
-from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 
 
 @pytest.fixture(name="offers")
 def offers_fixture(db):
     return {
-        "archived_expected": OfferFactory.create_model(
+        "archived_expected": OfferDjangoFactory(
             external_id="test-expected-archived", archived_at=datetime.now()
         ),
-        "archived_other": OfferFactory.create_model(
+        "archived_other": OfferDjangoFactory(
             external_id="test-other-archived", archived_at=datetime.now()
         ),
-        "active_expected": OfferFactory.create_model(
-            external_id="test-expected-active"
-        ),
-        "active_other": OfferFactory.create_model(external_id="test-other-active"),
+        "active_expected": OfferDjangoFactory(external_id="test-expected-active"),
+        "active_other": OfferDjangoFactory(external_id="test-other-active"),
     }
 
 
@@ -99,15 +97,9 @@ def test_list_offers_page_slice(
 @pytest.fixture(name="offers_by_category")
 def offers_by_category_fixture(db):
     return {
-        "cat_a": OfferFactory.create_model(
-            external_id="test-cat-a", category=Category.A
-        ),
-        "cat_b": OfferFactory.create_model(
-            external_id="test-cat-b", category=Category.B
-        ),
-        "cat_c": OfferFactory.create_model(
-            external_id="test-cat-c", category=Category.C
-        ),
+        "cat_a": OfferDjangoFactory(external_id="test-cat-a", category=Category.A),
+        "cat_b": OfferDjangoFactory(external_id="test-cat-b", category=Category.B),
+        "cat_c": OfferDjangoFactory(external_id="test-cat-c", category=Category.C),
     }
 
 
@@ -138,9 +130,9 @@ def test_list_offers_filtered_by_category(
 @pytest.fixture(name="offers_by_verse")
 def offers_by_verse_fixture(db):
     return {
-        "fpe": OfferFactory.create_model(external_id="test-fpe", verse=Verse.FPE),
-        "fpt": OfferFactory.create_model(external_id="test-fpt", verse=Verse.FPT),
-        "fph": OfferFactory.create_model(external_id="test-fph", verse=Verse.FPH),
+        "fpe": OfferDjangoFactory(external_id="test-fpe", verse=Verse.FPE),
+        "fpt": OfferDjangoFactory(external_id="test-fpt", verse=Verse.FPT),
+        "fph": OfferDjangoFactory(external_id="test-fph", verse=Verse.FPH),
     }
 
 
@@ -168,13 +160,13 @@ def test_list_offers_filtered_by_verse(
 @pytest.fixture(name="offers_by_contract_type")
 def offers_by_contract_type_fixture(db):
     return {
-        "contractuels": OfferFactory.create_model(
+        "contractuels": OfferDjangoFactory(
             external_id="test-contractuels", contract_type=ContractType.CONTRACTUELS
         ),
-        "territorial": OfferFactory.create_model(
+        "territorial": OfferDjangoFactory(
             external_id="test-territorial", contract_type=ContractType.TERRITORIAL
         ),
-        "titulaire": OfferFactory.create_model(
+        "titulaire": OfferDjangoFactory(
             external_id="test-titulaire",
             contract_type=ContractType.TITULAIRE_CONTRACTUEL,
         ),
@@ -215,17 +207,17 @@ def test_list_offers_filtered_by_contract_type(
 @pytest.fixture(name="offers_by_experience_level")
 def offers_by_experience_level_fixture(db):
     return {
-        "debutant": OfferFactory.create_model(
+        "debutant": OfferDjangoFactory(
             external_id="test-debutant",
-            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT),
+            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
-        "confirme": OfferFactory.create_model(
+        "confirme": OfferDjangoFactory(
             external_id="test-confirme",
-            criteria=OfferCriteria(experience_level=ExperienceLevel.CONFIRME),
+            criteria=OfferCriteria(experience_level=ExperienceLevel.CONFIRME).to_dict(),
         ),
-        "expert": OfferFactory.create_model(
+        "expert": OfferDjangoFactory(
             external_id="test-expert",
-            criteria=OfferCriteria(experience_level=ExperienceLevel.EXPERT),
+            criteria=OfferCriteria(experience_level=ExperienceLevel.EXPERT).to_dict(),
         ),
     }
 
@@ -260,11 +252,11 @@ def test_list_offers_filtered_by_experience_level(
 @pytest.fixture(name="offers_by_management")
 def offers_by_management_fixture(db):
     return {
-        "sans": OfferFactory.create_model(
+        "sans": OfferDjangoFactory(
             external_id="test-sans",
             conditions={"management": Management.SANS.name},
         ),
-        "avec": OfferFactory.create_model(
+        "avec": OfferDjangoFactory(
             external_id="test-avec",
             conditions={"management": Management.AVEC.name},
         ),
@@ -299,11 +291,11 @@ def test_list_offers_filtered_by_management(
 @pytest.fixture(name="offers_by_working_place")
 def offers_by_working_place_fixture(db):
     return {
-        "sur_site": OfferFactory.create_model(
+        "sur_site": OfferDjangoFactory(
             external_id="test-sur-site",
             conditions={"lieu_de_travail": WorkingPlace.SUR_SITE.name},
         ),
-        "teletravail": OfferFactory.create_model(
+        "teletravail": OfferDjangoFactory(
             external_id="test-teletravail",
             conditions={"lieu_de_travail": WorkingPlace.TELETRAVAIL.name},
         ),
@@ -338,23 +330,17 @@ def test_list_offers_filtered_by_working_place(
 @pytest.fixture(name="offers_by_region")
 def offers_by_region_fixture(db):
     return {
-        "idf": OfferFactory.create_model(
+        "idf": OfferDjangoFactory(
             external_id="test-idf",
-            localisation=Localisation(
-                area=GeographicalArea.EUROPE,
-                country=Country("FRA"),
-                region=Region(code="11"),
-                department=Department(code="75"),
-            ),
+            country="FRA",
+            region="11",
+            department="75",
         ),
-        "ara": OfferFactory.create_model(
+        "ara": OfferDjangoFactory(
             external_id="test-ara",
-            localisation=Localisation(
-                area=GeographicalArea.EUROPE,
-                country=Country("FRA"),
-                region=Region(code="84"),
-                department=Department(code="69"),
-            ),
+            country="FRA",
+            region="84",
+            department="69",
         ),
     }
 
@@ -387,23 +373,17 @@ def test_list_offers_filtered_by_region(
 @pytest.fixture(name="offers_by_department")
 def offers_by_department_fixture(db):
     return {
-        "paris": OfferFactory.create_model(
+        "paris": OfferDjangoFactory(
             external_id="test-paris",
-            localisation=Localisation(
-                area=GeographicalArea.EUROPE,
-                country=Country("FRA"),
-                region=Region(code="11"),
-                department=Department(code="75"),
-            ),
+            country="FRA",
+            region="11",
+            department="75",
         ),
-        "rhone": OfferFactory.create_model(
+        "rhone": OfferDjangoFactory(
             external_id="test-rhone",
-            localisation=Localisation(
-                area=GeographicalArea.EUROPE,
-                country=Country("FRA"),
-                region=Region(code="84"),
-                department=Department(code="69"),
-            ),
+            country="FRA",
+            region="84",
+            department="69",
         ),
     }
 
@@ -436,23 +416,17 @@ def test_list_offers_filtered_by_department(
 @pytest.fixture(name="offers_by_country")
 def offers_by_country_fixture(db):
     return {
-        "france": OfferFactory.create_model(
+        "france": OfferDjangoFactory(
             external_id="test-france",
-            localisation=Localisation(
-                area=GeographicalArea.EUROPE,
-                country=Country("FRA"),
-                region=Region(code="11"),
-                department=Department(code="75"),
-            ),
+            country="FRA",
+            region="11",
+            department="75",
         ),
-        "belgium": OfferFactory.create_model(
+        "belgium": OfferDjangoFactory(
             external_id="test-belgium",
-            localisation=Localisation(
-                area=GeographicalArea.EUROPE,
-                country=Country("BEL"),
-                region=Region(code="11"),
-                department=Department(code="75"),
-            ),
+            country="BEL",
+            region="11",
+            department="75",
         ),
     }
 
@@ -485,40 +459,40 @@ def test_list_offers_filtered_by_country(
 @pytest.fixture(name="offers_by_multiple_criteria")
 def offers_by_multiple_criteria_fixture(db):
     return {
-        "match": OfferFactory.create_model(
+        "match": OfferDjangoFactory(
             external_id="test-match",
             category=Category.A,
             verse=Verse.FPE,
             contract_type=ContractType.CONTRACTUELS,
-            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT),
+            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
-        "match_other_values": OfferFactory.create_model(
+        "match_other_values": OfferDjangoFactory(
             external_id="test-match-other-values",
             category=Category.B,
             verse=Verse.FPT,
             contract_type=ContractType.CONTRACTUELS,
-            criteria=OfferCriteria(experience_level=ExperienceLevel.EXPERT),
+            criteria=OfferCriteria(experience_level=ExperienceLevel.EXPERT).to_dict(),
         ),
-        "wrong_category": OfferFactory.create_model(
+        "wrong_category": OfferDjangoFactory(
             external_id="test-wrong-category",
             category=Category.C,
             verse=Verse.FPE,
             contract_type=ContractType.CONTRACTUELS,
-            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT),
+            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
-        "wrong_contract_type": OfferFactory.create_model(
+        "wrong_contract_type": OfferDjangoFactory(
             external_id="test-wrong-contract-type",
             category=Category.A,
             verse=Verse.FPE,
             contract_type=ContractType.TERRITORIAL,
-            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT),
+            criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
-        "wrong_experience_level": OfferFactory.create_model(
+        "wrong_experience_level": OfferDjangoFactory(
             external_id="test-wrong-experience-level",
             category=Category.A,
             verse=Verse.FPE,
             contract_type=ContractType.CONTRACTUELS,
-            criteria=OfferCriteria(experience_level=ExperienceLevel.CONFIRME),
+            criteria=OfferCriteria(experience_level=ExperienceLevel.CONFIRME).to_dict(),
         ),
     }
 
@@ -545,36 +519,27 @@ def test_list_offers_filtered_by_multiple_criteria(
 @pytest.fixture(name="offers_by_geo")
 def offers_by_geo_fixture(db):
     return {
-        "paris": OfferFactory.create_model(
+        "paris": OfferDjangoFactory(
             external_id="test-paris-geo",
-            localisation=Localisation(
-                area=GeographicalArea.EUROPE,
-                country=Country("FRA"),
-                region=Region(code="11"),
-                department=Department(code="75"),
-                latitude=48.8566,
-                longitude=2.3522,
-            ),
+            country="FRA",
+            region="11",
+            department="75",
+            latitude=48.8566,
+            longitude=2.3522,
         ),
-        "lyon": OfferFactory.create_model(
+        "lyon": OfferDjangoFactory(
             external_id="test-lyon-geo",
-            localisation=Localisation(
-                area=GeographicalArea.EUROPE,
-                country=Country("FRA"),
-                region=Region(code="84"),
-                department=Department(code="69"),
-                latitude=45.7640,
-                longitude=4.8357,
-            ),
+            country="FRA",
+            region="84",
+            department="69",
+            latitude=45.7640,
+            longitude=4.8357,
         ),
-        "no_coordinates": OfferFactory.create_model(
+        "no_coordinates": OfferDjangoFactory(
             external_id="test-no-coordinates-geo",
-            localisation=Localisation(
-                area=GeographicalArea.EUROPE,
-                country=Country("FRA"),
-                region=Region(code="11"),
-                department=Department(code="75"),
-            ),
+            country="FRA",
+            region="11",
+            department="75",
         ),
     }
 

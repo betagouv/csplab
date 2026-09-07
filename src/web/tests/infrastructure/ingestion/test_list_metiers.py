@@ -3,19 +3,21 @@ from unittest.mock import MagicMock
 import pytest
 
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
-from infrastructure.factories.referentiel.metier_factory import MetierFactory
+from infrastructure.factories.referentiel.metier_django_factory import (
+    MetierDjangoFactory,
+)
 
 
 @pytest.fixture(name="metiers")
 def metiers_fixture(db):
     return {
-        "TRE1": MetierFactory.create_model(
+        "TRE1": MetierDjangoFactory(
             domaine_fonctionnel_code="TRE", offer_family_code="TRE00001"
         ),
-        "TRE2": MetierFactory.create_model(
+        "TRE2": MetierDjangoFactory(
             domaine_fonctionnel_code="TRE", offer_family_code="TRE00002"
         ),
-        "AFK1": MetierFactory.create_model(
+        "AFK1": MetierDjangoFactory(
             domaine_fonctionnel_code="AFK", offer_family_code="AFK00001"
         ),
     }

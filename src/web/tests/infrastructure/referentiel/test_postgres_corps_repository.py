@@ -5,7 +5,9 @@ from dateutil.relativedelta import relativedelta
 from referentiel.entities.corps import Corps
 
 from infrastructure.django_apps.referentiel.models.corps import CorpsModel
-from infrastructure.factories.referentiel.corps_factory import CorpsFactory
+from infrastructure.factories.referentiel.corps_django_factory import (
+    CorpsDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_corps_repository import (
     PostgresCorpsRepository,
@@ -22,15 +24,15 @@ def repository_fixture():
 
 class TestGetPendingProcessing:
     def test_excluded_items(self, db, repository):
-        CorpsFactory.create_model(archived_at=NOW)
-        CorpsFactory.create_model(processing=True)
-        CorpsFactory.create_model(processed_at=NOW, updated_at=DAY_AGO)
+        CorpsDjangoFactory(archived_at=NOW)
+        CorpsDjangoFactory(processing=True)
+        CorpsDjangoFactory(processed_at=NOW, updated_at=DAY_AGO)
 
         assert repository.get_pending_processing() == []
 
     def test_get_pending_items_with_logical_lock(self, db, repository):
-        never_processed = CorpsFactory.create_model()
-        updated_after_processed = CorpsFactory.create_model(
+        never_processed = CorpsDjangoFactory()
+        updated_after_processed = CorpsDjangoFactory(
             processed_at=DAY_AGO, updated_at=NOW
         )
 
@@ -45,7 +47,7 @@ class TestGetPendingProcessing:
             assert entity.processing
 
     def test_limit(self, db, repository):
-        CorpsFactory.create_model_batch(2)
+        CorpsDjangoFactory.create_batch(2)
 
         entities = repository.get_pending_processing(limit=1)
         assert len(entities) == 1
@@ -55,10 +57,10 @@ class TestGetPendingProcessing:
 
 def test_mark_as_processed(db, repository):
     corps_list = [
-        CorpsFactory.create_model(processing=True).to_entity(),
-        CorpsFactory.create_model(processing=False).to_entity(),
+        CorpsDjangoFactory(processing=True).to_entity(),
+        CorpsDjangoFactory(processing=False).to_entity(),
     ]
-    undesired_corps = CorpsFactory.create_model(processing=True).to_entity()
+    undesired_corps = CorpsDjangoFactory(processing=True).to_entity()
 
     count = repository.mark_as_processed(corps_list)
     assert count == len(corps_list)
@@ -78,10 +80,10 @@ def test_mark_as_processed(db, repository):
 
 def test_mark_as_pending(db, repository):
     corps_list = [
-        CorpsFactory.create_model(processing=True).to_entity(),
-        CorpsFactory.create_model(processing=False).to_entity(),
+        CorpsDjangoFactory(processing=True).to_entity(),
+        CorpsDjangoFactory(processing=False).to_entity(),
     ]
-    undesired_corps = CorpsFactory.create_model(processing=True).to_entity()
+    undesired_corps = CorpsDjangoFactory(processing=True).to_entity()
 
     count = repository.mark_as_pending(corps_list)
     assert count == len(corps_list)

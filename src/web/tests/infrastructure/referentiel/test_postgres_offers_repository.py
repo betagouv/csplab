@@ -24,6 +24,9 @@ from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.offer_mapper import OfferMapper
@@ -49,7 +52,7 @@ class TestFindByIds:
         assert repository.get_by_ids(ids) == []
 
     def test_return_correct_list_of_existing_ids(self, db, repository):
-        offer = OfferFactory.create_model_batch(3)
+        offer = OfferDjangoFactory.create_batch(3)
         expected_ids = [offer[i].id for i in range(2)]
 
         results = repository.get_by_ids(expected_ids)
@@ -61,8 +64,8 @@ class TestFindByIds:
 
 class TestUpsertBatch:
     def test_datetime_on_upsert(self, db, repository):
-        offer = OfferFactory.create_model()
-        offer_to_update = OfferFactory.create_model()
+        offer = OfferDjangoFactory()
+        offer_to_update = OfferDjangoFactory()
         new_offer_entity = OfferFactory.create_entity(
             source_id=_mapper.to_domain(offer).source_id
         )
@@ -112,7 +115,7 @@ class TestUpsertBatch:
         assert result == {"created": 0, "updated": 0, "errors": []}
 
     def test_multiple_offers_success(self, db, repository):
-        offers = OfferFactory.create_model_batch(2)
+        offers = OfferDjangoFactory.create_batch(2)
         entities = [_mapper.to_domain(offer) for offer in offers]
         entities.append(OfferFactory.create_entity(source_id=entities[0].source_id))
 
@@ -129,7 +132,7 @@ class TestUpsertBatch:
             assert _mapper.to_domain(saved) == entity
 
     def test_updated_datas_are_stored(self, db, repository):
-        offer = OfferFactory.create_model(
+        offer = OfferDjangoFactory(
             verse=Verse.FPT,
             title="old title",
             profile="old  profile",
@@ -138,17 +141,15 @@ class TestUpsertBatch:
             contract_type=ContractType.CONTRACTUELS,
             organization="old organization",
             offer_url="https://fake.url/old",
-            family_code="OLD001",
+            code_emploi_csp="OLD001",
             job_family_referential="RMFPv1",
             functional_area_code="OLD",
-            localisation=Localisation(
-                area=GeographicalArea("EU"),
-                country=Country("FRA"),
-                region=Region(code="28"),
-                department=Department(code="14"),
-            ),
+            area="EU",
+            country="FRA",
+            region="28",
+            department="14",
             publication_date=datetime(2025, 5, 17),
-            beginning_date=LimitDate(datetime(2025, 6, 17)),
+            beginning_date=datetime(2025, 6, 17),
         )
         now = datetime.now(timezone.utc)
         entity = _mapper.to_domain(offer)
@@ -183,7 +184,7 @@ class TestUpsertBatch:
         assert _mapper.to_domain(saved_offer) == entity
 
     def test_upsert_offer_with_datetime_in_conditions(self, db, repository):
-        existing = OfferFactory.create_model()
+        existing = OfferDjangoFactory()
         source_id = existing.source_id
 
         contract_start = datetime(2019, 8, 24, 14, 15, 22, tzinfo=timezone.utc)
@@ -203,7 +204,7 @@ class TestUpsertBatch:
         assert saved.conditions["fin_contrat"] == "2019-08-24T14:15:22Z"
 
     def test_upsert_unarchives_archived_offer(self, db, repository):
-        archived_offer = OfferFactory.create_model(archived_at=NOW)
+        archived_offer = OfferDjangoFactory(archived_at=NOW)
         assert archived_offer.archived_at is not None
 
         entity = _mapper.to_domain(archived_offer)
@@ -218,33 +219,24 @@ class TestUpsertBatch:
 
 class TestGetFilteredByGeo:
     def test_filters_offers_within_radius(self, db, repository):
-        paris = OfferFactory.create_model(
-            localisation=Localisation(
-                area=GeographicalArea("EU"),
-                country=Country("FRA"),
-                region=Region(code="11"),
-                department=Department(code="75"),
-                latitude=48.8566,
-                longitude=2.3522,
-            )
+        paris = OfferDjangoFactory(
+            country="FRA",
+            region="11",
+            department="75",
+            latitude=48.8566,
+            longitude=2.3522,
         )
-        lyon = OfferFactory.create_model(
-            localisation=Localisation(
-                area=GeographicalArea("EU"),
-                country=Country("FRA"),
-                region=Region(code="84"),
-                department=Department(code="69"),
-                latitude=45.7640,
-                longitude=4.8357,
-            )
+        lyon = OfferDjangoFactory(
+            country="FRA",
+            region="84",
+            department="69",
+            latitude=45.7640,
+            longitude=4.8357,
         )
-        OfferFactory.create_model(
-            localisation=Localisation(
-                area=GeographicalArea("EU"),
-                country=Country("FRA"),
-                region=Region(code="11"),
-                department=Department(code="75"),
-            )
+        OfferDjangoFactory(
+            country="FRA",
+            region="11",
+            department="75",
         )
 
         page = repository.get_filtered(
@@ -260,25 +252,19 @@ class TestGetFilteredByGeo:
         assert lyon.id not in ids
 
     def test_widening_radius_includes_more_offers(self, db, repository):
-        paris = OfferFactory.create_model(
-            localisation=Localisation(
-                area=GeographicalArea("EU"),
-                country=Country("FRA"),
-                region=Region(code="11"),
-                department=Department(code="75"),
-                latitude=48.8566,
-                longitude=2.3522,
-            )
+        paris = OfferDjangoFactory(
+            country="FRA",
+            region="11",
+            department="75",
+            latitude=48.8566,
+            longitude=2.3522,
         )
-        lyon = OfferFactory.create_model(
-            localisation=Localisation(
-                area=GeographicalArea("EU"),
-                country=Country("FRA"),
-                region=Region(code="84"),
-                department=Department(code="69"),
-                latitude=45.7640,
-                longitude=4.8357,
-            )
+        lyon = OfferDjangoFactory(
+            country="FRA",
+            region="84",
+            department="69",
+            latitude=45.7640,
+            longitude=4.8357,
         )
 
         page = repository.get_filtered(
@@ -293,15 +279,12 @@ class TestGetFilteredByGeo:
         assert ids == {paris.id, lyon.id}
 
     def test_ignores_geo_filter_when_not_fully_provided(self, db, repository):
-        OfferFactory.create_model(
-            localisation=Localisation(
-                area=GeographicalArea("EU"),
-                country=Country("FRA"),
-                region=Region(code="11"),
-                department=Department(code="75"),
-                latitude=48.8566,
-                longitude=2.3522,
-            )
+        OfferDjangoFactory(
+            country="FRA",
+            region="11",
+            department="75",
+            latitude=48.8566,
+            longitude=2.3522,
         )
 
         page = repository.get_filtered(
@@ -315,8 +298,8 @@ class TestGetFilteredByGeo:
 
 class TestGetFilteredByDomain:
     def test_filters_offers_by_single_domain(self, db, repository):
-        numerique = OfferFactory.create_model(functional_area_code="NUM")
-        OfferFactory.create_model(functional_area_code="ACH")
+        numerique = OfferDjangoFactory(functional_area_code="NUM")
+        OfferDjangoFactory(functional_area_code="ACH")
 
         page = repository.get_filtered(
             active=True,
@@ -328,9 +311,9 @@ class TestGetFilteredByDomain:
         assert ids == {numerique.id}
 
     def test_filters_offers_by_multiple_domains(self, db, repository):
-        numerique = OfferFactory.create_model(functional_area_code="NUM")
-        achat = OfferFactory.create_model(functional_area_code="ACH")
-        OfferFactory.create_model(functional_area_code="JUR")
+        numerique = OfferDjangoFactory(functional_area_code="NUM")
+        achat = OfferDjangoFactory(functional_area_code="ACH")
+        OfferDjangoFactory(functional_area_code="JUR")
 
         page = repository.get_filtered(
             active=True,
@@ -342,7 +325,7 @@ class TestGetFilteredByDomain:
         assert ids == {numerique.id, achat.id}
 
     def test_no_domain_filter_returns_all_offers(self, db, repository):
-        offers = OfferFactory.create_model_batch(2)
+        offers = OfferDjangoFactory.create_batch(2)
 
         page = repository.get_filtered(
             active=True,
@@ -354,8 +337,8 @@ class TestGetFilteredByDomain:
 
 class TestGetFilteredByOrganization:
     def test_filters_offers_by_single_organization(self, db, repository):
-        mairie = OfferFactory.create_model(organization="Mairie de Paris")
-        OfferFactory.create_model(organization="Société Générale")
+        mairie = OfferDjangoFactory(organization="Mairie de Paris")
+        OfferDjangoFactory(organization="Société Générale")
 
         page = repository.get_filtered(
             active=True,
@@ -367,9 +350,9 @@ class TestGetFilteredByOrganization:
         assert ids == {mairie.id}
 
     def test_filters_offers_by_multiple_organizations(self, db, repository):
-        mairie = OfferFactory.create_model(organization="Mairie de Paris")
-        societe = OfferFactory.create_model(organization="Société Générale, SA")
-        OfferFactory.create_model(organization="Ministère de la Justice")
+        mairie = OfferDjangoFactory(organization="Mairie de Paris")
+        societe = OfferDjangoFactory(organization="Société Générale, SA")
+        OfferDjangoFactory(organization="Ministère de la Justice")
 
         page = repository.get_filtered(
             active=True,
@@ -381,9 +364,9 @@ class TestGetFilteredByOrganization:
         assert ids == {mairie.id, societe.id}
 
     def test_organization_names_with_commas_are_matched_exactly(self, db, repository):
-        exact_match = OfferFactory.create_model(organization="Société Générale, SA")
-        OfferFactory.create_model(organization="Société Générale")
-        OfferFactory.create_model(organization="SA")
+        exact_match = OfferDjangoFactory(organization="Société Générale, SA")
+        OfferDjangoFactory(organization="Société Générale")
+        OfferDjangoFactory(organization="SA")
 
         page = repository.get_filtered(
             active=True,
@@ -395,7 +378,7 @@ class TestGetFilteredByOrganization:
         assert ids == {exact_match.id}
 
     def test_no_organization_filter_returns_all_offers(self, db, repository):
-        offers = OfferFactory.create_model_batch(2)
+        offers = OfferDjangoFactory.create_batch(2)
 
         page = repository.get_filtered(
             active=True,
@@ -407,8 +390,8 @@ class TestGetFilteredByOrganization:
 
 class TestGetFilteredByPublicationDate:
     def test_filters_offers_published_within_the_last_n_days(self, db, repository):
-        recent = OfferFactory.create_model(publication_date=NOW - relativedelta(days=2))
-        OfferFactory.create_model(publication_date=NOW - relativedelta(days=30))
+        recent = OfferDjangoFactory(publication_date=NOW - relativedelta(days=2))
+        OfferDjangoFactory(publication_date=NOW - relativedelta(days=30))
 
         page = repository.get_filtered(
             active=True,
@@ -420,7 +403,7 @@ class TestGetFilteredByPublicationDate:
         assert ids == {recent.id}
 
     def test_no_publication_date_filter_returns_all_offers(self, db, repository):
-        offers = OfferFactory.create_model_batch(2)
+        offers = OfferDjangoFactory.create_batch(2)
 
         page = repository.get_filtered(
             active=True,
@@ -432,11 +415,11 @@ class TestGetFilteredByPublicationDate:
 
 class TestGetFilteredByKeywords:
     def test_filters_offers_matching_keywords_in_title(self, db, repository):
-        developpeur = OfferFactory.create_model(
+        developpeur = OfferDjangoFactory(
             title="Développeur informatique",
             mission="Développement d'applications web",
         )
-        OfferFactory.create_model(
+        OfferDjangoFactory(
             title="Jardinier paysagiste", mission="Entretien des espaces verts"
         )
 
@@ -450,13 +433,11 @@ class TestGetFilteredByKeywords:
         assert ids == {developpeur.id}
 
     def test_matches_across_multiple_fields(self, db, repository):
-        offer = OfferFactory.create_model(
+        offer = OfferDjangoFactory(
             title="Chargé de mission",
             organization="Mairie de Bordeaux",
         )
-        OfferFactory.create_model(
-            title="Chargé de mission", organization="Mairie de Nantes"
-        )
+        OfferDjangoFactory(title="Chargé de mission", organization="Mairie de Nantes")
 
         page = repository.get_filtered(
             active=True,
@@ -468,7 +449,7 @@ class TestGetFilteredByKeywords:
         assert ids == {offer.id}
 
     def test_no_match_returns_empty_page(self, db, repository):
-        OfferFactory.create_model(title="Développeur informatique")
+        OfferDjangoFactory(title="Développeur informatique")
 
         page = repository.get_filtered(
             active=True,
@@ -479,7 +460,7 @@ class TestGetFilteredByKeywords:
         assert page.count() == 0
 
     def test_no_keywords_filter_returns_all_offers(self, db, repository):
-        offers = OfferFactory.create_model_batch(2)
+        offers = OfferDjangoFactory.create_batch(2)
 
         page = repository.get_filtered(
             active=True,
@@ -489,11 +470,11 @@ class TestGetFilteredByKeywords:
         assert page.count() == len(offers)
 
     def test_multiple_keywords_require_all_terms_to_match(self, db, repository):
-        both_terms = OfferFactory.create_model(
+        both_terms = OfferDjangoFactory(
             title="Développeur back-end Python",
         )
-        OfferFactory.create_model(title="Développeur front-end JavaScript")
-        OfferFactory.create_model(title="Chef de projet Python")
+        OfferDjangoFactory(title="Développeur front-end JavaScript")
+        OfferDjangoFactory(title="Chef de projet Python")
 
         page = repository.get_filtered(
             active=True,
@@ -505,15 +486,11 @@ class TestGetFilteredByKeywords:
         assert ids == {both_terms.id}
 
     def test_combines_with_another_filter(self, db, repository):
-        matching = OfferFactory.create_model(
+        matching = OfferDjangoFactory(
             title="Développeur informatique", functional_area_code="NUM"
         )
-        OfferFactory.create_model(
-            title="Développeur informatique", functional_area_code="ACH"
-        )
-        OfferFactory.create_model(
-            title="Jardinier paysagiste", functional_area_code="NUM"
-        )
+        OfferDjangoFactory(title="Développeur informatique", functional_area_code="ACH")
+        OfferDjangoFactory(title="Jardinier paysagiste", functional_area_code="NUM")
 
         page = repository.get_filtered(
             active=True,
@@ -526,11 +503,11 @@ class TestGetFilteredByKeywords:
         assert ids == {matching.id}
 
     def test_results_are_ranked_with_title_matches_first(self, db, repository):
-        title_match = OfferFactory.create_model(
+        title_match = OfferDjangoFactory(
             title="Développeur informatique",
             mission="Gestion de projets divers",
         )
-        mission_match = OfferFactory.create_model(
+        mission_match = OfferDjangoFactory(
             title="Chargé de mission",
             mission="Encadrement d'une équipe de développeurs",
         )
@@ -547,8 +524,8 @@ class TestGetFilteredByKeywords:
 
 class TestGetByReference:
     def test_returns_offer_with_matching_reference(self, db, repository):
-        offer = OfferFactory.create_model(reference="REF-1")
-        OfferFactory.create_model(reference="REF-2")
+        offer = OfferDjangoFactory(reference="REF-1")
+        OfferDjangoFactory(reference="REF-2")
 
         result = repository.get_by_reference("REF-1")
 
@@ -559,8 +536,8 @@ class TestGetByReference:
             repository.get_by_reference("UNKNOWN")
 
     def test_multiple_offers_sharing_reference_raises(self, db, repository):
-        OfferFactory.create_model(reference="REF-1")
-        OfferFactory.create_model(reference="REF-1")
+        OfferDjangoFactory(reference="REF-1")
+        OfferDjangoFactory(reference="REF-1")
 
         with pytest.raises(MultipleOffersFoundForReference):
             repository.get_by_reference("REF-1")
@@ -568,12 +545,12 @@ class TestGetByReference:
 
 class TestGetBySourceId:
     def test_returns_only_non_archived_offers_for_source(self, db, repository):
-        source_id = SourceDjangoFactory().source_id
-        active_offer = OfferFactory.create_model(source_id=source_id)
-        OfferFactory.create_model(source_id=source_id, archived_at=NOW)
-        OfferFactory.create_model()  # other source
+        source = SourceDjangoFactory()
+        active_offer = OfferDjangoFactory(source=source)
+        OfferDjangoFactory(source=source, archived_at=NOW)
+        OfferDjangoFactory()  # other source
 
-        page = repository.get_by_source_id(source_id)
+        page = repository.get_by_source_id(source.source_id)
 
         assert [offer.id for offer in page.slice(0, 10)] == [active_offer.id]
 
@@ -585,15 +562,15 @@ class TestGetBySourceId:
 
 class TestGetPendingProcessing:
     def test_excluded_items(self, db, repository):
-        OfferFactory.create_model(archived_at=NOW)
-        OfferFactory.create_model(processing=True)
-        OfferFactory.create_model(processed_at=NOW, updated_at=DAY_AGO)
+        OfferDjangoFactory(archived_at=NOW)
+        OfferDjangoFactory(processing=True)
+        OfferDjangoFactory(processed_at=NOW, updated_at=DAY_AGO)
 
         assert repository.get_pending_processing() == []
 
     def test_get_pending_items_with_logical_lock(self, db, repository):
-        never_processed = OfferFactory.create_model()
-        updated_after_processed = OfferFactory.create_model(
+        never_processed = OfferDjangoFactory()
+        updated_after_processed = OfferDjangoFactory(
             processed_at=DAY_AGO, updated_at=NOW
         )
 
@@ -608,7 +585,7 @@ class TestGetPendingProcessing:
             assert entity.processing
 
     def test_limit(self, db, repository):
-        OfferFactory.create_model_batch(2)
+        OfferDjangoFactory.create_batch(2)
 
         entities = repository.get_pending_processing(limit=1)
         assert len(entities) == 1
@@ -618,10 +595,10 @@ class TestGetPendingProcessing:
 
 def test_mark_as_processed(db, repository):
     offers = [
-        _mapper.to_domain(OfferFactory.create_model(processing=True)),
-        _mapper.to_domain(OfferFactory.create_model(processing=False)),
+        _mapper.to_domain(OfferDjangoFactory(processing=True)),
+        _mapper.to_domain(OfferDjangoFactory(processing=False)),
     ]
-    undesired_offer = _mapper.to_domain(OfferFactory.create_model(processing=True))
+    undesired_offer = _mapper.to_domain(OfferDjangoFactory(processing=True))
 
     count = repository.mark_as_processed(offers)
     assert count == len(offers)
@@ -641,10 +618,10 @@ def test_mark_as_processed(db, repository):
 
 def test_mark_as_pending(db, repository):
     offers = [
-        _mapper.to_domain(OfferFactory.create_model(processing=True)),
-        _mapper.to_domain(OfferFactory.create_model(processing=False)),
+        _mapper.to_domain(OfferDjangoFactory(processing=True)),
+        _mapper.to_domain(OfferDjangoFactory(processing=False)),
     ]
-    undesired_offer = _mapper.to_domain(OfferFactory.create_model(processing=True))
+    undesired_offer = _mapper.to_domain(OfferDjangoFactory(processing=True))
 
     count = repository.mark_as_pending(offers)
     assert count == len(offers)
@@ -660,8 +637,8 @@ def test_mark_as_pending(db, repository):
 
 def test_multiple_offers_success(db, repository):
     source = SourceDjangoFactory()
-    offers = OfferFactory.create_model_batch(2, source_id=source.id)
+    offers = OfferDjangoFactory.create_batch(2, source=source)
     entities = [_mapper.to_domain(offer) for offer in offers]
-    entities.append(OfferFactory.create_entity(source_id=source.id))
+    entities.append(OfferFactory.create_entity(source_id=source.source_id))
 
     repository.upsert_batch(entities)

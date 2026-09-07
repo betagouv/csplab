@@ -27,7 +27,9 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 
@@ -132,9 +134,7 @@ class TestListerMesRecrutements:
         self, usecase
     ):
         agent_id, organisme = self._create_agent_responsable()
-        offre = OfferFactory.create_model(
-            publication_date=datetime(2024, 3, 1, tzinfo=UTC)
-        )
+        offre = OfferDjangoFactory(publication_date=datetime(2024, 3, 1, tzinfo=UTC))
         recrutement_actif = RecrutementFactory.create_model(
             offre_id=offre.id,
             organisme_id=organisme.id,

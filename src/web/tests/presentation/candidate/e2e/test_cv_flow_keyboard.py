@@ -10,7 +10,9 @@ from referentiel.value_objects.category import Category
 from domain.candidate.value_objects.cv_processing_status import CVStatus
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
 from infrastructure.factories.candidate.cv_metadata_factory import CVMetadataFactory
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.mappers.offer_mapper import OfferMapper
 
 
@@ -29,7 +31,7 @@ class TestCandidateFlowKeyboard:
         transactional_db,
     ) -> None:
         offer_entity = OfferMapper().to_domain(
-            OfferFactory.create_model(title="Offre keyboard")
+            OfferDjangoFactory(title="Offre keyboard")  # type: ignore[arg-type]
         )
         mock_execute.return_value = [((offer_entity, []), 0.9)]
 
@@ -85,10 +87,14 @@ class TestCandidateFlowKeyboard:
         transactional_db,
     ) -> None:
         offer_a = OfferMapper().to_domain(
-            OfferFactory.create_model(title="Offre alpha kbd", category=Category.A)
+            OfferDjangoFactory(  # type: ignore[arg-type]
+                title="Offre alpha kbd", category=Category.A
+            )
         )
         offer_b = OfferMapper().to_domain(
-            OfferFactory.create_model(title="Offre beta kbd", category=Category.B)
+            OfferDjangoFactory(  # type: ignore[arg-type]
+                title="Offre beta kbd", category=Category.B
+            )
         )
 
         cv_metadata = CVMetadataFactory.create_entity(

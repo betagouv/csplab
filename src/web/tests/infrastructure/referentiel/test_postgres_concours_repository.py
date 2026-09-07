@@ -6,7 +6,9 @@ from faker import Faker
 from referentiel.entities.concours import Concours
 
 from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
-from infrastructure.factories.referentiel.concours_factory import ConcoursFactory
+from infrastructure.factories.referentiel.concours_django_factory import (
+    ConcoursDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_concours_repository import (
     PostgresConcoursRepository,
@@ -28,7 +30,7 @@ class TestFindByIds:
         assert repository.get_by_ids(ids) == []
 
     def test_return_correct_list_of_existing_ids(self, db, repository):
-        concours = ConcoursFactory.create_model_batch(3)
+        concours = ConcoursDjangoFactory.create_batch(3)
         expected_ids = [concours[i].id for i in range(2)]
 
         results = repository.get_by_ids(expected_ids)
@@ -40,15 +42,15 @@ class TestFindByIds:
 
 class TestGetPendingProcessing:
     def test_excluded_items(self, db, repository):
-        ConcoursFactory.create_model(archived_at=NOW)
-        ConcoursFactory.create_model(processing=True)
-        ConcoursFactory.create_model(processed_at=NOW, updated_at=DAY_AGO)
+        ConcoursDjangoFactory(archived_at=NOW)
+        ConcoursDjangoFactory(processing=True)
+        ConcoursDjangoFactory(processed_at=NOW, updated_at=DAY_AGO)
 
         assert repository.get_pending_processing() == []
 
     def test_get_pending_items_with_logical_lock(self, db, repository):
-        never_processed = ConcoursFactory.create_model()
-        updated_after_processed = ConcoursFactory.create_model(
+        never_processed = ConcoursDjangoFactory()
+        updated_after_processed = ConcoursDjangoFactory(
             processed_at=DAY_AGO, updated_at=NOW
         )
 
@@ -63,7 +65,7 @@ class TestGetPendingProcessing:
             assert entity.processing
 
     def test_limit(self, db, repository):
-        ConcoursFactory.create_model_batch(2)
+        ConcoursDjangoFactory.create_batch(2)
 
         entities = repository.get_pending_processing(limit=1)
         assert len(entities) == 1
@@ -73,10 +75,10 @@ class TestGetPendingProcessing:
 
 def test_mark_as_processed(db, repository):
     concours_list = [
-        ConcoursFactory.create_model(processing=True).to_entity(),
-        ConcoursFactory.create_model(processing=False).to_entity(),
+        ConcoursDjangoFactory(processing=True).to_entity(),
+        ConcoursDjangoFactory(processing=False).to_entity(),
     ]
-    undesired_concours = ConcoursFactory.create_model(processing=True).to_entity()
+    undesired_concours = ConcoursDjangoFactory(processing=True).to_entity()
 
     count = repository.mark_as_processed(concours_list)
     assert count == len(concours_list)
@@ -96,10 +98,10 @@ def test_mark_as_processed(db, repository):
 
 def test_mark_as_pending(db, repository):
     concours_list = [
-        ConcoursFactory.create_model(processing=True).to_entity(),
-        ConcoursFactory.create_model(processing=False).to_entity(),
+        ConcoursDjangoFactory(processing=True).to_entity(),
+        ConcoursDjangoFactory(processing=False).to_entity(),
     ]
-    undesired_concours = ConcoursFactory.create_model(processing=True).to_entity()
+    undesired_concours = ConcoursDjangoFactory(processing=True).to_entity()
 
     count = repository.mark_as_pending(concours_list)
     assert count == len(concours_list)
