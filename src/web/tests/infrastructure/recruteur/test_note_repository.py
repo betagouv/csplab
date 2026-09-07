@@ -10,10 +10,13 @@ from config.app_config import AppConfig
 from domain.recruteur.errors.note_errors import NoteIntrouvable
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.note import NoteModel
-from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
+)
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
+from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
 from infrastructure.factories.recruteur.note_factory import NoteFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.note_mapper import NoteMapper
@@ -37,9 +40,19 @@ def repository_fixture(recruteur_integration_container) -> PostgresNoteRepositor
     return recruteur_integration_container.postgres_note_repository()
 
 
+@pytest.fixture(name="candidature")
+def candidature_fixture(db):
+    return CandidatureDjangoFactory()
+
+
 @pytest.fixture(name="candidature_id")
-def candidature_id_fixture(db) -> UUID:
-    return CandidatureFactory.create_model().id
+def candidature_id_fixture(candidature) -> UUID:
+    return candidature.id
+
+
+@pytest.fixture(name="agent")
+def agent_fixture(db):
+    return AgentDjangoFactory()
 
 
 @pytest.fixture(name="agent_id")
@@ -48,10 +61,8 @@ def agent_id_fixture(db) -> UUID:
 
 
 @pytest.fixture(name="existing_note_model")
-def existing_note_model_fixture(candidature_id, agent_id) -> NoteModel:
-    return NoteFactory.create_model(
-        candidature_id=candidature_id, publie_par_id=agent_id
-    )
+def existing_note_model_fixture(candidature, agent) -> NoteModel:
+    return NoteDjangoFactory(candidature=candidature, publie_par=agent)
 
 
 @pytest.fixture(name="note_save_raises_db_error")
