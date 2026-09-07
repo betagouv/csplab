@@ -1,11 +1,11 @@
 {
   "jobs": [
     {
-      "command": "5 4 * * 1 bash bin/archive_offers.py --source-id $DEFAULT_SOURCE_ID",
+      "command": "5 4 * * 1 bash -c 'source bin/inject_scaleway_env.sh && bin/archive_offers.py --source-id $DEFAULT_SOURCE_ID'",
       "size": "S"
     },
     {
-      "command": "0 6 * * 1 bash bin/organismes_pipeline.py",
+      "command": "0 6 * * 1 bash -c 'source bin/inject_scaleway_env.sh && bin/organismes_pipeline.py'",
       "size": "XL"
     }
   ]
