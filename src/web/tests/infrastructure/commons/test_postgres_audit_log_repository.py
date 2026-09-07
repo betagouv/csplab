@@ -4,6 +4,9 @@ from uuid import uuid4
 import pytest
 
 from infrastructure.django_apps.commons.models import AuditLogModel
+from infrastructure.factories.commons.audit_log_django_factory import (
+    AuditLogDjangoFactory,
+)
 from infrastructure.factories.commons.audit_log_factory import AuditLogFactory
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
@@ -40,7 +43,7 @@ class TestGetLogsForRessource:
 
     def test_returns_logs_for_given_ressource(self, db, repository):
         ressource_id = uuid4()
-        AuditLogFactory.create_model_batch(
+        AuditLogDjangoFactory.create_batch(
             3, ressource_kind="Offre", ressource_id=ressource_id
         )
 
@@ -49,11 +52,11 @@ class TestGetLogsForRessource:
         assert len(result) == 3  # noqa: PLR2004
 
     def test_does_not_return_logs_for_other_resources(self, db, repository):
-        expected_audit_log = AuditLogFactory.create_model(ressource_kind="Offre")
-        AuditLogFactory.create_model(
+        expected_audit_log = AuditLogDjangoFactory(ressource_kind="Offre")
+        AuditLogDjangoFactory(
             ressource_kind=expected_audit_log.ressource_kind, ressource_id=uuid4()
         )
-        AuditLogFactory.create_model(
+        AuditLogDjangoFactory(
             ressource_kind="Candidature", ressource_id=expected_audit_log.ressource_id
         )
 
@@ -65,12 +68,12 @@ class TestGetLogsForRessource:
 
     def test_returns_logs_ordered_most_recent_first(self, db, repository):
         ressource_id = uuid4()
-        older = AuditLogFactory.create_model(
+        older = AuditLogDjangoFactory(
             ressource_kind="Offre",
             ressource_id=ressource_id,
             occurred_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
         )
-        newer = AuditLogFactory.create_model(
+        newer = AuditLogDjangoFactory(
             ressource_kind="Offre",
             ressource_id=ressource_id,
             occurred_at=datetime(2026, 6, 1, tzinfo=timezone.utc),
