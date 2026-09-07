@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timezone
+from itertools import chain
 
 from pydantic import ValidationError
 from referentiel.entities.organisme import Organisme
@@ -22,8 +23,9 @@ class CleanRawOrganismesUsecase:
         self._raw_organisme_repository = raw_organisme_repository
 
     async def execute(self, referentiel: str) -> list[Organisme]:
-        organismes: list[Organisme] = []
         total_raw = 0
+        total_cleaned = 0
+        deduped_organismes: list[Organisme] = []
 
         while True:
             raw_batch = await self._raw_organisme_repository.find_uncleaned(
@@ -33,6 +35,7 @@ class CleanRawOrganismesUsecase:
                 break
 
             cleaned_ids = []
+            cleaned_batch: list[Organisme] = []
             for raw_organisme in raw_batch:
                 cleaned_ids.append(raw_organisme.id)
                 try:
@@ -51,23 +54,27 @@ class CleanRawOrganismesUsecase:
                     )
                     continue
                 if organisme is not None:
-                    organismes.append(organisme)
+                    cleaned_batch.append(organisme)
 
             await self._raw_organisme_repository.mark_as_cleaned_batch(
                 cleaned_ids, datetime.now(tz=timezone.utc)
             )
             total_raw += len(raw_batch)
+            total_cleaned += len(cleaned_batch)
+
+            # Dedupe per batch: bounds memory by unique SIRETs, not raw count.
+            deduped_organismes = self._organismes_cleaner.dedupe_by_siret(
+                chain(deduped_organismes, cleaned_batch)
+            )
 
             if len(raw_batch) < BATCH_SIZE:
                 break
-
-        deduped_organismes = self._organismes_cleaner.dedupe_by_siret(organismes)
 
         logger.info(
             "Cleaned %d raw organismes into %d organismes (%d after SIRET dedup) "
             "for referentiel %s",
             total_raw,
-            len(organismes),
+            total_cleaned,
             len(deduped_organismes),
             referentiel,
         )

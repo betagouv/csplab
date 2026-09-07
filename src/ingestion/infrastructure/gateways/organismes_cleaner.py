@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Iterable, Optional
 from uuid import UUID, uuid4, uuid5
 
 from pydantic import BaseModel, ValidationError, field_validator
@@ -85,7 +85,7 @@ class OrganismesCleaner:
             return self._clean_dila(raw_organisme)
         return None
 
-    def dedupe_by_siret(self, organismes: list[Organisme]) -> list[Organisme]:
+    def dedupe_by_siret(self, organismes: Iterable[Organisme]) -> list[Organisme]:
         best_by_siret: dict[SIRET, Organisme] = {}
         for organisme in organismes:
             current_best = best_by_siret.get(organisme.siret)

@@ -3,8 +3,6 @@ import argparse
 import asyncio
 import logging
 
-from referentiel.entities.organisme import Organisme
-
 from application.usecases.import_organismes import ImportOrganismesCommand
 from application.usecases.publish_organismes import PublishOrganismesCommand
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
@@ -36,7 +34,6 @@ async def _run(referentiel: OrganismeReferentiel | None = None) -> None:
         [referentiel] if referentiel is not None else list(OrganismeReferentiel)
     )
 
-    organismes: list[Organisme] = []
     for current_referentiel in referentiels:
         use_case = import_organismes_usecase_for(container, current_referentiel)
         import_result = await use_case.execute(
@@ -49,17 +46,19 @@ async def _run(referentiel: OrganismeReferentiel | None = None) -> None:
             )
             continue
 
-        organismes += await container.clean_raw_organismes_usecase().execute(
+        organismes = await container.clean_raw_organismes_usecase().execute(
             import_result.referentiel
         )
+        if not organismes:
+            logger.info(
+                "No organismes to publish for referentiel %s, skipping publish",
+                import_result.referentiel,
+            )
+            continue
 
-    if not organismes:
-        logger.info("No organismes to publish, skipping publish")
-        return
-
-    await container.publish_organismes_usecase().execute(
-        PublishOrganismesCommand(organismes=organismes)
-    )
+        await container.publish_organismes_usecase().execute(
+            PublishOrganismesCommand(organismes=organismes)
+        )
 
 
 def main() -> None:
