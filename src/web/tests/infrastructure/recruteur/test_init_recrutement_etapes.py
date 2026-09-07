@@ -29,7 +29,9 @@ from infrastructure.factories.identite.utilisateur_factory import UtilisateurFac
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
-from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 
@@ -50,12 +52,11 @@ def setup_base(db):
     agent, organisme = create_organisme_with_agent(
         role=AgentOrganismeRole.MEMBRE, etapes=etapes
     )
-    recrutement_model = RecrutementFactory.create_model(
-        organisme_id=organisme.id,
-        agent_id=agent.utilisateur.username,
-        agent_role=AgentRecrutementRole.RESPONSABLE,
+    recrutement_model = RecrutementDjangoFactory(
+        organisme=organisme,
+        agent_link__agent=agent,
+        agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
         etapes=etapes,
-        persist_etapes=True,
     )
     return etapes, agent, recrutement_model
 
@@ -84,11 +85,12 @@ class TestInitRecrutementEtapes:
             entity_id=agent.utilisateur.username
         )
 
-        recrutement_model = RecrutementFactory.create_model(
-            organisme_id=organisme.id,
-            agent_id=agent.utilisateur.username,
-            agent_role=kwargs.get("agent_role"),
-            persist_etapes=False,
+        agent_role = kwargs.get("agent_role")
+        recrutement_model = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            etapes__persist=False,
+            **({"agent_link__role": agent_role.value} if agent_role else {}),
         )
         usecase = recruteur_integration_container.init_recrutement_etapes_usecase()
 
@@ -117,12 +119,11 @@ class TestInitRecrutementEtapes:
         utilisateur = UtilisateurFactory.create_entity(
             entity_id=agent.utilisateur.username
         )
-        recrutement_model = RecrutementFactory.create_model(
-            organisme_id=organisme.id,
-            agent_id=agent.utilisateur.username,
-            agent_role=agent_role,
+        recrutement_model = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=agent_role.value,
             etapes=etapes,
-            persist_etapes=True,
         )
         usecase = recruteur_integration_container.init_recrutement_etapes_usecase()
 

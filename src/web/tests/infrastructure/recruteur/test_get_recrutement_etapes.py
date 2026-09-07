@@ -16,8 +16,13 @@ from domain.recruteur.value_objects.roles import (
     AgentRecrutementRole,
 )
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
-from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 NB_ETAPES_PAR_DEFAUT = 6
@@ -46,7 +51,15 @@ class TestGetRecrutementEtapes:
         ids=["responsable_organisme", "responsable_recrutement"],
     )
     def test_get_recrutement_etapes(self, db, recruteur_integration_container, kwargs):
-        recrutement_model = RecrutementFactory.create_model(**kwargs)
+        agent, organisme = create_organisme_with_agent(
+            role=kwargs.get("organisme_role")
+        )
+        agent_role = kwargs.get("agent_role")
+        recrutement_model = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            **({"agent_link__role": agent_role.value} if agent_role else {}),
+        )
         usecase = recruteur_integration_container.get_recrutement_etapes_usecase()
 
         resultat = usecase.execute(
@@ -66,7 +79,12 @@ class TestGetRecrutementEtapes:
         [AgentRecrutementRole.RECRUTEUR, AgentRecrutementRole.CONTRIBUTEUR],
     )
     def test_denied_agents(self, db, recruteur_integration_container, agent_role):
-        recrutement_model = RecrutementFactory.create_model(agent_role=agent_role)
+        agent, organisme = create_organisme_with_agent()
+        recrutement_model = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=agent_role.value,
+        )
         usecase = recruteur_integration_container.get_recrutement_etapes_usecase()
 
         with pytest.raises(AccesRecrutementRefuse):
@@ -81,7 +99,7 @@ class TestGetRecrutementEtapes:
             )
 
     def test_agents_without_role(self, db, recruteur_integration_container):
-        recrutement_model = RecrutementFactory.create_model()
+        recrutement_model = RecrutementDjangoFactory()
         usecase = recruteur_integration_container.get_recrutement_etapes_usecase()
 
         with pytest.raises(AccesOrganismeRefuse):

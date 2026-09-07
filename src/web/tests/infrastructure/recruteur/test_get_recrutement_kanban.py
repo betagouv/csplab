@@ -25,7 +25,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
-from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 
 
@@ -52,9 +54,9 @@ class TestGetRecrutementKanbanRbac:
     )
     def test_authorized(self, usecase, role, assign_agent_to_recrutement):
         agent, organisme = create_organisme_with_agent(role=role)
-        agent_id = agent.utilisateur_id if assign_agent_to_recrutement else None
-        recrutement = RecrutementFactory.create_model(
-            organisme_id=organisme.id, agent_id=agent_id
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            **({"agent_link__agent": agent} if assign_agent_to_recrutement else {}),
         )
         etape_entree = EtapeModel.objects.get(
             recrutement_id=recrutement.offre_id,
@@ -84,7 +86,7 @@ class TestGetRecrutementKanbanRbac:
 
     def test_forbidden_when_membre_not_assigned_to_recrutement(self, usecase):
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
-        recrutement = RecrutementFactory.create_model(organisme_id=organisme.id)
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
 
         with pytest.raises(AccesRecrutementRefuse):
             usecase.execute(
@@ -135,7 +137,7 @@ class TestGetRecrutementKanbanRbac:
             role=AgentOrganismeRole.RESPONSABLE
         )
         autre_organisme = OrganismeDjangoFactory()
-        recrutement = RecrutementFactory.create_model(organisme_id=autre_organisme.id)
+        recrutement = RecrutementDjangoFactory(organisme=autre_organisme)
 
         result = usecase.execute(
             GetRecrutementKanbanQuery(

@@ -19,7 +19,9 @@ from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.factories.identite.candidat_django_factory import (
     CandidatDjangoFactory,
 )
-from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
@@ -66,7 +68,7 @@ def test_submit_candidature_success(db, candidate_container):
     offre = OfferDjangoFactory()
     candidate = CandidatDjangoFactory()
 
-    RecrutementFactory.create_model(offre_id=offre.id)
+    RecrutementDjangoFactory(offre=offre)
 
     command = SubmitApplicationCommand(
         offre_id=offre.id,  # type: ignore[attr-defined]
@@ -117,7 +119,7 @@ def test_save_raises_candidat_inexistant_on_fk_violation(
     transactional_db, candidate_container
 ):
     offre = OfferDjangoFactory()
-    recrutement = RecrutementFactory.create_model(offre_id=offre.id)
+    recrutement = RecrutementDjangoFactory(offre=offre)
 
     # Now try to save with an unknown candidat_id via candidate repo
     candidature = Candidature.build(
@@ -137,7 +139,7 @@ def test_save_raises_candidature_deja_soumise_on_duplicate(
     transactional_db, candidate_container
 ):
     offre = OfferDjangoFactory()
-    recrutement = RecrutementFactory.create_model(offre_id=offre.id)
+    recrutement = RecrutementDjangoFactory(offre=offre)
     candidate = CandidatDjangoFactory()
 
     # First save: creates the candidature successfully
@@ -170,7 +172,7 @@ def test_submit_candidature_twice(db, candidate_container):
     offre = OfferDjangoFactory()
     candidate = CandidatDjangoFactory()
 
-    RecrutementFactory.create_model(offre_id=offre.id)
+    RecrutementDjangoFactory(offre=offre)
 
     command = SubmitApplicationCommand(
         offre_id=offre.id,  # type: ignore[attr-defined]
