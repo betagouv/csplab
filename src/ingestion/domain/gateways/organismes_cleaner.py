@@ -1,4 +1,4 @@
-from typing import Optional, Protocol
+from typing import Iterable, Optional, Protocol
 
 from referentiel.entities.organisme import Organisme
 
@@ -8,4 +8,4 @@ from domain.entities.raw_organisme import RawOrganisme
 class IOrganismesCleaner(Protocol):
     def clean(self, raw_organisme: RawOrganisme) -> Optional[Organisme]: ...
 
-    def dedupe_by_siret(self, organismes: list[Organisme]) -> list[Organisme]: ...
+    def dedupe_by_siret(self, organismes: Iterable[Organisme]) -> list[Organisme]: ...
