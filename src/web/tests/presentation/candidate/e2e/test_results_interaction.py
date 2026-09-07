@@ -51,7 +51,7 @@ class TestResultsDrawer:
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_entity = OfferMapper().to_domain(
-            OfferDjangoFactory(title="Offre e2e drawer")
+            OfferDjangoFactory(title="Offre e2e drawer")  # type: ignore[arg-type]
         )
 
         cv_metadata = CVMetadataFactory.create_entity(
@@ -84,7 +84,7 @@ class TestResultsDrawer:
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_entity = OfferMapper().to_domain(
-            OfferDjangoFactory(title="Offre e2e back-nav")
+            OfferDjangoFactory(title="Offre e2e back-nav")  # type: ignore[arg-type]
         )
 
         cv_metadata = CVMetadataFactory.create_entity(
@@ -119,7 +119,7 @@ class TestResultsDrawer:
         concours_model = ConcoursDjangoFactory(
             corps="Corps e2e drawer", grade="Grade e2e drawer"
         )
-        concours_entity = concours_model.to_entity()
+        concours_entity = concours_model.to_entity()  # type: ignore[attr-defined]
 
         cv_metadata = CVMetadataFactory.create_entity(
             status=CVStatus.COMPLETED, search_query="dev"
@@ -154,7 +154,7 @@ class TestResultsPersistence:
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_entity = OfferMapper().to_domain(
-            OfferDjangoFactory(title="Offre e2e refresh")
+            OfferDjangoFactory(title="Offre e2e refresh")  # type: ignore[arg-type]
         )
 
         cv_metadata = CVMetadataFactory.create_entity(
@@ -188,10 +188,14 @@ class TestResultsFilters:
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_a = OfferMapper().to_domain(
-            OfferDjangoFactory(title="Offre alpha", category=Category.A)
+            OfferDjangoFactory(  # type: ignore[arg-type]
+                title="Offre alpha", category=Category.A
+            )
         )
         offer_b = OfferMapper().to_domain(
-            OfferDjangoFactory(title="Offre beta", category=Category.B)
+            OfferDjangoFactory(  # type: ignore[arg-type]
+                title="Offre beta", category=Category.B
+            )
         )
 
         cv_metadata = CVMetadataFactory.create_entity(
@@ -225,10 +229,14 @@ class TestResultsFilters:
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_a = OfferMapper().to_domain(
-            OfferDjangoFactory(title="Offre alpha deep", category=Category.A)
+            OfferDjangoFactory(  # type: ignore[arg-type]
+                title="Offre alpha deep", category=Category.A
+            )
         )
         offer_b = OfferMapper().to_domain(
-            OfferDjangoFactory(title="Offre beta deep", category=Category.B)
+            OfferDjangoFactory(  # type: ignore[arg-type]
+                title="Offre beta deep", category=Category.B
+            )
         )
 
         cv_metadata = CVMetadataFactory.create_entity(
@@ -259,13 +267,19 @@ class TestResultsFilters:
         self, mock_execute, page: Page, live_server, transactional_db
     ) -> None:
         offer_a_fpe = OfferMapper().to_domain(
-            OfferDjangoFactory(title="Offre alpha FPE", category=Category.A)
+            OfferDjangoFactory(  # type: ignore[arg-type]
+                title="Offre alpha FPE", category=Category.A
+            )
         )
         offer_a_fpt = OfferMapper().to_domain(
-            OfferDjangoFactory(title="Offre alpha FPT", category=Category.A)
+            OfferDjangoFactory(  # type: ignore[arg-type]
+                title="Offre alpha FPT", category=Category.A
+            )
         )
         offer_b_fpe = OfferMapper().to_domain(
-            OfferDjangoFactory(title="Offre beta FPE", category=Category.B)
+            OfferDjangoFactory(  # type: ignore[arg-type]
+                title="Offre beta FPE", category=Category.B
+            )
         )
 
         cv_metadata = CVMetadataFactory.create_entity(
@@ -311,7 +325,9 @@ class TestResultsPagination:
         settings.CV_RESULTS_PER_PAGE = 3
 
         offers = [
-            OfferMapper().to_domain(OfferDjangoFactory(title=f"Offre paginée {i}"))
+            OfferMapper().to_domain(
+                OfferDjangoFactory(title=f"Offre paginée {i}")  # type: ignore[arg-type]
+            )
             for i in range(5)
         ]
 
