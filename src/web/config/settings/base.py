@@ -177,7 +177,7 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = "users.UserModel"
 LOGIN_URL = "identite:login"
 LOGIN_REDIRECT_URL = "ats:ats_base"
-LOGOUT_REDIRECT_URL = "pages:home"
+LOGOUT_REDIRECT_URL = "identite:login"
 
 AUTHENTICATION_BACKENDS = [
     "infrastructure.authentication.proconnect_backend.ProconnectBackend",
