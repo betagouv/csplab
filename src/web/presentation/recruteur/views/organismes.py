@@ -95,6 +95,7 @@ class OrganismesView(APIView):
                 siret=SIRET(code=serializer.validated_data["siret"]),
                 parent_id=None,
                 utilisateur=self.user_mapper.to_domain(request),
+                managed_ats=serializer.validated_data["gestion_ats"],
             )
             organisme = usecase.execute(command)
             organisme_dto = {
