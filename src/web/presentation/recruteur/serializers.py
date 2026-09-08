@@ -191,9 +191,6 @@ class UpdateAgentOrganismeSerializer(serializers.Serializer):
     role = serializers.ChoiceField(
         choices=[(r.value, r.value) for r in AgentOrganismeRole]
     )
-    nom = serializers.CharField(required=False)
-    prenom = serializers.CharField(required=False)
-    poste = serializers.CharField(required=False)
     date_revocation = serializers.DateTimeField(required=False)
 
 
