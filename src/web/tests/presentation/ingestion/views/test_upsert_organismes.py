@@ -4,6 +4,8 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+
 URL = reverse("ingestion:organismes_upsert")
 
 
@@ -136,3 +138,30 @@ def test_returns_error_500(api_key_client, use_case):
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class TestOrganismesUpsertViewDbVerified:
+    @pytest.fixture(autouse=True)
+    def mock_container(self):
+        return None
+
+    def test_creates_and_persists_the_organisme(self, api_key_client):
+        payload = _organisme_payload()
+
+        response = api_key_client.post(
+            URL,
+            data={"organismes": [payload]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json() == {"created": 1, "updated": 0, "errors": []}
+
+        organisme = OrganismeModel.objects.get(
+            referentiel=payload["referentiel"], external_id=payload["external_id"]
+        )
+        assert organisme.nom == payload["nom"]
+        assert organisme.versant == payload["versant"]
+        assert organisme.siret == payload["siret"]
+        assert organisme.parent_id == payload["parent_id"]
+        assert organisme.millesime == payload["millesime"]
