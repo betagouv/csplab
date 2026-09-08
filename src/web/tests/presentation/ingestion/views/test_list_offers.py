@@ -18,10 +18,20 @@ from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 fake = Faker()
 URL = reverse("ingestion:offers_list")
+
+NOMBRE_REQUETES_ATTENDU = (
+    1  # view JWT authentication
+    + 2  # pagination: count + page
+    + 1  # ApiRequestLoggerMiddleware re-decodes the JWT to log the request
+    + 2  # logging: DJ tries an UPDATE (manually-assigned pk) then falls back to INSERT
+)
 
 
 def test_unauthenticated_access(api_client):
@@ -672,3 +682,43 @@ def test_pagination_out_of_bond(mock_offers_container, authenticated_client):
     }
 
     assert data["next"] is None
+
+
+class TestOffersListViewDbVerified:
+    def test_response_matches_db_record_field_by_field(self, authenticated_client):
+        offer = OfferDjangoFactory(
+            contract_type=ContractType.TERRITORIAL.value,
+            offer_url="https://example.org/offre",
+        )
+
+        response = authenticated_client.get(URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == 1
+        assert data["results"] == [
+            {
+                "external_id": offer.external_id,
+                "reference": offer.reference,
+                "source_id": str(offer.source_id),
+                "title": offer.title,
+                "organization": offer.organization,
+                "contract_type": offer.contract_type,
+                "category": offer.category,
+                "publication_date": offer.publication_date.isoformat().replace(
+                    "+00:00", "Z"
+                ),
+                "offer_url": offer.offer_url,
+                "archived_at": None,
+            }
+        ]
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, django_assert_num_queries
+    ):
+        OfferDjangoFactory.create_batch(5)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
+            response = authenticated_client.get(URL)
+
+        assert response.status_code == status.HTTP_200_OK
