@@ -894,7 +894,16 @@ export interface components {
     responses: never;
     parameters: never;
     requestBodies: never;
-    headers: never;
+    headers: {
+        /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+        "X-RateLimit-Limit": number;
+        /** @description Nombre d'appels restants sur la fenêtre courante. */
+        "X-RateLimit-Remaining": number;
+        /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+        "X-RateLimit-Reset": number;
+        /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+        "Retry-After": number;
+    };
     pathItems: never;
 }
 export type $defs = Record<string, never>;
@@ -916,12 +925,9 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -930,12 +936,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -944,12 +947,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -958,12 +958,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -972,12 +969,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -987,14 +981,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1006,12 +996,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1033,12 +1020,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1047,12 +1031,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1062,14 +1043,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1081,12 +1058,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1114,12 +1088,9 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1128,12 +1099,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1142,12 +1110,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1156,12 +1121,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1171,14 +1133,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1190,12 +1148,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1219,24 +1174,18 @@ export interface operations {
             /** @description No response body */
             204: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content?: never;
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1245,12 +1194,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1260,14 +1206,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1279,12 +1221,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1313,12 +1252,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1327,12 +1263,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1341,12 +1274,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1356,14 +1286,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1375,12 +1301,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1400,12 +1323,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1414,12 +1334,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1428,12 +1345,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1442,12 +1356,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1457,14 +1368,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1476,12 +1383,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1507,12 +1411,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1521,12 +1422,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1535,12 +1433,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1549,12 +1444,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1563,12 +1455,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1578,14 +1467,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1597,12 +1482,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1624,12 +1506,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1638,12 +1517,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1652,12 +1528,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1666,12 +1539,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1681,14 +1551,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1700,12 +1566,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1733,12 +1596,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1747,12 +1607,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1761,12 +1618,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1775,12 +1629,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1789,12 +1640,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1804,14 +1652,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1823,12 +1667,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1850,12 +1691,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1864,12 +1702,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1878,12 +1713,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1892,12 +1724,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1907,14 +1736,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1926,12 +1751,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1959,12 +1781,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1973,12 +1792,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -1987,12 +1803,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2001,12 +1814,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2015,12 +1825,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2030,14 +1837,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2049,12 +1852,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2082,12 +1882,9 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2096,12 +1893,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2110,12 +1904,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2124,12 +1915,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2138,12 +1926,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2152,12 +1937,9 @@ export interface operations {
             };
             409: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2167,14 +1949,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2186,12 +1964,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2215,12 +1990,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2229,12 +2001,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2243,12 +2012,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2257,12 +2023,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2271,12 +2034,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2286,14 +2046,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2305,12 +2061,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2332,12 +2085,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2346,12 +2096,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2360,12 +2107,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2374,12 +2118,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2389,14 +2130,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2408,12 +2145,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2441,12 +2175,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2455,12 +2186,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2469,12 +2197,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2483,12 +2208,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2497,12 +2219,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2512,14 +2231,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2531,12 +2246,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2558,12 +2270,9 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2572,12 +2281,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2586,12 +2292,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2600,12 +2303,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2615,14 +2315,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2634,12 +2330,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2666,12 +2359,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2680,12 +2370,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2694,12 +2381,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2708,12 +2392,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2722,12 +2403,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2737,14 +2415,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2756,12 +2430,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2788,12 +2459,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2802,12 +2470,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2816,12 +2481,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2830,12 +2492,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2844,12 +2503,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2859,14 +2515,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2878,12 +2530,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2906,12 +2555,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2920,12 +2566,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2934,12 +2577,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2948,12 +2588,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2963,14 +2600,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2982,12 +2615,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3016,12 +2646,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3030,12 +2657,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3044,12 +2668,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3058,12 +2679,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3073,14 +2691,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3092,12 +2706,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3120,12 +2731,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3134,12 +2742,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3148,12 +2753,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3162,12 +2764,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3177,14 +2776,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3196,12 +2791,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3230,12 +2822,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3244,12 +2833,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3258,12 +2844,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3272,12 +2855,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3286,12 +2866,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3301,14 +2878,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3320,12 +2893,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3348,12 +2918,9 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3362,12 +2929,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3376,12 +2940,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3390,12 +2951,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3405,14 +2963,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3424,12 +2978,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3452,12 +3003,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3466,12 +3014,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3480,12 +3025,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3494,12 +3036,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3509,14 +3048,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3528,12 +3063,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3561,12 +3093,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3575,12 +3104,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3589,12 +3115,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3603,12 +3126,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3617,12 +3137,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3632,14 +3149,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3651,12 +3164,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3682,12 +3192,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3696,12 +3203,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3710,12 +3214,9 @@ export interface operations {
             };
             403: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3724,12 +3225,9 @@ export interface operations {
             };
             404: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3739,14 +3237,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3758,12 +3252,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3783,12 +3274,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3797,12 +3285,9 @@ export interface operations {
             };
             400: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3811,12 +3296,9 @@ export interface operations {
             };
             401: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3826,14 +3308,10 @@ export interface operations {
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
-                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
-                    "Retry-After"?: number;
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3845,12 +3323,9 @@ export interface operations {
             };
             500: {
                 headers: {
-                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
-                    "X-RateLimit-Limit"?: number;
-                    /** @description Nombre d'appels restants sur la fenêtre courante. */
-                    "X-RateLimit-Remaining"?: number;
-                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
-                    "X-RateLimit-Reset"?: number;
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
                     [name: string]: unknown;
                 };
                 content: {

@@ -31,13 +31,6 @@ _RATE_LIMIT_HEADER_REFS = {name: _header_ref(name) for name in _RATE_LIMIT_HEADE
 
 
 def postprocess_add_rate_limit_headers(result, **kwargs):
-    """Document the `X-RateLimit-*` headers set by RateLimitHeadersMiddleware.
-
-    These headers are added dynamically by a middleware rather than by the
-    views themselves, so drf-spectacular cannot pick them up automatically.
-    They're registered once under `components.headers` and referenced from
-    every response to avoid inlining a copy of the spec everywhere.
-    """
     components_headers = result.setdefault("components", {}).setdefault("headers", {})
     for name, spec in _RATE_LIMIT_HEADERS.items():
         components_headers.setdefault(name, dict(spec))
@@ -76,12 +69,6 @@ _TOO_MANY_REQUESTS_RESPONSE = {
 
 
 def postprocess_add_too_many_requests_response(result, **kwargs):
-    """Document the `429` response returned once an endpoint's rate limit is hit.
-
-    Every endpoint goes through DRF's DEFAULT_THROTTLE_CLASSES (see
-    REST_FRAMEWORK settings), which can raise a 429 regardless of what the
-    view itself declares, so drf-spectacular cannot pick it up automatically.
-    """
     components_headers = result.setdefault("components", {}).setdefault("headers", {})
     components_headers.setdefault("Retry-After", dict(_RETRY_AFTER_HEADER))
 
