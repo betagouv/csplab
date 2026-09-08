@@ -151,14 +151,27 @@ jobs:
           target-folder: storybook/pr/${{ github.event.number }}
           force: false
           commit-message: "🚀(storybook) deploy PR #${{ github.event.number }} preview from ${{ steps.sha.outputs.short }}"
+      - name: List the stories the pull request touches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_INDEX: src/web/frontend/storybook-static/index.json
+          MAIN_INDEX: ${{ runner.temp }}/main-index.json
+          CHANGED_FILES: ${{ runner.temp }}/changed-files.txt
+          PREVIEW_URL: ${{ steps.pages.outputs.origin }}${{ steps.pages.outputs.base }}/storybook/pr/${{ github.event.number }}/
+          MAIN_URL: ${{ steps.pages.outputs.origin }}${{ steps.pages.outputs.base }}/storybook/main/
+        run: |
+          gh api "repos/${{ github.repository }}/pulls/${{ github.event.number }}/files" --paginate --jq '.[].filename' > "$CHANGED_FILES"
+          curl -fsSL "${MAIN_URL}index.json" -o "$MAIN_INDEX" || echo '{"entries":{}}' > "$MAIN_INDEX"
+          node .github/scripts/storybook-review-comment.mjs > "${{ runner.temp }}/storybook-comment.md"
+          cat "${{ runner.temp }}/storybook-comment.md"
       - uses: actions/github-script@v7
         env:
-          PREVIEW_URL: ${{ steps.pages.outputs.origin }}${{ steps.pages.outputs.base }}/storybook/pr/${{ github.event.number }}/
+          COMMENT_FILE: ${{ runner.temp }}/storybook-comment.md
         with:
           script: |
-            const url = process.env.PREVIEW_URL
+            const fs = require('node:fs')
             const marker = '<!-- storybook-preview -->'
-            const body = `${marker}\n📖 Storybook de prévisualisation : ${url}`
+            const body = `${marker}\n${fs.readFileSync(process.env.COMMENT_FILE, 'utf8')}`
             const comments = await github.paginate(github.rest.issues.listComments, {
               ...context.repo,
               issue_number: context.issue.number,
