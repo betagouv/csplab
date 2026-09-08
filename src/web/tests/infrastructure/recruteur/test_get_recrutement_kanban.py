@@ -16,7 +16,9 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
-from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
+)
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
@@ -62,9 +64,7 @@ class TestGetRecrutementKanbanRbac:
             recrutement_id=recrutement.offre_id,
             categorie=CategorieEtapeRecrutement.ENTREE.value,
         )
-        candidature = CandidatureFactory.create_model(
-            offre_id=recrutement.offre_id, etape=etape_entree
-        )
+        candidature = CandidatureDjangoFactory(etape=etape_entree)
 
         result = usecase.execute(
             GetRecrutementKanbanQuery(

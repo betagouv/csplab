@@ -10,15 +10,19 @@ from domain.identite.errors.organisme_permission_errors import (
     AccesRecrutementRefuse,
 )
 from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.exceptions.exceptions import InfrastructureError
-from infrastructure.factories.candidate.candidature_factory import (
-    CandidatureFactory,
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
 )
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
@@ -91,10 +95,11 @@ class TestChangerEtapeCandidaturesUsecase:
             agent_link__agent=agent,
             agent_link__role=role_recrutement.value,
         )
-        candidatures = CandidatureFactory.create_models(
-            count=3,
-            offre_id=recrutement.offre_id,
+        etape_entree = EtapeModel.objects.get(
+            recrutement_id=recrutement.offre_id,
+            categorie=CategorieEtapeRecrutement.ENTREE.value,
         )
+        candidatures = CandidatureDjangoFactory.create_batch(3, etape=etape_entree)
         etape_cible_id = UUID(recrutement.ordre_etapes[-1])
 
         command = ChangerEtapeCandidaturesCommand(
@@ -122,10 +127,11 @@ class TestChangerEtapeCandidaturesUsecase:
             agent_link__agent=agent,
             agent_link__role=AgentRecrutementRole.CONTRIBUTEUR.value,
         )
-        candidatures = CandidatureFactory.create_models(
-            count=3,
-            offre_id=recrutement.offre_id,
+        etape_entree = EtapeModel.objects.get(
+            recrutement_id=recrutement.offre_id,
+            categorie=CategorieEtapeRecrutement.ENTREE.value,
         )
+        candidatures = CandidatureDjangoFactory.create_batch(3, etape=etape_entree)
 
         command = ChangerEtapeCandidaturesCommand(
             organisme_id=recrutement.organisme_id,
@@ -173,7 +179,7 @@ class TestChangerEtapeCandidaturesUsecase:
     ):
         repo = recruteur_integration_container.postgres_candidature_repository()
 
-        models = CandidatureFactory.create_models(2)
+        models = CandidatureDjangoFactory.create_batch(2)
         candidatures = [repo.mapper.to_domain(m) for m in models]
 
         unknown_etape_id = uuid4()

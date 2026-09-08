@@ -19,7 +19,9 @@ from domain.recruteur.value_objects.statut_recrutement import (
 )
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
-from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
+)
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
@@ -91,12 +93,8 @@ class TestListerMesRecrutements:
             categorie=CategorieEtapeRecrutement.EN_COURS.value,
         ).first()
 
-        CandidatureFactory.create_model(
-            offre_id=recrutement_actif.offre_id, etape=etape_entree
-        )
-        CandidatureFactory.create_model(
-            offre_id=recrutement_actif.offre_id, etape=etape_en_cours
-        )
+        CandidatureDjangoFactory(etape=etape_entree)
+        CandidatureDjangoFactory(etape=etape_en_cours)
 
         result = self._lister_recrutements(
             usecase, organisme, agent_id, StatutRecrutement.ACTIF
@@ -124,9 +122,7 @@ class TestListerMesRecrutements:
             categorie=CategorieEtapeRecrutement.ACCEPTE.value,
         ).first()
 
-        CandidatureFactory.create_model(
-            offre_id=recrutement_archive.offre_id, etape=etape_accepte
-        )
+        CandidatureDjangoFactory(etape=etape_accepte)
 
         result = self._lister_recrutements(
             usecase, organisme, agent_id, StatutRecrutement.ARCHIVE

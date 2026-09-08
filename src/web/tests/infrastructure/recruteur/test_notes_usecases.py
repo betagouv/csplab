@@ -17,11 +17,13 @@ from domain.recruteur.errors.note_errors import NoteIntrouvable
 from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
 from domain.recruteur.repositories.note_repository_interface import INoteRepository
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
-from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
+)
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
-from infrastructure.factories.recruteur.note_factory import NoteFactory
+from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
 from infrastructure.gateways.shared.logger import LoggerService
 
 fake = Faker("fr_FR")
@@ -42,7 +44,7 @@ class TestCreerNote:
     def test_creer_note(self, db, recruteur_integration_container):
         message = fake.sentence()
         profil_agent = AgentDjangoFactory()
-        candidature = CandidatureFactory.create_model()
+        candidature = CandidatureDjangoFactory()
         usecase = recruteur_integration_container.creer_note_usecase()
 
         note = usecase.execute(
@@ -75,7 +77,7 @@ class TestCreerNote:
     def test_creer_note_raises_profil_agent_nexiste_pas(
         self, db, recruteur_integration_container
     ):
-        candidature = CandidatureFactory.create_model()
+        candidature = CandidatureDjangoFactory()
         usecase = recruteur_integration_container.creer_note_usecase()
 
         with pytest.raises(ProfilAgentNexistePas):
@@ -91,7 +93,7 @@ class TestCreerNote:
         self, db, recruteur_integration_container
     ):
         profil_agent = AgentDjangoFactory()
-        candidature = CandidatureFactory.create_model()
+        candidature = CandidatureDjangoFactory()
         note_repository = MagicMock(spec=INoteRepository)
         note_repository.create = MagicMock(side_effect=Exception("db error"))
         recruteur_integration_container.postgres_note_repository.override(
@@ -111,7 +113,7 @@ class TestCreerNote:
 
 class TestEditerNote:
     def test_editer_note(self, db, recruteur_integration_container):
-        note_model = NoteFactory.create_model()
+        note_model = NoteDjangoFactory()
         usecase = recruteur_integration_container.editer_note_usecase()
         nouveau_message = fake.sentence()
 
@@ -142,7 +144,7 @@ class TestEditerNote:
     def test_editer_note_raises_note_introuvable_when_not_author(
         self, db, recruteur_integration_container
     ):
-        note_model = NoteFactory.create_model()
+        note_model = NoteDjangoFactory()
         usecase = recruteur_integration_container.editer_note_usecase()
 
         with pytest.raises(NoteIntrouvable):
@@ -157,7 +159,7 @@ class TestEditerNote:
     def test_editer_note_receives_repository_unhandled_error(
         self, db, recruteur_integration_container
     ):
-        note_model = NoteFactory.create_model()
+        note_model = NoteDjangoFactory()
         note_repository = MagicMock(spec=INoteRepository)
         note_repository.get_by_id = MagicMock(side_effect=Exception("db error"))
         recruteur_integration_container.postgres_note_repository.override(
@@ -177,7 +179,7 @@ class TestEditerNote:
 
 class TestSupprimerNote:
     def test_supprimer_note(self, db, recruteur_integration_container):
-        note_model = NoteFactory.create_model()
+        note_model = NoteDjangoFactory()
         usecase = recruteur_integration_container.supprimer_note_usecase()
 
         usecase.execute(
@@ -206,7 +208,7 @@ class TestSupprimerNote:
     def test_supprimer_note_raises_note_introuvable_when_not_author(
         self, db, recruteur_integration_container
     ):
-        note_model = NoteFactory.create_model()
+        note_model = NoteDjangoFactory()
         usecase = recruteur_integration_container.supprimer_note_usecase()
 
         with pytest.raises(NoteIntrouvable):
@@ -220,7 +222,7 @@ class TestSupprimerNote:
     def test_supprimer_note_receives_repository_unhandled_error(
         self, db, recruteur_integration_container
     ):
-        note_model = NoteFactory.create_model()
+        note_model = NoteDjangoFactory()
         note_repository = MagicMock(spec=INoteRepository)
         note_repository.get_by_id = MagicMock(side_effect=Exception("db error"))
         recruteur_integration_container.postgres_note_repository.override(
@@ -239,7 +241,7 @@ class TestSupprimerNote:
 
 class TestListerNotesCandidature:
     def test_lister_notes_candidature(self, db, recruteur_integration_container):
-        note_model = NoteFactory.create_model()
+        note_model = NoteDjangoFactory()
         usecase = recruteur_integration_container.lister_notes_candidature_usecase()
 
         notes = usecase.execute(

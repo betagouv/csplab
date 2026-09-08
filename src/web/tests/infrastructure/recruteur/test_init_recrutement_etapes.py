@@ -21,7 +21,9 @@ from domain.recruteur.value_objects.roles import (
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
-from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
@@ -154,10 +156,7 @@ class TestInitRecrutementEtapes:
     ):
         etapes, agent, recrutement_model = setup_base
         etape_model = EtapeModel.objects.get(id=etapes[0].entity_id)
-        CandidatureFactory.create_model(
-            offre_id=recrutement_model.offre_id,
-            etape=etape_model,
-        )
+        CandidatureDjangoFactory(etape=etape_model)
         usecase = recruteur_integration_container.init_recrutement_etapes_usecase()
 
         with pytest.raises(SupressionEtapeImpossible):
@@ -179,10 +178,7 @@ class TestInitRecrutementEtapes:
     ):
         etapes, agent, recrutement_model = setup_base
         etape_model = EtapeModel.objects.get(id=etapes[0].entity_id)
-        CandidatureFactory.create_model(
-            offre_id=recrutement_model.offre_id,
-            etape=etape_model,
-        )
+        CandidatureDjangoFactory(etape=etape_model)
 
         repository = recruteur_integration_container.postgres_recrutement_repository()
         repository.save = Mock(side_effect=ProtectedError("msg", []))

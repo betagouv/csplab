@@ -9,7 +9,7 @@ from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
-from infrastructure.factories.recruteur.note_factory import NoteFactory
+from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.recruteur.postgres_note_query_service import (
     PostgresNoteQueryService,
@@ -33,10 +33,8 @@ def service_fixture(recruteur_integration_container) -> PostgresNoteQueryService
 
 def test_get_by_candidature_service_returns_ordered_notes(service):
     agent = AgentDjangoFactory()
-    note = NoteFactory.create_model(publie_par_id=agent.utilisateur_id)
-    note_recent = NoteFactory.create_model(
-        candidature_id=note.candidature_id, publie_par_id=agent.utilisateur_id
-    )
+    note = NoteDjangoFactory(publie_par=agent)
+    note_recent = NoteDjangoFactory(candidature=note.candidature, publie_par=agent)
 
     notes = service.get_by_candidature(note.candidature_id)
 
@@ -47,7 +45,7 @@ def test_get_by_candidature_service_returns_ordered_notes(service):
 
 
 def test_get_by_candidature_service_ignores_soft_deleted_notes(service):
-    model = NoteFactory.create_model()
+    model = NoteDjangoFactory()
     model.supprimee_le = datetime.now(UTC)
     model.save()
 
@@ -55,6 +53,6 @@ def test_get_by_candidature_service_ignores_soft_deleted_notes(service):
 
 
 def test_get_by_candidature_service_ignores_unrelated_notes(service):
-    NoteFactory.create_model()
+    NoteDjangoFactory()
 
     assert service.get_by_candidature(uuid4()) == []

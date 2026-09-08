@@ -30,7 +30,9 @@ from domain.recruteur.value_objects.roles import (
 from infrastructure.di.recruteur.recruteur_container import RecruteurContainer
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
-from infrastructure.factories.candidate.candidature_factory import CandidatureFactory
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
@@ -91,10 +93,8 @@ class TestUpdateRecrutementEtapes:
         )
         e0, e1, e2, _, e4, e5 = recrutement_model.etapes.all()  # type: ignore[attr-defined]
 
-        CandidatureFactory.create_models_with_etapes(
-            offre_id=recrutement_model.offre_id,
-            etapes=[e0, e1, e2, e4, e5],  # type: ignore[attr-defined]
-        )
+        for e in [e0, e1, e2, e4, e5]:  # type: ignore[attr-defined]
+            CandidatureDjangoFactory(etape=e)
 
         etapes_data = [
             EtapeData(
@@ -233,10 +233,8 @@ class TestUpdateRecrutementEtapes:
             etapes=etapes,
         )
 
-        CandidatureFactory.create_models_with_etapes(
-            offre_id=recrutement_model.offre_id,
-            etapes=recrutement_model.etapes.all(),  # type: ignore[attr-defined]
-        )
+        for e in recrutement_model.etapes.all():  # type: ignore[attr-defined]
+            CandidatureDjangoFactory(etape=e)
 
         e0, e1, e2, _, e4, e5 = etapes
         etapes_data = [
@@ -288,10 +286,7 @@ class TestUpdateRecrutementEtapes:
             etapes=etapes,
         )
         etape_model = EtapeModel.objects.get(id=etapes[0].entity_id)
-        CandidatureFactory.create_model(
-            offre_id=recrutement_model.offre_id,
-            etape=etape_model,
-        )
+        CandidatureDjangoFactory(etape=etape_model)
         e0, e1, e2, _, e4, e5 = etapes
         etapes_data = [
             EtapeData(
