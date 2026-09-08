@@ -44,6 +44,16 @@ from presentation.recruteur.serializers import (
             400: GenericErrorSerializer,
         },
     ),
+    put=extend_schema(
+        summary="Modifier le rôle d'un agent dans l'équipe de recrutement",
+        tags=["recruteur"],
+        request=RecrutementAgentRoleSerializer,
+        responses={
+            **generic_response_format,
+            200: RecrutementAgentRoleSerializer,
+            400: GenericErrorSerializer,
+        },
+    ),
 )
 class RecrutementAgentsView(ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -76,6 +86,17 @@ class RecrutementAgentsView(ListAPIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+    def put(
+        self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
+    ) -> Response:
+        serializer = RecrutementAgentRoleSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                GenericErrorSerializer({"error": str(serializer.errors)}).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(exc, (AccesOrganismeRefuse, OperationOrganismeRefusee)):
