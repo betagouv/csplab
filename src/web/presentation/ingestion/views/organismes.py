@@ -4,6 +4,10 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.ingestion.interfaces.supprimer_organismes_input import (
+    OrganismeDeleteData,
+    SupprimerOrganismesInput,
+)
 from application.ingestion.interfaces.upsert_organismes_input import (
     UpsertOrganismesInput,
 )
@@ -15,6 +19,8 @@ from presentation.api.serializers import GenericErrorSerializer
 from presentation.ingestion.mappers import OrganismeInputMapper
 from presentation.ingestion.serializers import (
     OrganismeUpsertInputSerializer,
+    SupprimerOrganismesRequestSerializer,
+    SupprimerOrganismesResponseSerializer,
     UpsertOrganismesRequestSerializer,
 )
 
@@ -115,6 +121,60 @@ class OrganismesUpsertView(APIView):
             return Response(result, status=status.HTTP_201_CREATED)
         except Exception as e:
             logger.error("OrganismesUpsertView: unexpected error %s", str(e))
+            return Response(
+                {"error": "Unexpected error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+SUPPRIMER_ORGANISMES_DESCRIPTION = (
+    "Supprimer (soft-delete), entre 1 et 100 organismes à la fois, via un payload "
+    "JSON. La suppression se base sur le couple (référentiel, external_id)."
+)
+
+
+@extend_schema(
+    summary="Supprimer des organismes",
+    description=SUPPRIMER_ORGANISMES_DESCRIPTION,
+    tags=["organismes"],
+    request=SupprimerOrganismesRequestSerializer,
+    responses={
+        200: SupprimerOrganismesResponseSerializer,
+        400: GenericErrorSerializer,
+        401: GenericErrorSerializer,
+        500: GenericErrorSerializer,
+    },
+)
+class OrganismesSupprimerView(APIView):
+    authentication_classes = [ApiKeyAuthentication]
+    parser_classes = [JSONParser]
+    serializer_class = SupprimerOrganismesRequestSerializer
+
+    def post(self, request):
+        container = create_ingestion_container()
+        logger = container.logger_service()
+
+        serializer = SupprimerOrganismesRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            logger.warning(
+                "OrganismesSupprimerView: validation errors %s", serializer.errors
+            )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        organismes = [
+            OrganismeDeleteData(
+                referentiel=organisme["referentiel"],
+                external_id=organisme["external_id"],
+            )
+            for organisme in serializer.validated_data["organismes"]
+        ]
+
+        try:
+            usecase = container.supprimer_organismes_usecase()
+            result = usecase.execute(SupprimerOrganismesInput(organismes=organismes))
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error("OrganismesSupprimerView: unexpected error %s", str(e))
             return Response(
                 {"error": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

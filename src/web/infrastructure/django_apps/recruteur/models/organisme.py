@@ -21,6 +21,7 @@ class OrganismeModel(BaseDatedModel):
     date_derniere_activite = models.DateTimeField(null=True, blank=True)
     parent_id = models.UUIDField(null=True, blank=True)
     localisation = models.JSONField(null=True, blank=True)
+    supprime_le = models.DateTimeField(null=True, blank=True, db_index=True)
     etapes = models.JSONField(
         null=True,
         blank=True,
