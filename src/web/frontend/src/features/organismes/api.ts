@@ -1,4 +1,4 @@
-import type { AgentOrganisme, AgentRecherche, CreateOrganismePayload, OrganismeDetail, OrganismesList, SetAgentRolePayload, UpdateAgentRolePayload, UpdateOrganismePayload } from './types'
+import type { Agent, AgentOrganisme, AgentRecherche, CreateAgentPayload, CreateOrganismePayload, OrganismeDetail, OrganismesList, SetAgentRolePayload, UpdateAgentRolePayload, UpdateOrganismePayload } from './types'
 import { api } from '@/api/client'
 import { isHttpStatus } from '@/api/errors'
 
@@ -77,4 +77,9 @@ export async function searchAgentByEmail(
       return null
     throw error
   }
+}
+
+export async function createAgent(payload: CreateAgentPayload): Promise<Agent> {
+  const { data } = await api.POST('/recruteur/agents', { body: payload })
+  return data!
 }

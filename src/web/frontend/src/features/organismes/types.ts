@@ -14,8 +14,12 @@ export type AgentOrganisme = components['schemas']['AgentOrganisme']
 
 export type AgentRecherche = components['schemas']['AgentRecherche']
 
+export type Agent = components['schemas']['Agent']
+
 export type Role = components['schemas']['RoleEnum']
 
 export type SetAgentRolePayload = components['schemas']['SetAgentRoleOnOrganisme']
 
 export type UpdateAgentRolePayload = components['schemas']['UpdateAgentOrganisme']
+
+export type CreateAgentPayload = components['schemas']['CreateAgent']
