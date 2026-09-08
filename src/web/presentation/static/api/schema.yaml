@@ -1251,6 +1251,105 @@ paths:
                 type: integer
               description: Timestamp Unix (secondes) auquel la fenêtre courante se
                 réinitialise.
+  /api/fake-ts/referentials/{referential_type}:
+    get:
+      operationId: fake_ts_referentials_list
+      description: Liste les valeurs possibles d'un référentiel utilisé par l'API
+        fake-ts, au format objet codé Talentsoft.
+      summary: Valeurs d'un référentiel (format Talentsoft)
+      parameters:
+      - in: path
+        name: referential_type
+        schema:
+          type: string
+          enum:
+          - area
+          - contract_type
+          - country
+          - department
+          - domain
+          - experience_level
+          - management
+          - offer_family_category
+          - region
+          - verse
+          - working_place
+        required: true
+      tags:
+      - fake-ts
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FakeTsCodedObject'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/token:
     post:
       operationId: token_create
