@@ -20,7 +20,7 @@ from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
-    AjouterMembreRecrutementSerializer,
+    RecrutementAgentRoleSerializer,
     RecrutementAgentSerializer,
 )
 
@@ -37,10 +37,10 @@ from presentation.recruteur.serializers import (
     post=extend_schema(
         summary="Ajouter un membre à l'équipe de recrutement",
         tags=["recruteur"],
-        request=AjouterMembreRecrutementSerializer,
+        request=RecrutementAgentRoleSerializer,
         responses={
             **generic_response_format,
-            200: AjouterMembreRecrutementSerializer,
+            200: RecrutementAgentRoleSerializer,
             400: GenericErrorSerializer,
         },
     ),
@@ -59,7 +59,7 @@ class RecrutementAgentsView(ListAPIView):
     def post(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
-        serializer = AjouterMembreRecrutementSerializer(data=request.data)
+        serializer = RecrutementAgentRoleSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
                 GenericErrorSerializer({"error": str(serializer.errors)}).data,

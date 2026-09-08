@@ -382,11 +382,6 @@ export interface components {
             nom: string;
             intitule_poste: string;
         };
-        AjouterMembreRecrutement: {
-            /** Format: uuid */
-            agent_uuid: string;
-            recrutement_role: components["schemas"]["RecrutementRoleEnum"];
-        };
         /** @enum {unknown} */
         BlankEnum: "";
         Candidat: {
@@ -743,6 +738,11 @@ export interface components {
             poste: string;
             /** Format: email */
             email: string;
+            recrutement_role: components["schemas"]["RecrutementRoleEnum"];
+        };
+        RecrutementAgentRole: {
+            /** Format: uuid */
+            agent_id: string;
             recrutement_role: components["schemas"]["RecrutementRoleEnum"];
         };
         RecrutementDetail: {
@@ -3281,9 +3281,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AjouterMembreRecrutement"];
-                "application/x-www-form-urlencoded": components["schemas"]["AjouterMembreRecrutement"];
-                "multipart/form-data": components["schemas"]["AjouterMembreRecrutement"];
+                "application/json": components["schemas"]["RecrutementAgentRole"];
+                "application/x-www-form-urlencoded": components["schemas"]["RecrutementAgentRole"];
+                "multipart/form-data": components["schemas"]["RecrutementAgentRole"];
             };
         };
         responses: {
@@ -3298,7 +3298,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AjouterMembreRecrutement"];
+                    "application/json": components["schemas"]["RecrutementAgentRole"];
                 };
             };
             400: {
