@@ -32,7 +32,8 @@ from tests.utils.openapi_test_utils import assert_matches_openapi_schema
 )
 def test_returns_all_enum_members(authenticated_client, referential_type, enum_cls):
     url = reverse(
-        "ingestion_fake_ts:referentials_list", kwargs={"type": referential_type}
+        "ingestion_fake_ts:referentials_list",
+        kwargs={"referential_type": referential_type},
     )
 
     response = authenticated_client.get(url)
@@ -57,7 +58,8 @@ def test_returns_all_enum_members(authenticated_client, referential_type, enum_c
 )
 def test_returns_all_code_names(authenticated_client, referential_type, names):
     url = reverse(
-        "ingestion_fake_ts:referentials_list", kwargs={"type": referential_type}
+        "ingestion_fake_ts:referentials_list",
+        kwargs={"referential_type": referential_type},
     )
 
     response = authenticated_client.get(url)
@@ -72,7 +74,9 @@ def test_returns_all_code_names(authenticated_client, referential_type, names):
 
 
 def test_unauthenticated_access(api_client):
-    url = reverse("ingestion_fake_ts:referentials_list", kwargs={"type": "verse"})
+    url = reverse(
+        "ingestion_fake_ts:referentials_list", kwargs={"referential_type": "verse"}
+    )
 
     response = api_client.get(url)
 
@@ -80,7 +84,9 @@ def test_unauthenticated_access(api_client):
 
 
 def test_unknown_referential_returns_404(authenticated_client):
-    url = reverse("ingestion_fake_ts:referentials_list", kwargs={"type": "unknown"})
+    url = reverse(
+        "ingestion_fake_ts:referentials_list", kwargs={"referential_type": "unknown"}
+    )
 
     response = authenticated_client.get(url)
 
@@ -88,7 +94,9 @@ def test_unknown_referential_returns_404(authenticated_client):
 
 
 def test_response_has_no_undeclared_fields(authenticated_client):
-    url = reverse("ingestion_fake_ts:referentials_list", kwargs={"type": "verse"})
+    url = reverse(
+        "ingestion_fake_ts:referentials_list", kwargs={"referential_type": "verse"}
+    )
 
     response = authenticated_client.get(url)
     result = response.json()[0]
@@ -97,10 +105,12 @@ def test_response_has_no_undeclared_fields(authenticated_client):
 
 
 def test_response_matches_openapi_schema(authenticated_client):
-    url = reverse("ingestion_fake_ts:referentials_list", kwargs={"type": "verse"})
+    url = reverse(
+        "ingestion_fake_ts:referentials_list", kwargs={"referential_type": "verse"}
+    )
 
     response = authenticated_client.get(url)
 
     assert_matches_openapi_schema(
-        response.json(), "/api/fake-ts/referentials/{type}", method="get"
+        response.json(), "/api/fake-ts/referentials/{referential_type}", method="get"
     )

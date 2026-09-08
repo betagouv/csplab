@@ -10,7 +10,7 @@ urlpatterns = [
     path("offersummaries", OfferSummariesView.as_view(), name="offer_summaries"),
     path("offers/getoffer", OfferDetailView.as_view(), name="offer_detail"),
     path(
-        "referentials/<str:type>",
+        "referentials/<str:referential_type>",
         ReferentialListView.as_view(),
         name="referentials_list",
     ),

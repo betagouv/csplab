@@ -53,7 +53,7 @@ REFERENTIAL_TYPES = {
     tags=["fake-ts"],
     parameters=[
         OpenApiParameter(
-            name="type",
+            name="referential_type",
             type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
             enum=sorted(REFERENTIAL_TYPES),
@@ -68,11 +68,11 @@ class ReferentialListView(APIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = FakeTsCodedObjectSerializer
 
-    def get(self, request, type):
-        build_items = REFERENTIAL_TYPES.get(type)
+    def get(self, request, referential_type):
+        build_items = REFERENTIAL_TYPES.get(referential_type)
         if build_items is None:
             serializer = GenericErrorSerializer(
-                {"error": f"Référentiel inconnu : {type}."}
+                {"error": f"Référentiel inconnu : {referential_type}."}
             )
             return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
 
@@ -83,7 +83,7 @@ class ReferentialListView(APIView):
                 "label": label,
                 "active": True,
                 "parentCode": None,
-                "type": type,
+                "type": referential_type,
                 "parentType": "",
                 "hasChildren": False,
             }

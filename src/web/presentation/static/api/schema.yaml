@@ -1251,7 +1251,7 @@ paths:
                 type: integer
               description: Timestamp Unix (secondes) auquel la fenêtre courante se
                 réinitialise.
-  /api/fake-ts/referentials/{type}:
+  /api/fake-ts/referentials/{referential_type}:
     get:
       operationId: fake_ts_referentials_list
       description: Liste les valeurs possibles d'un référentiel utilisé par l'API
@@ -1259,7 +1259,7 @@ paths:
       summary: Valeurs d'un référentiel (format Talentsoft)
       parameters:
       - in: path
-        name: type
+        name: referential_type
         schema:
           type: string
           enum:
