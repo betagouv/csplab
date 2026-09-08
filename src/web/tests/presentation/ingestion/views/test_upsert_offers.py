@@ -25,6 +25,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
+from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.factories.ingestion.offer_payload_factory import (
     PayloadOfferFactory,
     fake_datetime,
@@ -32,6 +33,10 @@ from infrastructure.factories.ingestion.offer_payload_factory import (
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
+from infrastructure.factories.referentiel.metier_django_factory import (
+    MetierDjangoFactory,
+)
+from infrastructure.mappers.offer_mapper import OfferMapper
 
 fake = Faker("fr_FR")
 
@@ -104,6 +109,35 @@ INVALID_DATA_OFFER = PayloadOfferFactory.create(
     identification={"reference": "REF-005", "versant": "FPT"},
     type_contrat="ABC",  # invalid enum value
 )
+
+
+COMPARABLE_OFFER_ATTRS = [
+    "external_id",
+    "title",
+    "profile",
+    "mission",
+    "organization",
+    "publication_date",
+    "verse",
+    "category",
+    "contract_type",
+    "offer_url",
+    "localisation",
+    "beginning_date",
+    "family_code",
+    "job_family_referential",
+    "functional_area_code",
+    "source_id",
+    "long_title",
+    "application_url",
+    "contract_kind",
+    "job_vacancy",
+    "employer",
+    "complements",
+    "criteria",
+    "conditions",
+    "contacts",
+]
 
 
 def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
@@ -300,33 +334,7 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
     upsert_input = use_case.execute.call_args[0][0]
     for payload, offer in zip(offers_payload, upsert_input.offers, strict=True):
         expected = parse_offer_from_payload(payload, source_id=UUID(SOURCE_UUID))
-        for attr in [
-            "external_id",
-            "title",
-            "profile",
-            "mission",
-            "organization",
-            "publication_date",
-            "verse",
-            "category",
-            "contract_type",
-            "offer_url",
-            "localisation",
-            "beginning_date",
-            "family_code",
-            "job_family_referential",
-            "functional_area_code",
-            "source_id",
-            "long_title",
-            "application_url",
-            "contract_kind",
-            "job_vacancy",
-            "employer",
-            "complements",
-            "criteria",
-            "conditions",
-            "contacts",
-        ]:
+        for attr in COMPARABLE_OFFER_ATTRS:
             assert getattr(offer, attr) == getattr(expected, attr)
 
 
@@ -395,3 +403,31 @@ def test_returns_error_500(authenticated_client_with_source, use_case):
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class TestOffersUpsertViewDbVerified:
+    @pytest.fixture(autouse=True)
+    def mock_container(self):
+        return None
+
+    def test_creates_and_persists_the_offer(self, authenticated_client_with_source):
+        MetierDjangoFactory(offer_family_code="ERNUM001")
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json() == {"created": 1, "updated": 0, "errors": []}
+
+        offer_model = OfferModel.objects.get(
+            reference="REF-001", source_id=UUID(SOURCE_UUID)
+        )
+        persisted = OfferMapper().to_domain(offer_model)
+        expected = parse_offer_from_payload(
+            MINIMAL_VALID_OFFER, source_id=UUID(SOURCE_UUID)
+        )
+        for attr in COMPARABLE_OFFER_ATTRS:
+            assert getattr(persisted, attr) == getattr(expected, attr)
