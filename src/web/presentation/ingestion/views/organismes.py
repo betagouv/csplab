@@ -11,6 +11,9 @@ from application.ingestion.interfaces.supprimer_organismes_input import (
 from application.ingestion.interfaces.upsert_organismes_input import (
     UpsertOrganismesInput,
 )
+from application.ingestion.usecases.supprimer_organismes import (
+    SupprimerOrganismesUsecase,
+)
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
 )
@@ -170,7 +173,9 @@ class OrganismesSupprimerView(APIView):
         ]
 
         try:
-            usecase = container.supprimer_organismes_usecase()
+            usecase = SupprimerOrganismesUsecase(
+                organisme_repository=container.organisme_repository(),
+            )
             result = usecase.execute(SupprimerOrganismesInput(organismes=organismes))
             return Response(result, status=status.HTTP_200_OK)
         except Exception as e:

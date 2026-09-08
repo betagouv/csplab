@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 from referentiel.entities.organisme import Organisme
-from referentiel.events.organisme_events import OrganismeSupprime
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
@@ -40,7 +39,6 @@ def _organisme_entity(**overrides) -> Organisme:
 def _usecase(organisme_repository=None) -> SupprimerOrganismesUsecase:
     return SupprimerOrganismesUsecase(
         organisme_repository=organisme_repository or MagicMock(),
-        logger=MagicMock(),
     )
 
 
@@ -58,23 +56,6 @@ def test_deletes_organismes_via_the_repository():
     assert result == {"deleted": 1, "not_found": []}
     deleted_organismes = organisme_repository.supprimer_batch.call_args[0][0]
     assert deleted_organismes == [organisme]
-
-
-def test_emits_organisme_supprime_event_on_found_organisme():
-    organisme = _organisme_entity()
-    organisme_repository = MagicMock()
-    organisme_repository.get_by_referentiel_and_external_id_batch.return_value = {
-        ("FINESS", "ext-123"): organisme
-    }
-    organisme_repository.supprimer_batch.return_value = 1
-    usecase = _usecase(organisme_repository)
-
-    usecase.execute(SupprimerOrganismesInput(organismes=[_organisme_data()]))
-
-    events = organisme.collect_events()
-    assert len(events) == 1
-    assert isinstance(events[0], OrganismeSupprime)
-    assert events[0].aggregate_id == organisme.entity_id
 
 
 def test_looks_up_all_pairs_in_a_single_batch_call():

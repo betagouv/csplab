@@ -40,8 +40,3 @@ class OrganismeModifie(DomainEvent):
 @dataclass(frozen=True)
 class OrganismeRemplace(_OrganismeEventPayload):
     pass
-
-
-@dataclass(frozen=True)
-class OrganismeSupprime(DomainEvent):
-    pass
