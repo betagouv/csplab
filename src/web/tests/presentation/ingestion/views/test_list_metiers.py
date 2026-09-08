@@ -7,10 +7,21 @@ from faker import Faker
 from rest_framework import status
 
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
+from infrastructure.factories.referentiel.metier_django_factory import (
+    MetierDjangoFactory,
+)
 from infrastructure.factories.referentiel.metier_factory import MetierFactory
 
 fake = Faker()
 URL = reverse("ingestion:metiers_list")
+
+NOMBRE_REQUETES_ATTENDU = (
+    1  # authentification JWT
+    + 2  # pagination : count + page
+    + 1  # ApiRequestLoggerMiddleware redecode JWT token for logging
+    # TODO: refactor ADR-009 : simplify UPDATE/INSERT
+    + 2  # logging : UPDATE (manually assigned pk) then INSERT
+)
 
 
 def test_unauthenticated_access(api_client):
@@ -164,3 +175,40 @@ def test_invalid_payload(mock_metiers_container, authenticated_client):
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "error" in response.json().keys()
+
+
+class TestMetiersListViewDbVerified:
+    def test_response_matches_db_record_field_by_field(self, authenticated_client):
+        metier = MetierDjangoFactory(
+            domaine_fonctionnel_code="TRA",
+            versants=["FPE"],
+            activites=["Rédiger des actes"],
+            conditions_particulieres=["Habilitation"],
+        )
+
+        response = authenticated_client.get(URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == 1
+        assert data["results"] == [
+            {
+                "libelle": metier.libelle_long,
+                "description": metier.definition_synthetique,
+                "domaine_fonctionnel_code": metier.domaine_fonctionnel_code,
+                "versants": metier.versants,
+                "activites": metier.activites,
+                "conditions_particulieres": metier.conditions_particulieres,
+                "offer_family_code": metier.offer_family_code,
+            }
+        ]
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, django_assert_num_queries
+    ):
+        MetierDjangoFactory.create_batch(5)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
+            response = authenticated_client.get(URL)
+
+        assert response.status_code == status.HTTP_200_OK
