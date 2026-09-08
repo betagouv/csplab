@@ -18,6 +18,7 @@ import riArrowUpSLine from '@iconify-icons/ri/arrow-up-s-line'
 import riBookmarkLine from '@iconify-icons/ri/bookmark-line'
 import riBriefcaseLine from '@iconify-icons/ri/briefcase-line'
 import riCalendarLine from '@iconify-icons/ri/calendar-line'
+import riChat3Line from '@iconify-icons/ri/chat-3-line'
 import riCheckLine from '@iconify-icons/ri/check-line'
 import riCheckboxCircleFill from '@iconify-icons/ri/checkbox-circle-fill'
 import riCheckboxCircleLine from '@iconify-icons/ri/checkbox-circle-line'
@@ -26,6 +27,7 @@ import riCloseLine from '@iconify-icons/ri/close-line'
 import riCompass3Line from '@iconify-icons/ri/compass-3-line'
 import riDashboardLine from '@iconify-icons/ri/dashboard-line'
 import riDeleteBinLine from '@iconify-icons/ri/delete-bin-line'
+import riDownloadLine from '@iconify-icons/ri/download-line'
 import riDraggable from '@iconify-icons/ri/draggable'
 import riEditLine from '@iconify-icons/ri/edit-line'
 import riErrorWarningFill from '@iconify-icons/ri/error-warning-fill'
@@ -34,11 +36,14 @@ import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
 import riExternalLinkLine from '@iconify-icons/ri/external-link-line'
 import riEyeLine from '@iconify-icons/ri/eye-line'
 import riFileCopyLine from '@iconify-icons/ri/file-copy-line'
+import riFileListLine from '@iconify-icons/ri/file-list-line'
 import riFilter3Line from '@iconify-icons/ri/filter-3-line'
 import riFilterLine from '@iconify-icons/ri/filter-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
+import riFullscreenLine from '@iconify-icons/ri/fullscreen-line'
 import riGovernmentLine from '@iconify-icons/ri/government-line'
 import riGroupLine from '@iconify-icons/ri/group-line'
+import riHistoryLine from '@iconify-icons/ri/history-line'
 import riHomeLine from '@iconify-icons/ri/home-line'
 import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
@@ -46,9 +51,11 @@ import riInformationLine from '@iconify-icons/ri/information-line'
 import riLayoutColumnLine from '@iconify-icons/ri/layout-column-line'
 import riLayoutGridLine from '@iconify-icons/ri/layout-grid-line'
 import riLightbulbLine from '@iconify-icons/ri/lightbulb-line'
+import riLink from '@iconify-icons/ri/link'
 import riListCheck from '@iconify-icons/ri/list-check'
 import riListUnordered from '@iconify-icons/ri/list-unordered'
 import riLockLine from '@iconify-icons/ri/lock-line'
+import riLockUnlockLine from '@iconify-icons/ri/lock-unlock-line'
 import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
 import riMailLine from '@iconify-icons/ri/mail-line'
 import riMapPin2Line from '@iconify-icons/ri/map-pin-2-line'
@@ -59,6 +66,7 @@ import riMore2Line from '@iconify-icons/ri/more-2-line'
 import riMoreFill from '@iconify-icons/ri/more-fill'
 import riNotification3Line from '@iconify-icons/ri/notification-3-line'
 import riPencilLine from '@iconify-icons/ri/pencil-line'
+import riPhoneLine from '@iconify-icons/ri/phone-line'
 import riPriceTag3Line from '@iconify-icons/ri/price-tag-3-line'
 import riRefreshLine from '@iconify-icons/ri/refresh-line'
 import riRestartLine from '@iconify-icons/ri/restart-line'
@@ -66,6 +74,7 @@ import riSearchLine from '@iconify-icons/ri/search-line'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
 import riShieldUserLine from '@iconify-icons/ri/shield-user-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
+import riStickyNoteLine from '@iconify-icons/ri/sticky-note-line'
 import riSunLine from '@iconify-icons/ri/sun-line'
 import riTableLine from '@iconify-icons/ri/table-line'
 import riUserAddLine from '@iconify-icons/ri/user-add-line'
@@ -91,6 +100,7 @@ addIcon('ri:arrow-up-s-line', riArrowUpSLine)
 addIcon('ri:bookmark-line', riBookmarkLine)
 addIcon('ri:briefcase-line', riBriefcaseLine)
 addIcon('ri:calendar-line', riCalendarLine)
+addIcon('ri:chat-3-line', riChat3Line)
 addIcon('ri:check-line', riCheckLine)
 addIcon('ri:checkbox-circle-fill', riCheckboxCircleFill)
 addIcon('ri:checkbox-circle-line', riCheckboxCircleLine)
@@ -99,6 +109,7 @@ addIcon('ri:close-line', riCloseLine)
 addIcon('ri:compass-3-line', riCompass3Line)
 addIcon('ri:dashboard-line', riDashboardLine)
 addIcon('ri:delete-bin-line', riDeleteBinLine)
+addIcon('ri:download-line', riDownloadLine)
 addIcon('ri:draggable', riDraggable)
 addIcon('ri:edit-line', riEditLine)
 addIcon('ri:error-warning-fill', riErrorWarningFill)
@@ -107,11 +118,14 @@ addIcon('ri:expand-up-down-line', riExpandUpDownLine)
 addIcon('ri:external-link-line', riExternalLinkLine)
 addIcon('ri:eye-line', riEyeLine)
 addIcon('ri:file-copy-line', riFileCopyLine)
+addIcon('ri:file-list-line', riFileListLine)
 addIcon('ri:filter-3-line', riFilter3Line)
 addIcon('ri:filter-line', riFilterLine)
 addIcon('ri:flashlight-fill', riFlashlightFill)
+addIcon('ri:fullscreen-line', riFullscreenLine)
 addIcon('ri:government-line', riGovernmentLine)
 addIcon('ri:group-line', riGroupLine)
+addIcon('ri:history-line', riHistoryLine)
 addIcon('ri:home-line', riHomeLine)
 addIcon('ri:inbox-2-line', riInbox2Line)
 addIcon('ri:information-fill', riInformationFill)
@@ -119,9 +133,11 @@ addIcon('ri:information-line', riInformationLine)
 addIcon('ri:layout-column-line', riLayoutColumnLine)
 addIcon('ri:layout-grid-line', riLayoutGridLine)
 addIcon('ri:lightbulb-line', riLightbulbLine)
+addIcon('ri:link', riLink)
 addIcon('ri:list-check', riListCheck)
 addIcon('ri:list-unordered', riListUnordered)
 addIcon('ri:lock-line', riLockLine)
+addIcon('ri:lock-unlock-line', riLockUnlockLine)
 addIcon('ri:logout-box-r-line', riLogoutBoxRLine)
 addIcon('ri:mail-line', riMailLine)
 addIcon('ri:map-pin-2-line', riMapPin2Line)
@@ -132,6 +148,7 @@ addIcon('ri:more-2-line', riMore2Line)
 addIcon('ri:more-fill', riMoreFill)
 addIcon('ri:notification-3-line', riNotification3Line)
 addIcon('ri:pencil-line', riPencilLine)
+addIcon('ri:phone-line', riPhoneLine)
 addIcon('ri:price-tag-3-line', riPriceTag3Line)
 addIcon('ri:refresh-line', riRefreshLine)
 addIcon('ri:restart-line', riRestartLine)
@@ -139,6 +156,7 @@ addIcon('ri:search-line', riSearchLine)
 addIcon('ri:settings-3-line', riSettings3Line)
 addIcon('ri:shield-user-line', riShieldUserLine)
 addIcon('ri:spam-fill', riSpamFill)
+addIcon('ri:sticky-note-line', riStickyNoteLine)
 addIcon('ri:sun-line', riSunLine)
 addIcon('ri:table-line', riTableLine)
 addIcon('ri:user-add-line', riUserAddLine)
