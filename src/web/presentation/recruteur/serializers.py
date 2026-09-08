@@ -6,7 +6,13 @@ from rest_framework import serializers
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
+from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
+)
 from infrastructure.django_apps.users.models import ProfilAgentModel
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
 
@@ -207,6 +213,26 @@ class AgentRechercheSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfilAgentModel
         fields = ["agent_id", "email", "prenom", "nom", "intitule_poste"]
+
+
+# ---------------------------------------------------------------------------
+# Serializer pour les agents rattachés à un recrutement
+# ---------------------------------------------------------------------------
+
+
+class RecrutementAgentSerializer(serializers.ModelSerializer):
+    agent_id = serializers.UUIDField(source="agent.utilisateur.username")
+    nom = serializers.CharField(source="agent.utilisateur.last_name")
+    prenom = serializers.CharField(source="agent.utilisateur.first_name")
+    poste = serializers.CharField(source="agent.intitule_poste")
+    email = serializers.EmailField(source="agent.utilisateur.email")
+    recrutement_role = serializers.ChoiceField(
+        source="role", choices=[(r.value, r.value) for r in AgentRecrutementRole]
+    )
+
+    class Meta:
+        model = RecrutementAgentModel
+        fields = ["agent_id", "nom", "prenom", "poste", "email", "recrutement_role"]
 
 
 # ---------------------------------------------------------------------------

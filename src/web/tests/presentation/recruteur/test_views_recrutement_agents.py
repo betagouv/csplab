@@ -1,0 +1,177 @@
+from uuid import uuid4
+
+import pytest
+from django.urls import reverse
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
+from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+    create_organisme_with_agent,
+)
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementAgentDjangoFactory,
+    RecrutementDjangoFactory,
+)
+
+NOMBRE_AGENTS_ATTENDU = 2
+NOMBRE_REQUETES_ATTENDU = (
+    2  # authentification
+    + 1  # organisme
+    + 1  # agent's role
+    + 1  # matching recrutement with organisme
+    + 2  # pagination : count + page
+)
+
+
+def _url(organisme_uuid, recrutement_uuid):
+    return reverse(
+        "recruteur:organisme-recrutement-parametres-agents",
+        kwargs={"organisme_uuid": organisme_uuid, "recrutement_uuid": recrutement_uuid},
+    )
+
+
+def _unknown_organisme_ids(organisme):
+    return uuid4(), uuid4()
+
+
+def _unknown_recrutement_ids(organisme):
+    return organisme.id, uuid4()
+
+
+def _recrutement_from_another_organisme_ids(organisme):
+    autre_organisme = OrganismeDjangoFactory()
+    recrutement = RecrutementDjangoFactory(organisme=autre_organisme)
+    return organisme.id, recrutement.pk
+
+
+class TestRecrutementAgentsView:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = api_client.get(_url(uuid4(), uuid4()))
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_responsable_lists_recrutement_agents(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+        )
+        membre = AgentDjangoFactory()
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=membre,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+
+        response = authenticated_client.get(_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"] == [
+            {
+                "agent_id": str(membre.utilisateur_id),
+                "nom": membre.utilisateur.last_name,
+                "prenom": membre.utilisateur.first_name,
+                "poste": membre.intitule_poste,
+                "email": membre.utilisateur.email,
+                "recrutement_role": AgentRecrutementRole.RESPONSABLE.value,
+            }
+        ]
+
+    def test_lists_every_agent_of_the_recrutement(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement, role=AgentRecrutementRole.CONTRIBUTEUR.value
+        )
+
+        response = authenticated_client.get(_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        assert len(results) == NOMBRE_AGENTS_ATTENDU
+        assert {r["recrutement_role"] for r in results} == {
+            AgentRecrutementRole.CONTRIBUTEUR.value
+        }
+
+    def test_staff_can_list_without_organisme_role(self, api_client):
+        staff_user = UtilisateurDjangoFactory(is_staff=True)
+        refresh = RefreshToken.for_user(staff_user)
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        organisme = OrganismeDjangoFactory()
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+
+        response = api_client.get(_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+
+    @pytest.mark.parametrize(
+        "role",
+        [AgentOrganismeRole.MEMBRE, None],
+        ids=["membre_role", "no_organisme_role"],
+    )
+    def test_is_forbidden_for(self, authenticated_client, test_user, role):
+        if role is None:
+            organisme = OrganismeDjangoFactory()
+        else:
+            _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+
+        response = authenticated_client.get(_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @pytest.mark.parametrize(
+        "build_ids",
+        [
+            _unknown_organisme_ids,
+            _unknown_recrutement_ids,
+            _recrutement_from_another_organisme_ids,
+        ],
+        ids=[
+            "unknown_organisme",
+            "unknown_recrutement",
+            "recrutement_from_another_organisme",
+        ],
+    )
+    def test_returns_404_for(self, authenticated_client, test_user, build_ids):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+        )
+        organisme_uuid, recrutement_uuid = build_ids(organisme)
+
+        response = authenticated_client.get(_url(organisme_uuid, recrutement_uuid))
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, test_user, django_assert_num_queries
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        RecrutementAgentDjangoFactory.create_batch(5, recrutement=recrutement)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
+            response = authenticated_client.get(_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
