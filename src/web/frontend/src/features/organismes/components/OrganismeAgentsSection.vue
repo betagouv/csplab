@@ -48,16 +48,13 @@ async function handleSearch(email: string) {
   }
 }
 
-async function handleAttach(role: Role) {
-  if (!foundAgent.value)
-    return
-  const agent = foundAgent.value
+async function handleAdd(role: Role) {
   try {
-    await add(role)
+    const agent = await add(role)
     addToast({
       variant: 'success',
       title: 'Membre ajouté',
-      description: `${formatAgentName(agent)} a rejoint l'organisme.`,
+      description: `${formatAgentName(agent) || agent.email} a rejoint l'organisme.`,
     })
     attachDrawerOpen.value = false
   }
@@ -217,7 +214,7 @@ async function handleRevocation(): Promise<void> {
       :searching="searching"
       :submitting="submitting"
       @search="handleSearch"
-      @attach="handleAttach"
+      @add="handleAdd"
       @reset="reset"
     />
 
