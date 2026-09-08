@@ -175,3 +175,29 @@ class TestRecrutementAgentsView:
             response = authenticated_client.get(_url(organisme.id, recrutement.pk))
 
         assert response.status_code == status.HTTP_200_OK
+
+
+class TestRecrutementAgentsViewPost:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        payload = {
+            "agent_uuid": str(uuid4()),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
+
+        response = api_client.post(_url(uuid4(), uuid4()), payload)
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_returns_400_for_invalid_role(self, authenticated_client):
+        payload = {"agent_uuid": str(uuid4()), "recrutement_role": "inconnu"}
+
+        response = authenticated_client.post(_url(uuid4(), uuid4()), payload)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_returns_400_for_missing_agent_uuid(self, authenticated_client):
+        payload = {"recrutement_role": AgentRecrutementRole.RECRUTEUR.value}
+
+        response = authenticated_client.post(_url(uuid4(), uuid4()), payload)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST

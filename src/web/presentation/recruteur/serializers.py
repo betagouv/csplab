@@ -235,6 +235,13 @@ class RecrutementAgentSerializer(serializers.ModelSerializer):
         fields = ["agent_id", "nom", "prenom", "poste", "email", "recrutement_role"]
 
 
+class AjouterMembreRecrutementSerializer(serializers.Serializer):
+    agent_uuid = serializers.UUIDField()
+    recrutement_role = serializers.ChoiceField(
+        choices=[(r.value, r.value) for r in AgentRecrutementRole]
+    )
+
+
 # ---------------------------------------------------------------------------
 # Serializers pour les notes attachées à une candidature
 # ---------------------------------------------------------------------------

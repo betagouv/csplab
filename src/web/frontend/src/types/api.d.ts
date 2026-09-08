@@ -317,7 +317,8 @@ export interface paths {
         /** Liste des agents ayant un rôle sur un recrutement */
         get: operations["recruteur_organismes_recrutements_parametres_agents_list"];
         put?: never;
-        post?: never;
+        /** Ajouter un membre à l'équipe de recrutement */
+        post: operations["recruteur_organismes_recrutements_parametres_agents_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -380,6 +381,11 @@ export interface components {
             prenom: string;
             nom: string;
             intitule_poste: string;
+        };
+        AjouterMembreRecrutement: {
+            /** Format: uuid */
+            agent_uuid: string;
+            recrutement_role: components["schemas"]["RecrutementRoleEnum"];
         };
         /** @enum {unknown} */
         BlankEnum: "";
@@ -3255,6 +3261,130 @@ export interface operations {
                     "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
                     "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
                     "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_recrutements_parametres_agents_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AjouterMembreRecrutement"];
+                "application/x-www-form-urlencoded": components["schemas"]["AjouterMembreRecrutement"];
+                "multipart/form-data": components["schemas"]["AjouterMembreRecrutement"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AjouterMembreRecrutement"];
+                };
+            };
+            400: {
+                headers: {
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
+                headers: {
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
+            500: {
+                headers: {
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
                     [name: string]: unknown;
                 };
                 content: {
