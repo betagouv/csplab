@@ -41,6 +41,15 @@ class RecrutementModel(models.Model):
         return str(self.offre)
 
 
+class RecrutementAgentQuerySet(models.QuerySet):
+    def by_recrutement(self, recrutement_id) -> "RecrutementAgentQuerySet":
+        return (
+            self.select_related("agent__utilisateur")
+            .filter(recrutement_id=recrutement_id)
+            .order_by("created_at")
+        )
+
+
 class RecrutementAgentModel(BaseDatedModel):
     recrutement = models.ForeignKey(
         RecrutementModel,
@@ -54,6 +63,8 @@ class RecrutementAgentModel(BaseDatedModel):
         choices=[(r.value, r.value) for r in AgentRecrutementRole],
         default=AgentRecrutementRole.CONTRIBUTEUR.value,
     )
+
+    objects = RecrutementAgentQuerySet.as_manager()
 
     class Meta:
         db_table = "recrutement_agent"
