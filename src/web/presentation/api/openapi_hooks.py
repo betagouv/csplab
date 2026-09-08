@@ -17,19 +17,37 @@ _RATE_LIMIT_HEADERS = {
     },
 }
 
+_RETRY_AFTER_HEADER = {
+    "schema": {"type": "integer"},
+    "description": "Nombre de secondes à attendre avant de pouvoir réessayer.",
+}
+
+
+def _header_ref(name):
+    return {"$ref": f"#/components/headers/{name}"}
+
+
+_RATE_LIMIT_HEADER_REFS = {name: _header_ref(name) for name in _RATE_LIMIT_HEADERS}
+
 
 def postprocess_add_rate_limit_headers(result, **kwargs):
     """Document the `X-RateLimit-*` headers set by RateLimitHeadersMiddleware.
 
     These headers are added dynamically by a middleware rather than by the
     views themselves, so drf-spectacular cannot pick them up automatically.
+    They're registered once under `components.headers` and referenced from
+    every response to avoid inlining a copy of the spec everywhere.
     """
+    components_headers = result.setdefault("components", {}).setdefault("headers", {})
+    for name, spec in _RATE_LIMIT_HEADERS.items():
+        components_headers.setdefault(name, dict(spec))
+
     for path in result.get("paths", {}).values():
         for operation in path.values():
             for response in operation.get("responses", {}).values():
                 headers = response.setdefault("headers", {})
-                for name, spec in _RATE_LIMIT_HEADERS.items():
-                    headers.setdefault(name, dict(spec))
+                for name, ref in _RATE_LIMIT_HEADER_REFS.items():
+                    headers.setdefault(name, dict(ref))
     return result
 
 
@@ -51,11 +69,8 @@ _TOO_MANY_REQUESTS_RESPONSE = {
         },
     },
     "headers": {
-        "Retry-After": {
-            "schema": {"type": "integer"},
-            "description": "Nombre de secondes à attendre avant de pouvoir réessayer.",
-        },
-        **{name: dict(spec) for name, spec in _RATE_LIMIT_HEADERS.items()},
+        "Retry-After": _header_ref("Retry-After"),
+        **_RATE_LIMIT_HEADER_REFS,
     },
 }
 
@@ -67,6 +82,9 @@ def postprocess_add_too_many_requests_response(result, **kwargs):
     REST_FRAMEWORK settings), which can raise a 429 regardless of what the
     view itself declares, so drf-spectacular cannot pick it up automatically.
     """
+    components_headers = result.setdefault("components", {}).setdefault("headers", {})
+    components_headers.setdefault("Retry-After", dict(_RETRY_AFTER_HEADER))
+
     for path in result.get("paths", {}).values():
         for operation in path.values():
             responses = operation.get("responses")
