@@ -44,6 +44,7 @@ RESPONSABLE_ACTIONS = [
     OrganismeAction.UPDATE_ORGANISME_AGENT,
     OrganismeAction.REVOKE_ORGANISME_AGENT,
     OrganismeAction.CREATE_AGENT,
+    OrganismeAction.LIST_RECRUTEMENT_AGENTS,
 ]
 STAFF_BYPASS_ACTIONS = [
     OrganismeAction.GET_ORGANISME,
@@ -55,6 +56,7 @@ STAFF_BYPASS_ACTIONS = [
     OrganismeAction.UPDATE_ORGANISME_AGENT,
     OrganismeAction.REVOKE_ORGANISME_AGENT,
     OrganismeAction.CREATE_AGENT,
+    OrganismeAction.LIST_RECRUTEMENT_AGENTS,
 ]
 
 

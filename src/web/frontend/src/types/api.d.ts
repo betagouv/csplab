@@ -307,6 +307,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/parametres/agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Liste des agents ayant un rôle sur un recrutement */
+        get: operations["recruteur_organismes_recrutements_parametres_agents_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/utilisateur/me": {
         parameters: {
             query?: never;
@@ -659,6 +676,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["CandidatureListe"][];
         };
+        PaginatedRecrutementAgentList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["RecrutementAgent"][];
+        };
         PaginatedRecrutementsActifsList: {
             /** @example 1 */
             count: number;
@@ -697,6 +729,16 @@ export interface components {
         PatchedEditerNote: {
             message?: string;
         };
+        RecrutementAgent: {
+            /** Format: uuid */
+            agent_id: string;
+            nom: string;
+            prenom: string;
+            poste: string;
+            /** Format: email */
+            email: string;
+            recrutement_role: components["schemas"]["RecrutementRoleEnum"];
+        };
         RecrutementDetail: {
             /** Format: uuid */
             offer_id: string;
@@ -714,6 +756,13 @@ export interface components {
             offer_id: string;
             etapes: components["schemas"]["EtapeRecrutementDetailedCandidatures"][];
         };
+        /**
+         * @description * `responsable` - responsable
+         *     * `recruteur` - recruteur
+         *     * `contributeur` - contributeur
+         * @enum {string}
+         */
+        RecrutementRoleEnum: "responsable" | "recruteur" | "contributeur";
         RecrutementsActifs: {
             /** Format: uuid */
             offer_id: string;
@@ -3536,6 +3585,113 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
+                headers: {
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    /** @description Nombre de secondes à attendre avant de pouvoir réessayer. */
+                    "Retry-After"?: number;
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
+            500: {
+                headers: {
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_recrutements_parametres_agents_list: {
+        parameters: {
+            query?: {
+                /** @description Un numéro de page de l'ensemble des résultats. */
+                page?: number;
+            };
+            header?: never;
+            path: {
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    /** @description Nombre maximal d'appels autorisés sur la fenêtre courante. */
+                    "X-RateLimit-Limit"?: number;
+                    /** @description Nombre d'appels restants sur la fenêtre courante. */
+                    "X-RateLimit-Remaining"?: number;
+                    /** @description Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise. */
+                    "X-RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedRecrutementAgentList"];
                 };
             };
             401: {
