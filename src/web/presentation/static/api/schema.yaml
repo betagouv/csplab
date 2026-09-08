@@ -30,11 +30,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
@@ -43,11 +50,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '404':
           content:
             application/json:
@@ -56,11 +70,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
@@ -69,11 +90,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -86,13 +114,22 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/fake-ts/offersummaries:
     get:
       operationId: fake_ts_offersummaries_list
@@ -1134,11 +1171,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
@@ -1147,11 +1191,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
@@ -1160,11 +1211,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -1177,13 +1235,22 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/fake-ts/referentials/{referential_type}:
     get:
       operationId: fake_ts_referentials_list
@@ -1223,11 +1290,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '404':
           content:
             application/json:
@@ -1236,11 +1310,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -1253,13 +1334,22 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/token:
     post:
       operationId: token_create
@@ -1289,11 +1379,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -1306,13 +1403,22 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/token/refresh:
     post:
       operationId: token_refresh_create
@@ -1342,11 +1448,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -1359,13 +1472,22 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/concours/upload:
     post:
       operationId: v1_concours_upload_create
@@ -1468,11 +1590,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
@@ -1511,11 +1640,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
@@ -1536,11 +1672,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
@@ -1555,11 +1698,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -1572,13 +1722,22 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/metiers:
     get:
       operationId: v1_metiers_list
@@ -1688,11 +1847,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
@@ -1707,11 +1873,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
@@ -1732,11 +1905,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
@@ -1751,11 +1931,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -1768,13 +1955,22 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/offres:
     get:
       operationId: v1_offres_list
@@ -2912,11 +3108,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
@@ -2925,11 +3128,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
@@ -2950,11 +3160,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
@@ -2969,11 +3186,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -2986,13 +3210,22 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/offres/archiver:
     post:
       operationId: v1_offres_archiver_create
@@ -3044,11 +3277,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
@@ -3064,11 +3304,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
@@ -3089,11 +3336,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '403':
           content:
             application/json:
@@ -3102,11 +3356,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '404':
           content:
             application/json:
@@ -3121,11 +3382,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -3138,13 +3406,22 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/offres/creer_modifier:
     post:
       operationId: v1_offres_creer_modifier_create
@@ -3187,11 +3464,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
@@ -3200,11 +3484,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
@@ -3213,11 +3504,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '403':
           content:
             application/json:
@@ -3226,11 +3524,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
@@ -3239,11 +3544,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -3256,13 +3568,22 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/offres/sources/{source_id}:
     get:
       operationId: v1_offres_sources_list
@@ -3325,11 +3646,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
@@ -3338,11 +3666,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
@@ -3351,11 +3686,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -3368,13 +3710,22 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
   /api/v1/organismes/creer_modifier:
     post:
       operationId: v1_organismes_creer_modifier_create
@@ -3400,11 +3751,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '400':
           content:
             application/json:
@@ -3413,11 +3771,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '401':
           content:
             application/json:
@@ -3426,11 +3791,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '500':
           content:
             application/json:
@@ -3439,11 +3811,18 @@ paths:
           description: ''
           headers:
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -3456,13 +3835,147 @@ paths:
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
             Retry-After:
-              $ref: '#/components/headers/Retry-After'
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
             X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
             X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
             X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
+  /api/v1/organismes/supprimer:
+    post:
+      operationId: v1_organismes_supprimer_create
+      description: Supprimer (soft-delete), entre 1 et 100 organismes à la fois, via
+        un payload JSON. La suppression se base sur le couple (référentiel, external_id).
+      summary: Supprimer des organismes
+      tags:
+      - organismes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupprimerOrganismesRequest'
+        required: true
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupprimerOrganismesResponse'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Nombre de secondes à attendre avant de pouvoir réessayer.
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Nombre maximal d'appels autorisés sur la fenêtre courante.
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Nombre d'appels restants sur la fenêtre courante.
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Timestamp Unix (secondes) auquel la fenêtre courante se
+                réinitialise.
 components:
   schemas:
     ArchiveOffer401Error:
@@ -4783,6 +5296,18 @@ components:
       - url_candidature
       - url_offre
       - vacance_poste
+    OrganismeDeleteInput:
+      type: object
+      properties:
+        referentiel:
+          type: string
+          maxLength: 50
+        external_id:
+          type: string
+          maxLength: 50
+      required:
+      - external_id
+      - referentiel
     OrganismeInput:
       type: object
       properties:
@@ -5086,6 +5611,30 @@ components:
         * `94` - 94
         * `DOM` - DOM
         * `TOM` - TOM
+    SupprimerOrganismesRequest:
+      type: object
+      properties:
+        organismes:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganismeDeleteInput'
+          maxItems: 100
+          minItems: 1
+      required:
+      - organismes
+    SupprimerOrganismesResponse:
+      type: object
+      properties:
+        deleted:
+          type: integer
+        not_found:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - deleted
+      - not_found
     TempsTravailEnum:
       enum:
       - NON_DEFINI
@@ -5314,23 +5863,6 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-  headers:
-    X-RateLimit-Limit:
-      schema:
-        type: integer
-      description: Nombre maximal d'appels autorisés sur la fenêtre courante.
-    X-RateLimit-Remaining:
-      schema:
-        type: integer
-      description: Nombre d'appels restants sur la fenêtre courante.
-    X-RateLimit-Reset:
-      schema:
-        type: integer
-      description: Timestamp Unix (secondes) auquel la fenêtre courante se réinitialise.
-    Retry-After:
-      schema:
-        type: integer
-      description: Nombre de secondes à attendre avant de pouvoir réessayer.
 tags:
 - name: token
   description: Gestion de l'authentification

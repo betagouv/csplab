@@ -21,6 +21,9 @@ from application.ingestion.usecases.list_metiers import ListMetiersUsecase
 from application.ingestion.usecases.list_offers import ListOffersUsecase
 from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
+from application.ingestion.usecases.supprimer_organismes import (
+    SupprimerOrganismesUsecase,
+)
 from application.ingestion.usecases.upsert_offers import UpsertOffersUsecase
 from application.ingestion.usecases.upsert_organismes import UpsertOrganismesUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
@@ -186,6 +189,12 @@ class IngestionContainer(containers.DeclarativeContainer):
 
     upsert_organismes_usecase = providers.Factory(
         UpsertOrganismesUsecase,
+        organisme_repository=organisme_repository,
+        logger=logger_service,
+    )
+
+    supprimer_organismes_usecase = providers.Factory(
+        SupprimerOrganismesUsecase,
         organisme_repository=organisme_repository,
         logger=logger_service,
     )

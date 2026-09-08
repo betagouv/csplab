@@ -8,6 +8,7 @@ from referentiel.events.organisme_events import (
     OrganismeCree,
     OrganismeModifie,
     OrganismeRemplace,
+    OrganismeSupprime,
 )
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.siret import SIRET
@@ -177,3 +178,7 @@ class Organisme(AggregateRoot):
         self._gestion_ats = gestion_ats
         self._date_creation = date_creation
         self._date_derniere_activite = date_derniere_activite
+
+    @mutate(OrganismeSupprime)
+    def supprimer(self) -> None:
+        pass

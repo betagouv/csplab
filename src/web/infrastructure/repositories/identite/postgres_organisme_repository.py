@@ -127,3 +127,31 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
             return {"created": created, "updated": updated, "errors": []}
         except Exception as e:
             raise DatabaseError(f"Database error during bulk upsert: {e}") from e
+
+    def get_by_referentiel_and_external_id_batch(
+        self, pairs: list[tuple[str, str]]
+    ) -> dict[tuple[str, str], Organisme]:
+        if not pairs:
+            return {}
+
+        query = Q()
+        for referentiel, external_id in pairs:
+            query |= Q(referentiel=referentiel, external_id=external_id)
+
+        models = OrganismeModel.objects.filter(query, supprime_le__isnull=True)
+        return {
+            (
+                str(model.referentiel),
+                str(model.external_id),
+            ): self._mapper_identite.to_domain(model)
+            for model in models
+        }
+
+    def supprimer_batch(self, organismes: list[Organisme]) -> int:
+        if not organismes:
+            return 0
+
+        ids = [organisme.entity_id for organisme in organismes]
+        return OrganismeModel.objects.filter(
+            id__in=ids, supprime_le__isnull=True
+        ).update(supprime_le=timezone.now())
