@@ -89,6 +89,7 @@ defineExpose({ setEmailError })
   >
     <form
       class="attach-agent-drawer"
+      novalidate
       @submit.prevent="handleSubmit"
     >
       <CspInput
@@ -135,6 +136,7 @@ defineExpose({ setEmailError })
       <div class="attach-agent-drawer__actions">
         <CspButton
           variant="secondary"
+          type="button"
           label="Annuler"
           @click="open = false"
         />
