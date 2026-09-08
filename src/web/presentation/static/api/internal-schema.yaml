@@ -4167,6 +4167,10 @@ components:
           format: uuid
         recrutement_role:
           $ref: '#/components/schemas/RecrutementRoleEnum'
+        date_revocation_recrutement:
+          type: string
+          format: date-time
+          nullable: true
       required:
       - agent_id
       - recrutement_role

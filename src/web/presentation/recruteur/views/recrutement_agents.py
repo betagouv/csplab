@@ -96,6 +96,14 @@ class RecrutementAgentsView(ListAPIView):
                 GenericErrorSerializer({"error": str(serializer.errors)}).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        data = serializer.validated_data
+        if data.get("date_revocation_recrutement"):
+            # revoke agent
+            return Response(
+                RecrutementAgentRoleSerializer(serializer.validated_data).data,
+                status=status.HTTP_200_OK,
+            )
+        # update agent's role
         return Response(
             RecrutementAgentRoleSerializer(serializer.validated_data).data,
             status=status.HTTP_200_OK,

@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import uuid4
 
 import pytest
@@ -21,6 +22,8 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
 )
+
+UNSET = object()
 
 NOMBRE_AGENTS_ATTENDU = 2
 NOMBRE_REQUETES_ATTENDU = (
@@ -249,6 +252,19 @@ class TestRecrutementAgentsViewPut:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_returns_400_for_invalid_date_revocation_recrutement(
+        self, authenticated_client
+    ):
+        payload = {
+            "agent_id": str(uuid4()),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+            "date_revocation_recrutement": "invalide",
+        }
+
+        response = authenticated_client.put(_url(uuid4(), uuid4()), payload)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
     def test_returns_200_with_valid_payload(self, authenticated_client):
         agent_id = uuid4()
         payload = {
@@ -256,7 +272,43 @@ class TestRecrutementAgentsViewPut:
             "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
         }
 
-        response = authenticated_client.put(_url(uuid4(), uuid4()), payload)
+        response = authenticated_client.put(
+            _url(uuid4(), uuid4()), payload, format="json"
+        )
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == payload
+        datas = response.json()
+        assert datas["agent_id"] == str(agent_id)
+        assert datas["recrutement_role"] == AgentRecrutementRole.RECRUTEUR.value
+
+    @pytest.mark.parametrize(
+        "date_revocation_recrutement",
+        [None, datetime.now()],
+        ids=[
+            "with_null_date_revocation_recrutement",
+            "with_date_revocation_recrutement",
+        ],
+    )
+    def test_returns_200_with_revocation_date(
+        self, authenticated_client, date_revocation_recrutement
+    ):
+        agent_id = uuid4()
+        payload = {
+            "agent_id": str(agent_id),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+            "date_revocation_recrutement": date_revocation_recrutement,
+        }
+
+        response = authenticated_client.put(
+            _url(uuid4(), uuid4()), payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        body = response.json()
+        assert body["agent_id"] == str(agent_id)
+        assert body["recrutement_role"] == AgentRecrutementRole.RECRUTEUR.value
+        if date_revocation_recrutement:
+            assert body["date_revocation_recrutement"] is not None
+        else:
+            assert body["date_revocation_recrutement"] is None
