@@ -10,10 +10,12 @@ import { useOrganismeAgents } from './useOrganismeAgents'
 const mockGetOrganismeAgents = vi.fn()
 const mockSearchAgentByEmail = vi.fn()
 const mockSetAgentRole = vi.fn()
+const mockCreateAgent = vi.fn()
 
 vi.mock('../api', () => ({
   getOrganismesList: vi.fn(),
   getOrganismeAgents: (...args: unknown[]) => mockGetOrganismeAgents(...args),
+  createAgent: (...args: unknown[]) => mockCreateAgent(...args),
   searchAgentByEmail: (...args: unknown[]) => mockSearchAgentByEmail(...args),
   setAgentRole: (...args: unknown[]) => mockSetAgentRole(...args),
   updateAgentRole: vi.fn(),
@@ -91,13 +93,14 @@ describe('useAjoutMembre', () => {
   it('attaches the found agent and refetches the list', async () => {
     mockSearchAgentByEmail.mockResolvedValue(AGENT)
     mockSetAgentRole.mockResolvedValue({})
-    const { search, attach } = mountAjoutMembre()
+    const { search, add } = mountAjoutMembre()
     await flush()
 
     await search(AGENT.email)
-    await attach('membre')
+    await add('membre')
     await flush()
 
+    expect(mockCreateAgent).not.toHaveBeenCalled()
     expect(mockSetAgentRole).toHaveBeenCalledWith(ORGANISME_UUID, {
       agent_id: AGENT.agent_id,
       role: 'membre',
@@ -105,14 +108,49 @@ describe('useAjoutMembre', () => {
     expect(mockGetOrganismeAgents).toHaveBeenCalledTimes(2)
   })
 
+  it('creates the agent then attaches it when no account matches', async () => {
+    mockSearchAgentByEmail.mockResolvedValue(null)
+    mockCreateAgent.mockResolvedValue({ ...AGENT, prenom: '', nom: '', intitule_poste: '' })
+    mockSetAgentRole.mockResolvedValue({})
+    const { search, add } = mountAjoutMembre()
+    await flush()
+
+    await search('nouvelle.agente@example.gouv.fr')
+    await add('responsable')
+
+    expect(mockCreateAgent).toHaveBeenCalledWith({
+      email: 'nouvelle.agente@example.gouv.fr',
+      organisme_id: ORGANISME_UUID,
+    })
+    expect(mockSetAgentRole).toHaveBeenCalledWith(ORGANISME_UUID, {
+      agent_id: AGENT.agent_id,
+      role: 'responsable',
+    })
+  })
+
+  it('only retries the attachment when it failed after a creation', async () => {
+    mockSearchAgentByEmail.mockResolvedValue(null)
+    mockCreateAgent.mockResolvedValue({ ...AGENT, prenom: '', nom: '', intitule_poste: '' })
+    mockSetAgentRole.mockRejectedValueOnce(new Error('boom')).mockResolvedValueOnce({})
+    const { search, add } = mountAjoutMembre()
+    await flush()
+
+    await search('nouvelle.agente@example.gouv.fr')
+    await expect(add('membre')).rejects.toThrow('boom')
+    await add('membre')
+
+    expect(mockCreateAgent).toHaveBeenCalledTimes(1)
+    expect(mockSetAgentRole).toHaveBeenCalledTimes(2)
+  })
+
   it('propagates attach errors to the caller', async () => {
     mockSearchAgentByEmail.mockResolvedValue(AGENT)
     mockSetAgentRole.mockRejectedValue(new Error('boom'))
-    const { search, attach } = mountAjoutMembre()
+    const { search, add } = mountAjoutMembre()
     await flush()
 
     await search(AGENT.email)
 
-    await expect(attach('membre')).rejects.toThrow('boom')
+    await expect(add('membre')).rejects.toThrow('boom')
   })
 })

@@ -28,7 +28,7 @@ const props = defineProps<{
 const PAGE_SIZE = 8
 
 const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
-const { status, foundAgent, searching, search: searchAgent, attach, attaching, reset } = useAjoutMembre(props.organismeUuid)
+const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAjoutMembre(props.organismeUuid)
 const { roleChange, clearRoleChange, revocationAgent, clearRevocation } = useAgentActions()
 const { addToast } = useToast()
 
@@ -53,7 +53,7 @@ async function handleAttach(role: Role) {
     return
   const agent = foundAgent.value
   try {
-    await attach(role)
+    await add(role)
     addToast({
       variant: 'success',
       title: 'Membre ajouté',
@@ -215,7 +215,7 @@ async function handleRevocation(): Promise<void> {
       :status="status"
       :agent="foundAgent"
       :searching="searching"
-      :submitting="attaching"
+      :submitting="submitting"
       @search="handleSearch"
       @attach="handleAttach"
       @reset="reset"
