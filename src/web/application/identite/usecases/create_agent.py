@@ -17,12 +17,12 @@ from domain.identite.services.organisme_permission_service import (
 from domain.identite.value_objects.organisme_action import OrganismeAction
 
 
-@dataclass
+@dataclass(kw_only=True)
 class CreateAgentInput:
     email: EmailStr
-    prenom: str
-    nom: str
-    intitule_poste: str
+    prenom: str = ""
+    nom: str = ""
+    intitule_poste: str = ""
     organisme_id: UUID
     utilisateur: Utilisateur
 

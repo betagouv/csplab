@@ -5,6 +5,7 @@ from application.identite.usecases.create_agent import CreateAgentInput
 from config.app_config import AppConfig
 from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
 from infrastructure.di.identite.identite_container import IdentiteContainer
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
@@ -53,6 +54,21 @@ def test_create_agent(identite_integration_container, organisme_id):
     assert result.prenom == input_data.prenom
     assert result.nom == input_data.nom
     assert result.intitule_poste == input_data.intitule_poste
+
+
+def test_create_agent_without_identity(identite_integration_container, organisme_id):
+    input_data = CreateAgentInput(
+        email=fake.email(),
+        organisme_id=organisme_id,
+        utilisateur=STAFF_UTILISATEUR,
+    )
+
+    identite_integration_container.create_agent_usecase().execute(input_data)
+
+    utilisateur = UserModel.objects.get(email=input_data.email)
+    assert utilisateur.first_name == ""
+    assert utilisateur.last_name == ""
+    assert utilisateur.profil_agent.intitule_poste == ""
 
 
 def test_create_agent_with_existing_user(identite_integration_container, organisme_id):

@@ -41,9 +41,6 @@ class TestAgentsView:
         organisme_id = uuid4()
         body = {
             "email": agent.email,
-            "prenom": agent.prenom,
-            "nom": agent.nom,
-            "intitule_poste": agent.intitule_poste,
             "organisme_id": str(organisme_id),
         }
 
@@ -54,6 +51,9 @@ class TestAgentsView:
         assert called_input.email == agent.email
         assert called_input.organisme_id == organisme_id
         assert called_input.utilisateur is not None
+        assert called_input.prenom == ""
+        assert called_input.nom == ""
+        assert called_input.intitule_poste == ""
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {
             "agent_id": str(agent.entity_id),
@@ -63,7 +63,7 @@ class TestAgentsView:
             "intitule_poste": agent.intitule_poste,
         }
 
-    def test_post_missing_field_returns_bad_request(
+    def test_post_missing_organisme_returns_bad_request(
         self, container, authenticated_client
     ):
         response = authenticated_client.post(AGENTS_URL, {"email": fake.email()})
@@ -114,9 +114,6 @@ class TestAgentsView:
         container.create_agent_usecase.return_value = mock_usecase
         body = {
             "email": fake.email(),
-            "prenom": fake.first_name(),
-            "nom": fake.last_name(),
-            "intitule_poste": fake.job(),
             "organisme_id": str(uuid4()),
         }
 

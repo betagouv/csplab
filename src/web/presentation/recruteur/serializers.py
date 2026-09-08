@@ -148,9 +148,6 @@ class CandidatureListeSerializer(serializers.Serializer):
 
 class CreateAgentSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    prenom = serializers.CharField()
-    nom = serializers.CharField()
-    intitule_poste = serializers.CharField()
     organisme_id = serializers.UUIDField()
 
 
