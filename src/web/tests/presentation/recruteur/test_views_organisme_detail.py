@@ -539,3 +539,29 @@ class TestOrganismeDetailViewDbVerified:
         assert organisme.nom == nouveau_nom
         assert organisme.gestion_ats is True
         assert organisme.versant == "FPT"
+
+
+class TestEtapesRecrutementOrganismeViewDbVerified:
+    def test_get_returns_persisted_etapes(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        response = staff_client.get(ETAPES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == []
+
+    def test_put_persists_the_etapes(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        response = staff_client.put(ETAPES_URL, VALID_ETAPES_PAYLOAD, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert [{"nom": e["nom"], "categorie": e["categorie"]} for e in data] == [
+            {"nom": e["nom"], "categorie": e["categorie"]} for e in VALID_ETAPES_PAYLOAD
+        ]
+
+        organisme = OrganismeModel.objects.get(id=UUID(ORGANISME_UUID))
+        assert [e["nom"] for e in organisme.etapes] == [
+            e["nom"] for e in VALID_ETAPES_PAYLOAD
+        ]
