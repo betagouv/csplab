@@ -40,7 +40,7 @@ from presentation.recruteur.serializers import (
         request=RecrutementAgentRoleSerializer,
         responses={
             **generic_response_format,
-            200: RecrutementAgentRoleSerializer,
+            201: RecrutementAgentSerializer,
             400: GenericErrorSerializer,
         },
     ),
@@ -65,7 +65,17 @@ class RecrutementAgentsView(ListAPIView):
                 GenericErrorSerializer({"error": str(serializer.errors)}).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "agent_id": serializer.validated_data["agent_id"],
+                "nom": "Nom",
+                "prenom": "Prenom",
+                "poste": "Poste",
+                "email": "prenom.nom@test.com",
+                "recrutement_role": serializer.validated_data["recrutement_role"],
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(exc, (AccesOrganismeRefuse, OperationOrganismeRefusee)):

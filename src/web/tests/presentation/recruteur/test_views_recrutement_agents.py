@@ -201,3 +201,24 @@ class TestRecrutementAgentsViewPost:
         response = authenticated_client.post(_url(uuid4(), uuid4()), payload)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_returns_201_with_recrutement_agent_shape_for_valid_payload(
+        self, authenticated_client
+    ):
+        agent_id = uuid4()
+        payload = {
+            "agent_id": str(agent_id),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
+
+        response = authenticated_client.post(_url(uuid4(), uuid4()), payload)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json() == {
+            "agent_id": str(agent_id),
+            "nom": "Nom",
+            "prenom": "Prenom",
+            "poste": "Poste",
+            "email": "prenom.nom@test.com",
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
