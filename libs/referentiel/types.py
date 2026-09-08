@@ -16,11 +16,6 @@ class IUpsertResult(TypedDict):
     errors: List[IUpsertError]
 
 
-class IDeleteResult(TypedDict):
-    deleted: int
-    not_found: List[dict[str, str]]
-
-
 # bound=Entity force objgeneric type to be inherited from Entity
 # covariant=True allow for IBatchUpdate[T, SpecificError]
 # and IBatchUpdate[T, GenericError]
