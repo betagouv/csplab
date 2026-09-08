@@ -199,10 +199,12 @@ run = [
 
 [tasks.schema]
 alias = "web:schema"
-description = "Regenerate the internal OpenAPI schema"
+description = "Regenerate the public and internal OpenAPI schemas"
 depends = ["install:py"]
-env = { DJANGO_SETTINGS_MODULE = "config.settings.schema_internal" }
-run = "python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate"
+run = [
+  "python manage.py spectacular --file presentation/static/api/schema.yaml --validate",
+  "DJANGO_SETTINGS_MODULE=config.settings.schema_internal python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate",
+]
 
 [tasks."lint:schema"]
 alias = "web:lint:schema"
