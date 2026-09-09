@@ -19,7 +19,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   search: [email: string]
-  attach: [role: Role]
+  add: [role: Role]
   reset: []
 }>()
 
@@ -38,13 +38,19 @@ const error = ref('')
 
 const isFound = computed(() => props.status === 'found')
 
-const submitLabel = computed(() => isFound.value ? 'Ajouter le membre' : 'Rechercher')
+const isSearched = computed(() => props.status !== 'idle')
 
-const submitIcon = computed(() => isFound.value ? 'ri:user-add-line' : 'ri:search-line')
+const submitLabel = computed(() => {
+  if (isFound.value)
+    return 'Ajouter le membre'
+  return isSearched.value ? 'Créer et ajouter' : 'Rechercher'
+})
 
-const submitDisabled = computed(
-  () => props.searching || props.submitting || props.status === 'not-found',
+const submitIcon = computed(() =>
+  isSearched.value ? 'ri:user-add-line' : 'ri:search-line',
 )
+
+const submitDisabled = computed(() => props.searching || props.submitting)
 
 watch(open, (isOpen) => {
   if (!isOpen) {
@@ -61,8 +67,8 @@ watch(email, () => {
 })
 
 function handleSubmit(): void {
-  if (isFound.value) {
-    emit('attach', role.value)
+  if (isSearched.value) {
+    emit('add', role.value)
     return
   }
   const value = email.value.trim()
@@ -122,11 +128,12 @@ defineExpose({ setEmailError })
         v-else-if="status === 'not-found'"
         class="attach-agent-drawer__hint"
       >
-        Aucun compte ne correspond à cette adresse.
+        Aucun compte ne correspond à cette adresse. Un compte sera créé, la personne
+        complétera son profil à sa première connexion.
       </p>
 
       <CspRadioGroup
-        v-if="isFound"
+        v-if="isSearched"
         v-model="role"
         label="Rôle dans l'organisme"
         name="role"

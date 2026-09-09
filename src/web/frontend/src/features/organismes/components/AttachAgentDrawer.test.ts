@@ -83,7 +83,7 @@ describe('attachAgentDrawer', () => {
     submitButton().click()
     await nextTick()
 
-    expect(wrapper.emitted('attach')).toEqual([['membre']])
+    expect(wrapper.emitted('add')).toEqual([['membre']])
     wrapper.unmount()
   })
 
@@ -94,16 +94,20 @@ describe('attachAgentDrawer', () => {
     submitButton().click()
     await nextTick()
 
-    expect(wrapper.emitted('attach')).toEqual([['responsable']])
+    expect(wrapper.emitted('add')).toEqual([['responsable']])
     wrapper.unmount()
   })
 
-  it('blocks the submission when no account matches', async () => {
+  it('creates and adds the member when no account matches', async () => {
     const wrapper = mountDrawer({ status: 'not-found' })
     await nextTick()
 
     expect(document.body.textContent).toContain('Aucun compte ne correspond à cette adresse.')
-    expect(submitButton().disabled).toBe(true)
+    expect(submitButton().disabled).toBe(false)
+    submitButton().click()
+    await nextTick()
+
+    expect(wrapper.emitted('add')).toEqual([['membre']])
     wrapper.unmount()
   })
 

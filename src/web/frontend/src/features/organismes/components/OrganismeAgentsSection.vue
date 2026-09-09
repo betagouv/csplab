@@ -28,7 +28,7 @@ const props = defineProps<{
 const PAGE_SIZE = 8
 
 const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
-const { status, foundAgent, searching, search: searchAgent, attach, attaching, reset } = useAjoutMembre(props.organismeUuid)
+const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAjoutMembre(props.organismeUuid)
 const { roleChange, clearRoleChange, revocationAgent, clearRevocation } = useAgentActions()
 const { addToast } = useToast()
 
@@ -48,16 +48,13 @@ async function handleSearch(email: string) {
   }
 }
 
-async function handleAttach(role: Role) {
-  if (!foundAgent.value)
-    return
-  const agent = foundAgent.value
+async function handleAdd(role: Role) {
   try {
-    await attach(role)
+    const agent = await add(role)
     addToast({
       variant: 'success',
       title: 'Membre ajouté',
-      description: `${formatAgentName(agent)} a rejoint l'organisme.`,
+      description: `${formatAgentName(agent) || agent.email} a rejoint l'organisme.`,
     })
     attachDrawerOpen.value = false
   }
@@ -215,9 +212,9 @@ async function handleRevocation(): Promise<void> {
       :status="status"
       :agent="foundAgent"
       :searching="searching"
-      :submitting="attaching"
+      :submitting="submitting"
       @search="handleSearch"
-      @attach="handleAttach"
+      @add="handleAdd"
       @reset="reset"
     />
 
