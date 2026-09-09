@@ -376,3 +376,30 @@ class TestRecrutementEtapeViewDbVerified:
         assert [e["nom"] for e in recrutement_model.ordre_etapes] == [
             e["nom"] for e in payload
         ]
+
+
+class TestInitRecrutementEtapeViewDbVerified:
+    def test_post_resets_and_persists_default_pipeline(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+            etapes=EtapeRecrutementFactory.create_entity_batch(),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        RecrutementDjangoFactory(organisme=organisme, offre=offer)
+
+        response = authenticated_client.post(RECRUTEMENT_ETAPES_INIT_URL)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        assert len(data) > 0
+        assert data[0]["categorie"] == "ENTREE"
+        assert data[-1]["categorie"] == "ACCEPTE"
+
+        recrutement_model = RecrutementModel.objects.get(
+            offre_id=UUID(RECRUTEMENT_UUID)
+        )
+        assert len(recrutement_model.ordre_etapes) == len(data)
