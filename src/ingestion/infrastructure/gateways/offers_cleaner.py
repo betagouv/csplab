@@ -506,7 +506,12 @@ class OffersCleaner:
 
         if transcoder:
             csplab_code = transcoder.translate("niveaux_de_diplome", client_code)
-            if csplab_code in self._EDUCATION_LEVEL_MAPPING:
+            if csplab_code is not None:
+                if csplab_code not in self._EDUCATION_LEVEL_MAPPING:
+                    raise ValueError(
+                        f"niveaux_de_diplome maps {client_code!r} to unknown "
+                        f"education level {csplab_code!r}"
+                    )
                 return self._EDUCATION_LEVEL_MAPPING[csplab_code]
 
         return None

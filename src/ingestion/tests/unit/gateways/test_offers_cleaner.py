@@ -688,6 +688,25 @@ def test_clean_raises_when_experience_levels_csv_maps_to_unknown_code(
         cleaner.clean(raw_offer)
 
 
+def test_clean_raises_when_niveaux_de_diplome_csv_maps_to_unknown_code(
+    sources_repository,
+):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={
+            "ars": SourceTranscoder(
+                tables={"niveaux_de_diplome": {"NIV_DIPL1": "NOT_A_REAL_LEVEL"}}
+            )
+        },
+    )
+    raw_offer = _make_raw_offer(
+        educationLevel=TalentsoftCodedObjectFactory.build(clientCode="NIV_DIPL1")
+    )
+
+    with pytest.raises(ValueError, match="NOT_A_REAL_LEVEL"):
+        cleaner.clean(raw_offer)
+
+
 def test_clean_maps_specialisations(cleaner):
     raw_offer = _make_raw_offer(
         specialisations=[
