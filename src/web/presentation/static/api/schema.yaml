@@ -3375,28 +3375,28 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
-  /api/v1/organismes/creer_modifier:
-    post:
-      operationId: v1_organismes_creer_modifier_create
-      description: Créer ou mettre à jour, entre 1 et 100 organismes à la fois, via
-        un payload JSON. L'upsert se base sur le couple (référentiel, external_id).
-      summary: Ajouter/mettre à jour des organismes
+  /api/v1/organismes:
+    put:
+      operationId: v1_organismes_update
+      description: Supprimer (soft-delete), entre 1 et 100 organismes à la fois, via
+        un payload JSON. La suppression se base sur le couple (référentiel, external_id).
+      summary: Supprimer des organismes
       tags:
       - organismes
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpsertOrganismesRequest'
+              $ref: '#/components/schemas/SupprimerOrganismesRequest'
         required: true
       security:
       - ApiKeyAuth: []
       responses:
-        '201':
+        '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpsertOrganismesResponse'
+                $ref: '#/components/schemas/SupprimerOrganismesResponse'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3463,28 +3463,28 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
-  /api/v1/organismes/supprimer:
+  /api/v1/organismes/creer_modifier:
     post:
-      operationId: v1_organismes_supprimer_create
-      description: Supprimer (soft-delete), entre 1 et 100 organismes à la fois, via
-        un payload JSON. La suppression se base sur le couple (référentiel, external_id).
-      summary: Supprimer des organismes
+      operationId: v1_organismes_creer_modifier_create
+      description: Créer ou mettre à jour, entre 1 et 100 organismes à la fois, via
+        un payload JSON. L'upsert se base sur le couple (référentiel, external_id).
+      summary: Ajouter/mettre à jour des organismes
       tags:
       - organismes
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SupprimerOrganismesRequest'
+              $ref: '#/components/schemas/UpsertOrganismesRequest'
         required: true
       security:
       - ApiKeyAuth: []
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SupprimerOrganismesResponse'
+                $ref: '#/components/schemas/UpsertOrganismesResponse'
           description: ''
           headers:
             X-RateLimit-Limit:

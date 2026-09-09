@@ -16,12 +16,12 @@ def _organisme_payload(**overrides) -> dict:
 
 
 def test_unauthenticated_access(api_client):
-    response = api_client.post(URL)
+    response = api_client.put(URL)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_jwt_authentication_is_rejected(authenticated_client):
-    response = authenticated_client.post(
+    response = authenticated_client.put(
         URL,
         data={"organismes": [_organisme_payload()]},
         content_type="application/json",
@@ -44,7 +44,7 @@ def test_get_method_not_allowed(api_key_client):
 def test_invalid_payload_returns_error_400(
     api_key_client, num_organismes, expected_msg
 ):
-    response = api_key_client.post(
+    response = api_key_client.put(
         URL,
         data={"organismes": [_organisme_payload()] * num_organismes},
         content_type="application/json",
@@ -56,7 +56,7 @@ def test_invalid_payload_returns_error_400(
 def test_soft_deletes_matching_organisme(api_key_client):
     organisme = OrganismeDjangoFactory(referentiel="FINESS", external_id="ext-123")
 
-    response = api_key_client.post(
+    response = api_key_client.put(
         URL,
         data={"organismes": [_organisme_payload()]},
         content_type="application/json",
@@ -71,7 +71,7 @@ def test_soft_deletes_matching_organisme(api_key_client):
 def test_does_not_hard_delete(api_key_client):
     organisme = OrganismeDjangoFactory(referentiel="FINESS", external_id="ext-123")
 
-    api_key_client.post(
+    api_key_client.put(
         URL,
         data={"organismes": [_organisme_payload()]},
         content_type="application/json",
@@ -81,7 +81,7 @@ def test_does_not_hard_delete(api_key_client):
 
 
 def test_returns_unknown_pair_as_not_found(api_key_client):
-    response = api_key_client.post(
+    response = api_key_client.put(
         URL,
         data={"organismes": [_organisme_payload(external_id="unknown")]},
         content_type="application/json",
@@ -98,7 +98,7 @@ def test_handles_multiple_organismes_in_a_single_call(api_key_client):
     OrganismeDjangoFactory(referentiel="FINESS", external_id="ext-1")
     OrganismeDjangoFactory(referentiel="RNE", external_id="ext-2")
 
-    response = api_key_client.post(
+    response = api_key_client.put(
         URL,
         data={
             "organismes": [
