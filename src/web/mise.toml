@@ -204,6 +204,7 @@ depends = ["install:py"]
 run = [
   "python manage.py spectacular --file presentation/static/api/schema.yaml --validate",
   "DJANGO_SETTINGS_MODULE=config.settings.schema_internal python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate",
+  "pnpm run generate-types",
 ]
 
 [tasks."lint:schema"]
