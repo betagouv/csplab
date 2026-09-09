@@ -199,12 +199,12 @@ run = [
 
 [tasks.schema]
 alias = "web:schema"
-description = "Regenerate the public and internal OpenAPI schemas"
+description = "Regenerate the public and internal OpenAPI schemas, then the frontend types"
 depends = ["install:py"]
+depends_post = ["//src/web/frontend:types"]
 run = [
   "python manage.py spectacular --file presentation/static/api/schema.yaml --validate",
   "DJANGO_SETTINGS_MODULE=config.settings.schema_internal python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate",
-  "pnpm run generate-types",
 ]
 
 [tasks."lint:schema"]

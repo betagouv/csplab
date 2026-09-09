@@ -56,8 +56,8 @@ depends = [
 
 [tasks.types]
 alias = "front:types"
-description = "Regenerate the internal OpenAPI schema and the frontend TypeScript types"
-depends = [ "//src/web:schema" ]
+description = "Regenerate the frontend TypeScript types from the internal OpenAPI schema"
+depends = [ "//src/web:install:js" ]
 run = "pnpm run generate-types"
 
 [tasks.storybook]
