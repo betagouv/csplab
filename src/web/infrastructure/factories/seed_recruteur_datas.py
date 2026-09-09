@@ -234,31 +234,31 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         seed_password = os.environ.get("SEED_USER_PASSWORD") or secrets.token_urlsafe(
             16
         )
-        agents = [
-            AgentDjangoFactory(
+        agents = {
+            spec["prenom"]: AgentDjangoFactory(
                 utilisateur__first_name=spec["prenom"],
                 utilisateur__last_name=spec["nom"],
                 utilisateur__email=spec["email"],
                 utilisateur__password=Password(seed_password),
             )
             for spec in _AGENTS_SPECS
-        ]
+        }
 
         # Marie est responsable du premier organisme, Paul et Claire en sont membres.
         # Marc est membre du premier et responsable du second : c'est lui qui permet
         # d'éprouver la bascule d'organisme et l'apparition des pages de paramètres.
         # David ne l'est d'aucun, pour éprouver la navigation vide et le refus d'accès.
         _ATTACHEMENTS = [
-            (_ORGANISME_UUID, 0, AgentOrganismeRole.RESPONSABLE),
-            (_ORGANISME_UUID, 1, AgentOrganismeRole.MEMBRE),
-            (_ORGANISME_UUID, 2, AgentOrganismeRole.MEMBRE),
-            (_ORGANISME_UUID, 4, AgentOrganismeRole.MEMBRE),
-            (_BRIANCON_UUID, 4, AgentOrganismeRole.RESPONSABLE),
+            (_ORGANISME_UUID, "Marie", AgentOrganismeRole.RESPONSABLE),
+            (_ORGANISME_UUID, "Paul", AgentOrganismeRole.MEMBRE),
+            (_ORGANISME_UUID, "Claire", AgentOrganismeRole.MEMBRE),
+            (_ORGANISME_UUID, "Marc", AgentOrganismeRole.MEMBRE),
+            (_BRIANCON_UUID, "Marc", AgentOrganismeRole.RESPONSABLE),
         ]
-        for organisme_uuid, agent_index, role in _ATTACHEMENTS:
+        for organisme_uuid, agent_prenom, role in _ATTACHEMENTS:
             OrganismeAgentDjangoFactory(
                 organisme=organismes[organisme_uuid],
-                agent=agents[agent_index],
+                agent=agents[agent_prenom],
                 role=role.value,
             )
 
@@ -406,10 +406,10 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         # -------------------------------------------------------------- #
         # Recrutements (1 / offre active et archivée): étapes + responsables
         # -------------------------------------------------------------- #
-        marie = agents[0]
-        paul = agents[1]
-        claire = agents[2]
-        marc = agents[4]
+        marie = agents["Marie"]
+        paul = agents["Paul"]
+        claire = agents["Claire"]
+        marc = agents["Marc"]
 
         recrutements_specs = [
             (
