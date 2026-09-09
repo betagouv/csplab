@@ -234,6 +234,9 @@ class RecrutementAgentRoleSerializer(serializers.Serializer):
     recrutement_role = serializers.ChoiceField(
         choices=[(r.value, r.value) for r in AgentRecrutementRole]
     )
+    date_revocation_recrutement = serializers.DateTimeField(
+        required=False, allow_null=True
+    )
 
 
 # ---------------------------------------------------------------------------

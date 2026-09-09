@@ -742,6 +742,8 @@ export interface components {
             /** Format: uuid */
             agent_id: string;
             recrutement_role: components["schemas"]["RecrutementRoleEnum"];
+            /** Format: date-time */
+            date_revocation_recrutement?: string | null;
         };
         RecrutementDetail: {
             /** Format: uuid */
