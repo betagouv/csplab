@@ -138,21 +138,6 @@ _ALL_SEED_EMAILS = [
     s["email"] for s in _AGENTS_SPECS + _CANDIDATS_SPECS + [_ADMIN_SPEC]
 ]
 
-_SEED_OFFER_EXTERNAL_IDS = [
-    "SEED-ACTIF-001",
-    "SEED-ACTIF-002",
-    "SEED-ACTIF-003",
-    "SEED-ACTIF-004",
-    "SEED-ACTIF-005",
-    "SEED-ACTIF-006",
-    "SEED-ACTIF-007",
-    "SEED-B-ACTIF-001",
-    "SEED-B-ACTIF-002",
-    "SEED-ARCHIVE-001",
-    "SEED-ARCHIVE-002",
-    "SEED-ARCHIVE-003",
-]
-
 _SEED_METIER_OFFER_FAMILY_CODES = ["ERNUM001", "ERJUR001"]
 
 _OFFRES_ACTIVES_SPECS = [
@@ -272,8 +257,12 @@ def _delete_seed_data() -> None:
     )
     CandidatureModel.objects.filter(candidat_id__in=seed_usernames).delete()
 
+    seed_offer_specs = (
+        _OFFRES_ACTIVES_SPECS + _OFFRES_ARCHIVEES_SPECS + _OFFRES_BRIANCON_SPECS
+    )
+    seed_offer_external_ids = [spec["external_id"] for spec in seed_offer_specs]
     seed_offre_ids = OfferModel.objects.filter(
-        external_id__in=_SEED_OFFER_EXTERNAL_IDS
+        external_id__in=seed_offer_external_ids
     ).values_list("id", flat=True)
     RecrutementModel.objects.filter(offre_id__in=seed_offre_ids).delete()  # type: ignore[attr-defined]
 
@@ -284,7 +273,7 @@ def _delete_seed_data() -> None:
     ProfilCandidatModel.objects.filter(utilisateur_id__in=seed_usernames).delete()
     UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).delete()
 
-    OfferModel.objects.filter(external_id__in=_SEED_OFFER_EXTERNAL_IDS).delete()
+    OfferModel.objects.filter(external_id__in=seed_offer_external_ids).delete()
     MetierModel.objects.filter(
         offer_family_code__in=_SEED_METIER_OFFER_FAMILY_CODES
     ).delete()
