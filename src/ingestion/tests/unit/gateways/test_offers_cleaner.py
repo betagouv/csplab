@@ -34,6 +34,8 @@ from tests.factories.talentsoft_factories import (
 
 REFERENCE = "2024-OFFER-001"
 SOURCE_ID = "11111111-2222-3333-4444-555555555555"
+OTHER_SOURCE_ID = "99999999-8888-7777-6666-555555555555"
+_SOURCE_ID_BY_SLUG = {"ars": SOURCE_ID, "talentsoft-main": OTHER_SOURCE_ID}
 
 
 @pytest.fixture
@@ -49,7 +51,16 @@ def sources_repository() -> SourcesRepository:
                 client_id_back="ars-back",
                 base_url_front="https://ars.example.com",
                 base_url_back="https://ars.example.com",
-            )
+            ),
+            Source(
+                source_id=UUID(OTHER_SOURCE_ID),
+                slug="talentsoft-main",
+                type=SourceType.TALENTSOFT,
+                client_id_front="main-front",
+                client_id_back="main-back",
+                base_url_front="https://main.example.com",
+                base_url_back="https://main.example.com",
+            ),
         ]
     )
     return repository
@@ -60,11 +71,13 @@ def cleaner(sources_repository: SourcesRepository) -> OffersCleaner:
     return OffersCleaner(sources_repository=sources_repository)
 
 
-def _make_raw_offer(reference: str = REFERENCE, **offer_kwargs) -> RawOffer:
+def _make_raw_offer(
+    reference: str = REFERENCE, slug: str = "ars", **offer_kwargs
+) -> RawOffer:
     offer_dto = TalentsoftDetailOfferFactory.build(reference=reference, **offer_kwargs)
     return RawOffer(
         reference=reference,
-        source_id=SOURCE_ID,
+        source_id=_SOURCE_ID_BY_SLUG[slug],
         data=offer_dto.model_dump(),
     )
 
@@ -977,29 +990,10 @@ def test_clean_returns_none_coordinates_when_no_source_available(cleaner):
     assert offer.localisation.longitude is None
 
 
-def test_clean_ars_contract_type_transcoding_is_scoped_to_ars_source():
-    other_source_id = "99999999-8888-7777-6666-555555555555"
-    repository = SourcesRepository()
-    repository.load(
-        [
-            Source(
-                source_id=UUID(other_source_id),
-                slug="talentsoft-main",
-                type=SourceType.TALENTSOFT,
-                client_id_front="main-front",
-                client_id_back="main-back",
-                base_url_front="https://main.example.com",
-                base_url_back="https://main.example.com",
-            )
-        ]
-    )
-    cleaner = OffersCleaner(sources_repository=repository)
-    offer_dto = TalentsoftDetailOfferFactory.build(
-        reference=REFERENCE,
+def test_clean_ars_contract_type_transcoding_is_scoped_to_ars_source(cleaner):
+    raw_offer = _make_raw_offer(
+        slug="talentsoft-main",
         contractType=TalentsoftCodedObjectFactory.build(clientCode="TC02"),
-    )
-    raw_offer = RawOffer(
-        reference=REFERENCE, source_id=other_source_id, data=offer_dto.model_dump()
     )
 
     offer = cleaner.clean(raw_offer)
