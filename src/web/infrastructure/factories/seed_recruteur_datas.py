@@ -155,6 +155,114 @@ _SEED_OFFER_EXTERNAL_IDS = [
 
 _SEED_METIER_OFFER_FAMILY_CODES = ["ERNUM001", "ERJUR001"]
 
+_OFFRES_ACTIVES_SPECS = [
+    {
+        "title": "Chargé de mission numérique",
+        "reference": "REF-2025-001",
+        "external_id": "SEED-ACTIF-001",
+        "verse": Verse.FPE.value,
+        "category": Category.A.value,
+        "publication_date": datetime(2025, 6, 22, tzinfo=UTC),
+    },
+    {
+        "title": "Responsable RH",
+        "reference": "REF-2025-002",
+        "external_id": "SEED-ACTIF-002",
+        "verse": Verse.FPE.value,
+        "category": Category.A.value,
+        "publication_date": datetime(2025, 6, 22, tzinfo=UTC),
+    },
+    {
+        "title": "Ingénieur infrastructure cloud",
+        "reference": "REF-2025-003",
+        "external_id": "SEED-ACTIF-003",
+        "verse": Verse.FPE.value,
+        "category": Category.A.value,
+        "publication_date": datetime(2025, 6, 21, tzinfo=UTC),
+    },
+    {
+        "title": "Juriste droit public",
+        "reference": "REF-2025-004",
+        "external_id": "SEED-ACTIF-004",
+        "verse": Verse.FPT.value,
+        "category": Category.A.value,
+        "publication_date": datetime(2025, 6, 21, tzinfo=UTC),
+    },
+    {
+        "title": "Chargé de communication",
+        "reference": "REF-2025-005",
+        "external_id": "SEED-ACTIF-005",
+        "verse": Verse.FPE.value,
+        "category": Category.B.value,
+        "publication_date": datetime(2025, 6, 2, tzinfo=UTC),
+    },
+    {
+        "title": "Analyste budgétaire",
+        "reference": "REF-2025-006",
+        "external_id": "SEED-ACTIF-006",
+        "verse": Verse.FPE.value,
+        "category": Category.A.value,
+        "publication_date": datetime(2025, 6, 1, tzinfo=UTC),
+    },
+    {
+        "title": "Chargé de mission",
+        "reference": "REF-2025-006",
+        "external_id": "SEED-ACTIF-007",
+        "verse": Verse.FPE.value,
+        "category": Category.A.value,
+        "publication_date": datetime(2025, 6, 1, tzinfo=UTC),
+    },
+]
+
+_OFFRES_ARCHIVEES_SPECS = [
+    {
+        "title": "Directeur des systèmes d'information",
+        "reference": "REF-2024-A01",
+        "external_id": "SEED-ARCHIVE-001",
+        "verse": Verse.FPE.value,
+        "category": Category.A.value,
+        "publication_date": datetime(2024, 12, 1, tzinfo=UTC),
+        "archived_at": timezone.make_aware(datetime(2025, 3, 1)),
+    },
+    {
+        "title": "Chef de projet transformation numérique",
+        "reference": "REF-2024-A02",
+        "external_id": "SEED-ARCHIVE-002",
+        "verse": Verse.FPE.value,
+        "category": Category.A.value,
+        "publication_date": datetime(2024, 11, 15, tzinfo=UTC),
+        "archived_at": timezone.make_aware(datetime(2025, 2, 15)),
+    },
+    {
+        "title": "Conseiller en mobilité professionnelle",
+        "reference": "REF-2024-A03",
+        "external_id": "SEED-ARCHIVE-003",
+        "verse": Verse.FPT.value,
+        "category": Category.B.value,
+        "publication_date": datetime(2024, 10, 1, tzinfo=UTC),
+        "archived_at": timezone.make_aware(datetime(2025, 1, 15)),
+    },
+]
+
+_OFFRES_BRIANCON_SPECS = [
+    {
+        "title": "Agent technique polyvalent",
+        "reference": "REF-2025-B01",
+        "external_id": "SEED-B-ACTIF-001",
+        "verse": Verse.FPT.value,
+        "category": Category.C.value,
+        "publication_date": datetime(2025, 5, 12, tzinfo=UTC),
+    },
+    {
+        "title": "Responsable des services techniques",
+        "reference": "REF-2025-B02",
+        "external_id": "SEED-B-ACTIF-002",
+        "verse": Verse.FPT.value,
+        "category": Category.B.value,
+        "publication_date": datetime(2025, 5, 20, tzinfo=UTC),
+    },
+]
+
 
 def _delete_seed_data() -> None:
     seed_usernames = list(
@@ -276,118 +384,20 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         # -------------------------------------------------------------- #
         # Offres actives (6)                                             #
         # -------------------------------------------------------------- #
-        offres_actives = [
-            OfferDjangoFactory(
-                title="Chargé de mission numérique",
-                reference="REF-2025-001",
-                external_id="SEED-ACTIF-001",
-                verse=Verse.FPE.value,
-                category=Category.A.value,
-                publication_date=datetime(2025, 6, 22, tzinfo=UTC),
-            ),
-            OfferDjangoFactory(
-                title="Responsable RH",
-                reference="REF-2025-002",
-                external_id="SEED-ACTIF-002",
-                verse=Verse.FPE.value,
-                category=Category.A.value,
-                publication_date=datetime(2025, 6, 22, tzinfo=UTC),
-            ),
-            OfferDjangoFactory(
-                title="Ingénieur infrastructure cloud",
-                reference="REF-2025-003",
-                external_id="SEED-ACTIF-003",
-                verse=Verse.FPE.value,
-                category=Category.A.value,
-                publication_date=datetime(2025, 6, 21, tzinfo=UTC),
-            ),
-            OfferDjangoFactory(
-                title="Juriste droit public",
-                reference="REF-2025-004",
-                external_id="SEED-ACTIF-004",
-                verse=Verse.FPT.value,
-                category=Category.A.value,
-                publication_date=datetime(2025, 6, 21, tzinfo=UTC),
-            ),
-            OfferDjangoFactory(
-                title="Chargé de communication",
-                reference="REF-2025-005",
-                external_id="SEED-ACTIF-005",
-                verse=Verse.FPE.value,
-                category=Category.B.value,
-                publication_date=datetime(2025, 6, 2, tzinfo=UTC),
-            ),
-            OfferDjangoFactory(
-                title="Analyste budgétaire",
-                reference="REF-2025-006",
-                external_id="SEED-ACTIF-006",
-                verse=Verse.FPE.value,
-                category=Category.A.value,
-                publication_date=datetime(2025, 6, 1, tzinfo=UTC),
-            ),
-            OfferDjangoFactory(
-                title="Chargé de mission",
-                reference="REF-2025-006",
-                external_id="SEED-ACTIF-007",
-                verse=Verse.FPE.value,
-                category=Category.A.value,
-                publication_date=datetime(2025, 6, 1, tzinfo=UTC),
-            ),
-        ]
+        offres_actives = [OfferDjangoFactory(**spec) for spec in _OFFRES_ACTIVES_SPECS]
 
         # -------------------------------------------------------------- #
         # Offres archivées (3)                                           #
         # -------------------------------------------------------------- #
         offres_archivees = [
-            OfferDjangoFactory(
-                title="Directeur des systèmes d'information",
-                reference="REF-2024-A01",
-                external_id="SEED-ARCHIVE-001",
-                verse=Verse.FPE.value,
-                category=Category.A.value,
-                publication_date=datetime(2024, 12, 1, tzinfo=UTC),
-                archived_at=timezone.make_aware(datetime(2025, 3, 1)),
-            ),
-            OfferDjangoFactory(
-                title="Chef de projet transformation numérique",
-                reference="REF-2024-A02",
-                external_id="SEED-ARCHIVE-002",
-                verse=Verse.FPE.value,
-                category=Category.A.value,
-                publication_date=datetime(2024, 11, 15, tzinfo=UTC),
-                archived_at=timezone.make_aware(datetime(2025, 2, 15)),
-            ),
-            OfferDjangoFactory(
-                title="Conseiller en mobilité professionnelle",
-                reference="REF-2024-A03",
-                external_id="SEED-ARCHIVE-003",
-                verse=Verse.FPT.value,
-                category=Category.B.value,
-                publication_date=datetime(2024, 10, 1, tzinfo=UTC),
-                archived_at=timezone.make_aware(datetime(2025, 1, 15)),
-            ),
+            OfferDjangoFactory(**spec) for spec in _OFFRES_ARCHIVEES_SPECS
         ]
 
         # -------------------------------------------------------------- #
         # Offres du second organisme                                     #
         # -------------------------------------------------------------- #
         offres_briancon = [
-            OfferDjangoFactory(
-                title="Agent technique polyvalent",
-                reference="REF-2025-B01",
-                external_id="SEED-B-ACTIF-001",
-                verse=Verse.FPT.value,
-                category=Category.C.value,
-                publication_date=datetime(2025, 5, 12, tzinfo=UTC),
-            ),
-            OfferDjangoFactory(
-                title="Responsable des services techniques",
-                reference="REF-2025-B02",
-                external_id="SEED-B-ACTIF-002",
-                verse=Verse.FPT.value,
-                category=Category.B.value,
-                publication_date=datetime(2025, 5, 20, tzinfo=UTC),
-            ),
+            OfferDjangoFactory(**spec) for spec in _OFFRES_BRIANCON_SPECS
         ]
 
         # -------------------------------------------------------------- #
