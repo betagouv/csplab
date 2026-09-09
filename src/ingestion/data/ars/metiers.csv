@@ -1,0 +1,274 @@
+intitule;code_client;mappe_sur_code_client_dgafp
+Secrétaire de rédaction et d'édition (TCOM000012);TCOM000012;ERDOC010
+Gestionnaire des sessions de jury (TCOS000007);TCOS000007;ERUSA009
+Responsable d'un projet d'observation sociale (TCOS000008);TCOS000008;ERCTL025
+Chargée / chargé de dévelopt de l'emploi et des territoires;TCPM000005;ERAMT018
+Conseillère / conseiller de défense et de sécurité de zone;TDEF000004;ERSEC001
+Fonctionnaire de sécurité des systèmes d'information (TDEF000006);TDEF000006;ERNUM050
+Chargée / chargé d'opérations statistiques;TETU000009;ERCTL013
+Régisseuse / régisseur d'avances et de recettes;TGBF000008;ERFIP001
+Assist-conseillère tech sce social / assist-conseiller .;TGRH000007;ERGRH024
+Responsable des ressources humaines;TGRH000008;ERGRH014
+Acheteuse / acheteur;TMOY000018;ERACH007
+Secrétaire générale / secrétaire général de ministère;TPIL000006;ERDIR006
+Cadre juridique (TREG000001);TREG000001;ERJUR001
+Chargée / chargé d'inspection ou de contrôle;TREG000003;ERGBF002
+Inspectrice / inspecteur du travail contrôle des entreprises;TREG000012;ERGBF002
+Chargée / chargé d'exploitation des SIC;TSIC000002;ERNUM016
+Administratrice / administrateur en SI;TSIC000004;ERNUM010
+Chargée / chargé méthod outils & qualités numérique et SIC;TSIC000006;ERNUM035
+Chargée / chargé de concept° des applications informatiques;TSIC000014;ERNUM003
+Conseillère-experte / conseiller-expert devt vie assoc;TSJA000001;ERAMT013
+Conseillère / conseiller technique sportif;TSJA000008;ERASP024
+Emploi non renseigné - Agent en recherche d'affectation;TAUT000001;FPT_TERR_NR
+Chargée / chargé de création graphique;TCOM000002;ERCOM013
+Agent / Agente de sûreté (TDEF000002);TDEF000002;ERSEC024
+Gestionnaire budgétaire;TGBF000002;ERGBF004
+Responsable des achats (TGBF000009);TGBF000009;ERACH001
+Chargée / chargé des prestations financières;TGBF000013;ERGBF007
+Responsable budgétaire;TGBF000014;ERGBF001
+Chargée / chargé de gest° des ress. humaines de proximité;TGRH000004;ERGRH002
+Cuisinière / cuisinier;TMOY000004;ERLOG022
+Opératrice / opérateur de prestat° de sces ou de logistique;TMOY000019;ERLOG025
+Directeur / Directrice Général-e d'administration centrale (TPIL000007);TPIL000007;ERDIR003
+Cheffe / chef de pôle en DI(R)ECCTE;TPIL000013;ERDIR010
+Chargée / chargé de programmes de santé publique;TSAN000002;ERSAN008
+Conseillère / conseiller technique qualité et performance;TSAN000007;ERCTL004
+Évaluatrice / évaluateur de risques sanitaires ou environnem;TSAN000009;ERSAN017
+Technicienne / technicien support auprès des utilisateurs;TSIC000003;ERNUM032
+Métier non connu;TANS;FPT_TERR_NR
+Responsable des services d'accueil (TACC000001);TACC000001;ERUSA001
+Chargée / chargé des relations média;TCOM000007;ERCOM008
+Cheffe / chef de projet éditorial multi-supports;TCOM000008;ERCOM019
+Concepteur et réalisateur de supports graphiques (TCOM000015);TCOM000015;ERCOM013
+Conseillère-experte / conseiller-expert de cohésion sociale;TCOS000003;ERSOC010
+Déléguée territor / délég territ dt des femmes, égalité F/H;TCOS000004;ERDIR021
+Haut / Haute fonctionnaire de défense et de sécurité (TDEF000008);TDEF000008;ERSEC001
+Cadre de coordination et de planification de crise;TDEF000007;ERSEC016
+Référent(e) juridique (TEXP000002);TEXP000002;ERJUR010
+Médecin inspecteur(trice) du travail (TEXP000005);TEXP000005;ERSAN008
+Chargée / chargé de l'élaboration du budget;TGBF000010;ERGBF003
+Chargée / chargé de l'ingénierie de formation;TGRH000009;ERENS013
+Magasinier / Magasinière (TMOY000006);TMOY000006;ERLOG025
+Chargée / chargé de la stratégie immobilière;TMOY000010;ERDIR014
+Ingénieur / Ingénieure de maintenance (TMOY000012);TMOY000012;ERBAT009
+Ingénieur / Ingénieure travaux (TMOY000013);TMOY000013;ERAMT018
+Directrice / directeur d'établissement;TPIL000003;ERDIR004
+Directrice / directeur de service déconcentré réseau DRDJSCS;TPIL000012;ERDIR004
+Juriste-consultante / juriste-consultant;TREG000007;ERJUR014
+Responsable d'une unité de contrôle;TREG000017;ERDIR020
+Administratrice / administrateur de santé publique;TSAN000001;ERSAN025
+Conseillère-experte / conseiller-expert santé publ et envirt;TSAN000004;ERSAN016
+Chargée / chargé des alertes et urgences sanitaires;TSAN000011;ERSAN017
+Pilote d'exploitation;TSIC000007;ERNUM013
+Conseillère-experte / conseiller-expert devt polit. sportiv;TSJA000002;ERENS020
+Conseillère-experte / conseiller-expert jeunesse;TSJA000003;ERDIR021
+Expert(e) en métiers et qualifications d'encadrement d'EPS (TSJA000006);TSJA000006;ERDIR021
+Médecin / pharmacienne /pharmacien conseil et bio du sport;TSJA000007;ERMED009
+Cheffe / chef de projet web;TCOM000001;ERNUM011
+Responsable ressources, politiques documentaires et archives (TCOM000006);TCOM000006;ERDIR020
+Chargée / chargé de communication;TCOM000014;ERCOM017
+Expert / Experte en métiers et qualifications sociales (TCOS000005);TCOS000005;ERSOC010
+Chargée / chargé de conduite des politiques et dispositifs;TCPM000001;ERDIR021
+Gestionnaire-instructrice / instructeur administratif;TCPM000007;ERGBF003
+Responsable sécurité-sûreté;TDEF000010;ERSEC003
+Évaluatrice / évaluateur des opérateurs & politiq publiq;TETU000003;ERCTL008
+Chargée / chargé d'études socio-économiques;TETU000007;ERAMT007
+Responsable de programmes d'études (TETU000004) (TETU000004);TETU000004;ERCTL013
+Chargée / chargé de mission *action internationale*;TEUI000002;ERINT004
+Expert(e) marchés publics (TGBF000011);TGBF000011;ERACH001
+Conseillère / conseiller de prévention;TGRH000010;ERGRH023
+Conductrice / conducteur de véhicule mototorisé terrestre;TMOY000002;ERLOG014
+Gestionnaire de maintenance et d'exploitation;TMOY000009;ERLOG025
+Gestionnaire immobilier;TMOY000014;ERBAT010
+Directrice générale / directeur général d'ARS;TPIL000004;ERDIR004
+Chef(fe) de service en administration centrale (TPIL000008);TPIL000008;FPT_TERR_NR
+Responsable de projet;TPIL000011;ERCTL025
+Responsable des SI d'un service territorial (TSIC000001);TSIC000001;ERNUM014
+Cheffe / chef de projet maîtrise d'ouvrage des SI;TSIC000010;ERNUM022
+Responsable de communication;TCOM000010;ERCOM001
+Pilote opérationnelle / opérationnel de dispositif ou projet;TCPM000006;ERDIR021
+Agente / agent de sécurité et de sureté;TDEF000001;ERSEC003
+Chargée / chargé de tutelle (budg & financ) des opérateurs;TGBF000005;ERGBF012
+Chargée / chargé contrôle interne budgétaire et comptable;TGBF000006;ERGBF008
+Chargé(e) de la programmation des moyens (TGBF000012);TGBF000012;ERGBF001
+Contrôleuse / contrôleur de gestion;TGBF000015;ERGBF009
+Chargée / chargé du dialogue social interne;TGRH000002;ERGRH016
+Responsable de maintenance et d'exploitation (TMOY000016);TMOY000016;ERBAT009
+Cheffe / chef de bureau ou de mission d'administ° centrale;TPIL000010;ERDIR020
+Responsable d'unité départementale au sein d'une DI(R)ECCTE;TPIL000014;ERDIR010
+Responsable de l'élaboration d'un programme d'inspection (TREG000004);TREG000004;ERGBF002
+Greffière / greffier de juridict° admin et/ou juridique;TREG000006;ERJUS008
+Rédactrice / rédacteur juridique;TREG000008;ERJUR010
+Assistante / assistant aux contrôles des entreprises;TREG000015;ERCTL006
+Chargée / chargé du renseigt dt du travail, emploi & format°;TREG000016;ERREN012
+Conseillère-experte / conseiller-expert médic, ondo, pharma;TSAN000005;ERMED006
+Conseillère / conseiller en systèmes d'information;TSIC000008;ERNUM011
+Urbaniste des systèmes d'information;TSIC000009;ERNUM020
+Architecte des systèmes d'information;TSIC000012;ERNUM019
+Administrateur(trice) gestionnaire données et applications (TSIC000013);TSIC000013;ERNUM010
+Assistante fonctionnelle / assist. fonct° applicat° informat;TSIC000016;ERNUM032
+Responsable des systèmes d'information (TSIC000017);TSIC000017;ERNUM014
+Emploi non renseigné - Situations interruptives;TAUT000002;FPT_TERR_NR
+Gestionnaire des ressources documentaires et des archives (TCOM000003);TCOM000003;ERDOC010
+Photographe (TCOM000009);TCOM000009;ERCOM023
+Webmestre (TCOM000013);TCOM000013;ERNUM011
+Cadre-experte / cadre-expert de défense et de sécurité;TDEF000009;ERSEC003
+Chargée / chargé de protect° secret de la défense nationale;TDEF000003;ERSEC003
+Responsable des études, des statistiques et de l'évaluation (TETU000008);TETU000008;ERCTL013
+Chargée / chargé de mission *action européenne*;TEUI000001;ERINT004
+Chargée / Chargé de coopération transfrontalière (TEUI000005);TEUI000005;ERINT004
+Chargé(e) de l'appui ressources et méthodes de l'inspection (TEXP000003);TEXP000003;ERCTL006
+Chargé(e) de l'appui juridique et des recours (TEXP000006);TEXP000006;ERJUR014
+Chargée / chargé de la comptabilité;TGBF000004;ERFIP002
+Chargée / chargé de la gestion prévisio des ress humaines;TGRH000001;ERGRH015
+Médecin de prévention;TGRH000005;ERGRH023
+Responsable d'intendance de site;TMOY000001;ERLOG001
+Imprimeuse / imprimeur reprographe;TMOY000005;ERLOG003
+Manutentionnaire (TMOY000007);TMOY000007;ERLOG025
+Serveur / Serveuse (TMOY000008);TMOY000008;ERUSA011
+Expert / Experte immobilier (TMOY000011);TMOY000011;ERBAT004
+Responsable de gestion de patrimoine immobilier (TMOY000015);TMOY000015;ERBAT010
+Chargé(e) de services ou d'interventions techniques (TMOY000020);TMOY000020;ERBAT013
+Chargée / chargé du contrôle de la format° professionnelle;TREG000010;ERGBF002
+Chargée / chargé appui juridique & méthodo inspection du T (TREG000018);TREG000018;ERCTL006
+Chargée / chargé de veille et de surveillance sanitaire;TSAN000003;ERSAN017
+Assistante / Assistant à maîtrise d'ouvrage (TSIC000005);TSIC000005;ERNUM032
+Coordinateur / Coordinatrice d'actions de formation (TSJA000004);TSJA000004;ERENS013
+Gestionnaire des archives courantes (TCOM000004);TCOM000004;ERDOC019
+Gestionnaire des diplômes et des formations (TCOM000005);TCOM000005;ERENS013
+Responsable sectoriel (pôle 3E) (TCPM000004);TCPM000004;ERDIR020
+Organisation et moyens;TCPM000008;FPT_TERR_NR
+Conseiller / Conseillère sanitaire de zone (TDEF000005);TDEF000005;ERSEC001
+Responsable de sûreté (TDEF000012);TDEF000012;ERSEC024
+Correspondante / correspondant statistiques;TETU000010;ERCTL008
+Conseillère / conseiller affair sociales représ° permanentes;TEUI000003;ERINT008
+Ingénieur(e) de prévention (TEXP000004);TEXP000004;ERSAN008
+Infirmière / infirmier de présention;TGRH000006;ERGRH023
+Cadre d'équipe dirigeante;TPIL000001;ERDIR010
+Conseillère-experte / conseiller-expert;TPIL000002;ERSOC010
+Responsable de pôle *contrôle* (TREG000011) (TREG000011);TREG000011;ERCTL001
+Contrôleuse / contrôleur chargé du contrôle des entreprises;TREG000013;ERGBF002
+Inspecteur élève d'action sanitaire et sociale;TSAN000012;ERSAN008
+Cheffe / chef de projet maîtrise d'œuvre des SI;TSIC000011;ERNUM021
+Assistant(e) technique maintenance et exploitation des SI (TSIC000015);TSIC000015;ERNUM032
+Entraîneur / Entraîneure (TSJA000005) (TSJA000005);TSJA000005;ERASP024
+Agente / agent d'accueil;TACC000002;ERSEC024
+Responsable éditorial (TCOM000011);TCOM000011;ERCOM019
+Documentaliste (TCOM000016);TCOM000016;ERDOC010
+Chargée / chargé de programmes de cohésion sociale;TCOS000001;ERSAN008
+Chargée / chargé du financt des étabts & analyse d'activité;TCOS000002;ERSAN025
+Tarificatrice sociale / tarificateur social;TCOS000006;ERSAN025
+Gestionnaire de dispositif(s);TCPM000003;ERCTL025
+Cadre-experte / cadre-expert de sécurité numérique;TDEF000011;ERNUM050
+Responsable des moyens de transmissions sécurisées (TDEF000013);TDEF000013;ERNUM014
+Gestionnaire d'enquêtes;TETU000005;ERNUM002
+Statisticien(ne) (TETU000006);TETU000006;ERNUM043
+Chargée / chargé animation et valorisation de recherch stats;TETU000001;ERRCH003
+Concepteur / Conceptrice d'opérations statistiques (TETU000002);TETU000002;ERCTL008
+Conseillère / conseiller affaires sociales en ambassade;TEUI000004;ERINT008
+Chargé(e) de l'interface avec les services déconcentrés (TEXP000001);TEXP000001;FPT_TERR_NR
+Pilote des ressources financières (TGBF000001);TGBF000001;ERGBF004
+Cheffe / chef des services financiers;TGBF000003;ERGBF001
+Instructeur / Instructrice (TGBF000007);TGBF000007;FPT_TERR_NR
+Inspectrice / inspecteur santé sécurité au travail;TGRH000003;ERGRH023
+Agente / agent de restauration ou de service;TMOY000003;ERUSA011
+Chargée / chargé de prestations de service ou de logistique;TMOY000021;ERLOG025
+Responsable sectorielle / sectoriel d'un service territorial;TPIL000005;ERDIR020
+Sous-directrice / sous-directeur d'administration centrale;TPIL000009;ERDIR003
+Auditeur / Auditrice (TREG000002);TREG000002;ERCTL007
+Assistant / Assistante juridique (TREG000005);TREG000005;ERJUR014
+Chargée / chargé de l'élaborat° législat° et règlement°;TREG000009;ERJUR010
+Chargée / chargé de l'expertise juridique et du contentieux;TREG000019;ERJUR014
+Conseillère / conseiller technique profess. santé publique;TSAN000006;ERSAN008
+Épidemiologiste;TSAN000008;ERSAN015
+Gestionnaire administratif et budgétaire du système de santé;TSAN000010;ERSAN025
+Emploi-type générique;GENERIQUE;FPT_TERR_NR
+HISTORIQUE - ORGANISATION ET MOYENS;JSCPM21A;FPT_TERR_NR
+Emploi non renseigné - Poste générique;TAUT000003;FPT_TERR_NR
+Conceptrice / concepteur d'opérations statistiques;TETU000011;ERCTL008
+Responsable d'un programme d'études et statistiques;TETU000012;ERCTL013
+chargée/chargé de mission *action internationale* (TEUI000008);TEUI000008;ERINT019
+Animatrice territoriale / animateur territorial santé publiq;TSAN000013;ERSAN008
+Chargée / chargé contrôle établs, sces sanit & medico-socx;TSAN000014;ERGBF002
+Directrice / directeur d'administration centrale;TPIL000018;ERDIR003
+Responsable du numérique et des SIC;TSIC000026;ERNUM014
+Cheffe / chef de pôle régional en D(R)(D)JSCS;TPIL000015;ERDIR020
+Directrice / directeur de cabinet;TPIL000017;ERDIR001
+Chargée / chargé de relation de l'offre SI;TSIC000021;ERNUM020
+Assistante / assistant d'un service;TACC000006;ERDIR022
+Archiviste;TDOC000001;ERDOC019
+Cheffe / chef de pôle départemental en DDCS(PP);TPIL000016;ERDIR010
+Assistante / assistant de direction;TACC000005;ERDIR022
+Gestionnaire des formations et des certifications;TCPM000009;ERENS013
+Référente / référent achat;TACH000003;ERACH007
+Conseillère / conseiller mobilité carrière;TGRH000015;ERGRH007
+Directrice / directeur des ressources humaines;TGRH000021;ERENS013
+Chargée / chargé de l'ingéniérie de la commande publique;TACH000001;ERACH015
+Chargée / chargé de recrutement;TGRH000018;ERGRH008
+Gestionnaire de formation;TGRH000020;ERGRH014
+Documentaliste;TDOC000004;ERDOC010
+Analyste financière / analyste financier;TGBF000017;ERGBF003
+Directrice / directeur territorial en ARS;TPIL000022;ERDIR010
+Chargée / chargé de gestion admInistrative et de paie;TGRH000012;ERGRH002
+Secrétaire générale / secrétaire général en ARS;TPIL000023;ERDIR008
+Chargée / chargé de démocratie sanitaire;TSAN000015;ERUSA001
+Chargée / chargé de la politique archivistique;TDOC000003;ERDOC010
+Gestionnaire de recrutement;TGRH000019;ERGRH008
+Magasinière / magasinier d'archives ou de bibliothèque;TDOC000006;ERDOC019
+Chargée / chargé des format°, des certific et de l'emploi;TCPM000013;ERENS013
+Gestionnaire de parc automobile (TMOY000022);TMOY000022;ERTRA004
+Assistante / assistant-archiviste;TDOC000002;ERDOC019
+Ingénieure / Ingénieur de prévention;TREG000020;ERGRH023
+Auditeur / auditrice;TETU000013;ERCTL007
+Responsable sectorielle / sectoriel en pôle 3E;TPIL000020;ERDIR020
+Conseillère / conseiller en stratégie de l'achat;TACH000002;ERACH011
+Conseillère / conseiller organisat° et conduite du changt;TGRH000022;ERGRH006
+Chargée / chargé de la politique documentaire;TDOC000005;ERDOC010
+Chargée / chargé gestion action sociale et dispositifs socx;TGRH000017;ERSAN008
+Data scientist;TSIC000020;ERDIR021
+Assistante / assistant d'éducation;TACC000003;ERDIR022
+Huissière / huissier;TACC000004;ERSEC024
+Directrice / directeur de projet numérique;TSIC000019;ERNUM014
+Intégratrice / intégrateur d'application;TSIC000018;ERNUM016
+Devops;TSIC000025;ERNUM021
+Chargée / chargé de coopération transfrontalière;TEUI000010;ERINT004
+Responsable de la continuité d'activité;TDEF000014;ERSEC024
+Chargée/Chargé du pilotage et de la gestion des ressources b;TGBF000018;ERGBF001
+Cheffe/Chef de service dans un établissement public;TPIL000026;ERDIR004
+Chargée/Chargé de gestion financière;TCOMP00003;ERGBF001
+Assistante/Assistant achats marchés;TACH000011;ERACH007
+Directrice/Directeur du numérique;TSIC000027;ERNUM014
+Conseillère/Conseiller en ressources humaines;TGRH000025;ERGRH014
+Assistante/Assistant de gestion financière;TCOMP00004;ERGBF003
+Chargée / chargé du contrôle des aides & structures d'emploi;TREG000022;ERCTL001
+Responsable sectorielle / sectoriel en pôle T;TPIL000021;ERDIR020
+Tech lead;TSIC000024;ERNUM021
+HISTORIQUE - INFIRMIER;JSGRH53A;ERGRH023
+Chargée/Chargé des concours et examens professionnels;TGRH000026;ERGRH014
+Responsable de politique de formation;TGRH000032;ERGRH027
+Chargée/Chargé du pilotage de la masse salariale;TGBF000020;ERGBF014
+Directrice/Directeur des données;TSIC000048;ERNUM041
+Psychologue;TGRH000013;ERMED011
+Cheffe/Chef de projet en politique publique;TCPM000014;ERCTL025
+Spécialiste outils, systèmes d'exploitation, réseaux et télé;TSIC000036;ERNUM011
+Chargé/chargée de la coordination administrative;TGRH000033;ERDIR026
+Technicienne/Technicien réseaux, télécoms et/ou Multimédias;TSIC000040;ERNUM018
+Cadre de direction d'un établissement public;TPIL000024;ERDIR009
+Contrôleuse/Contrôleur de gestion RH;TGRH000023;ERFIP023
+Approvisionneuse/Approvisionneur expert - Gestionnaire des c;TACH000012;ERACH012
+Responsable du système d'information « métier »;TSIC000043;ERNUM031
+Administratrice/Administrateur de bases de données;TSIC000034;ERNUM039
+Coordonnatrice/Coordonnateur budgétaire et comptable;TCOMP00001;ERFIP003
+Référente/Référent Handicap;TGRH000029;ERGRH021
+Conseillère/Conseiller juridique;TREG000025;ERJUR008
+Responsable achats;TACH000004;ERACH001
+Chargée / chargé de l'interface avec services déconcentrés;TCPM000010;ERNUM028
+Technicienne/Technicien poste de travail et maintenance;TSIC000039;ERNUM017
+Responsable achats - marchés publics;TACH000005;ERACH002
+Chargée/Chargé SIRH fonctionnel;TGRH000030;ERGRH026
+Data engineer;TSIC000050;ERNUM052
+Responsable d'entité dédiée au numérique;TSIC000028;ERNUM034
+Juriste marchés publics;TACH000013;ERACH013
+Dossier a minima;TGRH50A;
+Chargée/Chargé des retraites;TGRH000027;ERGRH012

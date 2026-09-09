@@ -1,0 +1,11 @@
+intitule;code_client;mappe_sur_code_client_dgafp
+BEP (Niveau V);NIV_DIPL1;A
+CAP (Niveau V);NIV_DIPL2;B
+Bac Pro (Niveau IV);NIV_DIPL3;C
+BAC (Niveau IV);NIV_DIPL4;D
+BAC+2 (Niveau III);NIV_DIPL5;E
+BAC+3 (Niveau II);NIV_DIPL6;F
+BAC+4 (Niveau II);NIV_DIPL7;F
+BAC+5 (Niveau I);NIV_DIPL8;G
+BAC+6 et plus (Niveau I);NIV_DIPL9;H
+Non renseigné;NIV_DIPL10;_TS_CO_EducationLevel_Nonrenseign
