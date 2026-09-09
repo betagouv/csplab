@@ -29,6 +29,13 @@ from tests.utils.openapi_test_utils import assert_matches_openapi_schema
 
 URL = reverse("ingestion_fake_ts:offer_summaries")
 
+NOMBRE_REQUETES_ATTENDU = (
+    1  # view JWT authentication
+    + 2  # pagination: count + slice
+    + 1  # ApiRequestLoggerMiddleware re-decodes the JWT to log the request
+    + 2  # logging: DJ tries an UPDATE (manually-assigned pk) then falls back to INSERT
+)
+
 
 def _make_paginated_mock(mock_container, total, offers_slice):
     mock_page = MagicMock()
@@ -176,126 +183,137 @@ def test_response_has_no_undeclared_fields(
     )
 
 
-def test_response_matches_db_record_field_by_field(authenticated_client):
-    OfferDjangoFactory(
-        reference="REF-E2E-SUMMARY-1",
-        title="Développeur Backend",
-        profile="Profil recherché",
-        mission="Mission du poste",
-        organization="Ministère Test",
-        category=Category.A,
-        contract_type=ContractType.TERRITORIAL,
-        offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
-        country="FRA",
-        region="11",
-        department="75",
-        location_label="Paris",
-        latitude=48.8566,
-        longitude=2.3522,
-        publication_date=datetime(2024, 3, 1, 9, 0, tzinfo=UTC),
-        beginning_date=datetime(2024, 6, 1, tzinfo=UTC),
-    )
+class TestOfferSummariesViewDbVerified:
+    def test_response_matches_db_record_field_by_field(self, authenticated_client):
+        OfferDjangoFactory(
+            reference="REF-E2E-SUMMARY-1",
+            title="Développeur Backend",
+            profile="Profil recherché",
+            mission="Mission du poste",
+            organization="Ministère Test",
+            category=Category.A,
+            contract_type=ContractType.TERRITORIAL,
+            offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
+            country="FRA",
+            region="11",
+            department="75",
+            location_label="Paris",
+            latitude=48.8566,
+            longitude=2.3522,
+            publication_date=datetime(2024, 3, 1, 9, 0, tzinfo=UTC),
+            beginning_date=datetime(2024, 6, 1, tzinfo=UTC),
+        )
 
-    response = authenticated_client.get(URL)
+        response = authenticated_client.get(URL)
 
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {
-        "data": [
-            {
-                "reference": "REF-E2E-SUMMARY-1",
-                "isTopOffer": False,
-                "title": "Développeur Backend",
-                "location": "Paris",
-                "modificationDate": "2024-03-01T09:00:00",
-                "contractType": {
-                    "code": None,
-                    "clientCode": "TERRITORIAL",
-                    "label": "TERRITORIAL",
-                    "active": True,
-                    "parentCode": None,
-                    "type": "contractType",
-                    "parentType": "",
-                    "hasChildren": False,
-                },
-                "offerFamilyCategory": {
-                    "code": None,
-                    "clientCode": "A",
-                    "label": "A",
-                    "active": True,
-                    "parentCode": None,
-                    "type": "offerFamilyCategory",
-                    "parentType": "",
-                    "hasChildren": False,
-                },
-                "organisationName": "Ministère Test",
-                "organisationDescription": None,
-                "organisationLogoUrl": None,
-                "contractDuration": None,
-                "contractTypeCountry": None,
-                "description1": "Mission du poste",
-                "description2": "Profil recherché",
-                "description1Formatted": None,
-                "description2Formatted": None,
-                "salaryRange": None,
-                "geographicalLocation": [],
-                "country": [
-                    {
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {
+            "data": [
+                {
+                    "reference": "REF-E2E-SUMMARY-1",
+                    "isTopOffer": False,
+                    "title": "Développeur Backend",
+                    "location": "Paris",
+                    "modificationDate": "2024-03-01T09:00:00",
+                    "contractType": {
                         "code": None,
-                        "clientCode": "FRA",
-                        "label": "France",
+                        "clientCode": "TERRITORIAL",
+                        "label": "TERRITORIAL",
                         "active": True,
                         "parentCode": None,
-                        "type": "country",
+                        "type": "contractType",
                         "parentType": "",
                         "hasChildren": False,
-                    }
-                ],
-                "region": [
-                    {
+                    },
+                    "offerFamilyCategory": {
                         "code": None,
-                        "clientCode": "11",
-                        "label": "Île-de-France",
+                        "clientCode": "A",
+                        "label": "A",
                         "active": True,
                         "parentCode": None,
-                        "type": "region",
+                        "type": "offerFamilyCategory",
                         "parentType": "",
                         "hasChildren": False,
-                    }
-                ],
-                "department": [
-                    {
-                        "code": None,
-                        "clientCode": "75",
-                        "label": "Paris",
-                        "active": True,
-                        "parentCode": None,
-                        "type": "department",
-                        "parentType": "",
-                        "hasChildren": False,
-                    }
-                ],
-                "latitude": 48.8566,
-                "longitude": 2.3522,
-                "professionalCategory": None,
-                "_links": [],
-                "offerUrl": "https://exemple.gouv.fr/offres/e2e-1",
-                "_format": None,
-                "_metadata": None,
-                "urlRedirectionEmployee": None,
-                "urlRedirectionApplicant": None,
-                "startPublicationDate": "2024-03-01T09:00:00",
-                "beginningDate": "2024-06-01T00:00:00",
-                "locations": [],
-            }
-        ],
-        "_pagination": {
-            "start": 0,
-            "count": 1,
-            "total": 1,
-            "resultsPerPage": 100,
-            "hasMore": False,
-        },
-    }
+                    },
+                    "organisationName": "Ministère Test",
+                    "organisationDescription": None,
+                    "organisationLogoUrl": None,
+                    "contractDuration": None,
+                    "contractTypeCountry": None,
+                    "description1": "Mission du poste",
+                    "description2": "Profil recherché",
+                    "description1Formatted": None,
+                    "description2Formatted": None,
+                    "salaryRange": None,
+                    "geographicalLocation": [],
+                    "country": [
+                        {
+                            "code": None,
+                            "clientCode": "FRA",
+                            "label": "France",
+                            "active": True,
+                            "parentCode": None,
+                            "type": "country",
+                            "parentType": "",
+                            "hasChildren": False,
+                        }
+                    ],
+                    "region": [
+                        {
+                            "code": None,
+                            "clientCode": "11",
+                            "label": "Île-de-France",
+                            "active": True,
+                            "parentCode": None,
+                            "type": "region",
+                            "parentType": "",
+                            "hasChildren": False,
+                        }
+                    ],
+                    "department": [
+                        {
+                            "code": None,
+                            "clientCode": "75",
+                            "label": "Paris",
+                            "active": True,
+                            "parentCode": None,
+                            "type": "department",
+                            "parentType": "",
+                            "hasChildren": False,
+                        }
+                    ],
+                    "latitude": 48.8566,
+                    "longitude": 2.3522,
+                    "professionalCategory": None,
+                    "_links": [],
+                    "offerUrl": "https://exemple.gouv.fr/offres/e2e-1",
+                    "_format": None,
+                    "_metadata": None,
+                    "urlRedirectionEmployee": None,
+                    "urlRedirectionApplicant": None,
+                    "startPublicationDate": "2024-03-01T09:00:00",
+                    "beginningDate": "2024-06-01T00:00:00",
+                    "locations": [],
+                }
+            ],
+            "_pagination": {
+                "start": 0,
+                "count": 1,
+                "total": 1,
+                "resultsPerPage": 100,
+                "hasMore": False,
+            },
+        }
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, django_assert_num_queries
+    ):
+        OfferDjangoFactory.create_batch(5)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
+            response = authenticated_client.get(URL)
+
+        assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.parametrize(
