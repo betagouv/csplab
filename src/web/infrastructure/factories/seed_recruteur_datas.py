@@ -66,12 +66,18 @@ _SEED_SENTINEL_EMAIL = "marie.dupont.gouv.fr@yopmail.com"
 _ORGANISME_SIRET = "21050023700354"
 _ORGANISME_UUID = UUID("00000000-0000-0000-0000-000000000000")
 
-# Organismes supplémentaires : le second sert à éprouver la bascule d'organisme,
-# le troisième reste sans recrutement pour éprouver l'état vide.
 _BRIANCON_UUID = UUID("00000000-0000-0000-0000-000000000001")
 _CHU_UUID = UUID("00000000-0000-0000-0000-000000000002")
 
-_ORGANISMES_SECONDAIRES_SPECS = [
+# Organismes du seed : le second sert à éprouver la bascule d'organisme,
+# le troisième reste sans recrutement pour éprouver l'état vide.
+_ORGANISMES_SPECS = [
+    {
+        "entity_id": _ORGANISME_UUID,
+        "nom": "Ministère de la Transition Écologique",
+        "versant": Verse.FPE,
+        "siret": _ORGANISME_SIRET,
+    },
     {
         "entity_id": _BRIANCON_UUID,
         "nom": "Commune de Briançon",
@@ -86,12 +92,8 @@ _ORGANISMES_SECONDAIRES_SPECS = [
     },
 ]
 
-_ALL_SEED_ORGANISME_UUIDS = [_ORGANISME_UUID] + [
-    spec["entity_id"] for spec in _ORGANISMES_SECONDAIRES_SPECS
-]
-_ALL_SEED_ORGANISME_SIRETS = [_ORGANISME_SIRET] + [
-    spec["siret"] for spec in _ORGANISMES_SECONDAIRES_SPECS
-]
+_ALL_SEED_ORGANISME_UUIDS = [spec["entity_id"] for spec in _ORGANISMES_SPECS]
+_ALL_SEED_ORGANISME_SIRETS = [spec["siret"] for spec in _ORGANISMES_SPECS]
 
 _AGENTS_SPECS = [
     {"prenom": "Marie", "nom": "Dupont", "email": _SEED_SENTINEL_EMAIL},
@@ -290,18 +292,8 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         # -------------------------------------------------------------- #
         # Organisme recruteur                                            #
         # -------------------------------------------------------------- #
-        organisme = OrganismeDjangoFactory(
-            id=_ORGANISME_UUID,
-            nom="Ministère de la Transition Écologique",
-            versant=Verse.FPE.value,
-            siret=_ORGANISME_SIRET,
-            gestion_ats=False,
-            etapes=EtapeRecrutementFactory.create_entity_batch(),
-        )
-
-        organismes = {_ORGANISME_UUID: organisme}
-        for spec in _ORGANISMES_SECONDAIRES_SPECS:
-            organismes[spec["entity_id"]] = OrganismeDjangoFactory(
+        organismes = {
+            spec["entity_id"]: OrganismeDjangoFactory(
                 id=spec["entity_id"],
                 nom=spec["nom"],
                 versant=spec["versant"].value,
@@ -309,6 +301,9 @@ def seed_recruteur_datas(force: bool = False) -> dict:
                 gestion_ats=False,
                 etapes=EtapeRecrutementFactory.create_entity_batch(),
             )
+            for spec in _ORGANISMES_SPECS
+        }
+        organisme = organismes[_ORGANISME_UUID]
 
         # -------------------------------------------------------------- #
         # Métiers                                                        #
