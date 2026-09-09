@@ -11,6 +11,7 @@ from application.usecases.clean_raw_offer import CleanRawOfferUsecase
 from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
 from infrastructure.gateways.offers_cleaner import OffersCleaner
+from infrastructure.sources_repository import SourcesRepository
 from tests.factories.talentsoft_factories import (
     TalentsoftCodedObjectFactory,
     TalentsoftCustomCodeTableFactory,
@@ -25,7 +26,8 @@ SOURCE_ID = "11111111-2222-3333-4444-555555555555"
 
 @pytest.fixture
 def usecase() -> CleanRawOfferUsecase:
-    return CleanRawOfferUsecase(offers_cleaner=OffersCleaner())
+    offers_cleaner = OffersCleaner(sources_repository=SourcesRepository())
+    return CleanRawOfferUsecase(offers_cleaner=offers_cleaner)
 
 
 def _raw_offer(**kwargs) -> RawOffer:

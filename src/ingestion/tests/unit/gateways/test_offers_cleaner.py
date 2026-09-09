@@ -1,13 +1,16 @@
 from datetime import datetime, timezone
+from uuid import UUID
 
 import pytest
 from pydantic import ValidationError
+from referentiel.entities.source import Source
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.source_type import SourceType
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
@@ -17,6 +20,8 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftOfferCustomFields,
 )
 from infrastructure.gateways.offers_cleaner import OffersCleaner
+from infrastructure.gateways.transcoding import SourceTranscoder
+from infrastructure.sources_repository import SourcesRepository
 from tests.factories.talentsoft_factories import (
     TalentsoftCodedObjectFactory,
     TalentsoftCustomCodeTableFactory,
@@ -32,8 +37,27 @@ SOURCE_ID = "11111111-2222-3333-4444-555555555555"
 
 
 @pytest.fixture
-def cleaner() -> OffersCleaner:
-    return OffersCleaner()
+def sources_repository() -> SourcesRepository:
+    repository = SourcesRepository()
+    repository.load(
+        [
+            Source(
+                source_id=UUID(SOURCE_ID),
+                slug="ars",
+                type=SourceType.TALENTSOFT,
+                client_id_front="ars-front",
+                client_id_back="ars-back",
+                base_url_front="https://ars.example.com",
+                base_url_back="https://ars.example.com",
+            )
+        ]
+    )
+    return repository
+
+
+@pytest.fixture
+def cleaner(sources_repository: SourcesRepository) -> OffersCleaner:
+    return OffersCleaner(sources_repository=sources_repository)
 
 
 def _make_raw_offer(reference: str = REFERENCE, **offer_kwargs) -> RawOffer:
@@ -75,6 +99,7 @@ def test_clean_raises_on_invalid_data(cleaner):
         ("Versant_FPT", Verse.FPT),
         ("Versant_FPH", Verse.FPH),
         ("Versant_FPE", Verse.FPE),
+        ("_TS_CO_SalaryRange_FPE", Verse.FPE),
         (None, None),
     ],
 )
@@ -237,6 +262,71 @@ def test_clean_maps_geographical_area(
     assert offer.localisation.department.code == expected_department
 
 
+def test_clean_maps_ars_raw_country_region_and_department_codes(cleaner):
+    raw_offer = _make_raw_offer(
+        geographicalLocation=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_GeographicalArea_Europe",
+                type="offerGeographicalLocation",
+            )
+        ],
+        country=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_Country_France", type="offerCountry"
+            )
+        ],
+        region=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="ARS_CO_Region_Bretagne", type="offerRegion"
+            )
+        ],
+        department=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_Department_IlleetVilaine35",
+                type="offerDepartment",
+            )
+        ],
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert str(offer.localisation.country) == "FRA"
+    assert offer.localisation.region.code == "53"
+    assert offer.localisation.department.code == "35"
+
+
+def test_clean_maps_ars_overseas_region_code(cleaner):
+    raw_offer = _make_raw_offer(
+        geographicalLocation=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_GeographicalArea_Afrique",
+                type="offerGeographicalLocation",
+            )
+        ],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode="FRA", type="offerCountry")
+        ],
+        region=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="ARS_CO_Region_Guadeloupe", type="offerRegion"
+            )
+        ],
+        department=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_Department_Guadeloupe971",
+                type="offerDepartment",
+            )
+        ],
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.region.code == "DOM"
+    assert offer.localisation.department.code == "971"
+
+
 def test_clean_returns_none_localisation_when_area_missing(cleaner):
     raw_offer = _make_raw_offer(
         geographicalLocation=[],
@@ -315,6 +405,11 @@ def test_clean_external_id_uses_salary_range_client_code_as_prefix(cleaner):
             ContractType.TITULAIRE_CONTRACTUEL,
         ),
         ("TITULAIRE UCANSS", ContractType.CONTRACTUELS),
+        # "TC21" is present in the ARS transcoding table but has no
+        # DGAFP mapping configured; the untranscoded heuristic can't
+        # match it either, so it should resolve to None rather than
+        # raise.
+        ("TC21", None),
     ],
 )
 def test_clean_maps_contract_type(cleaner, contract_code, expected):
@@ -329,6 +424,25 @@ def test_clean_maps_contract_type(cleaner, contract_code, expected):
     offer = cleaner.clean(raw_offer)
 
     assert offer.contract_type == expected
+
+
+def test_clean_raises_when_contract_type_csv_maps_to_unknown_code(
+    sources_repository,
+):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={
+            "ars": SourceTranscoder(
+                tables={"types_de_contrat": {"TC02": "NOT_A_REAL_CONTRACT_TYPE"}}
+            )
+        },
+    )
+    raw_offer = _make_raw_offer(
+        contractType=TalentsoftCodedObjectFactory.build(clientCode="TC02")
+    )
+
+    with pytest.raises(ValueError, match="NOT_A_REAL_CONTRACT_TYPE"):
+        cleaner.clean(raw_offer)
 
 
 @pytest.mark.parametrize(
@@ -529,6 +643,11 @@ def test_clean_returns_none_education_level_when_absent(cleaner):
         ("debutant", ExperienceLevel.DEBUTANT),
         ("confirme", ExperienceLevel.CONFIRME),
         ("expert", ExperienceLevel.EXPERT),
+        ("_TS_CO_ExperienceLevel_jeunediplm", ExperienceLevel.DEBUTANT),
+        ("_TS_CO_ExperienceLevel_1anouplus", ExperienceLevel.DEBUTANT),
+        ("_TS_CO_ExperienceLevel_3ansouplus", ExperienceLevel.CONFIRME),
+        ("_TS_CO_ExperienceLevel_6ansouplus", ExperienceLevel.EXPERT),
+        ("UNKNOWN_CODE", None),
     ],
 )
 def test_clean_maps_experience(cleaner, client_code, expected):
@@ -546,6 +665,27 @@ def test_clean_returns_none_experience_when_absent(cleaner):
     offer = cleaner.clean(raw_offer)
 
     assert offer.experience is None
+
+
+def test_clean_raises_when_experience_levels_csv_maps_to_unknown_code(
+    sources_repository,
+):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={
+            "ars": SourceTranscoder(
+                tables={
+                    "niveaux_d_experience": {"debutant": "NOT_A_REAL_EXPERIENCE_LEVEL"}
+                }
+            )
+        },
+    )
+    raw_offer = _make_raw_offer(
+        experienceLevel=TalentsoftCodedObjectFactory.build(clientCode="debutant")
+    )
+
+    with pytest.raises(ValueError, match="NOT_A_REAL_EXPERIENCE_LEVEL"):
+        cleaner.clean(raw_offer)
 
 
 def test_clean_maps_specialisations(cleaner):
@@ -586,6 +726,28 @@ def test_clean_returns_none_diploma_when_absent(cleaner):
     assert offer.diploma is None
 
 
+def test_clean_maps_ars_raw_family_code_to_metier_code(cleaner):
+    raw_offer = _make_raw_offer(
+        offerFamilyCategory=TalentsoftCodedObjectFactory.build(clientCode="TCOM000012")
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.family_code == "ERDOC010"
+
+
+def test_clean_keeps_unmapped_family_code_as_is(cleaner):
+    raw_offer = _make_raw_offer(
+        offerFamilyCategory=TalentsoftCodedObjectFactory.build(
+            clientCode="UNKNOWN_METIER"
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.family_code == "UNKNOWN_METIER"
+
+
 def test_clean_maps_languages(cleaner):
     raw_offer = _make_raw_offer(
         languages=[
@@ -607,6 +769,64 @@ def test_clean_returns_empty_languages_when_absent(cleaner):
     offer = cleaner.clean(raw_offer)
 
     assert offer.languages == []
+
+
+def test_clean_maps_ars_raw_language_level(cleaner):
+    raw_offer = _make_raw_offer(
+        languages=[
+            TalentsoftLanguage(
+                languageName=TalentsoftCodedObjectFactory.build(clientCode="EN"),
+                languageLevel=TalentsoftCodedObjectFactory.build(clientCode="LANG4"),
+            )
+        ]
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.languages == [Language(iso_code="EN", language_level=LanguageLevel.B2)]
+
+
+def test_clean_skips_language_with_unmapped_level(cleaner):
+    raw_offer = _make_raw_offer(
+        languages=[
+            TalentsoftLanguage(
+                languageName=TalentsoftCodedObjectFactory.build(clientCode="EN"),
+                languageLevel=TalentsoftCodedObjectFactory.build(clientCode="LANG0"),
+            ),
+            TalentsoftLanguage(
+                languageName=TalentsoftCodedObjectFactory.build(clientCode="FR"),
+                languageLevel=TalentsoftCodedObjectFactory.build(clientCode="LANG5"),
+            ),
+        ]
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.languages == [Language(iso_code="FR", language_level=LanguageLevel.C1)]
+
+
+def test_clean_raises_when_niveaux_de_langue_csv_maps_to_unknown_code(
+    sources_repository,
+):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={
+            "ars": SourceTranscoder(
+                tables={"niveaux_de_langue": {"LANG4": "NOT_A_REAL_LANGUAGE_LEVEL"}}
+            )
+        },
+    )
+    raw_offer = _make_raw_offer(
+        languages=[
+            TalentsoftLanguage(
+                languageName=TalentsoftCodedObjectFactory.build(clientCode="EN"),
+                languageLevel=TalentsoftCodedObjectFactory.build(clientCode="LANG4"),
+            )
+        ]
+    )
+
+    with pytest.raises(ValueError, match="NOT_A_REAL_LANGUAGE_LEVEL"):
+        cleaner.clean(raw_offer)
 
 
 def test_clean_maps_raw_region_code_without_prefix(cleaner):
@@ -736,6 +956,38 @@ def test_clean_returns_none_coordinates_when_no_source_available(cleaner):
     assert offer.localisation is not None
     assert offer.localisation.latitude is None
     assert offer.localisation.longitude is None
+
+
+def test_clean_ars_contract_type_transcoding_is_scoped_to_ars_source():
+    other_source_id = "99999999-8888-7777-6666-555555555555"
+    repository = SourcesRepository()
+    repository.load(
+        [
+            Source(
+                source_id=UUID(other_source_id),
+                slug="talentsoft-main",
+                type=SourceType.TALENTSOFT,
+                client_id_front="main-front",
+                client_id_back="main-back",
+                base_url_front="https://main.example.com",
+                base_url_back="https://main.example.com",
+            )
+        ]
+    )
+    cleaner = OffersCleaner(sources_repository=repository)
+    offer_dto = TalentsoftDetailOfferFactory.build(
+        reference=REFERENCE,
+        contractType=TalentsoftCodedObjectFactory.build(clientCode="TC02"),
+    )
+    raw_offer = RawOffer(
+        reference=REFERENCE, source_id=other_source_id, data=offer_dto.model_dump()
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    # "TC02" is an ARS-specific code; without the ARS transcoding table it
+    # doesn't match the generic TITULAIRE/CONTRACTUEL/TERRITORIAL fallback.
+    assert offer.contract_type is None
 
 
 def test_clean_returns_none_localisation_on_invalid_region_code(cleaner):

@@ -261,7 +261,10 @@ class Container(containers.DeclarativeContainer):
         repository=sources_repository,
     )
 
-    offers_cleaner = providers.Singleton(OffersCleaner)
+    offers_cleaner = providers.Singleton(
+        OffersCleaner,
+        sources_repository=sources_repository,
+    )
 
     clean_raw_offer_usecase = providers.Factory(
         CleanRawOfferUsecase,
