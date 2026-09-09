@@ -19,10 +19,10 @@ class Agent(AggregateRoot):
     def create(
         cls,
         email: EmailStr,
-        prenom: str,
-        nom: str,
-        intitule_poste: str,
         user_id: UUID,
+        prenom: str = "",
+        nom: str = "",
+        intitule_poste: str = "",
     ) -> "Agent":
         return cls(
             entity_id=user_id,

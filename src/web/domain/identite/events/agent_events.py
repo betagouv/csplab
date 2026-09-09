@@ -8,7 +8,7 @@ from pydantic import EmailStr
 @dataclass(frozen=True)
 class ProfilAgentCree(DomainEvent):
     email: EmailStr
-    prenom: str
-    nom: str
-    intitule_poste: str
     user_id: UUID
+    prenom: str = ""
+    nom: str = ""
+    intitule_poste: str = ""

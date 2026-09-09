@@ -51,9 +51,6 @@ class TestAgentsView:
         assert called_input.email == agent.email
         assert called_input.organisme_id == organisme_id
         assert called_input.utilisateur is not None
-        assert called_input.prenom == ""
-        assert called_input.nom == ""
-        assert called_input.intitule_poste == ""
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {
             "agent_id": str(agent.entity_id),

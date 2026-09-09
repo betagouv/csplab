@@ -41,9 +41,6 @@ def organisme_id_fixture(db):
 def test_create_agent(identite_integration_container, organisme_id):
     input_data = CreateAgentInput(
         email=fake.email(),
-        prenom=fake.first_name(),
-        nom=fake.last_name(),
-        intitule_poste=fake.bothify("MAT-####"),
         organisme_id=organisme_id,
         utilisateur=STAFF_UTILISATEUR,
     )
@@ -51,20 +48,6 @@ def test_create_agent(identite_integration_container, organisme_id):
     result = identite_integration_container.create_agent_usecase().execute(input_data)
 
     assert result.email == input_data.email
-    assert result.prenom == input_data.prenom
-    assert result.nom == input_data.nom
-    assert result.intitule_poste == input_data.intitule_poste
-
-
-def test_create_agent_without_identity(identite_integration_container, organisme_id):
-    input_data = CreateAgentInput(
-        email=fake.email(),
-        organisme_id=organisme_id,
-        utilisateur=STAFF_UTILISATEUR,
-    )
-
-    identite_integration_container.create_agent_usecase().execute(input_data)
-
     utilisateur = UserModel.objects.get(email=input_data.email)
     assert utilisateur.first_name == ""
     assert utilisateur.last_name == ""
@@ -75,9 +58,6 @@ def test_create_agent_with_existing_user(identite_integration_container, organis
     existing_user = UtilisateurDjangoFactory(email=fake.email())
     input_data = CreateAgentInput(
         email=existing_user.email,
-        prenom=fake.first_name(),
-        nom=fake.last_name(),
-        intitule_poste=fake.bothify("MAT-####"),
         organisme_id=organisme_id,
         utilisateur=STAFF_UTILISATEUR,
     )
@@ -91,9 +71,6 @@ def test_cannot_create_agent_twice(identite_integration_container, organisme_id)
     existing_agent = AgentDjangoFactory()
     input_data = CreateAgentInput(
         email=existing_agent.utilisateur.email,
-        prenom=fake.first_name(),
-        nom=fake.last_name(),
-        intitule_poste=fake.bothify("MAT-####"),
         organisme_id=organisme_id,
         utilisateur=STAFF_UTILISATEUR,
     )
