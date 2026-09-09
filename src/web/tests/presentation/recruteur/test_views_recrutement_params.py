@@ -19,8 +19,19 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
     SupressionEtapeImpossible,
 )
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
+)
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
 )
 from presentation.recruteur.views.recrutement_params import _etapes_to_serializer_data
 
@@ -316,3 +327,52 @@ class TestInitRecrutementEtapeView:
 
         assert response.status_code == expected_status
         assert response.json() == expected_body
+
+
+class TestRecrutementEtapeViewDbVerified:
+    def test_returns_persisted_etapes(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+
+        response = authenticated_client.get(RECRUTEMENT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert len(data) == len(recrutement.ordre_etapes)
+        assert data[0]["categorie"] == "ENTREE"
+        assert data[-1]["categorie"] == "ACCEPTE"
+
+    def test_patch_persists_the_etapes(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        payload = [
+            {"nom": "Réception", "categorie": "ENTREE"},
+            {"nom": "Entretien", "categorie": "EN_COURS"},
+            {"nom": "Refus", "categorie": "REFUS"},
+            {"nom": "Recrutement", "categorie": "ACCEPTE"},
+        ]
+
+        response = authenticated_client.patch(
+            RECRUTEMENT_ETAPES_URL, data=payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert [{"nom": e["nom"], "categorie": e["categorie"]} for e in data] == payload
+
+        recrutement_model = RecrutementModel.objects.get(
+            offre_id=UUID(RECRUTEMENT_UUID)
+        )
+        assert [e["nom"] for e in recrutement_model.ordre_etapes] == [
+            e["nom"] for e in payload
+        ]
