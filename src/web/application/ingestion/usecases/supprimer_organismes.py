@@ -1,15 +1,15 @@
 from application.ingestion.interfaces.supprimer_organismes_input import (
     SupprimerOrganismesInput,
 )
-from domain.identite.repositories.organisme_repository_interface import (
-    IOrganismeRepository,
+from infrastructure.repositories.identite.postgres_organisme_repository import (
+    PostgresOrganismeRepository,
 )
 
 
 class SupprimerOrganismesUsecase:
     def __init__(
         self,
-        organisme_repository: IOrganismeRepository,
+        organisme_repository: PostgresOrganismeRepository,
     ):
         self.organisme_repository = organisme_repository
 

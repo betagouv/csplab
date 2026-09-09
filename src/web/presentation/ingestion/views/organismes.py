@@ -1,3 +1,5 @@
+import logging
+
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.parsers import JSONParser
@@ -14,10 +16,14 @@ from application.ingestion.interfaces.upsert_organismes_input import (
 from application.ingestion.usecases.supprimer_organismes import (
     SupprimerOrganismesUsecase,
 )
+from config.logger_names import LoggerName
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
 )
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from infrastructure.repositories.identite.postgres_organisme_repository import (
+    PostgresOrganismeRepository,
+)
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.ingestion.mappers import OrganismeInputMapper
 from presentation.ingestion.serializers import (
@@ -26,6 +32,8 @@ from presentation.ingestion.serializers import (
     SupprimerOrganismesResponseSerializer,
     UpsertOrganismesRequestSerializer,
 )
+
+logger = logging.getLogger(LoggerName.INGESTION.value)
 
 UPSERT_ORGANISMES_DESCRIPTION = (
     "Créer ou mettre à jour, entre 1 et 100 organismes à la fois, via un payload "
@@ -153,10 +161,7 @@ class OrganismesSupprimerView(APIView):
     parser_classes = [JSONParser]
     serializer_class = SupprimerOrganismesRequestSerializer
 
-    def post(self, request):
-        container = create_ingestion_container()
-        logger = container.logger_service()
-
+    def put(self, request):
         serializer = SupprimerOrganismesRequestSerializer(data=request.data)
         if not serializer.is_valid():
             logger.warning(
@@ -174,7 +179,7 @@ class OrganismesSupprimerView(APIView):
 
         try:
             usecase = SupprimerOrganismesUsecase(
-                organisme_repository=container.organisme_repository(),
+                organisme_repository=PostgresOrganismeRepository(),
             )
             result = usecase.execute(SupprimerOrganismesInput(organismes=organismes))
             return Response(result, status=status.HTTP_200_OK)

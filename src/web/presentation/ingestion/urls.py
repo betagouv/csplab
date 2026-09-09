@@ -33,7 +33,7 @@ urlpatterns = [
         name="organismes_upsert",
     ),
     path(
-        "organismes/supprimer",
+        "organismes",
         OrganismesSupprimerView.as_view(),
         name="organismes_delete",
     ),
