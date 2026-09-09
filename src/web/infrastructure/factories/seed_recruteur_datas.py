@@ -3,6 +3,7 @@ import secrets
 from datetime import UTC, datetime
 from uuid import UUID
 
+from django.db import transaction
 from django.utils import timezone
 from factory.django import Password
 from referentiel.value_objects.category import Category
@@ -188,321 +189,324 @@ def seed_recruteur_datas(force: bool = False) -> dict:
             return {"status": "already_seeded"}
         _delete_seed_data()
 
-    # ------------------------------------------------------------------ #
-    # Organisme recruteur                                                #
-    # ------------------------------------------------------------------ #
-    organisme = OrganismeDjangoFactory(
-        id=_ORGANISME_UUID,
-        nom="Ministère de la Transition Écologique",
-        versant=Verse.FPE.value,
-        siret=_ORGANISME_SIRET,
-        gestion_ats=False,
-        etapes=EtapeRecrutementFactory.create_entity_batch(),
-    )
-
-    organismes = {_ORGANISME_UUID: organisme}
-    for spec in _ORGANISMES_SECONDAIRES_SPECS:
-        organismes[spec["entity_id"]] = OrganismeDjangoFactory(
-            id=spec["entity_id"],
-            nom=spec["nom"],
-            versant=spec["versant"].value,
-            siret=spec["siret"],
+    with transaction.atomic():
+        # -------------------------------------------------------------- #
+        # Organisme recruteur                                            #
+        # -------------------------------------------------------------- #
+        organisme = OrganismeDjangoFactory(
+            id=_ORGANISME_UUID,
+            nom="Ministère de la Transition Écologique",
+            versant=Verse.FPE.value,
+            siret=_ORGANISME_SIRET,
             gestion_ats=False,
             etapes=EtapeRecrutementFactory.create_entity_batch(),
         )
 
-    # ------------------------------------------------------------------ #
-    # Métiers                                                            #
-    # ------------------------------------------------------------------ #
-    MetierDjangoFactory(
-        libelle_long="Chargé de mission numérique",
-        domaine_fonctionnel_code="NUM",
-        offer_family_code="ERNUM001",
-    )
-    MetierDjangoFactory(
-        libelle_long="Juriste droit public",
-        domaine_fonctionnel_code="JUR",
-        offer_family_code="ERJUR001",
-    )
-
-    # ------------------------------------------------------------------ #
-    # Agents / recruteurs                                                #
-    # ------------------------------------------------------------------ #
-    # Mot de passe généré à chaque seed (visible dans les logs de déploiement)
-    seed_password = os.environ.get("SEED_USER_PASSWORD") or secrets.token_urlsafe(16)
-    agents = [
-        AgentDjangoFactory(
-            utilisateur__first_name=spec["prenom"],
-            utilisateur__last_name=spec["nom"],
-            utilisateur__email=spec["email"],
-            utilisateur__password=Password(seed_password),
-        )
-        for spec in _AGENTS_SPECS
-    ]
-
-    # Marie est responsable du premier organisme, Paul et Claire en sont membres.
-    # Marc est membre du premier et responsable du second : c'est lui qui permet
-    # d'éprouver la bascule d'organisme et l'apparition des pages de paramètres.
-    # David ne l'est d'aucun, pour éprouver la navigation vide et le refus d'accès.
-    _ATTACHEMENTS = [
-        (_ORGANISME_UUID, 0, AgentOrganismeRole.RESPONSABLE),
-        (_ORGANISME_UUID, 1, AgentOrganismeRole.MEMBRE),
-        (_ORGANISME_UUID, 2, AgentOrganismeRole.MEMBRE),
-        (_ORGANISME_UUID, 4, AgentOrganismeRole.MEMBRE),
-        (_BRIANCON_UUID, 4, AgentOrganismeRole.RESPONSABLE),
-    ]
-    for organisme_uuid, agent_index, role in _ATTACHEMENTS:
-        OrganismeAgentDjangoFactory(
-            organisme=organismes[organisme_uuid],
-            agent=agents[agent_index],
-            role=role.value,
-        )
-
-    # ------------------------------------------------------------------ #
-    # Administrateur (staff, hors organisme)                             #
-    # ------------------------------------------------------------------ #
-    admin = UtilisateurDjangoFactory(
-        password=Password(seed_password),
-        is_staff=True,
-        first_name=_ADMIN_SPEC["prenom"],
-        last_name=_ADMIN_SPEC["nom"],
-        email=_ADMIN_SPEC["email"],
-    )
-
-    # ------------------------------------------------------------------ #
-    # Offres actives (6)                                                 #
-    # ------------------------------------------------------------------ #
-    offres_actives = [
-        OfferDjangoFactory(
-            title="Chargé de mission numérique",
-            reference="REF-2025-001",
-            external_id="SEED-ACTIF-001",
-            verse=Verse.FPE.value,
-            category=Category.A.value,
-            publication_date=datetime(2025, 6, 22, tzinfo=UTC),
-        ),
-        OfferDjangoFactory(
-            title="Responsable RH",
-            reference="REF-2025-002",
-            external_id="SEED-ACTIF-002",
-            verse=Verse.FPE.value,
-            category=Category.A.value,
-            publication_date=datetime(2025, 6, 22, tzinfo=UTC),
-        ),
-        OfferDjangoFactory(
-            title="Ingénieur infrastructure cloud",
-            reference="REF-2025-003",
-            external_id="SEED-ACTIF-003",
-            verse=Verse.FPE.value,
-            category=Category.A.value,
-            publication_date=datetime(2025, 6, 21, tzinfo=UTC),
-        ),
-        OfferDjangoFactory(
-            title="Juriste droit public",
-            reference="REF-2025-004",
-            external_id="SEED-ACTIF-004",
-            verse=Verse.FPT.value,
-            category=Category.A.value,
-            publication_date=datetime(2025, 6, 21, tzinfo=UTC),
-        ),
-        OfferDjangoFactory(
-            title="Chargé de communication",
-            reference="REF-2025-005",
-            external_id="SEED-ACTIF-005",
-            verse=Verse.FPE.value,
-            category=Category.B.value,
-            publication_date=datetime(2025, 6, 2, tzinfo=UTC),
-        ),
-        OfferDjangoFactory(
-            title="Analyste budgétaire",
-            reference="REF-2025-006",
-            external_id="SEED-ACTIF-006",
-            verse=Verse.FPE.value,
-            category=Category.A.value,
-            publication_date=datetime(2025, 6, 1, tzinfo=UTC),
-        ),
-        OfferDjangoFactory(
-            title="Chargé de mission",
-            reference="REF-2025-006",
-            external_id="SEED-ACTIF-007",
-            verse=Verse.FPE.value,
-            category=Category.A.value,
-            publication_date=datetime(2025, 6, 1, tzinfo=UTC),
-        ),
-    ]
-
-    # ------------------------------------------------------------------ #
-    # Offres archivées (3)                                               #
-    # ------------------------------------------------------------------ #
-    offres_archivees = [
-        OfferDjangoFactory(
-            title="Directeur des systèmes d'information",
-            reference="REF-2024-A01",
-            external_id="SEED-ARCHIVE-001",
-            verse=Verse.FPE.value,
-            category=Category.A.value,
-            publication_date=datetime(2024, 12, 1, tzinfo=UTC),
-            archived_at=timezone.make_aware(datetime(2025, 3, 1)),
-        ),
-        OfferDjangoFactory(
-            title="Chef de projet transformation numérique",
-            reference="REF-2024-A02",
-            external_id="SEED-ARCHIVE-002",
-            verse=Verse.FPE.value,
-            category=Category.A.value,
-            publication_date=datetime(2024, 11, 15, tzinfo=UTC),
-            archived_at=timezone.make_aware(datetime(2025, 2, 15)),
-        ),
-        OfferDjangoFactory(
-            title="Conseiller en mobilité professionnelle",
-            reference="REF-2024-A03",
-            external_id="SEED-ARCHIVE-003",
-            verse=Verse.FPT.value,
-            category=Category.B.value,
-            publication_date=datetime(2024, 10, 1, tzinfo=UTC),
-            archived_at=timezone.make_aware(datetime(2025, 1, 15)),
-        ),
-    ]
-
-    # ------------------------------------------------------------------ #
-    # Offres du second organisme                                         #
-    # ------------------------------------------------------------------ #
-    offres_briancon = [
-        OfferDjangoFactory(
-            title="Agent technique polyvalent",
-            reference="REF-2025-B01",
-            external_id="SEED-B-ACTIF-001",
-            verse=Verse.FPT.value,
-            category=Category.C.value,
-            publication_date=datetime(2025, 5, 12, tzinfo=UTC),
-        ),
-        OfferDjangoFactory(
-            title="Responsable des services techniques",
-            reference="REF-2025-B02",
-            external_id="SEED-B-ACTIF-002",
-            verse=Verse.FPT.value,
-            category=Category.B.value,
-            publication_date=datetime(2025, 5, 20, tzinfo=UTC),
-        ),
-    ]
-
-    # ------------------------------------------------------------------ #
-    # Candidats (8)                                                      #
-    # ------------------------------------------------------------------ #
-    candidats = [
-        CandidatDjangoFactory(
-            utilisateur__first_name=spec["prenom"],
-            utilisateur__last_name=spec["nom"],
-            utilisateur__email=spec["email"],
-            utilisateur__password=Password(seed_password),
-        )
-        for spec in _CANDIDATS_SPECS
-    ]
-
-    # ------------------------------------------------------------------ #
-    # Recrutements (1 / offre active et archivée): étapes + responsables #
-    # ------------------------------------------------------------------ #
-    marie = agents[0]
-    paul = agents[1]
-    claire = agents[2]
-    marc = agents[4]
-
-    recrutements_specs = [
-        (
-            _ORGANISME_UUID,
-            offres_actives[0],
-            marie,
-            (paul, AgentRecrutementRole.RECRUTEUR),
-        ),
-        (
-            _ORGANISME_UUID,
-            offres_actives[1],
-            marie,
-            (paul, AgentRecrutementRole.RECRUTEUR),
-        ),
-        (
-            _ORGANISME_UUID,
-            offres_actives[2],
-            marie,
-            (paul, AgentRecrutementRole.RECRUTEUR),
-        ),
-        (
-            _ORGANISME_UUID,
-            offres_actives[3],
-            claire,
-            (paul, AgentRecrutementRole.CONTRIBUTEUR),
-        ),
-        (_ORGANISME_UUID, offres_actives[4], claire, None),
-        (_ORGANISME_UUID, offres_actives[5], claire, None),
-        (
-            _ORGANISME_UUID,
-            offres_actives[6],
-            marie,
-            (paul, AgentRecrutementRole.RECRUTEUR),
-        ),
-        (_ORGANISME_UUID, offres_archivees[0], claire, None),
-        (_ORGANISME_UUID, offres_archivees[1], claire, None),
-        (_ORGANISME_UUID, offres_archivees[2], claire, None),
-        (_BRIANCON_UUID, offres_briancon[0], marc, None),
-        (_BRIANCON_UUID, offres_briancon[1], marc, None),
-    ]
-
-    recrutements = []
-    for organisme_uuid, offre, responsable, extra_agent in recrutements_specs:
-        recrutement = RecrutementDjangoFactory(
-            offre=offre,
-            organisme=organismes[organisme_uuid],
-            agent_link__agent=responsable,
-            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
-        )
-        if extra_agent is not None:
-            extra_agent_model, extra_agent_role = extra_agent
-            RecrutementAgentDjangoFactory(
-                recrutement=recrutement,
-                agent=extra_agent_model,
-                role=extra_agent_role.value,
+        organismes = {_ORGANISME_UUID: organisme}
+        for spec in _ORGANISMES_SECONDAIRES_SPECS:
+            organismes[spec["entity_id"]] = OrganismeDjangoFactory(
+                id=spec["entity_id"],
+                nom=spec["nom"],
+                versant=spec["versant"].value,
+                siret=spec["siret"],
+                gestion_ats=False,
+                etapes=EtapeRecrutementFactory.create_entity_batch(),
             )
-        recrutements.append(recrutement)
 
-    # ------------------------------------------------------------------ #
-    # Candidatures                                                       #
-    # ------------------------------------------------------------------ #
-    candidatures_specs = [
-        (candidats[0], offres_actives[0], StatutCandidature.SOUMISE),
-        (candidats[1], offres_actives[0], StatutCandidature.INITIAL),
-        (candidats[2], offres_actives[0], StatutCandidature.SOUMISE),
-        (candidats[0], offres_actives[1], StatutCandidature.SOUMISE),
-        (candidats[3], offres_actives[1], StatutCandidature.INITIAL),
-        (candidats[4], offres_actives[2], StatutCandidature.SOUMISE),
-        (candidats[5], offres_actives[3], StatutCandidature.SOUMISE),
-        (candidats[6], offres_actives[3], StatutCandidature.INITIAL),
-        (candidats[1], offres_actives[4], StatutCandidature.SOUMISE),
-        (candidats[7], offres_actives[5], StatutCandidature.INITIAL),
-    ]
-
-    recrutements_by_offre_id = {
-        r.pk: r  # type: ignore[attr-defined]
-        for r in recrutements
-    }
-    for candidat_model, offre_model, statut in candidatures_specs:
-        recrutement = recrutements_by_offre_id[offre_model.id]
-        etape = recrutement.etapes.get(  # type: ignore[attr-defined]
-            categorie=CategorieEtapeRecrutement.ENTREE.value
+        # -------------------------------------------------------------- #
+        # Métiers                                                        #
+        # -------------------------------------------------------------- #
+        MetierDjangoFactory(
+            libelle_long="Chargé de mission numérique",
+            domaine_fonctionnel_code="NUM",
+            offer_family_code="ERNUM001",
         )
-        CandidatureDjangoFactory(
-            candidat=candidat_model,
-            etape=etape,
-            statut=statut.value,
+        MetierDjangoFactory(
+            libelle_long="Juriste droit public",
+            domaine_fonctionnel_code="JUR",
+            offer_family_code="ERJUR001",
         )
 
-    return {
-        "status": "seeded",
-        "organisme_id": str(organisme.id),
-        "nb_offres_actives": len(offres_actives),
-        "nb_offres_archivees": len(offres_archivees),
-        "nb_candidats": len(candidats),
-        "nb_agents": len(agents),
-        "nb_recrutements": len(recrutements),
-        "seed_password": seed_password,
-        "admin_email": admin.email,
-    }
+        # -------------------------------------------------------------- #
+        # Agents / recruteurs                                            #
+        # -------------------------------------------------------------- #
+        # Mot de passe généré à chaque seed (visible dans les logs de déploiement)
+        seed_password = os.environ.get("SEED_USER_PASSWORD") or secrets.token_urlsafe(
+            16
+        )
+        agents = [
+            AgentDjangoFactory(
+                utilisateur__first_name=spec["prenom"],
+                utilisateur__last_name=spec["nom"],
+                utilisateur__email=spec["email"],
+                utilisateur__password=Password(seed_password),
+            )
+            for spec in _AGENTS_SPECS
+        ]
+
+        # Marie est responsable du premier organisme, Paul et Claire en sont membres.
+        # Marc est membre du premier et responsable du second : c'est lui qui permet
+        # d'éprouver la bascule d'organisme et l'apparition des pages de paramètres.
+        # David ne l'est d'aucun, pour éprouver la navigation vide et le refus d'accès.
+        _ATTACHEMENTS = [
+            (_ORGANISME_UUID, 0, AgentOrganismeRole.RESPONSABLE),
+            (_ORGANISME_UUID, 1, AgentOrganismeRole.MEMBRE),
+            (_ORGANISME_UUID, 2, AgentOrganismeRole.MEMBRE),
+            (_ORGANISME_UUID, 4, AgentOrganismeRole.MEMBRE),
+            (_BRIANCON_UUID, 4, AgentOrganismeRole.RESPONSABLE),
+        ]
+        for organisme_uuid, agent_index, role in _ATTACHEMENTS:
+            OrganismeAgentDjangoFactory(
+                organisme=organismes[organisme_uuid],
+                agent=agents[agent_index],
+                role=role.value,
+            )
+
+        # -------------------------------------------------------------- #
+        # Administrateur (staff, hors organisme)                         #
+        # -------------------------------------------------------------- #
+        admin = UtilisateurDjangoFactory(
+            password=Password(seed_password),
+            is_staff=True,
+            first_name=_ADMIN_SPEC["prenom"],
+            last_name=_ADMIN_SPEC["nom"],
+            email=_ADMIN_SPEC["email"],
+        )
+
+        # -------------------------------------------------------------- #
+        # Offres actives (6)                                             #
+        # -------------------------------------------------------------- #
+        offres_actives = [
+            OfferDjangoFactory(
+                title="Chargé de mission numérique",
+                reference="REF-2025-001",
+                external_id="SEED-ACTIF-001",
+                verse=Verse.FPE.value,
+                category=Category.A.value,
+                publication_date=datetime(2025, 6, 22, tzinfo=UTC),
+            ),
+            OfferDjangoFactory(
+                title="Responsable RH",
+                reference="REF-2025-002",
+                external_id="SEED-ACTIF-002",
+                verse=Verse.FPE.value,
+                category=Category.A.value,
+                publication_date=datetime(2025, 6, 22, tzinfo=UTC),
+            ),
+            OfferDjangoFactory(
+                title="Ingénieur infrastructure cloud",
+                reference="REF-2025-003",
+                external_id="SEED-ACTIF-003",
+                verse=Verse.FPE.value,
+                category=Category.A.value,
+                publication_date=datetime(2025, 6, 21, tzinfo=UTC),
+            ),
+            OfferDjangoFactory(
+                title="Juriste droit public",
+                reference="REF-2025-004",
+                external_id="SEED-ACTIF-004",
+                verse=Verse.FPT.value,
+                category=Category.A.value,
+                publication_date=datetime(2025, 6, 21, tzinfo=UTC),
+            ),
+            OfferDjangoFactory(
+                title="Chargé de communication",
+                reference="REF-2025-005",
+                external_id="SEED-ACTIF-005",
+                verse=Verse.FPE.value,
+                category=Category.B.value,
+                publication_date=datetime(2025, 6, 2, tzinfo=UTC),
+            ),
+            OfferDjangoFactory(
+                title="Analyste budgétaire",
+                reference="REF-2025-006",
+                external_id="SEED-ACTIF-006",
+                verse=Verse.FPE.value,
+                category=Category.A.value,
+                publication_date=datetime(2025, 6, 1, tzinfo=UTC),
+            ),
+            OfferDjangoFactory(
+                title="Chargé de mission",
+                reference="REF-2025-006",
+                external_id="SEED-ACTIF-007",
+                verse=Verse.FPE.value,
+                category=Category.A.value,
+                publication_date=datetime(2025, 6, 1, tzinfo=UTC),
+            ),
+        ]
+
+        # -------------------------------------------------------------- #
+        # Offres archivées (3)                                           #
+        # -------------------------------------------------------------- #
+        offres_archivees = [
+            OfferDjangoFactory(
+                title="Directeur des systèmes d'information",
+                reference="REF-2024-A01",
+                external_id="SEED-ARCHIVE-001",
+                verse=Verse.FPE.value,
+                category=Category.A.value,
+                publication_date=datetime(2024, 12, 1, tzinfo=UTC),
+                archived_at=timezone.make_aware(datetime(2025, 3, 1)),
+            ),
+            OfferDjangoFactory(
+                title="Chef de projet transformation numérique",
+                reference="REF-2024-A02",
+                external_id="SEED-ARCHIVE-002",
+                verse=Verse.FPE.value,
+                category=Category.A.value,
+                publication_date=datetime(2024, 11, 15, tzinfo=UTC),
+                archived_at=timezone.make_aware(datetime(2025, 2, 15)),
+            ),
+            OfferDjangoFactory(
+                title="Conseiller en mobilité professionnelle",
+                reference="REF-2024-A03",
+                external_id="SEED-ARCHIVE-003",
+                verse=Verse.FPT.value,
+                category=Category.B.value,
+                publication_date=datetime(2024, 10, 1, tzinfo=UTC),
+                archived_at=timezone.make_aware(datetime(2025, 1, 15)),
+            ),
+        ]
+
+        # -------------------------------------------------------------- #
+        # Offres du second organisme                                     #
+        # -------------------------------------------------------------- #
+        offres_briancon = [
+            OfferDjangoFactory(
+                title="Agent technique polyvalent",
+                reference="REF-2025-B01",
+                external_id="SEED-B-ACTIF-001",
+                verse=Verse.FPT.value,
+                category=Category.C.value,
+                publication_date=datetime(2025, 5, 12, tzinfo=UTC),
+            ),
+            OfferDjangoFactory(
+                title="Responsable des services techniques",
+                reference="REF-2025-B02",
+                external_id="SEED-B-ACTIF-002",
+                verse=Verse.FPT.value,
+                category=Category.B.value,
+                publication_date=datetime(2025, 5, 20, tzinfo=UTC),
+            ),
+        ]
+
+        # -------------------------------------------------------------- #
+        # Candidats (8)                                                  #
+        # -------------------------------------------------------------- #
+        candidats = [
+            CandidatDjangoFactory(
+                utilisateur__first_name=spec["prenom"],
+                utilisateur__last_name=spec["nom"],
+                utilisateur__email=spec["email"],
+                utilisateur__password=Password(seed_password),
+            )
+            for spec in _CANDIDATS_SPECS
+        ]
+
+        # -------------------------------------------------------------- #
+        # Recrutements (1 / offre active et archivée): étapes + responsables
+        # -------------------------------------------------------------- #
+        marie = agents[0]
+        paul = agents[1]
+        claire = agents[2]
+        marc = agents[4]
+
+        recrutements_specs = [
+            (
+                _ORGANISME_UUID,
+                offres_actives[0],
+                marie,
+                (paul, AgentRecrutementRole.RECRUTEUR),
+            ),
+            (
+                _ORGANISME_UUID,
+                offres_actives[1],
+                marie,
+                (paul, AgentRecrutementRole.RECRUTEUR),
+            ),
+            (
+                _ORGANISME_UUID,
+                offres_actives[2],
+                marie,
+                (paul, AgentRecrutementRole.RECRUTEUR),
+            ),
+            (
+                _ORGANISME_UUID,
+                offres_actives[3],
+                claire,
+                (paul, AgentRecrutementRole.CONTRIBUTEUR),
+            ),
+            (_ORGANISME_UUID, offres_actives[4], claire, None),
+            (_ORGANISME_UUID, offres_actives[5], claire, None),
+            (
+                _ORGANISME_UUID,
+                offres_actives[6],
+                marie,
+                (paul, AgentRecrutementRole.RECRUTEUR),
+            ),
+            (_ORGANISME_UUID, offres_archivees[0], claire, None),
+            (_ORGANISME_UUID, offres_archivees[1], claire, None),
+            (_ORGANISME_UUID, offres_archivees[2], claire, None),
+            (_BRIANCON_UUID, offres_briancon[0], marc, None),
+            (_BRIANCON_UUID, offres_briancon[1], marc, None),
+        ]
+
+        recrutements = []
+        for organisme_uuid, offre, responsable, extra_agent in recrutements_specs:
+            recrutement = RecrutementDjangoFactory(
+                offre=offre,
+                organisme=organismes[organisme_uuid],
+                agent_link__agent=responsable,
+                agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+            )
+            if extra_agent is not None:
+                extra_agent_model, extra_agent_role = extra_agent
+                RecrutementAgentDjangoFactory(
+                    recrutement=recrutement,
+                    agent=extra_agent_model,
+                    role=extra_agent_role.value,
+                )
+            recrutements.append(recrutement)
+
+        # -------------------------------------------------------------- #
+        # Candidatures                                                   #
+        # -------------------------------------------------------------- #
+        candidatures_specs = [
+            (candidats[0], offres_actives[0], StatutCandidature.SOUMISE),
+            (candidats[1], offres_actives[0], StatutCandidature.INITIAL),
+            (candidats[2], offres_actives[0], StatutCandidature.SOUMISE),
+            (candidats[0], offres_actives[1], StatutCandidature.SOUMISE),
+            (candidats[3], offres_actives[1], StatutCandidature.INITIAL),
+            (candidats[4], offres_actives[2], StatutCandidature.SOUMISE),
+            (candidats[5], offres_actives[3], StatutCandidature.SOUMISE),
+            (candidats[6], offres_actives[3], StatutCandidature.INITIAL),
+            (candidats[1], offres_actives[4], StatutCandidature.SOUMISE),
+            (candidats[7], offres_actives[5], StatutCandidature.INITIAL),
+        ]
+
+        recrutements_by_offre_id = {
+            r.pk: r  # type: ignore[attr-defined]
+            for r in recrutements
+        }
+        for candidat_model, offre_model, statut in candidatures_specs:
+            recrutement = recrutements_by_offre_id[offre_model.id]
+            etape = recrutement.etapes.get(  # type: ignore[attr-defined]
+                categorie=CategorieEtapeRecrutement.ENTREE.value
+            )
+            CandidatureDjangoFactory(
+                candidat=candidat_model,
+                etape=etape,
+                statut=statut.value,
+            )
+
+        return {
+            "status": "seeded",
+            "organisme_id": str(organisme.id),
+            "nb_offres_actives": len(offres_actives),
+            "nb_offres_archivees": len(offres_archivees),
+            "nb_candidats": len(candidats),
+            "nb_agents": len(agents),
+            "nb_recrutements": len(recrutements),
+            "seed_password": seed_password,
+            "admin_email": admin.email,
+        }
