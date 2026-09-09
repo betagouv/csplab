@@ -31,9 +31,18 @@ def main(service: str, names_only: bool = False) -> None:
     client = (
         Client.from_config_file_and_env() if config_file.exists() else Client.from_env()
     )
+    # The Scaleway SDK auto-fills organization_id from the profile on every
+    # request; combined with project_id, the API silently returns zero
+    # secrets instead of an error. Clear it so listing stays project-scoped.
+    # https://github.com/scaleway/scaleway-sdk-python/issues/2147
+    client.default_organization_id = None
     api = SecretV1Beta1API(client)
 
-    for secret in api.list_secrets_all(path=secret_path, scheduled_for_deletion=False):
+    for secret in api.list_secrets_all(
+        path=secret_path,
+        scheduled_for_deletion=False,
+        project_id=client.default_project_id,
+    ):
         name = secret.name.upper()
         if names_only:
             print(name)
