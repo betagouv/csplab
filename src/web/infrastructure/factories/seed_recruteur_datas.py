@@ -206,7 +206,7 @@ _OFFRES_ACTIVES_SPECS = [
     },
     {
         "title": "Chargé de mission",
-        "reference": "REF-2025-006",
+        "reference": "REF-2025-007",
         "external_id": "SEED-ACTIF-007",
         "verse": Verse.FPE.value,
         "category": Category.A.value,
