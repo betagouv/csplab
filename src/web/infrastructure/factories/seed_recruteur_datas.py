@@ -504,7 +504,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         "status": "seeded",
         "organisme_id": str(organisme.id),
         "nb_offres_actives": len(offres_actives),
-        "nb_offres_archivees": 3,
+        "nb_offres_archivees": len(offres_archivees),
         "nb_candidats": len(candidats),
         "nb_agents": len(agents),
         "nb_recrutements": len(recrutements),
