@@ -25,30 +25,6 @@ class TestAgentRechercheView:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_responsable_finds_agent_by_email(self, authenticated_client, test_user):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
-            utilisateur=test_user,
-        )
-        autre_agent = AgentDjangoFactory()
-        url = reverse(
-            "recruteur:organisme-parametres-agents-recherche",
-            kwargs={"organisme_uuid": str(organisme.id)},
-        )
-
-        response = authenticated_client.get(
-            url, {"email": autre_agent.utilisateur.email}
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {
-            "agent_id": str(autre_agent.utilisateur_id),
-            "email": autre_agent.utilisateur.email,
-            "prenom": autre_agent.utilisateur.first_name,
-            "nom": autre_agent.utilisateur.last_name,
-            "intitule_poste": autre_agent.intitule_poste,
-        }
-
     def test_unknown_email_returns_404(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.RESPONSABLE,
@@ -117,3 +93,29 @@ class TestAgentRechercheView:
         response = authenticated_client.get(url, {"email": "not-an-email"})
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+class TestAgentRechercheViewDbVerified:
+    def test_get_returns_persisted_agent(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+        )
+        autre_agent = AgentDjangoFactory()
+        url = reverse(
+            "recruteur:organisme-parametres-agents-recherche",
+            kwargs={"organisme_uuid": str(organisme.id)},
+        )
+
+        response = authenticated_client.get(
+            url, {"email": autre_agent.utilisateur.email}
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {
+            "agent_id": str(autre_agent.utilisateur_id),
+            "email": autre_agent.utilisateur.email,
+            "prenom": autre_agent.utilisateur.first_name,
+            "nom": autre_agent.utilisateur.last_name,
+            "intitule_poste": autre_agent.intitule_poste,
+        }
