@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
@@ -44,6 +45,10 @@ NOMBRE_REQUETES_ACTIFS_ATTENDU = (
     + 1  # agent's role
     + 2  # pagination: count + page
     + 1  # prefetch agents_liaisons
+)
+NOMBRE_REQUETES_ARCHIVES_ATTENDU = (
+    NOMBRE_REQUETES_ACTIFS_ATTENDU
+    + 2  # prefetch etapes_acceptees + nested candidatures
 )
 
 
@@ -299,5 +304,58 @@ class TestRecrutementsActifsViewDbVerified:
 
         with django_assert_num_queries(NOMBRE_REQUETES_ACTIFS_ATTENDU):
             response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestRecrutementsArchivesViewDbVerified:
+    def test_returns_persisted_archives(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(
+            archived_at=datetime(2025, 6, 1, tzinfo=timezone.utc),
+            contract_type=ContractType.TERRITORIAL.value,
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        membre = recrutement.agents_liaisons.get().agent
+
+        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == 1
+        result = data["results"][0]
+        assert result["offer_id"] == str(offer.id)
+        assert result["intitule"] == offer.title
+        assert result["reference_csp"] == (offer.code_emploi_csp or "")
+        assert result["type_contrat"] == offer.contract_type
+        assert result["responsables"] == [
+            {
+                "nom": (
+                    f"{membre.utilisateur.first_name} "
+                    f"{membre.utilisateur.last_name}"
+                ).strip()
+            }
+        ]
+        assert result["finalise"] is False
+        assert result["recrute"] is None
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, test_user, django_assert_num_queries
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        RecrutementDjangoFactory.create_batch(
+            5, organisme=organisme, offre_archivee=True
+        )
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ARCHIVES_ATTENDU):
+            response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
 
         assert response.status_code == status.HTTP_200_OK
