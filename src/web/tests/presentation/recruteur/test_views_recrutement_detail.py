@@ -589,3 +589,22 @@ class TestRecrutementDetailViewDbVerified:
             "siret": organisme.siret,
         }
         assert len(data["etapes"]) == len(recrutement.ordre_etapes)
+
+
+class TestRecrutementKanbanViewDbVerified:
+    def test_returns_persisted_kanban(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+
+        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["offer_id"] == str(recrutement.offre_id)
+        assert len(data["etapes"]) == len(recrutement.ordre_etapes)
+        assert data["etapes"][0]["candidatures"] == []

@@ -285,8 +285,7 @@ class TestRecrutementsActifsViewDbVerified:
         assert result["responsables"] == [
             {
                 "nom": (
-                    f"{membre.utilisateur.first_name} "
-                    f"{membre.utilisateur.last_name}"
+                    f"{membre.utilisateur.first_name} {membre.utilisateur.last_name}"
                 ).strip()
             }
         ]
@@ -335,8 +334,7 @@ class TestRecrutementsArchivesViewDbVerified:
         assert result["responsables"] == [
             {
                 "nom": (
-                    f"{membre.utilisateur.first_name} "
-                    f"{membre.utilisateur.last_name}"
+                    f"{membre.utilisateur.first_name} {membre.utilisateur.last_name}"
                 ).strip()
             }
         ]
