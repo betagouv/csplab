@@ -175,3 +175,50 @@ class TestRecrutementAgentsView:
             response = authenticated_client.get(_url(organisme.id, recrutement.pk))
 
         assert response.status_code == status.HTTP_200_OK
+
+
+class TestRecrutementAgentsViewPost:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        payload = {
+            "agent_id": str(uuid4()),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
+
+        response = api_client.post(_url(uuid4(), uuid4()), payload)
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_returns_400_for_invalid_role(self, authenticated_client):
+        payload = {"agent_id": str(uuid4()), "recrutement_role": "inconnu"}
+
+        response = authenticated_client.post(_url(uuid4(), uuid4()), payload)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_returns_400_for_missing_agent_id(self, authenticated_client):
+        payload = {"recrutement_role": AgentRecrutementRole.RECRUTEUR.value}
+
+        response = authenticated_client.post(_url(uuid4(), uuid4()), payload)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_returns_201_with_recrutement_agent_shape_for_valid_payload(
+        self, authenticated_client
+    ):
+        agent_id = uuid4()
+        payload = {
+            "agent_id": str(agent_id),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
+
+        response = authenticated_client.post(_url(uuid4(), uuid4()), payload)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json() == {
+            "agent_id": str(agent_id),
+            "nom": "Nom",
+            "prenom": "Prenom",
+            "poste": "Poste",
+            "email": "prenom.nom@test.com",
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
