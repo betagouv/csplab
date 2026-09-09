@@ -4,6 +4,7 @@ from uuid import UUID
 import pytest
 from django.urls import reverse
 from faker import Faker
+from referentiel.value_objects.contract_type import ContractType
 from rest_framework import status
 
 from application.recruteur.dtos.recrutement_read_models import (
@@ -12,7 +13,17 @@ from application.recruteur.dtos.recrutement_read_models import (
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 
 fake = Faker()
 
@@ -25,6 +36,14 @@ RECRUTEMENTS_ACTIFS_URL = reverse(
 RECRUTEMENTS_ARCHIVES_URL = reverse(
     "recruteur:organisme-recrutements-archives",
     kwargs={"organisme_uuid": ORGANISME_UUID},
+)
+
+NOMBRE_REQUETES_ACTIFS_ATTENDU = (
+    2  # authentication (view + RateLimitHeadersMiddleware)
+    + 1  # organisme
+    + 1  # agent's role
+    + 2  # pagination: count + page
+    + 1  # prefetch agents_liaisons
 )
 
 
@@ -233,3 +252,52 @@ class TestRecrutementsArchivesView:
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
+
+
+class TestRecrutementsActifsViewDbVerified:
+    def test_returns_persisted_actifs(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(
+            archived_at=None, contract_type=ContractType.TERRITORIAL.value
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        membre = recrutement.agents_liaisons.get().agent
+
+        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == 1
+        result = data["results"][0]
+        assert result["offer_id"] == str(offer.id)
+        assert result["intitule"] == offer.title
+        assert result["reference_csp"] == (offer.code_emploi_csp or "")
+        assert result["type_contrat"] == offer.contract_type
+        assert result["responsables"] == [
+            {
+                "nom": (
+                    f"{membre.utilisateur.first_name} "
+                    f"{membre.utilisateur.last_name}"
+                ).strip()
+            }
+        ]
+        assert result["candidatures"] == {"total": 0, "a_traiter": 0, "en_cours": 0}
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, test_user, django_assert_num_queries
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        RecrutementDjangoFactory.create_batch(5, organisme=organisme)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ACTIFS_ATTENDU):
+            response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
+
+        assert response.status_code == status.HTTP_200_OK
