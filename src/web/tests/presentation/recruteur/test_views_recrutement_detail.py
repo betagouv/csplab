@@ -661,3 +661,33 @@ class TestRecrutementListeViewDbVerified:
             response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
         assert response.status_code == status.HTTP_200_OK
+
+
+class TestRecrutementCandidaturesEtapeViewDbVerified:
+    def test_moves_candidature_and_persists_it(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        origine, cible = list(EtapeModel.objects.filter(recrutement=recrutement))[:2]
+        candidature = CandidatureDjangoFactory(etape=origine)
+
+        response = authenticated_client.patch(
+            RECRUTEMENT_CANDIDATURES_ETAPE_URL,
+            data={
+                "etape_cible_uuid": str(cible.id),
+                "candidatures": [{"candidature_uuid": str(candidature.id)}],
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["reussites"] == [str(candidature.id)]
+        assert data["echecs"] == []
+
+        candidature.refresh_from_db()
+        assert str(candidature.etape_id) == str(cible.id)
