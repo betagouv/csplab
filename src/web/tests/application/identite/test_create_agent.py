@@ -57,9 +57,6 @@ def usecase_fixture(permission_service, agent_repository, utilisateur_repository
 def _input() -> CreateAgentInput:
     return CreateAgentInput(
         email=fake.email(),
-        prenom=fake.first_name(),
-        nom=fake.last_name(),
-        intitule_poste=fake.job(),
         organisme_id=uuid4(),
         utilisateur=UtilisateurFactory.create_entity(),
     )

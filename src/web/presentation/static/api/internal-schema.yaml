@@ -3278,21 +3278,12 @@ components:
         email:
           type: string
           format: email
-        prenom:
-          type: string
-        nom:
-          type: string
-        intitule_poste:
-          type: string
         organisme_id:
           type: string
           format: uuid
       required:
       - email
-      - intitule_poste
-      - nom
       - organisme_id
-      - prenom
     CreateOrganisme:
       type: object
       properties:
@@ -4142,12 +4133,6 @@ components:
           format: uuid
         role:
           $ref: '#/components/schemas/RoleEnum'
-        nom:
-          type: string
-        prenom:
-          type: string
-        poste:
-          type: string
         date_revocation:
           type: string
           format: date-time

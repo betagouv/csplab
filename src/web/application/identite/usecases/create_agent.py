@@ -20,9 +20,6 @@ from domain.identite.value_objects.organisme_action import OrganismeAction
 @dataclass
 class CreateAgentInput:
     email: EmailStr
-    prenom: str
-    nom: str
-    intitule_poste: str
     organisme_id: UUID
     utilisateur: Utilisateur
 
@@ -58,18 +55,11 @@ class CreateAgentUsecase:
             )
         except UtilisateurNexistePas:
             agent_utilisateur = self.utilisateur_repository.create(
-                Utilisateur(
-                    email=input_data.email,
-                    prenom=input_data.prenom,
-                    nom=input_data.nom,
-                )
+                Utilisateur(email=input_data.email)
             )
 
         agent = Agent.create(
             email=input_data.email,
-            prenom=input_data.prenom,
-            nom=input_data.nom,
-            intitule_poste=input_data.intitule_poste,
             user_id=agent_utilisateur.entity_id,
         )
 

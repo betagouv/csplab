@@ -446,9 +446,6 @@ export interface components {
         CreateAgent: {
             /** Format: email */
             email: string;
-            prenom: string;
-            nom: string;
-            intitule_poste: string;
             /** Format: uuid */
             organisme_id: string;
         };
@@ -847,9 +844,6 @@ export interface components {
             /** Format: uuid */
             agent_id: string;
             role: components["schemas"]["RoleEnum"];
-            nom?: string;
-            prenom?: string;
-            poste?: string;
             /** Format: date-time */
             date_revocation?: string;
         };

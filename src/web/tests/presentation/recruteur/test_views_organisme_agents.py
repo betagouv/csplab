@@ -231,8 +231,6 @@ class TestOrganismeAgentsView:
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
                 "role": AgentOrganismeRole.RESPONSABLE.value,
-                # ignored: role update only, not persisted by this usecase yet
-                "poste": "Directeur des recrutements",
             },
             format="json",
         )
@@ -241,7 +239,6 @@ class TestOrganismeAgentsView:
         data = response.json()
         assert data["agent_id"] == str(autre_agent.utilisateur_id)
         assert data["role"] == AgentOrganismeRole.RESPONSABLE.value
-        assert data["poste"] == "Recruteur"
         assert (
             OrganismeAgentModel.objects.get(
                 organisme_id=organisme.id, agent_id=autre_agent.utilisateur_id
