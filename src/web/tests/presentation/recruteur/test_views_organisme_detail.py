@@ -565,3 +565,19 @@ class TestEtapesRecrutementOrganismeViewDbVerified:
         assert [e["nom"] for e in organisme.etapes] == [
             e["nom"] for e in VALID_ETAPES_PAYLOAD
         ]
+
+
+class TestInitEtapesRecrutementOrganismeViewDbVerified:
+    def test_post_initializes_and_persists_default_etapes(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        response = staff_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        assert len(data) > 0
+        assert data[0]["categorie"] == "ENTREE"
+
+        organisme = OrganismeModel.objects.get(id=UUID(ORGANISME_UUID))
+        assert organisme.etapes
+        assert len(organisme.etapes) == len(data)
