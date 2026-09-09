@@ -162,6 +162,14 @@ UNKNOWN_RECRUTEMENT_DETAIL_URL = reverse(
     },
 )
 
+NOMBRE_REQUETES_LISTE_ATTENDU = (
+    2  # authentication (view + RateLimitHeadersMiddleware)
+    + 1  # organisme
+    + 1  # agent's role
+    + 1  # recrutement belongs to organisme (exists check)
+    + 2  # pagination: count + page
+)
+
 
 @pytest.fixture
 def container():
@@ -608,3 +616,48 @@ class TestRecrutementKanbanViewDbVerified:
         assert data["offer_id"] == str(recrutement.offre_id)
         assert len(data["etapes"]) == len(recrutement.ordre_etapes)
         assert data["etapes"][0]["candidatures"] == []
+
+
+class TestRecrutementListeViewDbVerified:
+    def test_returns_persisted_candidatures(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        etape = EtapeModel.objects.filter(recrutement=recrutement).first()
+        candidature = CandidatureDjangoFactory(etape=etape)
+
+        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == 1
+        result = data["results"][0]
+        assert result["uuid"] == str(candidature.id)
+        assert result["candidat"]["nom"] == candidature.candidat.utilisateur.last_name
+        assert result["candidat"]["prenom"] == (
+            candidature.candidat.utilisateur.first_name
+        )
+        assert result["etape"]["etape_uuid"] == str(etape.id)
+        assert result["etape"]["nom"] == etape.nom
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, test_user, django_assert_num_queries
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        etape = EtapeModel.objects.filter(recrutement=recrutement).first()
+        CandidatureDjangoFactory.create_batch(5, etape=etape)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_LISTE_ATTENDU):
+            response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        assert response.status_code == status.HTTP_200_OK
