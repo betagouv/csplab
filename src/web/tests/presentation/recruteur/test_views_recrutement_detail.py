@@ -25,8 +25,22 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
+)
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
 from infrastructure.factories.recruteur.candidature_recruteur_factory import (
     CandidatureRecruteurFactory,
+)
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
 )
 
 fake = Faker()
@@ -548,3 +562,30 @@ class TestRecrutementCandidaturesEtapeView:
         )
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
+
+
+class TestRecrutementDetailViewDbVerified:
+    def test_returns_persisted_detail(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(
+            id=UUID(RECRUTEMENT_UUID), archived_at=None, category="A"
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+
+        response = authenticated_client.get(RECRUTEMENT_DETAIL_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["offer_id"] == str(offer.id)
+        assert data["intitule"] == offer.title
+        assert data["archive"] is False
+        assert data["categorie_offre"] == offer.category
+        assert data["organisme_recruteur"] == {
+            "nom": organisme.nom,
+            "siret": organisme.siret,
+        }
+        assert len(data["etapes"]) == len(recrutement.ordre_etapes)
