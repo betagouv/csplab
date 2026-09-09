@@ -11,9 +11,10 @@ mapping is described declaratively as CSV files under
   :class:`OffersCleaner` already knows how to map to a domain value.
 
 Add support for a new Source by dropping a new ``data/<slug>/`` directory
-with the relevant CSV files; no code change is required to load it. Each
-``data/<slug>/`` directory documents, in its own README, which of its CSVs
-are actually consulted by :class:`OffersCleaner` (see ``data/ars/README.md``).
+with the relevant CSV files; no code change is required to load it. Not
+every CSV under a Source's directory is necessarily consulted by
+:class:`OffersCleaner` — see its ``translate(...)`` call sites for the
+fields actually mapped.
 """
 
 import csv
