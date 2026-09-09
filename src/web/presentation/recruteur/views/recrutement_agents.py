@@ -96,7 +96,10 @@ class RecrutementAgentsView(ListAPIView):
                 GenericErrorSerializer({"error": str(serializer.errors)}).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        return Response(
+            RecrutementAgentRoleSerializer(serializer.validated_data).data,
+            status=status.HTTP_200_OK,
+        )
 
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(exc, (AccesOrganismeRefuse, OperationOrganismeRefusee)):
