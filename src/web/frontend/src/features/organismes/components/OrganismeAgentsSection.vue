@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Role } from '../types'
 import { computed, ref, useTemplateRef, watch } from 'vue'
-import { HttpError, ValidationError } from '@/api/errors'
+import { HttpError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -15,6 +15,7 @@ import { useToast } from '@/composables/ui/useToast'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
 import { useAgentActions } from '../composables/useAgentActions'
+import { useAjoutMembre } from '../composables/useAjoutMembre'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
 import { ROLE_LABELS } from '../constants/organisme'
 import { formatAgentName } from '../format'
@@ -26,7 +27,8 @@ const props = defineProps<{
 
 const PAGE_SIZE = 8
 
-const { agents, pending, error, attachAgent, attachingAgent, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
+const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
+const { status, foundAgent, searching, search: searchAgent, attach, attaching, reset } = useAjoutMembre(props.organismeUuid)
 const { roleChange, clearRoleChange, revocationAgent, clearRevocation } = useAgentActions()
 const { addToast } = useToast()
 
@@ -37,9 +39,21 @@ const revocationDialogOpen = ref(false)
 const attachDrawerOpen = ref(false)
 const attachDrawer = useTemplateRef('attachDrawer')
 
-async function handleAttach(payload: { agent_id: string, role: Role }) {
+async function handleSearch(email: string) {
   try {
-    const agent = await attachAgent(payload)
+    await searchAgent(email)
+  }
+  catch {
+    addToast({ variant: 'error', title: 'La recherche a échoué' })
+  }
+}
+
+async function handleAttach(role: Role) {
+  if (!foundAgent.value)
+    return
+  const agent = foundAgent.value
+  try {
+    await attach(role)
     addToast({
       variant: 'success',
       title: 'Membre ajouté',
@@ -48,21 +62,18 @@ async function handleAttach(payload: { agent_id: string, role: Role }) {
     attachDrawerOpen.value = false
   }
   catch (submitError) {
-    if (submitError instanceof ValidationError && submitError.fieldErrors.agent_id) {
-      attachDrawer.value?.setAgentIdError(submitError.fieldErrors.agent_id.join(' '))
-      return
-    }
-    if (submitError instanceof HttpError && submitError.status === 404) {
-      attachDrawer.value?.setAgentIdError('Aucun agent ne correspond à cet identifiant.')
-      return
-    }
     if (submitError instanceof HttpError && submitError.status === 409) {
-      attachDrawer.value?.setAgentIdError('Cet agent est déjà rattaché à l\'organisme.')
+      attachDrawer.value?.setEmailError('Cet agent est déjà rattaché à l\'organisme.')
       return
     }
     addToast({ variant: 'error', title: 'L\'ajout du membre a échoué' })
   }
 }
+
+watch(attachDrawerOpen, (isOpen) => {
+  if (!isOpen)
+    reset()
+})
 
 const rows = computed(() => agents.value ?? [])
 
@@ -201,8 +212,13 @@ async function handleRevocation(): Promise<void> {
     <AttachAgentDrawer
       ref="attachDrawer"
       v-model:open="attachDrawerOpen"
-      :submitting="attachingAgent"
+      :status="status"
+      :agent="foundAgent"
+      :searching="searching"
+      :submitting="attaching"
+      @search="handleSearch"
       @attach="handleAttach"
+      @reset="reset"
     />
 
     <CspDialog

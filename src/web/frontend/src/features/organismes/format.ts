@@ -1,11 +1,15 @@
-import type { AgentOrganisme } from './types'
 import { ROLE_LABELS } from './constants/organisme'
 
-export function formatAgentName(agent: AgentOrganisme): string {
+interface AgentIdentite {
+  prenom: string
+  nom: string
+}
+
+export function formatAgentName(agent: AgentIdentite): string {
   return `${agent.prenom} ${agent.nom}`.trim()
 }
 
-export function formatAgentNameAlphabetical(agent: AgentOrganisme): string {
+export function formatAgentNameAlphabetical(agent: AgentIdentite): string {
   return `${agent.nom} ${agent.prenom}`.trim()
 }
 
