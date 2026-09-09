@@ -168,11 +168,6 @@ def _delete_seed_data() -> None:
     ).values_list("id", flat=True)
     RecrutementModel.objects.filter(offre_id__in=seed_offre_ids).delete()  # type: ignore[attr-defined]
 
-    seed_usernames = list(
-        UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).values_list(
-            "username", flat=True
-        )
-    )
     OrganismeAgentModel.objects.filter(
         organisme_id__in=_ALL_SEED_ORGANISME_UUIDS
     ).delete()
