@@ -11,6 +11,12 @@ from application.recruteur.usecases.editer_note import EditerNoteCommand
 from application.recruteur.usecases.supprimer_note import SupprimerNoteCommand
 from domain.recruteur.errors.note_errors import NoteIntrouvable
 from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
+from infrastructure.django_apps.recruteur.models.note import NoteModel
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
+)
+from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
+from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
 from infrastructure.factories.recruteur.note_factory import NoteFactory
 
 fake = Faker()
@@ -155,3 +161,67 @@ class TestNoteDetailView:
         response = authenticated_client.delete(NOTE_DETAIL_URL)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+class TestCandidatureNotesViewDbVerified:
+    def test_returns_persisted_notes(self, authenticated_client):
+        candidature = CandidatureDjangoFactory(id=UUID(CANDIDATURE_UUID))
+        note = NoteDjangoFactory(candidature=candidature, message="Bon profil")
+
+        response = authenticated_client.get(NOTES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["entity_id"] == str(note.id)
+        assert data[0]["message"] == "Bon profil"
+        assert data[0]["publie_par_id"] == str(note.publie_par_id)
+        assert data[0]["publie_par_prenom"] == note.publie_par.utilisateur.first_name
+        assert data[0]["publie_par_nom"] == note.publie_par.utilisateur.last_name
+
+    def test_post_creates_and_persists_the_note(self, authenticated_client, test_user):
+        AgentDjangoFactory(utilisateur=test_user)
+        CandidatureDjangoFactory(id=UUID(CANDIDATURE_UUID))
+
+        response = authenticated_client.post(
+            NOTES_URL, data={"message": "Nouvelle note"}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        assert data["message"] == "Nouvelle note"
+        assert data["candidature_id"] == CANDIDATURE_UUID
+        assert data["publie_par_id"] == str(test_user.username)
+
+        note = NoteModel.objects.get(id=data["entity_id"])
+        assert note.message == "Nouvelle note"
+        assert str(note.publie_par_id) == str(test_user.username)
+
+
+class TestCandidatureNoteDetailViewDbVerified:
+    def test_patch_updates_and_persists_the_note(self, authenticated_client, test_user):
+        agent = AgentDjangoFactory(utilisateur=test_user)
+        candidature = CandidatureDjangoFactory(id=UUID(CANDIDATURE_UUID))
+        NoteDjangoFactory(id=UUID(NOTE_UUID), candidature=candidature, publie_par=agent)
+
+        response = authenticated_client.patch(
+            NOTE_DETAIL_URL, data={"message": "Message modifié"}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["message"] == "Message modifié"
+
+        note = NoteModel.objects.get(id=UUID(NOTE_UUID))
+        assert note.message == "Message modifié"
+
+    def test_delete_removes_the_note(self, authenticated_client, test_user):
+        agent = AgentDjangoFactory(utilisateur=test_user)
+        candidature = CandidatureDjangoFactory(id=UUID(CANDIDATURE_UUID))
+        NoteDjangoFactory(id=UUID(NOTE_UUID), candidature=candidature, publie_par=agent)
+
+        response = authenticated_client.delete(NOTE_DETAIL_URL)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        note = NoteModel.objects.get(id=UUID(NOTE_UUID))
+        assert note.supprimee_le is not None
