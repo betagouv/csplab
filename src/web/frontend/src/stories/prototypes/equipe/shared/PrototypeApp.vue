@@ -31,6 +31,10 @@ const INITIAL_PAGES: Record<InitialPage, ProtoPage> = {
 const proto = useEquipePrototype(props.persona, INITIAL_PAGES[props.initialPage])
 provideEquipePrototype(proto)
 
+watch(() => props.persona, (value) => {
+  proto.persona.value = value
+})
+
 const page = computed(() => proto.page.value)
 
 const route = useRoute()

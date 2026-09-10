@@ -1,21 +1,14 @@
 <script setup lang="ts">
-import type { Persona } from '../data/mock'
-import type { CspSegmentedControlOption } from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
 import { computed } from 'vue'
-import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
 import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
 import CspSidebarItem from '@/components/layout/CspSidebar/CspSidebarItem.vue'
 import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarProvider from '@/components/layout/CspSidebar/CspSidebarProvider.vue'
 import CspSidebarTrigger from '@/components/layout/CspSidebar/CspSidebarTrigger.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
-import { PERSONAS } from '../data/mock'
 import { useEquipePrototypeContext } from './context'
 
 const proto = useEquipePrototypeContext()
-
-const PERSONA_OPTIONS: CspSegmentedControlOption<Persona>[] = (Object.keys(PERSONAS) as Persona[])
-  .map(value => ({ value, label: PERSONAS[value].label }))
 
 const recrutementsActifs = computed(() => proto.page.value.name !== 'parametres-organisme')
 </script>
@@ -57,18 +50,6 @@ const recrutementsActifs = computed(() => proto.page.value.name !== 'parametres-
         <header class="proto-shell__mobile-header">
           <CspSidebarTrigger />
         </header>
-        <div class="proto-shell__persona">
-          <CspSegmentedControl
-            v-model="proto.persona.value"
-            legend="Point de vue"
-            inline-legend
-            size="sm"
-            :options="PERSONA_OPTIONS"
-          />
-          <p class="proto-shell__persona-description">
-            {{ proto.utilisateur.value.description }}
-          </p>
-        </div>
         <div class="proto-shell__main">
           <slot />
         </div>
@@ -111,22 +92,6 @@ const recrutementsActifs = computed(() => proto.page.value.name !== 'parametres-
   @media (width <= 768px) {
     display: flex;
   }
-}
-
-.proto-shell__persona {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--csp-space-2) var(--csp-space-4);
-  padding: var(--csp-space-2) var(--csp-page-container-padding-inline);
-  background: var(--background-alt-grey);
-  border-bottom: 1px solid var(--border-default-grey);
-}
-
-.proto-shell__persona-description {
-  margin: 0;
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
 }
 
 .proto-shell__main {

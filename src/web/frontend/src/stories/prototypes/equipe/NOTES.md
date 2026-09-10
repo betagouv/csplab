@@ -8,7 +8,7 @@ Expérience cible des issues #931, #1053, #934, #935, #936 et #937 (epic « Rôl
 - Paramètres d'un recrutement : équipe (ajout, changement de rôle, retrait), invitation à la volée, fil d'activité.
 - Paramètres de l'organisme : membres (création de compte, changement de rôle, révocation), journal d'audit.
 - État vide de l'agent rattaché à aucun recrutement.
-- Sélecteur de point de vue (Gestionnaire, Responsable, Recruteur, Agent sans offre, Admin) qui rejoue chaque écran avec les droits du rôle.
+- Contrôle « Point de vue » (Gestionnaire, Responsable, Recruteur, Agent sans offre, Admin) dans le panneau Controls de Storybook, qui rejoue chaque écran avec les droits du rôle en conservant les données en cours.
 
 ## Règles appliquées
 
